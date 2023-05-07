@@ -1868,13 +1868,13 @@ static void UI_OT_editsource(wmOperatorType *ot)
 static void edittranslation_find_po_file(const char *root,
                                          const char *uilng,
                                          char *path,
-                                         const size_t maxlen)
+                                         const size_t path_maxncpy)
 {
   char tstr[32]; /* Should be more than enough! */
 
   /* First, full lang code. */
   BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
-  BLI_path_join(path, maxlen, root, uilng, tstr);
+  BLI_path_join(path, path_maxncpy, root, uilng, tstr);
   if (BLI_is_file(path)) {
     return;
   }
@@ -1899,9 +1899,9 @@ static void edittranslation_find_po_file(const char *root,
         BLI_strncpy(tstr + szt, tc, sizeof(tstr) - szt);
       }
 
-      BLI_path_join(path, maxlen, root, tstr);
+      BLI_path_join(path, path_maxncpy, root, tstr);
       BLI_strncat(tstr, ".po", sizeof(tstr));
-      BLI_path_append(path, maxlen, tstr);
+      BLI_path_append(path, path_maxncpy, tstr);
       if (BLI_is_file(path)) {
         return;
       }

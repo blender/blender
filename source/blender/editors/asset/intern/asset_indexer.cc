@@ -900,10 +900,10 @@ static void update_index(const char *filename, FileIndexerEntries *entries, void
   asset_index_file.write_contents(content);
 }
 
-static void *init_user_data(const char *root_directory, size_t root_directory_maxlen)
+static void *init_user_data(const char *root_directory, size_t root_directory_maxncpy)
 {
   AssetLibraryIndex *library_index = MEM_new<AssetLibraryIndex>(
-      __func__, StringRef(root_directory, BLI_strnlen(root_directory, root_directory_maxlen)));
+      __func__, StringRef(root_directory, BLI_strnlen(root_directory, root_directory_maxncpy)));
   library_index->collect_preexisting_file_indices();
   library_index->remove_broken_index_files();
   return library_index;

@@ -816,8 +816,8 @@ bool bone_autoside_name(
     }
 
     /* Subtract 1 from #MAXBONENAME for the null byte. Add 1 to the extension for the '.' */
-    const int basename_maxlen = (MAXBONENAME - 1) - (1 + strlen(extension));
-    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxlen, basename, extension);
+    const int basename_maxncpy = (MAXBONENAME - 1) - (1 + strlen(extension));
+    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxncpy, basename, extension);
 
     return true;
   }

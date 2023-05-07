@@ -90,7 +90,7 @@ static void textview_draw_sel(const char *str,
  * \return The length in bytes.
  */
 static int textview_wrap_offsets(
-    const char *str, int len, int width, int *r_lines, int **r_offsets)
+    const char *str, const int str_len, const int width, int *r_lines, int **r_offsets)
 {
   int i, end; /* Offset as unicode code-point. */
   int j;      /* Offset as bytes. */
@@ -99,11 +99,11 @@ static int textview_wrap_offsets(
 
   *r_offsets = MEM_callocN(
       sizeof(**r_offsets) *
-          (len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
+          (str_len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
       __func__);
   (*r_offsets)[0] = 0;
 
-  for (i = 0, end = width, j = 0; j < len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
+  for (i = 0, end = width, j = 0; j < str_len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
     int columns = BLI_str_utf8_char_width_safe(str + j);
 
     if (i + columns > end) {

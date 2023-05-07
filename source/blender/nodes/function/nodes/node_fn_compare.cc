@@ -173,7 +173,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
+static void node_label(const bNodeTree * /*tree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
   const char *name;
@@ -181,7 +184,7 @@ static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *labe
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy(label, IFACE_(name), label_maxncpy);
 }
 
 static float component_average(float3 a)

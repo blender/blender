@@ -142,7 +142,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
  * \param str: is the entire string to chop.
  * \param prefix: is the part of the string to step over.
  * \param result: The buffer to fill.
- * \param result_maxlen: The maximum size of the buffer (including nil terminator).
+ * \param result_maxncpy: The maximum size of the buffer (including nil terminator).
  * \return True if the prefix was found and the entire quoted string was copied into result.
  *
  * Assume that the strings returned must be freed afterwards,
@@ -151,7 +151,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
-                           size_t result_maxlen);
+                           size_t result_maxncpy);
 /**
  * string with all instances of substr_old replaced with substr_new,
  * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
@@ -522,14 +522,14 @@ bool BLI_string_all_words_matched(const char *name,
  * Find the ranges needed to split \a str into its individual words.
  *
  * \param str: The string to search for words.
- * \param len: Size of the string to search.
+ * \param str_maxlen: Size of the string to search (ignored when larger than `strlen(str)`).
  * \param delim: Character to use as a delimiter.
  * \param r_words: Info about the words found. Set to [index, len] pairs.
  * \param words_max: Max number of words to find
  * \return The number of words found in \a str
  */
 int BLI_string_find_split_words(const char *str,
-                                size_t len,
+                                size_t str_maxlen,
                                 char delim,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 4);

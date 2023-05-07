@@ -534,15 +534,15 @@ void BLI_str_replace_char(char *str, char src, char dst)
 }
 
 bool BLI_str_replace_table_exact(char *string,
-                                 const size_t string_len,
+                                 const size_t string_maxncpy,
                                  const char *replace_table[][2],
                                  int replace_table_len)
 {
-  BLI_string_debug_size_after_nil(string, string_len);
+  BLI_string_debug_size_after_nil(string, string_maxncpy);
 
   for (int i = 0; i < replace_table_len; i++) {
     if (STREQ(string, replace_table[i][0])) {
-      BLI_strncpy(string, replace_table[i][1], string_len);
+      BLI_strncpy(string, replace_table[i][1], string_maxncpy);
       return true;
     }
   }
@@ -1072,19 +1072,19 @@ size_t BLI_str_partition_ex(const char *str,
 }
 
 int BLI_string_find_split_words(
-    const char *str, const size_t len, const char delim, int r_words[][2], int words_max)
+    const char *str, const size_t str_maxlen, const char delim, int r_words[][2], int words_max)
 {
   int n = 0, i;
   bool charsearch = true;
 
   /* Skip leading spaces */
-  for (i = 0; (i < len) && (str[i] != '\0'); i++) {
+  for (i = 0; (i < str_maxlen) && (str[i] != '\0'); i++) {
     if (str[i] != delim) {
       break;
     }
   }
 
-  for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
+  for (; (i < str_maxlen) && (str[i] != '\0') && (n < words_max); i++) {
     if ((str[i] != delim) && (charsearch == true)) {
       r_words[n][0] = i;
       charsearch = false;
@@ -1250,12 +1250,12 @@ void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE
  * \{ */
 
 #ifdef WITH_STRSIZE_DEBUG
-void BLI_string_debug_size_after_nil(char *str, size_t str_maxlen)
+void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy)
 {
   /* Step over the nil, into the character afterwards. */
-  size_t str_tail = BLI_strnlen(str, str_maxlen) + 2;
-  if (str_tail < str_maxlen) {
-    BLI_string_debug_size(str + str_tail, str_maxlen - str_tail);
+  size_t str_tail = BLI_strnlen(str, str_maxncpy) + 2;
+  if (str_tail < str_maxncpy) {
+    BLI_string_debug_size(str + str_tail, str_maxncpy - str_tail);
   }
 }
 

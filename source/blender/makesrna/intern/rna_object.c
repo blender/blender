@@ -939,7 +939,10 @@ void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short 
   *index = BKE_object_defgroup_name_index(ob, value) + 1;
 }
 
-void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_vgroup_name_set(PointerRNA *ptr,
+                                const char *value,
+                                char *result,
+                                int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   if (!BKE_object_supports_vertex_groups(ob)) {
@@ -950,7 +953,7 @@ void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result
   bDeformGroup *dg = BKE_object_defgroup_find_name(ob, value);
   if (dg) {
     /* No need for BLI_strncpy_utf8, since this matches an existing group. */
-    BLI_strncpy(result, value, maxlen);
+    BLI_strncpy(result, value, result_maxncpy);
     return;
   }
 
@@ -1029,20 +1032,23 @@ void rna_object_BKE_object_facemap_name_index_set(PointerRNA *ptr, const char *v
   *index = BKE_object_facemap_name_index(ob, value) + 1;
 }
 
-void rna_object_fmap_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_fmap_name_set(PointerRNA *ptr, const char *value, char *result, int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   bFaceMap *fmap = BKE_object_facemap_find_name(ob, value);
   if (fmap) {
     /* No need for BLI_strncpy_utf8, since this matches an existing group. */
-    BLI_strncpy(result, value, maxlen);
+    BLI_strncpy(result, value, result_maxncpy);
     return;
   }
 
   result[0] = '\0';
 }
 
-void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_uvlayer_name_set(PointerRNA *ptr,
+                                 const char *value,
+                                 char *result,
+                                 int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   Mesh *me;
@@ -1056,7 +1062,7 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
       layer = &me->ldata.layers[a];
 
       if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
-        BLI_strncpy(result, value, maxlen);
+        BLI_strncpy(result, value, result_maxncpy);
         return;
       }
     }
@@ -1065,7 +1071,10 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
   result[0] = '\0';
 }
 
-void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_vcollayer_name_set(PointerRNA *ptr,
+                                   const char *value,
+                                   char *result,
+                                   int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   Mesh *me;
@@ -1079,7 +1088,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
       layer = &me->fdata.layers[a];
 
       if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
-        BLI_strncpy(result, value, maxlen);
+        BLI_strncpy(result, value, result_maxncpy);
         return;
       }
     }

@@ -2894,19 +2894,19 @@ static const char *keymap_handler_log_action_str(const eHandlerActionFlag action
 
 static const char *keymap_handler_log_kmi_event_str(const wmKeyMapItem *kmi,
                                                     char *buf,
-                                                    size_t buf_maxlen)
+                                                    size_t buf_maxncpy)
 {
   /* Short representation of the key that was pressed,
    * include this since it may differ from the event in minor details
    * which can help looking up the key-map definition. */
-  WM_keymap_item_to_string(kmi, false, buf, buf_maxlen);
+  WM_keymap_item_to_string(kmi, false, buf, buf_maxncpy);
   return buf;
 }
 
 static const char *keymap_handler_log_kmi_op_str(bContext *C,
                                                  const wmKeyMapItem *kmi,
                                                  char *buf,
-                                                 size_t buf_maxlen)
+                                                 size_t buf_maxncpy)
 {
   /* The key-map item properties can further help distinguish this item from others. */
   char *kmi_props = nullptr;
@@ -2919,7 +2919,7 @@ static const char *keymap_handler_log_kmi_op_str(bContext *C,
       kmi_props = IDP_reprN(kmi->properties, nullptr);
     }
   }
-  BLI_snprintf(buf, buf_maxlen, "%s(%s)", kmi->idname, kmi_props ? kmi_props : "");
+  BLI_snprintf(buf, buf_maxncpy, "%s(%s)", kmi->idname, kmi_props ? kmi_props : "");
   if (kmi_props != nullptr) {
     MEM_freeN(kmi_props);
   }

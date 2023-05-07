@@ -1863,7 +1863,10 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
+static void rna_Node_draw_label(const bNodeTree *ntree,
+                                const bNode *node,
+                                char *label,
+                                int label_maxncpy)
 {
   extern FunctionRNA rna_Node_draw_label_func;
 
@@ -1881,7 +1884,7 @@ static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char 
 
   RNA_parameter_get_lookup(&list, "label", &ret);
   rlabel = (char *)ret;
-  BLI_strncpy(label, rlabel != NULL ? rlabel : "", maxlen);
+  BLI_strncpy(label, rlabel != NULL ? rlabel : "", label_maxncpy);
 
   RNA_parameter_list_free(&list);
 }

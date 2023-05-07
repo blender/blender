@@ -459,7 +459,8 @@ int ANIM_add_driver(
         int array = RNA_property_array_length(&ptr, prop);
         const char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
         char *expression = driver->expression;
-        int val, maxlen = sizeof(driver->expression);
+        const size_t expression_maxncpy = sizeof(driver->expression);
+        int val;
         float fval;
 
         if (proptype == PROP_BOOLEAN) {
@@ -470,7 +471,8 @@ int ANIM_add_driver(
             val = RNA_property_boolean_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%s", dvar_prefix, (val) ? "True" : "False");
+          BLI_snprintf(
+              expression, expression_maxncpy, "%s%s", dvar_prefix, (val) ? "True" : "False");
         }
         else if (proptype == PROP_INT) {
           if (!array) {
@@ -480,7 +482,7 @@ int ANIM_add_driver(
             val = RNA_property_int_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%d", dvar_prefix, val);
+          BLI_snprintf(expression, expression_maxncpy, "%s%d", dvar_prefix, val);
         }
         else if (proptype == PROP_FLOAT) {
           if (!array) {
@@ -490,11 +492,11 @@ int ANIM_add_driver(
             fval = RNA_property_float_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%.3f", dvar_prefix, fval);
+          BLI_snprintf(expression, expression_maxncpy, "%s%.3f", dvar_prefix, fval);
           BLI_str_rstrip_float_zero(expression, '\0');
         }
         else if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
-          BLI_strncpy(expression, "var", maxlen);
+          BLI_strncpy(expression, "var", expression_maxncpy);
         }
       }
 

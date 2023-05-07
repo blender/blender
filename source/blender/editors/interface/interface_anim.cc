@@ -171,7 +171,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
+bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -184,7 +184,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 
     if (driver && driver->type == DRIVER_TYPE_PYTHON) {
       if (str) {
-        BLI_strncpy(str, driver->expression, maxlen);
+        BLI_strncpy(str, driver->expression, str_maxncpy);
       }
       return true;
     }
