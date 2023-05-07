@@ -41,7 +41,7 @@ bool operator==(const CachedMaskKey &a, const CachedMaskKey &b);
  * Cached Mask.
  *
  * A cached resource that computes and caches a GPU texture containing the result of evaluating the
- * given mask ID on a space that spans the given size, parametrized by the given parameters. */
+ * given mask ID on a space that spans the given size, parameterized by the given parameters. */
 class CachedMask : public CachedResource {
  private:
   GPUTexture *texture_ = nullptr;

@@ -412,7 +412,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     case POSESLIDE_BLEND: /* Blend the current pose with the previous (<50%) or next key (>50%). */
     {
       const float current_frame_y = evaluate_fcurve(fcu, current_frame);
-      /* Convert factor to absolute 0-1 range which is needed for lerpf. */
+      /* Convert factor to absolute 0-1 range which is needed for `interpf`. */
       const float blend_factor = fabs((factor - 0.5f) * 2);
 
       if (factor < 0.5) {

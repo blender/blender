@@ -2415,7 +2415,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     }
   }
   else if (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
-    /* Not yet whithin a partial resync hierarchy, and this ID is tagged for resync, it is a
+    /* Not yet within a partial resync hierarchy, and this ID is tagged for resync, it is a
      * potential partial resync root. */
     is_in_partial_resync_hierarchy = true;
   }
@@ -2524,7 +2524,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
   ID *id_iter;
 
   /* Tag all IDs to be processed, which are real liboverrides part of a hierarchy, and not the
-   * root of their hierarchy, as potentially isolated from ther hierarchy root. */
+   * root of their hierarchy, as potentially isolated from their hierarchy root. */
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     if (lib_override_library_main_resync_id_skip_check(id_iter, library_indirect_level)) {
       continue;
@@ -2911,7 +2911,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       }
       else {
         /* If it was only tagged for resync as part of resync process itself, it means it was
-         * originaly inside of a resync hierarchy, but not in the matching reference hierarchy
+         * originally inside of a resync hierarchy, but not in the matching reference hierarchy
          * anymore. So it did not actually need to be resynced, simply clear the tag. */
         CLOG_INFO(&LOG,
                   4,
@@ -2925,7 +2925,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       }
     }
     else if (need_reseync_original) {
-      /* Just cleanup of temporary tag, the ID has been resynced sucessfully. */
+      /* Just cleanup of temporary tag, the ID has been resynced successfully. */
       id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL;
     }
     else if (is_isolated_from_root) {
