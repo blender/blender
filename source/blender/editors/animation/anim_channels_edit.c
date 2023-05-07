@@ -340,9 +340,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_DSVOLUME:
     case ANIMTYPE_NLAACTION:
     case ANIMTYPE_DSSIMULATION: {
-      if (ale->adt) {
-        return ale->adt->flag & ADT_UI_ACTIVE;
-      }
+      return ale->adt && (ale->adt->flag & ADT_UI_ACTIVE);
     }
     case ANIMTYPE_GROUP: {
       bActionGroup *argp = (bActionGroup *)ale->data;
