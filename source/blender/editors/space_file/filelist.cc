@@ -2201,17 +2201,27 @@ int filelist_file_find_id(const FileList *filelist, const ID *id)
   return -1;
 }
 
-ID *filelist_entry_get_id(const FileList *filelist, const int index)
+static FileListInternEntry *filelist_entry_intern_get(const FileList *filelist, const int index)
 {
   BLI_assert(index >= 0 && index < filelist->filelist.entries_filtered_num);
+  return filelist->filelist_intern.filtered[index];
+}
 
-  const FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
+ID *filelist_entry_get_id(const FileList *filelist, const int index)
+{
+  const FileListInternEntry *intern_entry = filelist_entry_intern_get(filelist, index);
   return intern_entry->local_data.id;
 }
 
 ID *filelist_file_get_id(const FileDirEntry *file)
 {
   return file->id;
+}
+
+const char *filelist_entry_get_relpath(const struct FileList *filelist, int index)
+{
+  const FileListInternEntry *intern_entry = filelist_entry_intern_get(filelist, index);
+  return intern_entry->relpath;
 }
 
 #define FILE_UID_UNSET 0

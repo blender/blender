@@ -144,6 +144,11 @@ struct ID *filelist_file_get_id(const struct FileDirEntry *file);
  * Same as #filelist_file_get_id(), but gets the file by index (doesn't require the file to be
  * cached, uses #FileListInternEntry only). */
 struct ID *filelist_entry_get_id(const struct FileList *filelist, int index);
+/**
+ * Get the #FileDirEntry.relpath value without requiring the #FileDirEntry to be available (doesn't
+ * require the file to be cached, uses #FileListInternEntry only).
+ */
+const char *filelist_entry_get_relpath(const struct FileList *filelist, int index);
 bool filelist_uid_is_set(const FileUID uid);
 void filelist_uid_unset(FileUID *r_uid);
 void filelist_file_cache_slidingwindow_set(struct FileList *filelist, size_t window_size);

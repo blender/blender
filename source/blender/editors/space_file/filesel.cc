@@ -1194,13 +1194,13 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
    * if the user selects a single file by entering the filename
    */
   for (int i = 0; i < n; i++) {
-    FileDirEntry *file = filelist_file(sfile->files, i);
+    const char *relpath = filelist_entry_get_relpath(sfile->files, i);
     /* Do not check whether file is a file or dir here! Causes: #44243
      * (we do accept directories at this stage). */
-    if (fnmatch(pattern, file->relpath, 0) == 0) {
-      filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+    if (fnmatch(pattern, relpath, 0) == 0) {
+      filelist_entry_select_index_set(sfile->files, i, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
       if (!match) {
-        BLI_strncpy(matched_file, file->relpath, FILE_MAX);
+        BLI_strncpy(matched_file, relpath, FILE_MAX);
       }
       match++;
     }
@@ -1268,8 +1268,8 @@ int autocomplete_file(struct bContext *C, char *str, void * /*arg_v*/)
     int nentries = filelist_files_ensure(sfile->files);
 
     for (int i = 0; i < nentries; i++) {
-      FileDirEntry *file = filelist_file(sfile->files, i);
-      UI_autocomplete_update_name(autocpl, file->relpath);
+      const char *relpath = filelist_entry_get_relpath(sfile->files, i);
+      UI_autocomplete_update_name(autocpl, relpath);
     }
     match = UI_autocomplete_end(autocpl, str);
   }
