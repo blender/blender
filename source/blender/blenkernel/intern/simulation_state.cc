@@ -15,11 +15,6 @@
 
 namespace blender::bke::sim {
 
-GeometrySimulationStateItem::GeometrySimulationStateItem(GeometrySet geometry)
-    : geometry_(std::move(geometry))
-{
-}
-
 PrimitiveSimulationStateItem::PrimitiveSimulationStateItem(const CPPType &type, const void *value)
     : type_(type)
 {

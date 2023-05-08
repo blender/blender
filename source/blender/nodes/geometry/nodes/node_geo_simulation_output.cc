@@ -181,7 +181,7 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
         if (const auto *geo_state_item =
                 dynamic_cast<const bke::sim::GeometrySimulationStateItem *>(&state_item))
         {
-          GeometrySet *geometry = new (r_output_value) GeometrySet(geo_state_item->geometry());
+          GeometrySet *geometry = new (r_output_value) GeometrySet(geo_state_item->geometry);
           geometries.append(geometry);
         }
         else {
@@ -282,7 +282,7 @@ void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_i
         GeometrySet &geometry = *static_cast<GeometrySet *>(input_value);
         auto geometry_state_item = std::make_unique<bke::sim::GeometrySimulationStateItem>(
             std::move(geometry));
-        stored_geometries.append(&geometry_state_item->geometry());
+        stored_geometries.append(&geometry_state_item->geometry);
         state_item = std::move(geometry_state_item);
         break;
       }
