@@ -608,20 +608,44 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
   }
 }
 
-/* This function assumes that the quaternion is fully keyed, and is stored in array index order. */
+/* This function assumes that the quaternion is keyed in array index order.
+ * If the quaternion is only partially keyed, the result is normalized.
+ * If it is fully keyed, the result is returned as-is. */
 static void animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
                                                 FCurve *first_fcurve,
                                                 const AnimationEvalContext *anim_eval_context,
                                                 float r_quaternion[4])
 {
   FCurve *quat_curve_fcu = first_fcurve;
-  for (int prop_index = 0; prop_index < 4; ++prop_index, quat_curve_fcu = quat_curve_fcu->next) {
-    /* Big fat assumption that the quaternion is fully keyed, and stored in order. */
-    BLI_assert(STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path) &&
-               quat_curve_fcu->array_index == prop_index);
+
+  /* Initialize r_quaternion to the unit quaternion so that half-keyed quaternions at least have
+   * *some* value in there. */
+  r_quaternion[0] = 1.0f;
+  r_quaternion[1] = 0.0f;
+  r_quaternion[2] = 0.0f;
+  r_quaternion[3] = 0.0f;
+
+  /* This should start at 0, but in the case of semi-keyed quaternions, the first FCurve may
+   * actually have a different array index. */
+  const int start_index = first_fcurve->array_index;
+  int prop_index = start_index;
+  for (; prop_index < 4 && quat_curve_fcu; ++prop_index, quat_curve_fcu = quat_curve_fcu->next) {
+    if (quat_curve_fcu->array_index != prop_index ||
+        !STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path))
+    {
+      /* This should never happen when the quaternion is fully keyed and stored in order. People
+       * do use half-keyed quaternions, though, so better to check anyway. */
+      break;
+    }
 
     quat_rna.prop_index = prop_index;
     r_quaternion[prop_index] = calculate_fcurve(&quat_rna, quat_curve_fcu, anim_eval_context);
+  }
+
+  if (start_index != 0 || prop_index < 4) {
+    /* This quaternion was incompletely keyed, so the result is a mixture of the unit quaterion and
+     * values from FCurves. This means that it's almost certainly no longer of unit length. */
+    normalize_qt(r_quaternion);
   }
 }
 
