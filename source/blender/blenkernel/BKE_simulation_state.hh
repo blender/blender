@@ -135,6 +135,7 @@ struct StatesAroundFrame {
 
 class ModifierSimulationCache {
  private:
+  mutable std::mutex states_at_frames_mutex_;
   Vector<std::unique_ptr<ModifierSimulationStateAtFrame>> states_at_frames_;
   std::unique_ptr<BDataSharing> bdata_sharing_;
 
