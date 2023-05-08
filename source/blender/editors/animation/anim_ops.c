@@ -127,11 +127,14 @@ static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_fr
 }
 
 /* Set the new frame number */
-static void change_frame_apply(bContext *C, wmOperator *op)
+static void change_frame_apply(bContext *C, wmOperator *op, const bool always_update)
 {
   Scene *scene = CTX_data_scene(C);
   float frame = RNA_float_get(op->ptr, "frame");
   bool do_snap = RNA_boolean_get(op->ptr, "snap");
+
+  const int old_frame = scene->r.cfra;
+  const float old_subframe = scene->r.subframe;
 
   if (do_snap) {
     if (CTX_wm_space_seq(C) && SEQ_editing_get(scene) != NULL) {
@@ -154,8 +157,11 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
 
   /* do updates */
-  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
-  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+  const bool frame_changed = (old_frame != scene->r.cfra) || (old_subframe != scene->r.subframe);
+  if (frame_changed || always_update) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
+    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+  }
 }
 
 /* ---- */
@@ -163,7 +169,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 /* Non-modal callback for running operator without user input */
 static int change_frame_exec(bContext *C, wmOperator *op)
 {
-  change_frame_apply(C, op);
+  change_frame_apply(C, op, true);
 
   return OPERATOR_FINISHED;
 }
@@ -258,7 +264,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   change_frame_seq_preview_begin(C, event);
 
-  change_frame_apply(C, op);
+  change_frame_apply(C, op, true);
 
   /* add temp handler */
   WM_event_add_modal_handler(C, op);
@@ -283,7 +289,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     case MOUSEMOVE:
       RNA_float_set(op->ptr, "frame", frame_from_event(C, event));
-      change_frame_apply(C, op);
+      change_frame_apply(C, op, false);
       break;
 
     case LEFTMOUSE:
