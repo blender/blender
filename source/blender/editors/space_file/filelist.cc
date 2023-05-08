@@ -2103,25 +2103,30 @@ static void filelist_file_release_entry(FileList *filelist, FileDirEntry *entry)
   filelist_entry_free(entry);
 }
 
+static FileDirEntry *filelist_cache_file_lookup(FileListEntryCache *cache, const int index)
+{
+  /* If the file is cached, we can get it from either the block or the misc entry storage. */
+
+  if (index >= cache->block_start_index && index < cache->block_end_index) {
+    const int idx = (index - cache->block_start_index + cache->block_cursor) % cache->size;
+    return cache->block_entries[idx];
+  }
+
+  return static_cast<FileDirEntry *>(
+      BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index)));
+}
+
 FileDirEntry *filelist_file_ex(FileList *filelist, const int index, const bool use_request)
 {
   FileDirEntry *ret = nullptr, *old;
   FileListEntryCache *cache = &filelist->filelist_cache;
-  const size_t cache_size = cache->size;
   int old_index;
 
   if ((index < 0) || (index >= filelist->filelist.entries_filtered_num)) {
     return ret;
   }
 
-  if (index >= cache->block_start_index && index < cache->block_end_index) {
-    const int idx = (index - cache->block_start_index + cache->block_cursor) % cache_size;
-    return cache->block_entries[idx];
-  }
-
-  if ((ret = static_cast<FileDirEntry *>(
-           BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index)))))
-  {
+  if ((ret = filelist_cache_file_lookup(cache, index))) {
     return ret;
   }
 
@@ -2144,7 +2149,7 @@ FileDirEntry *filelist_file_ex(FileList *filelist, const int index, const bool u
   BLI_ghash_insert(cache->uids, POINTER_FROM_UINT(ret->uid), ret);
 
   cache->misc_entries_indices[cache->misc_cursor] = index;
-  cache->misc_cursor = (cache->misc_cursor + 1) % cache_size;
+  cache->misc_cursor = (cache->misc_cursor + 1) % cache->size;
 
 #if 0 /* Actually no, only block cached entries should have preview IMHO. */
   if (cache->previews_pool) {
