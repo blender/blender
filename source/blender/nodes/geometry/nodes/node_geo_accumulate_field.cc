@@ -2,6 +2,10 @@
 
 #include "BKE_attribute_math.hh"
 
+#include "BLI_array.hh"
+#include "BLI_generic_virtual_array.hh"
+#include "BLI_virtual_array.hh"
+
 #include "NOD_socket_search_link.hh"
 
 #include "node_geometry_util.hh"
@@ -193,19 +197,19 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-template<typename T> class AccumulateFieldInput final : public bke::GeometryFieldInput {
+class AccumulateFieldInput final : public bke::GeometryFieldInput {
  private:
-  Field<T> input_;
+  GField input_;
   Field<int> group_index_;
   eAttrDomain source_domain_;
   AccumulationMode accumulation_mode_;
 
  public:
   AccumulateFieldInput(const eAttrDomain source_domain,
-                       Field<T> input,
+                       GField input,
                        Field<int> group_index,
                        AccumulationMode accumulation_mode)
-      : bke::GeometryFieldInput(CPPType::get<T>(), "Accumulation"),
+      : bke::GeometryFieldInput(input.cpp_type(), "Accumulation"),
         input_(input),
         group_index_(group_index),
         source_domain_(source_domain),
@@ -217,7 +221,7 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
                                  const IndexMask /*mask*/) const final
   {
     const AttributeAccessor attributes = *context.attributes();
-    const int domain_size = attributes.domain_size(source_domain_);
+    const int64_t domain_size = attributes.domain_size(source_domain_);
     if (domain_size == 0) {
       return {};
     }
@@ -228,46 +232,55 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
-    const VArray<T> values = evaluator.get_evaluated<T>(0);
+    const GVArray g_values = evaluator.get_evaluated(0);
     const VArray<int> group_indices = evaluator.get_evaluated<int>(1);
 
-    Array<T> accumulations_out(domain_size);
+    GVArray g_output;
 
-    if (group_indices.is_single()) {
-      T accumulation = T();
-      if (accumulation_mode_ == AccumulationMode::Leading) {
-        for (const int i : values.index_range()) {
-          accumulation = values[i] + accumulation;
-          accumulations_out[i] = accumulation;
-        }
-      }
-      else {
-        for (const int i : values.index_range()) {
-          accumulations_out[i] = accumulation;
-          accumulation = values[i] + accumulation;
-        }
-      }
-    }
-    else {
-      Map<int, T> accumulations;
-      if (accumulation_mode_ == AccumulationMode::Leading) {
-        for (const int i : values.index_range()) {
-          T &accumulation_value = accumulations.lookup_or_add_default(group_indices[i]);
-          accumulation_value += values[i];
-          accumulations_out[i] = accumulation_value;
-        }
-      }
-      else {
-        for (const int i : values.index_range()) {
-          T &accumulation_value = accumulations.lookup_or_add_default(group_indices[i]);
-          accumulations_out[i] = accumulation_value;
-          accumulation_value += values[i];
-        }
-      }
-    }
+    bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      if constexpr (is_same_any_v<T, int, float, float3>) {
+        Array<T> outputs(domain_size);
+        const VArray<T> values = g_values.typed<T>();
 
-    return attributes.adapt_domain<T>(
-        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, context.domain());
+        if (group_indices.is_single()) {
+          T accumulation = T();
+          if (accumulation_mode_ == AccumulationMode::Leading) {
+            for (const int i : values.index_range()) {
+              accumulation = values[i] + accumulation;
+              outputs[i] = accumulation;
+            }
+          }
+          else {
+            for (const int i : values.index_range()) {
+              outputs[i] = accumulation;
+              accumulation = values[i] + accumulation;
+            }
+          }
+        }
+        else {
+          Map<int, T> accumulations;
+          if (accumulation_mode_ == AccumulationMode::Leading) {
+            for (const int i : values.index_range()) {
+              T &accumulation_value = accumulations.lookup_or_add_default(group_indices[i]);
+              accumulation_value += values[i];
+              outputs[i] = accumulation_value;
+            }
+          }
+          else {
+            for (const int i : values.index_range()) {
+              T &accumulation_value = accumulations.lookup_or_add_default(group_indices[i]);
+              outputs[i] = accumulation_value;
+              accumulation_value += values[i];
+            }
+          }
+        }
+
+        g_output = VArray<T>::ForContainer(std::move(outputs));
+      }
+    });
+
+    return attributes.adapt_domain(std::move(g_output), source_domain_, context.domain());
   }
 
   uint64_t hash() const override
@@ -295,15 +308,15 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
   }
 };
 
-template<typename T> class TotalFieldInput final : public bke::GeometryFieldInput {
+class TotalFieldInput final : public bke::GeometryFieldInput {
  private:
-  Field<T> input_;
+  GField input_;
   Field<int> group_index_;
   eAttrDomain source_domain_;
 
  public:
-  TotalFieldInput(const eAttrDomain source_domain, Field<T> input, Field<int> group_index)
-      : bke::GeometryFieldInput(CPPType::get<T>(), "Total Value"),
+  TotalFieldInput(const eAttrDomain source_domain, GField input, Field<int> group_index)
+      : bke::GeometryFieldInput(input.cpp_type(), "Total Value"),
         input_(input),
         group_index_(group_index),
         source_domain_(source_domain)
@@ -314,7 +327,7 @@ template<typename T> class TotalFieldInput final : public bke::GeometryFieldInpu
                                  IndexMask /*mask*/) const final
   {
     const AttributeAccessor attributes = *context.attributes();
-    const int domain_size = attributes.domain_size(source_domain_);
+    const int64_t domain_size = attributes.domain_size(source_domain_);
     if (domain_size == 0) {
       return {};
     }
@@ -325,29 +338,38 @@ template<typename T> class TotalFieldInput final : public bke::GeometryFieldInpu
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
-    const VArray<T> values = evaluator.get_evaluated<T>(0);
+    const GVArray g_values = evaluator.get_evaluated(0);
     const VArray<int> group_indices = evaluator.get_evaluated<int>(1);
 
-    if (group_indices.is_single()) {
-      T accumulation = T();
-      for (const int i : values.index_range()) {
-        accumulation = values[i] + accumulation;
+    GVArray g_outputs;
+
+    bke::attribute_math::convert_to_static_type(g_values.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      if constexpr (is_same_any_v<T, int, float, float3>) {
+        const VArray<T> values = g_values.typed<T>();
+        if (group_indices.is_single()) {
+          T accumulation = {};
+          for (const int i : values.index_range()) {
+            accumulation = values[i] + accumulation;
+          }
+          g_outputs = VArray<T>::ForSingle(accumulation, domain_size);
+        }
+        else {
+          Map<int, T> accumulations;
+          for (const int i : values.index_range()) {
+            T &value = accumulations.lookup_or_add_default(group_indices[i]);
+            value = value + values[i];
+          }
+          Array<T> outputs(domain_size);
+          for (const int i : values.index_range()) {
+            outputs[i] = accumulations.lookup(group_indices[i]);
+          }
+          g_outputs = VArray<T>::ForContainer(std::move(outputs));
+        }
       }
-      return VArray<T>::ForSingle(accumulation, domain_size);
-    }
+    });
 
-    Array<T> accumulations_out(domain_size);
-    Map<int, T> accumulations;
-    for (const int i : values.index_range()) {
-      T &value = accumulations.lookup_or_add_default(group_indices[i]);
-      value = value + values[i];
-    }
-    for (const int i : values.index_range()) {
-      accumulations_out[i] = accumulations.lookup(group_indices[i]);
-    }
-
-    return attributes.adapt_domain<T>(
-        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, context.domain());
+    return attributes.adapt_domain(std::move(g_outputs), source_domain_, context.domain());
   }
 
   uint64_t hash() const override
@@ -393,25 +415,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
   bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, float> || std::is_same_v<T, float3>)
-    {
+    if constexpr (is_same_any_v<T, int, float, float3>) {
       const std::string suffix = " " + identifier_suffix<T>();
       Field<T> input_field = params.extract_input<Field<T>>("Value" + suffix);
       if (params.output_is_required("Leading" + suffix)) {
         params.set_output(
             "Leading" + suffix,
-            Field<T>{std::make_shared<AccumulateFieldInput<T>>(
+            Field<T>{std::make_shared<AccumulateFieldInput>(
                 source_domain, input_field, group_index_field, AccumulationMode::Leading)});
       }
       if (params.output_is_required("Trailing" + suffix)) {
         params.set_output(
             "Trailing" + suffix,
-            Field<T>{std::make_shared<AccumulateFieldInput<T>>(
+            Field<T>{std::make_shared<AccumulateFieldInput>(
                 source_domain, input_field, group_index_field, AccumulationMode::Trailing)});
       }
       if (params.output_is_required("Total" + suffix)) {
         params.set_output("Total" + suffix,
-                          Field<T>{std::make_shared<TotalFieldInput<T>>(
+                          Field<T>{std::make_shared<TotalFieldInput>(
                               source_domain, input_field, group_index_field)});
       }
     }
