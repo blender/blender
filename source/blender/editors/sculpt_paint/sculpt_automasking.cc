@@ -41,7 +41,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"

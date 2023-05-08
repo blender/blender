@@ -42,8 +42,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "curves_sculpt_intern.h"
-#include "paint_intern.h"
+#include "curves_sculpt_intern.hh"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 /* Brush operators */

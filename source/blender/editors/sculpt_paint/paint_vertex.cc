@@ -65,7 +65,7 @@
 #include "BKE_ccg.h"
 #include "bmesh.h"
 
-#include "paint_intern.h" /* own include */
+#include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
 
 using blender::IndexRange;

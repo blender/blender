@@ -62,9 +62,7 @@
 
 #include "IMB_colormanagement.h"
 
-#include "paint_intern.h"
-
-extern "C" {
+#include "paint_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Image Paint Tile Utilities (Partial Update)
@@ -1112,7 +1110,6 @@ bool vert_paint_poll(bContext *C)
 bool mask_paint_poll(bContext *C)
 {
   return BKE_paint_select_elem_test(CTX_data_active_object(C));
-}
 }
 
 /** \} */

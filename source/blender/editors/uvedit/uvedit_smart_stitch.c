@@ -2465,7 +2465,7 @@ static StitchState *stitch_select(bContext *C,
   /* add uv under mouse to processed uv's */
   float co[2];
   ARegion *region = CTX_wm_region(C);
-  UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
+  UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 

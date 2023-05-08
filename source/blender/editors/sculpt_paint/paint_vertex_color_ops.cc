@@ -33,7 +33,7 @@
 
 #include "ED_mesh.h"
 
-#include "paint_intern.h" /* own include */
+#include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
 
 using blender::Array;

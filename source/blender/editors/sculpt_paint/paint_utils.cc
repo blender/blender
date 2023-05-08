@@ -5,8 +5,8 @@
  * \ingroup edsculpt
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -66,7 +66,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
@@ -150,7 +150,7 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
 bool paint_get_tex_pixel(const MTex *mtex,
                          float u,
                          float v,
-                         struct ImagePool *pool,
+                         ImagePool *pool,
                          int thread,
                          /* Return arguments. */
                          float *r_intensity,
@@ -192,7 +192,7 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   RNA_def_enum(ot->srna,
                "mode",
@@ -268,7 +268,7 @@ static void imapaint_pick_uv(
   float p[2], w[3], absw, minabsw;
   float matrix[4][4], proj[4][4];
   int view[4];
-  const ePaintCanvasSource mode = scene->toolsettings->imapaint.mode;
+  const ePaintCanvasSource mode = ePaintCanvasSource(scene->toolsettings->imapaint.mode);
 
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
@@ -276,7 +276,8 @@ static void imapaint_pick_uv(
 
   const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
   const int *corner_verts = BKE_mesh_corner_verts(me_eval);
-  const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
+  const int *index_mp_to_orig = static_cast<const int *>(
+      CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
 
   /* get the needed opengl matrices */
   GPU_viewport_size_get_i(view);
@@ -311,19 +312,21 @@ static void imapaint_pick_uv(
         const Material *ma;
         const TexPaintSlot *slot;
 
-        ma = BKE_object_material_get(ob_eval,
-                                     material_indices == NULL ? 1 : material_indices[poly_i] + 1);
+        ma = BKE_object_material_get(
+            ob_eval, material_indices == nullptr ? 1 : material_indices[poly_i] + 1);
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
-              (mloopuv = CustomData_get_layer_named(
-                   &me_eval->ldata, CD_PROP_FLOAT2, slot->uvname))))
+              (mloopuv = static_cast<const float(*)[2]>(
+                   CustomData_get_layer_named(&me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))))
         {
-          mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
+          mloopuv = static_cast<const float(*)[2]>(
+              CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2));
         }
       }
       else {
-        mloopuv = CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2);
+        mloopuv = static_cast<const float(*)[2]>(
+            CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2));
       }
 
       tri_uv[0] = mloopuv[lt->tri[0]];
@@ -371,7 +374,7 @@ void paint_sample_color(
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Palette *palette = BKE_paint_palette(paint);
-  PaletteColor *color = NULL;
+  PaletteColor *color = nullptr;
   Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
   CLAMP(x, 0, region->winx);
@@ -418,7 +421,7 @@ void paint_sample_color(
         view3d_operator_needs_opengl(C);
 
         if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
-          Image *image = NULL;
+          Image *image = nullptr;
           int interp = SHD_INTERP_LINEAR;
 
           if (use_material) {
@@ -452,7 +455,7 @@ void paint_sample_color(
 
             if (image->source == IMA_SRC_TILED) {
               float new_uv[2];
-              iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, NULL);
+              iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, nullptr);
               u = new_uv[0];
               v = new_uv[1];
             }
@@ -468,7 +471,7 @@ void paint_sample_color(
               }
             }
 
-            ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, NULL);
+            ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
             if (ibuf && (ibuf->rect || ibuf->rect_float)) {
               u = u * ibuf->x;
               v = v * ibuf->y;
@@ -476,10 +479,10 @@ void paint_sample_color(
               if (ibuf->rect_float) {
                 float rgba_f[4];
                 if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+                  nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
                 }
                 else {
-                  bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+                  bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
                 }
                 straight_to_premul_v4(rgba_f);
                 if (use_palette) {
@@ -493,10 +496,10 @@ void paint_sample_color(
               else {
                 uchar rgba[4];
                 if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+                  nearest_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
                 }
                 else {
-                  bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+                  bilinear_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
                 }
                 if (use_palette) {
                   rgb_uchar_to_float(color->rgb, rgba);
@@ -507,22 +510,22 @@ void paint_sample_color(
                   BKE_brush_color_set(scene, br, rgba_f);
                 }
               }
-              BKE_image_release_ibuf(image, ibuf, NULL);
+              BKE_image_release_ibuf(image, ibuf, nullptr);
               return;
             }
 
-            BKE_image_release_ibuf(image, ibuf, NULL);
+            BKE_image_release_ibuf(image, ibuf, nullptr);
           }
         }
       }
     }
   }
-  else if (sima != NULL) {
+  else if (sima != nullptr) {
     /* Sample from the active image buffer. The sampled color is in
      * Linear Scene Reference Space. */
     float rgba_f[3];
     bool is_data;
-    if (ED_space_image_color_sample(sima, region, (int[2]){x, y}, rgba_f, &is_data)) {
+    if (ED_space_image_color_sample(sima, region, blender::int2(x, y), rgba_f, &is_data)) {
       if (!is_data) {
         linearrgb_to_srgb_v3_v3(rgba_f, rgba_f);
       }
@@ -559,7 +562,7 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
   if (br) {
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+    BKE_brush_curve_preset(br, eCurveMappingPreset(RNA_enum_get(op->ptr, "shape")));
     BKE_paint_invalidate_cursor_overlay(scene, view_layer, br->curve);
   }
 
@@ -580,7 +583,7 @@ static const EnumPropertyItem prop_shape_items[] = {
     {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
     {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
     {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
@@ -630,9 +633,9 @@ void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot)
 }
 
 /* face-select ops */
-static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+static int paint_select_linked_exec(bContext *C, wmOperator * /*op*/)
 {
-  paintface_select_linked(C, CTX_data_active_object(C), NULL, true);
+  paintface_select_linked(C, CTX_data_active_object(C), nullptr, true);
   ED_region_tag_redraw(CTX_wm_region(C));
   return OPERATOR_FINISHED;
 }
@@ -700,7 +703,7 @@ static int paint_select_more_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == NULL || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->totpoly == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -731,7 +734,7 @@ static int paint_select_less_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == NULL || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->totpoly == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -784,9 +787,9 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
-  if (BLI_listbase_is_empty(&me->vertex_group_names) || (BKE_mesh_deform_verts(me) == NULL)) {
+  if (BLI_listbase_is_empty(&me->vertex_group_names) || (BKE_mesh_deform_verts(me) == nullptr)) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
     return OPERATOR_CANCELLED;
   }
@@ -814,7 +817,7 @@ void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
-static int paintvert_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+static int paintvert_select_linked_exec(bContext *C, wmOperator * /*op*/)
 {
   paintvert_select_linked(C, CTX_data_active_object(C));
   ED_region_tag_redraw(CTX_wm_region(C));
@@ -865,7 +868,7 @@ static int paintvert_select_more_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == NULL || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->totpoly == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -898,7 +901,7 @@ static int paintvert_select_less_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == NULL || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->totpoly == 0) {
     return OPERATOR_CANCELLED;
   }
 

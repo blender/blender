@@ -103,7 +103,7 @@
 
 //#include "bmesh_tools.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr);
 

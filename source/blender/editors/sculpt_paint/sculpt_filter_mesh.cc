@@ -34,7 +34,7 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
