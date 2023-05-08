@@ -2876,6 +2876,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
       prop, "Transform Matrix", "Matrix combining location and rotation of the cursor");
   RNA_def_property_float_funcs(
       prop, "rna_View3DCursor_matrix_get", "rna_View3DCursor_matrix_set", NULL);
+  RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_tool_settings(BlenderRNA *brna)
