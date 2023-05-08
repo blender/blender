@@ -1187,14 +1187,17 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
           }
         }
         else if (sim_states.prev != nullptr && sim_states.next == nullptr) {
-          const float delta_frames = float(current_frame) - float(sim_states.prev->frame);
-          if (delta_frames <= 1.0f) {
-            bke::sim::ModifierSimulationState &current_sim_state =
-                nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
-            exec_data.current_simulation_state_for_write = &current_sim_state;
-            const float delta_seconds = delta_frames / FPS;
-            exec_data.simulation_time_delta = delta_seconds;
+          const float max_delta_frames = 1.0f;
+          const float scene_delta_frames = float(current_frame) - float(sim_states.prev->frame);
+          const float delta_frames = std::min(max_delta_frames, scene_delta_frames);
+          if (delta_frames != scene_delta_frames) {
+            nmd_orig.simulation_cache->invalidate();
           }
+          bke::sim::ModifierSimulationState &current_sim_state =
+              nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+          exec_data.current_simulation_state_for_write = &current_sim_state;
+          const float delta_seconds = delta_frames / FPS;
+          exec_data.simulation_time_delta = delta_seconds;
         }
       }
     }
