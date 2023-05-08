@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6918,11 +6918,6 @@ msgstr "Pakkaa resurssit"
 
 
 msgctxt "Operator"
-msgid "Parent File"
-msgstr "Isäntätiedosto"
-
-
-msgctxt "Operator"
 msgid "Refresh File List"
 msgstr "Lataa tiedostolista uudelleen"
 
@@ -7660,10 +7655,6 @@ msgstr "Aktiivinen AOV"
 
 msgid "Active AOV Index"
 msgstr "Aktiivinen AOV -indeksi"
-
-
-msgid "Index of active aov"
-msgstr "Aktiivisen AOV:n indeksi"
 
 
 msgid "Active Layer Collection"
@@ -8810,16 +8801,6 @@ msgstr "Laske ulkopuoli uudelleen"
 msgctxt "Operator"
 msgid "Recalculate Inside"
 msgstr "Laske sisäpuoli uudelleen"
-
-
-msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Kopioi vektorit"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Liitä vektorit"
 
 
 msgctxt "Operator"
@@ -10193,64 +10174,12 @@ msgid "No packed file"
 msgstr "Ei pakattua tiedostoa"
 
 
-msgid " (String)"
-msgstr "(Merkkijono)"
-
-
-msgid " (Integer)"
-msgstr "(Kokonaisluku)"
-
-
-msgid " (Float)"
-msgstr "(Liukuluku)"
-
-
-msgid " (Vector)"
-msgstr "(Vektori)"
-
-
-msgid " (Color)"
-msgstr "(Väri)"
-
-
 msgid "True"
 msgstr "Tosi"
 
 
 msgid "False"
 msgstr "Epätosi"
-
-
-msgid " (Boolean)"
-msgstr "(Totuusarvo)"
-
-
-msgid "Integer field"
-msgstr "Kokonaislukukenttä"
-
-
-msgid "Float field"
-msgstr "Liukuarvokenttä"
-
-
-msgid "Vector field"
-msgstr "Vektorikenttä"
-
-
-msgid "Boolean field"
-msgstr "Totuusarvokenttä"
-
-
-msgid "String field"
-msgstr "Merkkijonokenttä"
-
-
-msgid "Color field"
-msgstr "Värikenttä"
-
-
-msgid " based on:"
-msgstr "perustuu:"
 
 
 msgid "Empty Geometry"
