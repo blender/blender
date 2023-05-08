@@ -1240,6 +1240,7 @@ int WM_modalkeymap_items_to_string(const wmKeyMap *km,
                                    char *result,
                                    const int result_maxncpy)
 {
+  BLI_string_debug_size(result, result_maxncpy);
   BLI_assert(result_maxncpy > 0);
 
   const wmKeyMapItem *kmi;
@@ -1271,6 +1272,7 @@ int WM_modalkeymap_operator_items_to_string(wmOperatorType *ot,
                                             char *result,
                                             const int result_maxncpy)
 {
+  BLI_string_debug_size_after_nil(result, result_maxncpy);
   wmWindowManager *wm = G_MAIN->wm.first;
   wmKeyMap *keymap = WM_keymap_active(wm, ot->modalkeymap);
   return WM_modalkeymap_items_to_string(keymap, propvalue, compact, result, result_maxncpy);
@@ -1283,6 +1285,7 @@ char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
                                                   int *r_available_len,
                                                   char **r_result)
 {
+  BLI_string_debug_size(*r_result, result_maxncpy);
   char *ret = *r_result;
 
   if (*r_available_len > 1) {

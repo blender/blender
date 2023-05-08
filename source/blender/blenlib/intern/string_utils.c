@@ -373,6 +373,8 @@ size_t BLI_string_join_array(char *result,
                              const char *strings[],
                              uint strings_num)
 {
+  BLI_string_debug_size(result, result_maxncpy);
+
   char *c = result;
   char *c_end = &result[result_maxncpy - 1];
   for (uint i = 0; i < strings_num; i++) {
