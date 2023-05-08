@@ -7,6 +7,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <map>
+#include <queue>
 
 #include "CLG_log.h"
 
@@ -1754,6 +1756,91 @@ static void lib_override_library_remap(Main *bmain,
   BLI_linklist_free(nomain_ids, nullptr);
 }
 
+/**
+ * Mapping to find suitable missing linked liboverrides to replace by the newly generated linked
+ * liboverrides during resync process.
+ *
+ * \note About Order:
+ * In most cases, if there are several virtual linked liboverrides generated with the same base
+ * name (like `OBCube.001`, `OBCube.002`, etc.), this mapping system will find the correct one, for
+ * the following reasons:
+ *  - Order of creation of these virtual IDs in resync process is expected to be stable (i.e.
+ * several runs of resync code based on the same linked data would re-create the same virtual
+ * liboverride IDs in the same order);
+ *  - Order of creation and usage of the mapping data (a FIFO queue) also ensures that the missing
+ * placeholder `OBCube.001` is always 're-used' before `OBCube.002`.
+ *
+ * In case linked data keep being modified, these conditions may fail and the mapping may start to
+ * return 'wrong' results. However, this is considered as an acceptable limitation here, since this
+ * is mainly a 'best effort' to recover from situations that should not be hapenning in the first
+ * place.
+ */
+
+using LibOverrideMissingIDsData_Key = const std::pair<std::string, Library *>;
+using LibOverrideMissingIDsData_Value = std::deque<ID *>;
+using LibOverrideMissingIDsData =
+    std::map<LibOverrideMissingIDsData_Key, LibOverrideMissingIDsData_Value>;
+
+/* Return a key suitable for the missing IDs mapping, i.e. a pair of
+ * `<full ID name (including first two ID type chars) without a potential numeric extension,
+ *   ID library>`.
+ *
+ * So e.g. returns `<"OBMyObject", lib>` for ID from `lib` with names like `"OBMyObject"`,
+ * `"OBMyObject.002"`, `"OBMyObject.12345"`, and so on, but _not_ for e.g. `"OBMyObject.12.002"`.
+ */
+static LibOverrideMissingIDsData_Key lib_override_library_resync_missing_id_key(ID *id)
+{
+  std::string id_name_key(id->name);
+  const size_t last_key_index = id_name_key.find_last_not_of("0123456789");
+
+  BLI_assert(last_key_index != std::string::npos);
+
+  if (id_name_key[last_key_index] == '.') {
+    id_name_key.resize(last_key_index);
+  }
+
+  return LibOverrideMissingIDsData_Key(id_name_key, id->lib);
+}
+
+static LibOverrideMissingIDsData lib_override_library_resync_build_missing_ids_data(Main *bmain)
+{
+  LibOverrideMissingIDsData missing_ids;
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (!ID_IS_LINKED(id_iter)) {
+      continue;
+    }
+    const int required_tags = (LIB_TAG_MISSING | LIB_TAG_LIBOVERRIDE_NEED_RESYNC);
+    if ((id_iter->tag & required_tags) != required_tags) {
+      continue;
+    }
+
+    LibOverrideMissingIDsData_Key key = lib_override_library_resync_missing_id_key(id_iter);
+    std::pair<LibOverrideMissingIDsData::iterator, bool> value = missing_ids.try_emplace(
+        key, LibOverrideMissingIDsData_Value());
+    value.first->second.push_back(id_iter);
+  }
+  FOREACH_MAIN_ID_END;
+
+  return missing_ids;
+}
+
+static ID *lib_override_library_resync_search_missing_ids_data(
+    LibOverrideMissingIDsData &missing_ids, ID *id_override)
+{
+  LibOverrideMissingIDsData_Key key = lib_override_library_resync_missing_id_key(id_override);
+  const LibOverrideMissingIDsData::iterator value = missing_ids.find(key);
+  if (value == missing_ids.end()) {
+    return nullptr;
+  }
+  if (value->second.empty()) {
+    return nullptr;
+  }
+  ID *match_id = value->second.front();
+  value->second.pop_front();
+  return match_id;
+}
+
 static bool lib_override_library_resync(Main *bmain,
                                         Scene *scene,
                                         ViewLayer *view_layer,
@@ -1969,6 +2056,11 @@ static bool lib_override_library_resync(Main *bmain,
     return success;
   }
 
+  /* Get a mapping of all missing linked IDs that were liboverrides, to search for 'old
+   * liboverrides' for newly created ones that do not alredy have one, in next step. */
+  LibOverrideMissingIDsData missing_ids_data = lib_override_library_resync_build_missing_ids_data(
+      bmain);
+
   ListBase *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
@@ -1987,6 +2079,26 @@ static bool lib_override_library_resync(Main *bmain,
       BLI_assert(/*!ID_IS_LINKED(id_override_new) || */ id_override_new->lib == id->lib);
       BLI_assert(id_override_old == nullptr || id_override_old->lib == id_root->lib);
       id_override_new->lib = id_root->lib;
+
+      /* The old override may have been created as linked data and then referenced by local data
+       * during a previous Blender session, in which case it became directly linked and a reference
+       * to it was stored in the local .blend file. however, since that linked liboverride ID does
+       * not actually exist in the original library file, on next file read it is lost and marked
+       * as missing ID.*/
+      if (id_override_old == nullptr && ID_IS_LINKED(id_override_new)) {
+        id_override_old = lib_override_library_resync_search_missing_ids_data(missing_ids_data,
+                                                                              id_override_new);
+        BLI_assert(id_override_old == nullptr || id_override_old->lib == id_override_new->lib);
+        if (id_override_old != nullptr) {
+          BLI_ghash_insert(linkedref_to_old_override, id, id_override_old);
+          CLOG_INFO(&LOG,
+                    2,
+                    "Found missing linked old override best-match %s for new linked override %s",
+                    id_override_old->name,
+                    id_override_new->name);
+        }
+      }
+
       /* Remap step below will tag directly linked ones properly as needed. */
       if (ID_IS_LINKED(id_override_new)) {
         id_override_new->tag |= LIB_TAG_INDIRECT;
@@ -2005,7 +2117,12 @@ static bool lib_override_library_resync(Main *bmain,
 
         lib_override_object_posemode_transfer(id_override_new, id_override_old);
 
-        if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_new)) {
+        /* Missing old liboverrides cannot transfer their override rules to new liboverride.
+         * This is fine though, since these are expected to only be 'virtual' linked overrides
+         * generated by resync of linked overrides. So nothing is expected to be overridden here.
+         */
+        if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_new) &&
+            (id_override_old->tag & LIB_TAG_MISSING) == 0) {
           BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old));
 
           id_override_new->override_library->flag = id_override_old->override_library->flag;

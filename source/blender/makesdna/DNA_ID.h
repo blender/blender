@@ -805,6 +805,9 @@ enum {
   /**
    * ID is a library override that needs re-sync to its linked reference.
    *
+   * \note Also used by readfile code when creating a missing ID placeholder if it is detected as
+   * being a linked liboverride ID.
+   *
    * RESET_NEVER
    */
   LIB_TAG_LIBOVERRIDE_NEED_RESYNC = 1 << 8,

@@ -2756,7 +2756,11 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 /** \name Read Library Data Block
  * \{ */
 
-static ID *create_placeholder(Main *mainvar, const short idcode, const char *idname, const int tag)
+static ID *create_placeholder(Main *mainvar,
+                              const short idcode,
+                              const char *idname,
+                              const int tag,
+                              const bool was_liboverride)
 {
   ListBase *lb = which_libbase(mainvar, idcode);
   ID *ph_id = static_cast<ID *>(BKE_libblock_alloc_notest(idcode));
@@ -2768,6 +2772,14 @@ static ID *create_placeholder(Main *mainvar, const short idcode, const char *idn
   ph_id->tag = tag | LIB_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
   ph_id->icon_id = 0;
+
+  if (was_liboverride) {
+    /* 'Abuse' `LIB_TAG_LIBOVERRIDE_NEED_RESYNC` to mark that placeholder missing linked ID as
+     * being a liboverride.
+     *
+     * This will be used by the liboverride resync process, see #lib_override_library_resync. */
+    ph_id->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+  }
 
   BLI_addtail(lb, ph_id);
   id_sort_by_name(lb, ph_id, nullptr);
@@ -4388,7 +4400,7 @@ static ID *link_named_part(
   else if (use_placeholders) {
     /* XXX flag part is weak! */
     id = create_placeholder(
-        mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN);
+        mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN, false);
   }
   else {
     id = nullptr;
@@ -4705,7 +4717,11 @@ static void read_library_linked_id(
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
     if (r_id) {
-      *r_id = is_valid ? create_placeholder(mainvar, GS(id->name), id->name + 2, id->tag) :
+      *r_id = is_valid ? create_placeholder(mainvar,
+                                            GS(id->name),
+                                            id->name + 2,
+                                            id->tag,
+                                            id->override_library != nullptr) :
                          nullptr;
     }
   }
