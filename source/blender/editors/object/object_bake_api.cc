@@ -180,7 +180,8 @@ static void bake_update_image(ScrArea *area, Image *image)
  * textures (which includes 16-bit formats). Also, it's only applied to the first two channels,
  * since on flat surfaces the Z channel will be close enough to 1.0 to reliably end up on 255.
  */
-void bias_tangent_normal_pixels(float *rect, int channels, int width, int height, int stride)
+static void bias_tangent_normal_pixels(
+    float *rect, int channels, int width, int height, int stride)
 {
   BLI_assert(channels >= 3);
 

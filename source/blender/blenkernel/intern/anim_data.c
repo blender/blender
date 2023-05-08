@@ -377,7 +377,7 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id)
 
 void BKE_animdata_duplicate_id_action(struct Main *bmain,
                                       struct ID *id,
-                                      const eDupli_ID_Flags duplicate_flags)
+                                      const /*eDupli_ID_Flags*/ uint duplicate_flags)
 {
   if (duplicate_flags & USER_DUP_ACT) {
     animdata_copy_id_action(bmain, id, true, (duplicate_flags & USER_DUP_LINKED_ID) != 0);
