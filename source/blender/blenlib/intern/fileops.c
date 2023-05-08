@@ -553,9 +553,7 @@ static bool delete_recursive(const char *dir)
   i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
-    const char *filename = BLI_path_basename(fl->path);
-
-    if (FILENAME_IS_CURRPAR(filename)) {
+    if (FILENAME_IS_CURRPAR(fl->relname)) {
       /* Skip! */
     }
     else if (S_ISDIR(fl->type)) {
