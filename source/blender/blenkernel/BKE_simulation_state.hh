@@ -19,6 +19,7 @@ class SimulationStateItem {
 
 class GeometrySimulationStateItem : public SimulationStateItem {
  public:
+  GeometrySimulationStateItem(GeometrySet geometry);
   GeometrySet geometry;
 };
 
