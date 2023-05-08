@@ -218,7 +218,7 @@ void AssetList::ensurePreviewsJob(const bContext *C)
   int numfiles = filelist_files_ensure(files);
 
   filelist_cache_previews_set(files, true);
-  filelist_file_cache_slidingwindow_set(files, 256);
+  filelist_file_cache_slidingwindow_set(files, 128);
   /* TODO fetch all previews for now. */
   filelist_file_cache_block(files, numfiles / 2);
   filelist_cache_previews_update(files);
