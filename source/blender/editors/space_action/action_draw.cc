@@ -496,7 +496,6 @@ static bool timeline_cache_is_hidden_by_setting(const SpaceAction *saction, cons
       }
       break;
     case PTCACHE_TYPE_PARTICLES:
-    case PTCACHE_TYPE_SIM_PARTICLES:
       if ((saction->cache_display & TIME_CACHE_PARTICLES) == 0) {
         return true;
       }
@@ -536,7 +535,6 @@ static void timeline_cache_color_get(PTCacheID *pid, float color[4])
       color[3] = 0.1;
       break;
     case PTCACHE_TYPE_PARTICLES:
-    case PTCACHE_TYPE_SIM_PARTICLES:
       color[0] = 1.0;
       color[1] = 0.1;
       color[2] = 0.02;
