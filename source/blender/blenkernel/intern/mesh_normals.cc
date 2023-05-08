@@ -1331,8 +1331,10 @@ void normals_calc_loop(const Span<float3> vert_positions,
   MLoopNorSpace *lnor_spaces = nullptr;
   if (r_lnors_spacearr) {
     r_lnors_spacearr->spaces_num = single_corners.size() + fan_corners.size();
-    lnor_spaces = static_cast<MLoopNorSpace *>(BLI_memarena_calloc(
-        r_lnors_spacearr->mem, sizeof(MLoopNorSpace) * r_lnors_spacearr->spaces_num));
+    if (r_lnors_spacearr->spaces_num > 0) {
+      lnor_spaces = static_cast<MLoopNorSpace *>(BLI_memarena_calloc(
+          r_lnors_spacearr->mem, sizeof(MLoopNorSpace) * r_lnors_spacearr->spaces_num));
+    }
   }
 
   threading::parallel_for(single_corners.index_range(), 1024, [&](const IndexRange range) {
