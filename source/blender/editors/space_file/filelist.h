@@ -113,6 +113,16 @@ void filelist_setdir(struct FileList *filelist, char *r_dir);
  */
 int filelist_files_ensure(struct FileList *filelist);
 int filelist_needs_reading(struct FileList *filelist);
+/**
+ * Request a file from the file browser cache, adding it to the cache if necessary.
+ *
+ * As a rule of thumb, this can be used for operations on individual files (e.g. selection, active,
+ * renaming, etc.). But avoid calling this on many files (like when iterating the entire list), to
+ * not create a bunch of cache entries for a single operation. While a bit against the point of
+ * "intern" entries, in this case it's probably better to have queries like
+ * #filelist_entry_get_id(), that take a file index and return data directly from the
+ * #FileListInternEntry.
+ */
 FileDirEntry *filelist_file(struct FileList *filelist, int index);
 FileDirEntry *filelist_file_ex(struct FileList *filelist, int index, bool use_request);
 
