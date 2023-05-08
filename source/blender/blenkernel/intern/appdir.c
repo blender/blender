@@ -130,7 +130,7 @@ const char *BKE_appdir_folder_default(void)
 #ifndef WIN32
   return BLI_getenv("HOME");
 #else  /* Windows */
-  static char documentfolder[MAXPATHLEN];
+  static char documentfolder[FILE_MAXDIR];
 
   if (BKE_appdir_folder_documents(documentfolder)) {
     return documentfolder;
