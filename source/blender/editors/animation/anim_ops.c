@@ -194,42 +194,25 @@ static float frame_from_event(bContext *C, const wmEvent *event)
   return frame;
 }
 
-static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
+static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event, SpaceSeq *sseq)
 {
-  ScrArea *area = CTX_wm_area(C);
-  bScreen *screen = CTX_wm_screen(C);
-  if (area && area->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = area->spacedata.first;
-    ARegion *region = CTX_wm_region(C);
-    if (ED_space_sequencer_check_show_strip(sseq) && !ED_time_scrub_event_in_region(region, event))
-    {
-      ED_sequencer_special_preview_set(C, event->mval);
-    }
-  }
-  if (screen) {
-    screen->scrubbing = true;
+  BLI_assert(sseq != NULL);
+  ARegion *region = CTX_wm_region(C);
+  if (ED_space_sequencer_check_show_strip(sseq) && !ED_time_scrub_event_in_region(region, event)) {
+    ED_sequencer_special_preview_set(C, event->mval);
   }
 }
 
-static void change_frame_seq_preview_end(bContext *C)
+static void change_frame_seq_preview_end(bContext *C, SpaceSeq *sseq)
 {
-  bScreen *screen = CTX_wm_screen(C);
-  bool notify = false;
-
-  if (screen->scrubbing) {
-    screen->scrubbing = false;
-    notify = true;
-  }
-
+  BLI_assert(sseq != NULL);
+  UNUSED_VARS_NDEBUG(sseq);
   if (ED_sequencer_special_preview_get() != NULL) {
     ED_sequencer_special_preview_clear();
-    notify = true;
   }
 
-  if (notify) {
-    Scene *scene = CTX_data_scene(C);
-    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-  }
+  Scene *scene = CTX_data_scene(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 }
 
 static bool use_sequencer_snapping(bContext *C)
@@ -248,6 +231,7 @@ static bool use_sequencer_snapping(bContext *C)
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
+  bScreen *screen = CTX_wm_screen(C);
   if (CTX_wm_space_seq(C) != NULL && region->regiontype == RGN_TYPE_PREVIEW) {
     return OPERATOR_CANCELLED;
   }
@@ -262,7 +246,11 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
     RNA_boolean_set(op->ptr, "snap", true);
   }
 
-  change_frame_seq_preview_begin(C, event);
+  screen->scrubbing = true;
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq) {
+    change_frame_seq_preview_begin(C, event, sseq);
+  }
 
   change_frame_apply(C, op, true);
 
@@ -274,7 +262,13 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 static void change_frame_cancel(bContext *C, wmOperator *UNUSED(op))
 {
-  change_frame_seq_preview_end(C);
+  bScreen *screen = CTX_wm_screen(C);
+  screen->scrubbing = false;
+
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq != NULL) {
+    change_frame_seq_preview_end(C, sseq);
+  }
 }
 
 /* Modal event handling of frame changing */
@@ -324,7 +318,13 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (ret != OPERATOR_RUNNING_MODAL) {
-    change_frame_seq_preview_end(C);
+    bScreen *screen = CTX_wm_screen(C);
+    screen->scrubbing = false;
+
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
+    if (sseq != NULL) {
+      change_frame_seq_preview_end(C, sseq);
+    }
   }
 
   return ret;
