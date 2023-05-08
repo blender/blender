@@ -2426,7 +2426,9 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
 
     /* Since this ID is reached from the hierarchy root, it is not isolated from it. */
-    if (id_root->override_library->hierarchy_root != id_root) {
+    if (id_root->override_library->hierarchy_root != id_root &&
+        id_root->override_library->runtime != nullptr)
+    {
       id_root->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
     }
   }
