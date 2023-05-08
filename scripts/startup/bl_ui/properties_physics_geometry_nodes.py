@@ -27,9 +27,13 @@ class PHYSICS_PT_geometry_nodes(Panel):
         layout = self.layout
 
         if len(context.selected_editable_objects) > 1:
+            calc_text = iface_("Calculate Selected to Frame")
             bake_text = iface_("Bake Selected")
         else:
+            calc_text = iface_("Calculate to Frame")
             bake_text = iface_("Bake")
+
+        layout.operator("object.simulation_nodes_cache_calculate_to_frame", text=calc_text).selected = True
 
         row = layout.row(align=True)
         row.operator("object.simulation_nodes_cache_bake", text=bake_text).selected = True
