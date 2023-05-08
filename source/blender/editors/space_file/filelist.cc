@@ -1552,6 +1552,10 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
   if (cache->previews_pool) {
     BLI_task_pool_cancel(cache->previews_pool);
 
+    LISTBASE_FOREACH (FileDirEntry *, entry, &cache->cached_entries) {
+      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+    }
+
     FileListEntryPreview *preview;
     while ((preview = static_cast<FileListEntryPreview *>(
                 BLI_thread_queue_pop_timeout(cache->previews_done, 0))))
