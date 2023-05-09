@@ -989,10 +989,11 @@ struct PBVHBatches {
       case CD_PBVH_CO_TYPE:
         if (args->show_orig) {
           int cd_origco = CustomData_get_offset_named(
-              &args->bm->vdata, CD_PROP_INT32, ".sculpt_orig_co");
+              &args->bm->vdata, CD_PROP_FLOAT3, ".sculpt_orig_co");
+          printf("cd_orig_co: %d\n", cd_origco);
 
           foreach_bmesh([&](BMLoop *l) {
-            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = BM_ELEM_CD_PTR<float *>(
+            *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = *BM_ELEM_CD_PTR<float3 *>(
                 l->v, cd_origco);
           });
         }
@@ -1005,13 +1006,13 @@ struct PBVHBatches {
 
       case CD_PBVH_NO_TYPE:
         if (args->show_orig) {
-          int cd_origco = CustomData_get_offset_named(
-              &args->bm->vdata, CD_PROP_INT32, ".sculpt_orig_co");
+          int cd_origno = CustomData_get_offset_named(
+              &args->bm->vdata, CD_PROP_FLOAT3, ".sculpt_orig_no");
 
           foreach_bmesh([&](BMLoop *l) {
             short no[3];
 
-            normal_float_to_short_v3(no, BM_ELEM_CD_PTR<float *>(l->v, cd_origco));
+            normal_float_to_short_v3(no, BM_ELEM_CD_PTR<float *>(l->v, cd_origno));
             *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
           });
         }

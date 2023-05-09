@@ -898,6 +898,9 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   }
 
   if (!SCULPT_automasking_needs_factors_cache(sd, brush)) {
+    if (ss->attrs.automasking_factor) {
+      BKE_sculpt_attribute_destroy(ob, ss->attrs.automasking_factor);
+    }
     return automasking;
   }
 

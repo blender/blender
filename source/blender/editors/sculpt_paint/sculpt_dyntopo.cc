@@ -510,8 +510,7 @@ ATTR_NO_OPT void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   if (!ss->bm) {
     ss->bm = BKE_sculptsession_empty_bmesh_create();
 
-    BMeshFromMeshParams params = {0};
-    params.calc_face_normal = true;
+    BMeshFromMeshParams params = {};
     params.use_shapekey = true;
     params.create_shapekey_layers = true;
     params.active_shapekey = ob->shapenr;
@@ -535,10 +534,8 @@ ATTR_NO_OPT void SCULPT_dynamic_topology_enable_ex(Main *bmain,
     e->head.hflag |= BM_ELEM_DRAW;
   }
 
-  /* Make sure the data for existing faces are initialized. */
-  if (me->totpoly != ss->bm->totface) {
-    BM_mesh_normals_update(ss->bm);
-  }
+  /* Calculate normals. */
+  BM_mesh_normals_update(ss->bm);
 
   /* Enable dynamic topology. */
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;

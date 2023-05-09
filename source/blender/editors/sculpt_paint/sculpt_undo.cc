@@ -1041,12 +1041,14 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 #endif
 
   BMeshFromMeshParams params = {0};
-  params.calc_face_normal = true;
   params.use_shapekey = true;
   params.create_shapekey_layers = true;
   params.active_shapekey = ob->shapenr;
 
   BM_mesh_bm_from_me(ss->bm, me, &params);
+
+  /* Calculate normals. */
+  BM_mesh_normals_update(ss->bm);
 
   BKE_sculptsession_update_attr_refs(ob);
 
