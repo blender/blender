@@ -545,6 +545,8 @@ int BLI_string_find_split_words(const char *str,
 #define SNPRINTF(dst, format, ...) BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
 #define SNPRINTF_RLEN(dst, format, ...) \
   BLI_snprintf_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define VSNPRINTF(dst, format, args) BLI_vsnprintf(dst, ARRAY_SIZE(dst), format, args)
+#define VSNPRINTF_RLEN(dst, format, args) BLI_vsnprintf_rlen(dst, ARRAY_SIZE(dst), format, args)
 #define STR_CONCAT(dst, len, suffix) \
   len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
 #define STR_CONCATF(dst, len, format, ...) \
