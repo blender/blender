@@ -1305,7 +1305,7 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
     if (a == 1) {
       next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
     }
-    else {
+    else if (next != NULL) {
       next++;
     }
 
