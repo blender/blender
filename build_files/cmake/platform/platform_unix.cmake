@@ -314,7 +314,7 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   endif()
 endif()
 
-if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_SYCL_SUPPORT)))
+if(WITH_CYCLES AND WITH_CYCLES_DEVICE_ONEAPI)
   set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")
   if(EXISTS ${CYCLES_LEVEL_ZERO} AND NOT LEVEL_ZERO_ROOT_DIR)
     set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
@@ -323,6 +323,13 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to oneAPI DPC++ compiler")
   if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
     set(SYCL_ROOT_DIR ${CYCLES_SYCL})
+  endif()
+endif()
+
+# add_bundled_libraries for SYCL, but custom since we need to filter the files.
+if(DEFINED LIBDIR)
+  if(NOT DEFINED SYCL_ROOT_DIR)
+    set(SYCL_ROOT_DIR ${LIBDIR}/dpcpp)
   endif()
   file(GLOB _sycl_runtime_libraries
     ${SYCL_ROOT_DIR}/lib/libsycl.so
