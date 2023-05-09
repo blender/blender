@@ -20,7 +20,8 @@ using std::string;
 using std::vector;
 
 /* -------------------------------------------------------------------- */
-/* tests */
+/** \name String Partition
+ * \{ */
 
 /* BLI_str_partition */
 TEST(string, StrPartition)
@@ -321,6 +322,12 @@ TEST(string, StrPartitionExUtf8)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Integer (Grouped)
+ * \{ */
+
 /* BLI_str_format_int_grouped */
 TEST(string, StrFormatIntGrouped)
 {
@@ -380,6 +387,12 @@ TEST(string, StrFormatUint64Grouped)
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(number_str), strlen(number_str) + 1);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Byte Units
+ * \{ */
 
 /* BLI_str_format_byte_unit */
 TEST(string, StrFormatByteUnits)
@@ -447,6 +460,12 @@ TEST(string, StrFormatByteUnits)
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Decimal Units
+ * \{ */
 
 /* BLI_str_format_decimal_unit */
 TEST(string, StrFormatDecimalUnits)
@@ -640,6 +659,12 @@ TEST(string, StrFormatIntegerUnits)
   EXPECT_STREQ("-2B", size_str);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Length (Clamped)
+ * \{ */
+
 TEST(string, StringNLen)
 {
   EXPECT_EQ(0, BLI_strnlen("", 0));
@@ -658,6 +683,12 @@ TEST(string, StringNLen)
   EXPECT_EQ(5, BLI_strnlen("this is a longer string", 5));
   EXPECT_EQ(47, BLI_strnlen("This string writes about an agent without name.", 100));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Find Split Words
+ * \{ */
 
 struct WordInfo {
   WordInfo() = default;
@@ -778,6 +809,12 @@ TEST_F(StringFindSplitWords, LimitChars)
   testStringFindSplitWords(words, 0, {{-1, -1}});
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Search (Case Insensitive)
+ * \{ */
+
 /* BLI_strncasestr */
 TEST(string, StringStrncasestr)
 {
@@ -803,6 +840,12 @@ TEST(string, StringStrncasestr)
   EXPECT_EQ(res, (void *)nullptr);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Maximum Word Count
+ * \{ */
+
 /* BLI_string_max_possible_word_count */
 TEST(string, StringMaxPossibleWordCount)
 {
@@ -812,6 +855,12 @@ TEST(string, StringMaxPossibleWordCount)
   EXPECT_EQ(BLI_string_max_possible_word_count(3), 2);
   EXPECT_EQ(BLI_string_max_possible_word_count(10), 6);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String is Decimal
+ * \{ */
 
 /* BLI_string_is_decimal */
 TEST(string, StrIsDecimal)
@@ -831,6 +880,12 @@ TEST(string, StrIsDecimal)
   EXPECT_TRUE(BLI_string_is_decimal("001"));
   EXPECT_TRUE(BLI_string_is_decimal("11342908713948713498745980171334059871345098713405981734"));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Natural Case Insensitive Comparison
+ * \{ */
 
 /* BLI_strcasecmp_natural */
 class StringCasecmpNatural : public testing::Test {
@@ -875,6 +930,12 @@ class StringCasecmpNatural : public testing::Test {
     return ret_array;
   }
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Case Insensitive Comparison
+ * \{ */
 
 TEST_F(StringCasecmpNatural, Empty)
 {
@@ -1036,7 +1097,13 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   testReturnsMoreThanZeroForAll(positive);
 }
 
-/* BLI_str_escape, BLI_str_unescape */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Escape/Un-Escape
+ *
+ * #BLI_str_escape, #BLI_str_unescape.
+ * \{ */
 
 class StringEscape : public testing::Test {
  protected:
@@ -1119,3 +1186,5 @@ TEST_F(StringEscape, Control)
 
   testEscapeWords(escaped);
 }
+
+/** \} */
