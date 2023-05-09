@@ -1633,7 +1633,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
   RenderEngineType *type = BLI_findlink(&R_engines, value);
 
   if (type) {
-    BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
+    STRNCPY_UTF8(rd->engine, type->idname);
     DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
   }
 }
@@ -1768,7 +1768,7 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   SceneRenderView *rv = (SceneRenderView *)ptr->data;
-  BLI_strncpy_utf8(rv->name, value, sizeof(rv->name));
+  STRNCPY_UTF8(rv->name, value);
   BLI_uniquename(&scene->r.views,
                  rv,
                  DATA_("RenderView"),
@@ -2139,7 +2139,7 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[], int frame)
   TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
-  BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
+  STRNCPY_UTF8(marker->name, name);
   BLI_addtail(&scene->markers, marker);
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, NULL);

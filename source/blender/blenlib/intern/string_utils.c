@@ -269,7 +269,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     size_t len = BLI_string_split_name_number(name, delim, left, &number);
     do {
       /* add 1 to account for \0 */
-      const size_t numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;
+      const size_t numlen = SNPRINTF(numstr, "%c%03d", delim, ++number) + 1;
 
       /* highly unlikely the string only has enough room for the number
        * but support anyway */

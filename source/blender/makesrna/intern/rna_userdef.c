@@ -361,7 +361,7 @@ static void rna_userdef_script_directory_name_set(PointerRNA *ptr, const char *v
     value = DATA_("Untitled");
   }
 
-  BLI_strncpy_utf8(script_dir->name, value, sizeof(script_dir->name));
+  STRNCPY_UTF8(script_dir->name, value);
   BLI_uniquename(&U.script_directories,
                  script_dir,
                  value,
@@ -880,7 +880,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
     return NULL;
   }
 
-  BLI_strncpy(dummy_apt.idname, dummy_addon.module, sizeof(dummy_apt.idname));
+  STRNCPY(dummy_apt.idname, dummy_addon.module);
   if (strlen(identifier) >= sizeof(dummy_apt.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,

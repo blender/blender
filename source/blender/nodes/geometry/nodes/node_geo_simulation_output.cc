@@ -731,7 +731,7 @@ bool NOD_geometry_simulation_output_item_set_unique_name(NodeGeometrySimulationO
                                                          const char *defname)
 {
   char unique_name[MAX_NAME + 4];
-  BLI_strncpy(unique_name, name, sizeof(unique_name));
+  STRNCPY(unique_name, name);
 
   blender::nodes::SimulationItemsUniqueNameArgs args{sim, item};
   const bool name_changed = BLI_uniquename_cb(blender::nodes::simulation_items_unique_name_check,

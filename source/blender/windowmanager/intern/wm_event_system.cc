@@ -1353,7 +1353,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 
   /* Adding new operator could be function, only happens here now. */
   op->type = ot;
-  BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
+  STRNCPY(op->idname, ot->idname);
 
   /* Initialize properties, either copy or create. */
   op->ptr = MEM_cnew<PointerRNA>("wmOperatorPtrRNA");

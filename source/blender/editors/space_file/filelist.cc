@@ -633,7 +633,7 @@ static bool is_hidden_dot_filename(const char *filename, const FileListInternEnt
   if (!hidden && sep) {
     char tmp_filename[FILE_MAX_LIBEXTRA];
 
-    BLI_strncpy(tmp_filename, filename, sizeof(tmp_filename));
+    STRNCPY(tmp_filename, filename);
     sep = tmp_filename + (sep - filename);
     while (sep) {
       /* This happens when a path contains 'ALTSEP', '\' on Unix for e.g.
@@ -1001,8 +1001,7 @@ void filelist_setfilter_options(FileList *filelist,
     update = true;
   }
   if (!STREQ(filelist->filter_data.filter_glob, filter_glob)) {
-    BLI_strncpy(
-        filelist->filter_data.filter_glob, filter_glob, sizeof(filelist->filter_data.filter_glob));
+    STRNCPY(filelist->filter_data.filter_glob, filter_glob);
     update = true;
   }
   if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {
@@ -2001,7 +2000,7 @@ void filelist_setdir(FileList *filelist, char *r_dir)
   UNUSED_VARS_NDEBUG(is_valid_path);
 
   if (!STREQ(filelist->filelist.root, r_dir)) {
-    BLI_strncpy(filelist->filelist.root, r_dir, sizeof(filelist->filelist.root));
+    STRNCPY(filelist->filelist.root, r_dir);
     filelist->flags |= FL_FORCE_RESET;
   }
 }
@@ -2933,7 +2932,7 @@ static int groupname_to_code(const char *group)
 
   BLI_assert(group);
 
-  BLI_strncpy(buf, group, sizeof(buf));
+  STRNCPY(buf, group);
   lslash = (char *)BLI_path_slash_rfind(buf);
   if (lslash) {
     lslash[0] = '\0';
@@ -3486,7 +3485,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
           }
           else {
             char relname[FILE_MAX + (MAX_ID_NAME - 2) + 3];
-            BLI_snprintf(relname, sizeof(relname), "%s | %s", id->lib->filepath, id->name + 2);
+            SNPRINTF(relname, "%s | %s", id->lib->filepath, id->name + 2);
             files->entry->relpath = BLI_strdup(relname);
           }
 //                  files->type |= S_IFREG;
@@ -3512,16 +3511,16 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
           }
 #  if 0
           if (id->lib && fake) {
-            BLI_snprintf(files->extra, sizeof(files->entry->extra), "LF %d", id->us);
+            SNPRINTF(files->extra, "LF %d", id->us);
           }
           else if (id->lib) {
-            BLI_snprintf(files->extra, sizeof(files->entry->extra), "L    %d", id->us);
+            SNPRINTF(files->extra, "L    %d", id->us);
           }
           else if (fake) {
-            BLI_snprintf(files->extra, sizeof(files->entry->extra), "F    %d", id->us);
+            SNPRINTF(files->extra, "F    %d", id->us);
           }
           else {
-            BLI_snprintf(files->extra, sizeof(files->entry->extra), "      %d", id->us);
+            SNPRINTF(files->extra, "      %d", id->us);
           }
 #  endif
 
@@ -3624,8 +3623,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
   td_dir->level = 1;
 
-  BLI_strncpy(dir, filelist->filelist.root, sizeof(dir));
-  BLI_strncpy(filter_glob, filelist->filter_data.filter_glob, sizeof(filter_glob));
+  STRNCPY(dir, filelist->filelist.root);
+  STRNCPY(filter_glob, filelist->filter_data.filter_glob);
 
   BLI_path_abs(dir, job_params->main_filepath);
   BLI_path_normalize_dir(dir, sizeof(dir));
@@ -3658,13 +3657,13 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
      * name inside .blend file, which can have slashes and backslashes! See #46827.
      * Note that in the end, this means we 'cache' valid relative subdir once here,
      * this is actually better. */
-    BLI_strncpy(rel_subdir, subdir, sizeof(rel_subdir));
+    STRNCPY(rel_subdir, subdir);
     BLI_path_abs(rel_subdir, root);
     BLI_path_normalize_dir(rel_subdir, sizeof(rel_subdir));
     BLI_path_rel(rel_subdir, root);
 
     /* Update the current relative base path within the filelist root. */
-    BLI_strncpy(job_params->cur_relbase, rel_subdir, sizeof(job_params->cur_relbase));
+    STRNCPY(job_params->cur_relbase, rel_subdir);
 
     bool is_lib = false;
     if (do_lib) {
@@ -3984,7 +3983,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 
         /* Override library info to read this library. */
         job_params->load_asset_library = &nested_library;
-        BLI_strncpy(filelist->filelist.root, root_path.c_str(), sizeof(filelist->filelist.root));
+        STRNCPY(filelist->filelist.root, root_path.c_str());
 
         float progress_this = 0.0f;
         filelist_readjob_recursive_dir_add_items(
@@ -4139,7 +4138,7 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   flrj = MEM_cnew<FileListReadJob>(__func__);
   flrj->filelist = filelist;
   flrj->current_main = bmain;
-  BLI_strncpy(flrj->main_filepath, BKE_main_blendfile_path(bmain), sizeof(flrj->main_filepath));
+  STRNCPY(flrj->main_filepath, BKE_main_blendfile_path(bmain));
   if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET)) {
     flrj->only_main_data = true;
   }

@@ -137,7 +137,7 @@ static ModifierData *modifier_allocate_and_init(ModifierType type)
   ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->structSize, mti->structName));
 
   /* NOTE: this name must be made unique later. */
-  BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
+  STRNCPY(md->name, DATA_(mti->name));
 
   md->type = type;
   md->mode = eModifierMode_Realtime | eModifierMode_Render;
@@ -329,7 +329,7 @@ ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
 {
   ModifierData *md_dst = modifier_allocate_and_init(ModifierType(md->type));
 
-  BLI_strncpy(md_dst->name, md->name, sizeof(md_dst->name));
+  STRNCPY(md_dst->name, md->name);
   BKE_modifier_copydata_ex(md, md_dst, flag);
 
   return md_dst;

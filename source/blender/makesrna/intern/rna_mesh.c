@@ -133,7 +133,7 @@ static CustomData *rna_mesh_ldata(const PointerRNA *ptr)
 
 static void rna_cd_layer_name_set(CustomData *cdata, CustomDataLayer *cdl, const char *value)
 {
-  BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
+  STRNCPY_UTF8(cdl->name, value);
   CustomData_set_layer_unique_name(cdata, cdl - cdata->layers);
 }
 
@@ -2502,7 +2502,7 @@ int rna_MeshStringProperty_s_length(PointerRNA *ptr)
 void rna_MeshStringProperty_s_set(PointerRNA *ptr, const char *value)
 {
   MStringProperty *ms = (MStringProperty *)ptr->data;
-  BLI_strncpy(ms->s, value, sizeof(ms->s));
+  STRNCPY(ms->s, value);
 }
 
 static char *rna_MeshFaceMap_path(const PointerRNA *ptr)

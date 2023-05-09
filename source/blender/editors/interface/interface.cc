@@ -927,7 +927,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       MEM_freeN(oldbut->str);
       oldbut->str = oldbut->strdata;
     }
-    BLI_strncpy(oldbut->strdata, but->strdata, sizeof(oldbut->strdata));
+    STRNCPY(oldbut->strdata, but->strdata);
   }
 
   if (but->dragpoin) {
@@ -1228,8 +1228,7 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
   else {
     butstr_orig = BLI_strdup(but->str);
   }
-  BLI_snprintf(
-      but->strdata, sizeof(but->strdata), "%s" UI_SEP_CHAR_S "%s", butstr_orig, shortcut_str);
+  SNPRINTF(but->strdata, "%s" UI_SEP_CHAR_S "%s", butstr_orig, shortcut_str);
   MEM_freeN(butstr_orig);
   but->str = but->strdata;
   but->flag |= UI_BUT_HAS_SEP_CHAR;
@@ -3668,7 +3667,7 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
     STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
   }
 
-  BLI_strncpy(block->name, name, sizeof(block->name));
+  STRNCPY(block->name, name);
 
   if (region) {
     UI_block_region_set(block, region);
@@ -3862,7 +3861,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
             }
           }
         }
-        BLI_strncpy(but->drawstr, but->str, sizeof(but->drawstr));
+        STRNCPY(but->drawstr, but->str);
       }
       break;
 
@@ -3884,10 +3883,10 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
       if (ui_but_is_float(but)) {
         UI_GET_BUT_VALUE_INIT(but, value);
         const int prec = ui_but_calc_float_precision(but, value);
-        BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
+        SNPRINTF(but->drawstr, "%s%.*f", but->str, prec, value);
       }
       else {
-        BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+        STRNCPY(but->drawstr, but->str);
       }
 
       break;
@@ -3898,7 +3897,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         char str[UI_MAX_DRAW_STR];
 
         ui_but_string_get(but, str, UI_MAX_DRAW_STR);
-        BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, str);
+        SNPRINTF(but->drawstr, "%s%s", but->str, str);
       }
       break;
 
@@ -3911,7 +3910,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         UI_GET_BUT_VALUE_INIT(but, value);
         str = WM_key_event_string(short(value), false);
       }
-      BLI_snprintf(but->drawstr, UI_MAX_DRAW_STR, "%s%s", but->str, str);
+      SNPRINTF(but->drawstr, "%s%s", but->str, str);
       break;
     }
     case UI_BTYPE_HOTKEY_EVENT:
@@ -3938,11 +3937,11 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
           (void)str; /* UNUSED */
         }
         else {
-          BLI_strncpy(but->drawstr, IFACE_("Press a key"), UI_MAX_DRAW_STR);
+          STRNCPY(but->drawstr, IFACE_("Press a key"));
         }
       }
       else {
-        BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+        STRNCPY(but->drawstr, but->str);
       }
 
       break;
@@ -3951,7 +3950,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     case UI_BTYPE_HSVCIRCLE:
       break;
     default:
-      BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+      STRNCPY(but->drawstr, but->str);
       break;
   }
 

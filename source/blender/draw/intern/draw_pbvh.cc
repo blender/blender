@@ -104,7 +104,7 @@ struct PBVHVbo {
   {
     char buf[512];
 
-    BLI_snprintf(buf, sizeof(buf), "%d:%d:%s", int(type), int(domain), name.c_str());
+    SNPRINTF(buf, "%d:%d:%s", int(type), int(domain), name.c_str());
 
     key = string(buf);
     return key;

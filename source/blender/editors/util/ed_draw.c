@@ -338,7 +338,7 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
   };
 
   UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
-  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", slider->factor * 100);
+  SNPRINTF(percentage_string, "%.0f%%", slider->factor * 100);
 
   /* Draw percentage string. */
   float percentage_string_pixel_size[2];

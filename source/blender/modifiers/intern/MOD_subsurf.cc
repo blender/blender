@@ -402,11 +402,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                              RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                          0.1f);
     char output[256];
-    BLI_snprintf(output,
-                 sizeof(output),
-                 TIP_("Final Scale: Render %.2f px, Viewport %.2f px"),
-                 render,
-                 preview);
+    SNPRINTF(output, TIP_("Final Scale: Render %.2f px, Viewport %.2f px"), render, preview);
     uiItemL(layout, output, ICON_NONE);
 
     uiItemS(layout);

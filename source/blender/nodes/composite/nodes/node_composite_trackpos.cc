@@ -54,10 +54,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+    STRNCPY(data->tracking_object, tracking_object->name);
 
     if (tracking_object->active_track) {
-      BLI_strncpy(data->track_name, tracking_object->active_track->name, sizeof(data->track_name));
+      STRNCPY(data->track_name, tracking_object->active_track->name);
     }
   }
 }

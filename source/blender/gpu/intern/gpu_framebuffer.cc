@@ -30,7 +30,7 @@ namespace blender::gpu {
 FrameBuffer::FrameBuffer(const char *name)
 {
   if (name) {
-    BLI_strncpy(name_, name, sizeof(name_));
+    STRNCPY(name_, name);
   }
   else {
     name_[0] = '\0';

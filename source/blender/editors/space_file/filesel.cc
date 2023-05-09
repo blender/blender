@@ -82,7 +82,7 @@ static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectPara
     else {
       const char *doc_path = BKE_appdir_folder_default();
       if (doc_path) {
-        BLI_strncpy(params->dir, doc_path, sizeof(params->dir));
+        STRNCPY(params->dir, doc_path);
       }
     }
   }
@@ -183,7 +183,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
       char filepath[FILE_MAX];
       RNA_string_get(op->ptr, "filepath", filepath);
       if (params->type == FILE_LOADLIB) {
-        BLI_strncpy(params->dir, filepath, sizeof(params->dir));
+        STRNCPY(params->dir, filepath);
         params->file[0] = '\0';
       }
       else {
@@ -277,7 +277,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
       char *tmp = RNA_property_string_get_alloc(
           op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), nullptr);
       if (tmp != params->filter_glob) {
-        BLI_strncpy(params->filter_glob, tmp, sizeof(params->filter_glob));
+        STRNCPY(params->filter_glob, tmp);
         MEM_freeN(tmp);
 
         /* Fix stupid things that truncating might have generated,
@@ -431,9 +431,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
 
   switch (eAssetLibraryType(library->type)) {
     case ASSET_LIBRARY_ESSENTIALS:
-      BLI_strncpy(base_params->dir,
-                  blender::asset_system::essentials_directory_path().c_str(),
-                  sizeof(base_params->dir));
+      STRNCPY(base_params->dir, blender::asset_system::essentials_directory_path().c_str());
       base_params->type = FILE_ASSET_LIBRARY;
       break;
     case ASSET_LIBRARY_ALL:
@@ -446,7 +444,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       break;
     case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
-      BLI_strncpy(base_params->dir, user_library->path, sizeof(base_params->dir));
+      STRNCPY(base_params->dir, user_library->path);
       base_params->type = FILE_ASSET_LIBRARY;
       break;
   }
@@ -724,7 +722,7 @@ void fileselect_file_set(struct bContext *C, SpaceFile *sfile, const int index)
   const struct FileDirEntry *file = filelist_file(sfile->files, index);
   if (file && file->relpath && file->relpath[0] && !(file->typeflag & FILE_TYPE_DIR)) {
     FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-    BLI_strncpy(params->file, file->relpath, FILE_MAXFILE);
+    STRNCPY(params->file, file->relpath);
     if (sfile->op) {
       /* Update the filepath properties of the operator. */
       Main *bmain = CTX_data_main(C);
@@ -1154,7 +1152,7 @@ void ED_file_change_dir_ex(bContext *C, ScrArea *area)
     params->active_file = -1;
 
     if (!filelist_is_dir(sfile->files, params->dir)) {
-      BLI_strncpy(params->dir, filelist_dir(sfile->files), sizeof(params->dir));
+      STRNCPY(params->dir, filelist_dir(sfile->files));
       /* could return but just refresh the current dir */
     }
     filelist_setdir(sfile->files, params->dir);
@@ -1464,10 +1462,10 @@ void ED_fileselect_ensure_default_filepath(struct bContext *C,
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
     if (blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
+      STRNCPY(filepath, DATA_("untitled"));
     }
     else {
-      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
+      STRNCPY(filepath, blendfile_path);
     }
 
     BLI_path_extension_replace(filepath, sizeof(filepath), extension);

@@ -2475,9 +2475,9 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(node->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, node->name, sizeof(node->name));
+  STRNCPY(oldname, node->name);
   /* set new name */
-  BLI_strncpy_utf8(node->name, value, sizeof(node->name));
+  STRNCPY_UTF8(node->name, value);
 
   nodeUniqueName(ntree, node);
 
@@ -4353,7 +4353,7 @@ static void rna_ShaderNodeTexIES_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_IES_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4378,7 +4378,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_SCRIPT_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4595,9 +4595,7 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self, Depsgraph *depsgraph)
     pd->source = TEX_PD_OBJECT;
     pd->ob_cache_space = TEX_PD_OBJECTSPACE;
     pd->ob_color_source = point_density_vertex_color_source_from_shader(shader_point_density);
-    BLI_strncpy(pd->vertex_attribute_name,
-                shader_point_density->vertex_attribute_name,
-                sizeof(pd->vertex_attribute_name));
+    STRNCPY(pd->vertex_attribute_name, shader_point_density->vertex_attribute_name);
   }
 
   /* Store resolution, so it can be changed in the UI. */
@@ -4675,7 +4673,7 @@ static void rna_NodeConvertColorSpace_from_color_space_set(struct PointerRNA *pt
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->from_color_space, name, sizeof(node_storage->from_color_space));
+    STRNCPY(node_storage->from_color_space, name);
   }
 }
 static int rna_NodeConvertColorSpace_to_color_space_get(struct PointerRNA *ptr)
@@ -4692,7 +4690,7 @@ static void rna_NodeConvertColorSpace_to_color_space_set(struct PointerRNA *ptr,
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->to_color_space, name, sizeof(node_storage->to_color_space));
+    STRNCPY(node_storage->to_color_space, name);
   }
 }
 

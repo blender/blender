@@ -80,14 +80,14 @@ static void unique_name(bNode *node)
         }
       }
 
-      BLI_strncpy(new_name, name, sizeof(tno->name));
+      STRNCPY(new_name, name);
       name = new_name;
     }
     BLI_sprintf(new_name + new_len - 4, ".%03d", ++suffix);
   }
 
   if (new_name[0] != '\0') {
-    BLI_strncpy(tno->name, new_name, sizeof(tno->name));
+    STRNCPY(tno->name, new_name);
   }
 }
 

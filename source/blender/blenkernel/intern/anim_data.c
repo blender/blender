@@ -767,7 +767,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
       bActionGroup *agrp = fcu->grp;
       is_changed = true;
       if (oldName != NULL && (agrp != NULL) && STREQ(oldName, agrp->name)) {
-        BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
+        STRNCPY(agrp->name, newName);
       }
     }
   }
@@ -819,7 +819,7 @@ static bool drivers_path_rename_fix(ID *owner_id,
               (dtar->pchan_name[0]) && STREQ(oldName, dtar->pchan_name))
           {
             is_changed = true;
-            BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
+            STRNCPY(dtar->pchan_name, newName);
           }
         }
       }

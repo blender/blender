@@ -196,7 +196,7 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
     va_list args_cpy;
 
     va_copy(args_cpy, arg);
-    n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, args_cpy);
+    n = VSNPRINTF(ffmpeg_last_error, format, args_cpy);
     va_end(args_cpy);
 
     /* strip trailing \n */

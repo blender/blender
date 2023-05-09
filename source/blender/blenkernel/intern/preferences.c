@@ -46,7 +46,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
     BKE_preferences_asset_library_name_set(userdef, library, name);
   }
   if (path) {
-    BLI_strncpy(library->path, path, sizeof(library->path));
+    STRNCPY(library->path, path);
   }
 
   return library;
@@ -61,7 +61,7 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
                                             bUserAssetLibrary *library,
                                             const char *name)
 {
-  BLI_strncpy_utf8(library->name, name, sizeof(library->name));
+  STRNCPY_UTF8(library->name, name);
   BLI_uniquename(&userdef->asset_libraries,
                  library,
                  name,
@@ -72,7 +72,7 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
 
 void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
 {
-  BLI_strncpy(library->path, path, sizeof(library->path));
+  STRNCPY(library->path, path);
   if (BLI_is_file(library->path)) {
     BLI_path_parent_dir(library->path);
   }

@@ -110,7 +110,7 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int vi
   BLI_path_abs(filepath_temp, BKE_main_blendfile_path_from_global());
 
   if (view_id > 0) {
-    BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
+    SNPRINTF(suffix, "_%d", view_id);
     /* TODO(sergey): This will actually append suffix after extension
      * which is weird but how was originally coded in multi-view branch.
      */
@@ -141,7 +141,7 @@ static bool seq_proxy_get_fname(Scene *scene,
 
   /* Multi-view suffix. */
   if (view_id > 0) {
-    BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
+    SNPRINTF(suffix, "_%d", view_id);
   }
 
   /* Per strip with Custom file situation is handled separately. */
@@ -156,20 +156,20 @@ static bool seq_proxy_get_fname(Scene *scene,
   if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
     /* Per project default. */
     if (ed->proxy_dir[0] == 0) {
-      BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
+      STRNCPY(dir, "//BL_proxy");
     }
     else { /* Per project with custom dir. */
-      BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+      STRNCPY(dir, ed->proxy_dir);
     }
     BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
   }
   else {
     /* Pre strip with custom dir. */
     if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
-      BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+      STRNCPY(dir, seq->strip->proxy->dir);
     }
     else { /* Per strip default. */
-      BLI_snprintf(dir, PROXY_MAXFILE, "%s" SEP_STR "BL_proxy", seq->strip->dir);
+      SNPRINTF(dir, "%s" SEP_STR "BL_proxy", seq->strip->dir);
     }
   }
 

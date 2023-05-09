@@ -517,7 +517,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   Library *lib;
   char filepath_abs[FILE_MAX];
 
-  BLI_strncpy(filepath_abs, filepath, sizeof(filepath_abs));
+  STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, relabase);
   BLI_path_normalize(filepath_abs);
 
@@ -550,8 +550,8 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   /* Matches direct_link_library(). */
   id_us_ensure_real(&lib->id);
 
-  BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
-  BLI_strncpy(lib->filepath_abs, filepath_abs, sizeof(lib->filepath_abs));
+  STRNCPY(lib->filepath, filepath);
+  STRNCPY(lib->filepath_abs, filepath_abs);
 
   m->curlib = lib;
 
@@ -1185,7 +1185,7 @@ FileData *blo_filedata_from_file(const char *filepath, BlendFileReadReport *repo
   FileData *fd = blo_filedata_from_file_open(filepath, reports);
   if (fd != nullptr) {
     /* needed for library_append and read_libraries */
-    BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, filepath);
 
     return blo_decode_and_check(fd, reports->reports);
   }
@@ -2698,7 +2698,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   }
 
   /* Make sure we have full path in lib->filepath_abs */
-  BLI_strncpy(lib->filepath_abs, lib->filepath, sizeof(lib->filepath));
+  STRNCPY(lib->filepath_abs, lib->filepath);
   BLI_path_abs(lib->filepath_abs, fd->relabase);
   BLI_path_normalize(lib->filepath_abs);
 
@@ -2733,7 +2733,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
-        BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
+        STRNCPY(lib->filepath, lib->filepath_abs);
       }
     }
   }
@@ -2743,7 +2743,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
-        BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
+        STRNCPY(lib->filepath, lib->filepath_abs);
         BLI_path_rel(lib->filepath, basepath);
       }
     }
@@ -3401,7 +3401,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   bfd->main->minversionfile = fg->minversion;
   bfd->main->minsubversionfile = fg->minsubversion;
   bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
-  BLI_strncpy(bfd->main->build_hash, fg->build_hash, sizeof(bfd->main->build_hash));
+  STRNCPY(bfd->main->build_hash, fg->build_hash);
 
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
@@ -3423,7 +3423,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   }
 
   if (G.fileflags & G_FILE_RECOVER_READ) {
-    BLI_strncpy(fd->relabase, fg->filepath, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, fg->filepath);
   }
 
   bfd->curscreen = fg->curscreen;
@@ -3485,7 +3485,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
       strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
     }
     else {
-      BLI_strncpy(build_commit_datetime, "unknown", sizeof(build_commit_datetime));
+      STRNCPY(build_commit_datetime, "unknown");
     }
 
     CLOG_INFO(&LOG, 0, "Read file %s", fd->relabase);
@@ -4548,7 +4548,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* make the lib path relative if required */
   if (flag & FILE_RELPATH) {
     /* use the full path, this could have been read by other library even */
-    BLI_strncpy(curlib->filepath, curlib->filepath_abs, sizeof(curlib->filepath));
+    STRNCPY(curlib->filepath, curlib->filepath_abs);
 
     /* uses current .blend file as reference */
     BLI_path_rel(curlib->filepath, BKE_main_blendfile_path_from_global());
@@ -4828,7 +4828,7 @@ static FileData *read_library_file_data(FileData *basefd,
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    BLI_strncpy(fd->relabase, mainptr->curlib->filepath_abs, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, mainptr->curlib->filepath_abs);
   }
   else {
     /* Read file on disk. */

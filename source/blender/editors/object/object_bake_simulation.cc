@@ -281,7 +281,7 @@ static void bake_simulation_job_startjob(void *customdata,
     job.scene->r.subframe = frame.subframe();
 
     char frame_file_c_str[64];
-    BLI_snprintf(frame_file_c_str, sizeof(frame_file_c_str), "%011.5f", double(frame));
+    SNPRINTF(frame_file_c_str, "%011.5f", double(frame));
     BLI_str_replace_char(frame_file_c_str, '.', '_');
     const StringRefNull frame_file_str = frame_file_c_str;
 

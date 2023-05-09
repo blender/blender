@@ -923,7 +923,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
         store_attribute_name_input->default_value);
     const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
                                                                                  "uv_map";
-    BLI_strncpy(name_value->value, uv_map_name, sizeof(name_value->value));
+    STRNCPY(name_value->value, uv_map_name);
 
     nodeAddLink(&ntree,
                 node,
@@ -1397,7 +1397,7 @@ static void version_switch_node_input_prefix(Main *bmain)
 
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
-            BLI_strncpy(number_suffix, socket->identifier + 1, sizeof(number_suffix));
+            STRNCPY(number_suffix, socket->identifier + 1);
             BLI_string_join(
                 socket->identifier, sizeof(socket->identifier), socket->name, number_suffix);
           }
@@ -1576,22 +1576,14 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
     }
 
     char use_attribute_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(use_attribute_prop_name,
-                 sizeof(use_attribute_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_use_attribute");
+    SNPRINTF(use_attribute_prop_name, "%s%s", property->name, "_use_attribute");
 
     IDPropertyTemplate idprop = {0};
     IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
     IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
 
     char attribute_name_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(attribute_name_prop_name,
-                 sizeof(attribute_name_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_attribute_name");
+    SNPRINTF(attribute_name_prop_name, "%s%s", property->name, "_attribute_name");
 
     IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
     IDP_AddToGroup(nmd->settings.properties, attribute_prop);
@@ -4335,43 +4327,38 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
      * This only affects files that have been created using simulation nodes before they were first
      * officially released. */
     if (!DNA_struct_elem_find(fd->filesdna, "NodeSimulationItem", "int", "identifier")) {
-      static auto set_socket_identifiers =
-          [](bNode *node, const bNode *output_node, int extra_outputs) {
-            const NodeGeometrySimulationOutput *output_data =
-                static_cast<const NodeGeometrySimulationOutput *>(output_node->storage);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->inputs) == output_data->items_num + 1);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->outputs) ==
-                       output_data->items_num + 1 + extra_outputs);
+      static auto set_socket_identifiers = [](bNode *node,
+                                              const bNode *output_node,
+                                              int extra_outputs) {
+        const NodeGeometrySimulationOutput *output_data =
+            static_cast<const NodeGeometrySimulationOutput *>(output_node->storage);
+        /* Includes extension socket. */
+        BLI_assert(BLI_listbase_count(&node->inputs) == output_data->items_num + 1);
+        /* Includes extension socket. */
+        BLI_assert(BLI_listbase_count(&node->outputs) ==
+                   output_data->items_num + 1 + extra_outputs);
 
-            int i;
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, i) {
-              /* Skip extension socket. */
-              if (i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i].identifier);
-            }
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
-              const int item_i = i - extra_outputs;
-              /* Skip extra outputs. */
-              if (i < extra_outputs) {
-                continue;
-              }
-              /* Skip extension socket. */
-              if (item_i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i - extra_outputs].identifier);
-            }
-          };
+        int i;
+        LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, i) {
+          /* Skip extension socket. */
+          if (i >= output_data->items_num) {
+            break;
+          }
+          SNPRINTF(sock->identifier, "Item_%d", output_data->items[i].identifier);
+        }
+        LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+          const int item_i = i - extra_outputs;
+          /* Skip extra outputs. */
+          if (i < extra_outputs) {
+            continue;
+          }
+          /* Skip extension socket. */
+          if (item_i >= output_data->items_num) {
+            break;
+          }
+          SNPRINTF(sock->identifier, "Item_%d", output_data->items[i - extra_outputs].identifier);
+        }
+      };
 
       LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
         if (ntree->type == NTREE_GEOMETRY) {

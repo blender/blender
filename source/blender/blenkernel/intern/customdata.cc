@@ -2955,7 +2955,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
 
   if (name) {
-    BLI_strncpy(new_layer.name, name, sizeof(new_layer.name));
+    STRNCPY(new_layer.name, name);
     CustomData_set_layer_unique_name(data, index);
   }
   else {
@@ -3669,7 +3669,7 @@ bool CustomData_set_layer_name(CustomData *data,
     return false;
   }
 
-  BLI_strncpy(data->layers[layer_index].name, name, sizeof(data->layers[layer_index].name));
+  STRNCPY(data->layers[layer_index].name, name);
 
   return true;
 }
@@ -4781,7 +4781,7 @@ void CustomData_external_add(CustomData *data,
     external = MEM_cnew<CustomDataExternal>(__func__);
     data->external = external;
   }
-  BLI_strncpy(external->filepath, filepath, sizeof(external->filepath));
+  STRNCPY(external->filepath, filepath);
 
   layer->flag |= CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY;
 }

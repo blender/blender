@@ -811,7 +811,7 @@ static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
   }
 
   bDeformGroup *dg = (bDeformGroup *)ptr->data;
-  BLI_strncpy_utf8(dg->name, value, sizeof(dg->name));
+  STRNCPY_UTF8(dg->name, value);
   BKE_object_defgroup_unique_name(dg, ob);
 }
 
@@ -964,7 +964,7 @@ static void rna_FaceMap_name_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
   bFaceMap *fmap = (bFaceMap *)ptr->data;
-  BLI_strncpy_utf8(fmap->name, value, sizeof(fmap->name));
+  STRNCPY_UTF8(fmap->name, value);
   BKE_object_facemap_unique_name(ob, fmap);
 }
 

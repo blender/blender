@@ -155,7 +155,7 @@ void AssetList::setup()
 
   char path[FILE_MAXDIR] = "";
   if (!asset_lib_path.empty()) {
-    BLI_strncpy(path, asset_lib_path.c_str(), sizeof(path));
+    STRNCPY(path, asset_lib_path.c_str());
   }
   filelist_setdir(files, path);
 }

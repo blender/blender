@@ -105,7 +105,7 @@ static void gpencil_uv_transform_update_header(wmOperator *op, bContext *C)
       default:
         break;
     }
-    BLI_snprintf(msg, sizeof(msg), str, flts_str, flts_str + NUM_STR_REP_LEN);
+    SNPRINTF(msg, str, flts_str, flts_str + NUM_STR_REP_LEN);
     ED_area_status_text(area, msg);
   }
 }

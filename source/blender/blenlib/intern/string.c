@@ -1141,7 +1141,7 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
   BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_GROUPED_SIZE);
 
   char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
-  const int num_len = BLI_snprintf(src, sizeof(src), "%d", num);
+  const int num_len = SNPRINTF(src, "%d", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
@@ -1151,7 +1151,7 @@ size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE
   BLI_string_debug_size(dst, BLI_STR_FORMAT_UINT64_GROUPED_SIZE);
 
   char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
-  const int num_len = BLI_snprintf(src, sizeof(src), "%" PRIu64 "", num);
+  const int num_len = SNPRINTF(src, "%" PRIu64 "", num);
 
   return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }

@@ -131,10 +131,10 @@ static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const ch
 
     outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
 
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
+    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
   else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
+    SNPRINTF(status_str, "%s: %s", mode_str, slider_string);
   }
 
   ED_workspace_status_text(C, status_str);
@@ -430,10 +430,10 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 
     outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
 
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, str_ofs);
+    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
   else {
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s", mode_str, slider_string);
+    SNPRINTF(status_str, "%s: %s", mode_str, slider_string);
   }
 
   ED_workspace_status_text(C, status_str);

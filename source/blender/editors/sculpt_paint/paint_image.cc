@@ -623,12 +623,10 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area) {
-    BLI_snprintf(msg,
-                 sizeof(msg),
-                 TIP_("Sample color for %s"),
-                 !data->sample_palette ?
-                     TIP_("Brush. Use Left Click to sample for palette instead") :
-                     TIP_("Palette. Use Left Click to sample more colors"));
+    SNPRINTF(msg,
+             TIP_("Sample color for %s"),
+             !data->sample_palette ? TIP_("Brush. Use Left Click to sample for palette instead") :
+                                     TIP_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }

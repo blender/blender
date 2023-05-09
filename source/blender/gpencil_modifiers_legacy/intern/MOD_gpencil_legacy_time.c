@@ -58,7 +58,7 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(TimeGpencilModifierData), modifier);
   TimeGpencilModifierSegment *ds = DNA_struct_default_alloc(TimeGpencilModifierSegment);
   ds->gpmd = gpmd;
-  BLI_strncpy(ds->name, DATA_("Segment"), sizeof(ds->name));
+  STRNCPY(ds->name, DATA_("Segment"));
 
   gpmd->segments = ds;
 }

@@ -115,7 +115,7 @@ static char *blender_version_decimal(const int version)
 {
   static char version_str[5];
   BLI_assert(version < 1000);
-  BLI_snprintf(version_str, sizeof(version_str), "%d.%d", version / 100, version % 100);
+  SNPRINTF(version_str, "%d.%d", version / 100, version % 100);
   return version_str;
 }
 
@@ -480,7 +480,7 @@ static bool get_path_user_ex(char *targetpath,
 
     const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
     if (user_base_path) {
-      BLI_strncpy(user_path, user_base_path, FILE_MAX);
+      STRNCPY(user_path, user_base_path);
     }
   }
 
@@ -546,7 +546,7 @@ static bool get_path_system_ex(char *targetpath,
     system_path[0] = '\0';
     const char *system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
     if (system_base_path) {
-      BLI_strncpy(system_path, system_base_path, FILE_MAX);
+      STRNCPY(system_path, system_base_path);
     }
   }
 

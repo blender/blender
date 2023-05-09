@@ -423,7 +423,7 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
 
   /* use label instead of name if it has been set */
   if (from->label[0] != '\0') {
-    BLI_strncpy(to->name, from->label, NODE_MAXSTR);
+    STRNCPY(to->name, from->label);
   }
 
   switch (from->typeinfo->type) {
@@ -543,9 +543,9 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
-  BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
-  BLI_strncpy(stype->label, socket_label, sizeof(stype->label));
-  BLI_strncpy(stype->subtype_label, socket_subtype_label, sizeof(stype->subtype_label));
+  STRNCPY(stype->idname, socket_idname);
+  STRNCPY(stype->label, socket_label);
+  STRNCPY(stype->subtype_label, socket_subtype_label);
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
@@ -587,7 +587,7 @@ static bNodeSocketType *make_socket_type_virtual()
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
-  BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
+  STRNCPY(stype->idname, socket_idname);
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */

@@ -62,7 +62,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   uiStyle *style = MEM_cnew<uiStyle>(__func__);
 
   BLI_addtail(styles, style);
-  BLI_strncpy(style->name, name, MAX_STYLE_NAME);
+  STRNCPY(style->name, name);
 
   style->panelzoom = 1.0; /* unused */
 
@@ -385,11 +385,11 @@ void uiStyleInit()
   }
 
   if (U.font_path_ui[0]) {
-    BLI_strncpy(font_first->filepath, U.font_path_ui, sizeof(font_first->filepath));
+    STRNCPY(font_first->filepath, U.font_path_ui);
     font_first->uifont_id = UIFONT_CUSTOM1;
   }
   else {
-    BLI_strncpy(font_first->filepath, "default", sizeof(font_first->filepath));
+    STRNCPY(font_first->filepath, "default");
     font_first->uifont_id = UIFONT_DEFAULT;
   }
 

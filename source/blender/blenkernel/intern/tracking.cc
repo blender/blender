@@ -1902,12 +1902,12 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 
   if (tracking->tot_object == 0) {
     /* first object is always camera */
-    BLI_strncpy(tracking_object->name, "Camera", sizeof(tracking_object->name));
+    STRNCPY(tracking_object->name, "Camera");
 
     tracking_object->flag |= TRACKING_OBJECT_CAMERA;
   }
   else {
-    BLI_strncpy(tracking_object->name, name, sizeof(tracking_object->name));
+    STRNCPY(tracking_object->name, name);
   }
 
   BLI_addtail(&tracking->objects, tracking_object);
@@ -3194,10 +3194,10 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
     channel->track = track;
 
     if (reconstruction->flag & TRACKING_RECONSTRUCTED) {
-      BLI_snprintf(channel->name, sizeof(channel->name), "%s (%.4f)", track->name, track->error);
+      SNPRINTF(channel->name, "%s (%.4f)", track->name, track->error);
     }
     else {
-      BLI_strncpy(channel->name, track->name, sizeof(channel->name));
+      STRNCPY(channel->name, track->name);
     }
 
     tracking_dopesheet_channels_segments_calc(channel);

@@ -142,9 +142,9 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache, 
   DiskCacheFile *cache_file = MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile");
   char dir[FILE_MAXDIR], file[FILE_MAX];
   BLI_path_split_dir_file(path, dir, sizeof(dir), file, sizeof(file));
-  BLI_strncpy(cache_file->path, path, sizeof(cache_file->path));
-  BLI_strncpy(cache_file->dir, dir, sizeof(cache_file->dir));
-  BLI_strncpy(cache_file->file, file, sizeof(cache_file->file));
+  STRNCPY(cache_file->path, path);
+  STRNCPY(cache_file->dir, dir);
+  STRNCPY(cache_file->file, file);
   sscanf(file,
          DCACHE_FNAME_FORMAT,
          &cache_file->cache_type,
@@ -181,7 +181,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     bool is_dir = BLI_is_dir(fl->path);
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
       char subpath[FILE_MAX];
-      BLI_strncpy(subpath, fl->path, sizeof(subpath));
+      STRNCPY(subpath, fl->path);
       BLI_path_slash_ensure(subpath, sizeof(sizeof(subpath)));
       seq_disk_cache_get_files(disk_cache, subpath);
     }
@@ -304,9 +304,8 @@ static void seq_disk_cache_get_dir(
   char project_dir[FILE_MAX];
 
   seq_disk_cache_get_project_dir(disk_cache, project_dir, sizeof(project_dir));
-  BLI_snprintf(
-      scene_name, sizeof(scene_name), "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
-  BLI_strncpy(seq_name, seq->name, sizeof(seq_name));
+  SNPRINTF(scene_name, "%s-%" PRId64, scene->id.name, disk_cache->timestamp);
+  STRNCPY(seq_name, seq->name);
   BLI_path_make_safe_filename(scene_name);
   BLI_path_make_safe_filename(seq_name);
 
@@ -321,15 +320,14 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   seq_disk_cache_get_dir(disk_cache, key->context.scene, key->seq, path, path_len);
   int frameno = (int)key->frame_index / DCACHE_IMAGES_PER_FILE;
   char cache_filename[FILE_MAXFILE];
-  BLI_snprintf(cache_filename,
-               sizeof(cache_filename),
-               DCACHE_FNAME_FORMAT,
-               key->type,
-               key->context.rectx,
-               key->context.recty,
-               key->context.preview_render_size,
-               key->context.view_id,
-               frameno);
+  SNPRINTF(cache_filename,
+           DCACHE_FNAME_FORMAT,
+           key->type,
+           key->context.rectx,
+           key->context.recty,
+           key->context.preview_render_size,
+           key->context.view_id,
+           frameno);
 
   BLI_path_append(path, path_len, cache_filename);
 }
@@ -529,8 +527,7 @@ static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCa
     header->entry[i].size_raw = ibuf->x * ibuf->y * ibuf->channels * 4;
     colorspace_name = IMB_colormanagement_get_float_colorspace(ibuf);
   }
-  BLI_strncpy(
-      header->entry[i].colorspace_name, colorspace_name, sizeof(header->entry[i].colorspace_name));
+  STRNCPY(header->entry[i].colorspace_name, colorspace_name);
 
   return i;
 }

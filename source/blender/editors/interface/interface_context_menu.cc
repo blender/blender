@@ -1309,11 +1309,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   if (has_panel_category) {
     char tmpstr[80];
-    BLI_snprintf(tmpstr,
-                 sizeof(tmpstr),
-                 "%s" UI_SEP_CHAR_S "%s",
-                 IFACE_("Pin"),
-                 IFACE_("Shift Left Mouse"));
+    SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
     uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */

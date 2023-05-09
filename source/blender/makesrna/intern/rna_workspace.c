@@ -65,7 +65,7 @@ static wmOwnerID *rna_WorkSpace_owner_ids_new(WorkSpace *workspace, const char *
 {
   wmOwnerID *owner_id = MEM_callocN(sizeof(*owner_id), __func__);
   BLI_addtail(&workspace->owner_ids, owner_id);
-  BLI_strncpy(owner_id->name, name, sizeof(owner_id->name));
+  STRNCPY(owner_id->name, name);
   WM_main_add_notifier(NC_WINDOW, NULL);
   return owner_id;
 }

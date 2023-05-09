@@ -416,10 +416,10 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(con->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, con->name, sizeof(con->name));
+  STRNCPY(oldname, con->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(con->name, value, sizeof(con->name));
+  STRNCPY_UTF8(con->name, value);
 
   /* make sure name is unique */
   if (ptr->owner_id) {

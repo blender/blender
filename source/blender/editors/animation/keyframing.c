@@ -139,7 +139,7 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id)
   if (adt->action == NULL) {
     /* init action name from name of ID block */
     char actname[sizeof(id->name) - 2];
-    BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
+    SNPRINTF(actname, "%sAction", id->name + 2);
 
     /* create action */
     adt->action = BKE_action_add(bmain, actname);

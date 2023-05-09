@@ -1116,9 +1116,9 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
     ID *local_appended_new_id = NULL;
     char lib_filepath[FILE_MAX];
-    BLI_strncpy(lib_filepath, id->lib->filepath, sizeof(lib_filepath));
+    STRNCPY(lib_filepath, id->lib->filepath);
     char lib_id_name[MAX_ID_NAME];
-    BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
+    STRNCPY(lib_id_name, id->name);
 
     switch (item->action) {
       case LINK_APPEND_ACT_COPY_LOCAL:

@@ -69,7 +69,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull meta_dir,
         continue;
       }
       char modified_file_name[FILENAME_MAX];
-      BLI_strncpy(modified_file_name, dir_entry.relname, sizeof(modified_file_name));
+      STRNCPY(modified_file_name, dir_entry.relname);
       BLI_str_replace_char(modified_file_name, '_', '.');
 
       const SubFrame frame = std::stof(modified_file_name);

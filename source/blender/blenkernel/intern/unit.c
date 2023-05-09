@@ -1112,9 +1112,7 @@ bool BKE_unit_replace_string(
 
   /* Apply the default unit on the whole expression, this allows to handle nasty cases like
    * '2+2in'. */
-  if (BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)*%.9g", str, default_unit->scalar) <
-      sizeof(str_tmp))
-  {
+  if (SNPRINTF(str_tmp, "(%s)*%.9g", str, default_unit->scalar) < sizeof(str_tmp)) {
     strncpy(str, str_tmp, str_maxncpy);
   }
   else {

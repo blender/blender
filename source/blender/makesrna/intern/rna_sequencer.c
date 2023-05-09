@@ -1310,10 +1310,10 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(smd->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, smd->name, sizeof(smd->name));
+  STRNCPY(oldname, smd->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(smd->name, value, sizeof(smd->name));
+  STRNCPY_UTF8(smd->name, value);
 
   /* make sure the name is truly unique */
   SEQ_modifier_unique_name(seq, smd);
@@ -1326,8 +1326,7 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
     char seq_name_esc[(sizeof(seq->name) - 2) * 2];
     BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
 
-    BLI_snprintf(
-        path, sizeof(path), "sequence_editor.sequences_all[\"%s\"].modifiers", seq_name_esc);
+    SNPRINTF(path, "sequence_editor.sequences_all[\"%s\"].modifiers", seq_name_esc);
     BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, path, oldname, smd->name, 0, 0, 1);
   }
 }
@@ -1487,7 +1486,7 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
     channels_base = &channel_owner->channels;
   }
 
-  BLI_strncpy_utf8(channel->name, value, sizeof(channel->name));
+  STRNCPY_UTF8(channel->name, value);
   BLI_uniquename(channels_base,
                  channel,
                  "Channel",

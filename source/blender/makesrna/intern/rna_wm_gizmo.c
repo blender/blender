@@ -917,7 +917,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      BLI_strncpy(gzgt->owner_id, owner_id, sizeof(gzgt->owner_id));
+      STRNCPY(gzgt->owner_id, owner_id);
     }
   }
 

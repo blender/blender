@@ -1538,7 +1538,7 @@ static void rna_3DViewShading_render_pass_set(PointerRNA *ptr, int value)
     }
 
     shading->render_pass = EEVEE_RENDER_PASS_AOV;
-    BLI_strncpy(shading->aov_name, aov->name, sizeof(aov->name));
+    STRNCPY(shading->aov_name, aov->name);
   }
   else if (value == EEVEE_RENDER_PASS_BLOOM &&
            ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
@@ -2754,7 +2754,7 @@ static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *val
 {
   FileSelectParams *params = ptr->data;
 
-  BLI_strncpy(params->filter_glob, value, sizeof(params->filter_glob));
+  STRNCPY(params->filter_glob, value);
 
   /* Remove stupid things like last group being a wildcard-only one. */
   BLI_path_extension_glob_validate(params->filter_glob);
@@ -3130,7 +3130,7 @@ static void rna_FileBrowser_FSMenu_active_set(PointerRNA *ptr,
         break;
     }
 
-    BLI_strncpy(sf->params->dir, fsm->path, sizeof(sf->params->dir));
+    STRNCPY(sf->params->dir, fsm->path);
   }
 }
 

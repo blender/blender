@@ -2428,7 +2428,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
   out->params = *params;
   out->proptype = proptype;
   out->domain = domain;
-  BLI_strncpy_utf8(out->name, name, sizeof(out->name));
+  STRNCPY_UTF8(out->name, name);
 
   /* Force non-CustomData simple_array mode if not PBVH_FACES. */
   if (pbvhtype == PBVH_GRIDS || (pbvhtype == PBVH_BMESH && flat_array_for_bmesh)) {
@@ -2696,7 +2696,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr->layer = cdata->layers + index;
       attr->elem_size = CustomData_get_elem_size(attr->layer);
 
-      BLI_strncpy_utf8(attr->name, name, sizeof(attr->name));
+      STRNCPY_UTF8(attr->name, name);
       return attr;
     }
   }

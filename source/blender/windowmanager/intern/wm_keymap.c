@@ -279,7 +279,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
 
   /* Create new configuration. */
   keyconf = MEM_callocN(sizeof(wmKeyConfig), "wmKeyConfig");
-  BLI_strncpy(keyconf->idname, idname, sizeof(keyconf->idname));
+  STRNCPY(keyconf->idname, idname);
   BLI_addtail(&wm->keyconfigs, keyconf);
 
   if (user_defined) {
@@ -298,7 +298,7 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
   if (BLI_findindex(&wm->keyconfigs, keyconf) != -1) {
     if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
-      BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
+      STRNCPY(U.keyconfigstr, wm->defaultconf->idname);
       U.runtime.is_dirty = true;
       WM_keyconfig_update_tag(NULL, NULL);
     }
@@ -347,7 +347,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
 
   WM_keyconfig_update(wm);
 
-  BLI_strncpy(U.keyconfigstr, idname, sizeof(U.keyconfigstr));
+  STRNCPY(U.keyconfigstr, idname);
   if (wm->initialized & WM_KEYCONFIG_IS_INIT) {
     U.runtime.is_dirty = true;
   }
@@ -368,14 +368,14 @@ static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
 {
   wmKeyMap *km = MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
 
-  BLI_strncpy(km->idname, idname, KMAP_MAX_NAME);
+  STRNCPY(km->idname, idname);
   km->spaceid = spaceid;
   km->regionid = regionid;
 
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      BLI_strncpy(km->owner_id, owner_id, sizeof(km->owner_id));
+      STRNCPY(km->owner_id, owner_id);
     }
   }
   return km;
@@ -512,7 +512,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&keymap->items, kmi);
-  BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
+  STRNCPY(kmi->idname, idname);
 
   keymap_event_set(kmi, params);
   wm_keymap_item_properties_set(kmi);
@@ -950,7 +950,7 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
-  BLI_strncpy(kmi->propvalue_str, value, sizeof(kmi->propvalue_str));
+  STRNCPY(kmi->propvalue_str, value);
 
   keymap_event_set(kmi, params);
 
@@ -2004,7 +2004,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
   if (orig) {
     /* restore to original */
     if (!STREQ(orig->idname, kmi->idname)) {
-      BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
+      STRNCPY(kmi->idname, orig->idname);
       WM_keymap_item_properties_reset(kmi, NULL);
     }
 

@@ -178,7 +178,7 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
       /* Rotation Destination:  normal -> radians,  so convert src to radians
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
-      BLI_strncpy(driver->expression, "radians(var)", sizeof(driver->expression));
+      STRNCPY(driver->expression, "radians(var)");
     }
     else if ((RNA_property_unit(src_prop) == PROP_UNIT_ROTATION) &&
              (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION))
@@ -186,11 +186,11 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
       /* Rotation Source: radians -> normal, so convert src to degrees
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
-      BLI_strncpy(driver->expression, "degrees(var)", sizeof(driver->expression));
+      STRNCPY(driver->expression, "degrees(var)");
     }
     else {
       /* Just a normal property without any unit problems */
-      BLI_strncpy(driver->expression, "var", sizeof(driver->expression));
+      STRNCPY(driver->expression, "var");
     }
 
     /* Create a driver variable for the target
@@ -815,7 +815,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
   /* Set the variable name. */
   if (var_name) {
-    BLI_strncpy(var->name, var_name, sizeof(var->name));
+    STRNCPY(var->name, var_name);
 
     /* Sanitize the name. */
     for (int i = 0; var->name[i]; i++) {
@@ -825,7 +825,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
     }
   }
 
-  BLI_strncpy(driver->expression, var->name, sizeof(driver->expression));
+  STRNCPY(driver->expression, var->name);
 
   /* Store the driver into the copy/paste buffers. */
   channeldriver_copypaste_buf = fcu;

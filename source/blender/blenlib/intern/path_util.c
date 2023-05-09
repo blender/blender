@@ -645,7 +645,7 @@ void BLI_path_rel(char *path, const char *basename)
     }
   }
 #else
-  BLI_strncpy(temp, basename, FILE_MAX);
+  STRNCPY(temp, basename);
 #endif
 
   BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
@@ -887,8 +887,7 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
 
   if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
     char tmp[FILE_MAX];
-    BLI_snprintf(
-        tmp, sizeof(tmp), "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
+    SNPRINTF(tmp, "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
     BLI_strncpy(path, tmp, path_maxncpy);
     return true;
   }
@@ -907,16 +906,15 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
 
   if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
     char tmp[FILE_MAX];
-    BLI_snprintf(tmp,
-                 sizeof(tmp),
-                 "%.*s%.*d-%.*d%s",
-                 ch_sta,
-                 path,
-                 ch_end - ch_sta,
-                 sta,
-                 ch_end - ch_sta,
-                 end,
-                 path + ch_end);
+    SNPRINTF(tmp,
+             "%.*s%.*d-%.*d%s",
+             ch_sta,
+             path,
+             ch_end - ch_sta,
+             sta,
+             ch_end - ch_sta,
+             end,
+             path + ch_end);
     BLI_strncpy(path, tmp, FILE_MAX);
     return true;
   }
@@ -1054,7 +1052,7 @@ bool BLI_path_abs(char *path, const char *basepath)
     BLI_strncpy(tmp, path, FILE_MAX);
   }
 #else
-  BLI_strncpy(tmp, path, sizeof(tmp));
+  STRNCPY(tmp, path);
 
   /* Check for loading a MS-Windows path on a POSIX system
    * in this case, there is no use in trying `C:/` since it
@@ -1086,7 +1084,7 @@ bool BLI_path_abs(char *path, const char *basepath)
    * this isn't standard in any OS but is used in blender all over the place. */
   if (wasrelative) {
     const char *lslash;
-    BLI_strncpy(base, basepath, sizeof(base));
+    STRNCPY(base, basepath);
 
     /* File component is ignored, so don't bother with the trailing slash. */
     BLI_path_normalize(base);
@@ -1152,7 +1150,7 @@ bool BLI_path_abs_from_cwd(char *path, const size_t path_maxncpy)
     /* In case the full path to the blend isn't used. */
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
       char origpath[FILE_MAX];
-      BLI_strncpy(origpath, path, FILE_MAX);
+      STRNCPY(origpath, path);
       BLI_path_join(path, path_maxncpy, cwd, origpath);
     }
     else {
@@ -1245,7 +1243,7 @@ bool BLI_path_program_search(char *program_filepath,
         path = temp + 1;
       }
       else {
-        BLI_strncpy(filepath_test, path, sizeof(filepath_test));
+        STRNCPY(filepath_test, path);
       }
 
       BLI_path_append(filepath_test, program_filepath_maxncpy, program_name);
@@ -1391,7 +1389,7 @@ bool BLI_path_extension_check_glob(const char *path, const char *ext_fnmatch)
       BLI_strncpy(pattern, ext_step, (len_ext > sizeof(pattern)) ? sizeof(pattern) : len_ext);
     }
     else {
-      len_ext = BLI_strncpy_rlen(pattern, ext_step, sizeof(pattern));
+      len_ext = STRNCPY_RLEN(pattern, ext_step);
     }
 
     if (fnmatch(pattern, path, FNM_CASEFOLD) == 0) {
@@ -1811,7 +1809,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   /* Keep space for a trailing slash. If the path is truncated by this, the containee path is
    * longer than #PATH_MAX and the result is ill-defined. */
   BLI_strncpy(container_native, container_path, PATH_MAX - 1);
-  BLI_strncpy(containee_native, containee_path, PATH_MAX);
+  STRNCPY(containee_native, containee_path);
 
   BLI_path_slash_native(container_native);
   BLI_path_slash_native(containee_native);
@@ -1916,8 +1914,8 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   char norm_p1[FILE_MAX];
   char norm_p2[FILE_MAX];
 
-  BLI_strncpy(norm_p1, p1, sizeof(norm_p1));
-  BLI_strncpy(norm_p2, p2, sizeof(norm_p2));
+  STRNCPY(norm_p1, p1);
+  STRNCPY(norm_p2, p2);
 
   BLI_path_slash_native(norm_p1);
   BLI_path_slash_native(norm_p2);

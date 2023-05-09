@@ -153,10 +153,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
         /* we need to write the index to a temp buffer (in py syntax) */
         if (c) {
-          BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "%c ", c);
+          SNPRINTF(arrayindbuf, "%c ", c);
         }
         else {
-          BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "[%d]", fcu->array_index);
+          SNPRINTF(arrayindbuf, "[%d]", fcu->array_index);
         }
 
         arrayname = &arrayindbuf[0];

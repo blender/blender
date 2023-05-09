@@ -52,7 +52,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
   EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
 
-  BLI_strncpy(bone->name, name, sizeof(bone->name));
+  STRNCPY(bone->name, name);
   ED_armature_ebone_unique_name(arm->edbo, bone->name, NULL);
 
   BLI_addtail(arm->edbo, bone);
@@ -389,7 +389,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
                  */
                 if (oldtarget->temp.ebone) {
                   newtarget = oldtarget->temp.ebone;
-                  BLI_strncpy(ct->subtarget, newtarget->name, sizeof(ct->subtarget));
+                  STRNCPY(ct->subtarget, newtarget->name);
                 }
                 else if (lookup_mirror_subtarget) {
                   /* The subtarget was not selected for duplication, try to see if a mirror bone of
@@ -399,7 +399,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
                   BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
                   newtarget = get_named_editbone(editbones, name_flip);
                   if (newtarget) {
-                    BLI_strncpy(ct->subtarget, newtarget->name, sizeof(ct->subtarget));
+                    STRNCPY(ct->subtarget, newtarget->name);
                   }
                 }
               }
@@ -910,7 +910,7 @@ EditBone *duplicateEditBoneObjects(
   e_bone->temp.ebone = cur_bone;
 
   if (name != NULL) {
-    BLI_strncpy(e_bone->name, name, sizeof(e_bone->name));
+    STRNCPY(e_bone->name, name);
   }
 
   ED_armature_ebone_unique_name(editbones, e_bone->name, NULL);
@@ -1487,7 +1487,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             copy_v3_v3(newbone->scale_in, ebone->scale_in);
             copy_v3_v3(newbone->scale_out, ebone->scale_out);
 
-            BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
+            STRNCPY(newbone->name, ebone->name);
 
             if (flipbone && forked_iter) { /* only set if mirror edit */
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {

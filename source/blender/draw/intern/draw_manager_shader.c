@@ -694,7 +694,7 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, co
 
   if (index > -1) {
     lib->libs[index] = lib_code;
-    BLI_strncpy(lib->libs_name[index], lib_name, MAX_LIB_NAME);
+    STRNCPY(lib->libs_name[index], lib_name);
     lib->libs_deps[index] = drw_shader_dependencies_get(
         lib, "BLENDER_REQUIRE(", lib_code, lib_name);
   }

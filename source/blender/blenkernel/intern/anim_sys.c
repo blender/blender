@@ -131,12 +131,8 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  BLI_strncpy(ks->idname,
-              (idname) ? idname :
-              (name)   ? name :
-                         DATA_("KeyingSet"),
-              sizeof(ks->idname));
-  BLI_strncpy(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"), sizeof(ks->name));
+  STRNCPY(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
+  STRNCPY(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
 
   ks->flag = flag;
   ks->keyingflag = keyingflag;
@@ -193,7 +189,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
   /* just store absolute info */
   ksp->id = id;
   if (group_name) {
-    BLI_strncpy(ksp->group, group_name, sizeof(ksp->group));
+    STRNCPY(ksp->group, group_name);
   }
   else {
     ksp->group[0] = '\0';

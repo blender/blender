@@ -388,8 +388,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   indexer_entry.idcode = entry.get_idcode();
 
   const std::string name = entry.get_name();
-  BLI_strncpy(
-      indexer_entry.datablock_info.name, name.c_str(), sizeof(indexer_entry.datablock_info.name));
+  STRNCPY(indexer_entry.datablock_info.name, name.c_str());
 
   AssetMetaData *asset_data = BKE_asset_metadata_create();
   indexer_entry.datablock_info.asset_data = asset_data;
@@ -421,9 +420,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   }
 
   const StringRefNull catalog_name = entry.get_catalog_name();
-  BLI_strncpy(asset_data->catalog_simple_name,
-              catalog_name.c_str(),
-              sizeof(asset_data->catalog_simple_name));
+  STRNCPY(asset_data->catalog_simple_name, catalog_name.c_str());
 
   asset_data->catalog_id = entry.get_catalog_id();
 

@@ -4323,7 +4323,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * different from reference linked ID. But local ID names need to be unique in a given type
    * list of Main, so we cannot always keep it identical, which is why we need this special
    * manual handling here. */
-  BLI_strncpy(tmp_id->name, local->name, sizeof(tmp_id->name));
+  STRNCPY(tmp_id->name, local->name);
 
   /* Those ugly loop-back pointers again. Luckily we only need to deal with the shape keys here,
    * collections' parents are fully runtime and reconstructed later. */
@@ -4333,7 +4333,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
     BKE_main_namemap_remove_name(bmain, &tmp_key->id, tmp_key->id.name + 2);
     tmp_key->id.lib = local_key->id.lib;
-    BLI_strncpy(tmp_key->id.name, local_key->id.name, sizeof(tmp_key->id.name));
+    STRNCPY(tmp_key->id.name, local_key->id.name);
   }
 
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = nullptr;

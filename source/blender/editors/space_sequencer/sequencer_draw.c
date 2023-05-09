@@ -703,11 +703,10 @@ static void draw_seq_handle(const Scene *scene,
     BLF_set_default();
 
     /* Calculate if strip is wide enough for showing the labels. */
-    numstr_len = BLI_snprintf_rlen(numstr,
-                                   sizeof(numstr),
-                                   "%d%d",
-                                   SEQ_time_left_handle_frame_get(scene, seq),
-                                   SEQ_time_right_handle_frame_get(scene, seq));
+    numstr_len = SNPRINTF_RLEN(numstr,
+                               "%d%d",
+                               SEQ_time_left_handle_frame_get(scene, seq),
+                               SEQ_time_right_handle_frame_get(scene, seq));
     float tot_width = BLF_width(fontid, numstr, numstr_len);
 
     if ((x2 - x1) / pixelx > 20 + tot_width) {
@@ -715,14 +714,12 @@ static void draw_seq_handle(const Scene *scene,
       float text_margin = 1.2f * handsize_clamped;
 
       if (direction == SEQ_LEFTHANDLE) {
-        numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(scene, seq));
+        numstr_len = SNPRINTF_RLEN(numstr, "%d", SEQ_time_left_handle_frame_get(scene, seq));
         x1 += text_margin;
         y1 += 0.09f;
       }
       else {
-        numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(scene, seq) - 1);
+        numstr_len = SNPRINTF_RLEN(numstr, "%d", SEQ_time_right_handle_frame_get(scene, seq) - 1);
         x1 = x2 - (text_margin + pixelx * BLF_width(fontid, numstr, numstr_len));
         y1 += 0.09f;
       }

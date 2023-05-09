@@ -161,7 +161,7 @@ static void set_colorspace_name(char colorspace[IM_MAX_SPACE],
   if (ctx.use_embedded_colorspace) {
     string ics = spec.get_string_attribute("oiio:ColorSpace");
     char file_colorspace[IM_MAX_SPACE];
-    BLI_strncpy(file_colorspace, ics.c_str(), IM_MAX_SPACE);
+    STRNCPY(file_colorspace, ics.c_str());
 
     /* Only use color-spaces that exist. */
     if (colormanage_colorspace_get_named(file_colorspace)) {

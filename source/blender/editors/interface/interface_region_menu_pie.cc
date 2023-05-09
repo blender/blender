@@ -142,7 +142,7 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
     char titlestr[256];
     int w;
     if (icon) {
-      BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
+      SNPRINTF(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
       but = uiDefIconTextBut(pie->block_radial,
                              UI_BTYPE_LABEL,
@@ -377,7 +377,7 @@ void ui_pie_menu_level_create(uiBlock *block,
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */
   static PieMenuLevelData lvl;
-  BLI_strncpy(lvl.title, block->pie_data.title, UI_MAX_NAME_STR);
+  STRNCPY(lvl.title, block->pie_data.title);
   lvl.totitem = totitem_remain;
   lvl.ot = ot;
   lvl.propname = propname;

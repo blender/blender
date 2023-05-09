@@ -170,7 +170,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     char filepath[FILE_MAX];
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
-      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
+      STRNCPY(filepath, blendfile_path);
       BLI_path_extension_strip(filepath); /* Strip `.blend`. */
     }
     else {

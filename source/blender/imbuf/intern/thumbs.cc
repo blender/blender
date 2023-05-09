@@ -236,7 +236,7 @@ static bool uri_from_filename(const char *path, char *uri)
   strcat(orig_uri, dirstart);
   BLI_str_replace_char(orig_uri, '\\', '/');
 #else
-  BLI_snprintf(orig_uri, URI_MAX, "file://%s", dirstart);
+  SNPRINTF(orig_uri, "file://%s", dirstart);
 #endif
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
@@ -336,9 +336,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
   }
 
   if (get_thumb_dir(tdir, size)) {
-    BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
+    SNPRINTF(tpath, "%s%s", tdir, thumb);
     // thumb[8] = '\0'; /* shorten for `temp` name, not needed anymore */
-    BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
+    SNPRINTF(temp, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
     if (BLI_path_ncmp(file_path, tdir, sizeof(tdir)) == 0) {
       return nullptr;
     }
@@ -369,7 +369,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 
         if (img != nullptr) {
           if (BLI_stat(file_path, &info) != -1) {
-            BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+            SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
           }
         }
       }
@@ -388,7 +388,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
           IMB_free_anim(anim);
         }
         if (BLI_stat(file_path, &info) != -1) {
-          BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+          SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
         }
       }
       if (!img) {
@@ -410,7 +410,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         IMB_scaleImBuf(img, ex, ey);
       }
     }
-    BLI_snprintf(desc, sizeof(desc), "Thumbnail for %s", uri);
+    SNPRINTF(desc, "Thumbnail for %s", uri);
     IMB_metadata_ensure(&img->metadata);
     IMB_metadata_set_field(img->metadata, "Software", "Blender");
     IMB_metadata_set_field(img->metadata, "Thumb::URI", uri);

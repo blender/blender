@@ -277,14 +277,13 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area) {
-    BLI_snprintf(msg,
-                 sizeof(msg),
-                 str,
-                 ssc->mode == STITCH_VERT ? TIP_("Vertex") : TIP_("Edge"),
-                 WM_bool_as_string(ssc->snap_islands),
-                 WM_bool_as_string(ssc->midpoints),
-                 ssc->limit_dist,
-                 WM_bool_as_string(ssc->use_limit));
+    SNPRINTF(msg,
+             str,
+             ssc->mode == STITCH_VERT ? TIP_("Vertex") : TIP_("Edge"),
+             WM_bool_as_string(ssc->snap_islands),
+             WM_bool_as_string(ssc->midpoints),
+             ssc->limit_dist,
+             WM_bool_as_string(ssc->use_limit));
 
     ED_workspace_status_text(C, msg);
   }

@@ -228,7 +228,7 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator * /*op*/)
 
     /* Capitalize Brush name first letter using the tool name. */
     char name[64];
-    BLI_strncpy(name, tool->runtime->data_block, sizeof(name));
+    STRNCPY(name, tool->runtime->data_block);
     BLI_str_tolower_ascii(name, sizeof(name));
     name[0] = BLI_toupper_ascii(name[0]);
 

@@ -34,9 +34,7 @@ static void register_undefined_types()
   node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
   NodeTypeUndefined.poll = node_undefined_poll;
 
-  BLI_strncpy(NodeSocketTypeUndefined.idname,
-              "NodeSocketUndefined",
-              sizeof(NodeSocketTypeUndefined.idname));
+  STRNCPY(NodeSocketTypeUndefined.idname, "NodeSocketUndefined");
   /* extra type info for standard socket types */
   NodeSocketTypeUndefined.type = SOCK_CUSTOM;
   NodeSocketTypeUndefined.subtype = PROP_NONE;

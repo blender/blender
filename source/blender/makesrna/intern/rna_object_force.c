@@ -304,7 +304,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
       }
       else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
         /* TODO: report "name exists" to user. */
-        BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
+        STRNCPY(cache->name, cache->prev_name);
         use_new_name = false;
       }
     }
@@ -316,13 +316,13 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
         char old_name[80];
         char new_name[80];
 
-        BLI_strncpy(old_name, cache->prev_name, sizeof(old_name));
-        BLI_strncpy(new_name, cache->name, sizeof(new_name));
+        STRNCPY(old_name, cache->prev_name);
+        STRNCPY(new_name, cache->name);
 
         BKE_ptcache_disk_cache_rename(pid2, old_name, new_name);
       }
 
-      BLI_strncpy(cache->prev_name, cache->name, sizeof(cache->prev_name));
+      STRNCPY(cache->prev_name, cache->name);
     }
 
     BLI_freelistN(&pidlist);

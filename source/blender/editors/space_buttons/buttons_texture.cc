@@ -507,14 +507,14 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
       Tex *tex = static_cast<Tex *>(texptr.data);
 
       if (tex) {
-        BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name + 2);
+        SNPRINTF(name, "  %s - %s", user->name, tex->id.name + 2);
       }
       else {
-        BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+        SNPRINTF(name, "  %s", user->name);
       }
     }
     else {
-      BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+      SNPRINTF(name, "  %s", user->name);
     }
 
     but = uiDefIconTextBut(block,
@@ -565,7 +565,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   }
 
   /* create button */
-  BLI_strncpy(name, user->name, UI_MAX_NAME_STR);
+  STRNCPY(name, user->name);
 
   if (user->icon) {
     but = uiDefIconTextMenuBut(block,

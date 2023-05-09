@@ -167,7 +167,7 @@ uiListType *UI_UL_asset_view()
 {
   uiListType *list_type = (uiListType *)MEM_callocN(sizeof(*list_type), __func__);
 
-  BLI_strncpy(list_type->idname, "UI_UL_asset_view", sizeof(list_type->idname));
+  STRNCPY(list_type->idname, "UI_UL_asset_view");
   list_type->draw_item = asset_view_draw_item;
   list_type->filter_items = asset_view_filter_items;
   list_type->listener = asset_view_listener;

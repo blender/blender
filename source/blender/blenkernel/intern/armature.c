@@ -708,7 +708,7 @@ bool bone_autoside_name(
   if (len == 0) {
     return false;
   }
-  BLI_strncpy(basename, name, sizeof(basename));
+  STRNCPY(basename, name);
 
   /* Figure out extension to append:
    * - The extension to append is based upon the axis that we are working on.

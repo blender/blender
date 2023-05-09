@@ -6975,7 +6975,7 @@ static char rna_struct_state_owner[64];
 void RNA_struct_state_owner_set(const char *name)
 {
   if (name) {
-    BLI_strncpy(rna_struct_state_owner, name, sizeof(rna_struct_state_owner));
+    STRNCPY(rna_struct_state_owner, name);
   }
   else {
     rna_struct_state_owner[0] = '\0';

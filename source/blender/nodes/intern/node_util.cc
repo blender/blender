@@ -74,7 +74,7 @@ void *node_initexec_curves(bNodeExecContext * /*context*/, bNode *node, bNodeIns
 
 void node_sock_label(bNodeSocket *sock, const char *name)
 {
-  BLI_strncpy(sock->label, name, MAX_NAME);
+  STRNCPY(sock->label, name);
 }
 
 void node_sock_label_clear(bNodeSocket *sock)
