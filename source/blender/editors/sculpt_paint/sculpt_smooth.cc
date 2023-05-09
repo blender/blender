@@ -48,10 +48,6 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
 
-  if ((is_boundary & SCULPT_BOUNDARY_FACE_SET) || (is_corner & SCULPT_CORNER_FACE_SET)) {
-    projection = max_ff(projection, fset_projection);
-  }
-
   float *areas = nullptr;
   float3 no, co;
   SCULPT_vertex_normal_get(ss, vertex, no);
@@ -71,19 +67,23 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     float w = weighted ? areas[ni.i] : 1.0f;
 
     const eSculptBoundary is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
+    const eSculptBoundary smooth_types = !ss->hard_edge_mode ?
+                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
+                                                 SCULPT_BOUNDARY_UV :
+                                             SCULPT_BOUNDARY_UV;
 
+    /* Boundary vertices use only other boundary vertices. */
     if (is_boundary) {
-      /* Boundary vertices use only other boundary vertices. */
-      if (is_boundary & is_boundary2) {
-        avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
-        total += w;
-      }
-      else if ((is_boundary2 & SCULPT_BOUNDARY_FACE_SET) !=
-               (is_boundary & SCULPT_BOUNDARY_FACE_SET)) {
+      /* Handle smooth boundaries. */
+      if (bool(is_boundary2 & smooth_types) != bool(is_boundary & smooth_types)) {
         /* Project to plane. */
         float3 t1 = float3(SCULPT_vertex_co_get(ss, ni.vertex)) - co;
 
-        avg += (co + no * dot_v3v3(t1, no) * fset_projection) * w;
+        avg += (co + no * dot_v3v3(t1, no)) * w;
+        total += w;
+      }
+      else if (is_boundary & is_boundary2) {
+        avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
         total += w;
       }
     }

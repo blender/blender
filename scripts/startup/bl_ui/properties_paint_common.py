@@ -589,6 +589,14 @@ def brush_settings(layout, context, brush, popover=False):
                 "auto_smooth_projection",
                 slider=True,
             )
+        if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "autosmooth_fset_slide",
+                slider=True,
+            )
 
         if capabilities.has_auto_smooth:
             UnifiedPaintPanel.prop_unified(
