@@ -465,7 +465,6 @@ typedef struct SculptVertexInfo {
 
 typedef struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
-  PBVHVertRef original_vertex;
   int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */

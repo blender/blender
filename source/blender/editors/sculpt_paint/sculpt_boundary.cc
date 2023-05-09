@@ -136,7 +136,7 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
   fdata.boundary_initial_vertex_steps = INT_MAX;
   fdata.radius_sq = radius * radius;
 
-  fdata.floodfill_steps = MEM_cnew_array<int>(TSTN, __func__);
+  fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss) * TSTN, __func__);
 
   SCULPT_floodfill_execute(ss, &flood, boundary_initial_vertex_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
@@ -459,19 +459,7 @@ static void sculpt_boundary_indices_init(Object *ob,
 
   GSet *boundary_verts;
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    boundary_verts = BLI_gset_int_new_ex("included vertices", BOUNDARY_INDICES_BLOCK_SIZE);
-
-    GSetIterator gi;
-
-    GSET_ITER (gi, included_verts) {
-      BMVert *v = (BMVert *)BLI_gsetIterator_getKey(&gi);
-      BLI_gset_add(boundary_verts, POINTER_FROM_INT(v->head.index));
-    }
-  }
-  else {
-    boundary_verts = included_verts;
-  }
+  boundary_verts = included_verts;
 
   boundary->boundary_closest = MEM_cnew_array<PBVHVertRef>(totvert, "boundary_closest");
   boundary->boundary_dist = SCULPT_geodesic_distances_create(
@@ -938,237 +926,6 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
   MEM_SAFE_FREE(boundary);
 }
 
-typedef struct ScalarFieldWalkData {
-  PBVHVertRef v;
-  float co[3];
-
-  struct {
-    PBVHVertRef v1, v2;
-  } edge;
-
-  float t, f;
-  bool has_edge;
-} ScalarFieldWalkData;
-
-static void sculpt_walk_scalar_field_init(SculptSession *ss,
-                                          PBVHVertRef v,
-                                          ScalarFieldWalkData *wd,
-                                          float *field)
-{
-  wd->v = v;
-  copy_v3_v3(wd->co, SCULPT_vertex_co_get(ss, v));
-  wd->has_edge = false;
-  wd->t = 0.0f;
-
-  int i = BKE_pbvh_vertex_to_index(ss->pbvh, v);
-  wd->f = field[i];
-}
-
-/*walk in decreasing direction of scalar field*/
-static bool sculpt_walk_scalar_field(SculptSession *ss,
-                                     ScalarFieldWalkData *wd,
-                                     float *field,
-                                     float (*dfield)[3])
-{
-  SculptVertexNeighborIter ni;
-  SculptVertexNeighborIter ni2;
-  PBVHVertRef v = wd->v, minv1 = {-1LL}, minv2 = {-1LL};
-  float mindis1 = FLT_MAX, mindis2 = FLT_MAX;
-  float minf1 = 0.0, minf2 = 0.0;
-
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v, ni) {
-    const float *co2 = SCULPT_vertex_co_get(ss, ni.vertex);
-    float f2 = field[ni.index];
-
-    if (ni.vertex.i == v.i) {
-      continue;
-    }
-
-    if (f2 > wd->f) {
-      continue;
-    }
-
-    float len = len_v3v3(co2, wd->co);
-    float dist = f2 * len;
-
-    if (dist >= mindis1) {
-      continue;
-    }
-
-    mindis1 = dist;
-    minf1 = f2;
-    minv1 = ni.vertex;
-
-    mindis2 = FLT_MAX;
-
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni2) {
-      if (ni2.vertex.i == ni.vertex.i) {
-        continue;
-      }
-
-      const float *co3 = SCULPT_vertex_co_get(ss, ni2.vertex);
-      float f3 = field[ni2.index];
-
-      float dist2 = f3 * len;
-
-      if (dist2 < mindis2) {
-        mindis2 = dist2;
-        minf2 = f3;
-        minv2 = ni2.vertex;
-      }
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (minv1.i == -1LL) {
-    // didn't find anything
-    return false;
-  }
-
-  if (minv2.i == -1LL) {
-    wd->v = minv1;
-    copy_v3_v3(wd->co, SCULPT_vertex_co_get(ss, minv1));
-    wd->has_edge = false;
-    wd->f = minf1;
-
-    return true;
-  }
-
-  wd->has_edge = true;
-  wd->edge.v1 = minv1;
-  wd->edge.v2 = minv2;
-
-  /*
-  on factor
-  load_package "avector";
-
-  comment: relative to wd.co;
-  a := avec(ax, ay, az);
-  b := avec(bx, by, bz);
-
-  dva := avec(dvax, dvay, dvaz);
-  dvb := avec(dvbx, dvby, dvbz);
-
-  la := a dot a;
-  lb := b dot b;
-
-  f2  := a + (b - a) * t;
-  df2 := dva + (dvb - dva)*t;
-
-  ll := f2 dot f2;
-  f1 := (minf1 + (minf2 - minf1)*t) * ll;
-
-  ff := solve(df(f1, t, 2), t);
-  f  := part(ff, 1, 2);
-
-
-  */
-
-  const float *a = SCULPT_vertex_co_get(ss, minv1);
-  const float *b = SCULPT_vertex_co_get(ss, minv2);
-
-  float ax = a[0] - wd->co[0];
-  float ay = a[1] - wd->co[1];
-  float az = a[2] - wd->co[2];
-
-  float bx = b[0] - wd->co[0];
-  float by = b[1] - wd->co[1];
-  float bz = b[2] - wd->co[2];
-
-  float div = (by * by + bz * bz + bx * bx + (az - 2.0 * bz) * az + (ay - 2.0 * by) * ay +
-               (ax - 2.0 * bx) * ax);
-
-  float t = ((ay - by) * ay + (az - bz) * az + (ax - bx) * ax) / div;
-
-  float m1m2 = minf1 + minf2;
-
-  float ans4 = -2.0 * (by * by + bz * bz + bx * bx) * m1m2 * az * bz * minf1 -
-               (2.0 * (minf1 + minf2) * bz - az * minf2) * az * az * az * minf2;
-
-  float sqr2 = (by * by + bz * bz + bx * bx);
-  sqr2 = sqr2 * sqr2;
-
-  float ans3 =
-      (2.0 *
-           ((4.0 * (minf1 * minf1 - minf1 * minf2 + minf2 * minf2) * by -
-             (minf1 + minf2) * ay * minf2) *
-                ay +
-            (4.0 * (minf1 * minf1 - minf1 * minf2 + minf2 * minf2) * bz -
-             (minf1 + minf2) * az * minf2) *
-                az -
-            (by * by + bz * bz + bx * bx) * m1m2 * minf1) *
-           bx -
-       (2.0 * m1m2 * bx - ax * minf2) * ax * ax * minf2 -
-       ((by * by + bz * bz) * (3.0 * minf1 * minf1 - 8.0 * minf1 * minf2 + 3.0 * minf2 * minf2) -
-        (minf1 * minf1 + 4.0 * minf1 * minf2 + minf2 * minf2) * bx * bx +
-        2.0 * (m1m2 * bz - az * minf2) * az * minf2 +
-        2.0 * (m1m2 * by - ay * minf2) * ay * minf2) *
-           ax) *
-          ax -
-      (2.0 *
-           ((by * by + bz * bz + bx * bx) * m1m2 * minf1 -
-            (4.0 * (minf1 * minf1 - minf1 * minf2 + minf2 * minf2) * bz - m1m2 * az * minf2) *
-                az) *
-           by +
-       (2.0 * (minf1 + minf2) * by - ay * minf2) * ay * ay * minf2 +
-       ((bx * bx + bz * bz) * (3.0 * minf1 * minf1 - 8.0 * minf1 * minf2 + 3.0 * minf2 * minf2) -
-        (minf1 * minf1 + 4.0 * minf1 * minf2 + minf2 * minf2) * by * by +
-        2.0 * (m1m2 * bz - az * minf2) * az * minf2) *
-           ay) *
-          ay -
-      ((bx * bx + by * by) * (3.0 * minf1 * minf1 - 8.0 * minf1 * minf2 + 3.0 * minf2 * minf2) -
-       (minf1 * minf1 + 4.0 * minf1 * minf2 + minf2 * minf2) * bz * bz) *
-          az * az +
-      sqr2 * minf1 * minf1 + ans4;
-
-  float ans2 = sqrtf(ans3);
-
-  float ans1 = (by * by + bz * bz + bx * bx) * minf1 +
-               ((3.0 * minf1 - 2.0 * minf2) * az - 2.0 * (2.0 * minf1 - minf2) * bz) * az +
-               ((3.0 * minf1 - 2.0 * minf2) * ay - 2.0 * (2.0 * minf1 - minf2) * by) * ay +
-               ((3.0 * minf1 - 2.0 * minf2) * ax - 2.0 * (2.0 * minf1 - minf2) * bx) * ax + ans2;
-
-  t = ans1 / (3.0 *
-              (by * by + bz * bz + bx * bx + (az - 2.0 * bz) * az + (ay - 2.0 * by) * ay +
-               (ax - 2.0 * bx) * ax) *
-              (minf1 - minf2));
-
-#if 1
-  t = (((3.0 * minf1 - 2.0 * minf2) * ay - 2.0 * (2.0 * minf1 - minf2) * by) * ay +
-       ((3.0 * minf1 - 2.0 * minf2) * az - 2.0 * (2.0 * minf1 - minf2) * bz) * az +
-       ((3.0 * minf1 - 2.0 * minf2) * ax - 2.0 * (2.0 * minf1 - minf2) * bx) * ax +
-       (by * by + bz * bz + bx * bx) * minf1) /
-      (3.0 *
-       (by * by + bz * bz + bx * bx + (az - 2.0 * bz) * az + (ay - 2.0 * by) * ay +
-        (ax - 2.0 * bx) * ax) *
-       (minf1 - minf2));
-#endif
-
-  t = t < 0.0f ? 0.0f : t;
-  t = t > 1.0f ? 1.0f : t;
-
-  t = 0.5f;
-  wd->t = t;
-
-  wd->v = minv1;
-  wd->f = minf1 + (minf2 - minf1) * wd->t;
-  float co[3];
-
-  interp_v3_v3v3(co, SCULPT_vertex_co_get(ss, minv1), SCULPT_vertex_co_get(ss, minv2), wd->t);
-
-  float f3 = wd->f * len_v3v3(wd->co, co);
-  if (f3 > mindis1 || f3 > mindis2) {
-    wd->f = minf1;
-    t = 0.0f;
-    interp_v3_v3v3(co, SCULPT_vertex_co_get(ss, minv1), SCULPT_vertex_co_get(ss, minv2), wd->t);
-  }
-
-  copy_v3_v3(wd->co, co);
-
-  return true;
-}
-
 Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, const char *name)
 {
   if (!C) {
@@ -1274,7 +1031,7 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
       continue;
     }
 
-    if (boundary->edit_info[i].original_vertex.i == -1) {
+    if (boundary->edit_info[i].original_vertex_i == -1) {
       continue;
     }
 
@@ -1283,7 +1040,11 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
     float dir[3];
     float normal[3];
     SCULPT_vertex_normal_get(ss, vertex, normal);
-    sub_v3_v3v3(dir, SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex), co1);
+    sub_v3_v3v3(
+        dir,
+        SCULPT_vertex_co_get(
+            ss, BKE_pbvh_index_to_vertex(ss->pbvh, boundary->edit_info[i].original_vertex_i)),
+        co1);
 
     normalize_v3(dir);
 
@@ -1295,9 +1056,11 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
       copy_v3_v3(dir, boundary->boundary_tangents[i]);
 
       if (dot_v3v3(dir, dir) < 0.00001f) {
-        sub_v3_v3v3(dir,
-                    SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
-                    SCULPT_vertex_co_get(ss, vertex));
+        sub_v3_v3v3(
+            dir,
+            SCULPT_vertex_co_get(
+                ss, BKE_pbvh_index_to_vertex(ss->pbvh, boundary->edit_info[i].original_vertex_i)),
+            SCULPT_vertex_co_get(ss, vertex));
       }
     }
     else {
@@ -1364,7 +1127,10 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
     }
     float pos[3], oco[3];
     copy_v3_v3(pos, boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i]);
-    copy_v3_v3(oco, SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex));
+    copy_v3_v3(
+        oco,
+        SCULPT_vertex_co_get(
+            ss, BKE_pbvh_index_to_vertex(ss->pbvh, boundary->edit_info[i].original_vertex_i)));
 
     if (boundary->boundary_dist[i] != FLT_MAX) {
       float no[3];
@@ -1434,9 +1200,11 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
       continue;
     }
 
-    sub_v3_v3v3(boundary->slide.directions[boundary->edit_info[i].original_vertex_i],
-                SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
-                SCULPT_vertex_co_get(ss, vertex));
+    sub_v3_v3v3(
+        boundary->slide.directions[boundary->edit_info[i].original_vertex_i],
+        SCULPT_vertex_co_get(
+            ss, BKE_pbvh_index_to_vertex(ss->pbvh, boundary->edit_info[i].original_vertex_i)),
+        SCULPT_vertex_co_get(ss, vertex));
 
     normalize_v3(boundary->slide.directions[boundary->edit_info[i].original_vertex_i]);
   }
