@@ -7,9 +7,65 @@
 #include "kernel/closure/bsdf.h"
 #include "kernel/film/write.h"
 
+#if OPENPGL_VERSION_MINOR >= 5
+#  define RIS_INCOMING_RADIANCE
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Utilities. */
+
+struct GuidingRISSample {
+  float3 rand;
+  float2 sampled_roughness;
+  float eta{1.0f};
+  int label;
+  float3 wo;
+  float bsdf_pdf{0.0f};
+  float guide_pdf{0.0f};
+  float ris_target{0.0f};
+  float ris_pdf{0.0f};
+  float ris_weight{0.0f};
+
+#ifdef RIS_INCOMING_RADIANCE
+  float incoming_radiance_pdf{0.0f};
+#else
+  float cosine{0.0f};
+#endif
+  BsdfEval bsdf_eval;
+  float avg_bsdf_eval{0.0f};
+  Spectrum eval{zero_spectrum()};
+};
+
+ccl_device_forceinline bool calculate_ris_target(ccl_private GuidingRISSample *ris_sample,
+                                                 ccl_private const float guiding_sampling_prob)
+{
+#if defined(__PATH_GUIDING__)
+  const float pi_factor = 2.0f;
+  if (ris_sample->avg_bsdf_eval > 0.0f && ris_sample->bsdf_pdf > 1e-10f &&
+      ris_sample->guide_pdf > 0.0f)
+  {
+
+#  ifdef RIS_INCOMING_RADIANCE
+    ris_sample->ris_target = (ris_sample->avg_bsdf_eval *
+                              ((((1.0f - guiding_sampling_prob) * (1.0f / (pi_factor * M_PI_F))) +
+                                (guiding_sampling_prob * ris_sample->incoming_radiance_pdf))));
+#  else
+    ris_sample->ris_target = (ris_sample->avg_bsdf_eval / ris_sample->cosine *
+                              ((((1.0f - guiding_sampling_prob) * (1.0f / (pi_factor * M_PI_F))) +
+                                (guiding_sampling_prob * ris_sample->guide_pdf))));
+#  endif
+    ris_sample->ris_pdf = (0.5f * (ris_sample->bsdf_pdf + ris_sample->guide_pdf));
+    ris_sample->ris_weight = ris_sample->ris_target / ris_sample->ris_pdf;
+    return true;
+  }
+  ris_sample->ris_target = 0.0f;
+  ris_sample->ris_pdf = 0.0f;
+  return false;
+#else
+  return false;
+#endif
+}
 
 #if defined(__PATH_GUIDING__)
 static pgl_vec3f guiding_vec3f(const float3 v)
@@ -241,7 +297,7 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
   openpgl::cpp::SetPDFDirectionIn(state->guiding.path_segment, pdf);
   openpgl::cpp::SetScatteringWeight(state->guiding.path_segment, guiding_vec3f(weight_rgb));
   openpgl::cpp::SetIsDelta(state->guiding.path_segment, false);
-  openpgl::cpp::SetEta(state->guiding.path_segment, 1.f);
+  openpgl::cpp::SetEta(state->guiding.path_segment, 1.0f);
   openpgl::cpp::SetRoughness(state->guiding.path_segment, roughness);
 #endif
 }
@@ -259,11 +315,11 @@ ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
 
   if (state->guiding.path_segment) {
     // TODO (sherholz): need to find a better way to avoid this check
-    if ((transmittance_weight[0] < 0.f || !std::isfinite(transmittance_weight[0]) ||
+    if ((transmittance_weight[0] < 0.0f || !std::isfinite(transmittance_weight[0]) ||
          std::isnan(transmittance_weight[0])) ||
-        (transmittance_weight[1] < 0.f || !std::isfinite(transmittance_weight[1]) ||
+        (transmittance_weight[1] < 0.0f || !std::isfinite(transmittance_weight[1]) ||
          std::isnan(transmittance_weight[1])) ||
-        (transmittance_weight[2] < 0.f || !std::isfinite(transmittance_weight[2]) ||
+        (transmittance_weight[2] < 0.0f || !std::isfinite(transmittance_weight[2]) ||
          std::isnan(transmittance_weight[2])))
     {
     }
@@ -438,7 +494,7 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
       sum_sample_weight += sc->sample_weight;
     }
 
-    avg_roughness = avg_roughness > 0.f ? avg_roughness / sum_sample_weight : 0.f;
+    avg_roughness = avg_roughness > 0.0f ? avg_roughness / sum_sample_weight : 0.0f;
 
     film_write_pass_float(buffer + kernel_data.film.pass_guiding_avg_roughness, avg_roughness);
   }
@@ -493,6 +549,17 @@ ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg,
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return kg->opgl_surface_sampling_distribution->PDF(guiding_vec3f(wo));
+#else
+  return 0.0f;
+#endif
+}
+
+ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals kg,
+                                                                   IntegratorState state,
+                                                                   const float3 wo)
+{
+#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4 && OPENPGL_VERSION_MINOR >= 5
+  return kg->opgl_surface_sampling_distribution->IncomingRadiancePDF(guiding_vec3f(wo));
 #else
   return 0.0f;
 #endif

@@ -15,6 +15,8 @@ struct GuidingParams {
   bool use_volume_guiding = false;
 
   GuidingDistributionType type = GUIDING_TYPE_PARALLAX_AWARE_VMM;
+  GuidingDirectionalSamplingType sampling_type = GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS;
+  float roughness_threshold = 0.05f;
   int training_samples = 128;
   bool deterministic = false;
 
@@ -24,7 +26,9 @@ struct GuidingParams {
   {
     return !((use == other.use) && (use_surface_guiding == other.use_surface_guiding) &&
              (use_volume_guiding == other.use_volume_guiding) && (type == other.type) &&
+             (sampling_type == other.sampling_type) &&
              (training_samples == other.training_samples) &&
+             (roughness_threshold == other.roughness_threshold) &&
              (deterministic == other.deterministic));
   }
 };

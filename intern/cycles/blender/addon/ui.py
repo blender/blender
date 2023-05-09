@@ -337,6 +337,8 @@ class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Pane
         layout.active = cscene.use_guiding
 
         layout.prop(cscene, "guiding_distribution_type", text="Distribution Type")
+        layout.prop(cscene, "guiding_roughness_threshold")
+        layout.prop(cscene, "guiding_directional_sampling_type", text="Directional Sampling Type")
 
         col = layout.column(align=True)
         col.prop(cscene, "surface_guiding_probability")

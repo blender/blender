@@ -163,6 +163,11 @@ enum PathTraceDimension {
   PRNG_SURFACE_AO = 4,
   PRNG_SURFACE_BEVEL = 5,
   PRNG_SURFACE_BSDF_GUIDING = 6,
+
+  /* Guiding RIS */
+  PRNG_SURFACE_RIS_GUIDING_0 = 10,
+  PRNG_SURFACE_RIS_GUIDING_1 = 11,
+
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
   PRNG_VOLUME_PHASE_CHANNEL = 4,
@@ -505,6 +510,16 @@ typedef enum GuidingDistributionType {
 
   GUIDING_NUM_TYPES,
 } GuidingDistributionType;
+
+/* Guiding Directional Sampling Type */
+
+typedef enum GuidingDirectionalSamplingType {
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS = 0,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS = 1,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_ROUGHNESS = 2,
+
+  GUIDING_DIRECTIONAL_SAMPLING_NUM_TYPES,
+} GuidingDirectionalSamplingType;
 
 /* Camera Type */
 
