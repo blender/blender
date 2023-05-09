@@ -264,7 +264,7 @@ static void view2d_draw_lines(const View2D *v2d,
  **************************************************/
 
 using PositionToString =
-    void (*)(void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str);
+    void (*)(void *user_data, float v2d_pos, float v2d_step, uint str_maxncpy, char *r_str);
 
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
@@ -407,13 +407,13 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 }
 
 static void view_to_string__frame_number(
-    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, uint str_maxncpy, char *r_str)
 {
-  BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
+  BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
 }
 
 static void view_to_string__time(
-    void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void *user_data, float v2d_pos, float v2d_step, uint str_maxncpy, char *r_str)
 {
   const Scene *scene = (const Scene *)user_data;
 
@@ -423,23 +423,23 @@ static void view_to_string__time(
   }
 
   BLI_timecode_string_from_time(
-      r_str, max_len, brevity_level, v2d_pos / float(FPS), FPS, U.timecode_style);
+      r_str, str_maxncpy, brevity_level, v2d_pos / float(FPS), FPS, U.timecode_style);
 }
 
 static void view_to_string__value(
-    void * /*user_data*/, float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float v2d_step, uint str_maxncpy, char *r_str)
 {
   if (v2d_step >= 1.0f) {
-    BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
+    BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
   }
   else if (v2d_step >= 0.1f) {
-    BLI_snprintf(r_str, max_len, "%.1f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.1f", v2d_pos);
   }
   else if (v2d_step >= 0.01f) {
-    BLI_snprintf(r_str, max_len, "%.2f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.2f", v2d_pos);
   }
   else {
-    BLI_snprintf(r_str, max_len, "%.3f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.3f", v2d_pos);
   }
 }
 

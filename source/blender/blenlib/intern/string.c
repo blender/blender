@@ -59,12 +59,12 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
   return str;
 }
 
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
-  BLI_assert(maxncpy != 0);
-  size_t srclen = BLI_strnlen(src, maxncpy - 1);
+  BLI_assert(dst_maxncpy != 0);
+  size_t srclen = BLI_strnlen(src, dst_maxncpy - 1);
 
   memcpy(dst, src, srclen);
   dst[srclen] = '\0';
@@ -74,10 +74,10 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
                              const char pad,
-                             size_t maxncpy)
+                             size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, maxncpy);
-  BLI_assert(maxncpy != 0);
+  BLI_string_debug_size(dst, dst_maxncpy);
+  BLI_assert(dst_maxncpy != 0);
 
   if (src[0] == '\0') {
     dst[0] = '\0';
@@ -89,12 +89,12 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
 
     if (src[idx] != pad) {
       dst[idx++] = pad;
-      maxncpy--;
+      dst_maxncpy--;
     }
-    maxncpy--; /* trailing '\0' */
+    dst_maxncpy--; /* trailing '\0' */
 
-    srclen = BLI_strnlen(src, maxncpy);
-    if ((src[srclen - 1] != pad) && (srclen == maxncpy)) {
+    srclen = BLI_strnlen(src, dst_maxncpy);
+    if ((src[srclen - 1] != pad) && (srclen == dst_maxncpy)) {
       srclen--;
     }
 
@@ -110,12 +110,12 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
   return dst;
 }
 
-size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t srclen = BLI_strnlen(src, maxncpy - 1);
-  BLI_assert(maxncpy != 0);
+  size_t srclen = BLI_strnlen(src, dst_maxncpy - 1);
+  BLI_assert(dst_maxncpy != 0);
 
   memcpy(dst, src, srclen);
   dst[srclen] = '\0';
@@ -133,13 +133,13 @@ size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
 /** \name String Append
  * \{ */
 
-char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
 {
-  BLI_string_debug_size(dst, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t len = BLI_strnlen(dst, maxncpy);
-  if (len < maxncpy) {
-    BLI_strncpy(dst + len, src, maxncpy - len);
+  size_t len = BLI_strnlen(dst, dst_maxncpy);
+  if (len < dst_maxncpy) {
+    BLI_strncpy(dst + len, src, dst_maxncpy - len);
   }
   return dst;
 }
@@ -150,80 +150,83 @@ char *BLI_strncat(char *__restrict dst, const char *__restrict src, const size_t
 /** \name String Printing
  * \{ */
 
-size_t BLI_vsnprintf(char *__restrict buffer,
-                     size_t maxncpy,
+size_t BLI_vsnprintf(char *__restrict dst,
+                     size_t dst_maxncpy,
                      const char *__restrict format,
                      va_list arg)
 {
-  BLI_string_debug_size(buffer, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   size_t n;
 
-  BLI_assert(buffer != NULL);
-  BLI_assert(maxncpy > 0);
+  BLI_assert(dst != NULL);
+  BLI_assert(dst_maxncpy > 0);
   BLI_assert(format != NULL);
 
-  n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
+  n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < maxncpy) {
-    buffer[n] = '\0';
+  if (n != -1 && n < dst_maxncpy) {
+    dst[n] = '\0';
   }
   else {
-    buffer[maxncpy - 1] = '\0';
+    dst[dst_maxncpy - 1] = '\0';
   }
 
   return n;
 }
 
-size_t BLI_vsnprintf_rlen(char *__restrict buffer,
-                          size_t maxncpy,
+size_t BLI_vsnprintf_rlen(char *__restrict dst,
+                          size_t dst_maxncpy,
                           const char *__restrict format,
                           va_list arg)
 {
-  BLI_string_debug_size(buffer, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   size_t n;
 
-  BLI_assert(buffer != NULL);
-  BLI_assert(maxncpy > 0);
+  BLI_assert(dst != NULL);
+  BLI_assert(dst_maxncpy > 0);
   BLI_assert(format != NULL);
 
-  n = (size_t)vsnprintf(buffer, maxncpy, format, arg);
+  n = (size_t)vsnprintf(dst, dst_maxncpy, format, arg);
 
-  if (n != -1 && n < maxncpy) {
+  if (n != -1 && n < dst_maxncpy) {
     /* pass */
   }
   else {
-    n = maxncpy - 1;
+    n = dst_maxncpy - 1;
   }
-  buffer[n] = '\0';
+  dst[n] = '\0';
 
   return n;
 }
 
-size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
+size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
 {
-  BLI_string_debug_size(dst, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   size_t n;
   va_list arg;
 
   va_start(arg, format);
-  n = BLI_vsnprintf(dst, maxncpy, format, arg);
+  n = BLI_vsnprintf(dst, dst_maxncpy, format, arg);
   va_end(arg);
 
   return n;
 }
 
-size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
+size_t BLI_snprintf_rlen(char *__restrict dst,
+                         size_t dst_maxncpy,
+                         const char *__restrict format,
+                         ...)
 {
-  BLI_string_debug_size(dst, maxncpy);
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   size_t n;
   va_list arg;
 
   va_start(arg, format);
-  n = BLI_vsnprintf_rlen(dst, maxncpy, format, arg);
+  n = BLI_vsnprintf_rlen(dst, dst_maxncpy, format, arg);
   va_end(arg);
 
   return n;
@@ -445,9 +448,9 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
-                           size_t result_maxlen)
+                           size_t result_maxncpy)
 {
-  BLI_string_debug_size(result, result_maxlen);
+  BLI_string_debug_size(result, result_maxncpy);
 
   int start_match_ofs, end_match_ofs;
   if (!BLI_str_quoted_substr_range(str, prefix, &start_match_ofs, &end_match_ofs)) {
@@ -455,7 +458,7 @@ bool BLI_str_quoted_substr(const char *__restrict str,
   }
   const size_t escaped_len = (size_t)(end_match_ofs - start_match_ofs);
   bool is_complete;
-  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, result_maxlen, &is_complete);
+  BLI_str_unescape_ex(result, str + start_match_ofs, escaped_len, result_maxncpy, &is_complete);
   if (is_complete == false) {
     *result = '\0';
   }
@@ -1138,7 +1141,8 @@ static size_t BLI_str_format_int_grouped_ex(char *src, char *dst, int num_len)
 
 size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
 {
-  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_GROUPED_SIZE);
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_GROUPED_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   char src[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
   const int num_len = SNPRINTF(src, "%d", num);
@@ -1148,7 +1152,8 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
 
 size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
 {
-  BLI_string_debug_size(dst, BLI_STR_FORMAT_UINT64_GROUPED_SIZE);
+  const size_t dst_maxncpy = BLI_STR_FORMAT_UINT64_GROUPED_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   char src[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   const int num_len = SNPRINTF(src, "%" PRIu64 "", num);
@@ -1160,7 +1165,8 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
                               long long int bytes,
                               const bool base_10)
 {
-  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE);
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   double bytes_converted = bytes;
   int order = 0;
@@ -1179,11 +1185,10 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
   decimals = MAX2(order - 1, 0);
 
   /* Format value first, stripping away floating zeroes. */
-  const size_t dst_len = BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE;
-  size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
+  size_t len = BLI_snprintf_rlen(dst, dst_maxncpy, "%.*f", decimals, bytes_converted);
   len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
   dst[len++] = ' ';
-  BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
+  BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_maxncpy - len);
 }
 
 void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE],
@@ -1202,18 +1207,19 @@ void BLI_str_format_decimal_unit(char dst[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE
     order++;
   }
 
-  const size_t dst_len = BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE;
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE;
   int decimals = 0;
   if ((order > 0) && fabsf(number_to_format_converted) < 100.0f) {
     decimals = 1;
   }
-  BLI_snprintf(dst, dst_len, "%.*f%s", decimals, number_to_format_converted, units[order]);
+  BLI_snprintf(dst, dst_maxncpy, "%.*f%s", decimals, number_to_format_converted, units[order]);
 }
 
 void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE],
                                  const int number_to_format)
 {
-  BLI_string_debug_size(dst, BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE);
+  const size_t dst_maxncpy = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
+  BLI_string_debug_size(dst, dst_maxncpy);
 
   float number_to_format_converted = number_to_format;
   int order = 0;
@@ -1233,9 +1239,8 @@ void BLI_str_format_integer_unit(char dst[BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE
     order++;
   }
 
-  const size_t dst_len = BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE;
   BLI_snprintf(dst,
-               dst_len,
+               dst_maxncpy,
                "%s%s%d%s",
                number_to_format < 0 ? "-" : "",
                add_dot ? "." : "",

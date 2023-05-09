@@ -244,14 +244,18 @@ static bool uri_from_filename(const char *path, char *uri)
   return 1;
 }
 
-static bool thumbpathname_from_uri(
-    const char *uri, char *r_path, const int path_len, char *r_name, int name_len, ThumbSize size)
+static bool thumbpathname_from_uri(const char *uri,
+                                   char *r_path,
+                                   const int path_maxncpy,
+                                   char *r_name,
+                                   int name_maxncpy,
+                                   ThumbSize size)
 {
   char name_buff[40];
 
   if (r_path && !r_name) {
     r_name = name_buff;
-    name_len = sizeof(name_buff);
+    name_maxncpy = sizeof(name_buff);
   }
 
   if (r_name) {
@@ -259,7 +263,7 @@ static bool thumbpathname_from_uri(
     uchar digest[16];
     BLI_hash_md5_buffer(uri, strlen(uri), digest);
     hexdigest[0] = '\0';
-    BLI_snprintf(r_name, name_len, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
+    BLI_snprintf(r_name, name_maxncpy, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
     //      printf("%s: '%s' --> '%s'\n", __func__, uri, r_name);
   }
 
@@ -267,7 +271,7 @@ static bool thumbpathname_from_uri(
     char tmppath[FILE_MAX];
 
     if (get_thumb_dir(tmppath, size)) {
-      BLI_snprintf(r_path, path_len, "%s%s", tmppath, r_name);
+      BLI_snprintf(r_path, path_maxncpy, "%s%s", tmppath, r_name);
       //          printf("%s: '%s' --> '%s'\n", __func__, uri, r_path);
       return true;
     }
@@ -275,14 +279,14 @@ static bool thumbpathname_from_uri(
   return false;
 }
 
-static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_len)
+static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_maxncpy)
 {
-  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_len, THB_FAIL);
+  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_maxncpy, THB_FAIL);
 }
 
-static bool thumbpath_from_uri(const char *uri, char *path, const int path_len, ThumbSize size)
+static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxncpy, ThumbSize size)
 {
-  return thumbpathname_from_uri(uri, path, path_len, nullptr, 0, size);
+  return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
 }
 
 void IMB_thumb_makedirs(void)

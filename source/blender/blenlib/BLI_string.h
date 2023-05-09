@@ -68,11 +68,11 @@ char *BLI_strdupcat(const char *__restrict str1,
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param maxncpy: Maximum number of characters to copy (generally
+ * \param dst_maxncpy: Maximum number of characters to copy (generally
  * the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -82,13 +82,13 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxnc
  * \param dst: Destination for copy
  * \param src: Source string to copy
  * \param pad: the char to use for padding
- * \param maxncpy: Maximum number of characters to copy (generally the size of dst)
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst)
  * \retval Returns dst
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
                              char pad,
-                             size_t maxncpy) ATTR_NONNULL(1, 2);
+                             size_t dst_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Like strncpy but ensures dst is always
@@ -99,18 +99,18 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param maxncpy: Maximum number of characters to copy (generally
+ * \param dst_maxncpy: Maximum number of characters to copy (generally
  * the size of dst)
  * \retval The number of bytes copied (The only difference from BLI_strncpy).
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
-                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+                        size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 
-char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -194,26 +194,28 @@ bool BLI_str_replace_table_exact(char *string,
 /**
  * Portable replacement for #snprintf
  */
-size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
+size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 /**
  * A version of #BLI_snprintf that returns `strlen(dst)`
  */
-size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
-    ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
+size_t BLI_snprintf_rlen(char *__restrict dst,
+                         size_t dst_maxncpy,
+                         const char *__restrict format,
+                         ...) ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 
 /**
  * Portable replacement for `vsnprintf`.
  */
-size_t BLI_vsnprintf(char *__restrict buffer,
-                     size_t maxncpy,
+size_t BLI_vsnprintf(char *__restrict dst,
+                     size_t dst_maxncpy,
                      const char *__restrict format,
                      va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 /**
- * A version of #BLI_vsnprintf that returns `strlen(buffer)`
+ * A version of #BLI_vsnprintf that returns `strlen(dst)`
  */
-size_t BLI_vsnprintf_rlen(char *__restrict buffer,
-                          size_t maxncpy,
+size_t BLI_vsnprintf_rlen(char *__restrict dst,
+                          size_t dst_maxncpy,
                           const char *__restrict format,
                           va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 

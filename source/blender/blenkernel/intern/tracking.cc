@@ -3407,19 +3407,19 @@ MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
 void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
                                          const struct MovieTrackingTrack *track,
                                          char *rna_path,
-                                         size_t rna_path_len)
+                                         size_t rna_path_maxncpy)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_track(tracking, track);
   char track_name_esc[MAX_NAME * 2];
   BLI_str_escape(track_name_esc, track->name, sizeof(track_name_esc));
   if (tracking_object == nullptr) {
-    BLI_snprintf(rna_path, rna_path_len, "tracking.tracks[\"%s\"]", track_name_esc);
+    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.tracks[\"%s\"]", track_name_esc);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
     BLI_snprintf(rna_path,
-                 rna_path_len,
+                 rna_path_maxncpy,
                  "tracking.objects[\"%s\"].tracks[\"%s\"]",
                  object_name_esc,
                  track_name_esc);
@@ -3429,36 +3429,36 @@ void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
 void BKE_tracking_get_rna_path_prefix_for_track(const struct MovieTracking *tracking,
                                                 const struct MovieTrackingTrack *track,
                                                 char *rna_path,
-                                                size_t rna_path_len)
+                                                size_t rna_path_maxncpy)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_track(tracking, track);
   if (tracking_object == nullptr) {
-    BLI_strncpy(rna_path, "tracking.tracks", rna_path_len);
+    BLI_strncpy(rna_path, "tracking.tracks", rna_path_maxncpy);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(rna_path, rna_path_len, "tracking.objects[\"%s\"]", object_name_esc);
+    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.objects[\"%s\"]", object_name_esc);
   }
 }
 
 void BKE_tracking_get_rna_path_for_plane_track(const struct MovieTracking *tracking,
                                                const struct MovieTrackingPlaneTrack *plane_track,
                                                char *rna_path,
-                                               size_t rna_path_len)
+                                               size_t rna_path_maxncpy)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(tracking,
                                                                                   plane_track);
   char track_name_esc[MAX_NAME * 2];
   BLI_str_escape(track_name_esc, plane_track->name, sizeof(track_name_esc));
   if (tracking_object == nullptr) {
-    BLI_snprintf(rna_path, rna_path_len, "tracking.plane_tracks[\"%s\"]", track_name_esc);
+    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.plane_tracks[\"%s\"]", track_name_esc);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
     BLI_snprintf(rna_path,
-                 rna_path_len,
+                 rna_path_maxncpy,
                  "tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
                  object_name_esc,
                  track_name_esc);
@@ -3469,16 +3469,17 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
     const struct MovieTracking *tracking,
     const struct MovieTrackingPlaneTrack *plane_track,
     char *rna_path,
-    size_t rna_path_len)
+    size_t rna_path_maxncpy)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(tracking,
                                                                                   plane_track);
   if (tracking_object == nullptr) {
-    BLI_strncpy(rna_path, "tracking.plane_tracks", rna_path_len);
+    BLI_strncpy(rna_path, "tracking.plane_tracks", rna_path_maxncpy);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(rna_path, rna_path_len, "tracking.objects[\"%s\"].plane_tracks", object_name_esc);
+    BLI_snprintf(
+        rna_path, rna_path_maxncpy, "tracking.objects[\"%s\"].plane_tracks", object_name_esc);
   }
 }

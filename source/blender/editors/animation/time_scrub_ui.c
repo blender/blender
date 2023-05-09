@@ -62,13 +62,13 @@ static void draw_background(const rcti *rect)
 }
 
 static void get_current_time_str(
-    const Scene *scene, bool display_seconds, int frame, uint max_len, char *r_str)
+    const Scene *scene, bool display_seconds, int frame, uint str_maxncpy, char *r_str)
 {
   if (display_seconds) {
-    BLI_timecode_string_from_time(r_str, max_len, 0, FRA2TIME(frame), FPS, U.timecode_style);
+    BLI_timecode_string_from_time(r_str, str_maxncpy, 0, FRA2TIME(frame), FPS, U.timecode_style);
   }
   else {
-    BLI_snprintf(r_str, max_len, "%d", frame);
+    BLI_snprintf(r_str, str_maxncpy, "%d", frame);
   }
 }
 
