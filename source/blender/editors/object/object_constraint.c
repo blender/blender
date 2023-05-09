@@ -182,7 +182,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
+  STRNCPY(buf, "Scripts: %t|[None]%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */

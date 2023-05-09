@@ -228,15 +228,15 @@ void DRW_stats_draw(const rcti *rect)
   /* ------------------------------------------ */
   /* Label row */
   char col_label[32];
-  BLI_snprintf(col_label, sizeof(col_label), "Engine");
+  STRNCPY(col_label, "Engine");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Init");
+  STRNCPY(col_label, "Init");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Background");
+  STRNCPY(col_label, "Background");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Render");
+  STRNCPY(col_label, "Render");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Total (w/o cache)");
+  STRNCPY(col_label, "Total (w/o cache)");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
   v++;
 
@@ -267,7 +267,7 @@ void DRW_stats_draw(const rcti *rect)
 
   /* Totals row */
   u = 0;
-  BLI_snprintf(col_label, sizeof(col_label), "Sub Total");
+  STRNCPY(col_label, "Sub Total");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
   SNPRINTF(time_to_txt, "%.2fms", init_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
@@ -281,7 +281,7 @@ void DRW_stats_draw(const rcti *rect)
 
   u = 0;
   double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
-  BLI_snprintf(col_label, sizeof(col_label), "Cache Time");
+  STRNCPY(col_label, "Cache Time");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
   SNPRINTF(time_to_txt, "%.2fms", *cache_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
@@ -295,15 +295,15 @@ void DRW_stats_draw(const rcti *rect)
   uint tex_mem = GPU_texture_memory_usage_get();
   uint vbo_mem = GPU_vertbuf_get_memory_usage();
 
-  BLI_snprintf(stat_string, sizeof(stat_string), "GPU Memory");
+  STRNCPY(stat_string, "GPU Memory");
   draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
   SNPRINTF(stat_string, "%.2fMB", double(tex_mem + vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "Textures");
+  STRNCPY(stat_string, "Textures");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
   SNPRINTF(stat_string, "%.2fMB", double(tex_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "Meshes");
+  STRNCPY(stat_string, "Meshes");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
   SNPRINTF(stat_string, "%.2fMB", double(vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));

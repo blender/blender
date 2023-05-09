@@ -152,8 +152,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
         (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE))
     {
       /* Error message info. */
-      BLI_snprintf(
-          vedata->info, sizeof(vedata->info), "Error: LightCache cannot be loaded on this GPU");
+      STRNCPY(vedata->info, "Error: LightCache cannot be loaded on this GPU");
     }
 
     if (!sldata->fallback_lightcache) {
