@@ -937,10 +937,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
 
-    if (sculpt_automasking_is_constrained_by_radius(brush)) {
-      automasking->settings.topology_use_brush_limit = true;
-      SCULPT_topology_automasking_init(sd, ob);
-    }
+    automasking->settings.topology_use_brush_limit = true;
+    SCULPT_topology_automasking_init(sd, ob);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
