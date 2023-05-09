@@ -1323,9 +1323,9 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
     param_outputs[i] = {type, buffer};
   }
 
-  lf::Context lf_context;
-  lf_context.storage = graph_executor.init_storage(allocator);
-  lf_context.user_data = &user_data;
+  nodes::GeoNodesLFLocalUserData local_user_data(user_data);
+
+  lf::Context lf_context(graph_executor.init_storage(allocator), &user_data, &local_user_data);
   lf::BasicParams lf_params{graph_executor,
                             param_inputs,
                             param_outputs,

@@ -73,6 +73,16 @@ enum class ValueUsage {
 class LazyFunction;
 
 /**
+ * Extension of #UserData that is thread-local. This avoids accessing e.g.
+ * `EnumerableThreadSpecific.local()` in every nested lazy-function because the thread local
+ * data is passed in by the caller.
+ */
+class LocalUserData {
+ public:
+  virtual ~LocalUserData() = default;
+};
+
+/**
  * This allows passing arbitrary data into a lazy-function during execution. For that, #UserData
  * has to be subclassed. This mainly exists because it's more type safe than passing a `void *`
  * with no type information attached.
@@ -82,6 +92,11 @@ class LazyFunction;
 class UserData {
  public:
   virtual ~UserData() = default;
+
+  /**
+   * Get thread local data for this user-data and the current thread.
+   */
+  virtual destruct_ptr<LocalUserData> get_local(LinearAllocator<> &allocator);
 };
 
 /**
@@ -98,6 +113,15 @@ struct Context {
    * Custom user data that can be used in the function.
    */
   UserData *user_data;
+  /**
+   * Custom user data that is local to the thread that executes the lazy-function.
+   */
+  LocalUserData *local_user_data;
+
+  Context(void *storage, UserData *user_data, LocalUserData *local_user_data)
+      : storage(storage), user_data(user_data), local_user_data(local_user_data)
+  {
+  }
 };
 
 /**
