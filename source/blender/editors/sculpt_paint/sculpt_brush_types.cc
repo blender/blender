@@ -2900,8 +2900,7 @@ ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userd
     float avg[3], val[3];
 
     int cd_temp = data->scl->bmesh_cd_offset;
-    SCULPT_bmesh_four_neighbor_average(
-        ss, avg, direction2, vd.bm_vert, 1.0f, true, cd_temp, false);
+    SCULPT_bmesh_four_neighbor_average(ss, avg, direction2, vd.bm_vert, 1.0f, cd_temp, false);
 
     sub_v3_v3v3(val, avg, vd.co);
 

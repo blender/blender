@@ -382,8 +382,6 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   SCULPT_automasking_node_begin(data->ob, ss, ss->filter_cache->automasking, &automask_data, node);
 
   /* Smooth parameters. */
-  float fset_projection = SCULPT_get_fset_projection(
-      ss, ss->filter_cache->preserve_fset_boundaries ? 1.0f : 0.0f);
   float projection = 0.0f;
 
   PBVHVertexIter vd;
@@ -424,8 +422,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(
-            ss, avg, vd.vertex, projection, fset_projection, true);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection, true);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
@@ -513,12 +510,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         float disp_avg[3];
         float avg_co[3];
-        SCULPT_neighbor_coords_average(ss,
-                                       avg_co,
-                                       vd.vertex,
-                                       projection,
-                                       ss->filter_cache->preserve_fset_boundaries ? 0.0f : 1.0f,
-                                       true);
+        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, projection, true);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
@@ -582,7 +574,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, 1.0f, true);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, true);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
@@ -632,7 +624,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, 1.0f, true);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, true);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }
@@ -781,6 +773,8 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   data.nodes = ss->filter_cache->nodes;
   data.filter_type = filter_type;
   data.filter_strength = filter_strength;
+
+  ss->filter_cache->preserve_fset_boundaries = !ss->hard_edge_mode;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
