@@ -7014,7 +7014,8 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
                                 "rna_FileBrowser_FSMenuEntry_path_set");
   RNA_def_property_ui_text(prop, "Path", "");
 
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  /* Use #PROP_FILENAME sub-type so the UI can manipulate non-UTF8 names. */
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_FILENAME);
   RNA_def_property_string_funcs(prop,
                                 "rna_FileBrowser_FSMenuEntry_name_get",
                                 "rna_FileBrowser_FSMenuEntry_name_length",
