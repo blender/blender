@@ -57,7 +57,7 @@ typedef uint64_t u_int64_t;
 
 #ifndef __cplusplus
 /* The <uchar.h> standard header is missing on some systems. */
-#  if defined(__APPLE__) || defined(__NetBSD__)
+#  if defined(__APPLE__) || defined(__NetBSD__) || defined(__OpenBSD__)
 typedef unsigned int char32_t;
 #  else
 #    include <uchar.h>

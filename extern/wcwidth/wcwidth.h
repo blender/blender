@@ -21,7 +21,7 @@
 #define __WCWIDTH_H__
 
 #ifndef __cplusplus
-#  if defined(__APPLE__) || defined(__NetBSD__)
+#  if defined(__APPLE__) || defined(__NetBSD__) || defined(__OpenBSD__)
 /* The <uchar.h> standard header is missing on macOS. */
 #include <stddef.h>
 typedef unsigned int char32_t;
