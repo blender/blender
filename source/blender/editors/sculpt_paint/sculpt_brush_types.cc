@@ -2823,9 +2823,9 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *>
 /** \name Sculpt Topology Rake (Shared Utility)
  * \{ */
 
-static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
-                                              const int n,
-                                              const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+                                                          const int n,
+                                                          const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;

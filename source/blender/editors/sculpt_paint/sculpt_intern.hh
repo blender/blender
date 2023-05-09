@@ -1381,6 +1381,7 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
 int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face);
 
 bool SCULPT_face_select_get(SculptSession *ss, PBVHFaceRef face);
+bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face);
 
 /** \} */
 

@@ -627,3 +627,13 @@ void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *bru
   ds_final->spacing = ds_final->inherit & DYNTOPO_INHERIT_SPACING ? ds2->spacing : ds1->spacing;
   ds_final->repeat = ds_final->inherit & DYNTOPO_INHERIT_REPEAT ? ds2->repeat : ds1->repeat;
 }
+
+bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face) {
+  if (ss->bm) {
+    BMFace *f = reinterpret_cast<BMFace *>(face.i);
+    return BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+  }
+  else {
+    return ss->hide_poly ? ss->hide_poly[face.i] : false;
+  }
+}

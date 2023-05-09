@@ -145,7 +145,7 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
     case PBVH_GRIDS: {
       no = blender::bke::mesh::poly_normal_calc(
           {reinterpret_cast<float3 *>(ss->vert_positions), ss->totvert},
-          ss->corner_edges.slice(ss->polys[face.i]));
+          ss->corner_verts.slice(ss->polys[face.i]));
       break;
     }
     default: /* Failed. */

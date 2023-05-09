@@ -110,7 +110,8 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   /* Project to plane if desired. */
   avg = avg / (float)total - co;
   float t = dot_v3v3(avg, no);
-  avg += no * t * projection + co;
+
+  avg += -no * t * projection + co;
 
   copy_v3_v3(result, avg);
 }

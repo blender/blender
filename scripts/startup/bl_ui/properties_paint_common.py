@@ -586,7 +586,7 @@ def brush_settings(layout, context, brush, popover=False):
                 layout,
                 context,
                 brush,
-                "autosmooth_fset_slide",
+                "auto_smooth_projection",
                 slider=True,
             )
 

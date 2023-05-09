@@ -629,11 +629,6 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert_unreachable();
-    return;
-  }
-
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i : IndexRange(totvert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
@@ -668,11 +663,6 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
     return;
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert_msg(0, "Face Sets automasking: pmap missing");
-    return;
-  }
-
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
   for (int i : IndexRange(tot_vert)) {
@@ -691,11 +681,6 @@ static void SCULPT_boundary_automasking_init(Object *ob,
                                              int propagation_steps)
 {
   SculptSession *ss = ob->sculpt;
-
-  if (!ss->pmap) {
-    BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
-    return;
-  }
 
   const int totvert = SCULPT_vertex_count_get(ss);
   int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");
@@ -942,8 +927,10 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
     SCULPT_topology_automasking_init(sd, ob);
   }
 
-  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
-    SCULPT_vertex_random_access_ensure(ss);
+  /* Draw face sets brush handles face set automasking on its own. */
+  if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS) &&
+      !(brush && brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS && !ss->cache->alt_smooth))
+  {
     sculpt_face_sets_automasking_init(sd, ob);
   }
 

@@ -467,10 +467,10 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
   }
 }
 
-ATTR_NO_OPT void SCULPT_dynamic_topology_enable_ex(Main *bmain,
-                                                   Depsgraph *depsgraph,
-                                                   Scene * /*scene*/,
-                                                   Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain,
+                                       Depsgraph *depsgraph,
+                                       Scene * /*scene*/,
+                                       Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -542,6 +542,7 @@ ATTR_NO_OPT void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 
   if (!ss->bm_idmap) {
     ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
+    BM_idmap_check_ids(ss->bm_idmap);
     BKE_sculptsession_update_attr_refs(ob);
   }
 
