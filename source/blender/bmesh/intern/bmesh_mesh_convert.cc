@@ -1613,7 +1613,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
-  SCOPED_TIMER_AVERAGED(__func__);
   /* NOTE: The function is called from multiple threads with the same input BMesh and different
    * mesh objects. */
 
