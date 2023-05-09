@@ -996,6 +996,24 @@ elseif(WIN32)
       ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
     RELEASE
   )
+  if(EXISTS ${LIBDIR}/materialx/bin/MaterialXRender.dll) # 3.6+
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl_d.dll
+      DEBUG
+    )
+  endif()
   windows_install_shared_manifest(
     FILES
       ${LIBDIR}/materialx/bin/MaterialXCore_d.dll
