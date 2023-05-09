@@ -31,22 +31,28 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   state_manager = new VKStateManager();
 
   /* For off-screen contexts. Default frame-buffer is empty. */
-  back_left = new VKFrameBuffer("back_left");
+  VKFrameBuffer *framebuffer = new VKFrameBuffer("back_left");
+  back_left = framebuffer;
+  active_fb = framebuffer;
 }
 
 VKContext::~VKContext() {}
 
-void VKContext::activate()
+void VKContext::sync_backbuffer()
 {
   if (ghost_window_) {
-    VkImage image; /* TODO will be used for reading later... */
+    VkImage vk_image;
     VkFramebuffer vk_framebuffer;
     VkRenderPass render_pass;
     VkExtent2D extent;
     uint32_t fb_id;
 
-    GHOST_GetVulkanBackbuffer(
-        (GHOST_WindowHandle)ghost_window_, &image, &vk_framebuffer, &render_pass, &extent, &fb_id);
+    GHOST_GetVulkanBackbuffer((GHOST_WindowHandle)ghost_window_,
+                              &vk_image,
+                              &vk_framebuffer,
+                              &render_pass,
+                              &extent,
+                              &fb_id);
 
     /* Recreate the gpu::VKFrameBuffer wrapper after every swap. */
     if (has_active_framebuffer()) {
@@ -55,22 +61,37 @@ void VKContext::activate()
     delete back_left;
 
     VKFrameBuffer *framebuffer = new VKFrameBuffer(
-        "back_left", vk_framebuffer, render_pass, extent);
+        "back_left", vk_image, vk_framebuffer, render_pass, extent);
     back_left = framebuffer;
-    framebuffer->bind(false);
+    back_left->bind(false);
   }
+
+  if (ghost_context_) {
+    VkCommandBuffer command_buffer = VK_NULL_HANDLE;
+    GHOST_GetVulkanCommandBuffer(static_cast<GHOST_ContextHandle>(ghost_context_),
+                                 &command_buffer);
+    VKDevice &device = VKBackend::get().device_;
+    command_buffer_.init(device.device_get(), device.queue_get(), command_buffer);
+    command_buffer_.begin_recording();
+    device.descriptor_pools_get().reset();
+  }
+}
+
+void VKContext::activate()
+{
+  /* Make sure no other context is already bound to this thread. */
+  BLI_assert(is_active_ == false);
+
+  is_active_ = true;
+
+  sync_backbuffer();
 }
 
 void VKContext::deactivate() {}
 
 void VKContext::begin_frame()
 {
-  VkCommandBuffer command_buffer = VK_NULL_HANDLE;
-  GHOST_GetVulkanCommandBuffer(static_cast<GHOST_ContextHandle>(ghost_context_), &command_buffer);
-  VKDevice &device = VKBackend::get().device_;
-  command_buffer_.init(device.device_get(), device.queue_get(), command_buffer);
-  command_buffer_.begin_recording();
-  device.descriptor_pools_get().reset();
+  sync_backbuffer();
 }
 
 void VKContext::end_frame()
@@ -115,16 +136,23 @@ void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
   command_buffer_.begin_render_pass(framebuffer);
 }
 
+VKFrameBuffer *VKContext::active_framebuffer_get() const
+{
+  return unwrap(active_fb);
+}
+
 bool VKContext::has_active_framebuffer() const
 {
-  return active_fb != nullptr;
+  return active_framebuffer_get() != nullptr;
 }
 
 void VKContext::deactivate_framebuffer()
 {
   BLI_assert(active_fb != nullptr);
-  VKFrameBuffer *framebuffer = unwrap(active_fb);
-  command_buffer_.end_render_pass(*framebuffer);
+  VKFrameBuffer *framebuffer = active_framebuffer_get();
+  if (framebuffer->is_valid()) {
+    command_buffer_.end_render_pass(*framebuffer);
+  }
   active_fb = nullptr;
 }
 
