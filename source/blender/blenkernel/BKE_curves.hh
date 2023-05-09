@@ -82,7 +82,7 @@ class CurvesGeometryRuntime {
   mutable SharedCache<Vector<float3>> evaluated_position_cache;
 
   /**
-   * A cache of bounds shared between data-blocks with unchanged positions and radii.
+   * A cache of bounds shared between data-blocks with unchanged positions.
    * When data changes affect the bounds, the cache is "un-shared" with other geometries.
    * See #SharedCache comments.
    */
