@@ -1660,7 +1660,7 @@ static void sculpt_update_persistent_base(Object *ob)
 }
 
 static void sculpt_update_object(
-    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool need_pmap, bool is_paint_tool)
+    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool /*need_pmap*/, bool is_paint_tool)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1766,13 +1766,13 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
+  if (ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
         &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
+  }
 
-    if (ss->pbvh) {
-      BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
-    }
+  if (ss->pbvh) {
+    BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
   }
 
   if (ss->deform_modifiers_active) {
