@@ -860,6 +860,69 @@ class edit_generators:
 
             return edits
 
+    class use_str_sizeof_macros(EditGenerator):
+        """
+        Use `STRNCPY` & `SNPRINTF` macros:
+
+        Replace:
+          BLI_strncpy(a, b, sizeof(a))
+        With:
+          STRNCPY(a, b)
+
+        Replace:
+          BLI_snprintf(a, sizeof(a), "format %s", b)
+        With:
+          SNPRINTF(a, "format %s", b)
+        """
+        @staticmethod
+        def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+            edits = []
+
+            # `BLI_strncpy(a, b, sizeof(a))` -> `STRNCPY(a, b)`
+            # `BLI_strncpy(a, b, SOME_ID)` -> `STRNCPY(a, b)`
+            for src, dst in (
+                    ("BLI_strncpy", "STRNCPY"),
+                    ("BLI_strncpy_rlen", "STRNCPY_RLEN"),
+                    ("BLI_strncpy_utf8", "STRNCPY_UTF8"),
+                    ("BLI_strncpy_utf8_rlen", "STRNCPY_UTF8_RLEN"),
+            ):
+                for match in re.finditer(
+                        (r"\b" + src + (
+                            r"\(([^,]+,\s+[^,]+),\s+" r"("
+                            r"sizeof\([^\(\)]+\)"  # Trailing `sizeof(..)`.
+                            r"|"
+                            r"[a-zA-Z0-9_]+"  # Trailing identifier (typically a define).
+                            r")" r"\)"
+                        )),
+                        data,
+                        flags=re.MULTILINE,
+                ):
+                    edits.append(Edit(
+                        span=match.span(),
+                        content='%s(%s)' % (dst, match.group(1)),
+                        content_fail='__ALWAYS_FAIL__',
+                    ))
+
+            # `BLI_snprintf(a, SOME_SIZE, ...` -> `SNPRINTF(a, ...`
+            for src, dst in (
+                    ("BLI_snprintf", "SNPRINTF"),
+                    ("BLI_snprintf_rlen", "SNPRINTF_RLEN"),
+                    ("BLI_vsnprintf", "VSNPRINTF"),
+                    ("BLI_vsnprintf_rlen", "VSNPRINTF_RLEN"),
+            ):
+                for match in re.finditer(
+                        r"\b" + src + r"\(([^,]+),\s+([^,]+),",
+                        data,
+                        flags=re.MULTILINE,
+                ):
+                    edits.append(Edit(
+                        span=match.span(),
+                        content='%s(%s,' % (dst, match.group(1)),
+                        content_fail='__ALWAYS_FAIL__',
+                    ))
+
+            return edits
+
     class use_array_size_macro(EditGenerator):
         """
         Use macro for an error checked array size:
