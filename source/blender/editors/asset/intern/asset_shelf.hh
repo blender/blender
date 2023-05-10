@@ -27,7 +27,7 @@ void build_asset_view(uiLayout &layout,
                       const bContext &C,
                       ARegion &region);
 
-uiBlock *catalog_selector_block_draw(bContext *C, ARegion *region, void * /*arg1*/);
+void catalog_selector_panel_register(struct ARegionType *region_type);
 
 AssetShelfSettings *settings_from_context(const bContext *C);
 

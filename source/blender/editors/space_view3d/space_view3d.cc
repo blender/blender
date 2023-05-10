@@ -2277,7 +2277,7 @@ void ED_spacetype_view3d()
   art->listener = ED_asset_shelf_footer_region_listen;
   art->context = view3d_asset_shelf_context;
   BLI_addhead(&st->regiontypes, art);
-  ED_asset_shelf_footer_register(art, "VIEW3D_HT_asset_shelf_footer", SPACE_VIEW3D);
+  ED_asset_shelf_footer_register(art, SPACE_VIEW3D);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);

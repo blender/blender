@@ -419,16 +419,10 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
 
   ED_assetlist_storage_fetch(library_ref, C);
-  uiDefIconBlockBut(block,
-                    shelf::catalog_selector_block_draw,
-                    nullptr,
-                    0,
-                    ICON_RIGHTARROW,
-                    0,
-                    0,
-                    UI_UNIT_X * 1.5f,
-                    UI_UNIT_Y,
-                    TIP_("Select catalogs to display"));
+
+  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
+  UI_block_emboss_set(block, UI_EMBOSS);
 
   uiItemS(layout);
 
@@ -442,17 +436,17 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
 }
 
-void ED_asset_shelf_footer_register(ARegionType *region_type,
-                                    const char *idname,
-                                    const int space_type)
+void ED_asset_shelf_footer_register(ARegionType *region_type, const int space_type)
 {
   HeaderType *ht = MEM_cnew<HeaderType>(__func__);
-  strcpy(ht->idname, idname);
+  STRNCPY(ht->idname, "ASSETSHELF_HT_footer");
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
   ht->draw = asset_shelf_footer_draw;
   ht->poll = asset_shelf_region_header_type_poll;
   BLI_addtail(&region_type->headertypes, ht);
+
+  shelf::catalog_selector_panel_register(region_type);
 }
 
 /** \} */

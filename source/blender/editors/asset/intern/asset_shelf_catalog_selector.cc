@@ -10,7 +10,10 @@
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 
+#include "DNA_screen_types.h"
+
 #include "BKE_context.h"
+#include "BKE_screen.h"
 
 #include "BLT_translation.h"
 
@@ -19,6 +22,8 @@
 #include "UI_interface.h"
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
+
+#include "WM_api.h"
 
 #include "asset_shelf.hh"
 
@@ -137,30 +142,17 @@ void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
   });
 }
 
-uiBlock *catalog_selector_block_draw(bContext *C, ARegion *region, void * /*arg1*/)
+static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
 {
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
   asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(*library_ref);
   AssetShelfSettings *shelf_settings = settings_from_context(C);
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  UI_block_flag_enable(block,
-                       UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPUP_CAN_REFRESH);
-
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     0,
-                                     0,
-                                     UI_UNIT_X * 12,
-                                     UI_UNIT_Y,
-                                     0,
-                                     UI_style_get());
-
-  uiItemL(layout, "Enable Catalogs", ICON_NONE);
-  uiItemS(layout);
+  uiLayout *layout = panel->layout;
+  uiBlock *block = uiLayoutGetBlock(layout);
 
   uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
+
   if (library && shelf_settings) {
     ui::AbstractTreeView *tree_view = UI_block_add_view(
         *block,
@@ -169,11 +161,24 @@ uiBlock *catalog_selector_block_draw(bContext *C, ARegion *region, void * /*arg1
 
     ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
   }
+}
 
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-  UI_block_direction_set(block, UI_DIR_UP);
+void catalog_selector_panel_register(ARegionType *region_type)
+{
+  /* Uses global paneltype registry to allow usage as popover. So only register this once (may be
+   * called from multiple spaces). */
+  if (WM_paneltype_find("ASSETSHELF_PT_catalog_selector", true)) {
+    return;
+  }
 
-  return block;
+  PanelType *pt = MEM_cnew<PanelType>(__func__);
+  STRNCPY(pt->idname, "ASSETSHELF_PT_catalog_selector");
+  STRNCPY(pt->label, N_("Catalog Selector"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  pt->description = N_("Select catalogs to display in the asset shelf");
+  pt->draw = catalog_selector_panel_draw;
+  BLI_addtail(&region_type->paneltypes, pt);
+  WM_paneltype_add(pt);
 }
 
 }  // namespace blender::ed::asset::shelf

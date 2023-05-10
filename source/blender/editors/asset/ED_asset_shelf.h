@@ -41,9 +41,7 @@ void ED_asset_shelf_footer_region_init(struct wmWindowManager *wm, struct ARegio
 void ED_asset_shelf_footer_region(const struct bContext *C, struct ARegion *region);
 void ED_asset_shelf_footer_region_listen(const struct wmRegionListenerParams *params);
 int ED_asset_shelf_footer_size(void);
-void ED_asset_shelf_footer_register(struct ARegionType *region_type,
-                                    const char *idname,
-                                    const int space_type);
+void ED_asset_shelf_footer_register(struct ARegionType *region_type, const int space_type);
 
 /* -------------------------------------------------------------------- */
 /* Asset Shelf Settings */
