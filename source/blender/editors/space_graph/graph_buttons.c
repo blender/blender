@@ -1027,7 +1027,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     /* value of driver */
     row = uiLayoutRow(col, true);
     uiItemL(row, IFACE_("Driver Value:"), ICON_NONE);
-    BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", driver->curval);
+    SNPRINTF(valBuf, "%.3f", driver->curval);
     uiItemL(row, valBuf, ICON_NONE);
   }
 
@@ -1259,11 +1259,10 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                 DTAR_TRANSCHAN_ROTW) &&
            dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
       {
-        BLI_snprintf(
-            valBuf, sizeof(valBuf), "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
+        SNPRINTF(valBuf, "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
       }
       else {
-        BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", dvar->curval);
+        SNPRINTF(valBuf, "%.3f", dvar->curval);
       }
 
       uiItemL(row, valBuf, ICON_NONE);

@@ -62,13 +62,13 @@ static void draw_background(const rcti *rect)
 }
 
 static void get_current_time_str(
-    const Scene *scene, bool display_seconds, int frame, uint max_len, char *r_str)
+    const Scene *scene, bool display_seconds, int frame, char *r_str, uint str_maxncpy)
 {
   if (display_seconds) {
-    BLI_timecode_string_from_time(r_str, max_len, 0, FRA2TIME(frame), FPS, U.timecode_style);
+    BLI_timecode_string_from_time(r_str, str_maxncpy, 0, FRA2TIME(frame), FPS, U.timecode_style);
   }
   else {
-    BLI_snprintf(r_str, max_len, "%d", frame);
+    BLI_snprintf(r_str, str_maxncpy, "%d", frame);
   }
 }
 
@@ -82,7 +82,7 @@ static void draw_current_frame(const Scene *scene,
   int frame_x = UI_view2d_view_to_region_x(v2d, current_frame);
 
   char frame_str[64];
-  get_current_time_str(scene, display_seconds, current_frame, sizeof(frame_str), frame_str);
+  get_current_time_str(scene, display_seconds, current_frame, frame_str, sizeof(frame_str));
   float text_width = UI_fontstyle_string_width(fstyle, frame_str);
   float box_width = MAX2(text_width + 8 * UI_SCALE_FAC, 24 * UI_SCALE_FAC);
   float box_padding = 3 * UI_SCALE_FAC;

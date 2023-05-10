@@ -233,7 +233,8 @@ static int GPLayerToTransData(TransData *td,
 
   /* check for select frames on right side of current frame */
   for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-    if (is_prop_edit || (gpf->flag & GP_FRAME_SELECT)) {
+    const bool is_selected = (gpf->flag & GP_FRAME_SELECT) != 0;
+    if (is_prop_edit || is_selected) {
       if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
         tfd->val = (float)gpf->framenum;
         tfd->sdata = &gpf->framenum;
@@ -243,6 +244,10 @@ static int GPLayerToTransData(TransData *td,
 
         td->center[0] = td->ival;
         td->center[1] = ypos;
+
+        if (is_selected) {
+          td->flag = TD_SELECTED;
+        }
 
         /* Advance `td` now. */
         td++;

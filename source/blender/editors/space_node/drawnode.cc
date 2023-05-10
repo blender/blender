@@ -331,7 +331,7 @@ static void node_buts_image_user(uiLayout *layout,
 
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, scene->r.cfra, nullptr);
-    BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
+    SNPRINTF(numstr, IFACE_("Frame: %d"), framenr);
     uiItemL(layout, numstr, ICON_NONE);
   }
 

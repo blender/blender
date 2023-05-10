@@ -108,7 +108,8 @@ set oiio_paths=%Staging%\%BuildDir%%ARCH%R\Release\openimageio\bin;%Staging%\%Bu
 set boost_paths=%Staging%\%BuildDir%%ARCH%R\Release\boost\lib;%Staging%\%BuildDir%%ARCH%D\Debug\boost\lib
 set openexr_paths=%Staging%\%BuildDir%%ARCH%R\Release\openexr\bin;%Staging%\%BuildDir%%ARCH%D\Debug\openexr\bin
 set imath_paths=%Staging%\%BuildDir%%ARCH%R\Release\imath\bin;%Staging%\%BuildDir%%ARCH%D\Debug\imath\bin
-set path=%BUILD_DIR%\downloads\mingw\mingw64\msys\1.0\bin\;%BUILD_DIR%\downloads\nasm-2.12.01\;%path%;%boost_paths%;%oiio_paths%;%openexr_paths%;%imath_paths%
+set tbb_paths=%Staging%\%BuildDir%%ARCH%R\Release\tbb\bin;%Staging%\%BuildDir%%ARCH%D\Debug\tbb\bin
+set path=%BUILD_DIR%\downloads\mingw\mingw64\msys\1.0\bin\;%BUILD_DIR%\downloads\nasm-2.12.01\;%path%;%boost_paths%;%oiio_paths%;%openexr_paths%;%imath_paths%;%tbb_paths%
 mkdir %STAGING%\%BuildDir%%ARCH%R
 cd %Staging%\%BuildDir%%ARCH%R
 echo %DATE% %TIME% : Start > %StatusFile%

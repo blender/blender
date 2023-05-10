@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -4211,10 +4211,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "내부 스프링 강성을 정밀하게 제어하기위한 버텍스 그룹"
 
 
-msgid "Mass Vertex Group"
-msgstr "질량 버텍스 그룹"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "버텍스의 자동 지정에 대한 버텍스 그룹"
 
@@ -6868,10 +6864,6 @@ msgid "Map To"
 msgstr "다음으로 맵"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "제약된 오브젝트에 영향을 주는 변형 유형"
-
-
 msgid "Map To X From"
 msgstr "다음에서 X로 맵"
 
@@ -7248,28 +7240,8 @@ msgid "Plane for projected stroke"
 msgstr "투사된 스트로크에 대한 평면"
 
 
-msgid "Normal/View"
-msgstr "노멀/뷰"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "표면에 수직으로 표시"
-
-
-msgid "Normal/Surface"
-msgstr "노멀/표면"
-
-
-msgid "Display aligned to the surface"
-msgstr "표면에 정렬된 표시"
-
-
 msgid "View"
 msgstr "뷰"
-
-
-msgid "Display aligned to the viewport"
-msgstr "뷰포트에 정렬된 표시"
 
 
 msgid "Detect Corners"
@@ -10121,20 +10093,12 @@ msgid "Maximum distance for the field to work"
 msgstr "필드가 작동하는 최대 거리"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "필드 감소에 대한 최소의 거리"
-
-
 msgid "Falloff Power"
 msgstr "파워 감소"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "포스 필드로부터 떨어진 곳일수록 얼마나 빨리 강도가 떨어지는지"
-
-
-msgid "Fall-Off"
-msgstr "감소"
 
 
 msgid "Cone"
@@ -10287,10 +10251,6 @@ msgstr "필드가 작동하기위한 최대 방사형 거리"
 
 msgid "Minimum Radial Distance"
 msgstr "최소의 방사형 거리"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "필드의 감소에 대한 최소의 방사형 거리"
 
 
 msgid "Rest Length"
@@ -10481,16 +10441,8 @@ msgid "Use Min"
 msgstr "최소를 사용"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "필드 감소에 대한 최소의 거리를 사용"
-
-
 msgid "Multiple Springs"
 msgstr "다중의 스프링"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "모든 포인트는 다중의 스프링에 의해 영향된"
 
 
 msgid "Use Coordinates"
@@ -10503,10 +10455,6 @@ msgstr "텍스처에 대한 오브젝트/글로벌 좌표를 사용"
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "작동하는 필드에 대해 최대 방사형 거리를 사용"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "필드의 감소에 대한 최소의 방사형 거리를 사용"
 
 
 msgid "Root Texture Coordinates"
@@ -36503,6 +36451,10 @@ msgid "Select Children Only"
 msgstr "자식 만 선택"
 
 
+msgid "Extend Range"
+msgstr "범위를 확장"
+
+
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "채널을 축소"
@@ -41085,11 +41037,6 @@ msgstr "다음 폴더"
 
 msgid "Move to next folder"
 msgstr "다음 폴더로 이동"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "부모 파일"
 
 
 msgid "Move to parent directory"
@@ -51187,10 +51134,6 @@ msgid "Extend selection for activation"
 msgstr "활성화에 대한 선택을 확장"
 
 
-msgid "Extend Range"
-msgstr "범위를 확장"
-
-
 msgid "Select a range from active element"
 msgstr "활성 요소에서 범위를 선택"
 
@@ -52360,10 +52303,6 @@ msgstr "활성 본에 제약을 추가, 선택한 오브젝트/본에 대상 설
 msgctxt "Operator"
 msgid "Clear Pose Constraints"
 msgstr "포즈 제약을 지우기"
-
-
-msgid "Clear all the constraints for the selected bones"
-msgstr "선택된 본에 대한 제약을 모두 지우기"
 
 
 msgctxt "Operator"
@@ -54691,15 +54630,6 @@ msgstr "디인터레이스 무비"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "선택된 모든 무비 소스를 디인터레이스"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "스트립을 지우기"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "시퀀서에서 선택된 스트립을 지우기"
 
 
 msgid "Duplicate the selected strips"
@@ -61214,10 +61144,6 @@ msgstr "오디오"
 
 msgid "Video"
 msgstr "비디오"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG 프리셋"
 
 
 msgid "Views"
@@ -70098,6 +70024,10 @@ msgid "Control point weight values"
 msgstr "웨이트 값 컨트롤 포인트"
 
 
+msgid "Mass Vertex Group"
+msgstr "질량 버텍스 그룹"
+
+
 msgid "Control point mass values"
 msgstr "질량 값 컨트롤 포인트"
 
@@ -73806,10 +73736,6 @@ msgid "Text Cursor"
 msgstr "텍스트 커서"
 
 
-msgid "Color of the interface widgets text insertion cursor (caret)"
-msgstr "인터페이스 위젯 텍스트 삽입 커서 (캐럿)의 컬러"
-
-
 msgid "Bone Pose"
 msgstr "본 포즈"
 
@@ -74158,13 +74084,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "복사, 추가 또는 곱하기에 사용되는 노멀 벡터"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "비례 편집 원형에 대한 크기를 표시"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "비례 편집 감소"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "비례 편집 원형에 대한 크기를 표시"
 
 
 msgid "UV Local View"
@@ -74361,14 +74287,6 @@ msgstr "비례 편집 마스크 모드"
 
 msgid "Proportional editing object mode"
 msgstr "비례 편집 오브젝트 모드"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "F커브를 비례 편집"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "F커브 에디터에서 비례 편집"
 
 
 msgid "Projected from View"
@@ -81518,16 +81436,6 @@ msgstr "내부를 재계산"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "벡터를 복사"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "벡터를 붙여 넣기"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "벡터를 초기화"
 
@@ -82400,10 +82308,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "DV-PAL를 위해서는 렌더 높이는 576 픽셀이어야 합니다!"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG는 48kHz 만 지원 / DV를 위해 스테레오 오디오!"
-
-
 msgid "Error initializing video stream"
 msgstr "비디오 스트림 초기화 오류"
 
@@ -82764,10 +82668,6 @@ msgid "<Missing ID block>"
 msgstr "<Missing ID block>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "이 F-커브의 값을 검색할 수 있는 RNA 포인터가 없습니다"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "다음으로 키 프레임을 추가하는 F-커브이 없음"
 
@@ -82802,10 +82702,6 @@ msgstr "속성 경로를 확인하지 못함, 대신 키잉 설정을 사용하�
 
 msgid "No active Keying Set"
 msgstr "활성 키잉 설정되지 않음"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 이 F-커브에 대한 플래그를 업데이트 할 수 없습니다 (ID = %s, 경로 = %s)"
 
 
 msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
@@ -86749,10 +86645,6 @@ msgid "unknown error writing file"
 msgstr "알 수 없는 오류 파일 쓰기"
 
 
-msgid "unknown error stating file"
-msgstr "알 수 없는 오류 파일 상태"
-
-
 msgid "Could not reopen file"
 msgstr "파일을 다시 열 수 없음"
 
@@ -87748,22 +87640,6 @@ msgstr "F-커브에서 F-커브 모디파이어 '%s'를 찾을 수 없습니다"
 
 msgid "Already a control point at frame %.6f"
 msgstr "프레임 %.6f에서 이미 컨트롤 포인트"
-
-
-msgid "FCurve has already sample points"
-msgstr "F커브은 이미 샘플 포인트가 있습니다"
-
-
-msgid "FCurve has no keyframes"
-msgstr "F커브은 키 프레임이 없음"
-
-
-msgid "FCurve has already keyframes"
-msgstr "F커브은 이미 키 프레임이 있습니다"
-
-
-msgid "FCurve has no sample points"
-msgstr "F커브은 키 프레임이 없음"
 
 
 msgid "Invalid frame range (%d - %d)"

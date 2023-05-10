@@ -418,7 +418,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      BLI_strncpy(pt->owner_id, owner_id, sizeof(pt->owner_id));
+      STRNCPY(pt->owner_id, owner_id);
     }
   }
 
@@ -1050,7 +1050,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      BLI_strncpy(mt->owner_id, owner_id, sizeof(mt->owner_id));
+      STRNCPY(mt->owner_id, owner_id);
     }
   }
 

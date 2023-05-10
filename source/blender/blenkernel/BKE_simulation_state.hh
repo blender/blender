@@ -18,23 +18,16 @@ class SimulationStateItem {
 };
 
 class GeometrySimulationStateItem : public SimulationStateItem {
- private:
-  GeometrySet geometry_;
-
  public:
   GeometrySimulationStateItem(GeometrySet geometry);
-
-  const GeometrySet &geometry() const
-  {
-    return geometry_;
-  }
-
-  GeometrySet &geometry()
-  {
-    return geometry_;
-  }
+  GeometrySet geometry;
 };
 
+/**
+ * References a field input/output that becomes an attribute as part of the simulation state.
+ * The attribute is actually stored in a #GeometrySimulationStateItem, so this just references
+ * the attribute's name.
+ */
 class AttributeSimulationStateItem : public SimulationStateItem {
  private:
   std::string name_;
@@ -48,6 +41,7 @@ class AttributeSimulationStateItem : public SimulationStateItem {
   }
 };
 
+/** Storage for a single value of a trivial type like `float`, `int`, etc. */
 class PrimitiveSimulationStateItem : public SimulationStateItem {
  private:
   const CPPType &type_;
@@ -81,12 +75,19 @@ class StringSimulationStateItem : public SimulationStateItem {
   }
 };
 
+/**
+ * Storage of values for a single simulation input and output node pair.
+ * Used as a cache to allow random access in time, and as an intermediate form before data is
+ * baked.
+ */
 class SimulationZoneState {
  public:
   Map<int, std::unique_ptr<SimulationStateItem>> item_by_identifier;
 };
 
+/** Identifies a simulation zone (input and output node pair) used by a modifier. */
 struct SimulationZoneID {
+  /** Every node identifier in the hierarchy of compute contexts. */
   Vector<int> node_ids;
 
   uint64_t hash() const
@@ -100,6 +101,10 @@ struct SimulationZoneID {
   }
 };
 
+/**
+ * Stores a single frame of simulation states for all simulation zones in a modifier's node
+ * hierarchy.
+ */
 class ModifierSimulationState {
  private:
   mutable bool bake_loaded_;
@@ -108,7 +113,9 @@ class ModifierSimulationState {
   ModifierSimulationCache *owner_;
   mutable std::mutex mutex_;
   Map<SimulationZoneID, std::unique_ptr<SimulationZoneState>> zone_states_;
+  /** File path to folder containing baked meta-data. */
   std::optional<std::string> meta_path_;
+  /** File path to folder containing baked data. */
   std::optional<std::string> bdata_dir_;
 
   const SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id) const;
@@ -122,8 +129,14 @@ struct ModifierSimulationStateAtFrame {
 };
 
 enum class CacheState {
+  /** The cache is up-to-date with the inputs. */
   Valid,
+  /**
+   * Nodes or input values have changed since the cache was created, i.e. the output would be
+   * different if the simulation was run again.
+   */
   Invalid,
+  /** The cache has been baked and will not be invalidated by changing inputs. */
   Baked,
 };
 
@@ -135,7 +148,12 @@ struct StatesAroundFrame {
 
 class ModifierSimulationCache {
  private:
+  mutable std::mutex states_at_frames_mutex_;
   Vector<std::unique_ptr<ModifierSimulationStateAtFrame>> states_at_frames_;
+  /**
+   * Used for baking to deduplicate arrays when writing and writing from storage. Sharing info
+   * must be kept alive for multiple frames to detect if each data array's version has changed.
+   */
   std::unique_ptr<BDataSharing> bdata_sharing_;
 
   friend ModifierSimulationState;
@@ -163,6 +181,7 @@ class ModifierSimulationCache {
   }
 
   void reset();
+  void clear_prev_states();
 };
 
 }  // namespace blender::bke::sim

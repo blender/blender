@@ -1,0 +1,37 @@
+diff --git a/pxr/usd/usdMtlx/reader.cpp b/pxr/usd/usdMtlx/reader.cpp
+index 29e901816..e6fc68b20 100644
+--- a/pxr/usd/usdMtlx/reader.cpp
++++ b/pxr/usd/usdMtlx/reader.cpp
+@@ -797,6 +797,15 @@ _NodeGraphBuilder::_CreateInterfaceInputs(
+     // We deliberately ignore tokens here.
+ }
+ 
++mx::StringSet _GetStdlibIncludes() {
++    mx::StringSet stdlibIncludes = UsdMtlxGetDocument("")->getReferencedSourceUris();
++    mx::StringSet normStdlibIncludes;
++    for (std::string const& entry : stdlibIncludes) {
++        normStdlibIncludes.insert(TfNormPath(entry));
++    }
++    return normStdlibIncludes;
++}
++
+ // Returns True if the mtlxNodeDef corresponds to a locally defined custom node
+ // with an associated nodegraph.
+ // XXX Locally defined custom nodes without nodegraphs are not supported
+@@ -818,13 +827,14 @@ _NodeGraphBuilder::_IsLocalCustomNode(const mx::ConstNodeDefPtr &mtlxNodeDef)
+         }
+         // Combine with the nodeDef relative path
+         nodeDefUri = TfNormPath(fullMtlxPath + nodeDefUri);
++    } else {
++        nodeDefUri = TfNormPath(nodeDefUri);
+     }
+     
+     // This is a locally defined custom node if the absolute path to the
+     // nodedef is not included in the stdlibDoc.
+     static mx::StringSet customNodeDefNames;
+-    static const mx::StringSet stdlibIncludes =
+-        UsdMtlxGetDocument("")->getReferencedSourceUris();
++    static const mx::StringSet stdlibIncludes = _GetStdlibIncludes();
+     if (stdlibIncludes.find(nodeDefUri) == stdlibIncludes.end()) {
+         // Check if we already used this custom node
+         if (std::find(customNodeDefNames.begin(), customNodeDefNames.end(),

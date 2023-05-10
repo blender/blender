@@ -366,9 +366,9 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
     pbd->slider = ED_slider_create(C);
     ED_slider_init(pbd->slider, event);
     ED_slider_factor_set(pbd->slider, pbd->blend_factor);
-    ED_slider_allow_overshoot_set(pbd->slider, true);
+    ED_slider_allow_overshoot_set(pbd->slider, true, true);
     ED_slider_allow_increments_set(pbd->slider, false);
-    ED_slider_is_bidirectional_set(pbd->slider, true);
+    ED_slider_factor_bounds_set(pbd->slider, -1, 1);
   }
 
   if (pbd->release_confirm_info.use_release_confirm) {
@@ -501,11 +501,7 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
       strcpy(tab_string, TIP_("[Tab] - Show blended pose"));
     }
 
-    BLI_snprintf(status_string,
-                 sizeof(status_string),
-                 "%s | %s | [Ctrl] - Flip Pose",
-                 tab_string,
-                 slider_string);
+    SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);
     ED_workspace_status_text(C, status_string);
 
     poselib_blend_apply(C, op);

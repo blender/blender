@@ -100,7 +100,7 @@ bFaceMap *BKE_object_facemap_add_name(Object *ob, const char *name)
 
   fmap = MEM_callocN(sizeof(bFaceMap), __func__);
 
-  BLI_strncpy(fmap->name, name, sizeof(fmap->name));
+  STRNCPY(fmap->name, name);
 
   BLI_addtail(&ob->fmaps, fmap);
 

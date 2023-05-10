@@ -598,7 +598,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
     if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
       G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-      BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
+      SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
 
       printf("skipping driver '%s', automatic scripts are disabled\n", expr);
     }
@@ -759,7 +759,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
       {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-          BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
+          SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
         }
 
         Py_DECREF(expr_code);

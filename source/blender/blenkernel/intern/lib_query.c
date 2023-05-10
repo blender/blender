@@ -374,7 +374,7 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
+uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner, const bool include_ui)
 {
   /* any type of ID can be used in custom props. */
   if (id_owner->properties) {
@@ -384,6 +384,11 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
 
   /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
   if (ELEM(id_type_owner, ID_NT, ID_AR)) {
+    return FILTER_ID_ALL;
+  }
+
+  /* Screen UI IDs can also link to virtually any ID (through e.g. the Outliner). */
+  if (include_ui && id_type_owner == ID_SCR) {
     return FILTER_ID_ALL;
   }
 
@@ -510,7 +515,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
   }
 
   const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
-  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner, false);
   return (can_be_used & filter_id_type_used) != 0;
 }
 

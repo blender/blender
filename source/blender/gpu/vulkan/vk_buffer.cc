@@ -54,7 +54,11 @@ bool VKBuffer::create(int64_t size_in_bytes,
   VkBufferCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   create_info.flags = 0;
-  create_info.size = size_in_bytes;
+  /*
+   * Vulkan doesn't allow empty buffers but some areas (DrawManager Instance data, PyGPU) create
+   * them.
+   */
+  create_info.size = max_ii(size_in_bytes, 1);
   create_info.usage = buffer_usage;
   /* We use the same command queue for the compute and graphics pipeline, so it is safe to use
    * exclusive resource handling. */

@@ -118,7 +118,9 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
 {
   /* For curves use the smooth normal, particularly for ribbons the geometric
    * normal gives too much darkening otherwise. */
-  int label;
+  *eval = zero_spectrum();
+  *pdf = 0.f;
+  int label = LABEL_NONE;
   const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? sc->N : sd->Ng;
 
   switch (sc->type) {
@@ -536,6 +538,7 @@ ccl_device_inline
               ccl_private float *pdf)
 {
   Spectrum eval = zero_spectrum();
+  *pdf = 0.f;
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:

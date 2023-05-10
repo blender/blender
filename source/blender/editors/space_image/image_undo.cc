@@ -471,7 +471,7 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->tiles = static_cast<UndoImageTile **>(
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
-  BLI_strncpy(ubuf->ibuf_filepath, ibuf->filepath, sizeof(ubuf->ibuf_filepath));
+  STRNCPY(ubuf->ibuf_filepath, ibuf->filepath);
   ubuf->image_state.source = image->source;
   ubuf->image_state.use_float = ibuf->rect_float != nullptr;
 

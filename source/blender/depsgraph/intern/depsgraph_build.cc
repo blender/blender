@@ -96,7 +96,7 @@ void DEG_add_object_relation(DepsNodeHandle *node_handle,
 
 bool DEG_object_has_geometry_component(Object *object)
 {
-  return deg::geometry_tag_to_component(&object->id) != deg::NodeType::UNDEFINED;
+  return deg::geometry_tag_to_component(&object->id) == deg::NodeType::GEOMETRY;
 }
 
 void DEG_add_collection_geometry_relation(DepsNodeHandle *node_handle,

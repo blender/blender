@@ -24,10 +24,17 @@ namespace blender::gpu {
 VKTexture::~VKTexture()
 {
   VK_ALLOCATION_CALLBACKS
+  if (is_allocated()) {
+    const VKDevice &device = VKBackend::get().device_get();
+    vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
+    vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
+  }
+}
 
-  const VKDevice &device = VKBackend::get().device_get();
-  vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
-  vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
+void VKTexture::init(VkImage vk_image, VkImageLayout layout)
+{
+  vk_image_ = vk_image;
+  current_layout_ = layout;
 }
 
 void VKTexture::generate_mipmap() {}

@@ -178,7 +178,7 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
       /* Rotation Destination:  normal -> radians,  so convert src to radians
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
-      BLI_strncpy(driver->expression, "radians(var)", sizeof(driver->expression));
+      STRNCPY(driver->expression, "radians(var)");
     }
     else if ((RNA_property_unit(src_prop) == PROP_UNIT_ROTATION) &&
              (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION))
@@ -186,11 +186,11 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
       /* Rotation Source: radians -> normal, so convert src to degrees
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
-      BLI_strncpy(driver->expression, "degrees(var)", sizeof(driver->expression));
+      STRNCPY(driver->expression, "degrees(var)");
     }
     else {
       /* Just a normal property without any unit problems */
-      BLI_strncpy(driver->expression, "var", sizeof(driver->expression));
+      STRNCPY(driver->expression, "var");
     }
 
     /* Create a driver variable for the target
@@ -459,7 +459,8 @@ int ANIM_add_driver(
         int array = RNA_property_array_length(&ptr, prop);
         const char *dvar_prefix = (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) ? "var + " : "";
         char *expression = driver->expression;
-        int val, maxlen = sizeof(driver->expression);
+        const size_t expression_maxncpy = sizeof(driver->expression);
+        int val;
         float fval;
 
         if (proptype == PROP_BOOLEAN) {
@@ -470,7 +471,8 @@ int ANIM_add_driver(
             val = RNA_property_boolean_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%s", dvar_prefix, (val) ? "True" : "False");
+          BLI_snprintf(
+              expression, expression_maxncpy, "%s%s", dvar_prefix, (val) ? "True" : "False");
         }
         else if (proptype == PROP_INT) {
           if (!array) {
@@ -480,7 +482,7 @@ int ANIM_add_driver(
             val = RNA_property_int_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%d", dvar_prefix, val);
+          BLI_snprintf(expression, expression_maxncpy, "%s%d", dvar_prefix, val);
         }
         else if (proptype == PROP_FLOAT) {
           if (!array) {
@@ -490,11 +492,11 @@ int ANIM_add_driver(
             fval = RNA_property_float_get_index(&ptr, prop, array_index);
           }
 
-          BLI_snprintf(expression, maxlen, "%s%.3f", dvar_prefix, fval);
+          BLI_snprintf(expression, expression_maxncpy, "%s%.3f", dvar_prefix, fval);
           BLI_str_rstrip_float_zero(expression, '\0');
         }
         else if (flag & CREATEDRIVER_WITH_DEFAULT_DVAR) {
-          BLI_strncpy(expression, "var", maxlen);
+          BLI_strncpy(expression, "var", expression_maxncpy);
         }
       }
 
@@ -813,7 +815,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
   /* Set the variable name. */
   if (var_name) {
-    BLI_strncpy(var->name, var_name, sizeof(var->name));
+    STRNCPY(var->name, var_name);
 
     /* Sanitize the name. */
     for (int i = 0; var->name[i]; i++) {
@@ -823,7 +825,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
     }
   }
 
-  BLI_strncpy(driver->expression, var->name, sizeof(driver->expression));
+  STRNCPY(driver->expression, var->name);
 
   /* Store the driver into the copy/paste buffers. */
   channeldriver_copypaste_buf = fcu;

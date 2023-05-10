@@ -17,7 +17,7 @@ class RENDER_PT_format_presets(PresetPanel, Panel):
 
 
 class RENDER_PT_ffmpeg_presets(PresetPanel, Panel):
-    bl_label = "FFMPEG Presets"
+    bl_label = "FFmpeg Presets"
     preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"
 

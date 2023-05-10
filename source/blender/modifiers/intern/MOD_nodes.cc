@@ -1187,14 +1187,17 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
           }
         }
         else if (sim_states.prev != nullptr && sim_states.next == nullptr) {
-          const float delta_frames = float(current_frame) - float(sim_states.prev->frame);
-          if (delta_frames <= 1.0f) {
-            bke::sim::ModifierSimulationState &current_sim_state =
-                nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
-            exec_data.current_simulation_state_for_write = &current_sim_state;
-            const float delta_seconds = delta_frames / FPS;
-            exec_data.simulation_time_delta = delta_seconds;
+          const float max_delta_frames = 1.0f;
+          const float scene_delta_frames = float(current_frame) - float(sim_states.prev->frame);
+          const float delta_frames = std::min(max_delta_frames, scene_delta_frames);
+          if (delta_frames != scene_delta_frames) {
+            nmd_orig.simulation_cache->invalidate();
           }
+          bke::sim::ModifierSimulationState &current_sim_state =
+              nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+          exec_data.current_simulation_state_for_write = &current_sim_state;
+          const float delta_seconds = delta_frames / FPS;
+          exec_data.simulation_time_delta = delta_seconds;
         }
       }
     }
@@ -1320,9 +1323,9 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
     param_outputs[i] = {type, buffer};
   }
 
-  lf::Context lf_context;
-  lf_context.storage = graph_executor.init_storage(allocator);
-  lf_context.user_data = &user_data;
+  nodes::GeoNodesLFLocalUserData local_user_data(user_data);
+
+  lf::Context lf_context(graph_executor.init_storage(allocator), &user_data, &local_user_data);
   lf::BasicParams lf_params{graph_executor,
                             param_inputs,
                             param_outputs,
@@ -1346,6 +1349,14 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
   if (logging_enabled(ctx)) {
     delete static_cast<geo_log::GeoModifierLog *>(nmd_orig->runtime_eval_log);
     nmd_orig->runtime_eval_log = eval_log.release();
+  }
+
+  if (DEG_is_active(ctx->depsgraph)) {
+    /* When caching is turned off, remove all states except the last which was just created in this
+     * evaluation. Check if active status to avoid changing original data in other depsgraphs. */
+    if (!(ctx->object->flag & OB_FLAG_USE_SIMULATION_CACHE)) {
+      nmd_orig->simulation_cache->clear_prev_states();
+    }
   }
 
   return output_geometry_set;
@@ -1751,7 +1762,7 @@ static void draw_property_for_socket(const bContext &C,
   BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
 
   char rna_path[sizeof(socket_id_esc) + 4];
-  BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
+  SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, true);

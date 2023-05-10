@@ -81,7 +81,7 @@ static void joined_armature_fix_links_constraints(Main *bmain,
           }
           else if (STREQ(ct->subtarget, pchan->name)) {
             ct->tar = tarArm;
-            BLI_strncpy(ct->subtarget, curbone->name, sizeof(ct->subtarget));
+            STRNCPY(ct->subtarget, curbone->name);
             changed = true;
           }
         }
@@ -193,7 +193,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
                 }
                 if (STREQ(dtar->pchan_name, old_name)) {
                   /* Change target bone name */
-                  BLI_strncpy(dtar->pchan_name, new_name, sizeof(dtar->pchan_name));
+                  STRNCPY(dtar->pchan_name, new_name);
                   break; /* no need to try any more names for bone subtarget */
                 }
               }
@@ -241,7 +241,7 @@ static void joined_armature_fix_links(
       if (ob->partype == PARBONE) {
         /* bone name in object */
         if (STREQ(ob->parsubstr, pchan->name)) {
-          BLI_strncpy(ob->parsubstr, curbone->name, sizeof(ob->parsubstr));
+          STRNCPY(ob->parsubstr, curbone->name);
         }
       }
 
@@ -364,7 +364,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         joined_armature_fix_links(bmain, ob_active, ob_iter, pchan, curbone);
 
         /* Rename pchan */
-        BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
+        STRNCPY(pchan->name, curbone->name);
 
         /* Jump Ship! */
         BLI_remlink(curarm->edbo, curbone);

@@ -52,7 +52,7 @@ size_t malloc_usable_size(void *ptr);
 #  define UNLIKELY(x) (x)
 #endif
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.
 
 #  include <malloc.h>

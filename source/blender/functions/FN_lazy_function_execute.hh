@@ -53,6 +53,7 @@ template<typename... Inputs, typename... Outputs, size_t... InIndices, size_t...
 inline void execute_lazy_function_eagerly_impl(
     const LazyFunction &fn,
     UserData *user_data,
+    LocalUserData *local_user_data,
     std::tuple<Inputs...> &inputs,
     std::tuple<Outputs *...> &outputs,
     std::index_sequence<InIndices...> /* in_indices */,
@@ -86,9 +87,7 @@ inline void execute_lazy_function_eagerly_impl(
   output_usages.fill(ValueUsage::Used);
   set_outputs.fill(false);
   LinearAllocator<> allocator;
-  Context context;
-  context.user_data = user_data;
-  context.storage = fn.init_storage(allocator);
+  Context context(fn.init_storage(allocator), user_data, local_user_data);
   BasicParams params{
       fn, input_pointers, output_pointers, input_usages, output_usages, set_outputs};
   fn.execute(params, context);
@@ -112,6 +111,7 @@ inline void execute_lazy_function_eagerly_impl(
 template<typename... Inputs, typename... Outputs>
 inline void execute_lazy_function_eagerly(const LazyFunction &fn,
                                           UserData *user_data,
+                                          LocalUserData *local_user_data,
                                           std::tuple<Inputs...> inputs,
                                           std::tuple<Outputs *...> outputs)
 {
@@ -119,6 +119,7 @@ inline void execute_lazy_function_eagerly(const LazyFunction &fn,
   BLI_assert(fn.outputs().size() == sizeof...(Outputs));
   detail::execute_lazy_function_eagerly_impl(fn,
                                              user_data,
+                                             local_user_data,
                                              inputs,
                                              outputs,
                                              std::make_index_sequence<sizeof...(Inputs)>(),

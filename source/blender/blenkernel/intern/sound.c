@@ -258,11 +258,11 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
   char str[FILE_MAX];
 
-  BLI_strncpy(str, filepath, sizeof(str));
+  STRNCPY(str, filepath);
   BLI_path_abs(str, blendfile_path);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
-  BLI_strncpy(sound->filepath, filepath, FILE_MAX);
+  STRNCPY(sound->filepath, filepath);
   /* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
   /* Extract sound specs for bSound */
@@ -286,12 +286,12 @@ bSound *BKE_sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_
   bSound *sound;
   char str[FILE_MAX], strtest[FILE_MAX];
 
-  BLI_strncpy(str, filepath, sizeof(str));
+  STRNCPY(str, filepath);
   BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
-    BLI_strncpy(strtest, sound->filepath, sizeof(sound->filepath));
+    STRNCPY(strtest, sound->filepath);
     BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
 
     if (BLI_path_cmp(strtest, str) == 0) {
@@ -551,7 +551,7 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     PackedFile *pf = sound->packedfile;
 
     /* don't modify soundact->sound->filepath, only change a copy */
-    BLI_strncpy(fullpath, sound->filepath, sizeof(fullpath));
+    STRNCPY(fullpath, sound->filepath);
     BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
     /* but we need a packed file then */
@@ -1258,7 +1258,7 @@ bool BKE_sound_stream_info_get(struct Main *main,
   AUD_StreamInfo *stream_infos;
   int stream_count;
 
-  BLI_strncpy(str, filepath, sizeof(str));
+  STRNCPY(str, filepath);
   BLI_path_abs(str, blendfile_path);
 
   sound = AUD_Sound_file(str);

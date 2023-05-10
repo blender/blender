@@ -50,10 +50,10 @@ static void applyGPOpacity(TransInfo *t, const int UNUSED(mval[2]))
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    BLI_snprintf(str, sizeof(str), TIP_("Opacity: %s"), c);
+    SNPRINTF(str, TIP_("Opacity: %s"), c);
   }
   else {
-    BLI_snprintf(str, sizeof(str), TIP_("Opacity: %3f"), ratio);
+    SNPRINTF(str, TIP_("Opacity: %3f"), ratio);
   }
 
   bool recalc = false;

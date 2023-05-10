@@ -26,7 +26,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "paint_intern.h" /* own include */
+#include "paint_intern.hh" /* own include */
 
 /* Opaque Structs for internal use */
 
@@ -45,7 +45,7 @@ struct VertProjHandle {
 
 /* only for passing to the callbacks */
 struct VertProjUpdate {
-  struct VertProjHandle *vp_handle;
+  VertProjHandle *vp_handle;
 
   /* runtime */
   ARegion *region;
@@ -60,7 +60,7 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData,
                                                    const float co[3],
                                                    const float no[3])
 {
-  struct VertProjHandle *vp_handle = userData;
+  VertProjHandle *vp_handle = static_cast<VertProjHandle *>(userData);
   CoNo *co_no = &vp_handle->vcosnos[index];
 
   /* check if we've been here before (normal should not be 0) */
@@ -74,14 +74,14 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData,
   copy_v3_v3(co_no->no, no);
 }
 
-static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
-                                           Scene *UNUSED(scene),
+static void vpaint_proj_dm_map_cosnos_init(Depsgraph *depsgraph,
+                                           Scene * /*scene*/,
                                            Object *ob,
-                                           struct VertProjHandle *vp_handle)
+                                           VertProjHandle *vp_handle)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
   Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
@@ -101,8 +101,8 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData,
                                                      const float co[3],
                                                      const float no[3])
 {
-  struct VertProjUpdate *vp_update = userData;
-  struct VertProjHandle *vp_handle = vp_update->vp_handle;
+  VertProjUpdate *vp_update = static_cast<VertProjUpdate *>(userData);
+  VertProjHandle *vp_handle = vp_update->vp_handle;
 
   CoNo *co_no = &vp_handle->vcosnos[index];
 
@@ -134,17 +134,17 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData,
   copy_v3_v3(co_no->no, no);
 }
 
-static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,
-                                             struct VertProjHandle *vp_handle,
+static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
+                                             VertProjHandle *vp_handle,
                                              ARegion *region,
                                              const float mval_fl[2])
 {
-  struct VertProjUpdate vp_update = {vp_handle, region, mval_fl};
+  VertProjUpdate vp_update = {vp_handle, region, mval_fl};
 
   Object *ob = vp_handle->ob;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
   Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
@@ -160,40 +160,42 @@ static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,
 /* -------------------------------------------------------------------- */
 /* Public Functions */
 
-struct VertProjHandle *ED_vpaint_proj_handle_create(struct Depsgraph *depsgraph,
-                                                    Scene *scene,
-                                                    Object *ob,
-                                                    CoNo **r_vcosnos)
+VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph *depsgraph,
+                                             Scene *scene,
+                                             Object *ob,
+                                             CoNo **r_vcosnos)
 {
-  struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
-  Mesh *me = ob->data;
+  VertProjHandle *vp_handle = static_cast<VertProjHandle *>(
+      MEM_mallocN(sizeof(VertProjHandle), __func__));
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   /* setup the handle */
-  vp_handle->vcosnos = MEM_mallocN(sizeof(CoNo) * me->totvert, "vertexcosnos map");
+  vp_handle->vcosnos = static_cast<CoNo *>(
+      MEM_mallocN(sizeof(CoNo) * me->totvert, "vertexcosnos map"));
   vp_handle->use_update = false;
 
   /* sets 'use_update' if needed */
   vpaint_proj_dm_map_cosnos_init(depsgraph, scene, ob, vp_handle);
 
   if (vp_handle->use_update) {
-    vp_handle->dists_sq = MEM_mallocN(sizeof(float) * me->totvert, __func__);
+    vp_handle->dists_sq = static_cast<float *>(MEM_mallocN(sizeof(float) * me->totvert, __func__));
 
     vp_handle->ob = ob;
     vp_handle->scene = scene;
   }
   else {
-    vp_handle->dists_sq = NULL;
+    vp_handle->dists_sq = nullptr;
 
-    vp_handle->ob = NULL;
-    vp_handle->scene = NULL;
+    vp_handle->ob = nullptr;
+    vp_handle->scene = nullptr;
   }
 
   *r_vcosnos = vp_handle->vcosnos;
   return vp_handle;
 }
 
-void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
-                                  struct VertProjHandle *vp_handle,
+void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
+                                  VertProjHandle *vp_handle,
                                   ARegion *region,
                                   const float mval_fl[2])
 {
@@ -202,7 +204,7 @@ void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
   }
 }
 
-void ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle)
+void ED_vpaint_proj_handle_free(VertProjHandle *vp_handle)
 {
   if (vp_handle->use_update) {
     MEM_freeN(vp_handle->dists_sq);

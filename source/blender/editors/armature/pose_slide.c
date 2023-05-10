@@ -412,7 +412,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     case POSESLIDE_BLEND: /* Blend the current pose with the previous (<50%) or next key (>50%). */
     {
       const float current_frame_y = evaluate_fcurve(fcu, current_frame);
-      /* Convert factor to absolute 0-1 range which is needed for lerpf. */
+      /* Convert factor to absolute 0-1 range which is needed for `interpf`. */
       const float blend_factor = fabs((factor - 0.5f) * 2);
 
       if (factor < 0.5) {
@@ -981,22 +981,13 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   switch (pso->channels) {
     case PS_TFM_LOC:
-      BLI_snprintf(limits_str,
-                   sizeof(limits_str),
-                   TIP_("[G]/R/S/B/C - Location only (G to clear) | %s"),
-                   axis_str);
+      SNPRINTF(limits_str, TIP_("[G]/R/S/B/C - Location only (G to clear) | %s"), axis_str);
       break;
     case PS_TFM_ROT:
-      BLI_snprintf(limits_str,
-                   sizeof(limits_str),
-                   TIP_("G/[R]/S/B/C - Rotation only (R to clear) | %s"),
-                   axis_str);
+      SNPRINTF(limits_str, TIP_("G/[R]/S/B/C - Rotation only (R to clear) | %s"), axis_str);
       break;
     case PS_TFM_SIZE:
-      BLI_snprintf(limits_str,
-                   sizeof(limits_str),
-                   TIP_("G/R/[S]/B/C - Scale only (S to clear) | %s"),
-                   axis_str);
+      SNPRINTF(limits_str, TIP_("G/R/[S]/B/C - Scale only (S to clear) | %s"), axis_str);
       break;
     case PS_TFM_BBONE_SHAPE:
       STRNCPY(limits_str, TIP_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"));
@@ -1019,16 +1010,10 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
     outputNumInput(&pso->num, str_offs, &scene->unit);
 
-    BLI_snprintf(status_str, sizeof(status_str), "%s: %s | %s", mode_str, str_offs, limits_str);
+    SNPRINTF(status_str, "%s: %s | %s", mode_str, str_offs, limits_str);
   }
   else {
-    BLI_snprintf(status_str,
-                 sizeof(status_str),
-                 "%s: %s | %s | %s",
-                 mode_str,
-                 limits_str,
-                 slider_str,
-                 bone_vis_str);
+    SNPRINTF(status_str, "%s: %s | %s | %s", mode_str, limits_str, slider_str, bone_vis_str);
   }
 
   ED_workspace_status_text(C, status_str);

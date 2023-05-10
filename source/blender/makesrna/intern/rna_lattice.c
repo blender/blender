@@ -105,7 +105,7 @@ static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain),
     lt_em->typev = lt->typev;
     lt_em->typew = lt->typew;
     lt_em->flag = lt->flag;
-    BLI_strncpy(lt_em->vgroup, lt->vgroup, sizeof(lt_em->vgroup));
+    STRNCPY(lt_em->vgroup, lt->vgroup);
   }
 
   DEG_id_tag_update(id, 0);
@@ -201,10 +201,10 @@ static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 {
   Lattice *lt = ptr->data;
-  BLI_strncpy(lt->vgroup, value, sizeof(lt->vgroup));
+  STRNCPY(lt->vgroup, value);
 
   if (lt->editlatt) {
-    BLI_strncpy(lt->editlatt->latt->vgroup, value, sizeof(lt->editlatt->latt->vgroup));
+    STRNCPY(lt->editlatt->latt->vgroup, value);
   }
 }
 

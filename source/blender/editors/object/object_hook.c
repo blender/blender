@@ -545,14 +545,14 @@ static int add_hook_object(const bContext *C,
 
   hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
   BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
-  BLI_snprintf(hmd->modifier.name, sizeof(hmd->modifier.name), "Hook-%s", ob->id.name + 2);
+  SNPRINTF(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
   BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
 
   hmd->object = ob;
   hmd->indexar = indexar;
   copy_v3_v3(hmd->cent, cent);
   hmd->indexar_num = indexar_num;
-  BLI_strncpy(hmd->name, name, sizeof(hmd->name));
+  STRNCPY(hmd->name, name);
 
   unit_m4(pose_mat);
 
@@ -571,7 +571,7 @@ static int add_hook_object(const bContext *C,
     if (arm->act_bone) {
       bPoseChannel *pchan_act;
 
-      BLI_strncpy(hmd->subtarget, arm->act_bone->name, sizeof(hmd->subtarget));
+      STRNCPY(hmd->subtarget, arm->act_bone->name);
 
       pchan_act = BKE_pose_channel_active_if_layer_visible(ob);
       if (LIKELY(pchan_act)) {

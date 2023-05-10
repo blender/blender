@@ -31,6 +31,8 @@ void GPUTest::SetUp()
   context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
+  BLI_init_srgb_conversion();
+
   GPU_context_begin_frame(context);
   GPU_debug_capture_begin();
 }

@@ -57,7 +57,7 @@ void BLI_string_split_prefix(const char *string, size_t string_maxlen, char *r_p
 char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
                                                     char *table[],
                                                     const char *strings[],
-                                                    uint strings_len) ATTR_NONNULL(2, 3);
+                                                    uint strings_num) ATTR_NONNULL(2, 3);
 
 #define BLI_string_join_by_sep_char_with_tableN(sep, table, ...) \
   BLI_string_join_array_by_sep_char_with_tableN( \
@@ -67,17 +67,17 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
  * Finds the best possible flipped (left/right) name.
  * For renaming; check for unique names afterwards.
  *
- * \param r_name: flipped name,
- * assumed to be a pointer to a string of at least \a name_len size.
- * \param from_name: original name,
- * assumed to be a pointer to a string of at least \a name_len size.
+ * \param name_dst: flipped name,
+ * assumed to be a pointer to a string of at least \a name_maxncpy size.
+ * \param name_src: original name,
+ * assumed to be a pointer to a string of at least \a name_maxncpy size.
  * \param strip_number: If set, remove number extensions.
- * \return The number of bytes written into \a r_name.
+ * \return The number of bytes written into \a name.
  */
-size_t BLI_string_flip_side_name(char *r_name,
-                                 const char *from_name,
+size_t BLI_string_flip_side_name(char *name_dst,
+                                 const char *name_src,
                                  bool strip_number,
-                                 size_t name_len) ATTR_NONNULL(1, 2);
+                                 size_t name_dst_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
@@ -139,9 +139,9 @@ bool BLI_uniquename(struct ListBase *list,
  * Join strings, return the length of the resulting string.
  */
 size_t BLI_string_join_array(char *result,
-                             size_t result_len,
+                             size_t result_maxncpy,
                              const char *strings[],
-                             uint strings_len) ATTR_NONNULL();
+                             uint strings_num) ATTR_NONNULL();
 
 #define BLI_string_join(...) VA_NARGS_CALL_OVERLOAD(_BLI_string_join_, __VA_ARGS__)
 
@@ -218,7 +218,7 @@ BLI_INLINE size_t _BLI_string_join_12(_BLI_STRING_ARGS_10)
 /**
  * Join an array of strings into a newly allocated, null terminated string.
  */
-char *BLI_string_join_arrayN(const char *strings[], uint strings_len) ATTR_WARN_UNUSED_RESULT
+char *BLI_string_join_arrayN(const char *strings[], uint strings_num) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
 #define BLI_string_joinN(...) VA_NARGS_CALL_OVERLOAD(_BLI_string_joinN_, __VA_ARGS__)
@@ -300,10 +300,10 @@ BLI_INLINE char *_BLI_string_joinN_10(_BLI_STRING_ARGS_10)
  * including '\0'.
  */
 size_t BLI_string_join_array_by_sep_char(char *result,
-                                         size_t result_len,
+                                         size_t result_maxncpy,
                                          char sep,
                                          const char *strings[],
-                                         uint strings_len) ATTR_NONNULL();
+                                         uint strings_num) ATTR_NONNULL();
 
 #define BLI_string_join_by_sep_char(...) \
   VA_NARGS_CALL_OVERLOAD(_BLI_string_join_by_sep_char_, __VA_ARGS__)
@@ -396,7 +396,7 @@ BLI_INLINE size_t _BLI_string_join_by_sep_char_13(_BLI_STRING_ARGS_10)
  */
 char *BLI_string_join_array_by_sep_charN(char sep,
                                          const char *strings[],
-                                         uint strings_len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+                                         uint strings_num) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #define BLI_string_join_by_sep_charN(...) \
   VA_NARGS_CALL_OVERLOAD(_BLI_string_join_by_sep_charN_, __VA_ARGS__)

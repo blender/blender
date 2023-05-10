@@ -31,16 +31,16 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "paint_intern.h" /* own include */
+#include "paint_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Weight Paint Sanity Checks
  * \{ */
 
 bool ED_wpaint_ensure_data(bContext *C,
-                           struct ReportList *reports,
-                           enum eWPaintFlag flag,
-                           struct WPaintVGroupIndex *vgroup_index)
+                           ReportList *reports,
+                           eWPaintFlag flag,
+                           WPaintVGroupIndex *vgroup_index)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *me = BKE_mesh_from_object(ob);
@@ -54,12 +54,12 @@ bool ED_wpaint_ensure_data(bContext *C,
     return false;
   }
 
-  if (me == NULL || me->totpoly == 0) {
+  if (me == nullptr || me->totpoly == 0) {
     return false;
   }
 
   /* if nothing was added yet, we make dverts and a vertex deform group */
-  if (BKE_mesh_deform_verts(me) == NULL) {
+  if (BKE_mesh_deform_verts(me) == nullptr) {
     BKE_object_defgroup_data_create(&me->id);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
   }
@@ -76,7 +76,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 
         if (pchan) {
           bDeformGroup *dg = BKE_object_defgroup_find_name(ob, pchan->name);
-          if (dg == NULL) {
+          if (dg == nullptr) {
             dg = BKE_object_defgroup_add_name(ob, pchan->name); /* sets actdef */
             DEG_relations_tag_update(CTX_data_main(C));
           }
@@ -122,7 +122,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  bDeformGroup *defgroup = BLI_findlink(defbase, vgroup_active);
+  bDeformGroup *defgroup = static_cast<bDeformGroup *>(BLI_findlink(defbase, vgroup_active));
 
   if (defgroup) {
     int mirrdef;
@@ -136,7 +136,7 @@ int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
       }
     }
 
-    /* curdef should never be NULL unless this is
+    /* curdef should never be nullptr unless this is
      * a  light and BKE_object_defgroup_add_name fails */
     return mirrdef;
   }

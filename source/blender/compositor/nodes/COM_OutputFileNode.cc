@@ -108,7 +108,7 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
           BLI_path_join(path, FILE_MAX, storage->base_path, sockdata->path);
         }
         else {
-          BLI_strncpy(path, storage->base_path, FILE_MAX);
+          STRNCPY(path, storage->base_path);
           BLI_path_slash_ensure(path, FILE_MAX);
         }
 

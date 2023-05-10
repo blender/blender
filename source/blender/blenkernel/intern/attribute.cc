@@ -217,7 +217,7 @@ bool BKE_id_attribute_rename(ID *id,
     BKE_id_attributes_default_color_set(id, result_name);
   }
 
-  BLI_strncpy_utf8(layer->name, result_name, sizeof(layer->name));
+  STRNCPY_UTF8(layer->name, result_name);
 
   return true;
 }

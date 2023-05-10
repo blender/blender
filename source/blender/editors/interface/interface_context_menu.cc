@@ -326,6 +326,9 @@ static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
   else if (UI_but_menutype_get(but)) {
     result = true;
   }
+  else if (UI_but_operatortype_get_from_enum_menu(but, nullptr)) {
+    result = true;
+  }
 
   return result;
 }
@@ -335,7 +338,7 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
   if (but->optype) {
     IDProperty *prop = (but->opptr) ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
     return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
-        &um->items, but->optype, prop, but->opcontext);
+        &um->items, but->optype, prop, "", but->opcontext);
   }
   if (but->rnaprop) {
     char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
@@ -344,6 +347,13 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
         &um->items, member_id_data_path, prop_id, but->rnaindex);
     MEM_freeN(member_id_data_path);
     return umi;
+  }
+
+  wmOperatorType *ot = nullptr;
+  PropertyRNA *prop_enum = nullptr;
+  if ((ot = UI_but_operatortype_get_from_enum_menu(but, &prop_enum))) {
+    return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
+        &um->items, ot, nullptr, RNA_property_identifier(prop_enum), but->opcontext);
   }
 
   MenuType *mt = UI_but_menutype_get(but);
@@ -360,7 +370,11 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   char drawstr[sizeof(but->drawstr)];
   ui_but_drawstr_without_sep_char(but, drawstr, sizeof(drawstr));
 
+  /* Used for USER_MENU_TYPE_MENU. */
   MenuType *mt = nullptr;
+  /* Used for USER_MENU_TYPE_OPERATOR (property enum used). */
+  wmOperatorType *ot = nullptr;
+  PropertyRNA *prop = nullptr;
   if (but->optype) {
     if (drawstr[0] == '\0') {
       /* Hard code overrides for generic operators. */
@@ -397,6 +411,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
         drawstr,
         but->optype,
         but->opptr ? static_cast<const IDProperty *>(but->opptr->data) : nullptr,
+        "",
         but->opcontext);
   }
   else if (but->rnaprop) {
@@ -409,6 +424,14 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
   else if ((mt = UI_but_menutype_get(but))) {
     ED_screen_user_menu_item_add_menu(&um->items, drawstr, mt);
+  }
+  else if ((ot = UI_but_operatortype_get_from_enum_menu(but, &prop))) {
+    ED_screen_user_menu_item_add_operator(&um->items,
+                                          WM_operatortype_name(ot, nullptr),
+                                          ot,
+                                          nullptr,
+                                          RNA_property_identifier(prop),
+                                          but->opcontext);
   }
 }
 
@@ -1286,11 +1309,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   if (has_panel_category) {
     char tmpstr[80];
-    BLI_snprintf(tmpstr,
-                 sizeof(tmpstr),
-                 "%s" UI_SEP_CHAR_S "%s",
-                 IFACE_("Pin"),
-                 IFACE_("Shift Left Mouse"));
+    SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
     uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */

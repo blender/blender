@@ -82,4 +82,9 @@ bool Params::try_enable_multi_threading_impl()
   return false;
 }
 
+destruct_ptr<LocalUserData> UserData::get_local(LinearAllocator<> & /*allocator*/)
+{
+  return {};
+}
+
 }  // namespace blender::fn::lazy_function

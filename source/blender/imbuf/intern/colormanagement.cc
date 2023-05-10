@@ -997,14 +997,13 @@ void IMB_colormanagement_init_default_view_settings(
     }
   }
   if (default_view != nullptr) {
-    BLI_strncpy(
-        view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+    STRNCPY(view_settings->view_transform, default_view->name);
   }
   else {
     view_settings->view_transform[0] = '\0';
   }
   /* TODO(sergey): Find a way to safely/reliable un-hardcode this. */
-  BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
+  STRNCPY(view_settings->look, "None");
   /* Initialize rest of the settings. */
   view_settings->flag = 0;
   view_settings->gamma = 1.0f;
@@ -1080,9 +1079,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
                                                const ColorManagedDisplay *default_display)
 {
   if (display_settings->display_device[0] == '\0') {
-    BLI_strncpy(display_settings->display_device,
-                default_display->name,
-                sizeof(display_settings->display_device));
+    STRNCPY(display_settings->display_device, default_display->name);
   }
   else {
     ColorManagedDisplay *display = colormanage_display_get_named(display_settings->display_device);
@@ -1094,9 +1091,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
           what,
           default_display->name);
 
-      BLI_strncpy(display_settings->display_device,
-                  default_display->name,
-                  sizeof(display_settings->display_device));
+      STRNCPY(display_settings->display_device, default_display->name);
     }
   }
 }
@@ -1117,9 +1112,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
     }
 
     if (default_view) {
-      BLI_strncpy(view_settings->view_transform,
-                  default_view->name,
-                  sizeof(view_settings->view_transform));
+      STRNCPY(view_settings->view_transform, default_view->name);
     }
   }
   else {
@@ -1138,15 +1131,13 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                view_settings->view_transform,
                default_view->name);
 
-        BLI_strncpy(view_settings->view_transform,
-                    default_view->name,
-                    sizeof(view_settings->view_transform));
+        STRNCPY(view_settings->view_transform, default_view->name);
       }
     }
   }
 
   if (view_settings->look[0] == '\0') {
-    BLI_strncpy(view_settings->look, default_look->name, sizeof(view_settings->look));
+    STRNCPY(view_settings->look, default_look->name);
   }
   else {
     ColorManagedLook *look = colormanage_look_get_named(view_settings->look);
@@ -1156,7 +1147,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
              view_settings->look,
              default_look->name);
 
-      BLI_strncpy(view_settings->look, default_look->name, sizeof(view_settings->look));
+      STRNCPY(view_settings->look, default_look->name);
     }
   }
 
@@ -1181,7 +1172,7 @@ static void colormanage_check_colorspace_settings(
              what,
              colorspace_settings->name);
 
-      BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
+      STRNCPY(colorspace_settings->name, "");
     }
   }
 
@@ -1216,8 +1207,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 
     if (sequencer_colorspace_settings->name[0] == '\0') {
-      BLI_strncpy(
-          sequencer_colorspace_settings->name, global_role_default_sequencer, MAX_COLORSPACE_NAME);
+      STRNCPY(sequencer_colorspace_settings->name, global_role_default_sequencer);
     }
 
     /* check sequencer strip input color space settings */
@@ -1254,8 +1244,7 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
   }
 
   if (!found && default_view) {
-    BLI_strncpy(
-        view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
+    STRNCPY(view_settings->view_transform, default_view->name);
   }
 }
 
@@ -2863,7 +2852,7 @@ ColorManagedDisplay *colormanage_display_add(const char *name)
 
   display->index = index + 1;
 
-  BLI_strncpy(display->name, name, sizeof(display->name));
+  STRNCPY(display->name, name);
 
   BLI_addtail(&global_displays, display);
 
@@ -2974,7 +2963,7 @@ ColorManagedView *colormanage_view_add(const char *name)
 
   view = MEM_cnew<ColorManagedView>("ColorManagedView");
   view->index = index + 1;
-  BLI_strncpy(view->name, name, sizeof(view->name));
+  STRNCPY(view->name, name);
 
   BLI_addtail(&global_views, view);
 
@@ -3090,10 +3079,10 @@ ColorSpace *colormanage_colorspace_add(const char *name,
 
   colorspace = MEM_cnew<ColorSpace>("ColorSpace");
 
-  BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+  STRNCPY(colorspace->name, name);
 
   if (description) {
-    BLI_strncpy(colorspace->description, description, sizeof(colorspace->description));
+    STRNCPY(colorspace->description, description);
 
     colormanage_description_strip(colorspace->description);
   }
@@ -3201,7 +3190,7 @@ void IMB_colormanagement_colorspace_from_ibuf_ftype(
     if (type->save != nullptr) {
       const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
           type->default_save_role);
-      BLI_strncpy(colorspace_settings->name, role_colorspace, sizeof(colorspace_settings->name));
+      STRNCPY(colorspace_settings->name, role_colorspace);
     }
   }
 }
@@ -3219,16 +3208,16 @@ ColorManagedLook *colormanage_look_add(const char *name, const char *process_spa
 
   look = MEM_cnew<ColorManagedLook>("ColorManagedLook");
   look->index = index + 1;
-  BLI_strncpy(look->name, name, sizeof(look->name));
-  BLI_strncpy(look->ui_name, name, sizeof(look->ui_name));
-  BLI_strncpy(look->process_space, process_space, sizeof(look->process_space));
+  STRNCPY(look->name, name);
+  STRNCPY(look->ui_name, name);
+  STRNCPY(look->process_space, process_space);
   look->is_noop = is_noop;
 
   /* Detect view specific looks. */
   const char *separator_offset = strstr(look->name, " - ");
   if (separator_offset) {
     BLI_strncpy(look->view, look->name, separator_offset - look->name + 1);
-    BLI_strncpy(look->ui_name, separator_offset + strlen(" - "), sizeof(look->ui_name));
+    STRNCPY(look->ui_name, separator_offset + strlen(" - "));
   }
 
   BLI_addtail(&global_looks, look);

@@ -278,6 +278,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Grow number of curves first, so that the offsets array can be filled. */
   curves.resize(old_points_num, new_curves_num);
+  if (new_curves_num == 0) {
+    return outputs;
+  }
   const IndexRange new_curves_range = curves.curves_range().drop_front(old_curves_num);
 
   /* Compute new curve offsets. */
