@@ -89,7 +89,7 @@ static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
   NlaStrip *data = (NlaStrip *)ptr->data;
 
   /* copy the name first */
-  BLI_strncpy_utf8(data->name, value, sizeof(data->name));
+  STRNCPY_UTF8(data->name, value);
 
   /* validate if there's enough info to do so */
   if (ptr->owner_id) {

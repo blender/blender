@@ -354,7 +354,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
   wm_history_file_read();
 
-  BLI_strncpy(G.lib, BKE_main_blendfile_path_from_global(), sizeof(G.lib));
+  STRNCPY(G.lib, BKE_main_blendfile_path_from_global());
 
   wm_homefile_read_post(C, params_file_read_post);
 }

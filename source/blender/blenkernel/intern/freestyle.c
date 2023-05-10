@@ -180,10 +180,10 @@ FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain,
   lineset->exclude_edge_types = 0;
   lineset->group = NULL;
   if (name) {
-    BLI_strncpy(lineset->name, name, sizeof(lineset->name));
+    STRNCPY(lineset->name, name);
   }
   else if (lineset_index > 0) {
-    BLI_snprintf(lineset->name, sizeof(lineset->name), "LineSet %i", lineset_index + 1);
+    SNPRINTF(lineset->name, "LineSet %i", lineset_index + 1);
   }
   else {
     strcpy(lineset->name, "LineSet");

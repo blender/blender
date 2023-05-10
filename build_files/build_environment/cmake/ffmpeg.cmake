@@ -46,7 +46,7 @@ ${temp_LIBDIR}/vpx/lib/pkgconfig:\
 ${temp_LIBDIR}/theora/lib/pkgconfig:\
 ${temp_LIBDIR}/openjpeg/lib/pkgconfig:\
 ${temp_LIBDIR}/opus/lib/pkgconfig:\
-${temp_LIBDIR}/aom/lib/pkgconfig"
+${temp_LIBDIR}/aom/lib/pkgconfig:"
 )
 
 unset(temp_LIBDIR)

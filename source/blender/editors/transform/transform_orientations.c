@@ -477,7 +477,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
     ts = findOrientationName(transform_orientations, name);
   }
   else {
-    BLI_strncpy(name_unique, name, sizeof(name_unique));
+    STRNCPY(name_unique, name);
     uniqueOrientationName(transform_orientations, name_unique);
     name = name_unique;
   }
@@ -486,7 +486,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
   if (ts == NULL) {
     ts = MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix");
     BLI_addtail(transform_orientations, ts);
-    BLI_strncpy(ts->name, name, sizeof(ts->name));
+    STRNCPY(ts->name, name);
   }
 
   /* copy matrix into transform space */
@@ -800,7 +800,7 @@ void transform_orientations_current_set(TransInfo *t, const short orient_index)
   const short orientation = t->orient[orient_index].type;
   const char *spacename = transform_orientations_spacename_get(t, orientation);
 
-  BLI_strncpy(t->spacename, spacename, sizeof(t->spacename));
+  STRNCPY(t->spacename, spacename);
   copy_m3_m3(t->spacemtx, t->orient[orient_index].matrix);
   invert_m3_m3_safe_ortho(t->spacemtx_inv, t->spacemtx);
   t->orient_curr = orient_index;

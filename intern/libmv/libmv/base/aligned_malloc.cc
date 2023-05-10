@@ -21,7 +21,8 @@
 #include "libmv/base/aligned_malloc.h"
 #include "libmv/logging/logging.h"
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) &&    \
+    !defined(__OpenBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.
 #  ifdef FREE_WINDOWS
 /* make sure _aligned_malloc is included */
@@ -44,7 +45,8 @@ namespace libmv {
 void* aligned_malloc(int size, int alignment) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) ||     \
+    defined(__OpenBSD__)
   void* result;
 
   if (posix_memalign(&result, alignment, size)) {

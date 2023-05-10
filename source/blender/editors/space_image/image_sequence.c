@@ -74,8 +74,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
       BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
       BLI_addtail(ranges, range);
 
-      BLI_strncpy(base_head, head, sizeof(base_head));
-      BLI_strncpy(base_tail, tail, sizeof(base_tail));
+      STRNCPY(base_head, head);
+      STRNCPY(base_tail, tail);
 
       range_first_frame = frame->framenr;
     }
@@ -169,7 +169,7 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
     ImageFrameRange *range = MEM_callocN(sizeof(*range), __func__);
     BLI_addtail(&ranges, range);
 
-    BLI_strncpy(range->filepath, filepath, FILE_MAX);
+    STRNCPY(range->filepath, filepath);
     image_detect_frame_range(range, detect_udim);
   }
 

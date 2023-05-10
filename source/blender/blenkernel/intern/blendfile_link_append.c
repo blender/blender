@@ -243,9 +243,9 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
   BlendfileLinkAppendContextLibrary *lib_context = BLI_memarena_calloc(lapp_context->memarena,
                                                                        sizeof(*lib_context));
 
-  size_t len = strlen(libname) + 1;
-  char *libpath = BLI_memarena_alloc(lapp_context->memarena, len);
-  BLI_strncpy(libpath, libname, len);
+  const size_t libname_size = strlen(libname) + 1;
+  char *libpath = BLI_memarena_alloc(lapp_context->memarena, libname_size);
+  memcpy(libpath, libname, libname_size);
 
   lib_context->path = libpath;
   lib_context->blo_handle = blo_handle;
@@ -263,10 +263,10 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
 {
   BlendfileLinkAppendContextItem *item = BLI_memarena_calloc(lapp_context->memarena,
                                                              sizeof(*item));
-  size_t len = strlen(idname) + 1;
+  const size_t idname_size = strlen(idname) + 1;
 
-  item->name = BLI_memarena_alloc(lapp_context->memarena, len);
-  BLI_strncpy(item->name, idname, len);
+  item->name = BLI_memarena_alloc(lapp_context->memarena, idname_size);
+  memcpy(item->name, idname, idname_size);
   item->idcode = idcode;
   item->libraries = BLI_BITMAP_NEW_MEMARENA(lapp_context->memarena, lapp_context->num_libraries);
 
@@ -1116,9 +1116,9 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
     ID *local_appended_new_id = NULL;
     char lib_filepath[FILE_MAX];
-    BLI_strncpy(lib_filepath, id->lib->filepath, sizeof(lib_filepath));
+    STRNCPY(lib_filepath, id->lib->filepath);
     char lib_id_name[MAX_ID_NAME];
-    BLI_strncpy(lib_id_name, id->name, sizeof(lib_id_name));
+    STRNCPY(lib_id_name, id->name);
 
     switch (item->action) {
       case LINK_APPEND_ACT_COPY_LOCAL:

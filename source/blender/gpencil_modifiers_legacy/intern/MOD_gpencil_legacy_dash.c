@@ -57,7 +57,7 @@ static void initData(GpencilModifierData *md)
 
   DashGpencilModifierSegment *ds = DNA_struct_default_alloc(DashGpencilModifierSegment);
   ds->dmd = dmd;
-  BLI_strncpy(ds->name, DATA_("Segment"), sizeof(ds->name));
+  STRNCPY(ds->name, DATA_("Segment"));
 
   dmd->segments = ds;
 }

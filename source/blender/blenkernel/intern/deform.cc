@@ -48,7 +48,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
   defgroup = MEM_cnew<bDeformGroup>(__func__);
 
-  BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
+  STRNCPY(defgroup->name, name);
 
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 

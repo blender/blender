@@ -1722,7 +1722,7 @@ void UI_editsource_active_but_test(uiBut *but)
   PyC_FileAndNum_Safe(&fn, &line_number);
 
   if (line_number != -1) {
-    BLI_strncpy(but_store->py_dbg_fn, fn, sizeof(but_store->py_dbg_fn));
+    STRNCPY(but_store->py_dbg_fn, fn);
     but_store->py_dbg_line_number = line_number;
   }
   else {
@@ -1868,13 +1868,13 @@ static void UI_OT_editsource(wmOperatorType *ot)
 static void edittranslation_find_po_file(const char *root,
                                          const char *uilng,
                                          char *path,
-                                         const size_t maxlen)
+                                         const size_t path_maxncpy)
 {
   char tstr[32]; /* Should be more than enough! */
 
   /* First, full lang code. */
-  BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
-  BLI_path_join(path, maxlen, root, uilng, tstr);
+  SNPRINTF(tstr, "%s.po", uilng);
+  BLI_path_join(path, path_maxncpy, root, uilng, tstr);
   if (BLI_is_file(path)) {
     return;
   }
@@ -1899,9 +1899,9 @@ static void edittranslation_find_po_file(const char *root,
         BLI_strncpy(tstr + szt, tc, sizeof(tstr) - szt);
       }
 
-      BLI_path_join(path, maxlen, root, tstr);
+      BLI_path_join(path, path_maxncpy, root, tstr);
       BLI_strncat(tstr, ".po", sizeof(tstr));
-      BLI_path_append(path, maxlen, tstr);
+      BLI_path_append(path, path_maxncpy, tstr);
       if (BLI_is_file(path)) {
         return;
       }

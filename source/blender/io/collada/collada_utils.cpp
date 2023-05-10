@@ -516,7 +516,7 @@ char *BoneExtended::get_name()
 
 void BoneExtended::set_name(char *aName)
 {
-  BLI_strncpy(name, aName, MAXBONENAME);
+  STRNCPY(name, aName);
 }
 
 int BoneExtended::get_chain_length()
@@ -771,7 +771,7 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   if (bone_name) {
     char bone_name_esc[sizeof(Bone::name) * 2];
     BLI_str_escape(bone_name_esc, bone_name, sizeof(bone_name_esc));
-    BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name_esc);
+    SNPRINTF(prefix, "pose.bones[\"%s\"]", bone_name_esc);
   }
 
   for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {

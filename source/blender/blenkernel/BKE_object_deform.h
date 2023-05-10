@@ -8,6 +8,8 @@
  *        used by painting and tools.
  */
 
+#include "DNA_scene_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -92,7 +94,6 @@ void BKE_object_defgroup_index_map_apply(struct MDeformVert *dvert,
 
 /* Select helpers. */
 
-enum eVGroupSelect;
 /**
  * Return the subset type of the Vertex Group Selection.
  */

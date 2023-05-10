@@ -51,11 +51,11 @@ void MetalDevice::set_error(const string &error)
 
   Device::set_error(error);
 
-  if (first_error) {
+  if (!has_error) {
     fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
     fprintf(stderr,
             "https://docs.blender.org/manual/en/latest/render/cycles/gpu_rendering.html\n\n");
-    first_error = false;
+    has_error = true;
   }
 }
 

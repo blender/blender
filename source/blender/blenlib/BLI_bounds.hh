@@ -19,7 +19,7 @@ namespace blender::bounds {
 /**
  * Find the smallest and largest values element-wise in the span.
  */
-template<typename T> static std::optional<Bounds<T>> min_max(Span<T> values)
+template<typename T> inline std::optional<Bounds<T>> min_max(Span<T> values)
 {
   if (values.is_empty()) {
     return std::nullopt;
@@ -46,7 +46,7 @@ template<typename T> static std::optional<Bounds<T>> min_max(Span<T> values)
  * first. The template type T is expected to have an addition operator implemented with RadiusT.
  */
 template<typename T, typename RadiusT>
-static std::optional<Bounds<T>> min_max_with_radii(Span<T> values, Span<RadiusT> radii)
+inline std::optional<Bounds<T>> min_max_with_radii(Span<T> values, Span<RadiusT> radii)
 {
   BLI_assert(values.size() == radii.size());
   if (values.is_empty()) {

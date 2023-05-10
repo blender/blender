@@ -41,7 +41,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
@@ -908,6 +908,9 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   }
 
   if (!SCULPT_automasking_needs_factors_cache(sd, brush)) {
+    if (ss->attrs.automasking_factor) {
+      BKE_sculpt_attribute_destroy(ob, ss->attrs.automasking_factor);
+    }
     return automasking;
   }
 
@@ -944,10 +947,9 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
 
-    if (sculpt_automasking_is_constrained_by_radius(brush)) {
-      automasking->settings.topology_use_brush_limit = true;
-      SCULPT_topology_automasking_init(sd, ob);
-    }
+    automasking->settings.topology_use_brush_limit = sculpt_automasking_is_constrained_by_radius(
+        brush);
+    SCULPT_topology_automasking_init(sd, ob);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {

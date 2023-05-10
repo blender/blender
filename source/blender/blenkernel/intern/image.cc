@@ -290,7 +290,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   bool result = false;
   if (ima->source == IMA_SRC_TILED && (flag & BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN) != 0) {
     char temp_path[FILE_MAX], orig_file[FILE_MAXFILE];
-    BLI_strncpy(temp_path, ima->filepath, sizeof(temp_path));
+    STRNCPY(temp_path, ima->filepath);
     BLI_path_split_file_part(temp_path, orig_file, sizeof(orig_file));
 
     eUDIM_TILE_FORMAT tile_format;
@@ -3195,7 +3195,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         int new_start, new_range;
 
         char filepath[FILE_MAX];
-        BLI_strncpy(filepath, ima->filepath, sizeof(filepath));
+        STRNCPY(filepath, ima->filepath);
         BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
         bool result = BKE_image_get_tile_info(filepath, &new_tiles, &new_start, &new_range);
         if (result) {
@@ -3407,7 +3407,7 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
   }
 
   if (label) {
-    BLI_strncpy(tile->label, label, sizeof(tile->label));
+    STRNCPY(tile->label, label);
   }
 
   for (int eye = 0; eye < 2; eye++) {
@@ -5561,11 +5561,11 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
   RenderSlot *slot = MEM_cnew<RenderSlot>("Image new Render Slot");
   if (name && name[0]) {
-    BLI_strncpy(slot->name, name, sizeof(slot->name));
+    STRNCPY(slot->name, name);
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;
-    BLI_snprintf(slot->name, sizeof(slot->name), DATA_("Slot %d"), n);
+    SNPRINTF(slot->name, DATA_("Slot %d"), n);
   }
   BLI_addtail(&ima->renderslots, slot);
   return slot;

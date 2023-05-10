@@ -43,23 +43,23 @@ set(SRC
   curves_sculpt_snake_hook.cc
   paint_canvas.cc
   paint_cursor.cc
-  paint_curve.c
-  paint_curve_undo.c
+  paint_curve.cc
+  paint_curve_undo.cc
   paint_hide.cc
   paint_image.cc
-  paint_image_2d.c
+  paint_image_2d.cc
   paint_image_2d_curve_mask.cc
   paint_image_ops_paint.cc
   paint_image_proj.cc
   paint_mask.cc
   paint_ops.cc
   paint_stroke.cc
-  paint_utils.c
+  paint_utils.cc
   paint_vertex.cc
   paint_vertex_color_ops.cc
-  paint_vertex_proj.c
+  paint_vertex_proj.cc
   paint_vertex_weight_ops.cc
-  paint_vertex_weight_utils.c
+  paint_vertex_weight_utils.cc
   sculpt.cc
   sculpt_automasking.cc
   sculpt_boundary.cc
@@ -83,11 +83,10 @@ set(SRC
   sculpt_smooth.cc
   sculpt_transform.cc
   sculpt_undo.cc
-  sculpt_uv.c
+  sculpt_uv.cc
 
-  curves_sculpt_intern.h
   curves_sculpt_intern.hh
-  paint_intern.h
+  paint_intern.hh
   sculpt_intern.hh
 )
 

@@ -289,7 +289,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
       BLI_path_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
     }
     else {
-      BLI_strncpy(dest_dir, export_params.file_base_for_tests, PATH_MAX);
+      STRNCPY(dest_dir, export_params.file_base_for_tests);
     }
     BLI_path_slash_native(dest_dir);
     BLI_path_normalize(dest_dir);

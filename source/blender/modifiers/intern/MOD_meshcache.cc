@@ -141,7 +141,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* Read the File (or error out when the file is bad) */
 
   /* would be nice if we could avoid doing this _every_ frame */
-  BLI_strncpy(filepath, mcmd->filepath, sizeof(filepath));
+  STRNCPY(filepath, mcmd->filepath);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL((ID *)ob));
 
   switch (mcmd->type) {

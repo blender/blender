@@ -230,29 +230,25 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
     }
 
     if (lcache->cube_tx.tex_size[2] > GPU_max_texture_layers()) {
-      BLI_strncpy(eevee->light_cache_info,
-                  TIP_("Error: Light cache is too big for the GPU to be loaded"),
-                  sizeof(eevee->light_cache_info));
+      STRNCPY(eevee->light_cache_info,
+              TIP_("Error: Light cache is too big for the GPU to be loaded"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_INVALID) {
-      BLI_strncpy(eevee->light_cache_info,
-                  TIP_("Error: Light cache dimensions not supported by the GPU"),
-                  sizeof(eevee->light_cache_info));
+      STRNCPY(eevee->light_cache_info,
+              TIP_("Error: Light cache dimensions not supported by the GPU"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_BAKING) {
-      BLI_strncpy(
-          eevee->light_cache_info, TIP_("Baking light cache"), sizeof(eevee->light_cache_info));
+      STRNCPY(eevee->light_cache_info, TIP_("Baking light cache"));
       return;
     }
 
     if (!eevee_lightcache_can_be_saved(lcache)) {
-      BLI_strncpy(eevee->light_cache_info,
-                  TIP_("Error: LightCache is too large and will not be saved to disk"),
-                  sizeof(eevee->light_cache_info));
+      STRNCPY(eevee->light_cache_info,
+              TIP_("Error: LightCache is too large and will not be saved to disk"));
       return;
     }
 
@@ -261,17 +257,14 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
 
     int irr_samples = eevee_lightcache_irradiance_sample_count(lcache);
 
-    BLI_snprintf(eevee->light_cache_info,
-                 sizeof(eevee->light_cache_info),
-                 TIP_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
-                 lcache->cube_len - 1,
-                 irr_samples,
-                 formatted_mem);
+    SNPRINTF(eevee->light_cache_info,
+             TIP_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
+             lcache->cube_len - 1,
+             irr_samples,
+             formatted_mem);
   }
   else {
-    BLI_strncpy(eevee->light_cache_info,
-                TIP_("No light cache in this scene"),
-                sizeof(eevee->light_cache_info));
+    STRNCPY(eevee->light_cache_info, TIP_("No light cache in this scene"));
   }
 }
 

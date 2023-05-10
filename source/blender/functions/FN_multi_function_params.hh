@@ -125,7 +125,8 @@ class ParamsBuilder {
     const int param_index = this->current_param_index();
     const ParamType &param_type = signature_->params[param_index].type;
     BLI_assert(param_type.category() == ParamCategory::SingleOutput);
-    const CPPType &type = param_type.data_type().single_type();
+    const DataType data_type = param_type.data_type();
+    const CPPType &type = data_type.single_type();
 
     if (bool(signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
       /* An empty span indicates that this is ignored. */

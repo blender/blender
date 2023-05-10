@@ -13,7 +13,7 @@
 
 #include "BKE_brush.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 namespace blender::ed::sculpt_paint {
 

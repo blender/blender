@@ -68,7 +68,7 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
@@ -4399,9 +4399,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   else {
     int cur_brush_size = BKE_brush_size_get(scene, brush);
 
-    BLI_strncpy(cache->saved_active_brush_name,
-                brush->id.name + 2,
-                sizeof(cache->saved_active_brush_name));
+    STRNCPY(cache->saved_active_brush_name, brush->id.name + 2);
 
     /* Switch to the smooth brush. */
     brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);

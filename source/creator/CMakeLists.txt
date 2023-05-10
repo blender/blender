@@ -26,6 +26,10 @@ if(HAVE_FEENABLEEXCEPT)
   add_definitions(-DHAVE_FEENABLEEXCEPT)
 endif()
 
+if(WITH_STRSIZE_DEBUG)
+  add_definitions(-DWITH_STRSIZE_DEBUG)
+endif()
+
 if(WITH_TBB)
   # Force TBB libraries to be in front of MKL (part of `OpenImageDenoise`), so
   # that it is initialized before MKL and static library initialization order issues are avoided.
@@ -71,6 +75,18 @@ if(WITH_TBB)
   endif()
 endif()
 
+if(WITH_USD)
+  # USD links libMaterialX, when using pre-compiled libraries
+  # ensures `usd_ms` can find `MaterialXRender` and friends.
+  #
+  # NOTE: This is _only_ needed when linking blender before the install target runs.
+  # Once MATERIALX libraries have been copied into `TARGETDIR_LIB` then Blender will link.
+  # Don't rely on this though as failing on a fresh build is no good and the library
+  # files could get outdated too.
+  if(DEFINED LIBDIR)
+    link_directories(${LIBDIR}/materialx/lib)
+  endif()
+endif()
 
 if(WITH_PYTHON)
   list(APPEND INC ../blender/python)
@@ -992,6 +1008,24 @@ elseif(WIN32)
       ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
     RELEASE
   )
+  if(EXISTS ${LIBDIR}/materialx/bin/MaterialXRender.dll) # 3.6+
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl_d.dll
+      DEBUG
+    )
+  endif()
   windows_install_shared_manifest(
     FILES
       ${LIBDIR}/materialx/bin/MaterialXCore_d.dll

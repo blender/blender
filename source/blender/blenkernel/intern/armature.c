@@ -708,7 +708,7 @@ bool bone_autoside_name(
   if (len == 0) {
     return false;
   }
-  BLI_strncpy(basename, name, sizeof(basename));
+  STRNCPY(basename, name);
 
   /* Figure out extension to append:
    * - The extension to append is based upon the axis that we are working on.
@@ -816,8 +816,8 @@ bool bone_autoside_name(
     }
 
     /* Subtract 1 from #MAXBONENAME for the null byte. Add 1 to the extension for the '.' */
-    const int basename_maxlen = (MAXBONENAME - 1) - (1 + strlen(extension));
-    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxlen, basename, extension);
+    const int basename_maxncpy = (MAXBONENAME - 1) - (1 + strlen(extension));
+    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxncpy, basename, extension);
 
     return true;
   }

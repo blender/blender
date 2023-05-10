@@ -70,7 +70,7 @@ bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, cons
   SWAP(Sequence, *seq_a, *seq_b);
 
   /* swap back names so animation fcurves don't get swapped */
-  BLI_strncpy(name, seq_a->name + 2, sizeof(name));
+  STRNCPY(name, seq_a->name + 2);
   BLI_strncpy(seq_a->name + 2, seq_b->name + 2, sizeof(seq_b->name) - 2);
   BLI_strncpy(seq_b->name + 2, name, sizeof(seq_b->name) - 2);
 

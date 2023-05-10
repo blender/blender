@@ -416,10 +416,10 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(con->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, con->name, sizeof(con->name));
+  STRNCPY(oldname, con->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(con->name, value, sizeof(con->name));
+  STRNCPY_UTF8(con->name, value);
 
   /* make sure name is unique */
   if (ptr->owner_id) {
@@ -2237,7 +2237,7 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "to");
   RNA_def_property_enum_items(prop, transform_items);
   RNA_def_property_ui_text(
-      prop, "Map To", "The transformation type to affect of the constrained object");
+      prop, "Map To", "The transformation type to affect on the constrained object");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "map_to_x_from", PROP_ENUM, PROP_NONE);

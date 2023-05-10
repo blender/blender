@@ -496,7 +496,7 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
     return NULL;
   }
 
-  BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
+  STRNCPY(ibuf->filepath, filepath);
 
   return Py_ImBuf_CreatePyObject(ibuf);
 }

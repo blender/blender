@@ -382,7 +382,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   DEG_relations_tag_update(bmain);
 
   /* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
-  BLI_strncpy(G.lib, root, FILE_MAX);
+  STRNCPY(G.lib, root);
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
@@ -779,7 +779,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
     BKE_blendfile_link_append_context_free(lapp_context);
 
     /* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
-    BLI_strncpy(G.lib, root, FILE_MAX);
+    STRNCPY(G.lib, root);
 
     BKE_main_lib_objects_recalc_all(bmain);
     IMB_colormanagement_check_file_config(bmain);

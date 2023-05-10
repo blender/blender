@@ -84,7 +84,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Uniform blocks */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-      copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
+      copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
       input->location = input->binding = res.slot;
       input++;
     }

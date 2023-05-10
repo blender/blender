@@ -88,7 +88,7 @@ static void solve_camera_updatejob(void *scv)
   SolveCameraJob *scj = (SolveCameraJob *)scv;
   MovieTracking *tracking = &scj->clip->tracking;
 
-  BLI_strncpy(tracking->stats->message, scj->stats_message, sizeof(tracking->stats->message));
+  STRNCPY(tracking->stats->message, scj->stats_message);
 }
 
 static void solve_camera_startjob(void *scv, bool *stop, bool *do_update, float *progress)
@@ -213,9 +213,7 @@ static int solve_camera_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
     return OPERATOR_CANCELLED;
   }
 
-  BLI_strncpy(tracking->stats->message,
-              "Solving camera | Preparing solve",
-              sizeof(tracking->stats->message));
+  STRNCPY(tracking->stats->message, "Solving camera | Preparing solve");
 
   /* Hide reconstruction statistics from previous solve. */
   reconstruction->flag &= ~TRACKING_RECONSTRUCTED;

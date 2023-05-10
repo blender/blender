@@ -1553,11 +1553,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
       break;
     }
 
-    BLI_snprintf(message,
-                 sizeof(message),
-                 "Mesh deform solve %d / %d       |||",
-                 a + 1,
-                 mdb->cage_verts_num);
+    SNPRINTF(message, "Mesh deform solve %d / %d       |||", a + 1, mdb->cage_verts_num);
     progress_bar(float(a + 1) / float(mdb->cage_verts_num), message);
   }
 

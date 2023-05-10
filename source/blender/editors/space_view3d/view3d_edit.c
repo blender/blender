@@ -125,13 +125,13 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
         Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
         bPoseChannel *pcham_act = BKE_pose_channel_active_if_layer_visible(obact_eval);
         if (pcham_act) {
-          BLI_strncpy(v3d->ob_center_bone, pcham_act->name, sizeof(v3d->ob_center_bone));
+          STRNCPY(v3d->ob_center_bone, pcham_act->name);
         }
       }
       else {
         EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
         if (ebone_act) {
-          BLI_strncpy(v3d->ob_center_bone, ebone_act->name, sizeof(v3d->ob_center_bone));
+          STRNCPY(v3d->ob_center_bone, ebone_act->name);
         }
       }
     }

@@ -841,10 +841,10 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   /* Display current frame number. */
   int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   if (framenr <= clip->len) {
-    BLI_snprintf(str, sizeof(str), TIP_("Frame: %d / %d"), framenr, clip->len);
+    SNPRINTF(str, TIP_("Frame: %d / %d"), framenr, clip->len);
   }
   else {
-    BLI_snprintf(str, sizeof(str), TIP_("Frame: - / %d"), clip->len);
+    SNPRINTF(str, TIP_("Frame: - / %d"), clip->len);
   }
   uiItemL(col, str, ICON_NONE);
 
@@ -861,7 +861,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       file = "-";
     }
 
-    BLI_snprintf(str, sizeof(str), TIP_("File: %s"), file);
+    SNPRINTF(str, TIP_("File: %s"), file);
 
     uiItemL(col, str, ICON_NONE);
   }

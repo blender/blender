@@ -78,7 +78,7 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
   BLI_addtail(&ob->greasepencil_modifiers, new_md);
 
   if (name) {
-    BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
+    STRNCPY_UTF8(new_md->name, name);
   }
 
   /* make sure modifier data has unique name */

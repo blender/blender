@@ -69,7 +69,7 @@ string color_for_pointer(const void *pointer)
   int r, g, b;
   BLI_hash_pointer_to_color(pointer, &r, &g, &b);
   char buffer[64];
-  BLI_snprintf(buffer, sizeof(buffer), TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
+  SNPRINTF(buffer, TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
   return string(buffer);
 }
 

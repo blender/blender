@@ -55,7 +55,7 @@ static void file_panel_operator_header(const bContext *C, Panel *panel)
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  BLI_strncpy(panel->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(panel->drawname));
+  STRNCPY(panel->drawname, WM_operatortype_name(op->type, op->ptr));
 }
 
 static void file_panel_operator(const bContext *C, Panel *panel)

@@ -492,7 +492,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
 
   /* Use the filename as the default name given to the initial object. */
   char ob_name[FILE_MAXFILE];
-  BLI_strncpy(ob_name, BLI_path_basename(import_params_.filepath), FILE_MAXFILE);
+  STRNCPY(ob_name, BLI_path_basename(import_params_.filepath));
   BLI_path_extension_strip(ob_name);
 
   Geometry *curr_geom = create_geometry(nullptr, GEOM_MESH, ob_name, r_all_geometries);
@@ -837,7 +837,7 @@ void OBJParser::add_default_mtl_library()
    * that contain "mtllib bar.mtl" for a foo.obj, and depend on finding materials
    * from foo.mtl (see #97757). */
   char mtl_file_path[FILE_MAX];
-  BLI_strncpy(mtl_file_path, import_params_.filepath, sizeof(mtl_file_path));
+  STRNCPY(mtl_file_path, import_params_.filepath);
   BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
   if (BLI_exists(mtl_file_path)) {
     char mtl_file_base[FILE_MAX];

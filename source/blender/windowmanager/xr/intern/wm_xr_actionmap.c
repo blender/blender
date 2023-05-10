@@ -46,7 +46,7 @@ XrActionMapBinding *WM_xr_actionmap_binding_new(XrActionMapItem *ami,
   }
 
   XrActionMapBinding *amb = MEM_callocN(sizeof(XrActionMapBinding), __func__);
-  BLI_strncpy(amb->name, name, MAX_NAME);
+  STRNCPY(amb->name, name);
   if (amb_prev) {
     WM_xr_actionmap_binding_ensure_unique(ami, amb);
   }
@@ -78,14 +78,14 @@ void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBind
   size_t baselen;
   size_t idx = 0;
 
-  BLI_strncpy(name, amb->name, MAX_NAME);
+  STRNCPY(name, amb->name);
   baselen = BLI_strnlen(name, MAX_NAME);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_binding_find_except(ami, name, amb)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      BLI_strncpy(name, WM_XR_ACTIONMAP_BINDING_STR_DEFAULT, MAX_NAME);
+      STRNCPY(name, WM_XR_ACTIONMAP_BINDING_STR_DEFAULT);
       baselen = BLI_strnlen(name, MAX_NAME);
       suffix = &name[baselen];
       idx = 0;
@@ -95,7 +95,7 @@ void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBind
     }
   }
 
-  BLI_strncpy(amb->name, name, MAX_NAME);
+  STRNCPY(amb->name, name);
 }
 
 static XrActionMapBinding *wm_xr_actionmap_binding_copy(XrActionMapBinding *amb_src)
@@ -250,7 +250,7 @@ XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
   }
 
   XrActionMapItem *ami = MEM_callocN(sizeof(XrActionMapItem), __func__);
-  BLI_strncpy(ami->name, name, MAX_NAME);
+  STRNCPY(ami->name, name);
   if (ami_prev) {
     WM_xr_actionmap_item_ensure_unique(actionmap, ami);
   }
@@ -282,14 +282,14 @@ void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem 
   size_t baselen;
   size_t idx = 0;
 
-  BLI_strncpy(name, ami->name, MAX_NAME);
+  STRNCPY(name, ami->name);
   baselen = BLI_strnlen(name, MAX_NAME);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_item_find_except(actionmap, name, ami)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      BLI_strncpy(name, WM_XR_ACTIONMAP_ITEM_STR_DEFAULT, MAX_NAME);
+      STRNCPY(name, WM_XR_ACTIONMAP_ITEM_STR_DEFAULT);
       baselen = BLI_strnlen(name, MAX_NAME);
       suffix = &name[baselen];
       idx = 0;
@@ -299,7 +299,7 @@ void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem 
     }
   }
 
-  BLI_strncpy(ami->name, name, MAX_NAME);
+  STRNCPY(ami->name, name);
 }
 
 static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
@@ -391,7 +391,7 @@ XrActionMap *WM_xr_actionmap_new(wmXrRuntimeData *runtime, const char *name, boo
   }
 
   XrActionMap *am = MEM_callocN(sizeof(struct XrActionMap), __func__);
-  BLI_strncpy(am->name, name, MAX_NAME);
+  STRNCPY(am->name, name);
   if (am_prev) {
     WM_xr_actionmap_ensure_unique(runtime, am);
   }
@@ -421,14 +421,14 @@ void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *action
   size_t baselen;
   size_t idx = 0;
 
-  BLI_strncpy(name, actionmap->name, MAX_NAME);
+  STRNCPY(name, actionmap->name);
   baselen = BLI_strnlen(name, MAX_NAME);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_find_except(runtime, name, actionmap)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      BLI_strncpy(name, WM_XR_ACTIONMAP_STR_DEFAULT, MAX_NAME);
+      STRNCPY(name, WM_XR_ACTIONMAP_STR_DEFAULT);
       baselen = BLI_strnlen(name, MAX_NAME);
       suffix = &name[baselen];
       idx = 0;
@@ -438,7 +438,7 @@ void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *action
     }
   }
 
-  BLI_strncpy(actionmap->name, name, MAX_NAME);
+  STRNCPY(actionmap->name, name);
 }
 
 static XrActionMap *wm_xr_actionmap_copy(XrActionMap *am_src)

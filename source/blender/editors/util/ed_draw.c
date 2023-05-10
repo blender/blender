@@ -69,23 +69,22 @@ typedef struct tSlider {
   /** Accumulative factor (not clamped or rounded). */
   float raw_factor;
 
-  /** 0-1 value for determining the influence of whatever is relevant. */
+  /** Current value for determining the influence of whatever is relevant. */
   float factor;
 
   /** Last mouse cursor position used for mouse movement delta calculation. */
   float last_cursor[2];
 
-  /** Allow negative values as well.
-   * This is set by the code that uses the slider, as not all operations support
-   * negative values. */
-  bool is_bidirectional;
+  /** Range of the slider without overshoot. */
+  float factor_bounds[2];
 
-  /** Enable range beyond 0-100%.
+  /** Enable range beyond factor_bounds.
    * This is set by the code that uses the slider, as not all operations support
    * extrapolation. */
-  bool allow_overshoot;
+  bool allow_overshoot_lower;
+  bool allow_overshoot_upper;
 
-  /** Allow overshoot or clamp between 0% and 100%.
+  /** Allow overshoot or clamp between factor_bounds.
    * This is set by the artist while using the slider. */
   bool overshoot;
 
@@ -296,11 +295,11 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
     line_start_factor = slider->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
     handle_pos_x = region->winx / 2;
   }
-  else if (slider->is_bidirectional) {
-    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * (slider->factor / 2 + 0.5f);
-  }
   else {
-    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * slider->factor;
+    const float total_range = slider->factor_bounds[1] - slider->factor_bounds[0];
+    /* 0-1 value of the representing the position of the slider in the allowed range. */
+    const float range_factor = (slider->factor - slider->factor_bounds[0]) / total_range;
+    handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * range_factor;
   }
 
   draw_backdrop(fontid, &main_line_rect, color_bg, slider->region_header->winy, base_tick_height);
@@ -339,7 +338,7 @@ static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void 
   };
 
   UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
-  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", slider->factor * 100);
+  SNPRINTF(percentage_string, "%.0f%%", slider->factor * 100);
 
   /* Draw percentage string. */
   float percentage_string_pixel_size[2];
@@ -365,10 +364,15 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 
   if (!slider->overshoot) {
-    slider->factor = clamp_f(slider->factor, -1, 1);
+    slider->factor = clamp_f(slider->factor, slider->factor_bounds[0], slider->factor_bounds[1]);
   }
-  if (!slider->is_bidirectional) {
-    slider->factor = max_ff(slider->factor, 0);
+  else {
+    if (!slider->allow_overshoot_lower) {
+      slider->factor = max_ff(slider->factor, slider->factor_bounds[0]);
+    }
+    if (!slider->allow_overshoot_upper) {
+      slider->factor = min_ff(slider->factor, slider->factor_bounds[1]);
+    }
   }
 
   if (slider->increments) {
@@ -384,8 +388,12 @@ tSlider *ED_slider_create(struct bContext *C)
   slider->region_header = CTX_wm_region(C);
 
   /* Default is true, caller needs to manually set to false. */
-  slider->allow_overshoot = true;
+  slider->allow_overshoot_lower = true;
+  slider->allow_overshoot_upper = true;
   slider->allow_increments = true;
+
+  slider->factor_bounds[0] = 0;
+  slider->factor_bounds[1] = 1;
 
   /* Set initial factor. */
   slider->raw_factor = 0.5f;
@@ -419,7 +427,7 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   /* Handle key presses. */
   switch (event->type) {
     case EVT_EKEY:
-      if (slider->allow_overshoot) {
+      if (slider->allow_overshoot_lower || slider->allow_overshoot_upper) {
         slider->overshoot = event->val == KM_PRESS ? !slider->overshoot : slider->overshoot;
         slider_update_factor(slider, event);
       }
@@ -455,7 +463,7 @@ void ED_slider_status_string_get(const struct tSlider *slider,
   char precision_str[50];
   char increments_str[50];
 
-  if (slider->allow_overshoot) {
+  if (slider->allow_overshoot_lower || slider->allow_overshoot_upper) {
     if (slider->overshoot) {
       STRNCPY(overshoot_str, TIP_("[E] - Disable overshoot"));
     }
@@ -521,14 +529,10 @@ void ED_slider_factor_set(struct tSlider *slider, const float factor)
   }
 }
 
-bool ED_slider_allow_overshoot_get(struct tSlider *slider)
+void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool lower, const bool upper)
 {
-  return slider->allow_overshoot;
-}
-
-void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
-{
-  slider->allow_overshoot = value;
+  slider->allow_overshoot_lower = lower;
+  slider->allow_overshoot_upper = upper;
 }
 
 bool ED_slider_allow_increments_get(struct tSlider *slider)
@@ -541,14 +545,12 @@ void ED_slider_allow_increments_set(struct tSlider *slider, const bool value)
   slider->allow_increments = value;
 }
 
-bool ED_slider_is_bidirectional_get(struct tSlider *slider)
+void ED_slider_factor_bounds_set(struct tSlider *slider,
+                                 float factor_bound_lower,
+                                 float factor_bound_upper)
 {
-  return slider->is_bidirectional;
-}
-
-void ED_slider_is_bidirectional_set(struct tSlider *slider, const bool value)
-{
-  slider->is_bidirectional = value;
+  slider->factor_bounds[0] = factor_bound_lower;
+  slider->factor_bounds[1] = factor_bound_upper;
 }
 
 /** \} */

@@ -33,7 +33,7 @@ UniformBuf::UniformBuf(size_t size, const char *name)
 
   size_in_bytes_ = size;
 
-  BLI_strncpy(name_, name, sizeof(name_));
+  STRNCPY(name_, name);
 }
 
 UniformBuf::~UniformBuf()

@@ -42,13 +42,13 @@ static void node_composit_init_mask(bNodeTree * /*ntree*/, bNode *node)
 static void node_mask_label(const bNodeTree * /*ntree*/,
                             const bNode *node,
                             char *label,
-                            int maxlen)
+                            int label_maxncpy)
 {
   if (node->id != nullptr) {
-    BLI_strncpy(label, node->id->name + 2, maxlen);
+    BLI_strncpy(label, node->id->name + 2, label_maxncpy);
   }
   else {
-    BLI_strncpy(label, IFACE_("Mask"), maxlen);
+    BLI_strncpy(label, IFACE_("Mask"), label_maxncpy);
   }
 }
 

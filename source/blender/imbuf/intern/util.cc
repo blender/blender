@@ -88,8 +88,8 @@ const char *imb_ext_audio[] = {
     nullptr,
 };
 
-/* Increased from 32 to 64 because of the bitmaps header size. */
-#define HEADER_SIZE 64
+/* OIIO will validate the entire header of some files and DPX requires 2048 */
+#define HEADER_SIZE 2048
 
 static ssize_t imb_ispic_read_header_from_filepath(const char *filepath, uchar buf[HEADER_SIZE])
 {
@@ -196,7 +196,7 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
     va_list args_cpy;
 
     va_copy(args_cpy, arg);
-    n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, args_cpy);
+    n = VSNPRINTF(ffmpeg_last_error, format, args_cpy);
     va_end(args_cpy);
 
     /* strip trailing \n */

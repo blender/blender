@@ -263,7 +263,7 @@ typedef struct bNodeType {
   void (*labelfunc)(const struct bNodeTree *ntree,
                     const struct bNode *node,
                     char *label,
-                    int maxlen);
+                    int label_maxncpy);
 
   /** Optional override for node class, used for drawing node header. */
   int (*ui_class)(const struct bNode *node);

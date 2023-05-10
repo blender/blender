@@ -3340,6 +3340,10 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value)
 char *RNA_property_string_get_alloc(
     PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len)
 {
+  if (fixedbuf) {
+    BLI_string_debug_size(fixedbuf, fixedlen);
+  }
+
   char *buf;
   int length;
 
@@ -6971,7 +6975,7 @@ static char rna_struct_state_owner[64];
 void RNA_struct_state_owner_set(const char *name)
 {
   if (name) {
-    BLI_strncpy(rna_struct_state_owner, name, sizeof(rna_struct_state_owner));
+    STRNCPY(rna_struct_state_owner, name);
   }
   else {
     rna_struct_state_owner[0] = '\0';

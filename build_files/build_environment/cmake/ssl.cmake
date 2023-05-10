@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(SSL_CONFIGURE_COMMAND ./Configure)
-set(SSL_PATCH_CMD echo .)
 
 if(WIN32)
   # Python will build this with its preferred build options and patches. We only need to unpack openssl
@@ -18,7 +17,6 @@ if(WIN32)
 else()
   if(APPLE)
     set(SSL_OS_COMPILER "blender-darwin-${CMAKE_OSX_ARCHITECTURES}")
-    set(SSL_PATCH_CMD ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/ssl/src/external_ssl < ${PATCH_DIR}/ssl.diff)
   else()
     if(BLENDER_PLATFORM_ARM)
       set(SSL_OS_COMPILER "blender-linux-aarch64")
@@ -35,7 +33,6 @@ else()
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${SSL_HASH_TYPE}=${SSL_HASH}
     PREFIX ${BUILD_DIR}/ssl
-    PATCH_COMMAND ${SSL_PATCH_CMD}
     CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ssl/src/external_ssl/ && ${SSL_CONFIGURE_COMMAND} --prefix=${LIBDIR}/ssl
       --openssldir=${LIBDIR}/ssl
       no-shared

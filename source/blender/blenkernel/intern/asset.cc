@@ -52,7 +52,7 @@ AssetMetaData::~AssetMetaData()
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
   AssetTag *tag = (AssetTag *)MEM_callocN(sizeof(*tag), __func__);
-  BLI_strncpy(tag->name, name, sizeof(tag->name));
+  STRNCPY(tag->name, name);
 
   BLI_addtail(&asset_data->tags, tag);
   asset_data->tot_tags++;
