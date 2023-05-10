@@ -691,17 +691,18 @@ static void timeline_cache_draw_simulation_nodes(
   GPU_matrix_scale_2f(1.0, height);
 
   float color[4];
+  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, color);
   switch (cache.cache_state()) {
     case blender::bke::sim::CacheState::Invalid: {
-      copy_v4_fl4(color, 0.8, 0.8, 0.2, 0.3);
+      color[3] = 0.4f;
       break;
     }
     case blender::bke::sim::CacheState::Valid: {
-      copy_v4_fl4(color, 0.8, 0.8, 0.2, 1.0);
+      color[3] = 0.7f;
       break;
     }
     case blender::bke::sim::CacheState::Baked: {
-      copy_v4_fl4(color, 1.0, 0.6, 0.2, 1.0);
+      color[3] = 1.0f;
       break;
     }
   }
