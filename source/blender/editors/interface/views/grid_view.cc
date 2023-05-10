@@ -158,6 +158,9 @@ void AbstractGridViewItem::activate()
   BLI_assert_msg(get_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
+  if (!is_activatable_) {
+    return;
+  }
   if (is_active()) {
     return;
   }

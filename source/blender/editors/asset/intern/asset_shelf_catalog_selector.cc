@@ -85,6 +85,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
           catalog_path_enabled_(
               settings_is_catalog_path_enabled(shelf_settings, catalog_item.catalog_path()))
     {
+      disable_activatable();
     }
 
     bool is_catalog_path_enabled() const

@@ -127,6 +127,7 @@ class AbstractViewItem {
    * If this wasn't done, the behavior of items is undefined.
    */
   AbstractView *view_ = nullptr;
+  bool is_activatable_ = true;
   bool is_interactive_ = true;
   bool is_active_ = false;
   bool is_renaming_ = false;
@@ -177,6 +178,7 @@ class AbstractViewItem {
   void disable_interaction();
   bool is_interactive() const;
 
+  void disable_activatable();
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.

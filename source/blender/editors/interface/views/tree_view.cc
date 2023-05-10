@@ -293,6 +293,9 @@ void AbstractTreeViewItem::activate()
   BLI_assert_msg(get_tree_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
+  if (!is_activatable_) {
+    return;
+  }
   if (is_active()) {
     return;
   }
@@ -462,14 +465,16 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
     uiLayoutSetActive(overlap, false);
   }
 
-  uiLayoutRow(overlap, false);
+  uiLayout *row = uiLayoutRow(overlap, false);
+  /* Enable emboss for item mouse hover highlight. */
+  uiLayoutSetEmboss(row, UI_EMBOSS);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
   UI_block_emboss_set(&block_, UI_EMBOSS_NONE);
 
-  uiLayout *row = uiLayoutRow(overlap, true);
+  row = uiLayoutRow(overlap, true);
   item.add_indent(*row);
   item.add_collapse_chevron(block_);
 
