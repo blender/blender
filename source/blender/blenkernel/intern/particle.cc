@@ -3957,10 +3957,6 @@ void psys_mat_hair_to_orco(
   psys_particle_on_dm(
       mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco);
 
-  /* see psys_face_mat for why this function is called */
-  if (CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX)) {
-    BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco, 1, 1);
-  }
   copy_v3_v3(hairmat[3], orco);
 }
 
