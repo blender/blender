@@ -564,8 +564,8 @@ inline bool is_builtin_type(std::string type)
   /* Add Types as needed. */
   /* TODO(Metal): Consider replacing this with a switch and `constexpr` hash and switch.
    * Though most efficient and maintainable approach to be determined.
-   * NOTE: Some duplicate types exit for Metal and GLSL representations, as generated typenames
-   * from createinfo may use GLSL signature. */
+   * NOTE: Some duplicate types exit for Metal and GLSL representations, as generated type-names
+   * from #shader::ShaderCreateInfo may use GLSL signature. */
   static std::map<std::string, eMTLDataType> glsl_builtin_types = {
       {"float", MTL_DATATYPE_FLOAT},
       {"vec2", MTL_DATATYPE_FLOAT2},

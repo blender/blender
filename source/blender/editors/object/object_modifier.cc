@@ -193,7 +193,7 @@ ModifierData *ED_object_modifier_add(
     }
 
     if (name) {
-      BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
+      STRNCPY_UTF8(new_md->name, name);
     }
 
     /* make sure modifier data has unique name */
@@ -2469,7 +2469,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
 
   op->customdata = me;
 
-  BLI_snprintf(path, sizeof(path), "//%s.btx", me->id.name + 2);
+  SNPRINTF(path, "//%s.btx", me->id.name + 2);
   RNA_string_set(op->ptr, "filepath", path);
 
   WM_event_add_fileselect(C, op);
@@ -2926,7 +2926,7 @@ static void skin_armature_bone_create(Object *skin_ob,
     copy_v3_v3(bone->head, positions[parent_v]);
     copy_v3_v3(bone->tail, positions[v]);
     bone->rad_head = bone->rad_tail = 0.25;
-    BLI_snprintf(bone->name, sizeof(bone->name), "Bone.%.2d", endx);
+    SNPRINTF(bone->name, "Bone.%.2d", endx);
 
     /* add bDeformGroup */
     bDeformGroup *dg = BKE_object_defgroup_add_name(skin_ob, bone->name);

@@ -225,7 +225,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
     format_.linear_colorspace_settings.name[0] = '\0';
   }
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
 
   view_name_ = view_name;
   save_as_render_ = save_as_render;
@@ -307,7 +307,7 @@ void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*o
 
 OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
 {
-  BLI_strncpy(this->name, name_, sizeof(this->name));
+  STRNCPY(this->name, name_);
   this->datatype = datatype_;
   this->use_layer = use_layer_;
 
@@ -328,7 +328,7 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *
   rd_ = rd;
   tree_ = tree;
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
   exr_codec_ = exr_codec;
   exr_half_float_ = exr_half_float;
   view_name_ = view_name;

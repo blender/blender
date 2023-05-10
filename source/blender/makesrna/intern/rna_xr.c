@@ -50,7 +50,7 @@ static XrComponentPath *rna_XrComponentPath_new(XrActionMapBinding *amb, const c
 {
 #  ifdef WITH_XR_OPENXR
   XrComponentPath *component_path = MEM_callocN(sizeof(XrComponentPath), __func__);
-  BLI_strncpy(component_path->path, path_str, sizeof(component_path->path));
+  STRNCPY(component_path->path, path_str);
   BLI_addtail(&amb->component_paths, component_path);
   return component_path;
 #  else
@@ -237,7 +237,7 @@ static XrUserPath *rna_XrUserPath_new(XrActionMapItem *ami, const char *path_str
 {
 #  ifdef WITH_XR_OPENXR
   XrUserPath *user_path = MEM_callocN(sizeof(XrUserPath), __func__);
-  BLI_strncpy(user_path->path, path_str, sizeof(user_path->path));
+  STRNCPY(user_path->path, path_str);
   BLI_addtail(&ami->user_paths, user_path);
   return user_path;
 #  else

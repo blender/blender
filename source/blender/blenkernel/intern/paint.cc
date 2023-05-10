@@ -1259,12 +1259,12 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
   }
 }
 
-bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_poly)
+bool paint_is_face_hidden(const int *looptri_polys, const bool *hide_poly, const int tri_index)
 {
   if (!hide_poly) {
     return false;
   }
-  return hide_poly[lt->poly];
+  return hide_poly[looptri_polys[tri_index]];
 }
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
@@ -1660,7 +1660,7 @@ static void sculpt_update_persistent_base(Object *ob)
 }
 
 static void sculpt_update_object(
-    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool need_pmap, bool is_paint_tool)
+    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool /*need_pmap*/, bool is_paint_tool)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1766,13 +1766,13 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
+  if (ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
         &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
+  }
 
-    if (ss->pbvh) {
-      BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
-    }
+  if (ss->pbvh) {
+    BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
   }
 
   if (ss->deform_modifiers_active) {
@@ -2428,7 +2428,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
   out->params = *params;
   out->proptype = proptype;
   out->domain = domain;
-  BLI_strncpy_utf8(out->name, name, sizeof(out->name));
+  STRNCPY_UTF8(out->name, name);
 
   /* Force non-CustomData simple_array mode if not PBVH_FACES. */
   if (pbvhtype == PBVH_GRIDS || (pbvhtype == PBVH_BMESH && flat_array_for_bmesh)) {
@@ -2696,7 +2696,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr->layer = cdata->layers + index;
       attr->elem_size = CustomData_get_elem_size(attr->layer);
 
-      BLI_strncpy_utf8(attr->name, name, sizeof(attr->name));
+      STRNCPY_UTF8(attr->name, name);
       return attr;
     }
   }

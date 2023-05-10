@@ -355,10 +355,10 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(gmd->name)];
 
   /* Make a copy of the old name first. */
-  BLI_strncpy(oldname, gmd->name, sizeof(gmd->name));
+  STRNCPY(oldname, gmd->name);
 
   /* Copy the new name into the name slot. */
-  BLI_strncpy_utf8(gmd->name, value, sizeof(gmd->name));
+  STRNCPY_UTF8(gmd->name, value);
 
   /* Make sure the name is truly unique. */
   if (ptr->owner_id) {
@@ -881,9 +881,9 @@ static void rna_DashGpencilModifierSegment_name_set(PointerRNA *ptr, const char 
   DashGpencilModifierSegment *ds = ptr->data;
 
   char oldname[sizeof(ds->name)];
-  BLI_strncpy(oldname, ds->name, sizeof(ds->name));
+  STRNCPY(oldname, ds->name);
 
-  BLI_strncpy_utf8(ds->name, value, sizeof(ds->name));
+  STRNCPY_UTF8(ds->name, value);
 
   BLI_assert(ds->dmd != NULL);
   BLI_uniquename_cb(
@@ -904,9 +904,9 @@ static void rna_TimeGpencilModifierSegment_name_set(PointerRNA *ptr, const char 
   TimeGpencilModifierSegment *ds = ptr->data;
 
   char oldname[sizeof(ds->name)];
-  BLI_strncpy(oldname, ds->name, sizeof(ds->name));
+  STRNCPY(oldname, ds->name);
 
-  BLI_strncpy_utf8(ds->name, value, sizeof(ds->name));
+  STRNCPY_UTF8(ds->name, value);
 
   BLI_assert(ds->gpmd != NULL);
   BLI_uniquename_cb(
@@ -4274,7 +4274,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Offset",
-      "Offset into each stroke before the beginning of  the dashed segment generation");
+      "Offset into each stroke before the beginning of the dashed segment generation");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   /* Common properties. */

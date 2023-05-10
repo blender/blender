@@ -2891,21 +2891,21 @@ void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc 
  */
 void uiItemMenuFN(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *argN);
 void uiItemMenuEnumFullO_ptr(uiLayout *layout,
-                             struct bContext *C,
+                             const struct bContext *C,
                              struct wmOperatorType *ot,
                              const char *propname,
                              const char *name,
                              int icon,
                              struct PointerRNA *r_opptr);
 void uiItemMenuEnumFullO(uiLayout *layout,
-                         struct bContext *C,
+                         const struct bContext *C,
                          const char *opname,
                          const char *propname,
                          const char *name,
                          int icon,
                          struct PointerRNA *r_opptr);
 void uiItemMenuEnumO(uiLayout *layout,
-                     struct bContext *C,
+                     const struct bContext *C,
                      const char *opname,
                      const char *propname,
                      const char *name,
@@ -3175,7 +3175,7 @@ const char *UI_key_event_operator_string(const struct bContext *C,
                                          IDProperty *properties,
                                          const bool is_strict,
                                          char *result,
-                                         const int result_len);
+                                         const int result_maxncpy);
 
 /* ui_interface_region_tooltip.c */
 

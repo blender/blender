@@ -338,6 +338,9 @@ Span<int> CurvesGeometry::offsets() const
 }
 MutableSpan<int> CurvesGeometry::offsets_for_write()
 {
+  if (this->curve_num == 0) {
+    return {};
+  }
   implicit_sharing::make_trivial_data_mutable(
       &this->curve_offsets, &this->runtime->curve_offsets_sharing_info, this->curve_num + 1);
   return {this->curve_offsets, this->curve_num + 1};

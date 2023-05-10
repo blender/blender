@@ -1361,7 +1361,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
     /* TODO: do we want to memset(0) whole mem before filling it? */
-    BLI_strncpy(new_id->name, id->name, sizeof(new_id->name));
+    STRNCPY(new_id->name, id->name);
     new_id->us = 0;
     new_id->tag |= LIB_TAG_NOT_ALLOCATED | LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT;
     /* TODO: Do we want/need to copy more from ID struct itself? */
@@ -1597,11 +1597,11 @@ bool BKE_id_new_name_validate(
     tname = id->name + 2;
   }
   /* Make a copy of given name (tname args can be const). */
-  BLI_strncpy(name, tname, sizeof(name));
+  STRNCPY(name, tname);
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    BLI_strncpy(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))), sizeof(name));
+    STRNCPY(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
   }
   else {
     /* disallow non utf8 chars,

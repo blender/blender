@@ -53,7 +53,29 @@ class GRAPH_HT_header(Header):
         row.prop(tool_settings, "use_proportional_fcurve", text="", icon_only=True)
         sub = row.row(align=True)
         sub.active = tool_settings.use_proportional_fcurve
-        sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
+        sub.prop_with_popover(
+            tool_settings,
+            "proportional_edit_falloff",
+            text="",
+            icon_only=True,
+            panel="GRAPH_PT_proportional_edit",
+        )
+
+
+class GRAPH_PT_proportional_edit(Panel):
+    bl_space_type = 'GRAPH_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Proportional Editing"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        col = layout.column()
+        col.active = tool_settings.use_proportional_fcurve
+
+        col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_size")
 
 
 class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
@@ -492,6 +514,7 @@ class GRAPH_MT_channel_context_menu(Menu):
 
 classes = (
     GRAPH_HT_header,
+    GRAPH_PT_proportional_edit,
     GRAPH_MT_editor_menus,
     GRAPH_MT_view,
     GRAPH_MT_select,

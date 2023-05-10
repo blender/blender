@@ -93,19 +93,19 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
     outputNumInput(&(t->num), c, &t->scene->unit);
 
     if (value >= 0.0f) {
-      BLI_snprintf(str, sizeof(str), "%s: +%s %s", value_name, c, t->proptext);
+      SNPRINTF(str, "%s: +%s %s", value_name, c, t->proptext);
     }
     else {
-      BLI_snprintf(str, sizeof(str), "%s: %s %s", value_name, c, t->proptext);
+      SNPRINTF(str, "%s: %s %s", value_name, c, t->proptext);
     }
   }
   else {
     /* default header print */
     if (value >= 0.0f) {
-      BLI_snprintf(str, sizeof(str), "%s: +%.3f %s", value_name, value, t->proptext);
+      SNPRINTF(str, "%s: +%.3f %s", value_name, value, t->proptext);
     }
     else {
-      BLI_snprintf(str, sizeof(str), "%s: %.3f %s", value_name, value, t->proptext);
+      SNPRINTF(str, "%s: %.3f %s", value_name, value, t->proptext);
     }
   }
 

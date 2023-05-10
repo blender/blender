@@ -25,7 +25,7 @@ namespace blender::bke::sim {
 
 /**
  * Turn the name into something that can be used as file name. It does not necessarily have to be
- * human readible, but it can help if it is at least partially readible.
+ * human readable, but it can help if it is at least partially readable.
  */
 static std::string escape_name(const StringRef name)
 {
@@ -835,8 +835,7 @@ void serialize_modifier_simulation_state(const ModifierSimulationState &state,
       {
         io_state_item->append_str("type", "GEOMETRY");
 
-        const GeometrySet &geometry = geometry_state_item->geometry();
-
+        const GeometrySet &geometry = geometry_state_item->geometry;
         auto io_geometry = serialize_geometry_set(geometry, bdata_writer, bdata_sharing);
         io_state_item->append("data", io_geometry);
       }

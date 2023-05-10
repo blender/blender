@@ -56,12 +56,8 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
   for (seq = seqbasep->first; seq; seq = seq->next) {
     if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
       /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
-      BLI_snprintf(sui->name_dest,
-                   sizeof(sui->name_dest),
-                   "%.*s.%03d",
-                   SEQ_NAME_MAXSTR - 4 - 1 - 2,
-                   sui->name_src,
-                   sui->count++);
+      SNPRINTF(
+          sui->name_dest, "%.*s.%03d", SEQ_NAME_MAXSTR - 4 - 1 - 2, sui->name_src, sui->count++);
       sui->match = 1; /* be sure to re-scan */
     }
   }
@@ -82,8 +78,8 @@ void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
   SeqUniqueInfo sui;
   char *dot;
   sui.seq = seq;
-  BLI_strncpy(sui.name_src, seq->name + 2, sizeof(sui.name_src));
-  BLI_strncpy(sui.name_dest, seq->name + 2, sizeof(sui.name_dest));
+  STRNCPY(sui.name_src, seq->name + 2);
+  STRNCPY(sui.name_dest, seq->name + 2);
 
   sui.count = 1;
   sui.match = 1; /* assume the worst to start the loop */
@@ -235,14 +231,14 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   if (use_proxy) {
     if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
       if (ed->proxy_dir[0] == 0) {
-        BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
+        STRNCPY(dir, "//BL_proxy");
       }
       else {
-        BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+        STRNCPY(dir, ed->proxy_dir);
       }
     }
     else {
-      BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+      STRNCPY(dir, seq->strip->proxy->dir);
     }
     BLI_path_abs(dir, BKE_main_blendfile_path_from_global());
   }
@@ -263,7 +259,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 
         BLI_addtail(&seq->anims, sanim);
 
-        BLI_snprintf(str, sizeof(str), "%s%s%s", prefix, suffix, ext);
+        SNPRINTF(str, "%s%s%s", prefix, suffix, ext);
 
         if (openfile) {
           sanim->anim = openanim(str,
@@ -527,7 +523,7 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
 {
   char name[SEQ_NAME_MAXSTR];
 
-  BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
+  STRNCPY_UTF8(name, seq->name + 2);
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   BKE_animdata_fix_paths_rename(
       &scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name, seq->name + 2, 0, 0, 0);

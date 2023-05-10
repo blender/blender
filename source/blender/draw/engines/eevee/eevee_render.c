@@ -86,11 +86,10 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   int max_dim = max_ii(final_res[0], final_res[1]);
   if (max_dim > GPU_max_texture_size()) {
     char error_msg[128];
-    BLI_snprintf(error_msg,
-                 sizeof(error_msg),
-                 "Error: Reported texture size limit (%dpx) is lower than output size (%dpx).",
-                 GPU_max_texture_size(),
-                 max_dim);
+    SNPRINTF(error_msg,
+             "Error: Reported texture size limit (%dpx) is lower than output size (%dpx).",
+             GPU_max_texture_size(),
+             max_dim);
     RE_engine_set_error_message(engine, error_msg);
     G.is_break = true;
     return false;
@@ -209,7 +208,7 @@ void EEVEE_render_cache(void *vedata,
    * (see #59649) */
   if (engine && (ob->base_flag & BASE_FROM_DUPLI) == 0) {
     char info[42];
-    BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
+    SNPRINTF(info, "Syncing %s", ob->id.name + 2);
     RE_engine_update_stats(engine, NULL, info);
   }
 
@@ -575,8 +574,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Don't print every samples as it can lead to bad performance. (see #59649) */
     else if ((render_samples % 25) == 0 || (render_samples + 1) == tot_sample) {
       char info[42];
-      BLI_snprintf(
-          info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
+      SNPRINTF(info, "Rendering %u / %u samples", render_samples + 1, tot_sample);
       RE_engine_update_stats(engine, NULL, info);
     }
 

@@ -227,7 +227,7 @@ static Panel *panel_add_instanced(ARegion *region,
 {
   Panel *panel = MEM_cnew<Panel>(__func__);
   panel->type = panel_type;
-  BLI_strncpy(panel->panelname, panel_type->idname, sizeof(panel->panelname));
+  STRNCPY(panel->panelname, panel_type->idname);
 
   panel->runtime.custom_data_ptr = custom_data;
   panel->runtime_flag |= PANEL_NEW_ADDED;
@@ -674,7 +674,7 @@ Panel *UI_panel_begin(
   if (newpanel) {
     panel = MEM_cnew<Panel>(__func__);
     panel->type = pt;
-    BLI_strncpy(panel->panelname, idname, sizeof(panel->panelname));
+    STRNCPY(panel->panelname, idname);
 
     if (pt->flag & PANEL_TYPE_DEFAULT_CLOSED) {
       panel->flag |= PNL_CLOSED;
@@ -698,7 +698,7 @@ Panel *UI_panel_begin(
 
   panel->runtime.block = block;
 
-  BLI_strncpy(panel->drawname, drawname, sizeof(panel->drawname));
+  STRNCPY(panel->drawname, drawname);
 
   /* If a new panel is added, we insert it right after the panel that was last added.
    * This way new panels are inserted in the right place between versions. */
@@ -2149,7 +2149,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
   }
   else {
     pc_act = MEM_cnew<PanelCategoryStack>(__func__);
-    BLI_strncpy(pc_act->idname, idname, sizeof(pc_act->idname));
+    STRNCPY(pc_act->idname, idname);
   }
 
   if (fallback) {
@@ -2225,7 +2225,7 @@ void UI_panel_category_add(ARegion *region, const char *name)
   PanelCategoryDyn *pc_dyn = MEM_cnew<PanelCategoryDyn>(__func__);
   BLI_addtail(&region->panels_category, pc_dyn);
 
-  BLI_strncpy(pc_dyn->idname, name, sizeof(pc_dyn->idname));
+  STRNCPY(pc_dyn->idname, name);
 
   /* 'pc_dyn->rect' must be set on draw. */
 }

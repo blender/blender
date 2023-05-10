@@ -458,50 +458,42 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
       char str_ofs[NUM_STR_REP_LEN];
 
       outputNumInput(&tgpi->num, str_ofs, &scene->unit);
-      BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_ofs);
+      SNPRINTF(status_str, "%s: %s", msg_str, str_ofs);
     }
     else {
       if (tgpi->flag == IN_PROGRESS) {
-        BLI_snprintf(status_str,
-                     sizeof(status_str),
-                     "%s: %d (%d, %d) (%d, %d)",
-                     msg_str,
-                     cur_subdiv,
-                     (int)tgpi->start[0],
-                     (int)tgpi->start[1],
-                     (int)tgpi->end[0],
-                     (int)tgpi->end[1]);
+        SNPRINTF(status_str,
+                 "%s: %d (%d, %d) (%d, %d)",
+                 msg_str,
+                 cur_subdiv,
+                 (int)tgpi->start[0],
+                 (int)tgpi->start[1],
+                 (int)tgpi->end[0],
+                 (int)tgpi->end[1]);
       }
       else {
-        BLI_snprintf(status_str,
-                     sizeof(status_str),
-                     "%s: %d (%d, %d)",
-                     msg_str,
-                     cur_subdiv,
-                     (int)tgpi->end[0],
-                     (int)tgpi->end[1]);
+        SNPRINTF(status_str,
+                 "%s: %d (%d, %d)",
+                 msg_str,
+                 cur_subdiv,
+                 (int)tgpi->end[0],
+                 (int)tgpi->end[1]);
       }
     }
   }
   else {
     if (tgpi->flag == IN_PROGRESS) {
-      BLI_snprintf(status_str,
-                   sizeof(status_str),
-                   "%s: %d (%d, %d) (%d, %d)",
-                   msg_str,
-                   cur_subdiv,
-                   (int)tgpi->start[0],
-                   (int)tgpi->start[1],
-                   (int)tgpi->end[0],
-                   (int)tgpi->end[1]);
+      SNPRINTF(status_str,
+               "%s: %d (%d, %d) (%d, %d)",
+               msg_str,
+               cur_subdiv,
+               (int)tgpi->start[0],
+               (int)tgpi->start[1],
+               (int)tgpi->end[0],
+               (int)tgpi->end[1]);
     }
     else {
-      BLI_snprintf(status_str,
-                   sizeof(status_str),
-                   "%s: (%d, %d)",
-                   msg_str,
-                   (int)tgpi->end[0],
-                   (int)tgpi->end[1]);
+      SNPRINTF(status_str, "%s: (%d, %d)", msg_str, (int)tgpi->end[0], (int)tgpi->end[1]);
     }
   }
   ED_workspace_status_text(C, status_str);

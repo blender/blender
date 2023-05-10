@@ -452,7 +452,7 @@ void rna_DriverVariable_name_set(PointerRNA *ptr, const char *value)
 {
   DriverVar *data = (DriverVar *)(ptr->data);
 
-  BLI_strncpy_utf8(data->name, value, 64);
+  STRNCPY_UTF8(data->name, value);
   driver_variable_name_validate(data);
   driver_variable_unique_name(data);
 }

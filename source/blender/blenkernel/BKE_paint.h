@@ -218,7 +218,7 @@ bool BKE_paint_always_hide_test(struct Object *ob);
 /**
  * Returns non-zero if any of the face's vertices are hidden, zero otherwise.
  */
-bool paint_is_face_hidden(const struct MLoopTri *lt, const bool *hide_poly);
+bool paint_is_face_hidden(const int *looptri_polys, const bool *hide_poly, int tri_index);
 /**
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.

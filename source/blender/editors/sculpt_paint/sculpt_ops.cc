@@ -56,7 +56,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
@@ -1400,6 +1400,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
   WM_operatortype_append(SCULPT_OT_face_sets_create);
   WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
+  WM_operatortype_append(SCULPT_OT_face_sets_invert_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_cloth_filter);

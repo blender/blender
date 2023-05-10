@@ -53,6 +53,8 @@ void BLI_path_split_dir_part(const char *filepath, char *dir, size_t dir_maxncpy
     ATTR_NONNULL(1, 2);
 /**
  * Copies the leaf filename part of `filepath` into `file`, max length `file_maxncpy`.
+ *
+ * \note If there is no need to make a copy the path, #BLI_path_basename can be used instead.
  */
 void BLI_path_split_file_part(const char *filepath, char *file, size_t file_maxncpy)
     ATTR_NONNULL(1, 2);
@@ -408,6 +410,20 @@ bool BLI_path_parent_dir(char *path) ATTR_NONNULL(1);
  * leaving the path of the lowest-level directory that does exist and we can read.
  */
 bool BLI_path_parent_dir_until_exists(char *path) ATTR_NONNULL(1);
+
+/**
+ * In the simple case this is similar to `BLI_path_slash_rfind(dirname)`
+ * however it behaves differently when there are redundant characters:
+ *
+ * `/test///dir/./file`
+ *             ^
+ * `/test/dir/subdir//file`
+ *                  ^
+ * \return The position after the parent paths last character or NULL on failure.
+ * Neither `path` or `&path[path_len - 1]` are ever returned.
+ */
+const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
+    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * If path begins with "//", strips that and replaces it with `basepath` directory.

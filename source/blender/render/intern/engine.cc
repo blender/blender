@@ -522,13 +522,13 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
   engine->text[0] = '\0';
 
   if (stats && stats[0] && info && info[0]) {
-    BLI_snprintf(engine->text, sizeof(engine->text), "%s | %s", stats, info);
+    SNPRINTF(engine->text, "%s | %s", stats, info);
   }
   else if (info && info[0]) {
-    BLI_strncpy(engine->text, info, sizeof(engine->text));
+    STRNCPY(engine->text, info);
   }
   else if (stats && stats[0]) {
-    BLI_strncpy(engine->text, stats, sizeof(engine->text));
+    STRNCPY(engine->text, stats);
   }
 }
 
@@ -1079,7 +1079,7 @@ bool RE_engine_render(Render *re, bool do_all)
 
   /* set render info */
   re->i.cfra = re->scene->r.cfra;
-  BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name));
+  STRNCPY(re->i.scene_name, re->scene->id.name + 2);
 
   engine->flag |= RE_ENGINE_RENDERING;
 

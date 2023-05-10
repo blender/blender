@@ -1142,6 +1142,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<MLoopTri> looptris = mesh->looptris();
+  const blender::Span<int> looptri_polys = mesh->looptri_polys();
 
   /* Get data for tessellation */
 
@@ -1182,7 +1183,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
       copy_v3_v3(co[2], coords[tris[i][2]]);
 
       BLI_bvhtree_insert(tree, int(i), co[0], 3);
-      orig_index[i] = int(looptris[i].poly);
+      orig_index[i] = int(looptri_polys[i]);
     }
 
     BLI_bvhtree_balance(tree);

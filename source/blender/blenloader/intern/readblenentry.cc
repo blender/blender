@@ -448,7 +448,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
   fd = blo_filedata_from_memfile(memfile, params, &bf_reports);
   if (fd) {
     fd->skip_flags = eBLOReadSkip(params->skip_flags);
-    BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, filepath);
 
     /* separate libraries from old main */
     blo_split_main(&old_mainlist, oldmain);

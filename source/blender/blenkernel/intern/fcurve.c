@@ -161,7 +161,7 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
 {
   /* Copy new Modifier name. */
-  BLI_strncpy(fcm->name, name, sizeof(fcm->name));
+  STRNCPY(fcm->name, name);
 
   /* Set default modifier name when name parameter is an empty string.
    * Ensure the name is unique. */
@@ -1305,7 +1305,7 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
     if (a == 1) {
       next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
     }
-    else {
+    else if (next != NULL) {
       next++;
     }
 

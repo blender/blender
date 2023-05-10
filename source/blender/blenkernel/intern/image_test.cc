@@ -17,7 +17,7 @@ TEST(udim, image_ensure_tile_token)
   auto verify = [](const char *original, const char *expected) {
     char result[FILE_MAX];
 
-    BLI_strncpy(result, original, sizeof(result));
+    STRNCPY(result, original);
     BKE_image_ensure_tile_token_filename_only(result, sizeof(result));
     EXPECT_STREQ(result, expected);
   };
@@ -172,7 +172,7 @@ TEST(udim, image_set_filepath_from_tile_number)
   char filepath[FILE_MAX];
 
   /* Parameter validation. */
-  BLI_strncpy(filepath, "xxxx", FILE_MAX);
+  STRNCPY(filepath, "xxxx");
 
   BKE_image_set_filepath_from_tile_number(nullptr, udim_pattern, tile_format, 1028);
   BKE_image_set_filepath_from_tile_number(filepath, nullptr, tile_format, 1028);

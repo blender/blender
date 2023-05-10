@@ -271,7 +271,7 @@ static void external_draw_scene_do_v3d(void *vedata)
   /* Set render info. */
   EXTERNAL_Data *data = vedata;
   if (rv3d->render_engine->text[0] != '\0') {
-    BLI_strncpy(data->info, rv3d->render_engine->text, sizeof(data->info));
+    STRNCPY(data->info, rv3d->render_engine->text);
   }
   else {
     data->info[0] = '\0';

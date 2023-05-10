@@ -11,7 +11,7 @@ if(WIN32)
 elseif(APPLE)
   # Use bison and flex installed via Homebrew.
   # The ones that come with Xcode toolset are too old.
-  if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+  if(BLENDER_PLATFORM_ARM)
     set(ISPC_EXTRA_ARGS_APPLE
       -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison
       -DFLEX_EXECUTABLE=/opt/homebrew/opt/flex/bin/flex

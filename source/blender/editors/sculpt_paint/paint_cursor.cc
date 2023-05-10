@@ -53,7 +53,7 @@
 
 #include "UI_resources.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 /* still needed for sculpt_stroke_get_location, should be
  * removed eventually (TODO) */
 #include "sculpt_intern.hh"

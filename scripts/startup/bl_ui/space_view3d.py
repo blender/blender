@@ -3261,8 +3261,7 @@ class VIEW3D_MT_sculpt(Menu):
         props.action = 'SHOW'
         props.area = 'ALL'
 
-        props = layout.operator("sculpt.face_set_change_visibility", text="Invert Visible")
-        props.mode = 'INVERT'
+        layout.operator("sculpt.face_set_invert_visibility", text="Invert Visible")
 
         props = layout.operator("paint.hide_show", text="Hide Masked")
         props.action = 'HIDE'
@@ -3470,8 +3469,7 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        props = layout.operator("sculpt.face_set_change_visibility", text="Invert Visible Face Sets")
-        props.mode = 'INVERT'
+        layout.operator("sculpt.face_set_invert_visibility", text="Invert Visible Face Sets")
 
         props = layout.operator("sculpt.reveal_all", text="Show All Face Sets")
 
@@ -4511,8 +4509,8 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.normals_tools", text="Copy Vectors").mode = 'COPY'
-        layout.operator("mesh.normals_tools", text="Paste Vectors").mode = 'PASTE'
+        layout.operator("mesh.normals_tools", text="Copy Vector").mode = 'COPY'
+        layout.operator("mesh.normals_tools", text="Paste Vector").mode = 'PASTE'
 
         layout.operator("mesh.smooth_normals", text="Smooth Vectors")
         layout.operator("mesh.normals_tools", text="Reset Vectors").mode = 'RESET'
@@ -5652,8 +5650,7 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         props = pie.operator("sculpt.face_sets_create", text="Face Set from Visible")
         props.mode = 'VISIBLE'
 
-        props = pie.operator("sculpt.face_set_change_visibility", text="Invert Visible")
-        props.mode = 'INVERT'
+        pie.operator("sculpt.face_set_invert_visibility", text="Invert Visible")
 
         props = pie.operator("sculpt.reveal_all", text="Show All")
 
@@ -7105,6 +7102,7 @@ class VIEW3D_PT_proportional_edit(Panel):
             col.separator()
 
         col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_distance")
 
 
 class VIEW3D_PT_transform_orientations(Panel):

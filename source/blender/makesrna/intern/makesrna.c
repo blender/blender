@@ -726,18 +726,13 @@ static char *rna_def_property_get_func(
   switch (prop->type) {
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+      UNUSED_VARS_NDEBUG(sprop);
       fprintf(f, "void %s(PointerRNA *ptr, char *value)\n", func);
       fprintf(f, "{\n");
       if (manualfunc) {
         fprintf(f, "    %s(ptr, value);\n", manualfunc);
       }
       else {
-        const PropertySubType subtype = prop->subtype;
-        const char *string_copy_func =
-            ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING) ?
-                "BLI_strncpy" :
-                "BLI_strncpy_utf8";
-
         rna_print_data_get(f, dp);
 
         if (dp->dnapointerlevel == 1) {
@@ -746,28 +741,24 @@ static char *rna_def_property_get_func(
           fprintf(f, "        *value = '\\0';\n");
           fprintf(f, "        return;\n");
           fprintf(f, "    }\n");
-          fprintf(f,
-                  "    %s(value, data->%s, strlen(data->%s) + 1);\n",
-                  string_copy_func,
-                  dp->dnaname,
-                  dp->dnaname);
+          fprintf(f, "    strcpy(value, data->%s);\n", dp->dnaname);
         }
         else {
           /* Handle char array properties. */
+
+#ifndef NDEBUG /* Assert lengths never exceed their maximum expected value. */
           if (sprop->maxlength) {
-            fprintf(f,
-                    "    %s(value, data->%s, %d);\n",
-                    string_copy_func,
-                    dp->dnaname,
-                    sprop->maxlength);
+            fprintf(f, "    BLI_assert(strlen(data->%s) < %d);\n", dp->dnaname, sprop->maxlength);
           }
           else {
             fprintf(f,
-                    "    %s(value, data->%s, sizeof(data->%s));\n",
-                    string_copy_func,
+                    "    BLI_assert(strlen(data->%s) < sizeof(data->%s));\n",
                     dp->dnaname,
                     dp->dnaname);
           }
+#endif
+
+          fprintf(f, "    strcpy(value, data->%s);\n", dp->dnaname);
         }
       }
       fprintf(f, "}\n\n");
@@ -1151,11 +1142,6 @@ static char *rna_def_property_set_func(
       }
       else {
         const PropertySubType subtype = prop->subtype;
-        const char *string_copy_func =
-            ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING) ?
-                "BLI_strncpy" :
-                "BLI_strncpy_utf8";
-
         rna_print_data_get(f, dp);
 
         if (dp->dnapointerlevel == 1) {
@@ -1165,10 +1151,14 @@ static char *rna_def_property_set_func(
           fprintf(f, "    const int length = strlen(value);\n");
           fprintf(f, "    if (length > 0) {\n");
           fprintf(f, "        data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
-          fprintf(f, "        %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
+          fprintf(f, "        memcpy(data->%s, value, length + 1);\n", dp->dnaname);
           fprintf(f, "    } else { data->%s = NULL; }\n", dp->dnaname);
         }
         else {
+          const char *string_copy_func =
+              ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING) ?
+                  "BLI_strncpy" :
+                  "BLI_strncpy_utf8";
           /* Handle char array properties. */
           if (sprop->maxlength) {
             fprintf(f,

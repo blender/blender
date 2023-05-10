@@ -565,7 +565,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
   bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 
-  BLI_strncpy(gsock->name, name, sizeof(gsock->name));
+  STRNCPY(gsock->name, name);
   gsock->type = type;
 
   gsock->next = gsock->prev = NULL;
@@ -640,7 +640,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s" SEP_STR "BL_proxy", seq->strip->dir);
+    SNPRINTF(seq->strip->proxy->dir, "%s" SEP_STR "BL_proxy", seq->strip->dir);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE

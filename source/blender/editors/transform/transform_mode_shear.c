@@ -309,15 +309,11 @@ static void apply_shear(TransInfo *t, const int UNUSED(mval[2]))
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, &t->scene->unit);
-    BLI_snprintf(str, sizeof(str), TIP_("Shear: %s %s"), c, t->proptext);
+    SNPRINTF(str, TIP_("Shear: %s %s"), c, t->proptext);
   }
   else {
     /* default header print */
-    BLI_snprintf(str,
-                 sizeof(str),
-                 TIP_("Shear: %.3f %s (Press X or Y to set shear axis)"),
-                 value,
-                 t->proptext);
+    SNPRINTF(str, TIP_("Shear: %.3f %s (Press X or Y to set shear axis)"), value, t->proptext);
   }
 
   ED_area_status_text(t->area, str);

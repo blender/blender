@@ -361,7 +361,7 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
   n->inputs_num++;
-  BLI_snprintf(sockname, sizeof(sockname), "Crypto %.2d", n->inputs_num - 1);
+  SNPRINTF(sockname, "Crypto %.2d", n->inputs_num - 1);
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, sockname);
   return sock;

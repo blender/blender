@@ -51,7 +51,7 @@
 #include "bmesh.h"
 #include "tools/bmesh_boolean.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 /* For undo push. */
 #include "sculpt_intern.hh"

@@ -64,7 +64,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
     copy_v2_v2(path->view_center, ntree->view_center);
 
     if (id) {
-      BLI_strncpy(path->display_name, id->name + 2, sizeof(path->display_name));
+      STRNCPY(path->display_name, id->name + 2);
     }
 
     BLI_addtail(&snode->treepath, path);
@@ -100,8 +100,8 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
       path->parent_key = NODE_INSTANCE_KEY_BASE;
     }
 
-    BLI_strncpy(path->node_name, gnode->name, sizeof(path->node_name));
-    BLI_strncpy(path->display_name, gnode->name, sizeof(path->display_name));
+    STRNCPY(path->node_name, gnode->name);
+    STRNCPY(path->display_name, gnode->name);
   }
   else {
     path->parent_key = NODE_INSTANCE_KEY_BASE;

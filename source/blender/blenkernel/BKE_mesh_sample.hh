@@ -49,7 +49,7 @@ void sample_corner_normals(Span<MLoopTri> looptris,
                            IndexMask mask,
                            MutableSpan<float3> dst);
 
-void sample_face_attribute(Span<MLoopTri> looptris,
+void sample_face_attribute(Span<int> looptri_polys,
                            Span<int> looptri_indices,
                            const GVArray &src,
                            IndexMask mask,

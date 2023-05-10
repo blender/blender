@@ -103,10 +103,10 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
 {
   LISTBASE_FOREACH (bNodeSocket *, socket, sockets) {
     if (STREQ(socket->name, old_name)) {
-      BLI_strncpy(socket->name, new_name, sizeof(socket->name));
+      STRNCPY(socket->name, new_name);
     }
     if (STREQ(socket->identifier, old_name)) {
-      BLI_strncpy(socket->identifier, new_name, sizeof(socket->name));
+      STRNCPY(socket->identifier, new_name);
     }
   }
 }

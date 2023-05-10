@@ -79,9 +79,10 @@ enum eImbFileType {
 /* Only for readability. */
 #define IMB_FTYPE_NONE 0
 
-/* ibuf->foptions flag, type specific options.
- * Some formats include compression rations on some bits */
-
+/**
+ * #ImBuf::foptions.flag, type specific options.
+ * Some formats include compression rations on some bits.
+ */
 #define OPENEXR_HALF (1 << 8)
 /* careful changing this, it's used in DNA as well */
 #define OPENEXR_COMPRESS (15)

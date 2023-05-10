@@ -107,7 +107,7 @@ void sample_corner_attribute(const Span<MLoopTri> looptris,
 }
 
 template<typename T>
-void sample_face_attribute(const Span<MLoopTri> looptris,
+void sample_face_attribute(const Span<int> looptri_polys,
                            const Span<int> looptri_indices,
                            const VArray<T> &src,
                            const IndexMask mask,
@@ -115,13 +115,12 @@ void sample_face_attribute(const Span<MLoopTri> looptris,
 {
   for (const int i : mask) {
     const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
-    const int poly_index = looptri.poly;
+    const int poly_index = looptri_polys[looptri_index];
     dst[i] = src[poly_index];
   }
 }
 
-void sample_face_attribute(const Span<MLoopTri> looptris,
+void sample_face_attribute(const Span<int> looptri_polys,
                            const Span<int> looptri_indices,
                            const GVArray &src,
                            const IndexMask mask,
@@ -132,7 +131,7 @@ void sample_face_attribute(const Span<MLoopTri> looptris,
   const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
-    sample_face_attribute<T>(looptris, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
+    sample_face_attribute<T>(looptri_polys, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -414,8 +413,8 @@ CornerBaryWeightFromPositionFn::CornerBaryWeightFromPositionFn(GeometrySet geome
 }
 
 void CornerBaryWeightFromPositionFn::call(IndexMask mask,
-                                       mf::Params params,
-                                       mf::Context /*context*/) const
+                                          mf::Params params,
+                                          mf::Context /*context*/) const
 {
   const VArraySpan<float3> sample_positions = params.readonly_single_input<float3>(0, "Position");
   const VArraySpan<int> triangle_indices = params.readonly_single_input<int>(1, "Triangle Index");

@@ -285,14 +285,14 @@ struct anim *IMB_open_anim(const char *filepath,
   if (anim != nullptr) {
     if (colorspace) {
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
-      BLI_strncpy(anim->colorspace, colorspace, sizeof(anim->colorspace));
+      STRNCPY(anim->colorspace, colorspace);
     }
     else {
       colorspace_set_default_role(
           anim->colorspace, sizeof(anim->colorspace), COLOR_ROLE_DEFAULT_BYTE);
     }
 
-    BLI_strncpy(anim->filepath, filepath, sizeof(anim->filepath));
+    STRNCPY(anim->filepath, filepath);
     anim->ib_flags = ib_flags;
     anim->streamindex = streamindex;
   }
@@ -320,7 +320,7 @@ bool IMB_anim_can_produce_frames(const struct anim *anim)
 
 void IMB_suffix_anim(struct anim *anim, const char *suffix)
 {
-  BLI_strncpy(anim->suffix, suffix, sizeof(anim->suffix));
+  STRNCPY(anim->suffix, suffix);
 }
 
 #ifdef WITH_AVI
@@ -850,12 +850,11 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(struct anim *anim)
   return nullptr;
 }
 
-/* postprocess the image in anim->pFrame and do color conversion
- * and deinterlacing stuff.
+/**
+ * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
- * Output is anim->cur_frame_final
+ * Output is `anim->cur_frame_final`.
  */
-
 static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
 {
   ImBuf *ibuf = anim->cur_frame_final;
@@ -1538,7 +1537,7 @@ static bool anim_getnew(struct anim *anim)
     case ANIM_SEQUENCE: {
       ImBuf *ibuf = IMB_loadiffname(anim->filepath, anim->ib_flags, anim->colorspace);
       if (ibuf) {
-        BLI_strncpy(anim->filepath_first, anim->filepath, sizeof(anim->filepath_first));
+        STRNCPY(anim->filepath_first, anim->filepath);
         anim->duration_in_frames = 1;
         IMB_freeImBuf(ibuf);
       }
@@ -1665,8 +1664,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     if (filter_y) {
       IMB_filtery(ibuf);
     }
-    BLI_snprintf(
-        ibuf->filepath, sizeof(ibuf->filepath), "%s.%04d", anim->filepath, anim->cur_position + 1);
+    SNPRINTF(ibuf->filepath, "%s.%04d", anim->filepath, anim->cur_position + 1);
   }
   return ibuf;
 }

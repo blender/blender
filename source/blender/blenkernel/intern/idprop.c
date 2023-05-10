@@ -65,7 +65,7 @@ IDProperty *IDP_NewIDPArray(const char *name)
   IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty prop array");
   prop->type = IDP_IDPARRAY;
   prop->len = 0;
-  BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
+  STRNCPY(prop->name, name);
 
   return prop;
 }
@@ -300,7 +300,7 @@ static IDProperty *idp_generic_copy(const IDProperty *prop, const int UNUSED(fla
 {
   IDProperty *newp = MEM_callocN(sizeof(IDProperty), __func__);
 
-  BLI_strncpy(newp->name, prop->name, MAX_IDPROP_NAME);
+  STRNCPY(newp->name, prop->name);
   newp->type = prop->type;
   newp->flag = prop->flag;
   newp->data.val = prop->data.val;
@@ -369,7 +369,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st, const char *name, int maxncpy)
   }
 
   prop->type = IDP_STRING;
-  BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
+  STRNCPY(prop->name, name);
 
   return prop;
 }
@@ -1005,7 +1005,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
   }
 
   prop->type = type;
-  BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
+  STRNCPY(prop->name, name);
 
   return prop;
 }

@@ -430,7 +430,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
         if (collections[layer] == NULL) {
           char name[MAX_ID_NAME - 2];
 
-          BLI_snprintf(name, sizeof(name), DATA_("Collection %d"), layer + 1);
+          SNPRINTF(name, DATA_("Collection %d"), layer + 1);
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;
@@ -1215,7 +1215,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 
           if (*collection_hidden == NULL) {
             char name[MAX_ID_NAME];
-            BLI_snprintf(name, sizeof(name), DATA_("Hidden %d"), coll_idx + 1);
+            SNPRINTF(name, DATA_("Hidden %d"), coll_idx + 1);
             *collection_hidden = BKE_collection_add(bmain, collection, name);
             (*collection_hidden)->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
           }
@@ -1856,13 +1856,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
               STREQ(node->idname, "ShaderNodeOutputMetallic"))
           {
-            BLI_strncpy(node->idname, "ShaderNodeEeveeMetallic", sizeof(node->idname));
+            STRNCPY(node->idname, "ShaderNodeEeveeMetallic");
             error |= NTREE_DOVERSION_NEED_OUTPUT;
           }
 
           else if (node->type == SH_NODE_EEVEE_SPECULAR &&
                    STREQ(node->idname, "ShaderNodeOutputSpecular")) {
-            BLI_strncpy(node->idname, "ShaderNodeEeveeSpecular", sizeof(node->idname));
+            STRNCPY(node->idname, "ShaderNodeEeveeSpecular");
             error |= NTREE_DOVERSION_NEED_OUTPUT;
           }
 
@@ -1870,14 +1870,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
                    STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
           {
             node->type = SH_NODE_OUTPUT_MATERIAL;
-            BLI_strncpy(node->idname, "ShaderNodeOutputMaterial", sizeof(node->idname));
+            STRNCPY(node->idname, "ShaderNodeOutputMaterial");
           }
 
           else if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
                    STREQ(node->idname, "ShaderNodeEeveeMetallic"))
           {
             node->type = SH_NODE_BSDF_PRINCIPLED;
-            BLI_strncpy(node->idname, "ShaderNodeBsdfPrincipled", sizeof(node->idname));
+            STRNCPY(node->idname, "ShaderNodeBsdfPrincipled");
             node->custom1 = SHD_GLOSSY_MULTI_GGX;
             error |= NTREE_DOVERSION_TRANSPARENCY_EMISSION;
           }
@@ -2085,7 +2085,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * as scene render engine. */
     if (MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
       for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-        BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+        STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
     }
   }
@@ -2094,7 +2094,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Blender Internal removal */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (STR_ELEM(scene->r.engine, "BLENDER_RENDER", "BLENDER_GAME")) {
-        BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+        STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
 
       scene->r.bake_mode = 0;
@@ -2524,7 +2524,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
               if (sl->spacetype == SPACE_VIEW3D) {
                 View3D *v3d = (View3D *)sl;
-                BLI_strncpy(v3d->shading.matcap, default_matcap->name, FILE_MAXFILE);
+                STRNCPY(v3d->shading.matcap, default_matcap->name);
               }
             }
           }
@@ -2576,7 +2576,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (ima->type == IMA_TYPE_R_RESULT) {
           for (int i = 0; i < 8; i++) {
             RenderSlot *slot = MEM_callocN(sizeof(RenderSlot), "Image Render Slot Init");
-            BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", i + 1);
+            SNPRINTF(slot->name, "Slot %d", i + 1);
             BLI_addtail(&ima->renderslots, slot);
           }
         }
@@ -3472,7 +3472,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-      ob->flag &= ~(OB_FLAG_UNUSED_11 | OB_FLAG_UNUSED_12);
+      ob->flag &= ~(OB_FLAG_USE_SIMULATION_CACHE | OB_FLAG_UNUSED_12);
       ob->transflag &= ~(OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK | OB_TRANSFLAG_UNUSED_1);
       ob->shapeflag &= ~OB_SHAPE_FLAG_UNUSED_1;
     }

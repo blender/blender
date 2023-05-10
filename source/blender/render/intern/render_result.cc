@@ -141,7 +141,7 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     rv = MEM_cnew<RenderView>("new render view");
     BLI_addtail(&dst->views, rv);
 
-    BLI_strncpy(rv->name, rview->name, sizeof(rv->name));
+    STRNCPY(rv->name, rview->name);
     rv->rectf = rview->rectf;
     rv->rectz = rview->rectz;
     rv->rect32 = rview->rect32;
@@ -203,9 +203,9 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
   rpass->recty = rl->recty;
   rpass->view_id = view_id;
 
-  BLI_strncpy(rpass->name, name, sizeof(rpass->name));
-  BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
-  BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
+  STRNCPY(rpass->name, name);
+  STRNCPY(rpass->chan_id, chan_id);
+  STRNCPY(rpass->view, viewname);
   RE_render_result_full_channel_name(
       rpass->fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, -1);
 
@@ -273,7 +273,7 @@ RenderResult *render_result_new(Render *re,
     rl = MEM_cnew<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
-    BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
+    STRNCPY(rl->name, view_layer->name);
     rl->layflag = view_layer->layflag;
 
     rl->passflag = view_layer->passflag;
@@ -513,11 +513,11 @@ static void ml_addpass_cb(void *base,
   rl->passflag |= passtype_from_name(name);
 
   /* channel id chars */
-  BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
+  STRNCPY(rpass->chan_id, chan_id);
 
   rpass->rect = rect;
-  BLI_strncpy(rpass->name, name, EXR_PASS_MAXNAME);
-  BLI_strncpy(rpass->view, view, sizeof(rpass->view));
+  STRNCPY(rpass->name, name);
+  STRNCPY(rpass->view, view);
   RE_render_result_full_channel_name(rpass->fullname, nullptr, name, view, rpass->chan_id, -1);
 
   if (view[0] != '\0') {
@@ -533,7 +533,7 @@ static void *ml_addview_cb(void *base, const char *str)
   RenderResult *rr = static_cast<RenderResult *>(base);
 
   RenderView *rv = MEM_cnew<RenderView>("new render view");
-  BLI_strncpy(rv->name, str, EXR_VIEW_MAXNAME);
+  STRNCPY(rv->name, str);
 
   /* For stereo drawing we need to ensure:
    * STEREO_LEFT_NAME  == STEREO_LEFT_ID and
@@ -656,7 +656,7 @@ void render_result_view_new(RenderResult *rr, const char *viewname)
 {
   RenderView *rv = MEM_cnew<RenderView>("new render view");
   BLI_addtail(&rr->views, rv);
-  BLI_strncpy(rv->name, viewname, sizeof(rv->name));
+  STRNCPY(rv->name, viewname);
 }
 
 void render_result_views_new(RenderResult *rr, const RenderData *rd)
@@ -857,8 +857,8 @@ static void render_result_exr_file_cache_path(Scene *sce,
     BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
   }
   else {
-    BLI_strncpy(dirname, BKE_tempdir_base(), sizeof(dirname));
-    BLI_strncpy(filename, "UNSAVED", sizeof(filename));
+    STRNCPY(dirname, BKE_tempdir_base());
+    STRNCPY(filename, "UNSAVED");
   }
   BLI_hash_md5_to_hexdigest(path_digest, path_hexdigest);
 
@@ -867,12 +867,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
     root = BKE_tempdir_base();
   }
 
-  BLI_snprintf(filename_full,
-               sizeof(filename_full),
-               "cached_RR_%s_%s_%s.exr",
-               filename,
-               sce->id.name + 2,
-               path_hexdigest);
+  SNPRINTF(filename_full, "cached_RR_%s_%s_%s.exr", filename, sce->id.name + 2, path_hexdigest);
 
   BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
   if (BLI_path_is_rel(r_path)) {

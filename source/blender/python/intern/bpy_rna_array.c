@@ -192,8 +192,8 @@ static int validate_array_type(PyObject *seq,
         Py_DECREF(item);
 
 #if 0
-        BLI_snprintf(
-            error_str, error_str_size, "sequence items should be of type %s", item_type_str);
+        SNPRINTF(
+            error_str, "sequence items should be of type %s", item_type_str);
 #endif
         PyErr_Format(PyExc_TypeError,
                      "%s expected sequence items of type %s, not %s",

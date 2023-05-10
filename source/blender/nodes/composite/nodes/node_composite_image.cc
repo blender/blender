@@ -113,7 +113,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 
   NodeImageLayer *sockdata = (NodeImageLayer *)sock->storage;
   if (sockdata) {
-    BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
+    STRNCPY(sockdata->pass_name, passname);
   }
 
   /* Reorder sockets according to order that passes are added. */
@@ -710,9 +710,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
     NodeImageLayer *sockdata = MEM_cnew<NodeImageLayer>(__func__);
     sock->storage = sockdata;
 
-    BLI_strncpy(sockdata->pass_name,
-                node_cmp_rlayers_sock_to_pass(sock_index),
-                sizeof(sockdata->pass_name));
+    STRNCPY(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(sock_index));
   }
 }
 

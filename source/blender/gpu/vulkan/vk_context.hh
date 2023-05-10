@@ -45,8 +45,12 @@ class VKContext : public Context, NonCopyable {
   bool debug_capture_scope_begin(void *scope) override;
   void debug_capture_scope_end(void *scope) override;
 
+  bool has_active_framebuffer() const;
   void activate_framebuffer(VKFrameBuffer &framebuffer);
   void deactivate_framebuffer();
+  VKFrameBuffer *active_framebuffer_get() const;
+
+  void sync_backbuffer();
 
   static VKContext *get(void)
   {
@@ -59,9 +63,6 @@ class VKContext : public Context, NonCopyable {
   }
 
   const VKStateManager &state_manager_get() const;
-
- private:
-  bool has_active_framebuffer() const;
 };
 
 }  // namespace blender::gpu

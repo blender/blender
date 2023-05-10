@@ -277,14 +277,13 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area) {
-    BLI_snprintf(msg,
-                 sizeof(msg),
-                 str,
-                 ssc->mode == STITCH_VERT ? TIP_("Vertex") : TIP_("Edge"),
-                 WM_bool_as_string(ssc->snap_islands),
-                 WM_bool_as_string(ssc->midpoints),
-                 ssc->limit_dist,
-                 WM_bool_as_string(ssc->use_limit));
+    SNPRINTF(msg,
+             str,
+             ssc->mode == STITCH_VERT ? TIP_("Vertex") : TIP_("Edge"),
+             WM_bool_as_string(ssc->snap_islands),
+             WM_bool_as_string(ssc->midpoints),
+             ssc->limit_dist,
+             WM_bool_as_string(ssc->use_limit));
 
     ED_workspace_status_text(C, msg);
   }
@@ -2465,7 +2464,7 @@ static StitchState *stitch_select(bContext *C,
   /* add uv under mouse to processed uv's */
   float co[2];
   ARegion *region = CTX_wm_region(C);
-  UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
+  UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 

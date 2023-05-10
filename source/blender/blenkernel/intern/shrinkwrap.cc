@@ -1188,9 +1188,10 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
   const float(*vert_normals)[3] = tree->vert_normals;
+  const int poly_i = tree->mesh->looptri_polys()[looptri_idx];
 
   /* Interpolate smooth normals if enabled. */
-  if (!(tree->sharp_faces && tree->sharp_faces[tri->poly])) {
+  if (!(tree->sharp_faces && tree->sharp_faces[poly_i])) {
     const int vert_indices[3] = {treeData->corner_verts[tri->tri[0]],
                                  treeData->corner_verts[tri->tri[1]],
                                  treeData->corner_verts[tri->tri[2]]};
@@ -1234,7 +1235,7 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   }
   /* Use the polygon normal if flat. */
   else if (tree->poly_normals != nullptr) {
-    copy_v3_v3(r_no, tree->poly_normals[tri->poly]);
+    copy_v3_v3(r_no, tree->poly_normals[poly_i]);
   }
   /* Finally fallback to the looptri normal. */
   else {

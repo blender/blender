@@ -600,11 +600,11 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                    "");
         }
 
-        BLI_snprintf(name, UI_MAX_NAME_STR, "%s", IFACE_(item.socket_name));
+        SNPRINTF(name, "%s", IFACE_(item.socket_name));
         icon = ICON_BLANK1;
       }
       else {
-        BLI_strncpy(name, IFACE_(item.node_name), UI_MAX_NAME_STR);
+        STRNCPY(name, IFACE_(item.node_name));
         icon = ICON_NONE;
       }
 

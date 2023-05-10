@@ -449,7 +449,7 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
   char titlestr[256];
 
   if (icon) {
-    BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
+    SNPRINTF(titlestr, " %s", title);
     uiDefIconTextBut(block,
                      UI_BTYPE_LABEL,
                      0,
@@ -577,7 +577,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 
     if (pup == nullptr) {
       char title[UI_MAX_DRAW_STR];
-      BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
+      SNPRINTF(title, "%s: %s", IFACE_("Report"), report->typestr);
       /* popup_menu stuff does just what we need (but pass meaningful block name) */
       pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
       layout = UI_popup_menu_layout(pup);

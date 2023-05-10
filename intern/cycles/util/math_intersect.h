@@ -216,17 +216,15 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
 
 ccl_device_forceinline bool ray_triangle_intersect_self(const float3 ray_P,
                                                         const float3 ray_D,
-                                                        const float3 tri_a,
-                                                        const float3 tri_b,
-                                                        const float3 tri_c)
+                                                        const float3 verts[3])
 {
   /* Matches logic in ray_triangle_intersect, self intersection test to validate
    * if a ray is going to hit self or might incorrectly hit a neighboring triangle. */
 
   /* Calculate vertices relative to ray origin. */
-  const float3 v0 = tri_a - ray_P;
-  const float3 v1 = tri_b - ray_P;
-  const float3 v2 = tri_c - ray_P;
+  const float3 v0 = verts[0] - ray_P;
+  const float3 v1 = verts[1] - ray_P;
+  const float3 v2 = verts[2] - ray_P;
 
   /* Calculate triangle edges. */
   const float3 e0 = v2 - v0;

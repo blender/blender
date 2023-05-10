@@ -134,6 +134,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->verts_no_face_cache = mesh_src->runtime->verts_no_face_cache;
   mesh_dst->runtime->loose_edges_cache = mesh_src->runtime->loose_edges_cache;
   mesh_dst->runtime->looptris_cache = mesh_src->runtime->looptris_cache;
+  mesh_dst->runtime->looptri_polys_cache = mesh_src->runtime->looptri_polys_cache;
 
   /* Only do tessface if we have no polys. */
   const bool do_tessface = ((mesh_src->totface != 0) && (mesh_src->totpoly == 0));
@@ -1019,22 +1020,14 @@ int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  if (!CustomData_get_layer_named(&mesh.vdata, CD_PROP_FLOAT3, "position")) {
-    CustomData_add_layer_named(
-        &mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
-  }
-  if (!CustomData_get_layer_named(&mesh.edata, CD_PROP_INT32_2D, ".edge_verts")) {
-    CustomData_add_layer_named(
-        &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
-  }
-  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
-    CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_vert");
-  }
-  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_edge")) {
-    CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_edge");
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  blender::bke::AttributeInitConstruct attribute_init;
+
+  /* Try to create attributes if they do not exist. */
+  attributes.add("position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, attribute_init);
+  attributes.add(".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, attribute_init);
+  attributes.add(".corner_vert", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
+  attributes.add(".corner_edge", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
 }
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,

@@ -705,7 +705,7 @@ static void stats_row(int col1,
   *y -= height;
   BLF_draw_default(col1, *y, 0.0f, key, 128);
   char values[128];
-  BLI_snprintf(values, sizeof(values), (value2) ? "%s / %s" : "%s", value1, value2);
+  SNPRINTF(values, (value2) ? "%s / %s" : "%s", value1, value2);
   BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
 }
 

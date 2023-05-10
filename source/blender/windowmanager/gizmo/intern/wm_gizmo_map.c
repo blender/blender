@@ -871,7 +871,7 @@ bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap)
   return true;
 }
 
-BLI_INLINE bool gizmo_selectable_poll(const wmGizmo *gz, void *UNUSED(data))
+static bool gizmo_selectable_poll(const wmGizmo *gz, void *UNUSED(data))
 {
   return (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_SELECT);
 }

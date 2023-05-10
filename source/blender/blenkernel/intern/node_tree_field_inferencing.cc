@@ -363,7 +363,7 @@ static void propagate_data_requirements_from_right_to_left(
   const Span<const bNode *> toposort_result = tree.toposort_right_to_left();
 
   while (true) {
-    /* Node updates may require sevaral passes due to cyclic dependencies caused by simulation
+    /* Node updates may require several passes due to cyclic dependencies caused by simulation
      * input/output nodes. */
     bool need_update = false;
 
@@ -497,7 +497,7 @@ static void propagate_field_status_from_left_to_right(
   const Span<const bNode *> toposort_result = tree.toposort_left_to_right();
 
   while (true) {
-    /* Node updates may require sevaral passes due to cyclic dependencies. */
+    /* Node updates may require several passes due to cyclic dependencies. */
     bool need_update = false;
 
     for (const bNode *node : toposort_result) {

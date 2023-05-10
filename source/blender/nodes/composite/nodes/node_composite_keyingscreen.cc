@@ -52,7 +52,7 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+    STRNCPY(data->tracking_object, tracking_object->name);
   }
 }
 

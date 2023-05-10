@@ -1244,7 +1244,7 @@ void wm_homefile_read_ex(bContext *C,
     }
 
     if (filepath_startup_override) {
-      BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
+      STRNCPY(filepath_startup, filepath_startup_override);
       filepath_startup_is_factory = false;
     }
   }
@@ -1391,7 +1391,7 @@ void wm_homefile_read_ex(bContext *C,
   }
 
   if (app_template_override) {
-    BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
+    STRNCPY(U.app_template, app_template_override);
   }
 
   Main *bmain = CTX_data_main(C);
@@ -1805,7 +1805,7 @@ bool write_crash_blend(void)
 {
   char filepath[FILE_MAX];
 
-  BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
+  STRNCPY(filepath, BKE_main_blendfile_path_from_global());
   BLI_path_extension_replace(filepath, sizeof(filepath), "_crash.blend");
   BlendFileWriteParams params{};
   const bool success = BLO_write_file(G_MAIN, filepath, G.fileflags, &params, nullptr);
@@ -2009,10 +2009,10 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   if (blendfile_path && (blendfile_path[0] != '\0')) {
     const char *basename = BLI_path_basename(blendfile_path);
     int len = strlen(basename) - 6;
-    BLI_snprintf(filename, sizeof(filename), "%.*s_%d_autosave.blend", len, basename, pid);
+    SNPRINTF(filename, "%.*s_%d_autosave.blend", len, basename, pid);
   }
   else {
-    BLI_snprintf(filename, sizeof(filename), "%d_autosave.blend", pid);
+    SNPRINTF(filename, "%d_autosave.blend", pid);
   }
 
   const char *tempdir_base = BKE_tempdir_base();
@@ -2847,7 +2847,7 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
   BLI_filelist_entry_datetime_to_string(
       nullptr, int64_t(stats.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
-    BLI_strncpy(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"), sizeof(date_st));
+    STRNCPY(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"));
   }
 
   /* Size. */
@@ -2980,7 +2980,7 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
-  BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
+  STRNCPY(filepath, BKE_main_blendfile_path(bmain));
   success = wm_file_read_opwrap(C, filepath, op->reports);
 
   if (success) {
@@ -3815,7 +3815,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
-    BLI_snprintf(message, sizeof(message), "Save %u modified image(s)", modified_images_count);
+    SNPRINTF(message, "Save %u modified image(s)", modified_images_count);
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
       uiItemS(layout);

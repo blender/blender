@@ -713,14 +713,14 @@ typedef struct PBVHFaceIter {
   bool *hide_poly_;
   int *face_sets_;
   const int *poly_offsets_;
-  const struct MLoopTri *looptri_;
+  const int *looptri_polys_;
   const int *corner_verts_;
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
   CCGKey subdiv_key_;
 
-  int last_face_index_;
+  int last_poly_index_;
 } PBVHFaceIter;
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);

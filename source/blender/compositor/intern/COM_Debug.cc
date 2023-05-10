@@ -305,7 +305,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
     for (NodeOperation *operation : group->operations_) {
 
-      BLI_snprintf(strbuf, sizeof(strbuf), "_%p", group);
+      SNPRINTF(strbuf, "_%p", group);
       op_groups[operation].push_back(std::string(strbuf));
 
       len += graphviz_operation(
@@ -423,10 +423,10 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     char filepath[FILE_MAX];
 
     if (name.is_empty()) {
-      BLI_snprintf(basename, sizeof(basename), "compositor_%d.dot", file_index_);
+      SNPRINTF(basename, "compositor_%d.dot", file_index_);
     }
     else {
-      BLI_strncpy(basename, (name + ".dot").c_str(), sizeof(basename));
+      STRNCPY(basename, (name + ".dot").c_str());
     }
     BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_session(), basename);
     file_index_++;

@@ -595,7 +595,7 @@ static FCurve *testcurve_with_duplicates()
   /* Create a curve with some duplicate keys. The first ones are all with Y=1, the later repeats
    * increase Y-coordinates on every repeat. */
   FCurve *fcu = BKE_fcurve_create();
-  ED_keyframes_add(fcu, 10); /* Avoid `insert_vert_fcurve`, that deduplicates the keys. */
+  ED_keyframes_add(fcu, 10); /* Avoid `insert_vert_fcurve`, that de-duplicates the keys. */
   set_key(fcu, 0, 1.0f, 1.0f);
   set_key(fcu, 1, 327.16f, 1.0f);
   set_key(fcu, 2, 7.0f, 1.0f);

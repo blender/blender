@@ -414,6 +414,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
   blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
+  const blender::Span<int> looptri_polys = me->looptri_polys();
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
@@ -523,7 +524,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // by the near and far view planes.
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
-    Material *mat = BKE_object_material_get(ob, material_indices[lt->poly] + 1);
+    const int poly_i = looptri_polys[a];
+    Material *mat = BKE_object_material_get(ob, material_indices[poly_i] + 1);
 
     copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);
     copy_v3_v3(v2, vert_positions[corner_verts[lt->tri[1]]]);
@@ -537,7 +539,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     v2[2] += _z_offset;
     v3[2] += _z_offset;
 
-    if (_smooth && (!sharp_faces[lt->poly]) && lnors) {
+    if (_smooth && (!sharp_faces[poly_i]) && lnors) {
       copy_v3_v3(n1, lnors[lt->tri[0]]);
       copy_v3_v3(n2, lnors[lt->tri[1]]);
       copy_v3_v3(n3, lnors[lt->tri[2]]);
@@ -563,7 +565,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
       continue;
     }
 
-    bool fm = (ffa) ? (ffa[lt->poly].flag & FREESTYLE_FACE_MARK) != 0 : false;
+    bool fm = (ffa) ? (ffa[poly_i].flag & FREESTYLE_FACE_MARK) != 0 : false;
     bool em1 = false, em2 = false, em3 = false;
 
     if (fed) {

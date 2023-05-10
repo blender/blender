@@ -408,7 +408,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
   /* Use the image name for the file name. */
   strcpy(file_name, ima->id.name + 2);
 
-  BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
+  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   return file_name;
 }
@@ -442,7 +442,7 @@ static void export_in_memory_texture(Image *ima,
    * So we have to export it. The export will keep the image state intact,
    * so the exported file will not be associated with the image. */
 
-  BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
+  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   char export_path[FILE_MAX];
   BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);

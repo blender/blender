@@ -230,7 +230,13 @@ class CLIP_HT_header(Header):
             row.prop(tool_settings, "use_proportional_edit_mask", text="", icon_only=True)
             sub = row.row(align=True)
             sub.active = tool_settings.use_proportional_edit_mask
-            sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
+            sub.prop_with_popover(
+                tool_settings,
+                "proportional_edit_falloff",
+                text="",
+                icon_only=True,
+                panel="CLIP_PT_proportional_edit",
+            )
 
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
@@ -260,6 +266,22 @@ class CLIP_HT_header(Header):
         sub = row.row(align=True)
         sub.active = sc.show_gizmo
         sub.popover(panel="CLIP_PT_gizmo_display", text="")
+
+
+class CLIP_PT_proportional_edit(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Proportional Editing"
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        col = layout.column()
+        col.active = tool_settings.use_proportional_edit_mask
+
+        col.prop(tool_settings, "proportional_edit_falloff", expand=True)
+        col.prop(tool_settings, "proportional_size")
 
 
 class CLIP_MT_tracking_editor_menus(Menu):
@@ -1928,6 +1950,7 @@ class CLIP_PT_gizmo_display(Panel):
 
 classes = (
     CLIP_UL_tracking_objects,
+    CLIP_PT_proportional_edit,
     CLIP_HT_header,
     CLIP_PT_display,
     CLIP_PT_clip_display,

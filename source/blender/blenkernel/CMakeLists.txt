@@ -186,9 +186,9 @@ set(SRC
   intern/main.c
   intern/main_idmap.c
   intern/main_namemap.cc
-  intern/mask.c
-  intern/mask_evaluate.c
-  intern/mask_rasterize.c
+  intern/mask.cc
+  intern/mask_evaluate.cc
+  intern/mask_rasterize.cc
   intern/material.cc
   intern/mball.cc
   intern/mball_tessellate.cc

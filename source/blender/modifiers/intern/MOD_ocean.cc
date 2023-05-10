@@ -41,8 +41,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #ifdef WITH_OCEANSIM
 static void init_cache_data(Object *ob, OceanModifierData *omd, const int resolution)

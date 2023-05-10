@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -3450,10 +3450,6 @@ msgid "Vertex group for fine control over bending stiffness"
 msgstr "Gruppo vertici per il controllo preciso della rigidità alla flessione"
 
 
-msgid "Mass Vertex Group"
-msgstr "Gruppo Vertici Massa"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Gruppo di Vertici per appuntare i vertici"
 
@@ -5615,10 +5611,6 @@ msgid "Map To"
 msgstr "Mappa Su"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Il tipo di trasformazione che influenza l'oggetto vincolato"
-
-
 msgid "Map To X From"
 msgstr "Mappa Su X Da"
 
@@ -5875,20 +5867,8 @@ msgid "Plane for projected stroke"
 msgstr "Piano per il tratto proiettatto"
 
 
-msgid "Normal/View"
-msgstr "Normale/Vista"
-
-
-msgid "Normal/Surface"
-msgstr "Normale/Superficie"
-
-
 msgid "View"
 msgstr "Vista"
-
-
-msgid "Display aligned to the viewport"
-msgstr "Disegna allineato alla vista"
 
 
 msgid "Detect Corners"
@@ -8074,16 +8054,8 @@ msgid "Maximum distance for the field to work"
 msgstr "Distanza massima a cui il campo lavora"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Distanza minima per il decadimento del campo"
-
-
 msgid "Falloff Power"
 msgstr "Potenza Decadimento"
-
-
-msgid "Fall-Off"
-msgstr "Decadimento"
 
 
 msgid "Cone"
@@ -8232,10 +8204,6 @@ msgstr "Distanza radiale massima a cui il campo lavora"
 
 msgid "Minimum Radial Distance"
 msgstr "Distanza Radiale Minima"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "Distanza radiale minima a cui per il decadimento del campo"
 
 
 msgid "Rest Length"
@@ -8398,16 +8366,8 @@ msgid "Use Min"
 msgstr "Usa il Minimo"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Usa la distanza minima per il decadimento del campo"
-
-
 msgid "Multiple Springs"
 msgstr "Molle Multiple"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "Ogni punto è influenzato da molle multiple"
 
 
 msgid "Use Coordinates"
@@ -8420,10 +8380,6 @@ msgstr "Usa coordinate oggetto/globali per texture"
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "Utilizzare una distanza massima radiale per far lavorare il campo"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "Utilizzare una distanza minima radiale per il decadimento del campo"
 
 
 msgid "Root Texture Coordinates"
@@ -28911,11 +28867,6 @@ msgid "Move to next folder"
 msgstr "Va alla cartella successiva"
 
 
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Cartella Superiore"
-
-
 msgid "Move to parent directory"
 msgstr "Va alla cartella superiore"
 
@@ -36619,10 +36570,6 @@ msgid "Clear Pose Constraints"
 msgstr "Cancella Vincoli Posa"
 
 
-msgid "Clear all the constraints for the selected bones"
-msgstr "Cancella tutti i vincoli nelle ossa selezionate"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Bones"
 msgstr "Copia Vincoli alle Ossa Selezionate"
@@ -38285,15 +38232,6 @@ msgstr "Deinterlaccia Filmati"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Deinterlaccia tutte le sorgenti di filmato selezionate"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Cancella Spezzoni"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Cancella gli spezzoni selezionati dal sequencer"
 
 
 msgid "Duplicate the selected strips"
@@ -42746,10 +42684,6 @@ msgstr "Audio"
 
 msgid "Video"
 msgstr "Video"
-
-
-msgid "FFMPEG Presets"
-msgstr "Preimpostazioni FFMPEG"
 
 
 msgid "Views"
@@ -48108,6 +48042,10 @@ msgid "Goal Vertex Group"
 msgstr "Obiettivi Gruppo di Vertici"
 
 
+msgid "Mass Vertex Group"
+msgstr "Gruppo Vertici Massa"
+
+
 msgctxt "MovieClip"
 msgid "Track"
 msgstr "Traccia"
@@ -50878,14 +50816,6 @@ msgstr "Modifica proporzionale di modifica maschera"
 
 msgid "Proportional editing object mode"
 msgstr "Modalità proporzionale di modifica degli oggetti"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "Modifica Proporzionale Curve-Funzione"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Modifica proporzionale nell'editor Curve-F"
 
 
 msgid "Proportional Editing using screen space locations"
@@ -55361,16 +55291,6 @@ msgstr "Ricalcola Interno"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Copia Vettori"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Incolla Vettori"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Resetta Vettori"
 
@@ -56040,10 +55960,6 @@ msgstr "L'altezza del render deve essere di 480 pixels per DV-NTSC!"
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "L'altezza del render deve essere di 576 pixels per DV-PAL!"
-
-
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG supporta solo l'audio 48khz / stereo per DV!"
 
 
 msgid "Could not open file for writing"
@@ -58435,20 +58351,8 @@ msgid "Frame: %d"
 msgstr "Fotogramma: %d"
 
 
-msgid " (String)"
-msgstr "(Stringa)"
-
-
-msgid " (Vector)"
-msgstr "(Vettore)"
-
-
 msgid "True"
 msgstr "Vero"
-
-
-msgid " (Boolean)"
-msgstr "(Booleano)"
 
 
 msgid "Empty Geometry"
@@ -58618,10 +58522,6 @@ msgstr "Ricrea file"
 
 msgid "unknown error writing file"
 msgstr "errore sconosciuto scrivendo il file"
-
-
-msgid "unknown error stating file"
-msgstr "errore sconosciuto avviando il file"
 
 
 msgid "Could not reopen file"

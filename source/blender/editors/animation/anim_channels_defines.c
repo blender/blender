@@ -4185,7 +4185,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
       acf->name(ale, name);
     }
     else {
-      BLI_strncpy(name, "<No name>", sizeof(name));
+      STRNCPY(name, "<No name>");
     }
 
     /* print type name + ui name */

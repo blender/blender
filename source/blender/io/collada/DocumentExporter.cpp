@@ -236,7 +236,7 @@ int DocumentExporter::exportCurrentScene()
                build_commit_time,
                build_hash);
 #else
-  BLI_snprintf(version_buf, sizeof(version_buf), "Blender %s", BKE_blender_version_string());
+  SNPRINTF(version_buf, "Blender %s", BKE_blender_version_string());
 #endif
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();
