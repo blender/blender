@@ -75,6 +75,18 @@ if(WITH_TBB)
   endif()
 endif()
 
+if(WITH_USD)
+  # USD links libMaterialX, when using pre-compiled libraries
+  # ensures `usd_ms` can find `MaterialXRender` and friends.
+  #
+  # NOTE: This is _only_ needed when linking blender before the install target runs.
+  # Once MATERIALX libraries have been copied into `TARGETDIR_LIB` then Blender will link.
+  # Don't rely on this though as failing on a fresh build is no good and the library
+  # files could get outdated too.
+  if(DEFINED LIBDIR)
+    link_directories(${LIBDIR}/materialx/lib)
+  endif()
+endif()
 
 if(WITH_PYTHON)
   list(APPEND INC ../blender/python)
