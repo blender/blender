@@ -202,6 +202,15 @@ void ModifierSimulationState::ensure_bake_loaded() const
   bake_loaded_ = true;
 }
 
+void ModifierSimulationCache::clear_prev_states()
+{
+  std::lock_guard lock(states_at_frames_mutex_);
+  std::unique_ptr<ModifierSimulationStateAtFrame> temp = std::move(states_at_frames_.last());
+  states_at_frames_.clear_and_shrink();
+  bdata_sharing_.reset();
+  states_at_frames_.append(std::move(temp));
+}
+
 void ModifierSimulationCache::reset()
 {
   std::lock_guard lock(states_at_frames_mutex_);

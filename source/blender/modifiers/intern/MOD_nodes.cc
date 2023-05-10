@@ -1351,6 +1351,14 @@ static GeometrySet compute_geometry(const bNodeTree &btree,
     nmd_orig->runtime_eval_log = eval_log.release();
   }
 
+  if (DEG_is_active(ctx->depsgraph)) {
+    /* When caching is turned off, remove all states except the last which was just created in this
+     * evaluation. Check if active status to avoid changing original data in other depsgraphs. */
+    if (!(ctx->object->flag & OB_FLAG_USE_SIMULATION_CACHE)) {
+      nmd_orig->simulation_cache->clear_prev_states();
+    }
+  }
+
   return output_geometry_set;
 }
 

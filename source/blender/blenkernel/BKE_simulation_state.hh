@@ -181,6 +181,7 @@ class ModifierSimulationCache {
   }
 
   void reset();
+  void clear_prev_states();
 };
 
 }  // namespace blender::bke::sim

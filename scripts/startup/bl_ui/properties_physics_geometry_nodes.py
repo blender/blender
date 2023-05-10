@@ -39,6 +39,11 @@ class PHYSICS_PT_geometry_nodes(Panel):
         row.operator("object.simulation_nodes_cache_bake", text=bake_text).selected = True
         row.operator("object.simulation_nodes_cache_delete", text="", icon='TRASH').selected = True
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        ob = context.object
+        layout.prop(ob, "use_simulation_cache", text="Cache")
+
 
 classes = (
     PHYSICS_PT_geometry_nodes,
