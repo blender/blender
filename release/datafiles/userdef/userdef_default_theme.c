@@ -308,8 +308,8 @@ const bTheme U_theme_default = {
       .sub_back = RGBA(0x0000001f),
     },
     .asset_shelf = {
-      .header_back = RGBA(0x1d1d1dd7),
-      .back = RGBA(0x303030d7),
+      .header_back = RGBA(0x1d1d1dff),
+      .back = RGBA(0x303030ff),
     },
     .grid = RGBA(0x54545480),
     .wire = RGBA(0x000000ff),
