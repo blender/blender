@@ -2143,11 +2143,12 @@ typedef enum CMPNodeStabilizeInverse {
   CMP_NODE_STABILIZE_FLAG_INVERSE = 1,
 } CMPNodeStabilizeInverse;
 
-/* Plane track deform node. */
+#define CMP_NODE_PLANE_TRACK_DEFORM_MOTION_BLUR_SAMPLES_MAX 64
 
-enum {
-  CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR = 1,
-};
+/* Plane track deform node. */
+typedef enum CMPNodePlaneTrackDeformFlags {
+  CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR = 1,
+} CMPNodePlaneTrackDeformFlags;
 
 /* Set Alpha Node. */
 
@@ -2175,8 +2176,6 @@ typedef enum CMPNodeCombSepColorMode {
   CMP_NODE_COMBSEP_COLOR_YCC = 3,
   CMP_NODE_COMBSEP_COLOR_YUV = 4,
 } CMPNodeCombSepColorMode;
-
-#define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 
 /* Point Density shader node */
 
