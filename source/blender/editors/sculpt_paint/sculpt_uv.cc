@@ -665,7 +665,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     int island_index = 0;
     data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
                      UV_SCULPT_TOOL_RELAX :
-                     ts->uvsculpt->paint.brush->uv_sculpt_tool;
+                     eBrushUVSculptTool(ts->uvsculpt->paint.brush->uv_sculpt_tool);
     data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT) ? 1 : 0;
 
     data->uvsculpt = &ts->uvsculpt->paint;
