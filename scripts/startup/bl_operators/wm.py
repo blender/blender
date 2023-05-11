@@ -1102,10 +1102,7 @@ class WM_OT_url_open_preset(Operator):
                     url = url(self, context)
                 break
 
-        import webbrowser
-        webbrowser.open(url)
-
-        return {'FINISHED'}
+        return bpy.ops.wm.url_open(url=url)
 
 
 class WM_OT_path_open(Operator):
@@ -1307,9 +1304,7 @@ class WM_OT_doc_view_manual(Operator):
             )
             return {'CANCELLED'}
         else:
-            import webbrowser
-            webbrowser.open(url)
-            return {'FINISHED'}
+            return bpy.ops.wm.url_open(url=url)
 
 
 class WM_OT_doc_view(Operator):
@@ -1325,10 +1320,7 @@ class WM_OT_doc_view(Operator):
         if url is None:
             return {'CANCELLED'}
 
-        import webbrowser
-        webbrowser.open(url)
-
-        return {'FINISHED'}
+        return bpy.ops.wm.url_open(url=url)
 
 
 rna_path = StringProperty(
