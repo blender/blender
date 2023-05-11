@@ -911,6 +911,26 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void)
   return &((SnapStateIntern *)data_intern->state_intern.last)->snap_state;
 }
 
+void ED_view3d_cursor_snap_state_set(V3DSnapCursorState *state)
+{
+  if (state == &g_data_intern.state_default) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  SnapStateIntern *state_intern = STATE_INTERN_GET(state);
+  if (state_intern == (SnapStateIntern *)g_data_intern.state_intern.last) {
+    return;
+  }
+
+  if (!BLI_remlink_safe(&g_data_intern.state_intern, state_intern)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  BLI_addtail(&g_data_intern.state_intern, state_intern);
+}
+
 static void v3d_cursor_snap_activate(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;

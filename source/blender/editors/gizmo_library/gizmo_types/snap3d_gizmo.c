@@ -270,7 +270,10 @@ static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *gz)
   if (snap_gizmo->snap_state == NULL) {
     snap_cursor_init(snap_gizmo);
   }
-  /* All drawing is handled at the paint cursor. */
+
+  /* All drawing is handled at the paint cursor.
+   * Therefore, make sure that the #V3DSnapCursorState is the one of the gizmo being drawn. */
+  ED_view3d_cursor_snap_state_set(snap_gizmo->snap_state);
 }
 
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
