@@ -340,8 +340,14 @@ ccl_device_forceinline void area_light_update_position(const ccl_global KernelLi
                                                        const float3 P)
 {
   const float invarea = fabsf(klight->area.invarea);
-  ls->D = normalize_len(ls->P - P, &ls->t);
-  ls->pdf = invarea;
+  if (klight->area.tan_half_spread == 0) {
+    /* Update position on the light to keep the direction fixed. */
+    area_light_sample<false>(klight, 0.0f, 0.0f, P, ls);
+  }
+  else {
+    ls->D = normalize_len(ls->P - P, &ls->t);
+    ls->pdf = invarea;
+  }
 
   if (klight->area.normalize_spread > 0) {
     ls->eval_fac = 0.25f * invarea;
