@@ -477,9 +477,9 @@ set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
 
-set(EMBREE_VERSION 4.0.1)
+set(EMBREE_VERSION 4.1.0)
 set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
-set(EMBREE_HASH dd26617719a587e126b341d1b32f7fd0)
+set(EMBREE_HASH 4b525955b08e1249a700dea5b5ffc8b2)
 set(EMBREE_HASH_TYPE MD5)
 set(EMBREE_FILE embree-v${EMBREE_VERSION}.zip)
 
