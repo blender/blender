@@ -248,10 +248,7 @@ struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *sce
                                                                struct wmGizmo *gz);
 
 void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *gz, int flag);
-void ED_gizmotypes_snap_3d_flag_clear(struct wmGizmo *gz, int flag);
-bool ED_gizmotypes_snap_3d_flag_test(struct wmGizmo *gz, int flag);
 
-bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz);
 bool ED_gizmotypes_snap_3d_is_enabled(const struct wmGizmo *gz);
 
 void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
