@@ -40,6 +40,12 @@ class VKVertexBuffer : public VertBuf {
 
  private:
   void allocate();
+  void *convert() const;
 };
+
+static inline VKVertexBuffer *unwrap(VertBuf *vertex_buffer)
+{
+  return static_cast<VKVertexBuffer *>(vertex_buffer);
+}
 
 }  // namespace blender::gpu
