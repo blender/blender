@@ -100,6 +100,10 @@ struct LightTreeMeasure {
   /* Taken from Eq. 2 in the paper. */
   __forceinline float calculate()
   {
+    if (is_zero()) {
+      return 0.0f;
+    }
+
     float area = bbox.area();
     float area_measure = area == 0 ? len(bbox.size()) : area;
     return energy * area_measure * bcone.calculate_measure();
