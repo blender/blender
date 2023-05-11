@@ -349,6 +349,7 @@ DefNode(GeometryNode, GEO_NODE_INPUT_RADIUS, 0, "INPUT_RADIUS", InputRadius, "Ra
 DefNode(GeometryNode, GEO_NODE_INPUT_SCENE_TIME, 0, "INPUT_SCENE_TIME", InputSceneTime, "Scene Time", "Retrieve the current time in the scene's animation in units of seconds or frames")
 DefNode(GeometryNode, GEO_NODE_INPUT_SHADE_SMOOTH, 0, "INPUT_SHADE_SMOOTH", InputShadeSmooth, "Is Shade Smooth", "Retrieve whether each face is marked for smooth shading")
 DefNode(GeometryNode, GEO_NODE_INPUT_SHORTEST_EDGE_PATHS, 0, "SHORTEST_EDGE_PATHS", InputShortestEdgePaths, "Shortest Edge Paths", "")
+DefNode(GeometryNode, GEO_NODE_INPUT_SIGNED_DISTANCE, 0, "SIGNED_DISTANCE", InputSignedDistance, "Signed Distance", "Retrieve the signed distance field grid called 'distance' from a volume")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_CYCLIC, 0, "INPUT_SPLINE_CYCLIC",InputSplineCyclic, "Is Spline Cyclic", "Retrieve whether each spline endpoint connects to the beginning")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_LENGTH, 0, "SPLINE_LENGTH", SplineLength, "Spline Length", "Retrieve the total length of each spline, as a distance or as a number of points")
 DefNode(GeometryNode, GEO_NODE_INPUT_SPLINE_RESOLUTION, 0, "INPUT_SPLINE_RESOLUTION", InputSplineResolution, "Spline Resolution", "Retrieve the number of evaluated points that will be generated for every control point on curves")
