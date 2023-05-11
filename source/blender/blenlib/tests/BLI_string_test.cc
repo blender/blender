@@ -20,6 +20,109 @@ using std::string;
 using std::vector;
 
 /* -------------------------------------------------------------------- */
+/** \name String Copy (UTF8)
+ * \{ */
+
+TEST(string, StrCopyUTF8_ASCII)
+{
+#define STRNCPY_UTF8_ASCII(...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII('a');
+  STRNCPY_UTF8_ASCII('a', 'b', 'c');
+
+#undef STRNCPY_UTF8_ASCII
+}
+
+TEST(string, StrCopyUTF8_ASCII_Truncate)
+{
+#define STRNCPY_UTF8_ASCII_TRUNCATE(maxncpy, ...) \
+  { \
+    char src[] = {__VA_ARGS__}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, maxncpy); \
+    int len_expect = MIN2(sizeof(src), maxncpy) - 1; \
+    src[len_expect] = '\0'; /* To be able to use `EXPECT_STREQ`. */ \
+    EXPECT_EQ(strlen(dst), len_expect); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII_TRUNCATE(1, '\0');
+  STRNCPY_UTF8_ASCII_TRUNCATE(3, 'A', 'A', 'A', 'A');
+
+#undef STRNCPY_UTF8_ASCII_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TruncateEncoding)
+{
+  /* Ensure copying one byte less than the code-point results in it being ignored entirely. */
+#define STRNCPY_UTF8_TRUNCATE(byte_size, ...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, ""); \
+  }
+
+  STRNCPY_UTF8_TRUNCATE(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(3, 224, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(2, 192, 1);
+  STRNCPY_UTF8_TRUNCATE(1, 96);
+
+#undef STRNCPY_UTF8_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TerminateEncodingEarly)
+{
+  /* A UTF8 sequence that has a null byte before the sequence ends.
+   * Ensure the the UTF8 sequence does not step over the null byte. */
+#define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
+  { \
+    char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    for (int i = sizeof(dst) - 1; i > 1; i--) { \
+      src[i] = '\0'; \
+      memset(dst, 0xff, sizeof(dst)); \
+      const int dst_copied = BLI_strncpy_utf8_rlen(dst, src, sizeof(dst)); \
+      EXPECT_STREQ(dst, src); \
+      EXPECT_EQ(strlen(dst), i); \
+      EXPECT_EQ(dst_copied, i); \
+    } \
+  }
+
+  STRNCPY_UTF8_TERMINATE_EARLY(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(3, 224, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(2, 192, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
+
+#undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Partition
  * \{ */
 

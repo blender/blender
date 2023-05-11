@@ -212,21 +212,24 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
  */
 BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t dst_maxncpy)
 {
-  /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning. */
+  /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning.
+   * No need to check `src` points to a nil byte, this will break out of the switch statement. */
   size_t utf8_size;
-  while (*src != '\0' && (utf8_size = utf8_skip_data[(uint8_t)*src]) < dst_maxncpy) {
+  while ((utf8_size = utf8_skip_data[(uint8_t)*src]) < dst_maxncpy) {
     dst_maxncpy -= utf8_size;
     /* Prefer more compact block. */
+    /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
     /* clang-format off */
     switch (utf8_size) {
-      case 6: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 5: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 4: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 3: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 2: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 1: *dst++ = *src++;
+      case 6:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 5:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 4:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 3:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 2:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 1:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++;
     }
     /* clang-format on */
+    /* NOLINTEND: bugprone-assignment-in-if-condition */
   }
   *dst = '\0';
   return dst;
