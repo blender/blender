@@ -329,7 +329,7 @@ UVPackIsland_Params::UVPackIsland_Params()
   only_selected_faces = false;
   use_seams = false;
   correct_aspect = false;
-  pin_method = ED_UVPACK_PIN_NORMAL;
+  pin_method = ED_UVPACK_PIN_DEFAULT;
   pin_unselected = false;
   merge_overlap = false;
   margin = 0.001f;

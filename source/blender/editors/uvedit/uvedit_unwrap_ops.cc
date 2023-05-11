@@ -1452,7 +1452,7 @@ static const EnumPropertyItem pack_shape_method_items[] = {
 };
 
 static const EnumPropertyItem pinned_islands_method_items[] = {
-    {ED_UVPACK_PIN_NORMAL, "NORMAL", 0, "Normal", "Pin information is not used"},
+    {ED_UVPACK_PIN_DEFAULT, "DEFAULT", 0, "Default", "Pin information is not used"},
     {ED_UVPACK_PIN_IGNORED, "IGNORED", 0, "Ignored", "Pinned islands are not packed"},
     {ED_UVPACK_PIN_LOCK_SCALE, "SCALE", 0, "Locked scale", "Pinned islands won't rescale"},
     {ED_UVPACK_PIN_LOCK_ROTATION, "ROTATION", 0, "Locked rotation", "Pinned islands won't rotate"},
@@ -1510,7 +1510,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "pin_method",
                pinned_islands_method_items,
-               ED_UVPACK_PIN_NORMAL,
+               ED_UVPACK_PIN_DEFAULT,
                "Pinned Islands",
                "");
   RNA_def_enum(ot->srna,
