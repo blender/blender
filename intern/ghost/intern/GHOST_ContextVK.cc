@@ -441,6 +441,10 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     return GHOST_kFailure;
   }
 
+  if (m_lastFrame != m_currentFrame) {
+    return GHOST_kSuccess;
+  }
+
   VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
 
   /* Image should be in present src layout before presenting to screen. */
@@ -469,19 +473,13 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
 
   VkSubmitInfo submit_info = {};
   submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-  submit_info.waitSemaphoreCount = 1;
-  submit_info.pWaitSemaphores = &m_image_available_semaphores[m_currentFrame];
   submit_info.pWaitDstStageMask = wait_stages;
   submit_info.commandBufferCount = 1;
   submit_info.pCommandBuffers = &m_command_buffers[m_currentImage];
   submit_info.signalSemaphoreCount = 1;
   submit_info.pSignalSemaphores = &m_render_finished_semaphores[m_currentFrame];
 
-  assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
   VkDevice device = vulkan_device->device;
-  if (m_currentFrame != m_lastFrame) {
-    vkResetFences(device, 1, &m_in_flight_fences[m_currentFrame]);
-  }
 
   VkResult result;
   VK_CHECK(vkQueueSubmit(m_graphic_queue, 1, &submit_info, m_in_flight_fences[m_currentFrame]));
@@ -516,6 +514,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   }
 
   m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+  vkResetFences(device, 1, &m_in_flight_fences[m_currentFrame]);
 
   return GHOST_kSuccess;
 }
@@ -530,9 +529,6 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanBackbuffer(
   if (m_currentFrame != m_lastFrame) {
     assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
     VkDevice device = vulkan_device->device;
-    vkWaitForFences(device, 1, &m_in_flight_fences[m_currentFrame], VK_TRUE, UINT64_MAX);
-    vkResetFences(device, 1, &m_in_flight_fences[m_currentFrame]);
-
     vkAcquireNextImageKHR(device,
                           m_swapchain,
                           UINT64_MAX,
