@@ -1018,9 +1018,42 @@ class WM_OT_url_open(Operator):
         description="URL to open",
     )
 
+    @staticmethod
+    def _add_utm_param_to_url(url, utm_source):
+        import urllib
+
+        # Make sure we have a scheme otherwise we can't parse the url.
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+
+        # Parse the URL to get its domain and query parameters.
+        parsed_url = urllib.parse.urlparse(url)
+        domain = parsed_url.netloc
+
+        # Only add a utm source if it points to a blender.org domain.
+        if not (domain.endswith(".blender.org") or domain == "blender.org"):
+            return url
+
+        # Parse the query parameters and add or update the utm_source parameter.
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        query_params["utm_source"] = utm_source
+        new_query = urllib.parse.urlencode(query_params, doseq=True)
+
+        # Create a new URL with the updated query parameters.
+        new_url_parts = list(parsed_url)
+        new_url_parts[4] = new_query
+        new_url = urllib.parse.urlunparse(new_url_parts)
+
+        return new_url
+
+    @staticmethod
+    def _get_utm_source():
+        return "blender"
+
     def execute(self, _context):
         import webbrowser
-        webbrowser.open(self.url)
+        complete_url = self._add_utm_param_to_url(self.url, self._get_utm_source())
+        webbrowser.open(complete_url)
         return {'FINISHED'}
 
 
