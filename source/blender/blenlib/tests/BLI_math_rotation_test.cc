@@ -176,15 +176,15 @@ TEST(math_rotation, mat3_normalized_to_quat_fast_degenerate)
    * particular matrix was taken from a production file of Pet Projects that
    * caused problems. */
   const float input[3][3] = {
-      {0.970698, -0.000001, -0.253102},
-      {-0.213197, 1.000000, -0.363476},
-      {0.110873, -0.000002, 0.896563},
+      {1.0000000000, -0.0000006315, -0.0000000027},
+      {0.0000009365, 1.0000000000, -0.0000000307},
+      {0.0000001964, 0.2103530765, 0.9776254892},
   };
   const float expect_quat[4] = {
-      0.989793062210083,
-      -0.09302811324596405,
-      0.0931563451886177,
-      0.05456572398543358,
+      0.99860459566116333,
+      -0.052810292690992355,
+      4.9985139582986449e-08,
+      -3.93654971730939e-07,
   };
   ASSERT_FLOAT_EQ(1.0f, dot_qtqt(expect_quat, expect_quat))
       << "expected quaternion should be normal";
