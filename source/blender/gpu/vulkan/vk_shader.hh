@@ -28,7 +28,7 @@ class VKShader : public Shader {
   bool compilation_failed_ = false;
   VkDescriptorSetLayout layout_ = VK_NULL_HANDLE;
   VkPipelineLayout pipeline_layout_ = VK_NULL_HANDLE;
-  VKPipeline compute_pipeline_;
+  VKPipeline pipeline_;
 
  public:
   VKShader(const char *name);
@@ -70,6 +70,10 @@ class VKShader : public Shader {
 
   const VKShaderInterface &interface_get() const;
 
+  void update_graphics_pipeline(VKContext &context,
+                                const GPUPrimType prim_type,
+                                const VKVertexAttributeObject &vertex_attribute_object);
+
  private:
   Vector<uint32_t> compile_glsl_to_spirv(Span<const char *> sources, shaderc_shader_kind kind);
   void build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *r_shader_module);
@@ -80,7 +84,6 @@ class VKShader : public Shader {
                                        const VKShaderInterface &shader_interface,
                                        const shader::ShaderCreateInfo &info);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
-  bool finalize_graphics_pipeline(VkDevice vk_device);
 
   bool is_graphics_shader() const
   {
@@ -92,5 +95,15 @@ class VKShader : public Shader {
     return compute_module_ != VK_NULL_HANDLE;
   }
 };
+
+static inline VKShader &unwrap(Shader &shader)
+{
+  return static_cast<VKShader &>(shader);
+}
+
+static inline VKShader *unwrap(Shader *shader)
+{
+  return static_cast<VKShader *>(shader);
+}
 
 }  // namespace blender::gpu

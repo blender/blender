@@ -9,8 +9,11 @@
 
 #include "vk_backend.hh"
 #include "vk_framebuffer.hh"
+#include "vk_immediate.hh"
 #include "vk_memory.hh"
+#include "vk_shader.hh"
 #include "vk_state_manager.hh"
+#include "vk_texture.hh"
 
 #include "GHOST_C-api.h"
 
@@ -29,6 +32,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   }
 
   state_manager = new VKStateManager();
+  imm = new VKImmediate();
 
   /* For off-screen contexts. Default frame-buffer is empty. */
   VKFrameBuffer *framebuffer = new VKFrameBuffer("back_left");
@@ -36,7 +40,11 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   active_fb = framebuffer;
 }
 
-VKContext::~VKContext() {}
+VKContext::~VKContext()
+{
+  delete imm;
+  imm = nullptr;
+}
 
 void VKContext::sync_backbuffer()
 {
@@ -85,9 +93,15 @@ void VKContext::activate()
   is_active_ = true;
 
   sync_backbuffer();
+
+  immActivate();
 }
 
-void VKContext::deactivate() {}
+void VKContext::deactivate()
+{
+  immDeactivate();
+  is_active_ = false;
+}
 
 void VKContext::begin_frame()
 {
@@ -106,9 +120,6 @@ void VKContext::flush()
 
 void VKContext::finish()
 {
-  if (has_active_framebuffer()) {
-    deactivate_framebuffer();
-  }
   command_buffer_.submit();
 }
 
@@ -123,7 +134,16 @@ const VKStateManager &VKContext::state_manager_get() const
   return *static_cast<const VKStateManager *>(state_manager);
 }
 
+VKStateManager &VKContext::state_manager_get()
+{
+  return *static_cast<VKStateManager *>(state_manager);
+}
+
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Framebuffer
+ * \{ */
 
 void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)
 {
@@ -148,12 +168,47 @@ bool VKContext::has_active_framebuffer() const
 
 void VKContext::deactivate_framebuffer()
 {
-  BLI_assert(active_fb != nullptr);
   VKFrameBuffer *framebuffer = active_framebuffer_get();
+  BLI_assert(framebuffer != nullptr);
   if (framebuffer->is_valid()) {
     command_buffer_.end_render_pass(*framebuffer);
   }
   active_fb = nullptr;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compute pipeline
+ * \{ */
+
+void VKContext::bind_compute_pipeline()
+{
+  VKShader *shader = unwrap(this->shader);
+  BLI_assert(shader);
+  VKPipeline &pipeline = shader->pipeline_get();
+  pipeline.update_and_bind(
+      *this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Graphics pipeline
+ * \{ */
+
+void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
+                                       const VKVertexAttributeObject &vertex_attribute_object)
+{
+  VKShader *shader = unwrap(this->shader);
+  BLI_assert(shader);
+  shader->update_graphics_pipeline(*this, prim_type, vertex_attribute_object);
+
+  VKPipeline &pipeline = shader->pipeline_get();
+  pipeline.update_and_bind(
+      *this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_GRAPHICS);
+}
+
+/** \} */
 
 }  // namespace blender::gpu

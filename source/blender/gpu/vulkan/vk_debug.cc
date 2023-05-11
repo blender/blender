@@ -118,6 +118,7 @@ void object_label(VkObjectType vk_object_type, uint64_t object_handle, const cha
     const VKDevice &device = VKBackend::get().device_get();
     const VKDebuggingTools &debugging_tools = device.debugging_tools_get();
     if (debugging_tools.enabled) {
+      const VKDevice &device = VKBackend::get().device_get();
       VkDebugUtilsObjectNameInfoEXT info = {};
       info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
       info.objectType = vk_object_type;

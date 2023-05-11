@@ -56,6 +56,7 @@ void VKVertexBuffer::acquire_data()
   }
 
   /* Discard previous data if any. */
+  /* TODO: Use mapped memory. */
   MEM_SAFE_FREE(data);
   data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }

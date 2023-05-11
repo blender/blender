@@ -61,4 +61,15 @@ class VKBuffer {
   void unmap();
 };
 
+/**
+ * Helper struct to enable buffers to be bound with an offset.
+ *
+ * VKImmediate mode uses a single VKBuffer with multiple vertex layouts. Those layouts are send to
+ * the command buffer containing an offset.
+ */
+struct VKBufferWithOffset {
+  VKBuffer &buffer;
+  VkDeviceSize offset;
+};
+
 }  // namespace blender::gpu

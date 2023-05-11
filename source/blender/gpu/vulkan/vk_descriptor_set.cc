@@ -7,6 +7,7 @@
 
 #include "vk_descriptor_set.hh"
 #include "vk_index_buffer.hh"
+#include "vk_sampler.hh"
 #include "vk_shader.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
@@ -27,7 +28,6 @@ VKDescriptorSet::~VKDescriptorSet()
 {
   if (vk_descriptor_set_ != VK_NULL_HANDLE) {
     /* Handle should be given back to the pool. */
-    BLI_assert(VKContext::get());
     VKDevice &device = VKBackend::get().device_;
     device.descriptor_pools_get().free(*this);
     BLI_assert(vk_descriptor_set_ == VK_NULL_HANDLE);
@@ -81,7 +81,17 @@ void VKDescriptorSetTracker::image_bind(VKTexture &texture,
 {
   Binding &binding = ensure_location(location);
   binding.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  binding.vk_image_view = texture.vk_image_view_handle();
+  binding.texture = &texture;
+}
+
+void VKDescriptorSetTracker::bind(VKTexture &texture,
+                                  const VKDescriptorSet::Location location,
+                                  VKSampler &sampler)
+{
+  Binding &binding = ensure_location(location);
+  binding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  binding.texture = &texture;
+  binding.vk_sampler = sampler.vk_handle();
 }
 
 VKDescriptorSetTracker::Binding &VKDescriptorSetTracker::ensure_location(
@@ -101,6 +111,7 @@ VKDescriptorSetTracker::Binding &VKDescriptorSetTracker::ensure_location(
 
 void VKDescriptorSetTracker::update(VKContext &context)
 {
+  BLI_assert(layout_ != VK_NULL_HANDLE);
   tracked_resource_for(context, !bindings_.is_empty());
   std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
   VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
@@ -132,9 +143,12 @@ void VKDescriptorSetTracker::update(VKContext &context)
     if (!binding.is_image()) {
       continue;
     }
+    /* When updating the descriptor sets the layout of the texture should already be updated. */
+    binding.texture->layout_ensure(context, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     VkDescriptorImageInfo image_info = {};
-    image_info.imageView = binding.vk_image_view;
-    image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    image_info.sampler = binding.vk_sampler;
+    image_info.imageView = binding.texture->vk_image_view_handle();
+    image_info.imageLayout = binding.texture->current_layout_get();
     image_infos.append(image_info);
 
     VkWriteDescriptorSet write_descriptor = {};
@@ -150,7 +164,6 @@ void VKDescriptorSetTracker::update(VKContext &context)
   BLI_assert_msg(image_infos.size() + buffer_infos.size() == descriptor_writes.size(),
                  "Not all changes have been converted to a write descriptor. Check "
                  "`Binding::is_buffer` and `Binding::is_image`.");
-
   const VKDevice &device = VKBackend::get().device_get();
   vkUpdateDescriptorSets(
       device.device_get(), descriptor_writes.size(), descriptor_writes.data(), 0, nullptr);
@@ -158,7 +171,7 @@ void VKDescriptorSetTracker::update(VKContext &context)
   bindings_.clear();
 }
 
-std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext &context)
+std::unique_ptr<VKDescriptorSet> VKDescriptorSetTracker::create_resource(VKContext & /*context*/)
 {
   VKDevice &device = VKBackend::get().device_;
   return device.descriptor_pools_get().allocate(layout_);

@@ -159,6 +159,14 @@ template<typename Resource> class VKResourceTracker : NonCopyable {
   virtual std::unique_ptr<Resource> create_resource(VKContext &context) = 0;
 
   /**
+   * Does this instance have an active resource.
+   */
+  bool has_active_resource()
+  {
+    return !tracked_resources_.is_empty();
+  }
+
+  /**
    * Return the active resource of the tracker.
    */
   std::unique_ptr<Resource> &active_resource()

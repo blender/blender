@@ -81,6 +81,7 @@ bool VKDescriptorPools::is_last_pool_active()
 std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
     const VkDescriptorSetLayout &descriptor_set_layout)
 {
+  BLI_assert(descriptor_set_layout != VK_NULL_HANDLE);
   VkDescriptorSetAllocateInfo allocate_info = {};
   VkDescriptorPool pool = active_pool_get();
   allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
