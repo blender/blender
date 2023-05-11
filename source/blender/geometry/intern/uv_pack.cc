@@ -628,7 +628,6 @@ static void pack_gobel(const Span<UVAABBIsland *> aabbs,
 /* Attempt to find an "Optimal" packing of the islands, e.g. assuming squares or circles. */
 static void pack_islands_optimal_pack(const Span<UVAABBIsland *> aabbs,
                                       const UVPackIsland_Params &params,
-                                      const bool all_can_rotate,
                                       MutableSpan<uv_phi> r_phis,
                                       rctf *r_extent)
 {
@@ -1449,8 +1448,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   }
 
   if (all_can_translate) {
-    pack_islands_optimal_pack(
-        aabbs.as_span().take_front(max_box_pack), params, all_can_rotate, r_phis, &extent);
+    pack_islands_optimal_pack(aabbs.as_span().take_front(max_box_pack), params, r_phis, &extent);
   }
 
   /* Call box_pack_2d (slow for large N.) */
