@@ -519,7 +519,7 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
     return;
   }
 
-  state = static_cast<V3DSnapCursorState *>(ED_view3d_cursor_snap_active());
+  state = static_cast<V3DSnapCursorState *>(ED_view3d_cursor_snap_state_create());
   drop->draw_data = state;
   state->draw_plane = true;
 
@@ -547,7 +547,7 @@ static void view3d_ob_drop_draw_deactivate(struct wmDropBox *drop, wmDrag * /*dr
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
-    ED_view3d_cursor_snap_deactive(state);
+    ED_view3d_cursor_snap_state_free(state);
     drop->draw_data = nullptr;
   }
 }
@@ -781,7 +781,7 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
   /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
   BLI_assert(drag->type != WM_DRAG_ASSET);
 
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   float obmat_final[4][4];
 
   view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
@@ -1980,7 +1980,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
       Object *ob = base->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
       if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
-          (ob->mode != OB_MODE_OBJECT)) {
+          (ob->mode != OB_MODE_OBJECT))
+      {
         CTX_data_id_pointer_set(result, &ob->id);
       }
     }

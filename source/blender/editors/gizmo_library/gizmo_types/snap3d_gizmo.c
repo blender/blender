@@ -117,7 +117,7 @@ static V3DSnapCursorState *gizmo_snap_state_from_rna_get(struct PointerRNA *ptr)
     return snap_gizmo->snap_state;
   }
 
-  return ED_view3d_cursor_snap_state_get();
+  return ED_view3d_cursor_snap_state_active_get();
 }
 
 static int gizmo_snap_rna_snap_elements_force_get_fn(struct PointerRNA *ptr,
@@ -150,7 +150,7 @@ static void gizmo_snap_rna_prevpoint_set_fn(struct PointerRNA *ptr,
                                             const float *values)
 {
   V3DSnapCursorState *snap_state = gizmo_snap_state_from_rna_get(ptr);
-  ED_view3d_cursor_snap_prevpoint_set(snap_state, values);
+  ED_view3d_cursor_snap_state_prevpoint_set(snap_state, values);
 }
 
 static void gizmo_snap_rna_location_get_fn(struct PointerRNA *UNUSED(ptr),
@@ -194,7 +194,7 @@ static void gizmo_snap_rna_snap_elem_index_get_fn(struct PointerRNA *UNUSED(ptr)
 static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
 {
   if (snap_gizmo->snap_state) {
-    ED_view3d_cursor_snap_deactive(snap_gizmo->snap_state);
+    ED_view3d_cursor_snap_state_free(snap_gizmo->snap_state);
     snap_gizmo->snap_state = NULL;
   }
 }
@@ -224,7 +224,7 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 
 static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
 {
-  snap_gizmo->snap_state = ED_view3d_cursor_snap_active();
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
   snap_gizmo->snap_state->draw_point = true;
   snap_gizmo->snap_state->draw_plane = false;
 
@@ -255,7 +255,7 @@ static void snap_gizmo_draw(const bContext *UNUSED(C), wmGizmo *gz)
 
   /* All drawing is handled at the paint cursor.
    * Therefore, make sure that the #V3DSnapCursorState is the one of the gizmo being drawn. */
-  ED_view3d_cursor_snap_state_set(snap_gizmo->snap_state);
+  ED_view3d_cursor_snap_state_active_set(snap_gizmo->snap_state);
 }
 
 static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
