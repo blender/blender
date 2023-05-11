@@ -1980,8 +1980,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
       Object *ob = base->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
       if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
-          (ob->mode != OB_MODE_OBJECT))
-      {
+          (ob->mode != OB_MODE_OBJECT)) {
         CTX_data_id_pointer_set(result, &ob->id);
       }
     }

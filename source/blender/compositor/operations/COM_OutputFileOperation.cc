@@ -457,10 +457,8 @@ void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer
     OutputOpenExrLayer &layer = layers_[i];
     int layer_num_channels = COM_data_type_num_channels(layer.datatype);
     if (layer.output_buffer) {
-      MemoryBuffer output_buf(layer.output_buffer,
-                              layer_num_channels,
-                              this->get_width(),
-                              this->get_height());
+      MemoryBuffer output_buf(
+          layer.output_buffer, layer_num_channels, this->get_width(), this->get_height());
       /* Input node always has 4 channels. Not all are needed depending on datatype. */
       output_buf.copy_from(inputs[i], area, 0, layer_num_channels, 0);
     }

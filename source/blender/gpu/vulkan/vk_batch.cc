@@ -34,8 +34,11 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   if (draw_indexed) {
     index_buffer->upload_data();
     index_buffer->bind(context);
-    context.command_buffer_get().draw(
-        index_buffer->index_len_get(), instance_count, index_buffer->index_start_get(), vertex_first, instance_first);
+    context.command_buffer_get().draw(index_buffer->index_len_get(),
+                                      instance_count,
+                                      index_buffer->index_start_get(),
+                                      vertex_first,
+                                      instance_first);
   }
   else {
     context.command_buffer_get().draw(vertex_first, vertex_count, instance_first, instance_count);
