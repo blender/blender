@@ -45,9 +45,11 @@ void VKIndexBuffer::bind_as_ssbo(uint binding)
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
-  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(
-      shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER, binding);
-  shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, location);
+  const std::optional<VKDescriptorSet::Location> location =
+      shader_interface.descriptor_set_location(
+          shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER, binding);
+  BLI_assert_msg(location, "Locations to SSBOs should always exist.");
+  shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, *location);
 }
 
 void VKIndexBuffer::read(uint32_t *data) const

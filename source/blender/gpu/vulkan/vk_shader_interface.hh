@@ -38,7 +38,7 @@ class VKShaderInterface : public ShaderInterface {
 
   const VKDescriptorSet::Location descriptor_set_location(
       const shader::ShaderCreateInfo::Resource &resource) const;
-  const VKDescriptorSet::Location descriptor_set_location(
+  const std::optional<VKDescriptorSet::Location> descriptor_set_location(
       const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const;
 
   /** Get the Layout of the shader. */
