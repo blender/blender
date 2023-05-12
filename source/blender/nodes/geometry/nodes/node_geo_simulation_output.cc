@@ -581,206 +581,209 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
       }
     }
   }
+}
 
-  static void mix_simulation_state(
-      const NodeSimulationItem &item, void *prev, const void *next, const float factor)
+static void mix_simulation_state(const NodeSimulationItem &item,
+                                 void *prev,
+                                 const void *next,
+                                 const float factor)
+{
+  switch (eNodeSocketDatatype(item.socket_type)) {
+    case SOCK_GEOMETRY: {
+      mix_geometries(
+          *static_cast<GeometrySet *>(prev), *static_cast<const GeometrySet *>(next), factor);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_INT:
+    case SOCK_BOOLEAN:
+    case SOCK_RGBA: {
+      const CPPType &type = get_simulation_item_cpp_type(item);
+      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
+          type);
+      if (value_or_field_type.is_field(prev) || value_or_field_type.is_field(next)) {
+        /* Fields are evaluated on geometries and are mixed there. */
+        break;
+      }
+
+      void *prev = value_or_field_type.get_value_ptr(prev);
+      const void *next = value_or_field_type.get_value_ptr(next);
+      bke::attribute_math::convert_to_static_type(value_or_field_type.value, [&](auto dummy) {
+        using T = decltype(dummy);
+        *static_cast<T *>(prev) = bke::attribute_math::mix2(
+            factor, *static_cast<T *>(prev), *static_cast<const T *>(next));
+      });
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+class LazyFunctionForSimulationOutputNode final : public LazyFunction {
+  const bNode &node_;
+  Span<NodeSimulationItem> simulation_items_;
+
+ public:
+  LazyFunctionForSimulationOutputNode(const bNode &node,
+                                      GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
+      : node_(node)
   {
-    switch (eNodeSocketDatatype(item.socket_type)) {
-      case SOCK_GEOMETRY: {
-        mix_geometries(
-            *static_cast<GeometrySet *>(prev), *static_cast<const GeometrySet *>(next), factor);
-        break;
-      }
-      case SOCK_FLOAT:
-      case SOCK_VECTOR:
-      case SOCK_INT:
-      case SOCK_BOOLEAN:
-      case SOCK_RGBA: {
-        const CPPType &type = get_simulation_item_cpp_type(item);
-        const fn::ValueOrFieldCPPType &value_or_field_type =
-            *fn::ValueOrFieldCPPType::get_from_self(type);
-        if (value_or_field_type.is_field(prev) || value_or_field_type.is_field(next)) {
-          /* Fields are evaluated on geometries and are mixed there. */
-          break;
-        }
+    debug_name_ = "Simulation Output";
+    const NodeGeometrySimulationOutput &storage = node_storage(node);
+    simulation_items_ = {storage.items, storage.items_num};
 
-        void *prev = value_or_field_type.get_value_ptr(prev);
-        const void *next = value_or_field_type.get_value_ptr(next);
-        bke::attribute_math::convert_to_static_type(value_or_field_type.value, [&](auto dummy) {
-          using T = decltype(dummy);
-          *static_cast<T *>(prev) = bke::attribute_math::mix2(
-              factor, *static_cast<T *>(prev), *static_cast<const T *>(next));
-        });
-        break;
-      }
-      default:
-        break;
+    MutableSpan<int> lf_index_by_bsocket = own_lf_graph_info.mapping.lf_index_by_bsocket;
+
+    for (const int i : simulation_items_.index_range()) {
+      const NodeSimulationItem &item = simulation_items_[i];
+      const bNodeSocket &input_bsocket = node.input_socket(i);
+      const bNodeSocket &output_bsocket = node.output_socket(i);
+
+      const CPPType &type = get_simulation_item_cpp_type(item);
+
+      lf_index_by_bsocket[input_bsocket.index_in_tree()] = inputs_.append_and_get_index_as(
+          item.name, type, lf::ValueUsage::Maybe);
+      lf_index_by_bsocket[output_bsocket.index_in_tree()] = outputs_.append_and_get_index_as(
+          item.name, type);
     }
   }
 
-  class LazyFunctionForSimulationOutputNode final : public LazyFunction {
-    const bNode &node_;
-    Span<NodeSimulationItem> simulation_items_;
+  void *init_storage(LinearAllocator<> &allocator) const
+  {
+    return allocator.construct<EvalData>().release();
+  }
 
-   public:
-    LazyFunctionForSimulationOutputNode(const bNode &node,
-                                        GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
-        : node_(node)
-    {
-      debug_name_ = "Simulation Output";
-      const NodeGeometrySimulationOutput &storage = node_storage(node);
-      simulation_items_ = {storage.items, storage.items_num};
+  void destruct_storage(void *storage) const
+  {
+    std::destroy_at(static_cast<EvalData *>(storage));
+  }
 
-      MutableSpan<int> lf_index_by_bsocket = own_lf_graph_info.mapping.lf_index_by_bsocket;
+  void execute_impl(lf::Params &params, const lf::Context &context) const final
+  {
+    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesModifierData &modifier_data = *user_data.modifier_data;
+    EvalData &eval_data = *static_cast<EvalData *>(context.storage);
+    BLI_SCOPED_DEFER([&]() { eval_data.is_first_evaluation = false; });
 
-      for (const int i : simulation_items_.index_range()) {
-        const NodeSimulationItem &item = simulation_items_[i];
-        const bNodeSocket &input_bsocket = node.input_socket(i);
-        const bNodeSocket &output_bsocket = node.output_socket(i);
+    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(*user_data.compute_context,
+                                                                      node_.identifier);
 
-        const CPPType &type = get_simulation_item_cpp_type(item);
-
-        lf_index_by_bsocket[input_bsocket.index_in_tree()] = inputs_.append_and_get_index_as(
-            item.name, type, lf::ValueUsage::Maybe);
-        lf_index_by_bsocket[output_bsocket.index_in_tree()] = outputs_.append_and_get_index_as(
-            item.name, type);
-      }
-    }
-
-    void *init_storage(LinearAllocator<> &allocator) const
-    {
-      return allocator.construct<EvalData>().release();
-    }
-
-    void destruct_storage(void *storage) const
-    {
-      std::destroy_at(static_cast<EvalData *>(storage));
-    }
-
-    void execute_impl(lf::Params &params, const lf::Context &context) const final
-    {
-      GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-      GeoNodesModifierData &modifier_data = *user_data.modifier_data;
-      EvalData &eval_data = *static_cast<EvalData *>(context.storage);
-      BLI_SCOPED_DEFER([&]() { eval_data.is_first_evaluation = false; });
-
-      const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(*user_data.compute_context,
-                                                                        node_.identifier);
-
-      const bke::sim::SimulationZoneState *current_zone_state =
-          modifier_data.current_simulation_state ?
-              modifier_data.current_simulation_state->get_zone_state(zone_id) :
-              nullptr;
-      if (eval_data.is_first_evaluation && current_zone_state != nullptr) {
-        /* Common case when data is cached already. */
-        this->output_cached_state(
-            params, *modifier_data.self_object, *user_data.compute_context, *current_zone_state);
-        return;
-      }
-
-      if (modifier_data.current_simulation_state_for_write == nullptr) {
-        const bke::sim::SimulationZoneState *prev_zone_state =
-            modifier_data.prev_simulation_state ?
-                modifier_data.prev_simulation_state->get_zone_state(zone_id) :
-                nullptr;
-        if (prev_zone_state == nullptr) {
-          /* There is no previous simulation state and we also don't create a new one, so just
-           * output defaults. */
-          params.set_default_remaining_outputs();
-          return;
-        }
-        const bke::sim::SimulationZoneState *next_zone_state =
-            modifier_data.next_simulation_state ?
-                modifier_data.next_simulation_state->get_zone_state(zone_id) :
-                nullptr;
-        if (next_zone_state == nullptr) {
-          /* Output the last cached simulation state. */
-          this->output_cached_state(
-              params, *modifier_data.self_object, *user_data.compute_context, *prev_zone_state);
-          return;
-        }
-        /* A previous and next frame is cached already, but the current frame is not. */
-        this->output_mixed_cached_state(params,
-                                        *modifier_data.self_object,
-                                        *user_data.compute_context,
-                                        *prev_zone_state,
-                                        *next_zone_state,
-                                        modifier_data.simulation_state_mix_factor);
-        return;
-      }
-
-      bke::sim::SimulationZoneState &new_zone_state =
-          modifier_data.current_simulation_state_for_write->get_zone_state_for_write(zone_id);
-      if (eval_data.is_first_evaluation) {
-        new_zone_state.item_by_identifier.clear();
-      }
-
-      Array<void *> input_values(simulation_items_.size(), nullptr);
-      for (const int i : simulation_items_.index_range()) {
-        input_values[i] = params.try_get_input_data_ptr_or_request(i);
-      }
-      if (input_values.as_span().contains(nullptr)) {
-        /* Wait until all inputs are available. */
-        return;
-      }
-      values_to_simulation_state(simulation_items_, input_values, new_zone_state);
+    const bke::sim::SimulationZoneState *current_zone_state =
+        modifier_data.current_simulation_state ?
+            modifier_data.current_simulation_state->get_zone_state(zone_id) :
+            nullptr;
+    if (eval_data.is_first_evaluation && current_zone_state != nullptr) {
+      /* Common case when data is cached already. */
       this->output_cached_state(
-          params, *modifier_data.self_object, *user_data.compute_context, new_zone_state);
+          params, *modifier_data.self_object, *user_data.compute_context, *current_zone_state);
+      return;
     }
 
-    void output_cached_state(lf::Params &params,
-                             const Object &self_object,
-                             const ComputeContext &compute_context,
-                             const bke::sim::SimulationZoneState &state) const
-    {
-      Array<void *> output_values(simulation_items_.size());
-      for (const int i : simulation_items_.index_range()) {
-        output_values[i] = params.get_output_data_ptr(i);
+    if (modifier_data.current_simulation_state_for_write == nullptr) {
+      const bke::sim::SimulationZoneState *prev_zone_state =
+          modifier_data.prev_simulation_state ?
+              modifier_data.prev_simulation_state->get_zone_state(zone_id) :
+              nullptr;
+      if (prev_zone_state == nullptr) {
+        /* There is no previous simulation state and we also don't create a new one, so just
+         * output defaults. */
+        params.set_default_remaining_outputs();
+        return;
       }
-      simulation_state_to_values(
-          simulation_items_, state, self_object, compute_context, node_, output_values);
-      for (const int i : simulation_items_.index_range()) {
-        params.output_set(i);
+      const bke::sim::SimulationZoneState *next_zone_state =
+          modifier_data.next_simulation_state ?
+              modifier_data.next_simulation_state->get_zone_state(zone_id) :
+              nullptr;
+      if (next_zone_state == nullptr) {
+        /* Output the last cached simulation state. */
+        this->output_cached_state(
+            params, *modifier_data.self_object, *user_data.compute_context, *prev_zone_state);
+        return;
       }
+      /* A previous and next frame is cached already, but the current frame is not. */
+      this->output_mixed_cached_state(params,
+                                      *modifier_data.self_object,
+                                      *user_data.compute_context,
+                                      *prev_zone_state,
+                                      *next_zone_state,
+                                      modifier_data.simulation_state_mix_factor);
+      return;
     }
 
-    void output_mixed_cached_state(lf::Params &params,
-                                   const Object &self_object,
-                                   const ComputeContext &compute_context,
-                                   const bke::sim::SimulationZoneState &prev_state,
-                                   const bke::sim::SimulationZoneState &next_state,
-                                   const float mix_factor) const
-    {
-      Array<void *> output_values(simulation_items_.size());
-      for (const int i : simulation_items_.index_range()) {
-        output_values[i] = params.get_output_data_ptr(i);
-      }
-      simulation_state_to_values(
-          simulation_items_, prev_state, self_object, compute_context, node_, output_values);
-
-      Array<void *> next_values(simulation_items_.size());
-      LinearAllocator<> allocator;
-      for (const int i : simulation_items_.index_range()) {
-        const CPPType &type = *outputs_[i].type;
-        next_values[i] = allocator.allocate(type.size(), type.alignment());
-      }
-      simulation_state_to_values(
-          simulation_items_, next_state, self_object, compute_context, node_, next_values);
-
-      for (const int i : simulation_items_.index_range()) {
-        mix_simulation_state(simulation_items_[i], output_values[i], next_values[i], mix_factor);
-      }
-
-      for (const int i : simulation_items_.index_range()) {
-        const CPPType &type = *outputs_[i].type;
-        type.destruct(next_values[i]);
-      }
-
-      for (const int i : simulation_items_.index_range()) {
-        params.output_set(i);
-      }
+    bke::sim::SimulationZoneState &new_zone_state =
+        modifier_data.current_simulation_state_for_write->get_zone_state_for_write(zone_id);
+    if (eval_data.is_first_evaluation) {
+      new_zone_state.item_by_identifier.clear();
     }
-  };
+
+    Array<void *> input_values(simulation_items_.size(), nullptr);
+    for (const int i : simulation_items_.index_range()) {
+      input_values[i] = params.try_get_input_data_ptr_or_request(i);
+    }
+    if (input_values.as_span().contains(nullptr)) {
+      /* Wait until all inputs are available. */
+      return;
+    }
+    values_to_simulation_state(simulation_items_, input_values, new_zone_state);
+    this->output_cached_state(
+        params, *modifier_data.self_object, *user_data.compute_context, new_zone_state);
+  }
+
+  void output_cached_state(lf::Params &params,
+                           const Object &self_object,
+                           const ComputeContext &compute_context,
+                           const bke::sim::SimulationZoneState &state) const
+  {
+    Array<void *> output_values(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      output_values[i] = params.get_output_data_ptr(i);
+    }
+    simulation_state_to_values(
+        simulation_items_, state, self_object, compute_context, node_, output_values);
+    for (const int i : simulation_items_.index_range()) {
+      params.output_set(i);
+    }
+  }
+
+  void output_mixed_cached_state(lf::Params &params,
+                                 const Object &self_object,
+                                 const ComputeContext &compute_context,
+                                 const bke::sim::SimulationZoneState &prev_state,
+                                 const bke::sim::SimulationZoneState &next_state,
+                                 const float mix_factor) const
+  {
+    Array<void *> output_values(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      output_values[i] = params.get_output_data_ptr(i);
+    }
+    simulation_state_to_values(
+        simulation_items_, prev_state, self_object, compute_context, node_, output_values);
+
+    Array<void *> next_values(simulation_items_.size());
+    LinearAllocator<> allocator;
+    for (const int i : simulation_items_.index_range()) {
+      const CPPType &type = *outputs_[i].type;
+      next_values[i] = allocator.allocate(type.size(), type.alignment());
+    }
+    simulation_state_to_values(
+        simulation_items_, next_state, self_object, compute_context, node_, next_values);
+
+    for (const int i : simulation_items_.index_range()) {
+      mix_simulation_state(simulation_items_[i], output_values[i], next_values[i], mix_factor);
+    }
+
+    for (const int i : simulation_items_.index_range()) {
+      const CPPType &type = *outputs_[i].type;
+      type.destruct(next_values[i]);
+    }
+
+    for (const int i : simulation_items_.index_range()) {
+      params.output_set(i);
+    }
+  }
+};
 
 }  // namespace blender::nodes::node_geo_simulation_output_cc
 
