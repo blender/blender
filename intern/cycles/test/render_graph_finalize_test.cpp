@@ -1291,7 +1291,7 @@ template<class T> void init_test_curve(array<T> &buffer, T start, T end, int ste
   buffer.resize(steps);
 
   for (int i = 0; i < steps; i++) {
-    buffer[i] = lerp(start, end, float(i) / (steps - 1));
+    buffer[i] = mix(start, end, float(i) / (steps - 1));
   }
 }
 
