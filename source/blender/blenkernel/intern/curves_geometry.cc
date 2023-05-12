@@ -1124,14 +1124,6 @@ static void copy_construct_data(const GSpan src, GMutableSpan dst)
   src.type().copy_construct_n(src.data(), dst.data(), src.size());
 }
 
-static void copy_with_map(const GSpan src, const Span<int> map, GMutableSpan dst)
-{
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    array_utils::gather(src.typed<T>(), map, dst.typed<T>());
-  });
-}
-
 static CurvesGeometry copy_with_removed_points(
     const CurvesGeometry &curves,
     const IndexMask points_to_delete,
@@ -1216,7 +1208,7 @@ static CurvesGeometry copy_with_removed_points(
             attribute.dst.span.copy_from(attribute.src);
           }
           else {
-            copy_with_map(attribute.src, new_curve_orig_indices, attribute.dst.span);
+            bke::attribute_math::gather(attribute.src, new_curve_orig_indices, attribute.dst.span);
           }
         }
       });
