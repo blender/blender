@@ -227,55 +227,43 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
 }
 
 /* Common API. */
-
+/* Compute `eval_fac` and `pdf`. Also sample a new position on the light if `sample_coord`. */
 template<bool in_volume_segment>
-ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
-                                         const float randu,
-                                         const float randv,
-                                         const float3 P,
-                                         ccl_private LightSample *ls)
+ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
+                                       const float3 ray_P,
+                                       ccl_private float3 *light_P,
+                                       ccl_private LightSample *ccl_restrict ls,
+                                       float randu,
+                                       float randv,
+                                       bool sample_coord)
 {
-  ls->P = klight->co;
+  float3 axis_u = klight->area.axis_u;
+  float3 axis_v = klight->area.axis_v;
+  float len_u = klight->area.len_u;
+  float len_v = klight->area.len_v;
 
-  float3 Ng = klight->area.dir;
+  const float3 Ng = klight->area.dir;
+  const float invarea = fabsf(klight->area.invarea);
+  bool sample_rectangle = (klight->area.invarea > 0.0f);
 
-  if (!in_volume_segment) {
-    if (dot(ls->P - P, Ng) > 0.0f) {
-      return false;
-    }
-  }
-
-  const float3 axis_u = klight->area.axis_u;
-  const float3 axis_v = klight->area.axis_v;
-  const float len_u = klight->area.len_u;
-  const float len_v = klight->area.len_v;
-  float invarea = fabsf(klight->area.invarea);
-  bool is_ellipse = (klight->area.invarea < 0.0f);
-  bool sample_rectangle = !is_ellipse;
-  float3 inplane;
+  float3 light_P_new = *light_P;
 
   if (in_volume_segment) {
-    inplane = sample_rectangle ?
-                  rectangle_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv) :
-                  ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
-    ls->P += inplane;
+    light_P_new += sample_rectangle ?
+                       rectangle_sample(
+                           axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv) :
+                       ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
     ls->pdf = invarea;
   }
   else {
-    float3 old_P = ls->P;
-    float3 sample_axis_u = axis_u;
-    float3 sample_axis_v = axis_v;
-    float sample_len_u = len_u;
-    float sample_len_v = len_v;
-
     if (klight->area.normalize_spread > 0) {
-      if (!area_light_spread_clamp_light(P,
+      if (!area_light_spread_clamp_light(ray_P,
                                          Ng,
-                                         &ls->P,
-                                         &sample_axis_u,
-                                         &sample_len_u,
-                                         &sample_axis_v,
-                                         &sample_len_v,
+                                         &light_P_new,
+                                         &axis_u,
+                                         &len_u,
+                                         &axis_v,
+                                         &len_v,
                                          klight->area.tan_half_spread,
                                          &sample_rectangle))
       {
@@ -285,52 +273,81 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
 
     if (sample_rectangle) {
       ls->pdf = area_light_rect_sample(
-          P, &ls->P, sample_axis_u, sample_len_u, sample_axis_v, sample_len_v, randu, randv, true);
+          ray_P, &light_P_new, axis_u, len_u, axis_v, len_v, randu, randv, sample_coord);
     }
     else {
       if (klight->area.tan_half_spread == 0.0f) {
         ls->pdf = 1.0f;
       }
       else {
-        ls->P += ellipse_sample(sample_axis_u * sample_len_u * 0.5f,
-                                sample_axis_v * sample_len_v * 0.5f,
-                                randu,
-                                randv);
-        ls->pdf = 4.0f * M_1_PI_F / (sample_len_u * sample_len_v);
+        if (sample_coord) {
+          light_P_new += ellipse_sample(
+              axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
+        }
+        ls->pdf = 4.0f * M_1_PI_F / (len_u * len_v);
       }
     }
-    inplane = ls->P - old_P;
   }
 
-  const float light_u = dot(inplane, axis_u) / len_u;
-  const float light_v = dot(inplane, axis_v) / len_v;
-
-  /* Sampled point lies outside of the area light. */
-  if (is_ellipse && (sqr(light_u) + sqr(light_v) > 0.25f)) {
-    return false;
+  if (sample_coord) {
+    *light_P = light_P_new;
+    ls->D = normalize_len(*light_P - ray_P, &ls->t);
   }
-  if (!is_ellipse && (fabsf(light_u) > 0.5f || fabsf(light_v) > 0.5f)) {
-    return false;
-  }
-
-  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
-  ls->u = light_v + 0.5f;
-  ls->v = -light_u - light_v;
-
-  ls->Ng = Ng;
-  ls->D = normalize_len(ls->P - P, &ls->t);
 
   ls->eval_fac = 0.25f * invarea;
 
   if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */
     ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
+        ls->D, Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
   }
 
   if (in_volume_segment || (!sample_rectangle && klight->area.tan_half_spread > 0)) {
     ls->pdf *= lamp_light_pdf(Ng, -ls->D, ls->t);
   }
+
+  return ls->eval_fac > 0;
+}
+
+template<bool in_volume_segment>
+ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
+                                         const float randu,
+                                         const float randv,
+                                         const float3 P,
+                                         ccl_private LightSample *ls)
+{
+  ls->P = klight->co;
+  ls->Ng = klight->area.dir;
+
+  if (!in_volume_segment) {
+    if (dot(ls->P - P, ls->Ng) > 0.0f) {
+      return false;
+    }
+  }
+
+  if (!area_light_eval<in_volume_segment>(klight, P, &ls->P, ls, randu, randv, true)) {
+    return false;
+  }
+
+  const float3 inplane = ls->P - klight->co;
+  const float light_u = dot(inplane, klight->area.axis_u) / klight->area.len_u;
+  const float light_v = dot(inplane, klight->area.axis_v) / klight->area.len_v;
+
+  if (!in_volume_segment) {
+    const bool is_ellipse = (klight->area.invarea < 0.0f);
+
+    /* Sampled point lies outside of the area light. */
+    if (is_ellipse && (sqr(light_u) + sqr(light_v) > 0.25f)) {
+      return false;
+    }
+    if (!is_ellipse && (fabsf(light_u) > 0.5f || fabsf(light_v) > 0.5f)) {
+      return false;
+    }
+  }
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+  ls->u = light_v + 0.5f;
+  ls->v = -light_u - light_v;
 
   return true;
 }
@@ -339,20 +356,15 @@ ccl_device_forceinline void area_light_update_position(const ccl_global KernelLi
                                                        ccl_private LightSample *ls,
                                                        const float3 P)
 {
-  const float invarea = fabsf(klight->area.invarea);
   if (klight->area.tan_half_spread == 0) {
     /* Update position on the light to keep the direction fixed. */
-    area_light_sample<false>(klight, 0.0f, 0.0f, P, ls);
+    area_light_eval<false>(klight, P, &ls->P, ls, 0, 0, true);
   }
   else {
     ls->D = normalize_len(ls->P - P, &ls->t);
-    ls->pdf = invarea;
-  }
-
-  if (klight->area.normalize_spread > 0) {
-    ls->eval_fac = 0.25f * invarea;
-    ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
+    area_light_eval<false>(klight, P, &ls->P, ls, 0, 0, false);
+    /* Convert pdf to be in area measure. */
+    ls->pdf /= lamp_light_pdf(ls->Ng, -ls->D, ls->t);
   }
 }
 
@@ -403,60 +415,13 @@ ccl_device_inline bool area_light_sample_from_intersection(
     const float3 ray_D,
     ccl_private LightSample *ccl_restrict ls)
 {
-
-  /* area light */
-  float invarea = fabsf(klight->area.invarea);
-
-  float3 Ng = klight->area.dir;
-  float3 light_P = klight->co;
-
   ls->u = isect->u;
   ls->v = isect->v;
   ls->D = ray_D;
-  ls->Ng = Ng;
+  ls->Ng = klight->area.dir;
 
-  float3 sample_axis_u = klight->area.axis_u;
-  float3 sample_axis_v = klight->area.axis_v;
-  float sample_len_u = klight->area.len_u;
-  float sample_len_v = klight->area.len_v;
-  bool is_ellipse = (klight->area.invarea < 0.0f);
-  bool sample_rectangle = !is_ellipse;
-
-  if (klight->area.normalize_spread > 0) {
-    if (!area_light_spread_clamp_light(ray_P,
-                                       Ng,
-                                       &light_P,
-                                       &sample_axis_u,
-                                       &sample_len_u,
-                                       &sample_axis_v,
-                                       &sample_len_v,
-                                       klight->area.tan_half_spread,
-                                       &sample_rectangle))
-    {
-      return false;
-    }
-  }
-
-  if (sample_rectangle) {
-    ls->pdf = area_light_rect_sample(
-        ray_P, &light_P, sample_axis_u, sample_len_u, sample_axis_v, sample_len_v, 0, 0, false);
-  }
-  else {
-    ls->pdf = klight->area.tan_half_spread == 0.0f ?
-                  1.0f :
-                  4.0f * M_1_PI_F / (sample_len_u * sample_len_v) *
-                      lamp_light_pdf(Ng, -ray_D, ls->t);
-  }
-
-  ls->eval_fac = 0.25f * invarea;
-
-  if (klight->area.normalize_spread > 0) {
-    /* Area Light spread angle attenuation */
-    ls->eval_fac *= area_light_spread_attenuation(
-        ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
-  }
-
-  return ls->eval_fac > 0;
+  float3 light_P = klight->co;
+  return area_light_eval<false>(klight, ray_P, &light_P, ls, 0, 0, false);
 }
 
 template<bool in_volume_segment>
