@@ -31,7 +31,8 @@ IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
   SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
 ENDIF()
 
-SET(PYTHON_VERSION 3.10 CACHE STRING "Python Version (major and minor only)")
+SET(_PYTHON_VERSION_SUPPORTED 3.10)
+SET(PYTHON_VERSION ${_PYTHON_VERSION_SUPPORTED} CACHE STRING "Python Version (major and minor only)")
 MARK_AS_ADVANCED(PYTHON_VERSION)
 
 
@@ -178,8 +179,24 @@ UNSET(_IS_LIB_PATH_DEF)
 # handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(PythonLibsUnix  DEFAULT_MSG
-    PYTHON_LIBRARY PYTHON_LIBPATH PYTHON_INCLUDE_DIR PYTHON_INCLUDE_CONFIG_DIR)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(PythonLibsUnix
+  # NOTE(@ideasman42): Instead of `DEFAULT_MSG` use a custom message because users
+  # may have newer versions Python and not be using pre-compiled libraries
+  # (on other UNIX systems or using an esoteric architecture).
+  # Some Python developers might want to use the newer features of Python too.
+  # While we could automatically detect and use newer versions but this would result in
+  # developers using a configuration which isn't officially supported without realizing it.
+  # So warn that the officially supported Python version is not found and let the developer
+  # explicitly set the newer version if they wish.
+  # From a maintenance perspective it's typically not a problem to support newer versions,
+  # doing so can help ease the process of upgrading too, nevertheless these versions don't
+  # have the same level of testing & support.
+  "\
+'PYTHON_VERSION=${_PYTHON_VERSION_SUPPORTED}' not found! \
+This is the only officially supported version. \
+If you wish to use a newer Python version you may set 'PYTHON_VERSION' \
+however we do not guarantee full compatibility in this case."
+  PYTHON_LIBRARY PYTHON_LIBPATH PYTHON_INCLUDE_DIR PYTHON_INCLUDE_CONFIG_DIR)
 
 IF(PYTHONLIBSUNIX_FOUND)
   # Assign cache items
@@ -215,6 +232,7 @@ IF(PYTHONLIBSUNIX_FOUND)
 ENDIF()
 
 UNSET(_PYTHON_ABI_FLAGS)
+UNSET(_PYTHON_VERSION_SUPPORTED)
 UNSET(_python_SEARCH_DIRS)
 
 MARK_AS_ADVANCED(
