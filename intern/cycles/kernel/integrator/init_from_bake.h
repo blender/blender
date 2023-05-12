@@ -8,6 +8,7 @@
 #include "kernel/film/adaptive_sampling.h"
 #include "kernel/film/light_passes.h"
 
+#include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/path_state.h"
 
 #include "kernel/sample/pattern.h"
@@ -327,6 +328,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     else {
       integrator_path_init_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader_index);
     }
+
+    integrator_split_shadow_catcher(kg, state, &isect, render_buffer);
   }
 
   return true;
