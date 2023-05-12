@@ -96,8 +96,6 @@ void VKVertexAttributeObject::update_bindings(const VKContext &context, VKBatch 
   }
 
   is_valid = true;
-
-  BLI_assert(interface.enabled_attr_mask_ == occupied_attributes);
 }
 
 void VKVertexAttributeObject::update_bindings(VKImmediate &immediate)
