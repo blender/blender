@@ -15,7 +15,7 @@ class ASSETSHELF_PT_display(Panel):
 
         shelf_settings = context.asset_shelf_settings
 
-        layout.prop(shelf_settings, "show_names")
+        layout.prop(shelf_settings, "show_names", text="Names")
 
     @classmethod
     def poll(cls, context):
