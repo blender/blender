@@ -4355,6 +4355,27 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 9)) {
+    /* Fix sound strips with speed factor set to 0. See #107289. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_ACTION) {
+            SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+            saction->cache_display |= TIME_CACHE_SIMULATION_NODES;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -4366,13 +4387,5 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    /* Fix sound strips with speed factor set to 0. See #107289. */
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
-      if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
-      }
-    }
   }
 }
