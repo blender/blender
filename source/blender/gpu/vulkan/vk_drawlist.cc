@@ -5,11 +5,16 @@
  * \ingroup gpu
  */
 
+#include "GPU_batch.h"
+
 #include "vk_drawlist.hh"
 
 namespace blender::gpu {
 
-void VKDrawList::append(GPUBatch * /*batch*/, int /*i_first*/, int /*i_count*/) {}
+void VKDrawList::append(GPUBatch *batch, int instance_first, int instance_count)
+{
+  GPU_batch_draw_advanced(batch, 0, 0, instance_first, instance_count);
+}
 
 void VKDrawList::submit() {}
 
