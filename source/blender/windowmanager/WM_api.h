@@ -1518,6 +1518,7 @@ typedef enum eWM_JobType {
   WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW,
   WM_JOB_TYPE_CALCULATE_SIMULATION_NODES,
   WM_JOB_TYPE_BAKE_SIMULATION_NODES,
+  WM_JOB_TYPE_UV_PACK,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 } eWM_JobType;

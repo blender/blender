@@ -6,6 +6,8 @@
 
 #include "GEO_uv_pack.hh"
 
+#include "BKE_global.h"
+
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
 #include "BLI_boxpack_2d.h"
@@ -338,6 +340,9 @@ UVPackIsland_Params::UVPackIsland_Params()
   udim_base_offset[1] = 0.0f;
   target_aspect_y = 1.0f;
   shape_method = ED_UVPACK_SHAPE_AABB;
+  stop = nullptr;
+  do_update = nullptr;
+  progress = nullptr;
 }
 
 /* Compact representation for AABB packers. */
@@ -1200,6 +1205,13 @@ static int64_t pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
 
   while (i < island_indices.size()) {
 
+    if (params.stop && G.is_break) {
+      *params.stop = true;
+    }
+    if (params.isCancelled()) {
+      break;
+    }
+
     while (traced_islands < i) {
       /* Trace an island that's been solved. (Greedy.) */
       const int64_t island_index = island_indices[traced_islands]->index;
@@ -1308,17 +1320,26 @@ static int64_t pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
     else {
       scan_line = std::max(0, scan_line - 25); /* `-25` must by odd. */
     }
+
+    if (params.progress) {
+      /* We don't (yet) have a good model for how long the pack operation is going
+       * to take, so just update the progress a little bit. */
+      const float previous_progress = *params.progress;
+      *params.do_update = true;
+      const float reduction = island_indices.size() / (island_indices.size() + 0.5f);
+      *params.progress = 1.0f - (1.0f - previous_progress) * reduction;
+    }
   }
 
   if (!is_larger(*r_extent, extent, params)) {
     return 0;
   }
   *r_extent = extent;
-  for (const int64_t i : phis.index_range()) {
-    const int64_t island_index = island_indices[i]->index;
+  for (int64_t j = 0; j < i; j++) {
+    const int64_t island_index = island_indices[j]->index;
     r_phis[island_index] = phis[island_index];
   }
-  return phis.size();
+  return i;
 }
 
 /**
@@ -1434,7 +1455,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       alpaca_cutoff = alpaca_cutoff_fast;
     }
   }
-  const int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
+  int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
 
   rctf extent = {0.0f, 1e30f, 0.0f, 1e30f};
 
@@ -1460,13 +1481,13 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   switch (params.shape_method) {
     case ED_UVPACK_SHAPE_CONVEX:
     case ED_UVPACK_SHAPE_CONCAVE:
-      pack_island_xatlas(aabbs.as_span().take_front(max_box_pack),
-                         islands,
-                         scale,
-                         margin,
-                         params,
-                         r_phis,
-                         &extent);
+      max_box_pack = pack_island_xatlas(aabbs.as_span().take_front(max_box_pack),
+                                        islands,
+                                        scale,
+                                        margin,
+                                        params,
+                                        r_phis,
+                                        &extent);
       break;
     default:
       break;
