@@ -607,12 +607,12 @@ static void mix_simulation_state(const NodeSimulationItem &item,
         break;
       }
 
-      void *prev = value_or_field_type.get_value_ptr(prev);
-      const void *next = value_or_field_type.get_value_ptr(next);
+      void *prev_value = value_or_field_type.get_value_ptr(prev);
+      const void *next_value = value_or_field_type.get_value_ptr(next);
       bke::attribute_math::convert_to_static_type(value_or_field_type.value, [&](auto dummy) {
         using T = decltype(dummy);
-        *static_cast<T *>(prev) = bke::attribute_math::mix2(
-            factor, *static_cast<T *>(prev), *static_cast<const T *>(next));
+        *static_cast<T *>(prev_value) = bke::attribute_math::mix2(
+            factor, *static_cast<T *>(prev_value), *static_cast<const T *>(next_value));
       });
       break;
     }
