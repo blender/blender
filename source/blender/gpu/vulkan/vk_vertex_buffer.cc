@@ -35,11 +35,20 @@ void VKVertexBuffer::bind_as_ssbo(uint binding)
   shader->pipeline_get().descriptor_set_get().bind_as_ssbo(*this, *location);
 }
 
-void VKVertexBuffer::bind_as_texture(uint /*binding*/) {}
+void VKVertexBuffer::bind_as_texture(uint /*binding*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKVertexBuffer::wrap_handle(uint64_t /*handle*/) {}
+void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/) {}
+void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
 void VKVertexBuffer::read(void *data) const
 {
@@ -61,7 +70,14 @@ void VKVertexBuffer::acquire_data()
   data = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
 }
 
-void VKVertexBuffer::resize_data() {}
+void VKVertexBuffer::resize_data()
+{
+  if (usage_ == GPU_USAGE_DEVICE_ONLY) {
+    return;
+  }
+
+  data = (uchar *)MEM_reallocN(data, sizeof(uchar) * this->size_alloc_get());
+}
 
 void VKVertexBuffer::release_data()
 {
@@ -90,7 +106,7 @@ void VKVertexBuffer::upload_data()
     allocate();
   }
 
-  if (flag &= GPU_VERTBUF_DATA_DIRTY) {
+  if (flag & GPU_VERTBUF_DATA_DIRTY) {
     void *data_to_upload = data;
     if (conversion_needed(format)) {
       data_to_upload = convert();
@@ -108,7 +124,10 @@ void VKVertexBuffer::upload_data()
   }
 }
 
-void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/) {}
+void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/)
+{
+  NOT_YET_IMPLEMENTED
+}
 
 void VKVertexBuffer::allocate()
 {
