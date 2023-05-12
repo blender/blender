@@ -152,16 +152,18 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
   uiLayout *layout = panel->layout;
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
+  uiItemL(layout, IFACE_("Catalogs"), ICON_NONE);
 
-  if (library && shelf_settings) {
-    ui::AbstractTreeView *tree_view = UI_block_add_view(
-        *block,
-        "asset catalog tree view",
-        std::make_unique<AssetCatalogSelectorTree>(*library, *shelf_settings));
-
-    ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
+  if (!library || !shelf_settings) {
+    return;
   }
+
+  ui::AbstractTreeView *tree_view = UI_block_add_view(
+      *block,
+      "asset catalog tree view",
+      std::make_unique<AssetCatalogSelectorTree>(*library, *shelf_settings));
+
+  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
 
 void catalog_selector_panel_register(ARegionType *region_type)
