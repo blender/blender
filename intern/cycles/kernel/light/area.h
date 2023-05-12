@@ -328,7 +328,7 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
         ls->D, ls->Ng, klight->area.tan_half_spread, klight->area.normalize_spread);
   }
 
-  if (!sample_rectangle && klight->area.tan_half_spread > 0) {
+  if (in_volume_segment || (!sample_rectangle && klight->area.tan_half_spread > 0)) {
     ls->pdf *= lamp_light_pdf(Ng, -ls->D, ls->t);
   }
 
