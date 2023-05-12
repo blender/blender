@@ -404,6 +404,11 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner, const bool include
     return FILTER_ID_ALL;
   }
 
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_owner)) {
+    /* LibOverride data 'hierarchy root' can virtually point back to any type of ID. */
+    return FILTER_ID_ALL;
+  }
+
   switch ((ID_Type)id_type_owner) {
     case ID_LI:
       return FILTER_ID_LI;
