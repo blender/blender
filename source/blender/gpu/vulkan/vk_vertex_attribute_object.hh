@@ -23,7 +23,7 @@ class VKImmediate;
 using AttributeMask = uint16_t;
 
 class VKVertexAttributeObject {
-public:
+ public:
   bool is_valid = false;
   VkPipelineVertexInputStateCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, NULL};
