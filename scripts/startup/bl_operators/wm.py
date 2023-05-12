@@ -1048,7 +1048,9 @@ class WM_OT_url_open(Operator):
 
     @staticmethod
     def _get_utm_source():
-        return "blender"
+        version = bpy.app.version_string
+        formatted_version = version.replace(' ', '-').lower()
+        return f"blender-{formatted_version}"
 
     def execute(self, _context):
         import webbrowser
