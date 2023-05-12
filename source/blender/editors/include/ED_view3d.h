@@ -336,10 +336,12 @@ typedef struct V3DSnapCursorState {
 } V3DSnapCursorState;
 
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state);
-V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void);
-V3DSnapCursorState *ED_view3d_cursor_snap_active(void);
-void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state);
-void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3]);
+V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get(void);
+void ED_view3d_cursor_snap_state_active_set(V3DSnapCursorState *state);
+V3DSnapCursorState *ED_view3d_cursor_snap_state_create(void);
+void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state);
+void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
+                                               const float prev_point[3]);
 void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
                                        const struct bContext *C,
                                        int x,

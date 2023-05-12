@@ -1070,12 +1070,20 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   }
 
   WM_cursor_wait(false);
+  {
+    Main *bmain = CTX_data_main(C);
+    /* Temporarily set the window context as this was once supported, see: #107759. */
+    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
+    BLI_assert(!CTX_wm_window(C));
 
-  Main *bmain = CTX_data_main(C);
-  BKE_callback_exec_string(
-      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+    CTX_wm_window_set(C, win);
+    BKE_callback_exec_string(
+        bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+    CTX_wm_window_set(C, nullptr);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+    BLI_assert(BKE_main_namemap_validate(bmain));
+  }
 
   return success;
 }
@@ -1457,10 +1465,20 @@ void wm_homefile_read_post(struct bContext *C,
   wm_file_read_post(C, params_file_read_post);
 
   if (params_file_read_post->use_data) {
-    BKE_callback_exec_string(CTX_data_main(C),
+    Main *bmain = CTX_data_main(C);
+    /* Temporarily set the window context as this was once supported, see: #107759. */
+    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
+    BLI_assert(!CTX_wm_window(C));
+
+    CTX_wm_window_set(C, win);
+    BKE_callback_exec_string(bmain,
                              params_file_read_post->success ? BKE_CB_EVT_LOAD_POST :
                                                               BKE_CB_EVT_LOAD_POST_FAIL,
+                             /* `filpath` (empty for home-file reading). */
                              "");
+
+    CTX_wm_window_set(C, nullptr);
   }
 
   if (params_file_read_post->is_alloc) {

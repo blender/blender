@@ -779,6 +779,9 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 
   if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
     list = ED_object_pose_constraint_list(C);
+    if (!list) {
+      return NULL;
+    }
   }
   else {
     list = &ob->constraints;

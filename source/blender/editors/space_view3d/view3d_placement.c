@@ -708,7 +708,7 @@ static bool view3d_interactive_add_calc_snap(bContext *UNUSED(C),
 
 static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
 
   const int plane_axis = snap_state->plane_axis;
   const enum ePlace_SnapTo snap_to = RNA_enum_get(op->ptr, "snap_target");
@@ -726,7 +726,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_active();
+  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_state_create();
   if (snap_state_new) {
     ipd->snap_state = snap_state = snap_state_new;
 
@@ -755,7 +755,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
           C, event, ipd->co_src, ipd->matrix_orient, &ipd->use_snap, &ipd->is_snap_invert) != 0;
 
   snap_state->draw_plane = false;
-  ED_view3d_cursor_snap_prevpoint_set(snap_state, ipd->co_src);
+  ED_view3d_cursor_snap_state_prevpoint_set(snap_state, ipd->co_src);
 
   ipd->orient_axis = plane_axis;
   for (int i = 0; i < 2; i++) {
@@ -910,7 +910,7 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
   UNUSED_VARS(C);
 
   struct InteractivePlaceData *ipd = op->customdata;
-  ED_view3d_cursor_snap_deactive(ipd->snap_state);
+  ED_view3d_cursor_snap_state_free(ipd->snap_state);
 
   if (ipd->region != NULL) {
     if (ipd->draw_handle_view != NULL) {
@@ -1036,7 +1036,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
   if (ipd->step_index == STEP_BASE) {
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_RELEASE) {
-        ED_view3d_cursor_snap_prevpoint_set(ipd->snap_state, ipd->co_src);
+        ED_view3d_cursor_snap_state_prevpoint_set(ipd->snap_state, ipd->co_src);
 
         /* Set secondary plane. */
 
@@ -1265,7 +1265,7 @@ static bool view3d_interactive_add_poll(bContext *C)
 static int idp_rna_plane_axis_get_fn(struct PointerRNA *UNUSED(ptr),
                                      struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   return snap_state->plane_axis;
 }
 
@@ -1273,7 +1273,7 @@ static void idp_rna_plane_axis_set_fn(struct PointerRNA *UNUSED(ptr),
                                       struct PropertyRNA *UNUSED(prop),
                                       int value)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   snap_state->plane_axis = (short)value;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
@@ -1281,7 +1281,7 @@ static void idp_rna_plane_axis_set_fn(struct PointerRNA *UNUSED(ptr),
 static int idp_rna_plane_depth_get_fn(struct PointerRNA *UNUSED(ptr),
                                       struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   return snap_state->plane_depth;
 }
 
@@ -1289,7 +1289,7 @@ static void idp_rna_plane_depth_set_fn(struct PointerRNA *UNUSED(ptr),
                                        struct PropertyRNA *UNUSED(prop),
                                        int value)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   snap_state->plane_depth = value;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
@@ -1297,7 +1297,7 @@ static void idp_rna_plane_depth_set_fn(struct PointerRNA *UNUSED(ptr),
 static int idp_rna_plane_orient_get_fn(struct PointerRNA *UNUSED(ptr),
                                        struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   return snap_state->plane_orient;
 }
 
@@ -1305,7 +1305,7 @@ static void idp_rna_plane_orient_set_fn(struct PointerRNA *UNUSED(ptr),
                                         struct PropertyRNA *UNUSED(prop),
                                         int value)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   snap_state->plane_orient = value;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
@@ -1313,7 +1313,7 @@ static void idp_rna_plane_orient_set_fn(struct PointerRNA *UNUSED(ptr),
 static int idp_rna_snap_target_get_fn(struct PointerRNA *UNUSED(ptr),
                                       struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   if (snap_state->snap_elem_force == SCE_SNAP_MODE_NONE) {
     return PLACE_SNAP_TO_DEFAULT;
   }
@@ -1333,7 +1333,7 @@ static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
     snap_mode = SCE_SNAP_MODE_GEOM;
   }
 
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   snap_state->snap_elem_force = snap_mode;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
@@ -1341,7 +1341,7 @@ static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
 static bool idp_rna_use_plane_axis_auto_get_fn(struct PointerRNA *UNUSED(ptr),
                                                struct PropertyRNA *UNUSED(prop))
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   return snap_state->use_plane_axis_auto;
 }
 
@@ -1349,7 +1349,7 @@ static void idp_rna_use_plane_axis_auto_set_fn(struct PointerRNA *UNUSED(ptr),
                                                struct PropertyRNA *UNUSED(prop),
                                                bool value)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   snap_state->use_plane_axis_auto = value;
   ED_view3d_cursor_snap_state_default_set(snap_state);
 }
@@ -1523,7 +1523,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
 static void preview_plane_free_fn(void *customdata)
 {
   V3DSnapCursorState *snap_state = customdata;
-  ED_view3d_cursor_snap_deactive(snap_state);
+  ED_view3d_cursor_snap_state_free(snap_state);
 }
 
 static bool snap_cursor_poll(ARegion *region, void *data)
@@ -1537,7 +1537,7 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 
 static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_create();
   if (snap_state) {
     snap_state->poll = snap_cursor_poll;
     snap_state->poll_data = gzgroup->type;

@@ -18,7 +18,7 @@
 
 namespace blender::geometry {
 
-bke::CurvesGeometry create_curve_from_vert_indices(
+BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     const bke::AttributeAccessor &mesh_attributes,
     const Span<int> vert_indices,
     const Span<int> curve_offsets,
@@ -51,21 +51,19 @@ bke::CurvesGeometry create_curve_from_vert_indices(
       continue;
     }
 
-    const GVArray mesh_attribute = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
+    const GVArray src = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
-    if (!mesh_attribute) {
+    if (!src) {
       continue;
     }
+    const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.type());
 
     /* Copy attribute based on the map for this curve. */
-    bke::attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      bke::SpanAttributeWriter<T> attribute =
-          curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
-      array_utils::gather<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
-      attribute.finish();
-    });
+    bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, ATTR_DOMAIN_POINT, type);
+    bke::attribute_math::gather(src, vert_indices, dst.span);
+    dst.finish();
   }
 
   return curves;
@@ -80,27 +78,20 @@ struct CurveFromEdgesOutput {
   IndexRange cyclic_curves;
 };
 
-static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
-                                                         const Span<int2> edges)
+BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
+                                                                      const Span<int2> edges)
 {
   Vector<int> vert_indices;
   vert_indices.reserve(edges.size());
   Vector<int> curve_offsets;
 
   /* Compute the number of edges connecting to each vertex. */
-  Array<int> neighbor_count(verts_num, 0);
-  for (const int2 &edge : edges) {
-    neighbor_count[edge[0]]++;
-    neighbor_count[edge[1]]++;
+  Array<int> neighbor_offsets_data(verts_num + 1, 0);
+  for (const int vert : edges.cast<int>()) {
+    neighbor_offsets_data[vert]++;
   }
-
-  /* Compute an offset into the array of neighbor edges based on the counts. */
-  Array<int> neighbor_offsets(verts_num);
-  int start = 0;
-  for (const int i : IndexRange(verts_num)) {
-    neighbor_offsets[i] = start;
-    start += neighbor_count[i];
-  }
+  offset_indices::accumulate_counts_to_offsets(neighbor_offsets_data);
+  const OffsetIndices<int> neighbor_offsets(neighbor_offsets_data);
 
   /* Use as an index into the "neighbor group" for each vertex. */
   Array<int> used_slots(verts_num, 0);
@@ -109,8 +100,8 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
   for (const int i : edges.index_range()) {
     const int v1 = edges[i][0];
     const int v2 = edges[i][1];
-    neighbors[neighbor_offsets[v1] + used_slots[v1]] = v2;
-    neighbors[neighbor_offsets[v2] + used_slots[v2]] = v1;
+    neighbors[neighbor_offsets[v1].start() + used_slots[v1]] = v2;
+    neighbors[neighbor_offsets[v2].start() + used_slots[v2]] = v1;
     used_slots[v1]++;
     used_slots[v2]++;
   }
@@ -120,7 +111,7 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
 
   for (const int start_vert : IndexRange(verts_num)) {
     /* The vertex will be part of a cyclic curve. */
-    if (neighbor_count[start_vert] == 2) {
+    if (neighbor_offsets[start_vert].size() == 2) {
       continue;
     }
 
@@ -129,9 +120,9 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
       continue;
     }
 
-    for (const int i : IndexRange(neighbor_count[start_vert])) {
+    for (const int neighbor : neighbors.as_span().slice(neighbor_offsets[start_vert])) {
       int current_vert = start_vert;
-      int next_vert = neighbors[neighbor_offsets[current_vert] + i];
+      int next_vert = neighbor;
 
       if (unused_edges[next_vert] == 0) {
         continue;
@@ -150,11 +141,11 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
         unused_edges[current_vert]--;
         unused_edges[last_vert]--;
 
-        if (neighbor_count[current_vert] != 2) {
+        if (neighbor_offsets[current_vert].size() != 2) {
           break;
         }
 
-        const int offset = neighbor_offsets[current_vert];
+        const int offset = neighbor_offsets[current_vert].start();
         const int next_a = neighbors[offset];
         const int next_b = neighbors[offset + 1];
         next_vert = (last_vert == next_a) ? next_b : next_a;
@@ -172,7 +163,7 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
     }
 
     int current_vert = start_vert;
-    int next_vert = neighbors[neighbor_offsets[current_vert]];
+    int next_vert = neighbors[neighbor_offsets[current_vert].start()];
 
     curve_offsets.append(vert_indices.size());
     vert_indices.append(current_vert);
@@ -186,7 +177,7 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
       unused_edges[current_vert]--;
       unused_edges[last_vert]--;
 
-      const int offset = neighbor_offsets[current_vert];
+      const int offset = neighbor_offsets[current_vert].start();
       const int next_a = neighbors[offset];
       const int next_b = neighbors[offset + 1];
       next_vert = (last_vert == next_a) ? next_b : next_a;
@@ -198,7 +189,7 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
   return {std::move(vert_indices), std::move(curve_offsets), cyclic_curves};
 }
 
-static bke::CurvesGeometry edges_to_curves_convert(
+BLI_NOINLINE static bke::CurvesGeometry edges_to_curves_convert(
     const Mesh &mesh,
     const Span<int2> edges,
     const bke::AnonymousAttributePropagationInfo &propagation_info)

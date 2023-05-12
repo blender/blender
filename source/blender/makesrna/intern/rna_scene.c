@@ -630,7 +630,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
      "Align the transformation axes to the 3D cursor"},
     {V3D_ORIENT_PARENT,
      "PARENT",
-     ICON_BLANK1,
+     ICON_ORIENTATION_PARENT,
      "Parent",
      "Align the transformation axes to the object's parent space"},
     // {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},

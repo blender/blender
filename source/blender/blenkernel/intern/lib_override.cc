@@ -61,6 +61,8 @@
 
 #include "atomic_ops.h"
 
+#include "lib_intern.h"
+
 #define OVERRIDE_AUTO_CHECK_DELAY 0.2 /* 200ms between auto-override checks. */
 //#define DEBUG_OVERRIDE_TIMEIT
 
@@ -277,9 +279,11 @@ static ID *lib_override_library_create_from(Main *bmain,
   id_us_min(local_id);
 
   /* TODO: Handle this properly in LIB_NO_MAIN case as well (i.e. resync case). Or offload to
-   * generic ID copy code? */
-  if ((lib_id_copy_flags & LIB_ID_CREATE_NO_MAIN) == 0) {
-    local_id->lib = owner_library;
+   * generic ID copy code? Would probably be better to have a version of #BKE_id_copy_ex that takes
+   * an extra `target_lib` parameter. */
+  local_id->lib = owner_library;
+  if ((lib_id_copy_flags & LIB_ID_CREATE_NO_MAIN) != 0 && owner_library == nullptr) {
+    lib_id_copy_ensure_local(bmain, reference_id, local_id, 0);
   }
 
   BKE_lib_override_library_init(local_id, reference_id);

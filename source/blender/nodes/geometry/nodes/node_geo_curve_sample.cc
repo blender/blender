@@ -334,10 +334,8 @@ class SampleCurveFunction : public mf::MultiFunction {
         sampled_normals.fill_indices(mask.indices(), float3(0));
       }
       if (!sampled_values.is_empty()) {
-        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-          using T = decltype(dummy);
-          sampled_values.typed<T>().fill_indices(mask.indices(), {});
-        });
+        const CPPType &type = sampled_values.type();
+        type.fill_construct_indices(type.default_value(), sampled_values.data(), mask);
       }
     };
 

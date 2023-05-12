@@ -13,7 +13,7 @@ namespace blender::gpu {
 
 class VKDrawList : public DrawList {
  public:
-  void append(GPUBatch *batch, int i_first, int i_count) override;
+  void append(GPUBatch *batch, int instance_first, int instance_count) override;
   void submit() override;
 };
 

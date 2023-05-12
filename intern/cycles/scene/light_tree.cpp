@@ -487,7 +487,8 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
   float total_cost = 0.0f;
   float min_cost = FLT_MAX;
   for (int dim = 0; dim < 3; dim++) {
-    /* If the centroid bounding box is 0 along a given dimension, skip it. */
+    /* If the centroid bounding box is 0 along a given dimension and the node measure is already
+     * computed, skip it. */
     if (centroid_bbox.size()[dim] == 0.0f && dim != 0) {
       continue;
     }
@@ -522,6 +523,11 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
       /* Degenerate case with co-located emitters. */
       if (is_zero(centroid_bbox.size())) {
         break;
+      }
+
+      /* If the centroid bounding box is 0 along a given dimension, skip it. */
+      if (centroid_bbox.size()[dim] == 0.0f) {
+        continue;
       }
 
       total_cost = measure.calculate();
