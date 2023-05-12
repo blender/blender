@@ -1092,14 +1092,6 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   BKE_mesh_runtime_clear_cache(&mesh);
 }
 
-/* Get the range into an array of extruded corners, edges, or vertices for a particular polygon. */
-static IndexRange selected_corner_range(Span<int> offsets, const int index)
-{
-  const int offset = offsets[index];
-  const int next_offset = offsets[index + 1];
-  return IndexRange(offset, next_offset - offset);
-}
-
 static void extrude_individual_mesh_faces(
     Mesh &mesh,
     const Field<bool> &selection_field,
@@ -1130,12 +1122,13 @@ static void extrude_individual_mesh_faces(
    * parallelism later on by avoiding the need to keep track of an offset when iterating through
    * all polygons. */
   int extrude_corner_size = 0;
-  Array<int> index_offsets(poly_selection.size() + 1);
+  Array<int> group_per_face_data(poly_selection.size() + 1);
   for (const int i_selection : poly_selection.index_range()) {
-    index_offsets[i_selection] = extrude_corner_size;
+    group_per_face_data[i_selection] = extrude_corner_size;
     extrude_corner_size += orig_polys[poly_selection[i_selection]].size();
   }
-  index_offsets.last() = extrude_corner_size;
+  group_per_face_data.last() = extrude_corner_size;
+  const OffsetIndices<int> group_per_face(group_per_face_data);
 
   const IndexRange new_vert_range{orig_vert_size, extrude_corner_size};
   /* One edge connects each selected vertex to a new vertex on the extruded polygons. */
@@ -1176,7 +1169,7 @@ static void extrude_individual_mesh_faces(
   Array<int> duplicate_edge_indices(extrude_corner_size);
   threading::parallel_for(poly_selection.index_range(), 256, [&](const IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+      const IndexRange extrude_range = group_per_face[i_selection];
 
       const IndexRange poly = polys[poly_selection[i_selection]];
       MutableSpan<int> poly_verts = corner_verts.slice(poly);
@@ -1253,7 +1246,7 @@ static void extrude_individual_mesh_faces(
           threading::parallel_for(poly_selection.index_range(), 512, [&](const IndexRange range) {
             for (const int i_selection : range) {
               const IndexRange poly = polys[poly_selection[i_selection]];
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
 
               /* For the extruded edges, mix the data from the two neighboring original edges of
                * the extruded polygon. */
@@ -1283,7 +1276,7 @@ static void extrude_individual_mesh_faces(
           threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
             for (const int i_selection : range) {
               const int poly_index = poly_selection[i_selection];
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
               new_data.slice(extrude_range).fill(data[poly_index]);
             }
           });
@@ -1297,7 +1290,7 @@ static void extrude_individual_mesh_faces(
             for (const int i_selection : range) {
               const IndexRange poly = polys[poly_selection[i_selection]];
               const Span<T> poly_loop_data = data.slice(poly);
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
 
               for (const int i : IndexRange(poly.size())) {
                 const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
@@ -1329,7 +1322,7 @@ static void extrude_individual_mesh_faces(
   /* Offset the new vertices. */
   threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+      const IndexRange extrude_range = group_per_face[i_selection];
       for (float3 &position : new_positions.slice(extrude_range)) {
         position += poly_offset[poly_selection[i_selection]];
       }
@@ -1357,7 +1350,7 @@ static void extrude_individual_mesh_faces(
     threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
       for (const int selection_i : range) {
         const int poly_i = poly_selection[selection_i];
-        const IndexRange extrude_range = selected_corner_range(index_offsets, selection_i);
+        const IndexRange extrude_range = group_per_face[selection_i];
         new_poly_orig_indices.slice(extrude_range).fill(poly_orig_indices[poly_i]);
       }
     });
