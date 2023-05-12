@@ -174,27 +174,30 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
   return true;
 }
 
-bool oneapi_kernel_is_raytrace_or_mnee(const std::string &kernel_name)
+bool oneapi_kernel_is_compatible_with_hardware_raytracing(const std::string &kernel_name)
 {
-  return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) !=
-          std::string::npos) ||
+  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1.
+   */
+#  if defined(RTC_VERSION) && RTC_VERSION < 40100
+  return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) ==
+          std::string::npos) &&
          (kernel_name.find(device_kernel_as_string(
-              DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE)) != std::string::npos);
+              DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE)) == std::string::npos);
+#  else
+  return true;
+#  endif
 }
 
-bool oneapi_kernel_is_using_embree(const std::string &kernel_name)
+bool oneapi_kernel_has_intersections(const std::string &kernel_name)
 {
-#  ifdef WITH_EMBREE_GPU
-  /* MNEE and Ray-trace kernels aren't yet enabled to use Embree. */
   for (int i = 0; i < (int)DEVICE_KERNEL_NUM; i++) {
     DeviceKernel kernel = (DeviceKernel)i;
     if (device_kernel_has_intersection(kernel)) {
       if (kernel_name.find(device_kernel_as_string(kernel)) != std::string::npos) {
-        return !oneapi_kernel_is_raytrace_or_mnee(kernel_name);
+        return true;
       }
     }
   }
-#  endif
   return false;
 }
 
@@ -217,7 +220,8 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         const std::string &kernel_name = kernel_id.get_name();
 
         if (!oneapi_kernel_is_required_for_features(kernel_name, kernel_features) ||
-            !oneapi_kernel_is_using_embree(kernel_name))
+            !(oneapi_kernel_has_intersections(kernel_name) &&
+              oneapi_kernel_is_compatible_with_hardware_raytracing(kernel_name)))
         {
           continue;
         }
@@ -260,14 +264,14 @@ bool oneapi_load_kernels(SyclQueue *queue_,
       /* In case HWRT is on, compilation of kernels using Embree is already handled in previous
        * block. */
       if (!oneapi_kernel_is_required_for_features(kernel_name, kernel_features) ||
-          (use_hardware_raytracing && oneapi_kernel_is_using_embree(kernel_name)))
+          (use_hardware_raytracing && oneapi_kernel_has_intersections(kernel_name) &&
+           oneapi_kernel_is_compatible_with_hardware_raytracing(kernel_name)))
       {
         continue;
       }
 
 #  ifdef WITH_EMBREE_GPU
-      if (oneapi_kernel_is_using_embree(kernel_name) ||
-          oneapi_kernel_is_raytrace_or_mnee(kernel_name)) {
+      if (oneapi_kernel_has_intersections(kernel_name)) {
         sycl::kernel_bundle<sycl::bundle_state::input> one_kernel_bundle_input =
             sycl::get_kernel_bundle<sycl::bundle_state::input>(queue->get_context(), {kernel_id});
         one_kernel_bundle_input

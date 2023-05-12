@@ -503,8 +503,10 @@ void VKFrameBuffer::render_pass_free()
   VK_ALLOCATION_CALLBACKS
 
   const VKDevice &device = VKBackend::get().device_get();
-  vkDestroyRenderPass(device.device_get(), vk_render_pass_, vk_allocation_callbacks);
-  vkDestroyFramebuffer(device.device_get(), vk_framebuffer_, vk_allocation_callbacks);
+  if (device.is_initialized()) {
+    vkDestroyRenderPass(device.device_get(), vk_render_pass_, vk_allocation_callbacks);
+    vkDestroyFramebuffer(device.device_get(), vk_framebuffer_, vk_allocation_callbacks);
+  }
   vk_render_pass_ = VK_NULL_HANDLE;
   vk_framebuffer_ = VK_NULL_HANDLE;
 }

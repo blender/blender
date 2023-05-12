@@ -83,6 +83,7 @@ void register_node_type_geo_input_radius();
 void register_node_type_geo_input_scene_time();
 void register_node_type_geo_input_shade_smooth();
 void register_node_type_geo_input_shortest_edge_paths();
+void register_node_type_geo_input_signed_distance();
 void register_node_type_geo_input_spline_cyclic();
 void register_node_type_geo_input_spline_length();
 void register_node_type_geo_input_spline_resolution();

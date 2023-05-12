@@ -122,8 +122,12 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
 
 bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
 {
-  /* MNEE and Ray-trace kernels currently don't work correctly with HWRT. */
+  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1. */
+#  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
+#  else
+  return true;
+#  endif
 }
 
 BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint requested_features) const

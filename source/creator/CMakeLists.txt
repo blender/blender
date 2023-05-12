@@ -886,6 +886,12 @@ elseif(WIN32)
     FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
     ALL
   )
+  if(EXISTS ${LIBDIR}/fftw3/lib/libfftw3f-3.dll)
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/fftw3/lib/libfftw3f-3.dll
+      ALL
+    )
+  endif()
   if(MSVC_ASAN)
     # The ASAN DLL's can be found in the same folder as the compiler,
     # this is the easiest way to find these.
@@ -1205,9 +1211,20 @@ elseif(WIN32)
 
   endif()
 
-  # Filenames change slightly between FFMPEG versions check both 5.0 and fallback to 4.4
+  # Filenames change slightly between FFMPEG versions check both 6.0 and fallback to 5.0
   # to ease the transition between versions.
-  if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
+  if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-60.dll")
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/ffmpeg/lib/avcodec-60.dll
+        ${LIBDIR}/ffmpeg/lib/avformat-60.dll
+        ${LIBDIR}/ffmpeg/lib/avdevice-60.dll
+        ${LIBDIR}/ffmpeg/lib/avutil-58.dll
+        ${LIBDIR}/ffmpeg/lib/swscale-7.dll
+        ${LIBDIR}/ffmpeg/lib/swresample-4.dll
+      ALL
+    )
+  else()
     windows_install_shared_manifest(
       FILES
         ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
@@ -1216,17 +1233,6 @@ elseif(WIN32)
         ${LIBDIR}/ffmpeg/lib/avutil-57.dll
         ${LIBDIR}/ffmpeg/lib/swscale-6.dll
         ${LIBDIR}/ffmpeg/lib/swresample-4.dll
-      ALL
-    )
-  else()
-    windows_install_shared_manifest(
-      FILES
-        ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
-        ${LIBDIR}/ffmpeg/lib/avformat-58.dll
-        ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
-        ${LIBDIR}/ffmpeg/lib/avutil-56.dll
-        ${LIBDIR}/ffmpeg/lib/swscale-5.dll
-        ${LIBDIR}/ffmpeg/lib/swresample-3.dll
       ALL
     )
   endif()

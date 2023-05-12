@@ -829,7 +829,7 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
   };
 
   /* Call this callback last and don't reuse the `state` as the caller can free the cursor. */
-  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_active_get();
   if (state->poll && !state->poll(region, state->poll_data)) {
     return false;
   }
@@ -840,7 +840,7 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
 static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(customdata))
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *state = ED_view3d_cursor_snap_state_active_get();
   V3DSnapCursorData *snap_data = &data_intern->snap_data;
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -902,13 +902,33 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
 
 /** \} */
 
-V3DSnapCursorState *ED_view3d_cursor_snap_state_get(void)
+V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
     return &g_data_intern.state_default;
   }
   return &((SnapStateIntern *)data_intern->state_intern.last)->snap_state;
+}
+
+void ED_view3d_cursor_snap_state_active_set(V3DSnapCursorState *state)
+{
+  if (state == &g_data_intern.state_default) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  SnapStateIntern *state_intern = STATE_INTERN_GET(state);
+  if (state_intern == (SnapStateIntern *)g_data_intern.state_intern.last) {
+    return;
+  }
+
+  if (!BLI_remlink_safe(&g_data_intern.state_intern, state_intern)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  BLI_addtail(&g_data_intern.state_intern, state_intern);
 }
 
 static void v3d_cursor_snap_activate(void)
@@ -964,7 +984,7 @@ void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
   g_data_intern.state_default.poll_data = NULL;
 }
 
-V3DSnapCursorState *ED_view3d_cursor_snap_active(void)
+V3DSnapCursorState *ED_view3d_cursor_snap_state_create(void)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (!data_intern->handle) {
@@ -978,7 +998,7 @@ V3DSnapCursorState *ED_view3d_cursor_snap_active(void)
   return (V3DSnapCursorState *)&state_intern->snap_state;
 }
 
-void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
+void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
@@ -993,11 +1013,12 @@ void ED_view3d_cursor_snap_deactive(V3DSnapCursorState *state)
   }
 }
 
-void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float prev_point[3])
+void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
+                                               const float prev_point[3])
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (!state) {
-    state = ED_view3d_cursor_snap_state_get();
+    state = ED_view3d_cursor_snap_state_active_get();
   }
   if (prev_point) {
     copy_v3_v3(data_intern->prevpoint_stack, prev_point);
@@ -1023,7 +1044,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
     View3D *v3d = CTX_wm_view3d(C);
 
     if (!state) {
-      state = ED_view3d_cursor_snap_state_get();
+      state = ED_view3d_cursor_snap_state_active_get();
     }
     v3d_cursor_snap_update(state, C, wm, depsgraph, scene, region, v3d, x, y);
   }

@@ -9,11 +9,33 @@
 
 #include "gpu_state_private.hh"
 
+#include "BLI_array.hh"
+
+#include "vk_sampler.hh"
+
 namespace blender::gpu {
+class VKTexture;
+class VKUniformBuffer;
+
 class VKStateManager : public StateManager {
-  uint texture_unpack_row_length_;
+  /* Dummy sampler for now.*/
+  VKSampler sampler_;
+
+  uint texture_unpack_row_length_ = 0;
+
+  struct ImageBinding {
+    VKTexture *texture = nullptr;
+  };
+  struct UniformBufferBinding {
+    VKUniformBuffer *buffer = nullptr;
+  };
+  Array<ImageBinding> image_bindings_;
+  Array<ImageBinding> texture_bindings_;
+  Array<UniformBufferBinding> uniform_buffer_bindings_;
 
  public:
+  VKStateManager();
+
   void apply_state() override;
   void force_state() override;
 
@@ -26,6 +48,9 @@ class VKStateManager : public StateManager {
   void image_bind(Texture *tex, int unit) override;
   void image_unbind(Texture *tex) override;
   void image_unbind_all() override;
+
+  void uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int slot);
+  void uniform_buffer_unbind(VKUniformBuffer *uniform_buffer);
 
   void texture_unpack_row_length_set(uint len) override;
 

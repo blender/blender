@@ -363,7 +363,11 @@ windows_find_package(Freetype REQUIRED)
 
 if(WITH_FFTW3)
   set(FFTW3 ${LIBDIR}/fftw3)
-  set(FFTW3_LIBRARIES ${FFTW3}/lib/libfftw.lib)
+  if(EXISTS ${FFTW3}/lib/libfftw3-3.lib) # 3.6 libraries
+    set(FFTW3_LIBRARIES ${FFTW3}/lib/libfftw3-3.lib ${FFTW3}/lib/libfftw3f.lib)
+  else()
+    set(FFTW3_LIBRARIES ${FFTW3}/lib/libfftw.lib) # 3.5 Libraries
+  endif()
   set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
   set(FFTW3_LIBPATH ${FFTW3}/lib)
 endif()

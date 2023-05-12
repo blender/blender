@@ -519,7 +519,15 @@ void WM_event_free_ui_handler_all(struct bContext *C,
                                   wmUIHandlerFunc handle_fn,
                                   wmUIHandlerRemoveFunc remove_fn);
 
-struct wmEventHandler_Op *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
+/**
+ * Add a modal handler to `win`, `area` and `region` may optionally be NULL.
+ */
+struct wmEventHandler_Op *WM_event_add_modal_handler_ex(struct wmWindow *win,
+                                                        struct ScrArea *area,
+                                                        struct ARegion *region,
+                                                        wmOperator *op) ATTR_NONNULL(1, 4);
+struct wmEventHandler_Op *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op)
+    ATTR_NONNULL(1, 2);
 /**
  * Modal handlers store a pointer to an area which might be freed while the handler runs.
  * Use this function to NULL all handler pointers to \a old_area.
@@ -1518,6 +1526,7 @@ typedef enum eWM_JobType {
   WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW,
   WM_JOB_TYPE_CALCULATE_SIMULATION_NODES,
   WM_JOB_TYPE_BAKE_SIMULATION_NODES,
+  WM_JOB_TYPE_UV_PACK,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 } eWM_JobType;

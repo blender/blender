@@ -12,7 +12,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_input<decl::String>(N_("Color Attribute"));
   b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::String>(N_("Density Attribute"));
+  b.add_input<decl::String>(N_("Density Attribute")).default_value("density");
   b.add_input<decl::Float>(N_("Anisotropy"))
       .default_value(0.0f)
       .min(-1.0f)
@@ -28,22 +28,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Color>(N_("Blackbody Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Float>(N_("Temperature")).default_value(1000.0f).min(0.0f).max(6500.0f);
-  b.add_input<decl::String>(N_("Temperature Attribute"));
+  b.add_input<decl::String>(N_("Temperature Attribute")).default_value("temperature");
   b.add_input<decl::Float>(N_("Weight")).unavailable();
   b.add_output<decl::Shader>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
       .translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void node_shader_init_volume_principled(bNodeTree * /*ntree*/, bNode *node)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Density Attribute")) {
-      strcpy(((bNodeSocketValueString *)sock->default_value)->value, "density");
-    }
-    else if (STREQ(sock->name, "Temperature Attribute")) {
-      strcpy(((bNodeSocketValueString *)sock->default_value)->value, "temperature");
-    }
-  }
 }
 
 static void attribute_post_process(GPUMaterial *mat,
@@ -143,7 +131,6 @@ void register_node_type_sh_volume_principled()
   sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.initfunc = file_ns::node_shader_init_volume_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_principled;
 
   nodeRegisterType(&ntype);

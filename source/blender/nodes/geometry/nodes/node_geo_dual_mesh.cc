@@ -149,52 +149,58 @@ static void transfer_attributes(
   });
 
   for (const AttributeIDRef &id : attribute_ids) {
-    GAttributeReader src_attribute = src_attributes.lookup(id);
+    GAttributeReader src = src_attributes.lookup(id);
 
     eAttrDomain out_domain;
-    if (src_attribute.domain == ATTR_DOMAIN_FACE) {
+    if (src.domain == ATTR_DOMAIN_FACE) {
       out_domain = ATTR_DOMAIN_POINT;
     }
-    else if (src_attribute.domain == ATTR_DOMAIN_POINT) {
+    else if (src.domain == ATTR_DOMAIN_POINT) {
       out_domain = ATTR_DOMAIN_FACE;
     }
     else {
       /* Edges and Face Corners. */
-      out_domain = src_attribute.domain;
+      out_domain = src.domain;
     }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
-        src_attribute.varray.type());
-    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src.varray.type());
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, out_domain, data_type);
-    if (!dst_attribute) {
+    if (!dst) {
       continue;
     }
 
-    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      VArraySpan<T> span{src_attribute.varray.typed<T>()};
-      MutableSpan<T> dst_span = dst_attribute.span.typed<T>();
-      switch (src_attribute.domain) {
-        case ATTR_DOMAIN_POINT:
-          copy_data_based_on_vertex_types(span, dst_span, vertex_types, keep_boundaries);
-          break;
-        case ATTR_DOMAIN_EDGE:
-          array_utils::gather(span, new_to_old_edges_map, dst_span);
-          break;
-        case ATTR_DOMAIN_FACE:
-          dst_span.take_front(span.size()).copy_from(span);
-          if (keep_boundaries) {
-            copy_data_based_on_pairs(span, dst_span, boundary_vertex_to_relevant_face_map);
-          }
-          break;
-        case ATTR_DOMAIN_CORNER:
-          array_utils::gather(span, new_to_old_face_corners_map, dst_span);
-          break;
-        default:
-          BLI_assert_unreachable();
+    switch (src.domain) {
+      case ATTR_DOMAIN_POINT: {
+        const GVArraySpan src_span(*src);
+        bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          copy_data_based_on_vertex_types(
+              src_span.typed<T>(), dst.span.typed<T>(), vertex_types, keep_boundaries);
+        });
+        break;
       }
-    });
-    dst_attribute.finish();
+      case ATTR_DOMAIN_EDGE:
+        bke::attribute_math::gather(*src, new_to_old_edges_map, dst.span);
+        break;
+      case ATTR_DOMAIN_FACE: {
+        const GVArraySpan src_span(*src);
+        dst.span.take_front(src_span.size()).copy_from(src_span);
+        bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          if (keep_boundaries) {
+            copy_data_based_on_pairs(
+                src_span.typed<T>(), dst.span.typed<T>(), boundary_vertex_to_relevant_face_map);
+          }
+        });
+        break;
+      }
+      case ATTR_DOMAIN_CORNER:
+        bke::attribute_math::gather(*src, new_to_old_face_corners_map, dst.span);
+        break;
+      default:
+        BLI_assert_unreachable();
+    }
+    dst.finish();
   }
 }
 

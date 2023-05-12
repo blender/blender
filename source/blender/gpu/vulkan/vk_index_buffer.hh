@@ -35,6 +35,7 @@ class VKIndexBuffer : public IndexBuf {
   void strip_restart_indices() override;
   void allocate();
   void ensure_updated();
+  VKBufferWithOffset buffer_with_offset();
 };
 
 static inline VKIndexBuffer *unwrap(IndexBuf *index_buffer)

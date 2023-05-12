@@ -67,6 +67,8 @@
 
 #include "atomic_ops.h"
 
+#include "lib_intern.h"
+
 //#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
@@ -439,7 +441,7 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, const int flags)
 /**
  * Ensure new (copied) ID is fully made local.
  */
-static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
+void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
 {
   if (ID_IS_LINKED(old_id)) {
     BKE_lib_id_expand_local(bmain, new_id, flags);
