@@ -116,12 +116,12 @@ void VKCommandBuffer::bind(const uint32_t binding,
   vkCmdBindVertexBuffers(vk_command_buffer_, binding, 1, &vk_vertex_buffer, &offset);
 }
 
-void VKCommandBuffer::bind(const VKIndexBuffer &index_buffer, VkIndexType index_type)
+void VKCommandBuffer::bind(const VKBufferWithOffset &index_buffer, VkIndexType index_type)
 {
   validate_framebuffer_exists();
   ensure_active_framebuffer();
-  VkBuffer vk_buffer = index_buffer.vk_handle();
-  vkCmdBindIndexBuffer(vk_command_buffer_, vk_buffer, 0, index_type);
+  vkCmdBindIndexBuffer(
+      vk_command_buffer_, index_buffer.buffer.vk_handle(), index_buffer.offset, index_type);
 }
 
 void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)
