@@ -494,6 +494,9 @@ static void outliner_space_blend_read_lib(BlendLibReader *reader,
       if (TSE_IS_REAL_ID(tselem)) {
         BLO_read_id_address(reader, nullptr, &tselem->id);
       }
+      else {
+        tselem->id = nullptr;
+      }
     }
     /* rebuild hash table, because it depends on ids too */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
