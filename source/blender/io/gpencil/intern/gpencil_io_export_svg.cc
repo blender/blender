@@ -308,9 +308,11 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
   color_string_set(gpl, gps, node_gps, do_fill);
 
   if (is_stroke && !do_fill) {
-    const float width = MAX2(
-        MAX2(gps->thickness + gpl->line_change, (radius * 2.0f) + gpl->line_change), 1.0f);
-    node_gps.append_attribute("stroke-width").set_value(width);
+    const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
+    const float estimated_width = (radius * 2.0f) + gpl->line_change;
+    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+                                                       estimated_width;
+    node_gps.append_attribute("stroke-width").set_value(MAX2(final_width, 1.0f));
   }
 
   std::string txt;
