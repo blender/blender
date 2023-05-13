@@ -107,7 +107,7 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int vi
     return false;
   }
 
-  BLI_path_join(filepath_temp, sizeof(filepath_temp), proxy->dir, proxy->file);
+  BLI_path_join(filepath_temp, sizeof(filepath_temp), proxy->dirpath, proxy->filename);
   BLI_path_abs(filepath_temp, BKE_main_blendfile_path_from_global());
 
   if (view_id > 0) {
@@ -131,7 +131,7 @@ static bool seq_proxy_get_fname(Scene *scene,
                                 char *filepath,
                                 const int view_id)
 {
-  char dir[PROXY_MAXFILE];
+  char dirpath[PROXY_MAXFILE];
   char suffix[24] = {'\0'};
   Editing *ed = SEQ_editing_get(scene);
   StripProxy *proxy = seq->strip->proxy;
@@ -157,20 +157,20 @@ static bool seq_proxy_get_fname(Scene *scene,
   if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
     /* Per project default. */
     if (ed->proxy_dir[0] == 0) {
-      STRNCPY(dir, "//BL_proxy");
+      STRNCPY(dirpath, "//BL_proxy");
     }
-    else { /* Per project with custom dir. */
-      STRNCPY(dir, ed->proxy_dir);
+    else { /* Per project with custom dirpath. */
+      STRNCPY(dirpath, ed->proxy_dir);
     }
     BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
   }
   else {
     /* Pre strip with custom dir. */
     if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) {
-      STRNCPY(dir, seq->strip->proxy->dir);
+      STRNCPY(dirpath, seq->strip->proxy->dirpath);
     }
     else { /* Per strip default. */
-      SNPRINTF(dir, "%s" SEP_STR "BL_proxy", seq->strip->dir);
+      SNPRINTF(dirpath, "%s" SEP_STR "BL_proxy", seq->strip->dirpath);
     }
   }
 
@@ -180,9 +180,9 @@ static bool seq_proxy_get_fname(Scene *scene,
   BLI_snprintf(filepath,
                PROXY_MAXFILE,
                "%s/images/%d/%s_proxy%s.jpg",
-               dir,
+               dirpath,
                proxy_size_number,
-               SEQ_render_give_stripelem(scene, seq, timeline_frame)->name,
+               SEQ_render_give_stripelem(scene, seq, timeline_frame)->filename,
                suffix);
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
   return true;
@@ -330,7 +330,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 
     if (view_id == 0) {
       char path[FILE_MAX];
-      BLI_path_join(path, sizeof(path), seq->strip->dir, seq->strip->stripdata->name);
+      BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
       BLI_path_abs(path, BKE_main_blendfile_path_from_global());
       BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
     }

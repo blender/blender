@@ -741,9 +741,9 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
   BLI_path_join(*dst, len + 1, dir, file);
 }
 
-static char *strip_last_slash(const char *dir)
+static char *strip_last_slash(const char *dirpath)
 {
-  char *result = BLI_strdup(dir);
+  char *result = BLI_strdup(dirpath);
   BLI_path_slash_rstrip(result);
 
   return result;
