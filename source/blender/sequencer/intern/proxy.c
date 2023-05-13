@@ -179,7 +179,7 @@ static bool seq_proxy_get_fname(Scene *scene,
 
   BLI_snprintf(filepath,
                PROXY_MAXFILE,
-               "%s/images/%d/%s_proxy%s.jpg",
+               "%s" SEP_STR "images" SEP_STR "%d" SEP_STR "%s_proxy%s.jpg",
                dirpath,
                proxy_size_number,
                SEQ_render_give_stripelem(scene, seq, timeline_frame)->filename,
