@@ -258,12 +258,7 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 
   /* Set default name if none specified.
    * NOTE: We only call IFACE_() if needed to avoid locale lookup overhead. */
-  if (!name || name[0] == '\0') {
-    BLI_strncpy(outname, IFACE_("Attribute"), name_maxncpy);
-  }
-  else {
-    BLI_strncpy_utf8(outname, name, name_maxncpy);
-  }
+  BLI_strncpy_utf8(outname, (name && name[0]) ? name : IFACE_("Attribute"), name_maxncpy);
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
   return BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);

@@ -86,7 +86,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
     if (!enum_label) {
       name = "Unknown";
     }
-    BLI_strncpy(label, IFACE_(name), label_maxncpy);
+    BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
   }
 }
 

@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -2021,7 +2022,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
 
     /* Auto-name the strip, and give the track an interesting name. */
-    STRNCPY(nlt->name, DATA_("SoundTrack"));
+    STRNCPY_UTF8(nlt->name, DATA_("SoundTrack"));
     BKE_nlastrip_validate_name(adt, strip);
 
     WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, nullptr);

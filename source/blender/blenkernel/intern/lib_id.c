@@ -1603,7 +1603,7 @@ bool BKE_id_new_name_validate(
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    STRNCPY(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
+    STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
   }
   else {
     /* disallow non utf8 chars,

@@ -31,6 +31,8 @@
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
+#include "BLI_string_utf8.h"
+
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -507,7 +509,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
-      STRNCPY(node_iter->name, DATA_(node_iter->name));
+      STRNCPY_UTF8(node_iter->name, DATA_(node_iter->name));
       nodeUniqueName(ma->nodetree, node_iter);
     }
 

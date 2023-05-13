@@ -3937,11 +3937,11 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
           (void)str; /* UNUSED */
         }
         else {
-          STRNCPY(but->drawstr, IFACE_("Press a key"));
+          STRNCPY_UTF8(but->drawstr, IFACE_("Press a key"));
         }
       }
       else {
-        STRNCPY(but->drawstr, but->str);
+        STRNCPY_UTF8(but->drawstr, but->str);
       }
 
       break;

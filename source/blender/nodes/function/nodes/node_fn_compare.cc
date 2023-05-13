@@ -5,6 +5,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -184,7 +185,7 @@ static void node_label(const bNodeTree * /*tree*/,
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), label_maxncpy);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 static float component_average(float3 a)

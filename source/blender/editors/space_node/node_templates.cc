@@ -16,6 +16,7 @@
 #include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.h"
@@ -474,14 +475,14 @@ static void ui_node_sock_name(const bNodeTree *ntree,
           name, UI_MAX_NAME_STR, "%s | %s", IFACE_(node_name), IFACE_(sock->link->fromsock->name));
     }
     else {
-      BLI_strncpy(name, IFACE_(node_name), UI_MAX_NAME_STR);
+      BLI_strncpy_utf8(name, IFACE_(node_name), UI_MAX_NAME_STR);
     }
   }
   else if (sock->type == SOCK_SHADER) {
-    BLI_strncpy(name, IFACE_("None"), UI_MAX_NAME_STR);
+    BLI_strncpy_utf8(name, IFACE_("None"), UI_MAX_NAME_STR);
   }
   else {
-    BLI_strncpy(name, IFACE_("Default"), UI_MAX_NAME_STR);
+    BLI_strncpy_utf8(name, IFACE_("Default"), UI_MAX_NAME_STR);
   }
 }
 
@@ -604,7 +605,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
         icon = ICON_BLANK1;
       }
       else {
-        STRNCPY(name, IFACE_(item.node_name));
+        STRNCPY_UTF8(name, IFACE_(item.node_name));
         icon = ICON_NONE;
       }
 

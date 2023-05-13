@@ -368,7 +368,7 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 
   /* just copy the name... */
   if (id && name) {
-    BLI_strncpy(name, id->name + 2, ANIM_CHAN_NAME_SIZE);
+    BLI_strncpy_utf8(name, id->name + 2, ANIM_CHAN_NAME_SIZE);
   }
 }
 
@@ -476,7 +476,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 {
   if (name) {
-    BLI_strncpy(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
+    BLI_strncpy_utf8(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
   }
 }
 
@@ -1178,7 +1178,7 @@ static void acf_nla_controls_backdrop(bAnimContext *ac,
 /* name for nla controls expander entries */
 static void acf_nla_controls_name(bAnimListElem *UNUSED(ale), char *name)
 {
-  BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
+  BLI_strncpy_utf8(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -1393,7 +1393,7 @@ static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
 {
-  BLI_strncpy(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
+  BLI_strncpy_utf8(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */

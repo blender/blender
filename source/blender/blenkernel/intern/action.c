@@ -422,7 +422,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 
   /* make it selected, with default name */
   agrp->flag = AGRP_SELECTED;
-  STRNCPY(agrp->name, name[0] ? name : DATA_("Group"));
+  STRNCPY_UTF8(agrp->name, name[0] ? name : DATA_("Group"));
 
   /* add to action, and validate */
   BLI_addtail(&act->groups, agrp);
