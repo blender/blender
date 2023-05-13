@@ -803,7 +803,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   const char *filepath_rel = PyUnicode_AsUTF8(filepath_obj); /* can be relative */
   char filepath_abs[1024];
 
-  BLI_strncpy(filepath_abs, filepath_rel, sizeof(filepath_abs));
+  STRNCPY(filepath_abs, filepath_rel);
   BLI_path_abs_from_cwd(filepath_abs, sizeof(filepath_abs));
   Py_DECREF(filepath_obj);
 

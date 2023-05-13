@@ -560,7 +560,7 @@ static bool delete_recursive(const char *dir)
       char path[FILE_MAXDIR];
 
       /* dir listing produces dir path without trailing slash... */
-      BLI_strncpy(path, fl->path, sizeof(path));
+      STRNCPY(path, fl->path);
       BLI_path_slash_ensure(path, sizeof(path));
 
       if (delete_recursive(path)) {
@@ -627,7 +627,7 @@ int BLI_path_move(const char *file, const char *to)
    * it has to be 'mv filepath filepath' and not
    * 'mv filepath destination_directory' */
 
-  BLI_strncpy(str, to, sizeof(str));
+  STRNCPY(str, to);
   /* points 'to' to a directory ? */
   if (BLI_path_slash_rfind(str) == (str + strlen(str) - 1)) {
     if (BLI_path_slash_rfind(file) != NULL) {
@@ -658,7 +658,7 @@ int BLI_copy(const char *file, const char *to)
    * it has to be 'cp filepath filepath' and not
    * 'cp filepath destdir' */
 
-  BLI_strncpy(str, to, sizeof(str));
+  STRNCPY(str, to);
   /* points 'to' to a directory ? */
   if (BLI_path_slash_rfind(str) == (str + strlen(str) - 1)) {
     if (BLI_path_slash_rfind(file) != NULL) {

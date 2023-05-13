@@ -2841,7 +2841,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
     else if (!can_create_dir(params->dir)) {
       const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
       if (lastdir) {
-        BLI_strncpy(params->dir, lastdir, sizeof(params->dir));
+        STRNCPY(params->dir, lastdir);
       }
     }
 #endif
