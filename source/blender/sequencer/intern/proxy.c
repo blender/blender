@@ -98,7 +98,8 @@ double SEQ_rendersize_to_scale_factor(int render_size)
 
 bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int view_id)
 {
-  char filepath_temp[FILE_MAXFILE];
+  /* Ideally this would be #PROXY_MAXFILE however BLI_path_abs clamps to #FILE_MAX. */
+  char filepath_temp[FILE_MAX];
   char suffix[24];
   StripProxy *proxy = seq->strip->proxy;
 
@@ -106,7 +107,7 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int vi
     return false;
   }
 
-  BLI_path_join(filepath_temp, PROXY_MAXFILE, proxy->dir, proxy->file);
+  BLI_path_join(filepath_temp, sizeof(filepath_temp), proxy->dir, proxy->file);
   BLI_path_abs(filepath_temp, BKE_main_blendfile_path_from_global());
 
   if (view_id > 0) {
