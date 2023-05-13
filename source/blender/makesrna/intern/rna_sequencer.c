@@ -855,8 +855,10 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
+  char path[FILE_MAX];
 
-  BLI_path_join(value, FILE_MAX, seq->strip->dirpath, seq->strip->stripdata->filename);
+  BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
+  strcpy(value, path);
 }
 
 static int rna_Sequence_filepath_length(PointerRNA *ptr)
@@ -882,8 +884,10 @@ static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
 {
   StripProxy *proxy = (StripProxy *)(ptr->data);
+  char path[FILE_MAX];
 
-  BLI_path_join(value, FILE_MAX, proxy->dirpath, proxy->filename);
+  BLI_path_join(path, sizeof(path), proxy->dirpath, proxy->filename);
+  strcpy(value, path);
 }
 
 static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
