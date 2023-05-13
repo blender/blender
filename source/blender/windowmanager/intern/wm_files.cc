@@ -299,7 +299,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
-      /* all windows get active screen from file */
+      /* All windows get active screen from file. */
       if (screen->winid == 0) {
         WM_window_set_active_screen(win, workspace, screen);
       }
