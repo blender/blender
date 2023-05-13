@@ -94,7 +94,14 @@ typedef struct FileData {
 
   struct OldNewMap *datamap;
   struct OldNewMap *globmap;
+
+  /**
+   * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
+   * typically from value in `bhead->old` to address in memory where the ID was read.
+   * Used during liblinking process (see #lib_link_all).
+   */
   struct OldNewMap *libmap;
+
   struct OldNewMap *packedmap;
   struct BLOCacheStorage *cache_storage;
 
@@ -107,7 +114,10 @@ typedef struct FileData {
   ListBase *mainlist;
   /** Used for undo. */
   ListBase *old_mainlist;
-  struct IDNameLib_Map *old_idmap;
+  /**
+   * IDMap using uuids as keys of all the old IDs in the old bmain. Used during undo to find a
+   * matching old data when reading a new ID. */
+  struct IDNameLib_Map *old_idmap_uuid;
 
   struct BlendFileReadReport *reports;
 } FileData;
@@ -119,7 +129,7 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
+struct BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 /**
  * On each new library added, it now checks for the current #FileData and expands relativeness
