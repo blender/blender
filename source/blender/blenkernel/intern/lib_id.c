@@ -1666,6 +1666,10 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
       id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
       id_us_ensure_real(id);
     }
+    if (ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS)) {
+      /* These IDs should always have a 'virtual' user. */
+      id_us_ensure_real(id);
+    }
   }
   FOREACH_MAIN_ID_END;
 
