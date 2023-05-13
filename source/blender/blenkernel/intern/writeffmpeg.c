@@ -1081,7 +1081,7 @@ static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 static void ffmpeg_add_metadata_callback(void *data,
                                          const char *propname,
                                          char *propvalue,
-                                         int UNUSED(len))
+                                         int UNUSED(propvalue_maxncpy))
 {
   AVDictionary **metadata = (AVDictionary **)data;
   av_dict_set(metadata, propname, propvalue, 0);

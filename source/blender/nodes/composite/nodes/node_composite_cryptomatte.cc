@@ -192,7 +192,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node)
 void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
                                          const bNode *node,
                                          char *r_prefix,
-                                         size_t prefix_len)
+                                         size_t prefix_maxncpy)
 {
   BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *node_cryptomatte = (NodeCryptomatte *)node->storage;
@@ -209,14 +209,14 @@ void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
       }
 
       if (layer_name == node_cryptomatte->layer_name) {
-        BLI_strncpy(r_prefix, node_cryptomatte->layer_name, prefix_len);
+        BLI_strncpy(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
         return;
       }
     }
   }
 
   const char *cstr = first_layer_name.c_str();
-  BLI_strncpy(r_prefix, cstr, prefix_len);
+  BLI_strncpy(r_prefix, cstr, prefix_maxncpy);
 }
 
 CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node)

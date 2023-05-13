@@ -50,7 +50,10 @@ void BKE_image_free_gputextures(struct Image *ima);
  */
 void BKE_image_free_data(struct Image *image);
 
-typedef void(StampCallback)(void *data, const char *propname, char *propvalue, int len);
+typedef void(StampCallback)(void *data,
+                            const char *propname,
+                            char *propvalue,
+                            int propvalue_maxncpy);
 
 void BKE_render_result_stamp_info(struct Scene *scene,
                                   struct Object *camera,
