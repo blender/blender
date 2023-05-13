@@ -817,6 +817,33 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   }
 }
 
+static void wm_read_callback_pre_wrapper(bContext *C, const char *filepath)
+{
+  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+}
+
+static void wm_read_callback_post_wrapper(bContext *C, const char *filepath, const bool success)
+{
+  Main *bmain = CTX_data_main(C);
+  /* Temporarily set the window context as this was once supported, see: #107759.
+   * If the window is already set, don't change it. */
+  bool has_window = CTX_wm_window(C) != nullptr;
+  if (!has_window) {
+    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
+    CTX_wm_window_set(C, win);
+  }
+  BKE_callback_exec_string(
+      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  /* This function should leave the window null when the function entered. */
+  if (!has_window) {
+    CTX_wm_window_set(C, nullptr);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -961,9 +988,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   const bool use_data = true;
   const bool use_userdef = false;
 
-  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
-   * Runs at the end of this function, don't return beforehand. */
-  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+  /* NOTE: a matching #wm_read_callback_post_wrapper must be called. */
+  wm_read_callback_pre_wrapper(C, filepath);
 
   /* so we can get the error message */
   errno = 0;
@@ -1071,11 +1097,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(false);
 
-  Main *bmain = CTX_data_main(C);
-  BKE_callback_exec_string(
-      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+  wm_read_callback_post_wrapper(C, filepath, success);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
 
   return success;
 }
@@ -1206,9 +1230,9 @@ void wm_homefile_read_ex(bContext *C,
   }
 
   if (use_data) {
-    /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+    /* NOTE: a matching #wm_read_callback_post_wrapper must be called.
      * This runs from #wm_homefile_read_post. */
-    BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, "");
+    wm_read_callback_pre_wrapper(C, "");
   }
 
   /* For regular file loading this only runs after the file is successfully read.
@@ -1457,10 +1481,7 @@ void wm_homefile_read_post(struct bContext *C,
   wm_file_read_post(C, params_file_read_post);
 
   if (params_file_read_post->use_data) {
-    BKE_callback_exec_string(CTX_data_main(C),
-                             params_file_read_post->success ? BKE_CB_EVT_LOAD_POST :
-                                                              BKE_CB_EVT_LOAD_POST_FAIL,
-                             "");
+    wm_read_callback_post_wrapper(C, "", params_file_read_post->success);
   }
 
   if (params_file_read_post->is_alloc) {
