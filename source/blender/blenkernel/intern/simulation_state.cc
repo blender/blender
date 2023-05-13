@@ -68,7 +68,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull meta_dir,
       if (!dir_entry_path.endswith(".json")) {
         continue;
       }
-      char modified_file_name[FILENAME_MAX];
+      char modified_file_name[FILE_MAX];
       STRNCPY(modified_file_name, dir_entry.relname);
       BLI_str_replace_char(modified_file_name, '_', '.');
 
