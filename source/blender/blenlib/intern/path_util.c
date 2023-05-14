@@ -827,9 +827,14 @@ bool BLI_path_parent_dir_until_exists(char *dir)
 /**
  * Looks for a sequence of "#" characters in the last slash-separated component of `path`,
  * returning the indexes of the first and one past the last character in the sequence in
- * `char_start` and `char_end` respectively. Returns true if such a sequence was found.
+ * `char_start` and `char_end` respectively.
+ *
+ * \param char_start: The first `#` character.
+ * \param char_end: The last `#` character +1.
+ *
+ * \return true if a frame sequence range was found.
  */
-static bool stringframe_chars(const char *path, int *char_start, int *char_end)
+static bool path_frame_chars_find_range(const char *path, int *char_start, int *char_end)
 {
   uint ch_sta, ch_end, i;
   /* Insert current frame: `file###` -> `file001`. */
@@ -893,7 +898,7 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) {
+  if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[FILENAME_FRAME_CHARS_MAX + 1]; /* One for null. */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
     BLI_snprintf(frame_str, sizeof(frame_str), "%.*d", ch_span, frame);
@@ -913,7 +918,7 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) {
+  if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[(FILENAME_FRAME_CHARS_MAX * 2) + 1 + 1]; /* One for null, one for the '-' */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
     BLI_snprintf(frame_str, sizeof(frame_str), "%.*d-%.*d", ch_span, sta, ch_span, end);
@@ -983,7 +988,7 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxncpy)
 bool BLI_path_frame_check_chars(const char *path)
 {
   int ch_sta_dummy, ch_end_dummy;
-  return stringframe_chars(path, &ch_sta_dummy, &ch_end_dummy);
+  return path_frame_chars_find_range(path, &ch_sta_dummy, &ch_end_dummy);
 }
 
 void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, const char *name)
