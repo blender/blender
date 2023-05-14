@@ -97,7 +97,7 @@ int BLI_path_sequence_decode(const char *path,
     const long long int ret = strtoll(&(path[nums]), NULL, 10);
     if (ret >= INT_MIN && ret <= INT_MAX) {
       if (tail) {
-        strcpy(tail, &path[nume + 1]);
+        BLI_strncpy(tail, &path[nume + 1], tail_maxncpy);
       }
       if (head) {
         BLI_strncpy(head, path, MIN2(head_maxncpy, nums + 1));
@@ -1486,13 +1486,13 @@ bool BLI_path_extension_ensure(char *path, size_t path_maxncpy, const char *ext)
   return true;
 }
 
-bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const char *file)
+bool BLI_path_filename_ensure(char *filepath, size_t filepath_maxncpy, const char *filename)
 {
   BLI_string_debug_size_after_nil(filepath, filepath_maxncpy);
-
-  char *c = (char *)BLI_path_slash_rfind(filepath);
-  if (!c || ((c - filepath) < filepath_maxncpy - (strlen(file) + 1))) {
-    strcpy(c ? &c[1] : filepath, file);
+  char *c = (char *)BLI_path_basename(filepath);
+  const size_t filename_size = strlen(filename) + 1;
+  if (filename_size <= filepath_maxncpy - (c - filepath)) {
+    memcpy(c, filename, filename_size);
     return true;
   }
   return false;
