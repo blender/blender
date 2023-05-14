@@ -446,7 +446,8 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits) ATTR
  * with sta and end as decimal integers, with leading zeroes as necessary, to make digits
  * digits each, with a hyphen in-between.
  */
-bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL(1);
+bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int digits)
+    ATTR_NONNULL(1);
 /**
  * Get the frame from a filename formatted by blender's frame scheme
  */

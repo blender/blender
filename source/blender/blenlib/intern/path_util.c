@@ -45,6 +45,14 @@ static int BLI_path_unc_prefix_len(const char *path);
 static bool BLI_path_is_abs_win32(const char *path);
 #endif /* WIN32 */
 
+/**
+ * The maximum number of `#` characters expanded for #BLI_path_frame & #BLI_path_frame_range
+ * Typically 12 is enough and even 16 is very large.
+ * Use a much larger value so hitting the upper limit is not an issue.
+ * Exceeding this limit won't fail either, it will just not insert so many leading zeros.
+ */
+#define FILENAME_FRAME_CHARS_MAX FILE_MAX
+
 int BLI_path_sequence_decode(const char *path,
                              char *head,
                              const size_t head_maxncpy,
@@ -885,18 +893,19 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
-    char tmp[FILE_MAX];
-    SNPRINTF(tmp, "%.*s%.*d%s", ch_sta, path, ch_end - ch_sta, frame, path + ch_end);
-    BLI_strncpy(path, tmp, path_maxncpy);
+  if (stringframe_chars(path, &ch_sta, &ch_end)) {
+    char frame_str[FILENAME_FRAME_CHARS_MAX + 1]; /* One for null. */
+    const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
+    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d", ch_span, frame);
+    BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
   return false;
 }
 
-bool BLI_path_frame_range(char *path, int sta, int end, int digits)
+bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int digits)
 {
-  BLI_string_debug_size_after_nil(path, FILE_MAX);
+  BLI_string_debug_size_after_nil(path, path_maxncpy);
 
   int ch_sta, ch_end;
 
@@ -904,18 +913,11 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
     ensure_digits(path, digits);
   }
 
-  if (stringframe_chars(path, &ch_sta, &ch_end)) { /* Warning: `ch_end` is the last # +1. */
-    char tmp[FILE_MAX];
-    SNPRINTF(tmp,
-             "%.*s%.*d-%.*d%s",
-             ch_sta,
-             path,
-             ch_end - ch_sta,
-             sta,
-             ch_end - ch_sta,
-             end,
-             path + ch_end);
-    BLI_strncpy(path, tmp, FILE_MAX);
+  if (stringframe_chars(path, &ch_sta, &ch_end)) {
+    char frame_str[(FILENAME_FRAME_CHARS_MAX * 2) + 1 + 1]; /* One for null, one for the '-' */
+    const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
+    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d-%.*d", ch_span, sta, ch_span, end);
+    BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
   return false;
