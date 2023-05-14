@@ -89,7 +89,7 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap->pmap[index];
+    const MeshElemMap &melem = pbvh.pmap[index];
 
     int count = 0;
     zero_v4(r_color);
@@ -124,7 +124,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap->pmap[index];
+    const MeshElemMap &melem = pbvh.pmap[index];
 
     for (const int i_poly : Span(melem.indices, melem.count)) {
       const IndexRange poly = pbvh.polys[i_poly];

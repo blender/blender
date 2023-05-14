@@ -471,7 +471,8 @@ void multires_force_sculpt_rebuild(Object *object)
     object->sculpt->pbvh = nullptr;
   }
 
-  BKE_pbvh_pmap_release(ss->pmap);
+  MEM_SAFE_FREE(ss->pmap);
+  MEM_SAFE_FREE(ss->pmap_mem);
   ss->pmap = nullptr;
 }
 

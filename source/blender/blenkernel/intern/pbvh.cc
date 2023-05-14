@@ -1269,9 +1269,6 @@ void BKE_pbvh_free(PBVH *pbvh)
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
 
-  BKE_pbvh_pmap_release(pbvh->pmap);
-  pbvh->pmap = nullptr;
-
   pbvh->invalid = true;
   pbvh_pixels_free(pbvh);
 
@@ -1559,8 +1556,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   for (const PBVHNode *node : nodes) {
     for (const int vert : Span(node->vert_indices, node->uniq_verts)) {
       if (update_tags[vert]) {
-        polys_to_update.add_multiple(
-            {pbvh->pmap->pmap[vert].indices, pbvh->pmap->pmap[vert].count});
+        polys_to_update.add_multiple({pbvh->pmap[vert].indices, pbvh->pmap[vert].count});
       }
     }
   }
@@ -1599,7 +1595,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : verts_to_update.as_span().slice(range)) {
       float3 normal(0.0f);
-      for (const int poly : Span(pbvh->pmap->pmap[vert].indices, pbvh->pmap->pmap[vert].count)) {
+      for (const int poly : Span(pbvh->pmap[vert].indices, pbvh->pmap[vert].count)) {
         normal += poly_normals[poly];
       }
       vert_normals[vert] = math::normalize(normal);
@@ -4014,7 +4010,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *r_heap_alloc,
                             int **r_polys)
 {
-  MeshElemMap *map = pbvh->pmap->pmap + vertex.i;
+  MeshElemMap *map = pbvh->pmap + vertex.i;
   int len = 0;
 
   for (int i = 0; i < map->count; i++) {
@@ -4425,18 +4421,17 @@ void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
   pbvh_boundaries_flag_update(pbvh);
 }
 
-struct SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh)
+struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh, int **r_pmap_mem)
 {
+  *r_pmap_mem = pbvh->pmap_mem;
+
   return pbvh->pmap;
 }
 
-void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap)
+void BKE_pbvh_set_pmap(PBVH *pbvh, MeshElemMap *pmap, int *mem)
 {
-  if (pbvh->pmap != pmap) {
-    BKE_pbvh_pmap_aquire(pmap);
-  }
-
   pbvh->pmap = pmap;
+  pbvh->pmap_mem = mem;
 }
 
 void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
@@ -4447,42 +4442,6 @@ void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
 BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh)
 {
   return pbvh->bm_log;
-}
-
-SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
-{
-  SculptPMap *pmap = (SculptPMap *)MEM_callocN(sizeof(*pmap), "SculptPMap");
-
-  BKE_mesh_vert_poly_map_create(
-      &pmap->pmap, &pmap->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
-
-  pmap->refcount = 1;
-
-  return pmap;
-}
-
-void BKE_pbvh_pmap_aquire(SculptPMap *pmap)
-{
-  pmap->refcount++;
-}
-
-bool BKE_pbvh_pmap_release(SculptPMap *pmap)
-{
-  if (!pmap) {
-    return false;
-  }
-
-  pmap->refcount--;
-
-  if (pmap->refcount <= 0) {
-    MEM_SAFE_FREE(pmap->pmap);
-    MEM_SAFE_FREE(pmap->pmap_mem);
-    MEM_SAFE_FREE(pmap);
-
-    return true;
-  }
-
-  return false;
 }
 
 bool BKE_pbvh_is_drawing(const PBVH *pbvh)

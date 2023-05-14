@@ -787,7 +787,8 @@ struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  SculptPMap *pmap;
+  MeshElemMap *pmap;
+  int *pmap_mem;
 
   /* Edges to adjacent polys. */
   struct MeshElemMap *epmap;

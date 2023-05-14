@@ -34,12 +34,6 @@
 extern "C" {
 #endif
 
-typedef struct SculptPMap {
-  struct MeshElemMap *pmap;
-  int *pmap_mem;
-  int refcount;
-} SculptPMap;
-
 #if 0
 typedef struct SculptLoopRef {
   intptr_t i;
@@ -57,7 +51,6 @@ struct BMFace;
 struct BMIdMap;
 struct Scene;
 struct CCGElem;
-struct MeshElemMap;
 struct CCGKey;
 struct CustomData;
 struct TableGSet;
@@ -65,7 +58,6 @@ struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoopTri;
 struct Mesh;
-struct MeshElemMap;
 struct PBVH;
 struct MEdge;
 struct PBVHBatches;
@@ -1276,16 +1268,11 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
-void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap);
-SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
+void BKE_pbvh_set_pmap(PBVH *pbvh, struct MeshElemMap *pmap, int *mem);
+struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh, int **r_mem);
 void BKE_pbvh_cache_remove(PBVH *pbvh);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
-
-SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
-void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
-bool BKE_pbvh_pmap_release(SculptPMap *pmap);
-void BKE_pbvh_clear_cache(PBVH *preserve);
 
 void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
 bool BKE_pbvh_show_orig_get(PBVH *pbvh);

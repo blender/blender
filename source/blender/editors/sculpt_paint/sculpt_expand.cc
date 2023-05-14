@@ -767,9 +767,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
       }
     }
     else {
-      for (int j = 0; j < ss->pmap->pmap[v_next_i].count; j++) {
-        for (const int vert :
-             ss->corner_verts.slice(ss->polys[ss->pmap->pmap[v_next_i].indices[j]])) {
+      for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
+        for (const int vert : ss->corner_verts.slice(ss->polys[ss->pmap[v_next_i].indices[j]])) {
           const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
           if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
             continue;
@@ -2185,7 +2184,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   }
 
   const int totface = ss->totfaces;
-  MeshElemMap *pmap = ss->pmap->pmap;
+  MeshElemMap *pmap = ss->pmap;
   const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 

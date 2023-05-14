@@ -182,7 +182,8 @@ struct PBVH {
 
   /* Mesh data */
   struct MeshElemMap *vemap;
-  SculptPMap *pmap;
+  MeshElemMap *pmap;
+  int *pmap_mem;
 
   Mesh *mesh;
 

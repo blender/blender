@@ -4542,7 +4542,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *r_heap_alloc,
                             int **r_polys)
 {
-  MeshElemMap *map = pbvh->pmap->pmap + vertex.i;
+  MeshElemMap *map = pbvh->pmap + vertex.i;
   int len = 0;
 
   for (int i = 0; i < map->count; i++) {

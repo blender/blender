@@ -432,8 +432,8 @@ void SCULPT_pbvh_clear(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  BKE_pbvh_pmap_release(ss->pmap);
-  ss->pmap = nullptr;
+  MEM_SAFE_FREE(ss->pmap);
+  MEM_SAFE_FREE(ss->pmap_mem);
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
@@ -479,10 +479,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   customdata_strip_templayers(&me->pdata, me->totpoly);
 
   if (ss->pbvh) {
-    if (ss->pmap) {
-      BKE_pbvh_pmap_release(ss->pmap);
-      ss->pmap = nullptr;
-    }
+    MEM_SAFE_FREE(ss->pmap);
+    MEM_SAFE_FREE(ss->pmap_mem);
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {

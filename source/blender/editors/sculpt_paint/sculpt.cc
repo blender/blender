@@ -627,8 +627,8 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
-      for (int j = 0; j < ss->pmap->pmap[vertex.i].count; j++) {
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
         if (!ss->hide_poly[vert_map->indices[j]]) {
           return true;
         }
@@ -661,7 +661,7 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       if (!ss->hide_poly) {
         return true;
       }
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < vert_map->count; j++) {
         if (ss->hide_poly[vert_map->indices[j]]) {
           return false;
@@ -713,7 +713,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BLI_assert(ss->face_sets != nullptr);
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < vert_map->count; j++) {
         const int poly_index = vert_map->indices[j];
         if (ss->hide_poly && ss->hide_poly[poly_index]) {
@@ -767,8 +767,8 @@ void SCULPT_vertex_face_set_increase(SculptSession *ss, PBVHVertRef vertex, cons
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       int index = (int)vertex.i;
-      MeshElemMap *vert_map = &ss->pmap->pmap[index];
-      for (int j = 0; j < ss->pmap->pmap[index].count; j++) {
+      MeshElemMap *vert_map = &ss->pmap[index];
+      for (int j = 0; j < ss->pmap[index].count; j++) {
         if (ss->face_sets[vert_map->indices[j]] > 0) {
           ss->face_sets[vert_map->indices[j]] += increase;
         }
@@ -812,7 +812,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       int face_set = 0;
       for (int i = 0; i < vert_map->count; i++) {
         if (ss->face_sets[vert_map->indices[i]] > face_set) {
@@ -858,7 +858,7 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int i = 0; i < vert_map->count; i++) {
         if (ss->face_sets[vert_map->indices[i]] == face_set) {
           return true;
@@ -990,7 +990,7 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vert
  */
 static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
 {
-  const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
+  const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
     const int poly_i = vert_map->indices[i];

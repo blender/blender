@@ -135,7 +135,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
     return true;
   }
 
-  const MeshElemMap *vert_map = &ss->pmap->pmap[v1];
+  const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map->count; i++) {
     const IndexRange p = ss->polys[vert_map->indices[i]];
@@ -174,7 +174,7 @@ static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss, i
   if (!ss->face_sets) {
     return true;
   }
-  const MeshElemMap *vert_map = &ss->pmap->pmap[index];
+  const MeshElemMap *vert_map = &ss->pmap[index];
   int face_set = -1;
   for (int i = 0; i < vert_map->count; i++) {
     if (face_set == -1) {
@@ -366,7 +366,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                                  ss->corner_edges.data(),
                                                  ss->polys,
                                                  ss->totfaces,
-                                                 ss->pmap->pmap,
+                                                 ss->pmap,
                                                  vertex,
                                                  ss->sharp_edge,
                                                  ss->seam_edge,
@@ -381,11 +381,11 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i)) {
     *flag |= SCULPT_BOUNDARY_MESH;
 
-    if (ss->pmap->pmap[vertex.i].count < 4) {
+    if (ss->pmap[vertex.i].count < 4) {
       bool ok = true;
 
-      for (int i = 0; i < ss->pmap->pmap[vertex.i].count; i++) {
-        const IndexRange mp = ss->polys[ss->pmap->pmap[vertex.i].indices[i]];
+      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
+        const IndexRange mp = ss->polys[ss->pmap[vertex.i].indices[i]];
         if (mp.size() < 4) {
           ok = false;
         }

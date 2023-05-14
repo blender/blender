@@ -1118,7 +1118,7 @@ static void sculpt_face_set_grow(Object *ob,
       continue;
     }
     for (const int vert : corner_verts.slice(polys[p])) {
-      const MeshElemMap *vert_map = &ss->pmap->pmap[vert];
+      const MeshElemMap *vert_map = &ss->pmap[vert];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
         if (neighbor_face_index == p) {
@@ -1148,7 +1148,7 @@ static void sculpt_face_set_shrink(Object *ob,
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
       for (const int vert_i : corner_verts.slice(polys[p])) {
-        const MeshElemMap *vert_map = &ss->pmap->pmap[vert_i];
+        const MeshElemMap *vert_map = &ss->pmap[vert_i];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];
           if (neighbor_face_index == p) {
