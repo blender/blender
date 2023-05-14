@@ -83,7 +83,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   old_scene = re->scene;
 
   char name[MAX_ID_NAME - 2];
-  BLI_snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name + 2);
+  SNPRINTF(name, "FRS%d_%s", render_count, re->scene->id.name + 2);
   freestyle_scene = BKE_scene_add(freestyle_bmain, name);
   freestyle_scene->r.cfra = old_scene->r.cfra;
   freestyle_scene->r.mode = old_scene->r.mode & ~(R_EDGE_FRS | R_BORDER);
@@ -235,7 +235,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   input_attr_color->locx = 0.0f;
   input_attr_color->locy = -200.0f;
   storage = (NodeShaderAttribute *)input_attr_color->storage;
-  BLI_strncpy(storage->name, "Color", sizeof(storage->name));
+  STRNCPY(storage->name, "Color");
 
   bNode *mix_rgb_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_color->custom1 = MA_RAMP_BLEND;  // Mix
@@ -249,7 +249,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   input_attr_alpha->locx = 400.0f;
   input_attr_alpha->locy = 300.0f;
   storage = (NodeShaderAttribute *)input_attr_alpha->storage;
-  BLI_strncpy(storage->name, "Alpha", sizeof(storage->name));
+  STRNCPY(storage->name, "Alpha");
 
   bNode *mix_rgb_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_alpha->custom1 = MA_RAMP_BLEND;  // Mix
@@ -390,10 +390,10 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         input_uvmap->locy = node->locy;
         NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
         if (node->custom1 & 1) {  // use_tips
-          BLI_strncpy(storage->uv_map, uvNames[1], sizeof(storage->uv_map));
+          STRNCPY(storage->uv_map, uvNames[1]);
         }
         else {
-          BLI_strncpy(storage->uv_map, uvNames[0], sizeof(storage->uv_map));
+          STRNCPY(storage->uv_map, uvNames[0]);
         }
         fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0);  // UV
 
@@ -816,9 +816,9 @@ Object *BlenderStrokeRenderer::NewMesh() const
   char name[MAX_ID_NAME];
   uint mesh_id = get_stroke_mesh_id();
 
-  BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
+  SNPRINTF(name, "0%08xOB", mesh_id);
   ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);
-  BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
+  SNPRINTF(name, "0%08xME", mesh_id);
   ob->data = BKE_mesh_add(freestyle_bmain, name);
 
   Collection *collection_master = freestyle_scene->master_collection;

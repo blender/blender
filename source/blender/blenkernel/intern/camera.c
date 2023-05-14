@@ -1034,7 +1034,7 @@ static Object *camera_multiview_advanced(const Scene *scene, Object *camera, con
     }
 
     if (STREQ(camera_name + (len_name - len_suffix), srv->suffix)) {
-      BLI_snprintf(name, sizeof(name), "%.*s%s", (len_name - len_suffix), camera_name, suffix);
+      SNPRINTF(name, "%.*s%s", (len_name - len_suffix), camera_name, suffix);
       len_suffix_max = len_suffix;
     }
   }

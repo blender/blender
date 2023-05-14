@@ -25,6 +25,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
@@ -707,7 +708,7 @@ static void stats_row(int col1,
   *y -= height;
   BLF_draw_default(col1, *y, 0.0f, key, 128);
   char values[128];
-  BLI_snprintf(values, sizeof(values), (value2) ? "%s / %s" : "%s", value1, value2);
+  SNPRINTF(values, (value2) ? "%s / %s" : "%s", value1, value2);
   BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
 }
 
@@ -750,18 +751,18 @@ void ED_info_draw_stats(
   };
   char labels[MAX_LABELS_COUNT][64];
 
-  STRNCPY(labels[OBJ], IFACE_("Objects"));
-  STRNCPY(labels[VERTS], IFACE_("Vertices"));
-  STRNCPY(labels[EDGES], IFACE_("Edges"));
-  STRNCPY(labels[FACES], IFACE_("Faces"));
-  STRNCPY(labels[TRIS], IFACE_("Triangles"));
-  STRNCPY(labels[JOINTS], IFACE_("Joints"));
-  STRNCPY(labels[BONES], IFACE_("Bones"));
-  STRNCPY(labels[LAYERS], IFACE_("Layers"));
-  STRNCPY(labels[FRAMES], IFACE_("Frames"));
-  STRNCPY(labels[STROKES], IFACE_("Strokes"));
-  STRNCPY(labels[POINTS], IFACE_("Points"));
-  STRNCPY(labels[LIGHTS], IFACE_("Lights"));
+  STRNCPY_UTF8(labels[OBJ], IFACE_("Objects"));
+  STRNCPY_UTF8(labels[VERTS], IFACE_("Vertices"));
+  STRNCPY_UTF8(labels[EDGES], IFACE_("Edges"));
+  STRNCPY_UTF8(labels[FACES], IFACE_("Faces"));
+  STRNCPY_UTF8(labels[TRIS], IFACE_("Triangles"));
+  STRNCPY_UTF8(labels[JOINTS], IFACE_("Joints"));
+  STRNCPY_UTF8(labels[BONES], IFACE_("Bones"));
+  STRNCPY_UTF8(labels[LAYERS], IFACE_("Layers"));
+  STRNCPY_UTF8(labels[FRAMES], IFACE_("Frames"));
+  STRNCPY_UTF8(labels[STROKES], IFACE_("Strokes"));
+  STRNCPY_UTF8(labels[POINTS], IFACE_("Points"));
+  STRNCPY_UTF8(labels[LIGHTS], IFACE_("Lights"));
 
   int longest_label = 0;
   int i;

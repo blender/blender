@@ -2213,33 +2213,29 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   if (hasNumInput(&rc->num_input)) {
     char num_str[NUM_STR_REP_LEN];
     outputNumInput(&rc->num_input, num_str, &scene->unit);
-    BLI_snprintf(msg, sizeof(msg), "%s: %s", RNA_property_ui_name(rc->prop), num_str);
+    SNPRINTF(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
   }
   else {
     const char *ui_name = RNA_property_ui_name(rc->prop);
     switch (rc->subtype) {
       case PROP_NONE:
       case PROP_DISTANCE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %0.4f", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %0.4f", ui_name, rc->current_value);
         break;
       case PROP_PIXEL:
-        BLI_snprintf(msg,
-                     sizeof(msg),
-                     "%s: %d",
-                     ui_name,
-                     (int)rc->current_value); /* XXX: round to nearest? */
+        SNPRINTF(msg, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
         break;
       case PROP_PERCENTAGE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %3.1f%%", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %3.1f%%", ui_name, rc->current_value);
         break;
       case PROP_FACTOR:
-        BLI_snprintf(msg, sizeof(msg), "%s: %1.3f", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %1.3f", ui_name, rc->current_value);
         break;
       case PROP_ANGLE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
+        SNPRINTF(msg, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
         break;
       default:
-        BLI_snprintf(msg, sizeof(msg), "%s", ui_name); /* XXX: No value? */
+        SNPRINTF(msg, "%s", ui_name); /* XXX: No value? */
         break;
     }
   }
@@ -2448,7 +2444,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
            WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.1f%%", rc->current_value);
+      SNPRINTF(str, "%3.1f%%", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       tex_radius = r1;
       alpha = 0.75;
@@ -2459,14 +2455,14 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       alpha = rc->current_value / 2.0f + 0.5f;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%1.3f", rc->current_value);
+      SNPRINTF(str, "%1.3f", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       break;
     case PROP_ANGLE:
       r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       alpha = 0.75;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.2f", RAD2DEGF(rc->current_value));
+      SNPRINTF(str, "%3.2f", RAD2DEGF(rc->current_value));
       strdrawlen = BLI_strlen_utf8(str);
       break;
     default:

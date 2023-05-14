@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -4878,10 +4878,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "Punktgruppe zur feinen Kontrolle über die interne Federsteifheit"
 
 
-msgid "Mass Vertex Group"
-msgstr "Gewicht-Punktgruppe"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Punktgruppe zum anheften von Punkt"
 
@@ -7307,18 +7303,6 @@ msgid "Plane"
 msgstr "Fläche"
 
 
-msgid "Normal/View"
-msgstr "Normal/Ansicht"
-
-
-msgid "Normal/Surface"
-msgstr "Normal/Oberfläche"
-
-
-msgid "Display aligned to the surface"
-msgstr "Ansicht ausgerichtet zu der Oberfläche"
-
-
 msgid "View"
 msgstr "Ansicht"
 
@@ -9508,16 +9492,8 @@ msgid "Maximum distance for the field to work"
 msgstr "Minimaler Abstand für die Feldwirkung"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Minimaler Abstand für den Feld-Abfall"
-
-
 msgid "Falloff Power"
 msgstr "Abfallstärke"
-
-
-msgid "Fall-Off"
-msgstr "Abfall"
 
 
 msgid "Cone"
@@ -9706,10 +9682,6 @@ msgstr "Max verwenden"
 
 msgid "Use Min"
 msgstr "Min verwenden"
-
-
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Minimalentfernung für den Abfall des Felds verwenden"
 
 
 msgid "Use Coordinates"
@@ -30925,11 +30897,6 @@ msgid "Pack Linked Libraries"
 msgstr "Packe verlinkte Bibliotheken"
 
 
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Eltern Datei"
-
-
 msgid "Move to parent directory"
 msgstr "Zum Elternverzeichnis bewegen"
 
@@ -35709,10 +35676,6 @@ msgid "Clear Object Constraints"
 msgstr "Objektbeschränkungen entfernen"
 
 
-msgid "Clear all the constraints for the active object only"
-msgstr "Löschen Sie alle Einschränkungen für das aktive Objekt"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Objects"
 msgstr "Beschränkungen zu ausgewählten Objekten kopieren"
@@ -37973,10 +37936,6 @@ msgid "Clear Pose Constraints"
 msgstr "Posenbeschränkungen leeren"
 
 
-msgid "Clear all the constraints for the selected bones"
-msgstr "Alle Beschränkungen für die ausgewählten Knochen löschen"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Bones"
 msgstr "Beschränkungen zu ausgewählten Knochen kopieren"
@@ -39503,15 +39462,6 @@ msgstr "Kopieren"
 msgctxt "Operator"
 msgid "Deinterlace Movies"
 msgstr "Filme filtern"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Streifen entfernen"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Ausgewählte Streifen vom Sequenzer löschen"
 
 
 msgid "Delete Data"
@@ -43624,10 +43574,6 @@ msgstr "Audio"
 
 msgid "Video"
 msgstr "Video"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG-Voreinstellungen"
 
 
 msgid "Format Presets"
@@ -49597,6 +49543,10 @@ msgid "Goal Vertex Group"
 msgstr "Ziel-Knotengruppe"
 
 
+msgid "Mass Vertex Group"
+msgstr "Gewicht-Punktgruppe"
+
+
 msgid "Where the annotation comes from"
 msgstr "Woher die Bemerkung kommt"
 
@@ -52338,14 +52288,6 @@ msgid "Proportional editing object mode"
 msgstr "Proportionaler Objektbearbeiten-Modus"
 
 
-msgid "Proportional Editing FCurves"
-msgstr "Proportionale F-Kurvenbearbeitung"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Proportionaler F-Kurvenbearbeitungsmodus"
-
-
 msgid "Projected from View"
 msgstr "Aus Ansicht projektiert"
 
@@ -52960,10 +52902,6 @@ msgstr "Aktives AOV"
 
 msgid "Active AOV Index"
 msgstr "Aktiver AOV Index"
-
-
-msgid "Index of active aov"
-msgstr "Index vom aktiven AOV"
 
 
 msgid "Active Layer Collection"
@@ -54936,16 +54874,16 @@ msgid "Could not make new image"
 msgstr "Neues Bild konnte nicht erstellt werden"
 
 
+msgid "Could not find image '%s'"
+msgstr "Bild '%s' konnte nicht gefunden werden"
+
+
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "Bildeditor konnte nicht gestartet werden, stelle sicher das der Pfad unter Benutzereinstellungen > Datei gültig ist und Blender die Rechte besitzt um diesen zu öffnen"
 
 
 msgid "Context incorrect, image not found"
 msgstr "Kontext falsch, Bild nicht gefunden"
-
-
-msgid "Could not find image '%s'"
-msgstr "Bild '%s' konnte nicht gefunden werden"
 
 
 msgid "No camera found"
@@ -59921,16 +59859,6 @@ msgstr "Inneres neu berechnen"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Kopiere Vektor"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Vektor einfügen"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Vektor zurücksetzten"
 
@@ -60811,10 +60739,6 @@ msgstr "Renderhöhe sollte für DV-NTSC 480 Pixel sein!"
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Renderhöhe sollte für DV-PAL 576 Pixel sein!"
-
-
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG unterstützt nur 48kHz / Stereo AUdio für DV!"
 
 
 msgid "Error initializing video stream"
@@ -63498,52 +63422,12 @@ msgid "Undefined Socket Type"
 msgstr "Undefinierter Socket Typ"
 
 
-msgid " (String)"
-msgstr " (String)"
-
-
-msgid " (Integer)"
-msgstr " (Integer)"
-
-
-msgid " (Float)"
-msgstr " (Float)"
-
-
-msgid " (Vector)"
-msgstr " (Vektor)"
-
-
 msgid "True"
 msgstr "Wahr"
 
 
 msgid "False"
 msgstr "Falsch"
-
-
-msgid " (Boolean)"
-msgstr " (Boolean)"
-
-
-msgid "Integer field"
-msgstr "Integer Feld"
-
-
-msgid "Float field"
-msgstr "Float Feld"
-
-
-msgid "Vector field"
-msgstr "Vektor Feld"
-
-
-msgid "String field"
-msgstr "String Feld"
-
-
-msgid "Color field"
-msgstr "Farbfeld"
 
 
 msgid "Empty Geometry"
@@ -63757,10 +63641,6 @@ msgstr "Text intern machen"
 
 msgid "unknown error writing file"
 msgstr "Unbekannter Dateischreibfehler"
-
-
-msgid "unknown error stating file"
-msgstr "Unbekannter Dateizustandfehler"
 
 
 msgid "Could not reopen file"
@@ -65065,10 +64945,6 @@ msgstr "Normale treffen"
 
 msgid "Hit Distance"
 msgstr "Treffe Entfernung"
-
-
-msgid "Attribute does not exist: \""
-msgstr "Attribut existiert nicht: \""
 
 
 msgid "Delimiter"

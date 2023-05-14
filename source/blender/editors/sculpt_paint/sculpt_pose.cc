@@ -21,7 +21,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "bmesh.h"

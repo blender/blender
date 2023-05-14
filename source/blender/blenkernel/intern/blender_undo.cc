@@ -57,7 +57,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
   char mainstr[sizeof(bmain->filepath)];
   int success = 0, fileflags;
 
-  BLI_strncpy(mainstr, BKE_main_blendfile_path(bmain), sizeof(mainstr)); /* temporal store */
+  STRNCPY(mainstr, BKE_main_blendfile_path(bmain)); /* temporal store */
 
   fileflags = G.fileflags;
   G.fileflags |= G_FILE_NO_UI;
@@ -116,14 +116,14 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     counter++;
     counter = counter % U.undosteps;
 
-    BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
+    SNPRINTF(numstr, "%d.blend", counter);
     BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_session(), numstr);
 
     const BlendFileWriteParams blend_file_write_params{};
     /* success = */ /* UNUSED */ BLO_write_file(
         bmain, filepath, fileflags, &blend_file_write_params, nullptr);
 
-    BLI_strncpy(mfu->filepath, filepath, sizeof(mfu->filepath));
+    STRNCPY(mfu->filepath, filepath);
   }
   else {
     MemFile *prevfile = (mfu_prev) ? &(mfu_prev->memfile) : nullptr;

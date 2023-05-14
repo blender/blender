@@ -1465,7 +1465,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
   if (argc > 1) {
     Scene *scene = CTX_data_scene(C);
     if (scene) {
-      BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
+      STRNCPY(scene->r.pic, argv[1]);
       DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
@@ -1497,7 +1497,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       Scene *scene = CTX_data_scene(C);
       if (scene) {
         if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
-          BLI_strncpy_utf8(scene->r.engine, argv[1], sizeof(scene->r.engine));
+          STRNCPY_UTF8(scene->r.engine, argv[1]);
           DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
         }
         else {
@@ -1865,7 +1865,7 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
   if (argc > 1) {
     /* Make the path absolute because its needed for relative linked blends to be found */
     char filepath[FILE_MAX];
-    BLI_strncpy(filepath, argv[1], sizeof(filepath));
+    STRNCPY(filepath, argv[1]);
     BLI_path_abs_from_cwd(filepath, sizeof(filepath));
 
     bool ok;
@@ -2062,7 +2062,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     fprintf(stderr, "unknown argument, loading as file: %s\n", argv[0]);
   }
 
-  BLI_strncpy(filepath, argv[0], sizeof(filepath));
+  STRNCPY(filepath, argv[0]);
   BLI_path_slash_native(filepath);
   BLI_path_abs_from_cwd(filepath, sizeof(filepath));
   BLI_path_normalize(filepath);

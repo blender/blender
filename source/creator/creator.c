@@ -362,8 +362,8 @@ int main(int argc,
     }
     else {
       const char *unknown = "date-unknown";
-      BLI_strncpy(build_commit_date, unknown, sizeof(build_commit_date));
-      BLI_strncpy(build_commit_time, unknown, sizeof(build_commit_time));
+      STRNCPY(build_commit_date, unknown);
+      STRNCPY(build_commit_time, unknown);
     }
   }
 #endif

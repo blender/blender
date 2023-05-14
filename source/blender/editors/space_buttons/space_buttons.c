@@ -323,7 +323,7 @@ int ED_buttons_search_string_length(struct SpaceProperties *sbuts)
 
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
 {
-  BLI_strncpy(sbuts->runtime->search_string, value, sizeof(sbuts->runtime->search_string));
+  STRNCPY(sbuts->runtime->search_string, value);
 }
 
 bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)

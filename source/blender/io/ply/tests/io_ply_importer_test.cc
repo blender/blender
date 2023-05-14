@@ -24,7 +24,8 @@ class ply_import_test : public testing::Test {
  public:
   void import_and_check(const char *path, const Expectation &exp)
   {
-    std::string ply_path = blender::tests::flags_test_asset_dir() + "/io_tests/ply/" + path;
+    std::string ply_path = blender::tests::flags_test_asset_dir() +
+                           SEP_STR "io_tests" SEP_STR "ply" SEP_STR + path;
 
     /* Use a small read buffer size for better coverage of buffer refilling behavior. */
     PlyReadBuffer infile(ply_path.c_str(), 128);

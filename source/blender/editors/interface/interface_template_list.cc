@@ -272,7 +272,7 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
 
       if (do_order) {
         names[order_idx].org_idx = order_idx;
-        BLI_strncpy(names[order_idx++].name, name, MAX_IDPROP_NAME);
+        STRNCPY(names[order_idx++].name, name);
       }
 
       /* free name */
@@ -673,7 +673,7 @@ static uiList *ui_list_ensure(const bContext *C,
 
   if (!ui_list) {
     ui_list = static_cast<uiList *>(MEM_callocN(sizeof(uiList), "uiList"));
-    BLI_strncpy(ui_list->list_id, full_list_id, sizeof(ui_list->list_id));
+    STRNCPY(ui_list->list_id, full_list_id);
     BLI_addtail(&region->ui_lists, ui_list);
     ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD; /* Force auto size by default. */
     if (sort_reverse) {
@@ -865,7 +865,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
 
       /* next/prev button */
-      BLI_snprintf(numstr, sizeof(numstr), "%d :", dyn_data->items_shown);
+      SNPRINTF(numstr, "%d :", dyn_data->items_shown);
       but = uiDefIconTextButR_prop(block,
                                    UI_BTYPE_NUM,
                                    0,

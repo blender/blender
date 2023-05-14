@@ -105,7 +105,7 @@ ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_re
 ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 {
   char abs_filename[FILE_MAX];
-  BLI_strncpy(abs_filename, filename, FILE_MAX);
+  STRNCPY(abs_filename, filename);
   BLI_path_abs(abs_filename, BKE_main_blendfile_path(bmain));
 
 #ifdef WIN32

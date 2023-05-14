@@ -13,6 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -74,7 +75,7 @@ void *node_initexec_curves(bNodeExecContext * /*context*/, bNode *node, bNodeIns
 
 void node_sock_label(bNodeSocket *sock, const char *name)
 {
-  BLI_strncpy(sock->label, name, MAX_NAME);
+  STRNCPY(sock->label, name);
 }
 
 void node_sock_label_clear(bNodeSocket *sock)
@@ -175,54 +176,66 @@ void node_math_update(bNodeTree *ntree, bNode *node)
 /** \name Labels
  * \{ */
 
-void node_blend_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+void node_blend_label(const bNodeTree * /*ntree*/,
+                      const bNode *node,
+                      char *label,
+                      int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
-void node_image_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+void node_image_label(const bNodeTree * /*ntree*/,
+                      const bNode *node,
+                      char *label,
+                      int label_maxncpy)
 {
   /* If there is no loaded image, return an empty string,
    * and let nodeLabel() fill in the proper type translation. */
-  BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", maxlen);
+  BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", label_maxncpy);
 }
 
-void node_math_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+void node_math_label(const bNodeTree * /*ntree*/,
+                     const bNode *node,
+                     char *label,
+                     int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_math_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
+  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
 }
 
 void node_vector_math_label(const bNodeTree * /*ntree*/,
                             const bNode *node,
                             char *label,
-                            int maxlen)
+                            int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_vec_math_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
-void node_filter_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+void node_filter_label(const bNodeTree * /*ntree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_filter_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode)

@@ -356,7 +356,7 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   GpencilModifierData *md = MEM_callocN(mti->struct_size, mti->struct_name);
 
   /* NOTE: this name must be made unique later. */
-  BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
+  STRNCPY_UTF8(md->name, DATA_(mti->name));
 
   md->type = type;
   md->mode = eGpencilModifierMode_Realtime | eGpencilModifierMode_Render;

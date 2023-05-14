@@ -46,7 +46,6 @@ extern "C" {
 #define PTCACHE_TYPE_SMOKE_HIGHRES 4
 #define PTCACHE_TYPE_DYNAMICPAINT 5
 #define PTCACHE_TYPE_RIGIDBODY 6
-#define PTCACHE_TYPE_SIM_PARTICLES 7
 
 /* high bits reserved for flags that need to be stored in file */
 #define PTCACHE_TYPEFLAG_COMPRESS (1 << 16)

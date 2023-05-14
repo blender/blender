@@ -340,9 +340,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_DSVOLUME:
     case ANIMTYPE_NLAACTION:
     case ANIMTYPE_DSSIMULATION: {
-      if (ale->adt) {
-        return ale->adt->flag & ADT_UI_ACTIVE;
-      }
+      return ale->adt && (ale->adt->flag & ADT_UI_ACTIVE);
     }
     case ANIMTYPE_GROUP: {
       bActionGroup *argp = (bActionGroup *)ale->data;
@@ -1489,7 +1487,7 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
   /* Initialize memory for temp-group */
   memset(tgrp, 0, sizeof(bActionGroup));
   tgrp->flag |= (AGRP_EXPANDED | AGRP_TEMP);
-  BLI_strncpy(tgrp->name, "#TempGroup", sizeof(tgrp->name));
+  STRNCPY(tgrp->name, "#TempGroup");
 
   /* Move any action-channels not already moved, to the temp group */
   if (act->curves.first) {

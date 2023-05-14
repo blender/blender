@@ -243,8 +243,7 @@ static ARegion *add_node_search_tooltip_fn(
 
   uiSearchItemTooltipData tooltip_data{};
 
-  BLI_strncpy(
-      tooltip_data.description, TIP_(item->description.c_str()), sizeof(tooltip_data.description));
+  STRNCPY(tooltip_data.description, TIP_(item->description.c_str()));
 
   return UI_tooltip_create_from_search_item_generic(C, region, item_rect, &tooltip_data);
 }

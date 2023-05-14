@@ -1091,7 +1091,7 @@ static void init_iconfile_list(ListBase *list)
         /* found a potential icon file, so make an entry for it in the cache list */
         IconFile *ifile = MEM_cnew<IconFile>(__func__);
 
-        BLI_strncpy(ifile->filename, filename, sizeof(ifile->filename));
+        STRNCPY(ifile->filename, filename);
         ifile->index = index;
 
         BLI_addtail(list, ifile);

@@ -759,6 +759,10 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
 int BKE_object_material_count_eval(Object *ob)
 {
   BLI_assert(DEG_is_evaluated_object(ob));
+  if (ob->type == OB_EMPTY) {
+    return 0;
+  }
+  BLI_assert(ob->data != nullptr);
   ID *id = get_evaluated_object_data_with_materials(ob);
   const short *len_p = BKE_id_material_len_p(id);
   return len_p ? *len_p : 0;

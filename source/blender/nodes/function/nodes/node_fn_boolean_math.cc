@@ -2,6 +2,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "RNA_enum_types.h"
 
@@ -34,14 +35,17 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }
 
-static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
+static void node_label(const bNodeTree * /*tree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_boolean_math_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

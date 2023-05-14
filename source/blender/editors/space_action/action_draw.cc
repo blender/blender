@@ -22,12 +22,14 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
 #include "BKE_simulation_state.hh"
 
@@ -496,7 +498,6 @@ static bool timeline_cache_is_hidden_by_setting(const SpaceAction *saction, cons
       }
       break;
     case PTCACHE_TYPE_PARTICLES:
-    case PTCACHE_TYPE_SIM_PARTICLES:
       if ((saction->cache_display & TIME_CACHE_PARTICLES) == 0) {
         return true;
       }
@@ -536,7 +537,6 @@ static void timeline_cache_color_get(PTCacheID *pid, float color[4])
       color[3] = 0.1;
       break;
     case PTCACHE_TYPE_PARTICLES:
-    case PTCACHE_TYPE_SIM_PARTICLES:
       color[0] = 1.0;
       color[1] = 0.1;
       color[2] = 0.02;
@@ -693,17 +693,18 @@ static void timeline_cache_draw_simulation_nodes(
   GPU_matrix_scale_2f(1.0, height);
 
   float color[4];
+  UI_GetThemeColor4fv(TH_SIMULATED_FRAMES, color);
   switch (cache.cache_state()) {
     case blender::bke::sim::CacheState::Invalid: {
-      copy_v4_fl4(color, 0.8, 0.8, 0.2, 0.3);
+      color[3] = 0.4f;
       break;
     }
     case blender::bke::sim::CacheState::Valid: {
-      copy_v4_fl4(color, 0.8, 0.8, 0.2, 1.0);
+      color[3] = 0.7f;
       break;
     }
     case blender::bke::sim::CacheState::Baked: {
-      copy_v4_fl4(color, 1.0, 0.6, 0.2, 1.0);
+      color[3] = 1.0f;
       break;
     }
   }
@@ -757,14 +758,24 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 
     y_offset += cache_draw_height;
   }
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Nodes) {
-      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-      if (nmd->simulation_cache != nullptr) {
-        timeline_cache_draw_simulation_nodes(
-            *scene, *nmd->simulation_cache, y_offset, cache_draw_height, pos_id);
-        y_offset += cache_draw_height;
+  if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
       }
+      const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      if (nmd->node_group == nullptr) {
+        continue;
+      }
+      if (nmd->simulation_cache == nullptr) {
+        continue;
+      }
+      if ((nmd->node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE) == 0) {
+        continue;
+      }
+      timeline_cache_draw_simulation_nodes(
+          *scene, *nmd->simulation_cache, y_offset, cache_draw_height, pos_id);
+      y_offset += cache_draw_height;
     }
   }
 

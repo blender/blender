@@ -466,7 +466,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
      * Keep selection logic in sync with ED_armature_edit_sync_selection.
      */
     eBone->parent = parent;
-    BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
+    STRNCPY(eBone->name, curBone->name);
     eBone->flag = curBone->flag;
     eBone->inherit_scale_mode = curBone->inherit_scale_mode;
 
@@ -694,7 +694,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone = MEM_callocN(sizeof(Bone), "bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
-    BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
+    STRNCPY(newBone->name, eBone->name);
     copy_v3_v3(newBone->arm_head, eBone->head);
     copy_v3_v3(newBone->arm_tail, eBone->tail);
     newBone->arm_roll = eBone->roll;

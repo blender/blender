@@ -475,7 +475,7 @@ static Scene *preview_prepare_scene(
 
     /* This flag tells render to not execute depsgraph or F-Curves etc. */
     sce->r.scemode |= R_BUTS_PREVIEW;
-    BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
+    STRNCPY(sce->r.engine, scene->r.engine);
 
     sce->r.color_mgt_flag = scene->r.color_mgt_flag;
     BKE_color_managed_display_settings_copy(&sce->display_settings, &scene->display_settings);
@@ -498,7 +498,7 @@ static Scene *preview_prepare_scene(
 
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
-      BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
+      STRNCPY(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
     }
 
     if (id_type == ID_MA) {
@@ -631,10 +631,10 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
   bool ok = false;
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", (void *)area);
+    SNPRINTF(name, "Preview %p", (void *)area);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", (void *)area);
+    SNPRINTF(name, "SecondPreview %p", (void *)area);
   }
 
   if (split) {
@@ -1152,10 +1152,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   }
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", sp->owner);
+    SNPRINTF(name, "Preview %p", sp->owner);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", sp->owner);
+    SNPRINTF(name, "SecondPreview %p", sp->owner);
   }
   re = RE_GetRender(name);
 
@@ -1314,7 +1314,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
     /* First use the path directly to try and load the file. */
     char filepath[FILE_MAX];
 
-    BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+    STRNCPY(filepath, brush->icon_filepath);
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
     /* Use default color-spaces for brushes. */

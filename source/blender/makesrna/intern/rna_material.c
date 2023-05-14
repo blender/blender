@@ -268,7 +268,7 @@ static void rna_TexPaintSlot_uv_layer_get(PointerRNA *ptr, char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->uvname != NULL) {
-    BLI_strncpy_utf8(value, data->uvname, 64);
+    strcpy(value, data->uvname);
   }
   else {
     value[0] = '\0';

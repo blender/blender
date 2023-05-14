@@ -239,7 +239,7 @@ static void fluid_bake_sequence(FluidJob *job)
   frames = fds->cache_frame_end - fds->cache_frame_start + 1;
 
   if (frames <= 0) {
-    BLI_strncpy(fds->error, N_("No frames to bake"), sizeof(fds->error));
+    STRNCPY(fds->error, N_("No frames to bake"));
     return;
   }
 

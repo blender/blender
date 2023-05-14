@@ -200,7 +200,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
     wm_job->owner = owner;
     wm_job->flag = flag;
     wm_job->job_type = job_type;
-    BLI_strncpy(wm_job->name, name, sizeof(wm_job->name));
+    STRNCPY(wm_job->name, name);
 
     wm_job->main_thread_mutex = BLI_ticket_mutex_alloc();
     WM_job_main_thread_lock_acquire(wm_job);

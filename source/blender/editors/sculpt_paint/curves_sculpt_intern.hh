@@ -4,8 +4,7 @@
 
 #include <optional>
 
-#include "curves_sculpt_intern.h"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
@@ -171,3 +170,6 @@ struct CurvesConstraintSolver {
 };
 
 }  // namespace blender::ed::sculpt_paint
+
+bool CURVES_SCULPT_mode_poll(struct bContext *C);
+bool CURVES_SCULPT_mode_poll_view3d(struct bContext *C);

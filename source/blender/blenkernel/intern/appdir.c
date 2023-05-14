@@ -115,7 +115,7 @@ static char *blender_version_decimal(const int version)
 {
   static char version_str[5];
   BLI_assert(version < 1000);
-  BLI_snprintf(version_str, sizeof(version_str), "%d.%d", version / 100, version % 100);
+  SNPRINTF(version_str, "%d.%d", version / 100, version % 100);
   return version_str;
 }
 
@@ -130,7 +130,7 @@ const char *BKE_appdir_folder_default(void)
 #ifndef WIN32
   return BLI_getenv("HOME");
 #else  /* Windows */
-  static char documentfolder[MAXPATHLEN];
+  static char documentfolder[FILE_MAXDIR];
 
   if (BKE_appdir_folder_documents(documentfolder)) {
     return documentfolder;
@@ -201,9 +201,9 @@ bool BKE_appdir_folder_documents(char *dir)
   return true;
 }
 
-bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
+bool BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
 {
-  r_path[0] = '\0';
+  path[0] = '\0';
 
   const char *caches_root_path = GHOST_getUserSpecialDir(GHOST_kUserSpecialDirCaches);
   if (caches_root_path == NULL || !BLI_is_dir(caches_root_path)) {
@@ -215,11 +215,11 @@ bool BKE_appdir_folder_caches(char *r_path, const size_t path_len)
 
 #ifdef WIN32
   BLI_path_join(
-      r_path, path_len, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR);
+      path, path_maxncpy, caches_root_path, "Blender Foundation", "Blender", "Cache", SEP_STR);
 #elif defined(__APPLE__)
-  BLI_path_join(r_path, path_len, caches_root_path, "Blender", SEP_STR);
+  BLI_path_join(path, path_maxncpy, caches_root_path, "Blender", SEP_STR);
 #else /* __linux__ */
-  BLI_path_join(r_path, path_len, caches_root_path, "blender", SEP_STR);
+  BLI_path_join(path, path_maxncpy, caches_root_path, "blender", SEP_STR);
 #endif
 
   return true;
@@ -272,7 +272,7 @@ bool BKE_appdir_font_folder_default(char *dir)
  * For now usage is limited and we don't need this.
  */
 static bool test_path(char *targetpath,
-                      size_t targetpath_len,
+                      size_t targetpath_maxncpy,
                       const bool check_is_dir,
                       const char *path_base,
                       const char *folder_name,
@@ -284,7 +284,7 @@ static bool test_path(char *targetpath,
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
   const char *path_array[] = {path_base, folder_name, subfolder_name};
   const int path_array_num = (folder_name ? (subfolder_name ? 3 : 2) : 1);
-  BLI_path_join_array(targetpath, targetpath_len, path_array, path_array_num);
+  BLI_path_join_array(targetpath, targetpath_maxncpy, path_array, path_array_num);
   if (check_is_dir == false) {
     CLOG_INFO(&LOG, 3, "using without test: '%s'", targetpath);
     return true;
@@ -353,7 +353,7 @@ static bool test_env_path(char *path, const char *envvar, const bool check_is_di
  * \return true if such a directory exists.
  */
 static bool get_path_local_ex(char *targetpath,
-                              size_t targetpath_len,
+                              size_t targetpath_maxncpy,
                               const char *folder_name,
                               const char *subfolder_name,
                               const int version,
@@ -390,21 +390,21 @@ static bool get_path_local_ex(char *targetpath,
   path_base = osx_resourses;
 #endif
   return test_path(targetpath,
-                   targetpath_len,
+                   targetpath_maxncpy,
                    check_is_dir,
                    path_base,
                    blender_version_decimal(version),
                    relfolder);
 }
 static bool get_path_local(char *targetpath,
-                           size_t targetpath_len,
+                           size_t targetpath_maxncpy,
                            const char *folder_name,
                            const char *subfolder_name)
 {
   const int version = BLENDER_VERSION;
   const bool check_is_dir = true;
   return get_path_local_ex(
-      targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+      targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
 bool BKE_appdir_app_is_portable_install(void)
@@ -424,7 +424,7 @@ bool BKE_appdir_app_is_portable_install(void)
  * \return true if it was able to construct such a path and the path exists.
  */
 static bool get_path_environment_ex(char *targetpath,
-                                    size_t targetpath_len,
+                                    size_t targetpath_maxncpy,
                                     const char *subfolder_name,
                                     const char *envvar,
                                     const bool check_is_dir)
@@ -433,17 +433,19 @@ static bool get_path_environment_ex(char *targetpath,
 
   if (test_env_path(user_path, envvar, check_is_dir)) {
     /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
-    return test_path(targetpath, targetpath_len, check_is_dir, user_path, subfolder_name, NULL);
+    return test_path(
+        targetpath, targetpath_maxncpy, check_is_dir, user_path, subfolder_name, NULL);
   }
   return false;
 }
 static bool get_path_environment(char *targetpath,
-                                 size_t targetpath_len,
+                                 size_t targetpath_maxncpy,
                                  const char *subfolder_name,
                                  const char *envvar)
 {
   const bool check_is_dir = true;
-  return get_path_environment_ex(targetpath, targetpath_len, subfolder_name, envvar, check_is_dir);
+  return get_path_environment_ex(
+      targetpath, targetpath_maxncpy, subfolder_name, envvar, check_is_dir);
 }
 
 /**
@@ -457,7 +459,7 @@ static bool get_path_environment(char *targetpath,
  * \return true if it was able to construct such a path.
  */
 static bool get_path_user_ex(char *targetpath,
-                             size_t targetpath_len,
+                             size_t targetpath_maxncpy,
                              const char *folder_name,
                              const char *subfolder_name,
                              const int version,
@@ -472,13 +474,13 @@ static bool get_path_user_ex(char *targetpath,
     /* for portable install, user path is always local */
     if (BKE_appdir_app_is_portable_install()) {
       return get_path_local_ex(
-          targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+          targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
     }
     user_path[0] = '\0';
 
     const char *user_base_path = GHOST_getUserDir(version, blender_version_decimal(version));
     if (user_base_path) {
-      BLI_strncpy(user_path, user_base_path, FILE_MAX);
+      STRNCPY(user_path, user_base_path);
     }
   }
 
@@ -495,17 +497,17 @@ static bool get_path_user_ex(char *targetpath,
 
   /* `subfolder_name` may be NULL. */
   return test_path(
-      targetpath, targetpath_len, check_is_dir, user_path, folder_name, subfolder_name);
+      targetpath, targetpath_maxncpy, check_is_dir, user_path, folder_name, subfolder_name);
 }
 static bool get_path_user(char *targetpath,
-                          size_t targetpath_len,
+                          size_t targetpath_maxncpy,
                           const char *folder_name,
                           const char *subfolder_name)
 {
   const int version = BLENDER_VERSION;
   const bool check_is_dir = true;
   return get_path_user_ex(
-      targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+      targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
 /**
@@ -519,7 +521,7 @@ static bool get_path_user(char *targetpath,
  * \return true if it was able to construct such a path.
  */
 static bool get_path_system_ex(char *targetpath,
-                               size_t targetpath_len,
+                               size_t targetpath_maxncpy,
                                const char *folder_name,
                                const char *subfolder_name,
                                const int version,
@@ -544,7 +546,7 @@ static bool get_path_system_ex(char *targetpath,
     system_path[0] = '\0';
     const char *system_base_path = GHOST_getSystemDir(version, blender_version_decimal(version));
     if (system_base_path) {
-      BLI_strncpy(system_path, system_base_path, FILE_MAX);
+      STRNCPY(system_path, system_base_path);
     }
   }
 
@@ -561,18 +563,18 @@ static bool get_path_system_ex(char *targetpath,
 
   /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be NULL. */
   return test_path(
-      targetpath, targetpath_len, check_is_dir, system_path, folder_name, subfolder_name);
+      targetpath, targetpath_maxncpy, check_is_dir, system_path, folder_name, subfolder_name);
 }
 
 static bool get_path_system(char *targetpath,
-                            size_t targetpath_len,
+                            size_t targetpath_maxncpy,
                             const char *folder_name,
                             const char *subfolder_name)
 {
   const int version = BLENDER_VERSION;
   const bool check_is_dir = true;
   return get_path_system_ex(
-      targetpath, targetpath_len, folder_name, subfolder_name, version, check_is_dir);
+      targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
 /** \} */
@@ -584,95 +586,95 @@ static bool get_path_system(char *targetpath,
 bool BKE_appdir_folder_id_ex(const int folder_id,
                              const char *subfolder,
                              char *path,
-                             size_t path_len)
+                             size_t path_maxncpy)
 {
   switch (folder_id) {
     case BLENDER_DATAFILES: /* general case */
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "datafiles", subfolder)) {
+      if (get_path_user(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
         break;
       }
-      if (get_path_local(path, path_len, "datafiles", subfolder)) {
+      if (get_path_local(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
-      if (get_path_system(path, path_len, "datafiles", subfolder)) {
+      if (get_path_system(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_USER_DATAFILES:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "datafiles", subfolder)) {
+      if (get_path_user(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_SYSTEM_DATAFILES:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
         break;
       }
-      if (get_path_system(path, path_len, "datafiles", subfolder)) {
+      if (get_path_system(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "datafiles", subfolder)) {
+      if (get_path_local(path, path_maxncpy, "datafiles", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_USER_AUTOSAVE:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "autosave", subfolder)) {
+      if (get_path_user(path, path_maxncpy, "autosave", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_USER_CONFIG:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_CONFIG")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_CONFIG")) {
         break;
       }
-      if (get_path_user(path, path_len, "config", subfolder)) {
+      if (get_path_user(path, path_maxncpy, "config", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_USER_SCRIPTS:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_SCRIPTS")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_SCRIPTS")) {
         break;
       }
-      if (get_path_user(path, path_len, "scripts", subfolder)) {
+      if (get_path_user(path, path_maxncpy, "scripts", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_SYSTEM_SCRIPTS:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_SCRIPTS")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_SCRIPTS")) {
         break;
       }
-      if (get_path_system(path, path_len, "scripts", subfolder)) {
+      if (get_path_system(path, path_maxncpy, "scripts", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "scripts", subfolder)) {
+      if (get_path_local(path, path_maxncpy, "scripts", subfolder)) {
         break;
       }
       return false;
 
     case BLENDER_SYSTEM_PYTHON:
-      if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_PYTHON")) {
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_PYTHON")) {
         break;
       }
-      if (get_path_system(path, path_len, "python", subfolder)) {
+      if (get_path_system(path, path_maxncpy, "python", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "python", subfolder)) {
+      if (get_path_local(path, path_maxncpy, "python", subfolder)) {
         break;
       }
       return false;
@@ -818,7 +820,9 @@ const char *BKE_appdir_resource_path_id(const int folder_id, const bool check_is
  * (must be #FILE_MAX minimum)
  * \param name: The name of the executable (usually `argv[0]`) to be checked
  */
-static void where_am_i(char *program_filepath, const size_t maxlen, const char *program_name)
+static void where_am_i(char *program_filepath,
+                       const size_t program_filepath_maxncpy,
+                       const char *program_name)
 {
 #  ifdef WITH_BINRELOC
   /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(NULL)` first. */
@@ -826,7 +830,7 @@ static void where_am_i(char *program_filepath, const size_t maxlen, const char *
     const char *path = NULL;
     path = br_find_exe(NULL);
     if (path) {
-      BLI_strncpy(program_filepath, path, maxlen);
+      BLI_strncpy(program_filepath, path, program_filepath_maxncpy);
       free((void *)path);
       return;
     }
@@ -835,11 +839,14 @@ static void where_am_i(char *program_filepath, const size_t maxlen, const char *
 
 #  ifdef _WIN32
   {
-    wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
-    if (GetModuleFileNameW(0, fullname_16, maxlen)) {
-      conv_utf_16_to_8(fullname_16, program_filepath, maxlen);
+    wchar_t *fullname_16 = MEM_mallocN(program_filepath_maxncpy * sizeof(wchar_t), "ProgramPath");
+    if (GetModuleFileNameW(0, fullname_16, program_filepath_maxncpy)) {
+      conv_utf_16_to_8(fullname_16, program_filepath, program_filepath_maxncpy);
       if (!BLI_exists(program_filepath)) {
-        CLOG_ERROR(&LOG, "path can't be found: \"%.*s\"", (int)maxlen, program_filepath);
+        CLOG_ERROR(&LOG,
+                   "path can't be found: \"%.*s\"",
+                   (int)program_filepath_maxncpy,
+                   program_filepath);
         MessageBox(
             NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
       }
@@ -854,22 +861,22 @@ static void where_am_i(char *program_filepath, const size_t maxlen, const char *
   /* Unix and non Linux. */
   if (program_name && program_name[0]) {
 
-    BLI_strncpy(program_filepath, program_name, maxlen);
+    BLI_strncpy(program_filepath, program_name, program_filepath_maxncpy);
     if (program_name[0] == '.') {
-      BLI_path_abs_from_cwd(program_filepath, maxlen);
+      BLI_path_abs_from_cwd(program_filepath, program_filepath_maxncpy);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, program_filepath_maxncpy);
 #  endif
     }
     else if (BLI_path_slash_rfind(program_name)) {
       /* Full path. */
-      BLI_strncpy(program_filepath, program_name, maxlen);
+      BLI_strncpy(program_filepath, program_name, program_filepath_maxncpy);
 #  ifdef _WIN32
-      BLI_path_program_extensions_add_win32(program_filepath, maxlen);
+      BLI_path_program_extensions_add_win32(program_filepath, program_filepath_maxncpy);
 #  endif
     }
     else {
-      BLI_path_program_search(program_filepath, maxlen, program_name);
+      BLI_path_program_search(program_filepath, program_filepath_maxncpy, program_name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
     BLI_path_normalize(program_filepath);
@@ -1024,12 +1031,12 @@ bool BKE_appdir_app_template_any(void)
   return false;
 }
 
-bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len)
+bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
 {
   for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
     char subdir[FILE_MAX];
     BLI_path_join(subdir, sizeof(subdir), app_template_directory_search[i], app_template);
-    if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_len)) {
+    if (BKE_appdir_folder_id_ex(app_template_directory_id[i], subdir, path, path_maxncpy)) {
       return true;
     }
   }
@@ -1095,27 +1102,27 @@ void BKE_appdir_app_templates(ListBase *templates)
  * Also make sure the temp dir has a trailing slash
  *
  * \param tempdir: The full path to the temporary temp directory.
- * \param tempdir_maxlen: The size of the \a tempdir buffer.
+ * \param tempdir_maxncpy: The size of the \a tempdir buffer.
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
-static void where_is_temp(char *tempdir, const size_t tempdir_maxlen, const char *userdir)
+static void where_is_temp(char *tempdir, const size_t tempdir_maxncpy, const char *userdir)
 {
 
   tempdir[0] = '\0';
 
   if (userdir && userdir[0] != '\0' && BLI_is_dir(userdir)) {
-    BLI_strncpy(tempdir, userdir, tempdir_maxlen);
+    BLI_strncpy(tempdir, userdir, tempdir_maxncpy);
     /* Add a trailing slash if needed. */
-    BLI_path_slash_ensure(tempdir, tempdir_maxlen);
+    BLI_path_slash_ensure(tempdir, tempdir_maxncpy);
     return;
   }
 
-  BLI_temp_directory_path_get(tempdir, tempdir_maxlen);
+  BLI_temp_directory_path_get(tempdir, tempdir_maxncpy);
 }
 
 static void tempdir_session_create(char *tempdir_session,
-                                   const size_t tempdir_session_maxlen,
+                                   const size_t tempdir_session_maxncpy,
                                    const char *tempdir)
 {
   tempdir_session[0] = '\0';
@@ -1129,9 +1136,9 @@ static void tempdir_session_create(char *tempdir_session,
    * #_mktemp_s also requires the last null character is included. */
   const int tempdir_session_len_required = tempdir_len + session_name_len + 1;
 
-  if (tempdir_session_len_required <= tempdir_session_maxlen) {
+  if (tempdir_session_len_required <= tempdir_session_maxncpy) {
     /* No need to use path joining utility as we know the last character of #tempdir is a slash. */
-    BLI_string_join(tempdir_session, tempdir_session_maxlen, tempdir, session_name);
+    BLI_string_join(tempdir_session, tempdir_session_maxncpy, tempdir, session_name);
 #ifdef WIN32
     const bool needs_create = (_mktemp_s(tempdir_session, tempdir_session_len_required) == 0);
 #else
@@ -1141,7 +1148,7 @@ static void tempdir_session_create(char *tempdir_session,
       BLI_dir_create_recursive(tempdir_session);
     }
     if (BLI_is_dir(tempdir_session)) {
-      BLI_path_slash_ensure(tempdir_session, tempdir_session_maxlen);
+      BLI_path_slash_ensure(tempdir_session, tempdir_session_maxncpy);
       /* Success. */
       return;
     }
@@ -1151,7 +1158,7 @@ static void tempdir_session_create(char *tempdir_session,
             "Could not generate a temp file name for '%s', falling back to '%s'",
             tempdir_session,
             tempdir);
-  BLI_strncpy(tempdir_session, tempdir, tempdir_session_maxlen);
+  BLI_strncpy(tempdir_session, tempdir, tempdir_session_maxncpy);
 }
 
 void BKE_tempdir_init(const char *userdir)

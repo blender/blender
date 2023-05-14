@@ -882,4 +882,56 @@ void convert_device_to_host(void *dst_buffer,
 
 /* \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Vertex Attributes
+ * \{ */
+
+static bool conversion_needed(const GPUVertAttr &vertex_attribute)
+{
+  return (vertex_attribute.fetch_mode == GPU_FETCH_INT_TO_FLOAT &&
+          ELEM(vertex_attribute.comp_type, GPU_COMP_I32, GPU_COMP_U32));
+}
+
+bool conversion_needed(const GPUVertFormat &vertex_format)
+{
+  for (int attr_index : IndexRange(vertex_format.attr_len)) {
+    const GPUVertAttr &vert_attr = vertex_format.attrs[attr_index];
+    if (conversion_needed(vert_attr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void convert_in_place(void *data, const GPUVertFormat &vertex_format, const uint vertex_len)
+{
+  BLI_assert(vertex_format.deinterleaved == false);
+  for (int attr_index : IndexRange(vertex_format.attr_len)) {
+    const GPUVertAttr &vert_attr = vertex_format.attrs[attr_index];
+    if (!conversion_needed(vert_attr)) {
+      continue;
+    }
+    void *row_data = static_cast<uint8_t *>(data) + vert_attr.offset;
+    for (int vert_index = 0; vert_index < vertex_len; vert_index++) {
+      if (vert_attr.comp_type == GPU_COMP_I32) {
+        for (int component : IndexRange(vert_attr.comp_len)) {
+          int32_t *component_in = static_cast<int32_t *>(row_data) + component;
+          float *component_out = static_cast<float *>(row_data) + component;
+          *component_out = float(*component_in);
+        }
+      }
+      else if (vert_attr.comp_type == GPU_COMP_U32) {
+        for (int component : IndexRange(vert_attr.comp_len)) {
+          uint32_t *component_in = static_cast<uint32_t *>(row_data) + component;
+          float *component_out = static_cast<float *>(row_data) + component;
+          *component_out = float(*component_in);
+        }
+      }
+      row_data = static_cast<uint8_t *>(row_data) + vertex_format.stride;
+    }
+  }
+}
+
+/* \} */
+
 }  // namespace blender::gpu

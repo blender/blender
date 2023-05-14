@@ -1841,14 +1841,14 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 
   tot = BLI_listbase_count(&key->block);
   if (name) {
-    BLI_strncpy(kb->name, name, sizeof(kb->name));
+    STRNCPY(kb->name, name);
   }
   else {
     if (tot == 1) {
-      BLI_strncpy(kb->name, DATA_("Basis"), sizeof(kb->name));
+      STRNCPY_UTF8(kb->name, DATA_("Basis"));
     }
     else {
-      BLI_snprintf(kb->name, sizeof(kb->name), DATA_("Key %d"), tot - 1);
+      SNPRINTF(kb->name, DATA_("Key %d"), tot - 1);
     }
   }
 
@@ -1961,7 +1961,7 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->curval = kb_src->curval;
   kb_dst->type = kb_src->type;
   kb_dst->relative = kb_src->relative;
-  BLI_strncpy(kb_dst->vgroup, kb_src->vgroup, sizeof(kb_dst->vgroup));
+  STRNCPY(kb_dst->vgroup, kb_src->vgroup);
   kb_dst->slidermin = kb_src->slidermin;
   kb_dst->slidermax = kb_src->slidermax;
 }

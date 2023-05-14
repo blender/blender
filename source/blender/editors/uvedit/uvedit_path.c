@@ -579,7 +579,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   BMElem *ele_src = NULL, *ele_dst = NULL;
 
   /* Detect the hit. */
-  UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
+  UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
   bool hit_found = false;
   if (uv_selectmode == UV_SELECT_FACE) {
     if (uv_find_nearest_face_multi(scene, objects, objects_len, co, &hit)) {

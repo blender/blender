@@ -49,10 +49,10 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    BLI_snprintf(str, sizeof(str), TIP_("Feather Shrink/Fatten: %s"), c);
+    SNPRINTF(str, TIP_("Feather Shrink/Fatten: %s"), c);
   }
   else {
-    BLI_snprintf(str, sizeof(str), TIP_("Feather Shrink/Fatten: %3f"), ratio);
+    SNPRINTF(str, TIP_("Feather Shrink/Fatten: %3f"), ratio);
   }
 
   /* detect if no points have feather yet */

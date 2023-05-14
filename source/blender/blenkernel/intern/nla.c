@@ -517,7 +517,7 @@ NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act, const bool is_libo
     nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
     BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
-    BLI_strncpy(nlt->name, act->id.name + 2, sizeof(nlt->name));
+    STRNCPY(nlt->name, act->id.name + 2);
   }
 
   /* automatically name it too */
@@ -1798,18 +1798,16 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
   if (strip->name[0] == 0) {
     switch (strip->type) {
       case NLASTRIP_TYPE_CLIP: /* act-clip */
-        BLI_strncpy(strip->name,
-                    (strip->act) ? (strip->act->id.name + 2) : ("<No Action>"),
-                    sizeof(strip->name));
+        STRNCPY(strip->name, (strip->act) ? (strip->act->id.name + 2) : ("<No Action>"));
         break;
       case NLASTRIP_TYPE_TRANSITION: /* transition */
-        BLI_strncpy(strip->name, "Transition", sizeof(strip->name));
+        STRNCPY(strip->name, "Transition");
         break;
       case NLASTRIP_TYPE_META: /* meta */
-        BLI_strncpy(strip->name, "Meta", sizeof(strip->name));
+        STRNCPY(strip->name, "Meta");
         break;
       default:
-        BLI_strncpy(strip->name, "NLA Strip", sizeof(strip->name));
+        STRNCPY(strip->name, "NLA Strip");
         break;
     }
   }
@@ -2066,7 +2064,7 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
     BLI_addhead(&adt->nla_tracks, nlt);
   }
 
-  BLI_strncpy(nlt->name, STASH_TRACK_NAME, sizeof(nlt->name));
+  STRNCPY(nlt->name, STASH_TRACK_NAME);
   BLI_uniquename(
       &adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
 

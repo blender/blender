@@ -400,7 +400,6 @@ void paint_sample_color(
 void paint_stroke_operator_properties(struct wmOperatorType *ot, bool mode_skip_save);
 
 void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
-void BRUSH_OT_curve_preset_load(struct wmOperatorType *ot);
 void BRUSH_OT_sculpt_curves_falloff_preset(struct wmOperatorType *ot);
 
 void PAINT_OT_face_select_linked(struct wmOperatorType *ot);

@@ -134,8 +134,8 @@ void IDNode::destroy()
 string IDNode::identifier() const
 {
   char orig_ptr[24], cow_ptr[24];
-  BLI_snprintf(orig_ptr, sizeof(orig_ptr), "%p", id_orig);
-  BLI_snprintf(cow_ptr, sizeof(cow_ptr), "%p", id_cow);
+  SNPRINTF(orig_ptr, "%p", id_orig);
+  SNPRINTF(cow_ptr, "%p", id_cow);
   return string(nodeTypeAsString(type)) + " : " + name + " (orig: " + orig_ptr +
          ", eval: " + cow_ptr + ", is_visible_on_build " +
          (is_visible_on_build ? "true" : "false") + ")";

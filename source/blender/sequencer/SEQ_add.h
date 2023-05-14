@@ -169,7 +169,7 @@ struct Sequence *SEQ_add_effect_strip(struct Scene *scene,
  * \param seq: image strip to be changed
  * \param path: directory path
  */
-void SEQ_add_image_set_directory(struct Sequence *seq, char *path);
+void SEQ_add_image_set_directory(struct Sequence *seq, const char *dirpath);
 /**
  * Set directory used by image strip.
  *
@@ -180,7 +180,7 @@ void SEQ_add_image_set_directory(struct Sequence *seq, char *path);
 void SEQ_add_image_load_file(struct Scene *scene,
                              struct Sequence *seq,
                              size_t strip_frame,
-                             char *filename);
+                             const char *filename);
 /**
  * Set image strip alpha mode
  *

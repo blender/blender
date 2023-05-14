@@ -263,7 +263,7 @@ typedef struct bNodeType {
   void (*labelfunc)(const struct bNodeTree *ntree,
                     const struct bNode *node,
                     char *label,
-                    int maxlen);
+                    int label_maxncpy);
 
   /** Optional override for node class, used for drawing node header. */
   int (*ui_class)(const struct bNode *node);
@@ -1587,6 +1587,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 /* Function nodes use the range starting at 1200. */
 #define GEO_NODE_SIMULATION_INPUT 2100
 #define GEO_NODE_SIMULATION_OUTPUT 2101
+#define GEO_NODE_INPUT_SIGNED_DISTANCE 2102
 
 /** \} */
 

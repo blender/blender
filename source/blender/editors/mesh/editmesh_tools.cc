@@ -8460,28 +8460,27 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
   WM_modalkeymap_operator_items_to_string_buf( \
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
-  BLI_snprintf(header,
-               sizeof(header),
-               TIP_("%s: confirm, %s: cancel, "
-                    "%s: point to mouse (%s), %s: point to Pivot, "
-                    "%s: point to object origin, %s: reset normals, "
-                    "%s: set & point to 3D cursor, %s: select & point to mesh item, "
-                    "%s: invert normals (%s), %s: spherize (%s), %s: align (%s)"),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_CONFIRM),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_CANCEL),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),
-               WM_bool_as_string(RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_RESET),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_INVERT),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
-               WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_ALIGN),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
+  SNPRINTF(header,
+           TIP_("%s: confirm, %s: cancel, "
+                "%s: point to mouse (%s), %s: point to Pivot, "
+                "%s: point to object origin, %s: reset normals, "
+                "%s: set & point to 3D cursor, %s: select & point to mesh item, "
+                "%s: invert normals (%s), %s: spherize (%s), %s: align (%s)"),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_CONFIRM),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_CANCEL),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),
+           WM_bool_as_string(RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_RESET),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_INVERT),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
+           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_ALIGN),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
 
 #undef WM_MODALKEY
 

@@ -56,12 +56,8 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
   for (seq = seqbasep->first; seq; seq = seq->next) {
     if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
       /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
-      BLI_snprintf(sui->name_dest,
-                   sizeof(sui->name_dest),
-                   "%.*s.%03d",
-                   SEQ_NAME_MAXSTR - 4 - 1 - 2,
-                   sui->name_src,
-                   sui->count++);
+      SNPRINTF(
+          sui->name_dest, "%.*s.%03d", SEQ_NAME_MAXSTR - 4 - 1 - 2, sui->name_src, sui->count++);
       sui->match = 1; /* be sure to re-scan */
     }
   }
@@ -82,8 +78,8 @@ void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
   SeqUniqueInfo sui;
   char *dot;
   sui.seq = seq;
-  BLI_strncpy(sui.name_src, seq->name + 2, sizeof(sui.name_src));
-  BLI_strncpy(sui.name_dest, seq->name + 2, sizeof(sui.name_dest));
+  STRNCPY(sui.name_src, seq->name + 2);
+  STRNCPY(sui.name_dest, seq->name + 2);
 
   sui.count = 1;
   sui.match = 1; /* assume the worst to start the loop */
@@ -171,7 +167,7 @@ const char *SEQ_sequence_give_name(Sequence *seq)
 
   if (!name) {
     if (!(seq->type & SEQ_TYPE_EFFECT)) {
-      return seq->strip->dir;
+      return seq->strip->dirpath;
     }
 
     return "Effect";
@@ -208,7 +204,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
 
 void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 {
-  char dir[FILE_MAX];
+  char dirpath[FILE_MAX];
   char filepath[FILE_MAX];
   StripProxy *proxy;
   bool use_proxy;
@@ -224,7 +220,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   /* reset all the previously created anims */
   SEQ_relations_sequence_free_anim(seq);
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   proxy = seq->strip->proxy;
@@ -235,16 +231,16 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   if (use_proxy) {
     if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
       if (ed->proxy_dir[0] == 0) {
-        BLI_strncpy(dir, "//BL_proxy", sizeof(dir));
+        STRNCPY(dirpath, "//BL_proxy");
       }
       else {
-        BLI_strncpy(dir, ed->proxy_dir, sizeof(dir));
+        STRNCPY(dirpath, ed->proxy_dir);
       }
     }
     else {
-      BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+      STRNCPY(dirpath, seq->strip->proxy->dirpath);
     }
-    BLI_path_abs(dir, BKE_main_blendfile_path_from_global());
+    BLI_path_abs(dirpath, BKE_main_blendfile_path_from_global());
   }
 
   if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
@@ -263,7 +259,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 
         BLI_addtail(&seq->anims, sanim);
 
-        BLI_snprintf(str, sizeof(str), "%s%s%s", prefix, suffix, ext);
+        SNPRINTF(str, "%s%s%s", prefix, suffix, ext);
 
         if (openfile) {
           sanim->anim = openanim(str,
@@ -303,7 +299,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
         }
 
         if (sanim->anim && use_proxy) {
-          seq_proxy_index_dir_set(sanim->anim, dir);
+          seq_proxy_index_dir_set(sanim->anim, dirpath);
         }
       }
       is_multiview_loaded = true;
@@ -330,7 +326,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
     }
 
     if (sanim->anim && use_proxy) {
-      seq_proxy_index_dir_set(sanim->anim, dir);
+      seq_proxy_index_dir_set(sanim->anim, dirpath);
     }
   }
 }
@@ -454,7 +450,7 @@ Mask *SEQ_active_mask_get(Scene *scene)
 void SEQ_alpha_mode_from_file_extension(Sequence *seq)
 {
   if (seq->strip && seq->strip->stripdata) {
-    const char *filename = seq->strip->stripdata->name;
+    const char *filename = seq->strip->stripdata->filename;
     seq->alpha_mode = BKE_image_alpha_mode_from_extension_ex(filename);
   }
 }
@@ -527,7 +523,7 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
 {
   char name[SEQ_NAME_MAXSTR];
 
-  BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
+  STRNCPY_UTF8(name, seq->name + 2);
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   BKE_animdata_fix_paths_rename(
       &scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name, seq->name + 2, 0, 0, 0);

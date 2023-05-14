@@ -146,6 +146,15 @@ endif()
 
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)
+  add_definitions(-DOIDN_STATIC_LIB)
+  list(APPEND INC_SYS
+    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
+    ${TBB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${OPENIMAGEDENOISE_LIBRARIES}
+    ${TBB_LIBRARIES}
+  )
 endif()
 
 blender_add_lib(bf_nodes_composite "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

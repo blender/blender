@@ -706,7 +706,7 @@ static bool do_versions_sequencer_init_retiming_tool_data(Sequence *seq, void *u
 
   SeqRetimingHandle *handle = &seq->retiming_handles[seq->retiming_handle_num - 1];
   handle->strip_frame_index = round_fl_to_int(content_length / seq->speed_factor);
-  seq->speed_factor = 0.0f;
+  seq->speed_factor = 1.0f;
 
   return true;
 }
@@ -925,7 +925,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
         store_attribute_name_input->default_value);
     const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
                                                                                  "uv_map";
-    BLI_strncpy(name_value->value, uv_map_name, sizeof(name_value->value));
+    STRNCPY(name_value->value, uv_map_name);
 
     nodeAddLink(&ntree,
                 node,
@@ -1399,7 +1399,7 @@ static void version_switch_node_input_prefix(Main *bmain)
 
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
-            BLI_strncpy(number_suffix, socket->identifier + 1, sizeof(number_suffix));
+            STRNCPY(number_suffix, socket->identifier + 1);
             BLI_string_join(
                 socket->identifier, sizeof(socket->identifier), socket->name, number_suffix);
           }
@@ -1578,22 +1578,14 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
     }
 
     char use_attribute_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(use_attribute_prop_name,
-                 sizeof(use_attribute_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_use_attribute");
+    SNPRINTF(use_attribute_prop_name, "%s%s", property->name, "_use_attribute");
 
     IDPropertyTemplate idprop = {0};
     IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
     IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
 
     char attribute_name_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(attribute_name_prop_name,
-                 sizeof(attribute_name_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_attribute_name");
+    SNPRINTF(attribute_name_prop_name, "%s%s", property->name, "_attribute_name");
 
     IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
     IDP_AddToGroup(nmd->settings.properties, attribute_prop);
@@ -1793,6 +1785,18 @@ static bool version_set_seq_single_frame_content(Sequence *seq, void * /*user_da
   {
     seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
+  return true;
+}
+
+static bool version_seq_fix_broken_sound_strips(Sequence *seq, void * /*user_data*/)
+{
+  if (seq->type != SEQ_TYPE_SOUND_RAM || seq->speed_factor != 0.0f) {
+    return true;
+  }
+
+  seq->speed_factor = 1.0f;
+  SEQ_retiming_data_clear(seq);
+  seq->startofs = 0.0f;
   return true;
 }
 
@@ -4443,83 +4447,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Rename Grease Pencil weight draw brush. */
     do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
-
-    /* Identifier generation for simulation node sockets changed.
-     * Update identifiers so links are not removed during validation.
-     * This only affects files that have been created using simulation nodes before they were first
-     * officially released. */
-    if (!DNA_struct_elem_find(fd->filesdna, "NodeSimulationItem", "int", "identifier")) {
-      static auto set_socket_identifiers =
-          [](bNode *node, const bNode *output_node, int extra_outputs) {
-            const NodeGeometrySimulationOutput *output_data =
-                static_cast<const NodeGeometrySimulationOutput *>(output_node->storage);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->inputs) == output_data->items_num + 1);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->outputs) ==
-                       output_data->items_num + 1 + extra_outputs);
-
-            int i;
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, i) {
-              /* Skip extension socket. */
-              if (i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i].identifier);
-            }
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
-              const int item_i = i - extra_outputs;
-              /* Skip extra outputs. */
-              if (i < extra_outputs) {
-                continue;
-              }
-              /* Skip extension socket. */
-              if (item_i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i - extra_outputs].identifier);
-            }
-          };
-
-      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-        if (ntree->type == NTREE_GEOMETRY) {
-          /* Initialize item identifiers. */
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-              NodeGeometrySimulationOutput *data = static_cast<NodeGeometrySimulationOutput *>(
-                  node->storage);
-              for (int i = 0; i < data->items_num; ++i) {
-                data->items[i].identifier = i;
-              }
-              data->next_identifier = data->items_num;
-            }
-          }
-
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == GEO_NODE_SIMULATION_INPUT) {
-              const NodeGeometrySimulationInput *input_data =
-                  static_cast<const NodeGeometrySimulationInput *>(node->storage);
-              LISTBASE_FOREACH (bNode *, output_node, &ntree->nodes) {
-                if (output_node->identifier == input_data->output_node_id) {
-                  /* 'Delta Time' socket in input nodes */
-                  set_socket_identifiers(node, output_node, 1);
-                  break;
-                }
-              }
-            }
-            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-              set_socket_identifiers(node, node, 0);
-            }
-          }
-        }
-      }
-    }
   }
 
   /* fcm->name was never used to store modifier name so it has always been an empty string. Now
@@ -4535,6 +4462,34 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 8)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      ob->flag |= OB_FLAG_USE_SIMULATION_CACHE;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 9)) {
+    /* Fix sound strips with speed factor set to 0. See #107289. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_ACTION) {
+            SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+            saction->cache_display |= TIME_CACHE_SIMULATION_NODES;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

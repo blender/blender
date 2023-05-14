@@ -1341,11 +1341,15 @@ static void bm_to_mesh_verts(const BMesh &bm,
   CustomData_add_layer_named(&mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.vdata, mesh.vdata);
   MutableSpan<float3> dst_vert_positions = mesh.vert_positions_for_write();
+
+  std::atomic<bool> any_loose_vert = false;
   threading::parallel_for(dst_vert_positions.index_range(), 1024, [&](const IndexRange range) {
+    bool any_loose_vert_local = false;
     for (const int vert_i : range) {
       const BMVert &src_vert = *bm_verts[vert_i];
       copy_v3_v3(dst_vert_positions[vert_i], src_vert.co);
       bmesh_block_copy_to_mesh_attributes(info, vert_i, src_vert.head.data);
+      any_loose_vert_local = any_loose_vert_local || src_vert.e == nullptr;
     }
     if (!select_vert.is_empty()) {
       for (const int vert_i : range) {
@@ -1358,6 +1362,10 @@ static void bm_to_mesh_verts(const BMesh &bm,
       }
     }
   });
+
+  if (!any_loose_vert) {
+    mesh.tag_loose_verts_none();
+  }
 }
 
 static void bm_to_mesh_edges(const BMesh &bm,
@@ -1372,11 +1380,18 @@ static void bm_to_mesh_edges(const BMesh &bm,
       &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edata);
   MutableSpan<int2> dst_edges = mesh.edges_for_write();
+
+  std::atomic<bool> any_loose_edge = false;
   threading::parallel_for(dst_edges.index_range(), 512, [&](const IndexRange range) {
+    bool any_loose_edge_local = false;
     for (const int edge_i : range) {
       const BMEdge &src_edge = *bm_edges[edge_i];
       dst_edges[edge_i] = int2(BM_elem_index_get(src_edge.v1), BM_elem_index_get(src_edge.v2));
       bmesh_block_copy_to_mesh_attributes(info, edge_i, src_edge.head.data);
+      any_loose_edge_local |= BM_edge_is_wire(&src_edge);
+    }
+    if (any_loose_edge_local) {
+      any_loose_edge.store(true, std::memory_order_relaxed);
     }
     if (!select_edge.is_empty()) {
       for (const int edge_i : range) {
@@ -1399,6 +1414,10 @@ static void bm_to_mesh_edges(const BMesh &bm,
       }
     }
   });
+
+  if (!any_loose_edge) {
+    mesh.loose_edges_tag_none();
+  }
 }
 
 static void bm_to_mesh_faces(const BMesh &bm,

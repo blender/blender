@@ -3447,11 +3447,11 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
   GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
   /* Attribute layer name. */
-  BLI_snprintf(attr_name, sizeof(attr_name), "%s%s", base_name, attr_safe_name);
+  SNPRINTF(attr_name, "%s%s", base_name, attr_safe_name);
   GPU_vertformat_alias_add(format, attr_name);
 
   /* Auto layer name. */
-  BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+  SNPRINTF(attr_name, "a%s", attr_safe_name);
   GPU_vertformat_alias_add(format, attr_name);
 
   /* Active render layer name. */
@@ -3461,7 +3461,7 @@ void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
 
   /* Active display layer name. */
   if (is_active_layer) {
-    BLI_snprintf(attr_name, sizeof(attr_name), "a%s", base_name);
+    SNPRINTF(attr_name, "a%s", base_name);
     GPU_vertformat_alias_add(format, attr_name);
   }
 }

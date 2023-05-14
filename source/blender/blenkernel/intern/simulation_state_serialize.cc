@@ -835,8 +835,7 @@ void serialize_modifier_simulation_state(const ModifierSimulationState &state,
       {
         io_state_item->append_str("type", "GEOMETRY");
 
-        const GeometrySet &geometry = geometry_state_item->geometry();
-
+        const GeometrySet &geometry = geometry_state_item->geometry;
         auto io_geometry = serialize_geometry_set(geometry, bdata_writer, bdata_sharing);
         io_state_item->append("data", io_geometry);
       }

@@ -560,7 +560,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_keys_doc,
              ".. method:: keys()\n"
              "\n"
              "   Return the identifiers of collection members\n"
-             "   (matching pythons dict.keys() functionality).\n"
+             "   (matching Python's dict.keys() functionality).\n"
              "\n"
              "   :return: the identifiers for each member of this collection.\n"
              "   :rtype: list of strings\n");
@@ -595,7 +595,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_items_doc,
              ".. method:: items()\n"
              "\n"
              "   Return the identifiers of collection members\n"
-             "   (matching pythons dict.items() functionality).\n"
+             "   (matching Python's dict.items() functionality).\n"
              "\n"
              "   :return: (key, value) pairs for each member of this collection.\n"
              "   :rtype: list of tuples\n");
@@ -630,7 +630,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_values_doc,
              ".. method:: values()\n"
              "\n"
              "   Return the values of collection\n"
-             "   (matching pythons dict.values() functionality).\n"
+             "   (matching Python's dict.values() functionality).\n"
              "\n"
              "   :return: the members of this collection.\n"
              "   :rtype: list\n");
@@ -662,7 +662,7 @@ PyDoc_STRVAR(bpy_bmlayercollection_get_doc,
              ".. method:: get(key, default=None)\n"
              "\n"
              "   Returns the value of the layer matching the key or default\n"
-             "   when not found (matches pythons dictionary function of the same name).\n"
+             "   when not found (matches Python's dictionary function of the same name).\n"
              "\n"
              "   :arg key: The key associated with the layer.\n"
              "   :type key: string\n"
@@ -931,7 +931,7 @@ PyDoc_STRVAR(bpy_bmlayeraccess_type_doc, "Exposes custom-data layer attributes."
 
 PyDoc_STRVAR(bpy_bmlayercollection_type_doc,
              "Gives access to a collection of custom-data layers of the same type and behaves "
-             "like python dictionaries, "
+             "like Python dictionaries, "
              "except for the ability to do list like index access.");
 
 PyDoc_STRVAR(bpy_bmlayeritem_type_doc,

@@ -16,7 +16,7 @@
 namespace blender::bke::sim {
 
 GeometrySimulationStateItem::GeometrySimulationStateItem(GeometrySet geometry)
-    : geometry_(std::move(geometry))
+    : geometry(std::move(geometry))
 {
 }
 
@@ -59,24 +59,28 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull meta_dir,
 
   this->reset();
 
-  for (const int i : IndexRange(dir_entries_num)) {
-    const direntry &dir_entry = dir_entries[i];
-    const StringRefNull dir_entry_path = dir_entry.path;
-    if (!dir_entry_path.endswith(".json")) {
-      continue;
+  {
+    std::lock_guard lock(states_at_frames_mutex_);
+
+    for (const int i : IndexRange(dir_entries_num)) {
+      const direntry &dir_entry = dir_entries[i];
+      const StringRefNull dir_entry_path = dir_entry.path;
+      if (!dir_entry_path.endswith(".json")) {
+        continue;
+      }
+      char modified_file_name[FILE_MAX];
+      STRNCPY(modified_file_name, dir_entry.relname);
+      BLI_str_replace_char(modified_file_name, '_', '.');
+
+      const SubFrame frame = std::stof(modified_file_name);
+
+      auto new_state_at_frame = std::make_unique<ModifierSimulationStateAtFrame>();
+      new_state_at_frame->frame = frame;
+      new_state_at_frame->state.bdata_dir_ = bdata_dir;
+      new_state_at_frame->state.meta_path_ = dir_entry.path;
+      new_state_at_frame->state.owner_ = this;
+      states_at_frames_.append(std::move(new_state_at_frame));
     }
-    char modified_file_name[FILENAME_MAX];
-    BLI_strncpy(modified_file_name, dir_entry.relname, sizeof(modified_file_name));
-    BLI_str_replace_char(modified_file_name, '_', '.');
-
-    const SubFrame frame = std::stof(modified_file_name);
-
-    auto new_state_at_frame = std::make_unique<ModifierSimulationStateAtFrame>();
-    new_state_at_frame->frame = frame;
-    new_state_at_frame->state.bdata_dir_ = bdata_dir;
-    new_state_at_frame->state.meta_path_ = dir_entry.path;
-    new_state_at_frame->state.owner_ = this;
-    states_at_frames_.append(std::move(new_state_at_frame));
   }
 
   bdata_sharing_ = std::make_unique<BDataSharing>();
@@ -86,6 +90,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull meta_dir,
 
 bool ModifierSimulationCache::has_state_at_frame(const SubFrame &frame) const
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   for (const auto &item : states_at_frames_) {
     if (item->frame == frame) {
       return true;
@@ -96,12 +101,14 @@ bool ModifierSimulationCache::has_state_at_frame(const SubFrame &frame) const
 
 bool ModifierSimulationCache::has_states() const
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   return !states_at_frames_.is_empty();
 }
 
 const ModifierSimulationState *ModifierSimulationCache::get_state_at_exact_frame(
     const SubFrame &frame) const
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   for (const auto &item : states_at_frames_) {
     if (item->frame == frame) {
       return &item->state;
@@ -113,6 +120,7 @@ const ModifierSimulationState *ModifierSimulationCache::get_state_at_exact_frame
 ModifierSimulationState &ModifierSimulationCache::get_state_at_frame_for_write(
     const SubFrame &frame)
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   for (const auto &item : states_at_frames_) {
     if (item->frame == frame) {
       return item->state;
@@ -126,6 +134,7 @@ ModifierSimulationState &ModifierSimulationCache::get_state_at_frame_for_write(
 
 StatesAroundFrame ModifierSimulationCache::get_states_around_frame(const SubFrame &frame) const
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   StatesAroundFrame states_around_frame;
   for (const auto &item : states_at_frames_) {
     if (item->frame < frame) {
@@ -193,8 +202,18 @@ void ModifierSimulationState::ensure_bake_loaded() const
   bake_loaded_ = true;
 }
 
+void ModifierSimulationCache::clear_prev_states()
+{
+  std::lock_guard lock(states_at_frames_mutex_);
+  std::unique_ptr<ModifierSimulationStateAtFrame> temp = std::move(states_at_frames_.last());
+  states_at_frames_.clear_and_shrink();
+  bdata_sharing_.reset();
+  states_at_frames_.append(std::move(temp));
+}
+
 void ModifierSimulationCache::reset()
 {
+  std::lock_guard lock(states_at_frames_mutex_);
   states_at_frames_.clear();
   bdata_sharing_.reset();
   cache_state_ = CacheState::Valid;

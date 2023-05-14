@@ -658,7 +658,7 @@ static void rna_Fluid_cache_directory_set(struct PointerRNA *ptr, const char *va
     return;
   }
 
-  BLI_strncpy(settings->cache_directory, value, sizeof(settings->cache_directory));
+  STRNCPY(settings->cache_directory, value);
 
   /* TODO(sebbas): Read cache state in order to set cache bake flags and cache pause frames
    * correctly. */

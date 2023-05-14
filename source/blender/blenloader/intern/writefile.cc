@@ -840,7 +840,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
       data.efra = sce->r.efra;
       memset(data.scene_name, 0, sizeof(data.scene_name));
 
-      BLI_strncpy(data.scene_name, sce->id.name + 2, sizeof(data.scene_name));
+      STRNCPY(data.scene_name, sce->id.name + 2);
 
       writedata(wd, BLO_CODE_REND, sizeof(data), &data);
     }
@@ -1054,7 +1054,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   if (fileflags & G_FILE_RECOVER_WRITE) {
     STRNCPY(fg.filepath, mainvar->filepath);
   }
-  BLI_snprintf(subvstr, sizeof(subvstr), "%4d", BLENDER_FILE_SUBVERSION);
+  SNPRINTF(subvstr, "%4d", BLENDER_FILE_SUBVERSION);
   memcpy(fg.subvstr, subvstr, 4);
 
   fg.subversion = BLENDER_FILE_SUBVERSION;
@@ -1063,10 +1063,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 #ifdef WITH_BUILDINFO
   /* TODO(sergey): Add branch name to file as well? */
   fg.build_commit_timestamp = build_commit_timestamp;
-  BLI_strncpy(fg.build_hash, build_hash, sizeof(fg.build_hash));
+  STRNCPY(fg.build_hash, build_hash);
 #else
   fg.build_commit_timestamp = 0;
-  BLI_strncpy(fg.build_hash, "unknown", sizeof(fg.build_hash));
+  STRNCPY(fg.build_hash, "unknown");
 #endif
   writestruct(wd, BLO_CODE_GLOB, FileGlobal, 1, &fg);
 }
@@ -1239,12 +1239,11 @@ static bool write_file_handle(Main *mainvar,
 
   blo_split_main(&mainlist, mainvar);
 
-  BLI_snprintf(buf,
-               sizeof(buf),
-               "BLENDER%c%c%.3d",
-               (sizeof(void *) == 8) ? '-' : '_',
-               (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
-               BLENDER_FILE_VERSION);
+  SNPRINTF(buf,
+           "BLENDER%c%c%.3d",
+           (sizeof(void *) == 8) ? '-' : '_',
+           (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+           BLENDER_FILE_VERSION);
 
   mywrite(wd, buf, 12);
 
@@ -1380,9 +1379,9 @@ static bool do_history(const char *name, ReportList *reports)
   }
 
   while (hisnr > 1) {
-    BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr - 1);
+    SNPRINTF(tempname1, "%s%d", name, hisnr - 1);
     if (BLI_exists(tempname1)) {
-      BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
+      SNPRINTF(tempname2, "%s%d", name, hisnr);
 
       if (BLI_rename(tempname1, tempname2)) {
         BKE_report(reports, RPT_ERROR, "Unable to make version backup");
@@ -1394,7 +1393,7 @@ static bool do_history(const char *name, ReportList *reports)
 
   /* is needed when hisnr==1 */
   if (BLI_exists(name)) {
-    BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+    SNPRINTF(tempname1, "%s%d", name, hisnr);
 
     if (BLI_rename(name, tempname1)) {
       BKE_report(reports, RPT_ERROR, "Unable to make version backup");
@@ -1442,7 +1441,7 @@ bool BLO_write_file(Main *mainvar,
   }
 
   /* open temporary file, so we preserve the original in case we crash */
-  BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
+  SNPRINTF(tempname, "%s@", filepath);
 
   ww_handle_init((write_flags & G_FILE_COMPRESS) ? WW_WRAP_ZSTD : WW_WRAP_NONE, &ww);
 

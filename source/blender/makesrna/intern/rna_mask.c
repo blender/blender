@@ -206,8 +206,8 @@ static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(masklay->name)], newname[sizeof(masklay->name)];
 
   /* need to be on the stack */
-  BLI_strncpy(oldname, masklay->name, sizeof(masklay->name));
-  BLI_strncpy_utf8(newname, value, sizeof(masklay->name));
+  STRNCPY(oldname, masklay->name);
+  STRNCPY_UTF8(newname, value);
 
   BKE_mask_layer_rename(mask, masklay, oldname, newname);
 }

@@ -37,9 +37,11 @@ void VKStorageBuffer::bind(int slot)
   }
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
-  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(
-      shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER, slot);
-  shader->pipeline_get().descriptor_set_get().bind(*this, location);
+  const std::optional<VKDescriptorSet::Location> location =
+      shader_interface.descriptor_set_location(
+          shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER, slot);
+  BLI_assert_msg(location, "Locations to SSBOs should always exist.");
+  shader->pipeline_get().descriptor_set_get().bind(*this, *location);
 }
 
 void VKStorageBuffer::unbind() {}

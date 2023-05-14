@@ -172,7 +172,7 @@ static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
 static void path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   char pathname[FILE_MAX + 2];
-  BLI_snprintf(pathname, sizeof(pathname), "\"%s\"", WM_drag_get_path(drag));
+  SNPRINTF(pathname, "\"%s\"", WM_drag_get_path(drag));
   RNA_string_set(drop->ptr, "text", pathname);
 }
 

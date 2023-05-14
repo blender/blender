@@ -1863,7 +1863,10 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
+static void rna_Node_draw_label(const bNodeTree *ntree,
+                                const bNode *node,
+                                char *label,
+                                int label_maxncpy)
 {
   extern FunctionRNA rna_Node_draw_label_func;
 
@@ -1881,7 +1884,7 @@ static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char 
 
   RNA_parameter_get_lookup(&list, "label", &ret);
   rlabel = (char *)ret;
-  BLI_strncpy(label, rlabel != NULL ? rlabel : "", maxlen);
+  BLI_strncpy(label, rlabel != NULL ? rlabel : "", label_maxncpy);
 
   RNA_parameter_list_free(&list);
 }
@@ -2472,9 +2475,9 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(node->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, node->name, sizeof(node->name));
+  STRNCPY(oldname, node->name);
   /* set new name */
-  BLI_strncpy_utf8(node->name, value, sizeof(node->name));
+  STRNCPY_UTF8(node->name, value);
 
   nodeUniqueName(ntree, node);
 
@@ -4350,7 +4353,7 @@ static void rna_ShaderNodeTexIES_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_IES_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4375,7 +4378,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_SCRIPT_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4592,9 +4595,7 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self, Depsgraph *depsgraph)
     pd->source = TEX_PD_OBJECT;
     pd->ob_cache_space = TEX_PD_OBJECTSPACE;
     pd->ob_color_source = point_density_vertex_color_source_from_shader(shader_point_density);
-    BLI_strncpy(pd->vertex_attribute_name,
-                shader_point_density->vertex_attribute_name,
-                sizeof(pd->vertex_attribute_name));
+    STRNCPY(pd->vertex_attribute_name, shader_point_density->vertex_attribute_name);
   }
 
   /* Store resolution, so it can be changed in the UI. */
@@ -4672,7 +4673,7 @@ static void rna_NodeConvertColorSpace_from_color_space_set(struct PointerRNA *pt
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->from_color_space, name, sizeof(node_storage->from_color_space));
+    STRNCPY(node_storage->from_color_space, name);
   }
 }
 static int rna_NodeConvertColorSpace_to_color_space_get(struct PointerRNA *ptr)
@@ -4689,7 +4690,7 @@ static void rna_NodeConvertColorSpace_to_color_space_set(struct PointerRNA *ptr,
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->to_color_space, name, sizeof(node_storage->to_color_space));
+    STRNCPY(node_storage->to_color_space, name);
   }
 }
 
@@ -9212,12 +9213,12 @@ static void def_cmp_planetrackdeform(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR);
   RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 1, CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX);
+  RNA_def_property_range(prop, 1, CMP_NODE_PLANE_TRACK_DEFORM_MOTION_BLUR_SAMPLES_MAX);
   RNA_def_property_ui_text(prop, "Samples", "Number of motion blur samples");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -9957,7 +9958,7 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Attribute Domain",
-      "Attribute domain where the attribute domain is stored in the simulation state");
+      "Attribute domain where the attribute is stored in the simulation state");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_SimulationStateItem_update");
 

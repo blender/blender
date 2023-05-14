@@ -5400,7 +5400,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_ICON_SIZE);
 
-    BLI_strncpy(drawstr, name, sizeof(drawstr));
+    STRNCPY(drawstr, name);
     if (drawstr[0]) {
       UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
     }
@@ -5449,7 +5449,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         const size_t max_len = sizeof(hint_drawstr);
         const float minwidth = float(UI_ICON_SIZE);
 
-        BLI_strncpy(hint_drawstr, cpoin + 1, sizeof(hint_drawstr));
+        STRNCPY(hint_drawstr, cpoin + 1);
         if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
           UI_text_clip_middle_ex(fstyle, hint_drawstr, max_hint_width, minwidth, max_len, '\0');
         }
@@ -5504,7 +5504,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_ICON_SIZE);
 
-    BLI_strncpy(drawstr, name, sizeof(drawstr));
+    STRNCPY(drawstr, name);
     UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
     uiFontStyleDraw_Params params{};

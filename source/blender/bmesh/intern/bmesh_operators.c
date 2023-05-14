@@ -1604,7 +1604,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
         GOTO_ERROR("name to slot code check failed");
       }
 
-      BLI_strncpy(slot_name, fmt, sizeof(slot_name));
+      STRNCPY(slot_name, fmt);
 
       state = false;
       fmt += i;

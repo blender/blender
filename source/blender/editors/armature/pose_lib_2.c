@@ -117,8 +117,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 
   AnimData *adt = BKE_animdata_from_id(&pbd->ob->id);
   if (adt != NULL && adt->action != NULL &&
-      !BKE_id_is_editable(CTX_data_main(C), &adt->action->id))
-  {
+      !BKE_id_is_editable(CTX_data_main(C), &adt->action->id)) {
     /* Changes to linked-in Actions are not allowed. */
     return;
   }
@@ -502,11 +501,7 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
       strcpy(tab_string, TIP_("[Tab] - Show blended pose"));
     }
 
-    BLI_snprintf(status_string,
-                 sizeof(status_string),
-                 "%s | %s | [Ctrl] - Flip Pose",
-                 tab_string,
-                 slider_string);
+    SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);
     ED_workspace_status_text(C, status_string);
 
     poselib_blend_apply(C, op);

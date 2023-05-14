@@ -1322,13 +1322,13 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 /** \name Find Node by Name Operator
  * \{ */
 
-static void node_find_create_label(const bNode *node, char *str, int maxlen)
+static void node_find_create_label(const bNode *node, char *str, int str_maxncpy)
 {
   if (node->label[0]) {
-    BLI_snprintf(str, maxlen, "%s (%s)", node->name, node->label);
+    BLI_snprintf(str, str_maxncpy, "%s (%s)", node->name, node->label);
   }
   else {
-    BLI_strncpy(str, node->name, maxlen);
+    BLI_strncpy(str, node->name, str_maxncpy);
   }
 }
 

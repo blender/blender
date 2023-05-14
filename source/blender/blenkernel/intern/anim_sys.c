@@ -131,12 +131,8 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  BLI_strncpy(ks->idname,
-              (idname) ? idname :
-              (name)   ? name :
-                         DATA_("KeyingSet"),
-              sizeof(ks->idname));
-  BLI_strncpy(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"), sizeof(ks->name));
+  STRNCPY_UTF8(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
+  STRNCPY_UTF8(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
 
   ks->flag = flag;
   ks->keyingflag = keyingflag;
@@ -193,7 +189,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
   /* just store absolute info */
   ksp->id = id;
   if (group_name) {
-    BLI_strncpy(ksp->group, group_name, sizeof(ksp->group));
+    STRNCPY(ksp->group, group_name);
   }
   else {
     ksp->group[0] = '\0';
@@ -608,39 +604,76 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
   }
 }
 
-/* This function assumes that the quaternion is fully keyed, and is stored in array index order. */
-static void animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
-                                                FCurve *first_fcurve,
-                                                const AnimationEvalContext *anim_eval_context,
-                                                float r_quaternion[4])
+/**
+ * This function assumes that the quaternion keys are sequential. They do not
+ * have to be in array_index order. If the quaternion is only partially keyed,
+ * the result is normalized. If it is fully keyed, the result is returned as-is.
+ *
+ * \return the number of FCurves used to construct this quaternion. This is so
+ * that the caller knows how many FCurves can be skipped while iterating over
+ * them. */
+static int animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
+                                               FCurve *first_fcurve,
+                                               const AnimationEvalContext *anim_eval_context,
+                                               float r_quaternion[4])
 {
   FCurve *quat_curve_fcu = first_fcurve;
-  for (int prop_index = 0; prop_index < 4; ++prop_index, quat_curve_fcu = quat_curve_fcu->next) {
-    /* Big fat assumption that the quaternion is fully keyed, and stored in order. */
-    BLI_assert(STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path) &&
-               quat_curve_fcu->array_index == prop_index);
 
-    quat_rna.prop_index = prop_index;
-    r_quaternion[prop_index] = calculate_fcurve(&quat_rna, quat_curve_fcu, anim_eval_context);
+  /* Initialize r_quaternion to the unit quaternion so that half-keyed quaternions at least have
+   * *some* value in there. */
+  r_quaternion[0] = 1.0f;
+  r_quaternion[1] = 0.0f;
+  r_quaternion[2] = 0.0f;
+  r_quaternion[3] = 0.0f;
+
+  int fcurve_offset = 0;
+  for (; fcurve_offset < 4 && quat_curve_fcu;
+       ++fcurve_offset, quat_curve_fcu = quat_curve_fcu->next) {
+    if (!STREQ(quat_curve_fcu->rna_path, first_fcurve->rna_path)) {
+      /* This should never happen when the quaternion is fully keyed. Some
+       * people do use half-keyed quaternions, though, so better to check. */
+      break;
+    }
+
+    const int array_index = quat_curve_fcu->array_index;
+    quat_rna.prop_index = array_index;
+    r_quaternion[array_index] = calculate_fcurve(&quat_rna, quat_curve_fcu, anim_eval_context);
   }
+
+  if (fcurve_offset < 4) {
+    /* This quaternion was incompletely keyed, so the result is a mixture of the unit quaterion and
+     * values from FCurves. This means that it's almost certainly no longer of unit length. */
+    normalize_qt(r_quaternion);
+  }
+
+  return fcurve_offset;
 }
 
-/* This function assumes that the quaternion is fully keyed, and is stored in array index order. */
-static void animsys_blend_fcurves_quaternion(PathResolvedRNA *anim_rna,
-                                             FCurve *first_fcurve,
-                                             const AnimationEvalContext *anim_eval_context,
-                                             const float blend_factor)
+/**
+ * This function assumes that the quaternion keys are sequential. They do not
+ * have to be in array_index order.
+ *
+ * \return the number of FCurves used to construct the quaternion, counting from
+ * `first_fcurve`. This is so that the caller knows how many FCurves can be
+ * skipped while iterating over them. */
+static int animsys_blend_fcurves_quaternion(PathResolvedRNA *anim_rna,
+                                            FCurve *first_fcurve,
+                                            const AnimationEvalContext *anim_eval_context,
+                                            const float blend_factor)
 {
   float current_quat[4];
   RNA_property_float_get_array(&anim_rna->ptr, anim_rna->prop, current_quat);
 
   float target_quat[4];
-  animsys_quaternion_evaluate_fcurves(*anim_rna, first_fcurve, anim_eval_context, target_quat);
+  const int num_fcurves_read = animsys_quaternion_evaluate_fcurves(
+      *anim_rna, first_fcurve, anim_eval_context, target_quat);
 
   float blended_quat[4];
   interp_qt_qtqt(blended_quat, current_quat, target_quat, blend_factor);
 
   RNA_property_float_set_array(&anim_rna->ptr, anim_rna->prop, blended_quat);
+
+  return num_fcurves_read;
 }
 
 /* LERP between current value (blend_factor=0.0) and the value from the FCurve (blend_factor=1.0)
@@ -675,12 +708,13 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
     }
 
     if (STREQ(RNA_property_identifier(anim_rna.prop), "rotation_quaternion")) {
-      animsys_blend_fcurves_quaternion(&anim_rna, fcu, anim_eval_context, blend_factor);
+      const int num_fcurves_read = animsys_blend_fcurves_quaternion(
+          &anim_rna, fcu, anim_eval_context, blend_factor);
 
       /* Skip the next three channels, because those have already been handled here. */
       MEM_SAFE_FREE(channel_to_skip);
       channel_to_skip = BLI_strdup(fcu->rna_path);
-      num_channels_to_skip = 3;
+      num_channels_to_skip = num_fcurves_read - 1;
       continue;
     }
     /* TODO(Sybren): do something similar as above for Euler and Axis/Angle representations. */

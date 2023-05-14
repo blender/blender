@@ -145,8 +145,8 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
      */
     t_map.texture = texture;
     t_map.map_object = tex_map_object;
-    BLI_strncpy(t_map.map_bone, text_map_bone, sizeof(t_map.map_bone));
-    BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
+    STRNCPY(t_map.map_bone, text_map_bone);
+    STRNCPY(t_map.uvlayer_name, tex_uvlayer_name);
     t_map.texmapping = tex_mapping;
 
     tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(*tex_co), __func__));

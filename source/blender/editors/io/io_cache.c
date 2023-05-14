@@ -52,7 +52,7 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
+    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
     BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
     RNA_string_set(op->ptr, "filepath", filepath);
   }
@@ -85,7 +85,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filepath), 0);
-  BLI_strncpy(cache_file->filepath, filepath, FILE_MAX);
+  STRNCPY(cache_file->filepath, filepath);
   DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
 
   /* Will be set when running invoke, not exec directly. */
@@ -164,7 +164,7 @@ static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEven
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
+    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
     BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
     RNA_string_set(op->ptr, "filepath", filepath);
   }

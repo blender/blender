@@ -161,7 +161,7 @@ static ViewLayer *view_layer_add(const char *name)
   ViewLayer *view_layer = MEM_cnew<ViewLayer>("View Layer");
   view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
-  BLI_strncpy_utf8(view_layer->name, name, sizeof(view_layer->name));
+  STRNCPY_UTF8(view_layer->name, name);
 
   /* Pure rendering pipeline settings. */
   view_layer->layflag = SCE_LAY_FLAG_DEFAULT;
@@ -210,7 +210,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
       BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
       BLI_addtail(&scene->view_layers, view_layer_new);
 
-      BLI_strncpy_utf8(view_layer_new->name, name, sizeof(view_layer_new->name));
+      STRNCPY_UTF8(view_layer_new->name, name);
       break;
     }
     case VIEWLAYER_ADD_EMPTY: {
@@ -553,9 +553,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 {
   char oldname[sizeof(view_layer->name)];
 
-  BLI_strncpy(oldname, view_layer->name, sizeof(view_layer->name));
+  STRNCPY(oldname, view_layer->name);
 
-  BLI_strncpy_utf8(view_layer->name, newname, sizeof(view_layer->name));
+  STRNCPY_UTF8(view_layer->name, newname);
   BLI_uniquename(&scene->view_layers,
                  view_layer,
                  DATA_("ViewLayer"),
@@ -570,7 +570,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
     for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
       if (node->type == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
-          BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
+          STRNCPY(node->name, view_layer->name);
         }
       }
     }
@@ -787,7 +787,7 @@ void BKE_layer_collection_resync_allow(void)
 }
 
 struct LayerCollectionResync {
-  LayerCollectionResync *prev, *next;
+  LayerCollectionResync *next, *prev;
 
   /* Temp data used to generate a queue during valid layer search. See
    * #layer_collection_resync_find. */
@@ -1006,7 +1006,7 @@ void BKE_main_view_layers_synced_ensure(const Main *bmain)
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
-  /* NOTE: This is not (yet?) covered by the dirty tag and differed re-sync system */
+  /* NOTE: This is not (yet?) covered by the dirty tag and deffered re-sync system. */
   BKE_layer_collection_local_sync_all(bmain);
 }
 
@@ -2522,7 +2522,7 @@ ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
   ViewLayerAOV *aov;
   aov = MEM_cnew<ViewLayerAOV>(__func__);
   aov->type = AOV_TYPE_COLOR;
-  BLI_strncpy(aov->name, DATA_("AOV"), sizeof(aov->name));
+  STRNCPY_UTF8(aov->name, DATA_("AOV"));
   BLI_addtail(&view_layer->aovs, aov);
   viewlayer_aov_active_set(view_layer, aov);
   viewlayer_aov_make_name_unique(view_layer);
@@ -2642,12 +2642,7 @@ ViewLayerLightgroup *BKE_view_layer_add_lightgroup(ViewLayer *view_layer, const 
 {
   ViewLayerLightgroup *lightgroup;
   lightgroup = MEM_cnew<ViewLayerLightgroup>(__func__);
-  if (name && name[0]) {
-    BLI_strncpy(lightgroup->name, name, sizeof(lightgroup->name));
-  }
-  else {
-    BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
-  }
+  STRNCPY_UTF8(lightgroup->name, (name && name[0]) ? name : DATA_("Lightgroup"));
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
@@ -2690,8 +2685,8 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
                                       const char *name)
 {
   char old_name[64];
-  BLI_strncpy_utf8(old_name, lightgroup->name, sizeof(old_name));
-  BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
+  STRNCPY_UTF8(old_name, lightgroup->name);
+  STRNCPY_UTF8(lightgroup->name, name);
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
 
   if (scene != nullptr) {
@@ -2700,7 +2695,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
       if (!ID_IS_LINKED(ob) && ob->lightgroup != nullptr) {
         LightgroupMembership *lgm = ob->lightgroup;
         if (STREQ(lgm->name, old_name)) {
-          BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+          STRNCPY_UTF8(lgm->name, lightgroup->name);
         }
       }
     }
@@ -2711,7 +2706,7 @@ void BKE_view_layer_rename_lightgroup(Scene *scene,
         scene->world->lightgroup != nullptr) {
       LightgroupMembership *lgm = scene->world->lightgroup;
       if (STREQ(lgm->name, old_name)) {
-        BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+        STRNCPY_UTF8(lgm->name, lightgroup->name);
       }
     }
   }

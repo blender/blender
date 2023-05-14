@@ -1288,7 +1288,7 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
   if (len > ext_len) {
     /* using frame_len here gives compile error (vla) */
     char num[/* frame_len */ 6 + 1];
-    BLI_strncpy(num, filename + len - ext_len, sizeof(num));
+    STRNCPY(num, filename + len - ext_len);
 
     return atoi(num);
   }
@@ -3503,24 +3503,24 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   }
 
   /* save old name */
-  BLI_strncpy(old_name, pid->cache->name, sizeof(old_name));
+  STRNCPY(old_name, pid->cache->name);
 
   /* get "from" filename */
-  BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
+  STRNCPY(pid->cache->name, name_src);
 
   len = ptcache_filepath(pid, old_filepath, 0, false, false); /* no path */
 
   ptcache_path(pid, path);
   dir = opendir(path);
   if (dir == NULL) {
-    BLI_strncpy(pid->cache->name, old_name, sizeof(pid->cache->name));
+    STRNCPY(pid->cache->name, old_name);
     return;
   }
 
   ptcache_filepath_ext_append(pid, ext, 0, false, 0);
 
   /* put new name into cache */
-  BLI_strncpy(pid->cache->name, name_dst, sizeof(pid->cache->name));
+  STRNCPY(pid->cache->name, name_dst);
 
   while ((de = readdir(dir)) != NULL) {
     if (strstr(de->d_name, ext)) {                   /* Do we have the right extension? */
@@ -3538,7 +3538,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   }
   closedir(dir);
 
-  BLI_strncpy(pid->cache->name, old_name, sizeof(pid->cache->name));
+  STRNCPY(pid->cache->name, old_name);
 }
 
 void BKE_ptcache_load_external(PTCacheID *pid)
@@ -3573,10 +3573,10 @@ void BKE_ptcache_load_external(PTCacheID *pid)
   const char *fext = ptcache_file_extension(pid);
 
   if (cache->index >= 0) {
-    BLI_snprintf(ext, sizeof(ext), "_%02d%s", cache->index, fext);
+    SNPRINTF(ext, "_%02d%s", cache->index, fext);
   }
   else {
-    BLI_strncpy(ext, fext, sizeof(ext));
+    STRNCPY(ext, fext);
   }
 
   while ((de = readdir(dir)) != NULL) {
@@ -3674,13 +3674,13 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
     /* smoke doesn't use frame 0 as info frame so can't check based on totpoint */
     if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN && totframes) {
-      BLI_snprintf(cache->info, sizeof(cache->info), TIP_("%i frames found!"), totframes);
+      SNPRINTF(cache->info, TIP_("%i frames found!"), totframes);
     }
     else if (totframes && cache->totpoint) {
-      BLI_snprintf(cache->info, sizeof(cache->info), TIP_("%i points found!"), cache->totpoint);
+      SNPRINTF(cache->info, TIP_("%i points found!"), cache->totpoint);
     }
     else {
-      BLI_strncpy(cache->info, TIP_("No valid data to read!"), sizeof(cache->info));
+      STRNCPY(cache->info, TIP_("No valid data to read!"));
     }
     return;
   }
@@ -3690,11 +3690,10 @@ void BKE_ptcache_update_info(PTCacheID *pid)
       int totpoint = pid->totpoint(pid->calldata, 0);
 
       if (cache->totpoint > totpoint) {
-        BLI_snprintf(
-            mem_info, sizeof(mem_info), TIP_("%i cells + High Resolution cached"), totpoint);
+        SNPRINTF(mem_info, TIP_("%i cells + High Resolution cached"), totpoint);
       }
       else {
-        BLI_snprintf(mem_info, sizeof(mem_info), TIP_("%i cells cached"), totpoint);
+        SNPRINTF(mem_info, TIP_("%i cells cached"), totpoint);
       }
     }
     else {
@@ -3706,7 +3705,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
         }
       }
 
-      BLI_snprintf(mem_info, sizeof(mem_info), TIP_("%i frames on disk"), totframes);
+      SNPRINTF(mem_info, TIP_("%i frames on disk"), totframes);
     }
   }
   else {
@@ -3734,25 +3733,17 @@ void BKE_ptcache_update_info(PTCacheID *pid)
     BLI_str_format_int_grouped(formatted_tot, totframes);
     BLI_str_format_byte_unit(formatted_mem, bytes, false);
 
-    BLI_snprintf(mem_info,
-                 sizeof(mem_info),
-                 TIP_("%s frames in memory (%s)"),
-                 formatted_tot,
-                 formatted_mem);
+    SNPRINTF(mem_info, TIP_("%s frames in memory (%s)"), formatted_tot, formatted_mem);
   }
 
   if (cache->flag & PTCACHE_OUTDATED) {
-    BLI_snprintf(cache->info, sizeof(cache->info), TIP_("%s, cache is outdated!"), mem_info);
+    SNPRINTF(cache->info, TIP_("%s, cache is outdated!"), mem_info);
   }
   else if (cache->flag & PTCACHE_FRAMES_SKIPPED) {
-    BLI_snprintf(cache->info,
-                 sizeof(cache->info),
-                 TIP_("%s, not exact since frame %i"),
-                 mem_info,
-                 cache->last_exact);
+    SNPRINTF(cache->info, TIP_("%s, not exact since frame %i"), mem_info, cache->last_exact);
   }
   else {
-    BLI_snprintf(cache->info, sizeof(cache->info), "%s.", mem_info);
+    SNPRINTF(cache->info, "%s.", mem_info);
   }
 }
 

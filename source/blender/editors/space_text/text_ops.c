@@ -607,7 +607,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
   BLI_stat_t st;
   char filepath[FILE_MAX];
 
-  BLI_strncpy(filepath, text->filepath, FILE_MAX);
+  STRNCPY(filepath, text->filepath);
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
   /* Check if file write permission is ok. */
@@ -648,7 +648,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
                 RPT_WARNING,
                 "Unable to stat '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unknown error stating file"));
+                errno ? strerror(errno) : TIP_("unknown error statting file"));
   }
 
   text->flags &= ~TXT_ISDIRTY;
@@ -3769,7 +3769,7 @@ static int text_find_set_selected_exec(bContext *C, wmOperator *op)
   char *tmp;
 
   tmp = txt_sel_to_buf(text, NULL);
-  BLI_strncpy(st->findstr, tmp, ST_MAX_FIND_STR);
+  STRNCPY(st->findstr, tmp);
   MEM_freeN(tmp);
 
   if (!st->findstr[0]) {
@@ -3804,7 +3804,7 @@ static int text_replace_set_selected_exec(bContext *C, wmOperator *UNUSED(op))
   char *tmp;
 
   tmp = txt_sel_to_buf(text, NULL);
-  BLI_strncpy(st->replacestr, tmp, ST_MAX_FIND_STR);
+  STRNCPY(st->replacestr, tmp);
   MEM_freeN(tmp);
 
   return OPERATOR_FINISHED;

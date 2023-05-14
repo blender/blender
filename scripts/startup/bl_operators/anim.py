@@ -20,7 +20,7 @@ from bpy.app.translations import pgettext_tip as tip_
 
 
 class ANIM_OT_keying_set_export(Operator):
-    """Export Keying Set to a python script"""
+    """Export Keying Set to a Python script"""
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
@@ -38,7 +38,7 @@ class ANIM_OT_keying_set_export(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )

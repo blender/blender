@@ -117,7 +117,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
     write_flags |= G_FILE_COMPRESS;
   }
 
-  BLI_strncpy(filepath_abs, filepath, FILE_MAX);
+  STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
   BKE_blendfile_write_partial_begin(bmain_src);

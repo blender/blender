@@ -1412,10 +1412,10 @@ SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type
   smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
 
   if (!name || !name[0]) {
-    BLI_strncpy(smd->name, smti->name, sizeof(smd->name));
+    STRNCPY(smd->name, smti->name);
   }
   else {
-    BLI_strncpy(smd->name, name, sizeof(smd->name));
+    STRNCPY(smd->name, name);
   }
 
   BLI_addtail(&seq->modifiers, smd);

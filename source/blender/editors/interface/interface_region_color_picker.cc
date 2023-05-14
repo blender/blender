@@ -213,7 +213,7 @@ static void ui_update_color_picker_buts_rgb(uiBut *from_but,
       }
 
       rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
-      BLI_snprintf(col, sizeof(col), "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
+      SNPRINTF(col, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
 
       strcpy(bt->poin, col);
     }
@@ -783,7 +783,7 @@ static void ui_block_colorpicker(uiBlock *block,
   }
 
   rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
-  BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
+  SNPRINTF(hexcol, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
 
   yco = -3.0f * UI_UNIT_Y;
   bt = uiDefBut(block,

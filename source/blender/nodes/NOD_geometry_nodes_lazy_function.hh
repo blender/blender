@@ -88,6 +88,18 @@ struct GeoNodesLFUserData : public lf::UserData {
    * Log socket values in the current compute context. Child contexts might use logging again.
    */
   bool log_socket_values = true;
+
+  destruct_ptr<lf::LocalUserData> get_local(LinearAllocator<> &allocator) override;
+};
+
+struct GeoNodesLFLocalUserData : public lf::LocalUserData {
+ public:
+  /**
+   * Thread-local logger for the current node tree in the current compute context.
+   */
+  geo_eval_log::GeoTreeLogger *tree_logger = nullptr;
+
+  GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data);
 };
 
 /**

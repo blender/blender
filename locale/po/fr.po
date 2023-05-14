@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2023-04-23 19:53+0200\n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"PO-Revision-Date: 2023-05-07 11:21+0200\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -350,12 +350,28 @@ msgid "Make more room for large scenes to fit by distributing memory across inte
 msgstr "Faire de la place pour les grandes scènes en distribuant la mémoire dans les différents périphériques interconnectés (par ex. via NVLink), au lieu de la dupliquer"
 
 
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (expérimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT permet le lancer de rayons avec accélération matérielle sur AMD RDNA2 et supérieur, en se rabattant sur du shader pour les cartes plus anciennes. Cette fonctionnalité est expérimentale et le rendu de certaines scènes peut être incorrect"
+
+
 msgid "MetalRT (Experimental)"
 msgstr "MetalRT (expérimental)"
 
 
 msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
-msgstr "MetalRT pour le lancer de rayons utilise moins de mémoire pour les scènes utilisant beaucoup de courbes, et peut donner de meilleures performances dans certains cas. Cependant la prise en charge est expérimentale et le rendu de certaines scènes peut être incorrect"
+msgstr "Le lancer de rayons avec MetalRT utilise moins de mémoire pour les scènes utilisant beaucoup de courbes, et peut donner de meilleures performances dans certains cas. Cependant la prise en charge est expérimentale et le rendu de certaines scènes peut être incorrect"
+
+
+msgid "Embree on GPU (Experimental)"
+msgstr "Embree sur GPU (expérimental)"
+
+
+msgid "Embree GPU execution will allow to use hardware ray tracing on Intel GPUs, which will provide better performance. However this support is experimental and some scenes may render incorrectly"
+msgstr "L’exécution GPU d’Embree permet d’utiliser le lancer de rayon avec accélération matérielle sur les GPU Intel, qui offrira de meilleurs performances. Cependant la prise en charge est expérimentale et le rendu de certaines scènes peut être incorrect"
 
 
 msgid "KHR_materials_variants_ui"
@@ -5456,10 +5472,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "Groupe de sommets pour contrôler précisément la raideur des ressorts internes"
 
 
-msgid "Mass Vertex Group"
-msgstr "Groupe de sommets de masse"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Groupe de sommets pour l’épinglage des sommets"
 
@@ -8369,10 +8381,6 @@ msgid "Map To"
 msgstr "Correspondance vers"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Le type de transformation à modifier sur l’objet contraint"
-
-
 msgid "Map To X From"
 msgstr "Correspondance vers X depuis"
 
@@ -8761,28 +8769,8 @@ msgid "Plane for projected stroke"
 msgstr "Plan pour les traits projetés"
 
 
-msgid "Normal/View"
-msgstr "Normal à la surface"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "Dessiner dans un plan perpendiculaire à la surface"
-
-
-msgid "Normal/Surface"
-msgstr "Tangent à la surface"
-
-
-msgid "Display aligned to the surface"
-msgstr "Dessiner dans le plan de la surface"
-
-
 msgid "View"
 msgstr "Vue"
-
-
-msgid "Display aligned to the viewport"
-msgstr "Dessiner dans un plan aligné avec la vue"
 
 
 msgid "Detect Corners"
@@ -12036,20 +12024,12 @@ msgid "Maximum distance for the field to work"
 msgstr "Distance maximale à laquelle le champ fonctionne"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Distance minimale pour l’atténuation du champ"
-
-
 msgid "Falloff Power"
 msgstr "Puissance d’atténuation"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "À quelle vitesse la force décroît avec la distance au champ de force"
-
-
-msgid "Fall-Off"
-msgstr "Atténuation"
 
 
 msgid "Cone"
@@ -12202,10 +12182,6 @@ msgstr "Distance radiale maximale à laquelle le champ fonctionne"
 
 msgid "Minimum Radial Distance"
 msgstr "Distance radiale minimum"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "Distance radiale minimale pour l’atténuation du champ"
 
 
 msgid "Rest Length"
@@ -12404,16 +12380,8 @@ msgid "Use Min"
 msgstr "Utiliser minimum"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Utiliser une distance minimale pour l’atténuation du champ"
-
-
 msgid "Multiple Springs"
 msgstr "Ressorts multiples"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "Chaque point est affecté par plusieurs ressorts"
 
 
 msgid "Use Coordinates"
@@ -12426,10 +12394,6 @@ msgstr "Utiliser les coordonnées objet/globales pour la texture"
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "Utiliser une distance radiale maximale à laquelle le champ fonctionne"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "Utiliser une distance radiale minimum pour l’atténuation du champ"
 
 
 msgid "Root Texture Coordinates"
@@ -17092,10 +17056,6 @@ msgid "Create dot-dash effect for strokes"
 msgstr "Créer un effet pointillés pour les traits"
 
 
-msgid "Offset into each stroke before the beginning of  the dashed segment generation"
-msgstr "Pour chaque trait, décalage avant le début de la génération des segments pointillés"
-
-
 msgid "Active Dash Segment Index"
 msgstr "Indice du segment de pointillés actif"
 
@@ -18890,6 +18850,14 @@ msgid "Is this ID block linked indirectly"
 msgstr "Ce bloc ID est-il lié indirectement"
 
 
+msgid "Missing Data"
+msgstr "Données manquantes"
+
+
+msgid "This data-block is a place-holder for missing linked data (i.e. it is [an override of] a linked data that could not be found anymore)"
+msgstr "Ce bloc de données est un emplacement réservé pour les données liées manquantes (c-à-d qu’il redéfinit des données liées qui sont devenues introuvables"
+
+
 msgid "Runtime Data"
 msgstr "Données à l’exécution"
 
@@ -19718,6 +19686,10 @@ msgid "Comb"
 msgstr "Peigner"
 
 
+msgid "Grow / Shrink"
+msgstr "Agrandir / rétrécir"
+
+
 msgid "Puff"
 msgstr "Bouffer"
 
@@ -19900,6 +19872,22 @@ msgstr "Outil peinture de sommets crayon gras"
 
 msgid "Grease Pencil Weight Paint Tool"
 msgstr "Outil peinture de poids crayon gras"
+
+
+msgid "Paint weight in active vertex group"
+msgstr "Peindre des poids dans le groupe de sommets actif"
+
+
+msgid "Blur weight in active vertex group"
+msgstr "Flouter les poids dans le groupe de sommets actif"
+
+
+msgid "Average weight in active vertex group"
+msgstr "Moyenner les poids dans le groupe de sommets actif"
+
+
+msgid "Smear weight in active vertex group"
+msgstr "Étaler les poids dans le groupe de sommets actif"
 
 
 msgid "Gradient Spacing"
@@ -22101,6 +22089,42 @@ msgid "Text Selected"
 msgstr "Texte sélectionné"
 
 
+msgid "Whether there is any text selected"
+msgstr "Est-ce que du texte est sélectionné"
+
+
+msgid "Selected Bold"
+msgstr "Gras sélectionné"
+
+
+msgid "Whether the selected text is bold"
+msgstr "Est-ce que texte sélectionné est en gras"
+
+
+msgid "Selected Italic"
+msgstr "Italique sélectionné"
+
+
+msgid "Whether the selected text is italics"
+msgstr "Est-ce que texte sélectionné est en italique"
+
+
+msgid "Selected Smallcaps"
+msgstr "Petites capitales sélectionnées"
+
+
+msgid "Whether the selected text is small caps"
+msgstr "Est-ce que texte sélectionné est en petites capitales"
+
+
+msgid "Selected Underline"
+msgstr "Souligné sélectionné"
+
+
+msgid "Whether the selected text is underlined"
+msgstr "Est-ce que texte sélectionné est souligné"
+
+
 msgid "X Offset"
 msgstr "Décalage X"
 
@@ -22162,7 +22186,7 @@ msgstr "Taille de police"
 
 
 msgid "Small Caps"
-msgstr "Petites majuscules"
+msgstr "Petites capitales"
 
 
 msgid "Scale of small capitals"
@@ -37633,6 +37657,10 @@ msgid "Interior Band Width"
 msgstr "Largeur de la bande intérieure"
 
 
+msgid "Width of the gradient inside of the mesh"
+msgstr "Largeur du dégradé à l’intérieur du maillage"
+
+
 msgid "Resolution Mode"
 msgstr "Mode de résolution"
 
@@ -42807,6 +42835,10 @@ msgid "Distance to inpaint (number of iterations)"
 msgstr "Distance à « empeindre » (nombre d’itérations)"
 
 
+msgid "Invert Color"
+msgstr "Inverser la couleur"
+
+
 msgid "Keying"
 msgstr "Incrustation"
 
@@ -44773,6 +44805,10 @@ msgid "Cubic interpolation"
 msgstr "Interpolation cubique"
 
 
+msgid "Index of Nearest"
+msgstr "Indice du plus proche"
+
+
 msgid "Curve Handle Positions"
 msgstr "Positions des poignées de courbe"
 
@@ -45427,6 +45463,10 @@ msgstr "Restreindre les indices à la taille du domaine de l’attribut plutôt 
 
 msgid "Sample Nearest"
 msgstr "Échantillonner plus proche élément"
+
+
+msgid "Find the element of a geometry closest to a position. Similar to the \"Index of Nearest\" node"
+msgstr "Trouver l’élément le plus proche d’une position dans une géométrie. Similaire au nœud « Indice du plus proche »"
 
 
 msgid "Sample Nearest Surface"
@@ -49247,6 +49287,10 @@ msgstr "Gère les clics de souris sur les canaux d’animation"
 
 msgid "Select Children Only"
 msgstr "Sélectionner enfants seulement"
+
+
+msgid "Extend Range"
+msgstr "Étendre l’intervalle"
 
 
 msgctxt "Operator"
@@ -54648,6 +54692,14 @@ msgid "Export vertex normals with meshes"
 msgstr "Exporter les normales de sommets avec les maillages"
 
 
+msgid "Force keeping channels for bones"
+msgstr "Forcer à garder les canaux pour les os"
+
+
+msgid "if all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
+msgstr "Si toutes les images clés sont identiques dans un rig, forcer à garder une animation minimale. Si désactivé, tous les canaux possibles pour les os seront exportés, même s’ils sont vides (une animation minimale, 2 images clés)"
+
+
 msgid "Force keeping channel for objects"
 msgstr "Forcer à garder le canal pour les objets"
 
@@ -54658,6 +54710,10 @@ msgstr "Si toutes les images clés sont identiques pour les transformations d’
 
 msgid "Optimize Animation Size"
 msgstr "Optimiser la taille de l’animation"
+
+
+msgid "Reduce exported file size by removing duplicate keyframes"
+msgstr "Réduire la taille du fichier exporté en supprimant les images clés en double"
 
 
 msgid "Export original PBR Specular"
@@ -55089,12 +55145,113 @@ msgid "Execute selected file"
 msgstr "Exécuter le fichier sélectionné"
 
 
+msgctxt "Operator"
+msgid "External File Operation"
+msgstr "Opération externe sur le fichier"
+
+
+msgid "Perform external operation on a file or folder"
+msgstr "Effectuer une opération externe sur un fichier ou un dossier"
+
+
+msgid "File or folder path"
+msgstr "Chemin du fichier ou dossier"
+
+
+msgid "Operation to perform on the file or path"
+msgstr "Opération à effectuer sur le fichier ou dossier"
+
+
+msgid "Open the file"
+msgstr "Ouvrir le fichier"
+
+
+msgid "Open Folder"
+msgstr "Ouvrir le dossier"
+
+
+msgid "Open the folder"
+msgstr "Ouvrir le dossier"
+
+
+msgid "Edit the file"
+msgstr "Éditer le fichier"
+
+
+msgid "Create a new file of this type"
+msgstr "Créer un nouveau fichier de ce type"
+
+
+msgid "Find File"
+msgstr "Chercher le fichier"
+
+
+msgid "Search for files of this type"
+msgstr "Chercher des fichiers de ce type"
+
+
 msgid "Show"
 msgstr "Afficher"
 
 
+msgid "Show this file"
+msgstr "Afficher ce fichier"
+
+
 msgid "Play"
 msgstr "Lecture"
+
+
+msgid "Play this file"
+msgstr "Lire ce fichier"
+
+
+msgid "Preview this file"
+msgstr "Prévisualiser ce fichier"
+
+
+msgid "Print"
+msgstr "Imprimer"
+
+
+msgid "Print this file"
+msgstr "Imprimer ce fichier"
+
+
+msgid "Install"
+msgstr "Installer"
+
+
+msgid "Install this file"
+msgstr "Installer ce fichier"
+
+
+msgid "Run As User"
+msgstr "Exécuter en tant qu’utilisateur"
+
+
+msgid "Run as specific user"
+msgstr "Exécuter en tant que l’utilisateur spécifié"
+
+
+msgid "Show OS Properties for this item"
+msgstr "Afficher les propriétés de l’OS pour cet élément"
+
+
+msgid "Find in Folder"
+msgstr "Chercher dans le dossier"
+
+
+msgid "Search for items in this folder"
+msgstr "Chercher des éléments dans ce dossier"
+
+
+msgid "Command Prompt Here"
+msgstr "Invite de commande ici"
+
+
+msgid "Open a command prompt here"
+msgstr "Ouvrir une invite de commande ici"
 
 
 msgctxt "Operator"
@@ -55202,11 +55359,6 @@ msgstr "Empaqueter les bibliothèques liées"
 
 msgid "Store all data-blocks linked from other .blend files in the current .blend file. Library references are preserved so the linked data-blocks can be unpacked again"
 msgstr "Stocker tous les blocs de données liés depuis d’autres fichiers .blend dans le fichier .blend actuel. Les références de bibliothèques sont préservées pour que les blocs de données liés puissent être dépaquetés à nouveau"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Dossier parent"
 
 
 msgid "Move to parent directory"
@@ -55648,6 +55800,14 @@ msgid "Move cursor to position type"
 msgstr "Déplacer le curseur vers un type de position"
 
 
+msgid "Text Begin"
+msgstr "Début du texte"
+
+
+msgid "Text End"
+msgstr "Fin du texte"
+
+
 msgid "Previous Line"
 msgstr "Ligne précédente"
 
@@ -55692,6 +55852,10 @@ msgstr "Sélectionner tout le texte"
 
 msgid "Select word under cursor"
 msgstr "Sélectionner le mot sous le curseur"
+
+
+msgid "Set cursor selection"
+msgstr "Définir la sélection du curseur"
 
 
 msgctxt "Operator"
@@ -58336,13 +58500,26 @@ msgid "Stroke Weight Paint"
 msgstr "Peindre le poids des traits"
 
 
+msgid "Draw weight on stroke points"
+msgstr "Peindre des poids sur les points des traits"
+
+
 msgctxt "Operator"
 msgid "Weight Paint Sample Weight"
-msgstr "Peinture de poids échantillonner poids"
+msgstr "Échantillonner le poids de la peinture de poids"
 
 
 msgid "Use the mouse to sample a weight in the 3D view"
 msgstr "Utiliser la souris pour échantillonner un poids dans la vue 3D"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Toggle Direction"
+msgstr "Inverser la direction de la peinture de poids"
+
+
+msgid "Toggle Add/Subtract for the weight paint draw tool"
+msgstr "Activer le mode Ajouter ou Soustraire pour l’outil de peinture de poids"
 
 
 msgctxt "Operator"
@@ -58781,10 +58958,6 @@ msgstr "Si les poignées sont testées individuellement par rapport aux critère
 
 msgid "Select Curves"
 msgstr "Sélectionner courbe"
-
-
-msgid "Allow selecting all the keyframes of a curve by selecting the calculated fcurve"
-msgstr "Permettre la sélection de toutes les images clés d’une courbe en sélectionnant la F-courbe calculée"
 
 
 msgid "Allow selecting all the keyframes of a curve by selecting the curve itself"
@@ -63037,6 +63210,10 @@ msgid "Align the transformation axes to the 3D cursor"
 msgstr "Aligner les axes de transformation sur le curseur 3D"
 
 
+msgid "Align the transformation axes to the object's parent space"
+msgstr "Aligner les axes de transformation sur l’espace parent de l’objet"
+
+
 msgid "Axis Sign"
 msgstr "Signe de l’axe"
 
@@ -65398,10 +65575,6 @@ msgid "Clear Object Constraints"
 msgstr "Vider contraintes de l’objet"
 
 
-msgid "Clear all the constraints for the active object only"
-msgstr "Supprimer toutes les contraintes pour l’objet actif uniquement"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Objects"
 msgstr "Copier les contraintes vers les objets sélectionnés"
@@ -66239,6 +66412,10 @@ msgid "All Light Probes"
 msgstr "Toutes les sondes lumière"
 
 
+msgid "Bake all light probes"
+msgstr "Précalculer toutes les sondes lumière"
+
+
 msgid "Dirty Only"
 msgstr "Modifiées uniquement"
 
@@ -66249,6 +66426,14 @@ msgstr "Ne précalculer que les sondes lumière qui sont marquées comme modifi�
 
 msgid "Selected Only"
 msgstr "Sélectionnés uniquement"
+
+
+msgid "Only bake selected light probes"
+msgstr "Ne précalculer que les sondes lumière sélectionnées"
+
+
+msgid "Only bake the active light probe"
+msgstr "Ne précalculer que la sonde lumière active"
 
 
 msgctxt "Operator"
@@ -68904,10 +69089,6 @@ msgid "Extend selection for activation"
 msgstr "Étendre la sélection pour l’activation"
 
 
-msgid "Extend Range"
-msgstr "Étendre l’intervalle"
-
-
 msgid "Select a range from active element"
 msgstr "Sélectionner un intervalle à partir de l’élément actif"
 
@@ -70586,10 +70767,6 @@ msgstr "Ajouter une contrainte à l’os actif, avec pour cibles (si nécessaire
 msgctxt "Operator"
 msgid "Clear Pose Constraints"
 msgstr "Effacer les contraintes de pose"
-
-
-msgid "Clear all the constraints for the selected bones"
-msgstr "Effacer toutes les contraintes des os sélectionnés"
 
 
 msgctxt "Operator"
@@ -73134,10 +73311,6 @@ msgid "Hide Active Face Sets"
 msgstr "Cacher l’ensemble de faces actif"
 
 
-msgid "Invert Face Set Visibility"
-msgstr "Inverser la visibilité des ensembles de faces"
-
-
 msgctxt "Operator"
 msgid "Edit Face Set"
 msgstr "Éditer ensemble de faces"
@@ -74093,15 +74266,6 @@ msgstr "Désentrelacer vidéos"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Désentrelacer toutes les sources vidéo sélectionnées"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Effacer les bandes"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Effacer les bandes sélectionnées du séquenceur"
 
 
 msgid "Delete Data"
@@ -81613,7 +81777,11 @@ msgstr "Si un matériau avec le même nom existe déjà, le référencer au lieu
 
 
 msgid "Path Mask"
-msgstr "Masquage de chemin"
+msgstr "Masque de chemin"
+
+
+msgid "Import only the primitive at the given path and its descendents.  Multiple paths may be specified in a list delimited by commas or semicolons"
+msgstr "N’importer que la primitive au chemin spécifié et ses descendants. Plusieurs chemins peuvent être spécifiés dans une liste délimitée par des virgules ou des points-virgules"
 
 
 msgid "Read mesh color attributes"
@@ -82940,6 +83108,10 @@ msgid "Fluid Presets"
 msgstr "Préréglages de fluide"
 
 
+msgid "Notes"
+msgstr "Notes"
+
+
 msgid "Optimize Animations"
 msgstr "Optimiser les animations"
 
@@ -83453,10 +83625,6 @@ msgstr "Audio"
 
 msgid "Video"
 msgstr "Vidéo"
-
-
-msgid "FFMPEG Presets"
-msgstr "Préréglages de FFmpeg"
 
 
 msgid "Format Presets"
@@ -84028,6 +84196,11 @@ msgstr "Étendre ou contracter le rayon des points de courbe sélectionnés"
 
 
 msgctxt "Operator"
+msgid "Select Text"
+msgstr "Sélectionner du texte"
+
+
+msgctxt "Operator"
 msgid "Comb"
 msgstr "Coiffer"
 
@@ -84357,6 +84530,16 @@ msgstr "Vriller"
 msgctxt "Operator"
 msgid "Paint Selection"
 msgstr "Peindre la sélection"
+
+
+msgctxt "Operator"
+msgid "Density"
+msgstr "Densité"
+
+
+msgctxt "Operator"
+msgid "Grow / Shrink"
+msgstr "Agrandir / rétrécir"
 
 
 msgctxt "Operator"
@@ -85576,12 +85759,20 @@ msgid "Pose Matrix"
 msgstr "Matrice de pose"
 
 
+msgid "Final 4x4 matrix after constraints and drivers are applied, in the armature object space"
+msgstr "Matrice 4×4 finale après application des contraintes et contrôleurs, dans l’espace objet de l’armature"
+
+
 msgid "Alternative access to location/scale/rotation relative to the parent and own rest bone"
-msgstr "Accès alternatif aux position/taille/rotation relatives aux parent et propre position de repos"
+msgstr "Accès alternatif aux position/échelle/rotation relativement aux parent et propre os de repos"
 
 
 msgid "Channel Matrix"
 msgstr "Matrice de canal"
+
+
+msgid "4x4 matrix of the bone's location/rotation/scale channels (including animation and drivers) and the effect of bone constraints"
+msgstr "Matrice 4×4 des canaux position/rotation/échelle de l’os (y compris l’animation et les contrôleurs) et l’effet des contraintes d’os"
 
 
 msgid "Parent of this pose bone"
@@ -95124,6 +95315,10 @@ msgid "Control point weight values"
 msgstr "Valeurs des poids des points de contrôle"
 
 
+msgid "Mass Vertex Group"
+msgstr "Groupe de sommets de masse"
+
+
 msgid "Control point mass values"
 msgstr "Valeurs des masses des points de contrôle"
 
@@ -99913,10 +100108,6 @@ msgid "Text Cursor"
 msgstr "Curseur texte"
 
 
-msgid "Color of the interface widgets text insertion cursor (caret)"
-msgstr "Couleur de widgets d’interface du curseur d’insertion de texte"
-
-
 msgid "Theme 3D Viewport"
 msgstr "Thème de la vue 3D"
 
@@ -100362,13 +100553,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Vecteur normal utilisé pour copier, additionner ou multiplier"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "Afficher la taille du cercle d’édition proportionnelle"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "Atténuation de l’édition proportionnelle"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "Afficher la taille du cercle d’édition proportionnelle"
 
 
 msgid "UV Local View"
@@ -100621,14 +100812,6 @@ msgstr "Édition proportionnelle en mode masque"
 
 msgid "Proportional editing object mode"
 msgstr "Édition proportionnelle en mode Objet"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "Édition proportionnelle de f-courbes"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Édition proportionnelle dans l’éditeur de f-courbes"
 
 
 msgid "Projected from View"
@@ -101260,6 +101443,10 @@ msgstr "Identifiant (pas forcément unique) pour la bibliothèque d’assets"
 
 msgid "Path to a directory with .blend files to use as an asset library"
 msgstr "Chemin vers un dossier contenant des fichiers .blend, à utiliser comme bibliothèque d’assets"
+
+
+msgid "Use relative path when linking assets from this asset library"
+msgstr "Utiliser un chemin relatif lorsque des assets sont liés depuis cette bibliothèque d’assets"
 
 
 msgid "Solid Light"
@@ -102341,10 +102528,6 @@ msgid "Active AOV Index"
 msgstr "Indice de l’AOV active"
 
 
-msgid "Index of active aov"
-msgstr "Indice de l’AOV active"
-
-
 msgid "Active Layer Collection"
 msgstr "Collection de calque active"
 
@@ -102884,10 +103067,6 @@ msgstr "Mode d’outil"
 
 msgid "Use Paint Canvas"
 msgstr "Utiliser canevas de peinture"
-
-
-msgid "Does this tool use an painting canvas"
-msgstr "Est-ce que cet outil utilise un canevas de peinture"
 
 
 msgid "Widget"
@@ -105654,6 +105833,21 @@ msgstr "Poids des traits de crayon gras (dessiner)"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil Stroke Weight (Blur)"
+msgstr "Poids des traits de crayon gras (flouter)"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil Stroke Weight (Average)"
+msgstr "Poids des traits de crayon gras (moyenner)"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil Stroke Weight (Smear)"
+msgstr "Poids des traits de crayon gras (étaler)"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Vertex Mode"
 msgstr "Mode sommets des traits de crayon gras"
 
@@ -106151,10 +106345,6 @@ msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Nécessite un GPU Intel avec architecture Xe-HPG"
 
 
-msgid "HIP temporarily disabled due to compiler bugs"
-msgstr "HIP désactivé temporairement à cause de bugs de compilateur"
-
-
 msgid "Requires Intel GPU with Xe-HPG architecture and"
 msgstr "Nécessite un GPU Intel avec architecture Xe-HPG et"
 
@@ -106167,6 +106357,10 @@ msgid "and AMD Radeon Pro %s driver or newer"
 msgstr "et pilote AMD Radeon Pro en version %s ou plus"
 
 
+msgid "and AMD driver version %s or newer"
+msgstr "et pilote AMD en version %s ou plus"
+
+
 msgid "and Windows driver version %s or newer"
 msgstr "et pilote Windows en version %s ou plus"
 
@@ -106177,10 +106371,6 @@ msgstr "Nécessite Apple Silicon avec macOS %s ou plus"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "ou AMD avec macOS %s ou plus"
-
-
-msgid "and AMD driver version %s or newer"
-msgstr "et pilote AMD en version %s ou plus"
 
 
 msgid "  - intel-level-zero-gpu version %s or newer"
@@ -106555,6 +106745,26 @@ msgstr "Interface d’animation"
 
 msgid "Export only deformation bones is not possible when not sampling animation"
 msgstr "Impossible de n’exporter que les os de déformation si l’animation n’est pas échantillonnée"
+
+
+msgid "Scene mode uses full bake mode:"
+msgstr "Le mode Scène utilise le précalcul intégral :"
+
+
+msgid "- sampling is active"
+msgstr "– l’échantillonnage est activé"
+
+
+msgid "- baking all objects is active"
+msgstr "– le précalcul de tous les objets est activé"
+
+
+msgid "- Using scene frame range"
+msgstr "– l’intervalle de frames de la scène est utilisé"
+
+
+msgid "Track mode uses full bake mode:"
+msgstr "Le mode Pistes utilise le précalcul intégral :"
 
 
 msgid "Loading export settings failed. Removed corrupted settings"
@@ -107352,16 +107562,16 @@ msgid "Could not make new image"
 msgstr "Impossible de créer une nouvelle image"
 
 
+msgid "Could not find image '%s'"
+msgstr "Impossible de trouver l’image « %s »"
+
+
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "L’éditeur d’image n’a pas pu être lancé, veuillez vous assurer que le chemin défini dans les Préférences de Blender > Chemins de fichiers est valide, et que Blender a le droit de le lancer"
 
 
 msgid "Context incorrect, image not found"
 msgstr "Contexte incorrect, image introuvable"
-
-
-msgid "Could not find image '%s'"
-msgstr "Impossible de trouver l’image « %s »"
 
 
 msgid "%d mesh(es) with no active UV layer, %d duplicates found in %d mesh(es), mirror may be incomplete"
@@ -108298,7 +108508,7 @@ msgstr "Gras et italique"
 
 
 msgid "Small Caps Scale"
-msgstr "Taille petites majuscules"
+msgstr "Échelle des petites capitales"
 
 
 msgid "Character Spacing"
@@ -108323,6 +108533,26 @@ msgstr "Point terminal"
 
 msgid "Interpolation Tilt"
 msgstr "Interpolation inclinaison"
+
+
+msgctxt "Operator"
+msgid "Bold"
+msgstr "Gras"
+
+
+msgctxt "Operator"
+msgid "Italic"
+msgstr "Italique"
+
+
+msgctxt "Operator"
+msgid "Underline"
+msgstr "Souligné"
+
+
+msgctxt "Operator"
+msgid "Small Caps"
+msgstr "Petites capitales"
 
 
 msgctxt "Operator"
@@ -110559,6 +110789,11 @@ msgstr "Sélection rectangulaire (poignées comprises)"
 
 
 msgctxt "Operator"
+msgid "Ease"
+msgstr "Amortir"
+
+
+msgctxt "Operator"
 msgid "Easing Type"
 msgstr "Type d’amorti"
 
@@ -110571,11 +110806,6 @@ msgstr "Curseur vers sélection"
 msgctxt "Operator"
 msgid "Cursor Value to Selection"
 msgstr "Valeur du curseur vers sélection"
-
-
-msgctxt "Operator"
-msgid "Ease"
-msgstr "Amortir"
 
 
 msgctxt "Operator"
@@ -114141,16 +114371,6 @@ msgstr "Recalculer à l’intérieur"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Copier les vecteurs"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Coller les vecteurs"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Réinitialiser les vecteurs"
 
@@ -114307,7 +114527,7 @@ msgstr "(Dés)activer souligné"
 
 msgctxt "Operator"
 msgid "Toggle Small Caps"
-msgstr "(Dés)activer petites majuscules"
+msgstr "(Dés)activer petites capitales"
 
 
 msgctxt "Operator"
@@ -115835,10 +116055,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "La hauteur du rendu doit être de 576 pixels pour le DV PAL !"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg ne prend en charge que l’audio 48kHz / stéréo pour le DV !"
-
-
 msgid "Error initializing video stream"
 msgstr "Erreur à l’initialisation du flux vidéo"
 
@@ -116367,10 +116583,6 @@ msgid "<Missing ID block>"
 msgstr "<Bloc ID manquant>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "Aucun pointeur RNA disponible duquel obtenir des valeurs pour cette F-courbe"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Pas de F-courbe à laquelle ajouter des images clés"
 
@@ -116405,10 +116617,6 @@ msgstr "La résolution du chemin vers la propriété a échoué, essayez plutôt
 
 msgid "No active Keying Set"
 msgstr "Aucun ensemble de clés actif"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Impossible de mettre à jour les drapeaux pour cette F-courbe, car le chemin RNA est invalide pour l’ID donnée (ID : « %s », chemin : « %s »)"
 
 
 msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
@@ -117461,6 +117669,18 @@ msgstr "Peinture impossible pendant la lecture de l’animation"
 
 msgid "GPencil Weight Paint: LMB to paint | RMB/Escape to Exit"
 msgstr "Peinture de poids crayon gras : ClicG : peindre | ClicD/Échap : annuler"
+
+
+msgid "GPencil Weight Blur: LMB to blur | RMB/Escape to Exit"
+msgstr "Floutage des poids crayon gras : ClicG : flouter | ClicD/Échap : annuler"
+
+
+msgid "GPencil Weight Average: LMB to set average | RMB/Escape to Exit"
+msgstr "Moyenne des poids crayon gras : ClicG : définir moyenne | ClicD/Échap : annuler"
+
+
+msgid "GPencil Weight Smear: LMB to smear | RMB/Escape to Exit"
+msgstr "Étalement de poids crayon gras : ClicG : étaler | ClicD/Échap : annuler"
 
 
 msgid "Failed to set value"
@@ -121244,6 +121464,10 @@ msgid "Unable to open or write bookmark file \"%s\""
 msgstr "Impossible d’ouvrir ou de lire le fichier de signet « %s »"
 
 
+msgid "Failure to perform external file operation on \"%s\""
+msgstr "Impossible d’effectuer l’opération de fichier externe sur « %s »"
+
+
 msgid "'%s' given path is OS-invalid, creating '%s' path instead"
 msgstr "Le chemin donné « %s » n’est pas valide pour l’OS, « %s » est créé à la place"
 
@@ -121254,6 +121478,14 @@ msgstr "Impossible de créer un nouveau dossier : %s"
 
 msgid "Could not delete file or directory: %s"
 msgstr "Impossible de supprimer le fichier ou le dossier : %s"
+
+
+msgid "More than one item is selected"
+msgstr "Plus d’un élément est sélectionnés"
+
+
+msgid "No items are selected"
+msgstr "Aucun élément n’est sélectionné"
 
 
 msgid "Cancel"
@@ -122045,64 +122277,12 @@ msgid "Adding node groups isn't supported for custom (Python defined) node trees
 msgstr "L’ajout de groupes de nœuds n’est pas pris en charge pour les arborescences de nœuds personnalisées (définies via Python)"
 
 
-msgid " (String)"
-msgstr " (chaîne)"
-
-
-msgid " (Integer)"
-msgstr " (entier)"
-
-
-msgid " (Float)"
-msgstr " (flottant)"
-
-
-msgid " (Vector)"
-msgstr " (vecteur)"
-
-
-msgid " (Color)"
-msgstr " (Couleur)"
-
-
 msgid "True"
 msgstr "Vrai"
 
 
 msgid "False"
 msgstr "Faux"
-
-
-msgid " (Boolean)"
-msgstr " (booléen)"
-
-
-msgid "Integer field"
-msgstr "Champ entier"
-
-
-msgid "Float field"
-msgstr "Champ flottant"
-
-
-msgid "Vector field"
-msgstr "Champ vecteur"
-
-
-msgid "Boolean field"
-msgstr "Champ booléen"
-
-
-msgid "String field"
-msgstr "Champ chaîne"
-
-
-msgid "Color field"
-msgstr "Champ couleur"
-
-
-msgid " based on:"
-msgstr " d’après :"
 
 
 msgid "Empty Geometry"
@@ -122950,10 +123130,6 @@ msgid "unknown error writing file"
 msgstr "erreur inconnue à l’écriture du fichier"
 
 
-msgid "unknown error stating file"
-msgstr "erreur inconnue au « stating » du fichier"
-
-
 msgid "This text has not been saved"
 msgstr "Ce texte n’a pas été enregistré"
 
@@ -123740,6 +123916,10 @@ msgstr "vue"
 
 msgid "cursor"
 msgstr "curseur"
+
+
+msgid "parent"
+msgstr "parent"
 
 
 msgid "custom"
@@ -124625,22 +124805,6 @@ msgstr "Le modificateur de F-courbe « %s » est introuvable dans la F-courbe"
 
 msgid "Already a control point at frame %.6f"
 msgstr "Un point de contrôle est déjà présent à la frame %.6f"
-
-
-msgid "FCurve has already sample points"
-msgstr "La F-courbe a déjà des points échantillonnés"
-
-
-msgid "FCurve has no keyframes"
-msgstr "La F-courbe n’a pas d’images clés"
-
-
-msgid "FCurve has already keyframes"
-msgstr "La F-courbe a déjà des images clés"
-
-
-msgid "FCurve has no sample points"
-msgstr "La F-courbe n’a pas de point échantillonné"
 
 
 msgid "Invalid frame range (%d - %d)"
@@ -126977,6 +127141,14 @@ msgid "Animation playback speed in frames per second. If a single image, then 0"
 msgstr "Vitesse de lecture de l’animation on frames par secondes. Pour une seule image, vaut 0"
 
 
+msgid "Index of nearest element"
+msgstr "Indice du plus proche élément"
+
+
+msgid "Has Neighbor"
+msgstr "A un voisin"
+
+
 msgid "Output the handle positions relative to the corresponding control point instead of in the local space of the geometry"
 msgstr "Renvoyer les positions des poignées relativement au point de contrôle correspondant plutôt que dans l’espace local de la géométrie"
 
@@ -127572,14 +127744,6 @@ msgstr "Distance de l’impact"
 
 msgid "This node uses legacy behavior with regards to attributes on instances. The behavior can be changed in the node properties in the side bar. In most cases the new behavior is the same for files created in Blender 3.0"
 msgstr "Ce nœud utilise un comportement obsolète pour les attributs sur les instances. Le comportement peut être changé dans les propriétés de nœud de la barre latérale. Dans la plupart des cas, le nouveau comportement est le même pour les fichiers créés dans Blender 3.0"
-
-
-msgid "Attribute does not exist: \""
-msgstr "L’attribut n’existe pas : \""
-
-
-msgid "Cannot delete built-in attribute with name \""
-msgstr "Impossible de supprimer l’attribut prédéfini nommé \""
 
 
 msgid "Which element to retrieve a value from on the geometry"
@@ -129864,10 +130028,6 @@ msgid "Set Hair Curve Profile"
 msgstr "Définir le profil de la courbe de poil"
 
 
-msgid "Sets the radius attribute of hair curves acoording to a profile shape"
-msgstr "Définir l’attribut de rayon des courbes de poils d’après une forme de profil"
-
-
 msgid "Shrinkwrap Hair Curves"
 msgstr "Contracter/envelopper les courbes de poils"
 
@@ -129878,10 +130038,6 @@ msgstr "Contracter/envelopper les courbes de poils à la surface d’un maillage
 
 msgid "Smooth Hair Curves"
 msgstr "Adoucir les courbes de poils"
-
-
-msgid "Smoothes the shape of  hair curves"
-msgstr "Adoucir la forme des courbes de poils"
 
 
 msgid "Straighten Hair Curves"

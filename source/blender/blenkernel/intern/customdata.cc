@@ -32,6 +32,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -3280,7 +3281,7 @@ static CustomDataLayer *customData_add_layer__internal(
   }
 
   if (name) {
-    BLI_strncpy(new_layer.name, name, sizeof(new_layer.name));
+    STRNCPY(new_layer.name, name);
     CustomData_set_layer_unique_name(data, index);
   }
   else {
@@ -4042,7 +4043,7 @@ bool CustomData_set_layer_name(CustomData *data,
     return false;
   }
 
-  BLI_strncpy(data->layers[layer_index].name, name, sizeof(data->layers[layer_index].name));
+  STRNCPY(data->layers[layer_index].name, name);
 
   return true;
 }
@@ -5035,7 +5036,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   /* Set default name if none specified. Note we only call DATA_() when
    * needed to avoid overhead of locale lookups in the depsgraph. */
   if (nlayer->name[0] == '\0') {
-    STRNCPY(nlayer->name, DATA_(typeInfo->defaultname));
+    STRNCPY_UTF8(nlayer->name, DATA_(typeInfo->defaultname));
   }
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
@@ -5059,10 +5060,10 @@ void CustomData_validate_layer_name(const CustomData *data,
      * deleted, so assign the active layer to name
      */
     index = CustomData_get_active_layer_index(data, type);
-    BLI_strncpy(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
+    BLI_strncpy_utf8(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
   else {
-    BLI_strncpy(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+    BLI_strncpy_utf8(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
   }
 }
 
@@ -5403,7 +5404,7 @@ void CustomData_external_add(CustomData *data,
     external = MEM_cnew<CustomDataExternal>(__func__);
     data->external = external;
   }
-  BLI_strncpy(external->filepath, filepath, sizeof(external->filepath));
+  STRNCPY(external->filepath, filepath);
 
   layer->flag |= CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY;
 }

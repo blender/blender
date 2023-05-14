@@ -167,7 +167,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       const bool is_prev_save = !STREQ(G.ima, "//");
       if (opts->save_as_render) {
         if (is_prev_save) {
-          BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
+          STRNCPY(opts->filepath, G.ima);
         }
         else {
           BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("untitled"));
@@ -252,7 +252,7 @@ static void image_save_update_filepath(Image *ima,
                                        const ImageSaveOptions *opts)
 {
   if (opts->do_newpath) {
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+    STRNCPY(ima->filepath, filepath);
 
     /* only image path, never ibuf */
     if (opts->relative) {
@@ -281,7 +281,7 @@ static void image_save_post(ReportList *reports,
   }
 
   if (opts->do_newpath) {
-    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
+    STRNCPY(ibuf->filepath, filepath);
   }
 
   /* The tiled image code-path must call this on its own. */
@@ -776,7 +776,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
         if (multi_layer) {
           RE_render_result_full_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
-          BLI_strncpy(layname, "Composite", sizeof(layname));
+          STRNCPY(layname, "Composite");
         }
         else {
           passname[0] = chan_id[a];
@@ -842,7 +842,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
         if (multi_layer) {
           RE_render_result_full_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
-          BLI_strncpy(layname, rl->name, sizeof(layname));
+          STRNCPY(layname, rl->name);
         }
         else {
           passname[0] = rp->chan_id[a];

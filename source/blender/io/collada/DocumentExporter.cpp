@@ -228,15 +228,14 @@ int DocumentExporter::exportCurrentScene()
   asset.getContributor().mAuthor = "Blender User";
   char version_buf[128];
 #ifdef WITH_BUILDINFO
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "Blender %s commit date:%s, commit time:%s, hash:%s",
-               BKE_blender_version_string(),
-               build_commit_date,
-               build_commit_time,
-               build_hash);
+  SNPRINTF(version_buf,
+           "Blender %s commit date:%s, commit time:%s, hash:%s",
+           BKE_blender_version_string(),
+           build_commit_date,
+           build_commit_time,
+           build_hash);
 #else
-  BLI_snprintf(version_buf, sizeof(version_buf), "Blender %s", BKE_blender_version_string());
+  SNPRINTF(version_buf, "Blender %s", BKE_blender_version_string());
 #endif
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();

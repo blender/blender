@@ -4,8 +4,8 @@
  * \ingroup edsculpt
  */
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -32,7 +32,7 @@
 
 #include "UI_view2d.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
@@ -71,7 +71,7 @@ bool paint_curve_poll(bContext *C)
 static PaintCurvePoint *paintcurve_point_get_closest(
     PaintCurve *pc, const float pos[2], bool ignore_pivot, const float threshold, char *point)
 {
-  PaintCurvePoint *pcp, *closest = NULL;
+  PaintCurvePoint *pcp, *closest = nullptr;
   int i;
   float closest_dist = threshold;
 
@@ -141,7 +141,7 @@ static char paintcurve_point_side_index(const BezTriple *bezt,
 
 /******************* Operators *********************************/
 
-static int paintcurve_new_exec(bContext *C, wmOperator *UNUSED(op))
+static int paintcurve_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   Main *bmain = CTX_data_main(C);
@@ -150,7 +150,7 @@ static int paintcurve_new_exec(bContext *C, wmOperator *UNUSED(op))
     p->brush->paint_curve = BKE_paint_curve_add(bmain, "PaintCurve");
   }
 
-  WM_event_add_notifier(C, NC_PAINTCURVE | NA_ADDED, NULL);
+  WM_event_add_notifier(C, NC_PAINTCURVE | NA_ADDED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -177,7 +177,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
   Main *bmain = CTX_data_main(C);
   wmWindow *window = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
-  const float vec[3] = {loc[0], loc[1], 0.0};
+  const float vec[3] = {float(loc[0]), float(loc[1]), 0.0f};
 
   PaintCurve *pc = br->paint_curve;
   if (!pc) {
@@ -186,8 +186,8 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   ED_paintcurve_undo_push_begin(op->type->name);
 
-  PaintCurvePoint *pcp = MEM_mallocN((pc->tot_points + 1) * sizeof(PaintCurvePoint),
-                                     "PaintCurvePoint");
+  PaintCurvePoint *pcp = static_cast<PaintCurvePoint *>(
+      MEM_mallocN((pc->tot_points + 1) * sizeof(PaintCurvePoint), "PaintCurvePoint"));
   int add_index = pc->add_index;
 
   if (pc->points) {
@@ -272,7 +272,7 @@ void PAINTCURVE_OT_add_point(wmOperatorType *ot)
   RNA_def_int_vector(ot->srna,
                      "location",
                      2,
-                     NULL,
+                     nullptr,
                      0,
                      SHRT_MAX,
                      "Location",
@@ -311,9 +311,10 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
   if (tot_del > 0) {
     int j = 0;
     int new_tot = pc->tot_points - tot_del;
-    PaintCurvePoint *points_new = NULL;
+    PaintCurvePoint *points_new = nullptr;
     if (new_tot > 0) {
-      points_new = MEM_mallocN(new_tot * sizeof(PaintCurvePoint), "PaintCurvePoint");
+      points_new = static_cast<PaintCurvePoint *>(
+          MEM_mallocN(new_tot * sizeof(PaintCurvePoint), "PaintCurvePoint"));
     }
 
     for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {
@@ -369,7 +370,7 @@ static bool paintcurve_point_select(
   Brush *br = p->brush;
   PaintCurve *pc;
   int i;
-  const float loc_fl[2] = {UNPACK2(loc)};
+  const float loc_fl[2] = {float(loc[0]), float(loc[1])};
 
   pc = br->paint_curve;
 
@@ -463,7 +464,7 @@ static bool paintcurve_point_select(
 
 static int paintcurve_select_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int loc[2] = {UNPACK2(event->mval)};
+  const int loc[2] = {event->mval[0], event->mval[1]};
   bool toggle = RNA_boolean_get(op->ptr, "toggle");
   bool extend = RNA_boolean_get(op->ptr, "extend");
   if (paintcurve_point_select(C, op, loc, toggle, extend)) {
@@ -510,7 +511,7 @@ void PAINTCURVE_OT_select(wmOperatorType *ot)
   RNA_def_int_vector(ot->srna,
                      "location",
                      2,
-                     NULL,
+                     nullptr,
                      0,
                      SHRT_MAX,
                      "Location",
@@ -523,19 +524,19 @@ void PAINTCURVE_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-typedef struct PointSlideData {
+struct PointSlideData {
   PaintCurvePoint *pcp;
   char select;
   int initial_loc[2];
   float point_initial_loc[3][2];
   int event;
   bool align;
-} PointSlideData;
+};
 
 static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
-  const float loc_fl[2] = {UNPACK2(event->mval)};
+  const float loc_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   char select;
   int i;
   bool do_select = RNA_boolean_get(op->ptr, "select");
@@ -552,7 +553,7 @@ static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *e
     pcp = paintcurve_point_get_closest(pc, loc_fl, align, PAINT_CURVE_SELECT_THRESHOLD, &select);
   }
   else {
-    pcp = NULL;
+    pcp = nullptr;
     /* just find first selected point */
     for (i = 0; i < pc->tot_points; i++) {
       if ((select = paintcurve_point_side_index(&pc->points[i].bez, i == 0, SEL_F3))) {
@@ -565,7 +566,8 @@ static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *e
   if (pcp) {
     ARegion *region = CTX_wm_region(C);
     wmWindow *window = CTX_wm_window(C);
-    PointSlideData *psd = MEM_mallocN(sizeof(PointSlideData), "PointSlideData");
+    PointSlideData *psd = static_cast<PointSlideData *>(
+        MEM_mallocN(sizeof(PointSlideData), "PointSlideData"));
     copy_v2_v2_int(psd->initial_loc, event->mval);
     psd->event = event->type;
     psd->pcp = pcp;
@@ -595,7 +597,7 @@ static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PointSlideData *psd = op->customdata;
+  PointSlideData *psd = static_cast<PointSlideData *>(op->customdata);
 
   if (event->type == psd->event && event->val == KM_RELEASE) {
     MEM_freeN(psd);
@@ -608,7 +610,8 @@ static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *ev
     case MOUSEMOVE: {
       ARegion *region = CTX_wm_region(C);
       wmWindow *window = CTX_wm_window(C);
-      float diff[2] = {event->mval[0] - psd->initial_loc[0], event->mval[1] - psd->initial_loc[1]};
+      float diff[2] = {float(event->mval[0] - psd->initial_loc[0]),
+                       float(event->mval[1] - psd->initial_loc[1])};
       if (psd->select == 1) {
         int i;
         for (i = 0; i < 3; i++) {
@@ -657,7 +660,7 @@ void PAINTCURVE_OT_slide(wmOperatorType *ot)
       ot->srna, "select", true, "Select", "Attempt to select a point handle before transform");
 }
 
-static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
+static int paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
 {
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   const char *name;
@@ -683,7 +686,7 @@ static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
       return OPERATOR_PASS_THROUGH;
   }
 
-  return WM_operator_name_call(C, name, WM_OP_INVOKE_DEFAULT, NULL, NULL);
+  return WM_operator_name_call(C, name, WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
 
 void PAINTCURVE_OT_draw(wmOperatorType *ot)
@@ -701,7 +704,7 @@ void PAINTCURVE_OT_draw(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 }
 
-static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int paintcurve_cursor_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
@@ -718,7 +721,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
       UI_view2d_region_to_view(
           &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
       copy_v2_v2(sima->cursor, location);
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
+      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, nullptr);
       break;
     }
     default:

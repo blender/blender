@@ -1327,7 +1327,7 @@ void calculatePropRatio(TransInfo *t)
     }
 
     if (pet_id) {
-      BLI_strncpy(t->proptext, IFACE_(pet_id), sizeof(t->proptext));
+      STRNCPY_UTF8(t->proptext, IFACE_(pet_id));
     }
   }
   else {

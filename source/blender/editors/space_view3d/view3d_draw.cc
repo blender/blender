@@ -1453,7 +1453,7 @@ static void draw_grid_unit_name(
       char numstr[32] = "";
       UI_FontThemeColor(font_id, TH_TEXT_HI);
       if (v3d->grid != 1.0f) {
-        BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+        SNPRINTF(numstr, "%s x %.4g", grid_unit, v3d->grid);
       }
 
       *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
@@ -2578,11 +2578,11 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   /* Is this more than half a frame behind? */
   if (fps + 0.5f < float(FPS)) {
     UI_FontThemeColor(font_id, TH_REDALERT);
-    BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %.2f"), fps);
+    SNPRINTF(printable, IFACE_("fps: %.2f"), fps);
   }
   else {
     UI_FontThemeColor(font_id, TH_TEXT_HI);
-    BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %i"), int(fps + 0.5f));
+    SNPRINTF(printable, IFACE_("fps: %i"), int(fps + 0.5f));
   }
 
   BLF_enable(font_id, BLF_SHADOW);

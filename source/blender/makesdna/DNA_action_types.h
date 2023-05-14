@@ -934,6 +934,7 @@ typedef enum eTimeline_Cache_Flag {
   TIME_CACHE_SMOKE = (1 << 4),
   TIME_CACHE_DYNAMICPAINT = (1 << 5),
   TIME_CACHE_RIGIDBODY = (1 << 6),
+  TIME_CACHE_SIMULATION_NODES = (1 << 7),
 } eTimeline_Cache_Flag;
 
 /* ************************************************ */

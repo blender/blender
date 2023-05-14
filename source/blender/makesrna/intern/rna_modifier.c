@@ -710,10 +710,10 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(md->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, md->name, sizeof(md->name));
+  STRNCPY(oldname, md->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(md->name, value, sizeof(md->name));
+  STRNCPY_UTF8(md->name, value);
 
   /* make sure the name is truly unique */
   if (ptr->owner_id) {
@@ -951,7 +951,7 @@ static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
   Object *owner = (Object *)ptr->owner_id;
   HookModifierData *hmd = ptr->data;
 
-  BLI_strncpy(hmd->subtarget, value, sizeof(hmd->subtarget));
+  STRNCPY(hmd->subtarget, value);
   BKE_object_modifier_hook_reset(owner, hmd);
 }
 
@@ -1093,7 +1093,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
   if (external && !STREQ(external->filepath, value)) {
-    BLI_strncpy(external->filepath, value, sizeof(external->filepath));
+    STRNCPY(external->filepath, value);
     multires_force_external_reload(ob);
   }
 }

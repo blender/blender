@@ -1351,7 +1351,7 @@ void BKE_sim_debug_data_add_element(int type,
     zero_v3(elem->v2);
   }
   if (str) {
-    BLI_strncpy(elem->str, str, sizeof(elem->str));
+    STRNCPY(elem->str, str);
   }
   else {
     elem->str[0] = '\0';

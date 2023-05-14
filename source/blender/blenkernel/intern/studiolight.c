@@ -1407,7 +1407,7 @@ void BKE_studiolight_init(void)
   StudioLight *sl = studiolight_create(
       STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED |
       STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS);
-  BLI_strncpy(sl->name, "Default", FILE_MAXFILE);
+  STRNCPY(sl->name, "Default");
 
   BLI_addtail(&studiolights, sl);
 

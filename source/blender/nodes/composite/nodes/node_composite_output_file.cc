@@ -128,9 +128,9 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
   NodeImageMultiFileSocket *sockdata = MEM_cnew<NodeImageMultiFileSocket>(__func__);
   sock->storage = sockdata;
 
-  BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
+  STRNCPY_UTF8(sockdata->path, name);
   ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
-  BLI_strncpy_utf8(sockdata->layer, name, sizeof(sockdata->layer));
+  STRNCPY_UTF8(sockdata->layer, name);
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 
   if (im_format) {
@@ -176,14 +176,14 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 void ntreeCompositOutputFileSetPath(bNode *node, bNodeSocket *sock, const char *name)
 {
   NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
+  STRNCPY_UTF8(sockdata->path, name);
   ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
 }
 
 void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char *name)
 {
   NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_strncpy_utf8(sockdata->layer, name, sizeof(sockdata->layer));
+  STRNCPY_UTF8(sockdata->layer, name);
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
@@ -202,7 +202,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   if (scene) {
     RenderData *rd = &scene->r;
 
-    BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
+    STRNCPY(nimf->base_path, rd->pic);
     BKE_image_format_copy(&nimf->format, &rd->im_format);
     nimf->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
     if (BKE_imtype_is_movie(nimf->format.imtype)) {

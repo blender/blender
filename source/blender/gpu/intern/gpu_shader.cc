@@ -52,7 +52,7 @@ using namespace blender::gpu;
 
 Shader::Shader(const char *sh_name)
 {
-  BLI_strncpy(this->name, sh_name, sizeof(this->name));
+  STRNCPY(this->name, sh_name);
 }
 
 Shader::~Shader()

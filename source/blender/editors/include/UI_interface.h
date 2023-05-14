@@ -3175,7 +3175,7 @@ const char *UI_key_event_operator_string(const struct bContext *C,
                                          IDProperty *properties,
                                          const bool is_strict,
                                          char *result,
-                                         const int result_len);
+                                         const int result_maxncpy);
 
 /* ui_interface_region_tooltip.c */
 

@@ -4,7 +4,7 @@
  * \ingroup edsculpt
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -19,7 +19,7 @@
 
 #include "WM_api.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #ifndef NDEBUG
 #  include "BLI_array_utils.h" /* #BLI_array_is_zeroed */
@@ -29,16 +29,16 @@
 /** \name Undo Conversion
  * \{ */
 
-typedef struct UndoCurve {
+struct UndoCurve {
   PaintCurvePoint *points; /* points of curve */
   int tot_points;
   int add_index;
-} UndoCurve;
+};
 
 static void undocurve_from_paintcurve(UndoCurve *uc, const PaintCurve *pc)
 {
   BLI_assert(BLI_array_is_zeroed(uc, 1));
-  uc->points = MEM_dupallocN(pc->points);
+  uc->points = static_cast<PaintCurvePoint *>(MEM_dupallocN(pc->points));
   uc->tot_points = pc->tot_points;
   uc->add_index = pc->add_index;
 }
@@ -46,7 +46,7 @@ static void undocurve_from_paintcurve(UndoCurve *uc, const PaintCurve *pc)
 static void undocurve_to_paintcurve(const UndoCurve *uc, PaintCurve *pc)
 {
   MEM_SAFE_FREE(pc->points);
-  pc->points = MEM_dupallocN(uc->points);
+  pc->points = static_cast<PaintCurvePoint *>(MEM_dupallocN(uc->points));
   pc->tot_points = uc->tot_points;
   pc->add_index = uc->add_index;
 }
@@ -62,32 +62,30 @@ static void undocurve_free_data(UndoCurve *uc)
 /** \name Implements ED Undo System
  * \{ */
 
-typedef struct PaintCurveUndoStep {
+struct PaintCurveUndoStep {
   UndoStep step;
 
   UndoRefID_PaintCurve pc_ref;
 
   UndoCurve data;
-} PaintCurveUndoStep;
+};
 
 static bool paintcurve_undosys_poll(bContext *C)
 {
-  if (C == NULL || !paint_curve_poll(C)) {
+  if (C == nullptr || !paint_curve_poll(C)) {
     return false;
   }
   Paint *p = BKE_paint_get_active_from_context(C);
   return (p->brush && p->brush->paint_curve);
 }
 
-static void paintcurve_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
+static void paintcurve_undosys_step_encode_init(bContext *C, UndoStep *us_p)
 {
   /* XXX, use to set the undo type only. */
   UNUSED_VARS(C, us_p);
 }
 
-static bool paintcurve_undosys_step_encode(struct bContext *C,
-                                           struct Main *UNUSED(bmain),
-                                           UndoStep *us_p)
+static bool paintcurve_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   /* FIXME Double check this, it should not be needed here at all? undo system is supposed to
    * ensure that. */
@@ -96,8 +94,8 @@ static bool paintcurve_undosys_step_encode(struct bContext *C,
   }
 
   Paint *p = BKE_paint_get_active_from_context(C);
-  PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : NULL) : NULL;
-  if (pc == NULL) {
+  PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : nullptr) : nullptr;
+  if (pc == nullptr) {
     return false;
   }
 
@@ -110,11 +108,11 @@ static bool paintcurve_undosys_step_encode(struct bContext *C,
   return true;
 }
 
-static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C),
-                                           struct Main *UNUSED(bmain),
+static void paintcurve_undosys_step_decode(bContext * /*C*/,
+                                           Main * /*bmain*/,
                                            UndoStep *us_p,
-                                           const eUndoStepDir UNUSED(dir),
-                                           bool UNUSED(is_final))
+                                           const eUndoStepDir /*dir*/,
+                                           bool /*is_final*/)
 {
   PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
   undocurve_to_paintcurve(&us->data, us->pc_ref.ptr);
@@ -159,14 +157,14 @@ void ED_paintcurve_undosys_type(UndoType *ut)
 void ED_paintcurve_undo_push_begin(const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
-  bContext *C = NULL; /* special case, we never read from this. */
+  bContext *C = nullptr; /* special case, we never read from this. */
   BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_PAINTCURVE);
 }
 
 void ED_paintcurve_undo_push_end(bContext *C)
 {
   UndoStack *ustack = ED_undo_stack_get();
-  BKE_undosys_step_push(ustack, C, NULL);
+  BKE_undosys_step_push(ustack, C, nullptr);
   BKE_undosys_stack_limit_steps_and_memory_defaults(ustack);
   WM_file_tag_modified();
 }

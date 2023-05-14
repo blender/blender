@@ -314,15 +314,15 @@ void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value,
 void rna_object_vgroup_name_set(struct PointerRNA *ptr,
                                 const char *value,
                                 char *result,
-                                int maxlen);
+                                int result_maxncpy);
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr,
                                  const char *value,
                                  char *result,
-                                 int maxlen);
+                                 int result_maxncpy);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr,
                                    const char *value,
                                    char *result,
-                                   int maxlen);
+                                   int result_maxncpy);
 PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 

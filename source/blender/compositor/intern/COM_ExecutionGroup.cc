@@ -419,8 +419,7 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
     bTree_->runtime->progress(bTree_->runtime->prh, progress);
 
     char buf[128];
-    BLI_snprintf(
-        buf, sizeof(buf), TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
+    SNPRINTF(buf, TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
     bTree_->runtime->stats_draw(bTree_->runtime->sdh, buf);
   }
 }

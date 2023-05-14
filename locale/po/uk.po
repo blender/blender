@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -4706,10 +4706,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "Група вершин для контролю над тугістю внутрішньої пружності"
 
 
-msgid "Mass Vertex Group"
-msgstr "Маса групи вершин"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Група вершин для фіксації вершин"
 
@@ -7451,10 +7447,6 @@ msgid "Map To"
 msgstr "Розмітка для"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Тип трансформації, що застосовується до обмежуваного об'єкта"
-
-
 msgid "Map To X From"
 msgstr "Розмітка на X з"
 
@@ -7843,28 +7835,8 @@ msgid "Plane for projected stroke"
 msgstr "Площина для проєктованого штриха"
 
 
-msgid "Normal/View"
-msgstr "Нормаль/Вигляд"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "Показ перпендикуляра до поверхні"
-
-
-msgid "Normal/Surface"
-msgstr "Нормаль/Поверхня"
-
-
-msgid "Display aligned to the surface"
-msgstr "Показ вирівняно до поверхні"
-
-
 msgid "View"
 msgstr "Огляд"
-
-
-msgid "Display aligned to the viewport"
-msgstr "Показ вирівняно до вікна огляду"
 
 
 msgid "Detect Corners"
@@ -10891,20 +10863,12 @@ msgid "Maximum distance for the field to work"
 msgstr "Найбільша відстань, на якій діє поле"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Найменша відстань для спаду поля"
-
-
 msgid "Falloff Power"
 msgstr "Сила спаду"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "Як швидко сила спадає з відстанню від силового поля"
-
-
-msgid "Fall-Off"
-msgstr "Зменшення"
 
 
 msgid "Cone"
@@ -11057,10 +11021,6 @@ msgstr "Найбільша радіальна відстань, на якій д
 
 msgid "Minimum Radial Distance"
 msgstr "Найменша радіальна відстань"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "Найменша радіальна відстань для спаду поля"
 
 
 msgid "Rest Length"
@@ -11259,16 +11219,8 @@ msgid "Use Min"
 msgstr "Вжити мінімум"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Вжити найменшу відстань для дії поля"
-
-
 msgid "Multiple Springs"
 msgstr "Декілька пружин"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "На кожну точку діє декілька пружин"
 
 
 msgid "Use Coordinates"
@@ -11281,10 +11233,6 @@ msgstr "Використовувати об'єктні/глобальні коо
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "Використати найбільшу радіальну відстань для дії поля"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "Вжити найменшу радіальну відстань для дії поля"
 
 
 msgid "Root Texture Coordinates"
@@ -41638,6 +41586,10 @@ msgid "Select Children Only"
 msgstr "Вибрати лише нащадків"
 
 
+msgid "Extend Range"
+msgstr "Розширити діапазон"
+
+
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "Згорнути канали"
@@ -46673,11 +46625,6 @@ msgstr "Наступна тека"
 
 msgid "Move to next folder"
 msgstr "Перейти до наступної теки"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Предківський файл"
 
 
 msgid "Move to parent directory"
@@ -55495,10 +55442,6 @@ msgid "Clear Object Constraints"
 msgstr "Зчистити примуси об'єкта"
 
 
-msgid "Clear all the constraints for the active object only"
-msgstr "Зчистити всі примуси лише для активного об'єкта"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Objects"
 msgstr "Копіювати примуси на виділені об'єкти"
@@ -58534,10 +58477,6 @@ msgid "Extend selection for activation"
 msgstr "Розширити вибір для активації"
 
 
-msgid "Extend Range"
-msgstr "Розширити діапазон"
-
-
 msgid "Select a range from active element"
 msgstr "Вибрати діапазон з активного елемента"
 
@@ -59917,10 +59856,6 @@ msgstr "Додати примус для активної кістки з ціл
 msgctxt "Operator"
 msgid "Clear Pose Constraints"
 msgstr "Зчистити примуси пози"
-
-
-msgid "Clear all the constraints for the selected bones"
-msgstr "Зчистити всі примуси для вибраних кісток"
 
 
 msgctxt "Operator"
@@ -62121,10 +62056,6 @@ msgid "Hide Active Face Sets"
 msgstr "Сховати Активний Набір Граней"
 
 
-msgid "Invert Face Set Visibility"
-msgstr "Інвертувати Видимість Набору Граней"
-
-
 msgctxt "Operator"
 msgid "Edit Face Set"
 msgstr "Редагувати Набір Граней"
@@ -62976,15 +62907,6 @@ msgstr "Усунути черезрядковість відео"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Усунути черезрядковість усіх вибраних джерел відео"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Стерти смужки"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Стерти вибрані смужки з відеорядника"
 
 
 msgid "Duplicate the selected strips"
@@ -70489,10 +70411,6 @@ msgstr "Аудіо"
 
 msgid "Video"
 msgstr "Відео"
-
-
-msgid "FFMPEG Presets"
-msgstr "Передустановки FFMPEG"
 
 
 msgid "Views"
@@ -80368,6 +80286,10 @@ msgid "Control point weight values"
 msgstr "Значення вагомості керуючої точки"
 
 
+msgid "Mass Vertex Group"
+msgstr "Маса групи вершин"
+
+
 msgid "Control point mass values"
 msgstr "Значення маси контрольної точки"
 
@@ -84570,10 +84492,6 @@ msgid "Text Cursor"
 msgstr "Курсор Тексту"
 
 
-msgid "Color of the interface widgets text insertion cursor (caret)"
-msgstr "Колір віджетів інтерфейсу курсора вставки тексту (каретки)"
-
-
 msgid "Bone Locked Weight"
 msgstr "Блокована Вагомість Кістки"
 
@@ -84970,13 +84888,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Вектор Нормалі, використовуваний для копіювання, додання або множення"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "Екранний розмір кола пропорційного редагування"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "Екранний розмір кола пропорційного редагування"
 
 
 msgid "UV Local View"
@@ -85205,14 +85123,6 @@ msgstr "Режим маскування пропорційного редагу�
 
 msgid "Proportional editing object mode"
 msgstr "Режим пропорційного редагування об'єктів"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "Пропорційне редагування Ф-кривих"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Пропорційне редагування в редакторі Ф-кривих"
 
 
 msgid "Projected from View"
@@ -86573,10 +86483,6 @@ msgstr "Активна ДВЗ"
 
 msgid "Active AOV Index"
 msgstr "Індекс Активної ДВЗ"
-
-
-msgid "Index of active aov"
-msgstr "Індекс активної довільної вивідної змінної"
 
 
 msgid "Active Layer Collection"
@@ -88796,16 +88702,16 @@ msgid "Could not make new image"
 msgstr "Неможливо зробити нове зображення"
 
 
+msgid "Could not find image '%s'"
+msgstr "Неможливо знайти зображення '%s'"
+
+
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "Редактор зображень не може бути запущено, переконайтеся, що шлях в Уподобання Користувача > Файл є дійсним, та Blender має права для його запуску"
 
 
 msgid "Context incorrect, image not found"
 msgstr "Контекст неправильний, зображення не знайдено"
-
-
-msgid "Could not find image '%s'"
-msgstr "Неможливо знайти зображення '%s'"
 
 
 msgid "%d mesh(es) with no active UV layer, %d duplicates found in %d mesh(es), mirror may be incomplete"
@@ -94580,16 +94486,6 @@ msgstr "Перерахувати Всередину"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Копіювати Вектори"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Вставити Вектори"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Скинути Вектори"
 
@@ -95639,10 +95535,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Для DV-PAL висота рендера має бути 576 пікселів!"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG підтримує лише 48кГц / стерео звук для DV!"
-
-
 msgid "Error initializing video stream"
 msgstr "Помилка ініціалізації відеопотоку"
 
@@ -96063,10 +95955,6 @@ msgid "<Missing ID block>"
 msgstr "<Відсутній ID-блок>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "Немає RNA-вказівника для отримання значень для цієї Ф-кривої"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Немає Ф-кривої для додавання ключових кадрів"
 
@@ -96101,10 +95989,6 @@ msgstr "Помилка переобчислення шляху у властив
 
 msgid "No active Keying Set"
 msgstr "Немає активного набору ключів"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Неможливо оновити прапорці для цієї Ф-кривої, оскільки шлях RNA непридатний для даного ID (ID = %s, шлях = %s)"
 
 
 msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
@@ -100840,10 +100724,6 @@ msgid "unknown error writing file"
 msgstr "невідома помилка запису файлу"
 
 
-msgid "unknown error stating file"
-msgstr "невідома помилка виконання функції stat для файлу"
-
-
 msgid "This text has not been saved"
 msgstr "Цей текст не було збережено"
 
@@ -101919,22 +101799,6 @@ msgstr "Модифікатор Ф-кривої '%s' не знайдено на �
 
 msgid "Already a control point at frame %.6f"
 msgstr "Контрольна точка вже на кадрі %.6f"
-
-
-msgid "FCurve has already sample points"
-msgstr "Ф-крива вже має точки вибірки"
-
-
-msgid "FCurve has no keyframes"
-msgstr "Ф-крива не має ключових кадрів"
-
-
-msgid "FCurve has already keyframes"
-msgstr "Ф-крива вже має ключові кадри"
-
-
-msgid "FCurve has no sample points"
-msgstr "Ф-крива немає жодних точок вибірки"
 
 
 msgid "Invalid frame range (%d - %d)"

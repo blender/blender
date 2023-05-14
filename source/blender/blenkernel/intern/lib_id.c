@@ -67,6 +67,8 @@
 
 #include "atomic_ops.h"
 
+#include "lib_intern.h"
+
 //#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
@@ -439,7 +441,7 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, const int flags)
 /**
  * Ensure new (copied) ID is fully made local.
  */
-static void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
+void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const int flags)
 {
   if (ID_IS_LINKED(old_id)) {
     BKE_lib_id_expand_local(bmain, new_id, flags);
@@ -1361,7 +1363,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
     /* r_newid already contains pointer to allocated memory. */
     /* TODO: do we want to memset(0) whole mem before filling it? */
-    BLI_strncpy(new_id->name, id->name, sizeof(new_id->name));
+    STRNCPY(new_id->name, id->name);
     new_id->us = 0;
     new_id->tag |= LIB_TAG_NOT_ALLOCATED | LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT;
     /* TODO: Do we want/need to copy more from ID struct itself? */
@@ -1597,11 +1599,11 @@ bool BKE_id_new_name_validate(
     tname = id->name + 2;
   }
   /* Make a copy of given name (tname args can be const). */
-  BLI_strncpy(name, tname, sizeof(name));
+  STRNCPY(name, tname);
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    BLI_strncpy(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))), sizeof(name));
+    STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
   }
   else {
     /* disallow non utf8 chars,
@@ -1662,6 +1664,10 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
     /* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
     if (id->tag & LIB_TAG_EXTRAUSER) {
       id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+      id_us_ensure_real(id);
+    }
+    if (ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS)) {
+      /* These IDs should always have a 'virtual' user. */
       id_us_ensure_real(id);
     }
   }

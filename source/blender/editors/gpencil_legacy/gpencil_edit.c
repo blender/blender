@@ -873,7 +873,7 @@ static void gpencil_duplicate_points(bGPdata *gpd,
         gpsd = BKE_gpencil_stroke_duplicate((bGPDstroke *)gps, false, true);
 
         /* saves original layer name */
-        BLI_strncpy(gpsd->runtime.tmp_layerinfo, layername, sizeof(gpsd->runtime.tmp_layerinfo));
+        STRNCPY(gpsd->runtime.tmp_layerinfo, layername);
 
         /* now, make a new points array, and copy of the relevant parts */
         gpsd->points = MEM_mallocN(sizeof(bGPDspoint) * len, "gps stroke points copy");
@@ -951,8 +951,7 @@ static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
             /* make direct copies of the stroke and its points */
             gpsd = BKE_gpencil_stroke_duplicate(gps, true, true);
 
-            BLI_strncpy(
-                gpsd->runtime.tmp_layerinfo, gpl->info, sizeof(gpsd->runtime.tmp_layerinfo));
+            STRNCPY(gpsd->runtime.tmp_layerinfo, gpl->info);
 
             /* Initialize triangle information. */
             BKE_gpencil_stroke_geometry_update(gpd, gpsd);
@@ -1522,8 +1521,7 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
                 gpsd = BKE_gpencil_stroke_duplicate(gps, false, true);
 
                 /* saves original layer name */
-                BLI_strncpy(
-                    gpsd->runtime.tmp_layerinfo, gpl->info, sizeof(gpsd->runtime.tmp_layerinfo));
+                STRNCPY(gpsd->runtime.tmp_layerinfo, gpl->info);
                 gpsd->points = MEM_dupallocN(gps->points);
                 if (gps->dvert != NULL) {
                   gpsd->dvert = MEM_dupallocN(gps->dvert);

@@ -911,7 +911,7 @@ typedef struct PBVHFaceIter {
   const struct BMesh *bm;
   CCGKey subdiv_key_;
 
-  int last_face_index_;
+  int last_poly_index_;
 } PBVHFaceIter;
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);

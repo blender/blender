@@ -169,9 +169,7 @@ AbstractHierarchyIterator::~AbstractHierarchyIterator()
   /* release_writers() cannot be called here directly, as it calls into the pure-virtual
    * release_writer() function. By the time this destructor is called, the subclass that implements
    * that pure-virtual function is already destructed. */
-  BLI_assert(
-      writers_.empty() ||
-      !"release_writers() should be called before the AbstractHierarchyIterator goes out of scope");
+  BLI_assert(writers_.empty() || !"release_writers() should be called before the AbstractHierarchyIterator goes out of scope");
 }
 
 void AbstractHierarchyIterator::iterate_and_write()

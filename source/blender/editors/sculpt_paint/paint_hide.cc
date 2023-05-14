@@ -39,7 +39,7 @@
 
 #include "bmesh.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 /* For undo push. */
 #include "sculpt_intern.hh"

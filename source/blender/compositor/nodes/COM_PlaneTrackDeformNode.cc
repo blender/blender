@@ -30,7 +30,7 @@ void PlaneTrackDeformNode::convert_to_operations(NodeConverter &converter,
   warp_image_operation->set_tracking_object(data->tracking_object);
   warp_image_operation->set_plane_track_name(data->plane_track_name);
   warp_image_operation->set_framenumber(frame_number);
-  if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+  if (data->flag & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR) {
     warp_image_operation->set_motion_blur_samples(data->motion_blur_samples);
     warp_image_operation->set_motion_blur_shutter(data->motion_blur_shutter);
   }
@@ -44,7 +44,7 @@ void PlaneTrackDeformNode::convert_to_operations(NodeConverter &converter,
   plane_mask_operation->set_tracking_object(data->tracking_object);
   plane_mask_operation->set_plane_track_name(data->plane_track_name);
   plane_mask_operation->set_framenumber(frame_number);
-  if (data->flag & CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR) {
+  if (data->flag & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR) {
     plane_mask_operation->set_motion_blur_samples(data->motion_blur_samples);
     plane_mask_operation->set_motion_blur_shutter(data->motion_blur_shutter);
   }

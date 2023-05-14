@@ -35,6 +35,16 @@ enum eUVPackIsland_ShapeMethod {
   ED_UVPACK_SHAPE_CONCAVE,
 };
 
+enum eUVPackIsland_PinMethod {
+  ED_UVPACK_PIN_IGNORED = 0,
+  ED_UVPACK_PIN_DEFAULT,
+  ED_UVPACK_PIN_LOCK_ROTATION,
+  ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
+  ED_UVPACK_PIN_LOCK_SCALE,
+  ED_UVPACK_PIN_LOCK_TRANSLATION,
+  ED_UVPACK_PIN_LOCK_ALL, /* Lock translation, rotation and scale. */
+};
+
 namespace blender::geometry {
 
 /** See also #UnwrapOptions. */
@@ -45,6 +55,7 @@ class UVPackIsland_Params {
 
   void setFromUnwrapOptions(const UnwrapOptions &options);
   void setUDIMOffsetFromSpaceImage(const SpaceImage *sima);
+  bool isCancelled() const;
 
   /** Islands can be rotated to improve packing. */
   bool rotate;
@@ -58,8 +69,8 @@ class UVPackIsland_Params {
   bool use_seams;
   /** (In 3D Viewport or UV Editor) use aspect ratio from face. */
   bool correct_aspect;
-  /** Ignore islands which have any pinned UVs. */
-  bool ignore_pinned;
+  /** How will pinned islands be treated. */
+  eUVPackIsland_PinMethod pin_method;
   /** Treat unselected UVs as if they were pinned. */
   bool pin_unselected;
   /** Overlapping islands stick together. */
@@ -74,6 +85,12 @@ class UVPackIsland_Params {
   float target_aspect_y;
   /** Which shape to use when packing. */
   eUVPackIsland_ShapeMethod shape_method;
+
+  /** Abandon packing early when set by the job system. */
+  bool *stop;
+  bool *do_update;
+  /** How much progress we have made. From wmJob. */
+  float *progress;
 };
 
 class uv_phi;
@@ -83,6 +100,8 @@ class PackIsland {
 
   /** Aspect ratio, required for rotation. */
   float aspect_y;
+  /** Are any of the UVs pinned? */
+  bool pinned;
   /** Output pre-translation. */
   float2 pre_translate;
   /** Output angle in radians. */
@@ -93,9 +112,9 @@ class PackIsland {
   void add_triangle(const float2 uv0, const float2 uv1, const float2 uv2);
   void add_polygon(const blender::Span<float2> uvs, MemArena *arena, Heap *heap);
 
-  void build_transformation(const float scale, const float rotation, float r_matrix[2][2]) const;
+  void build_transformation(const float scale, const double rotation, float r_matrix[2][2]) const;
   void build_inverse_transformation(const float scale,
-                                    const float rotation,
+                                    const double rotation,
                                     float r_matrix[2][2]) const;
 
   float2 get_diagonal_support(const float scale, const float rotation, const float margin) const;
@@ -111,6 +130,10 @@ class PackIsland {
 
   void place_(const float scale, const uv_phi phi);
   void finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap);
+
+  bool can_rotate_(const UVPackIsland_Params &params) const;
+  bool can_scale_(const UVPackIsland_Params &params) const;
+  bool can_translate_(const UVPackIsland_Params &params) const;
 
   blender::Vector<float2> triangle_vertices_;
 

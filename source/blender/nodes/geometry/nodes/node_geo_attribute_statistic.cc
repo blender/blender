@@ -163,7 +163,7 @@ static float compute_variance(const Span<float> data, const float mean)
         return accumulator + difference * difference;
       });
 
-  return sum_of_squared_differences / (data.size() - 1);
+  return sum_of_squared_differences / data.size();
 }
 
 static float median_of_sorted_span(const Span<float> data)

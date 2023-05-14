@@ -6,6 +6,7 @@
 
 #include "BKE_scene.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 #include "BLO_readfile.h"
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -122,7 +123,7 @@ class AbstractHierarchyIteratorTest : public BlendfileLoadingBaseTest {
 TEST_F(AbstractHierarchyIteratorTest, ExportHierarchyTest)
 {
   /* Load the test blend file. */
-  if (!blendfile_load("usd/usd_hierarchy_export_test.blend")) {
+  if (!blendfile_load("usd" SEP_STR "usd_hierarchy_export_test.blend")) {
     return;
   }
   depsgraph_create(DAG_EVAL_RENDER);
@@ -200,7 +201,7 @@ TEST_F(AbstractHierarchyIteratorTest, ExportSubsetTest)
    * so not included here. Update this test when hair & particle systems are included. */
 
   /* Load the test blend file. */
-  if (!blendfile_load("usd/usd_hierarchy_export_test.blend")) {
+  if (!blendfile_load("usd" SEP_STR "usd_hierarchy_export_test.blend")) {
     return;
   }
   depsgraph_create(DAG_EVAL_RENDER);
@@ -320,7 +321,7 @@ class AbstractHierarchyIteratorInvisibleTest : public AbstractHierarchyIteratorT
 
 TEST_F(AbstractHierarchyIteratorInvisibleTest, ExportInvisibleTest)
 {
-  if (!blendfile_load("alembic/visibility.blend")) {
+  if (!blendfile_load("alembic" SEP_STR "visibility.blend")) {
     return;
   }
   depsgraph_create(DAG_EVAL_RENDER);

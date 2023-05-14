@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -5238,10 +5238,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "Đỉnh nhóm cho điều khiển chính xác độ cứng lò xo nội bộ"
 
 
-msgid "Mass Vertex Group"
-msgstr "Nhóm Đỉnh Khối Lượng"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Nhóm Đỉnh cho đóng đinh đỉnh"
 
@@ -8143,10 +8139,6 @@ msgid "Map To"
 msgstr "Ánh Xạ Đến"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Loại biến hóa để ảnh hướng thể vật bị ràng buộc"
-
-
 msgid "Map To X From"
 msgstr "Ánh Xạ Đến X Từ"
 
@@ -8535,28 +8527,8 @@ msgid "Plane for projected stroke"
 msgstr "Mặt phẳng cho chiếu nét"
 
 
-msgid "Normal/View"
-msgstr "Pháp Tuyến/Màn Chiếu"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "Hiển thị vuông góc với bề mặt"
-
-
-msgid "Normal/Surface"
-msgstr "Pháp Tuyến/Bề Mật"
-
-
-msgid "Display aligned to the surface"
-msgstr "Hiển thị sắp xếp với bề mặt"
-
-
 msgid "View"
 msgstr "Màn Chiếu"
-
-
-msgid "Display aligned to the viewport"
-msgstr "Hiển thị được sắp xếp với màn chiếu"
 
 
 msgid "Detect Corners"
@@ -11736,20 +11708,12 @@ msgid "Maximum distance for the field to work"
 msgstr "Khoảng cách cực đại cho tác dụng của lực trường"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Khoảng cách cực tiểu cho sự giảm của lực trường"
-
-
 msgid "Falloff Power"
 msgstr "Lũy Thừa Sự Giảm"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "Tốc độ sự giảm sức tùy khoảng cách từ lực trường"
-
-
-msgid "Fall-Off"
-msgstr "Sự Giảm"
 
 
 msgid "Cone"
@@ -11902,10 +11866,6 @@ msgstr "Khỏang cách cực đại tỏa tròn cho sự giảm của lực trư
 
 msgid "Minimum Radial Distance"
 msgstr "Khỏang Cách Tỏa Tròn Cực Tiểu"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "Khỏang cách tỏa tròn cực tiểu cho sự giảm của lực trường"
 
 
 msgid "Rest Length"
@@ -12104,16 +12064,8 @@ msgid "Use Min"
 msgstr "Dùng Cực Tiểu"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Dùng khoảng cách cực tiểu cho sự giảm của trường"
-
-
 msgid "Multiple Springs"
 msgstr "Nhiều Lò Xo"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "Mỗi điểm được ảnh hượng bởi nhiều lò xo"
 
 
 msgid "Use Coordinates"
@@ -12126,10 +12078,6 @@ msgstr "Dùng tọa độ vật thể/toàn cầu cho chất liệu"
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "Dùng một khoảng cách tỏa tròn cực đại cho sự tác dụng của trường"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "Dùng khoảng cách tảo tròn cực tiểu cho bắt đầu giảm lực trường"
 
 
 msgid "Root Texture Coordinates"
@@ -16672,10 +16620,6 @@ msgstr "Bộ Điều Chỉnh Gạch Ngang"
 
 msgid "Create dot-dash effect for strokes"
 msgstr "Chế tạo hiệu ứng gạch ngang chấm cho nét"
-
-
-msgid "Offset into each stroke before the beginning of  the dashed segment generation"
-msgstr "Nới vào từng nét trước khi chế tạo khúc gạch ngang"
 
 
 msgid "Active Dash Segment Index"
@@ -47625,6 +47569,10 @@ msgid "Select Children Only"
 msgstr "Chỉ Chọn Con Cái"
 
 
+msgid "Extend Range"
+msgstr "Mở Rộng Phạm Vi"
+
+
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "Tóp Kênh"
@@ -53251,11 +53199,6 @@ msgid "Store all data-blocks linked from other .blend files in the current .blen
 msgstr "Chứa hết cục dữ liệu được liên kết từ tập tin .blender khác trong tập tin .blend hiện tại. Tham chiếu thư viện được giữ nguyên cho các cục dữ liệu được liên kết có thể mở gói lai"
 
 
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Tập Tin Phụ Huynh"
-
-
 msgid "Move to parent directory"
 msgstr "Di chuyển đến thư mục phụ huynh"
 
@@ -56620,10 +56563,6 @@ msgstr "Tay cầm được kiểm tra riêng đối với mục đích sự lự
 
 msgid "Select Curves"
 msgstr "Chọn Đường Cong"
-
-
-msgid "Allow selecting all the keyframes of a curve by selecting the calculated fcurve"
-msgstr "Cho chọn hết bức ảnh mẫu của một đường cong bằng chọn cong-f được tính toán"
 
 
 msgid "Allow selecting all the keyframes of a curve by selecting the curve itself"
@@ -62815,10 +62754,6 @@ msgid "Clear Object Constraints"
 msgstr "Xóa Ràng Buộc Vật Thể"
 
 
-msgid "Clear all the constraints for the active object only"
-msgstr "Xóa hết ràng buộc chỉ cho vật thể hoạt động"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Objects"
 msgstr "Chép Ràng Buộc Đến Vật Thể Được Chọn"
@@ -66222,10 +66157,6 @@ msgid "Extend selection for activation"
 msgstr "Mở rộng sự lựa chọn cho làm hoạt động"
 
 
-msgid "Extend Range"
-msgstr "Mở Rộng Phạm Vi"
-
-
 msgid "Select a range from active element"
 msgstr "Chọn một phạm vi từ phần tử hoạt động"
 
@@ -67828,10 +67759,6 @@ msgstr "Thêm ràng buộc cho xương hoạt động, với mục tiêu (khi đ
 msgctxt "Operator"
 msgid "Clear Pose Constraints"
 msgstr "Xóa Ràng Buộc Dạng Đứng"
-
-
-msgid "Clear all the constraints for the selected bones"
-msgstr "Xóa hết ràng buộc cho xương được chọn"
 
 
 msgctxt "Operator"
@@ -70286,10 +70213,6 @@ msgid "Hide Active Face Sets"
 msgstr "Ẩn Các Tập Hợp Mặt Hoạt Động"
 
 
-msgid "Invert Face Set Visibility"
-msgstr "Đảo Nghịch Sự Hiển Thị Của Tập Hợp Mặt"
-
-
 msgctxt "Operator"
 msgid "Edit Face Set"
 msgstr "Biên Tập Tập Hợp Mặt"
@@ -71187,15 +71110,6 @@ msgstr "Đổi Phim Xen Kẽ Sang Tuần Tự"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Đổi hết nguồn phim được chọn từ xen kẽ sang tuần tự"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Xóa Đoạn"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Xóa các đoạn được chọn từ bộ trình tự"
 
 
 msgid "Delete Data"
@@ -80004,10 +79918,6 @@ msgstr "Âm Thanh"
 
 msgid "Video"
 msgstr "Video"
-
-
-msgid "FFMPEG Presets"
-msgstr "Đặt Sẵn FFMPEG"
 
 
 msgid "Format Presets"
@@ -91081,6 +90991,10 @@ msgid "Control point weight values"
 msgstr "Quyền lượng của điểm kiểm soát"
 
 
+msgid "Mass Vertex Group"
+msgstr "Nhóm Đỉnh Khối Lượng"
+
+
 msgid "Control point mass values"
 msgstr "Giá trị khối lượng cho điểm kiểm soát"
 
@@ -95671,10 +95585,6 @@ msgid "Text Cursor"
 msgstr "Con Trỏ Văn Bản"
 
 
-msgid "Color of the interface widgets text insertion cursor (caret)"
-msgstr "Màu của con trỏ chèn văn bản của khiển tố giao diện"
-
-
 msgid "Theme 3D Viewport"
 msgstr "Phong Cách Màn Chiếu 3D"
 
@@ -96095,13 +96005,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Vectơ pháp tuyến được dùng để sao chép, cộng hay nhân"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "Kích cỡ hiển thị cho vòng tròn biên tập đồng biến"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "Sự Giảm Biên Tập Đồng Biến"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "Kích cỡ hiển thị cho vòng tròn biên tập đồng biến"
 
 
 msgid "UV Local View"
@@ -96354,14 +96264,6 @@ msgstr "Chế độ biên tập mặt nạ kiểu đồng biến"
 
 msgid "Proportional editing object mode"
 msgstr "Chế độ biên tập vật thể kiểu đồng biến"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "Biên Tập Đồng Biến Cong-F"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Biên tập đồng biến trong trình biên soạn Cong-F"
 
 
 msgid "Projected from View"
@@ -97915,10 +97817,6 @@ msgid "Active AOV Index"
 msgstr "Chi Số AOV Hoạt Động"
 
 
-msgid "Index of active aov"
-msgstr "Chỉ số của AOV hoạt động"
-
-
 msgid "Active Layer Collection"
 msgstr "Sưu Tập Lớp Hoạt Động"
 
@@ -98373,10 +98271,6 @@ msgstr "Chế Độ Dụng Cụ"
 
 msgid "Use Paint Canvas"
 msgstr "Sử Dụng Sơn Mặt Sơn"
-
-
-msgid "Does this tool use an painting canvas"
-msgstr "Dụng cụ này sử dụng một mặt sưn hay không"
 
 
 msgid "Widget"
@@ -102119,16 +102013,16 @@ msgid "Could not make new image"
 msgstr "Không thể tạo ảnh mới"
 
 
+msgid "Could not find image '%s'"
+msgstr "Không tìm được ảnh '%s'"
+
+
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "Không được khởi động trình biên soạn ảnh, làm chắc đường dẫn trong Tùy Chọn Người Dùng > Tập tin hợp lệ, và Blender có quyển để khởi động nó"
 
 
 msgid "Context incorrect, image not found"
 msgstr "Bối cảnh không đúng, không tìm được ảnh"
-
-
-msgid "Could not find image '%s'"
-msgstr "Không tìm được ảnh '%s'"
 
 
 msgid "%d mesh(es) with no active UV layer, %d duplicates found in %d mesh(es), mirror may be incomplete"
@@ -108609,16 +108503,6 @@ msgstr "Tính Lại Phía Trong"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Chép Lại Vectơ"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Dán Vectơ"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Hoàn Lại Vectơ"
 
@@ -110171,10 +110055,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Bề cao kết xuất cần bằng 576 điểm ảnh cho DV-PAL"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG chỉ hỗ trợ 48khz / âm thanh nhị kênh cho DV!"
-
-
 msgid "Error initializing video stream"
 msgstr "Sai lam khởi động dòng video"
 
@@ -110655,10 +110535,6 @@ msgid "<Missing ID block>"
 msgstr "<Thiếu cục ID>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "Không có con chỉ RNA để lấy lại giá trị cho Cong-F này"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Không có Cong-F để thêm bức ảnh mẫu"
 
@@ -110693,10 +110569,6 @@ msgstr "Tìm đường dẫn đến đặc tính bị thất bại, bằng tay t
 
 msgid "No active Keying Set"
 msgstr "Không có Tập Bức Ảnh Mẫu hoạt động"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Không nâng cấp được các cờ của Cong-F này, vì đường dẫn RNA không hợp lệ cho ID (ID = %s, đường dẫn = %s)"
 
 
 msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
@@ -115819,60 +115691,12 @@ msgid "Node tree type %s undefined"
 msgstr "Cây giao điểm %s chưa được xác định"
 
 
-msgid " (String)"
-msgstr " (Xâu)"
-
-
-msgid " (Integer)"
-msgstr " (Số Nguyên)"
-
-
-msgid " (Float)"
-msgstr " (Số Thật)"
-
-
-msgid " (Vector)"
-msgstr " (Vectơ)"
-
-
 msgid "True"
 msgstr "Đúng"
 
 
 msgid "False"
 msgstr "Sai"
-
-
-msgid " (Boolean)"
-msgstr " (Bool)"
-
-
-msgid "Integer field"
-msgstr "Trường số nguyên"
-
-
-msgid "Float field"
-msgstr "Trường số thật"
-
-
-msgid "Vector field"
-msgstr "Trường vectơ"
-
-
-msgid "Boolean field"
-msgstr "Trường Bool"
-
-
-msgid "String field"
-msgstr "Trường xâu"
-
-
-msgid "Color field"
-msgstr "Trường màu"
-
-
-msgid " based on:"
-msgstr " cơ sở:"
 
 
 msgid "Empty Geometry"
@@ -116652,10 +116476,6 @@ msgstr "Chế tạo lại tập tin"
 
 msgid "unknown error writing file"
 msgstr "sai lầm lạ khi lưu tập tin"
-
-
-msgid "unknown error stating file"
-msgstr "Sai lầm lạ khi thống kê tập tin"
 
 
 msgid "This text has not been saved"
@@ -118079,22 +117899,6 @@ msgstr "Không tìm được bộ điều chỉnh Cong-F '%s' trong Cong-F"
 
 msgid "Already a control point at frame %.6f"
 msgstr "Có một điểm kiểm soát tại bức ảnh %.6f rồi"
-
-
-msgid "FCurve has already sample points"
-msgstr "Cong-F có điểm mẫu vật rồi"
-
-
-msgid "FCurve has no keyframes"
-msgstr "Cong-F không có Bức Ảnh Mẫu"
-
-
-msgid "FCurve has already keyframes"
-msgstr "Cong-F có bức ảnh mẫu rồi"
-
-
-msgid "FCurve has no sample points"
-msgstr "Cong-F không có điểm mẫu vật"
 
 
 msgid "Invalid frame range (%d - %d)"
@@ -120384,14 +120188,6 @@ msgstr "Khoảng Cách Trúng"
 
 msgid "This node uses legacy behavior with regards to attributes on instances. The behavior can be changed in the node properties in the side bar. In most cases the new behavior is the same for files created in Blender 3.0"
 msgstr "Giao điểm này dùng hành vi lỗi thời cho các đặc điểm của thực thể. Hành vi có thể đổi trong thanh hong của đặc tính giao điểm. Đa số trường hợp hành vi mới giống hệt cho tập tin được chế tạo trong Blender 3.0"
-
-
-msgid "Attribute does not exist: \""
-msgstr "Đăc điểm không tồn tại: \""
-
-
-msgid "Cannot delete built-in attribute with name \""
-msgstr "Không thể xóa đặc điểm đặt sẵn có tên \""
 
 
 msgid "The source geometry must contain a mesh or a point cloud"

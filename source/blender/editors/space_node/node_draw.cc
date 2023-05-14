@@ -956,12 +956,11 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case GEO_COMPONENT_TYPE_MESH: {
         const geo_log::GeometryInfoLog::MeshInfo &mesh_info = *value_log.mesh_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
-                     to_string(mesh_info.verts_num).c_str(),
-                     to_string(mesh_info.edges_num).c_str(),
-                     to_string(mesh_info.faces_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
+                 to_string(mesh_info.verts_num).c_str(),
+                 to_string(mesh_info.edges_num).c_str(),
+                 to_string(mesh_info.faces_num).c_str());
         ss << line;
         break;
       }
@@ -969,31 +968,27 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         const geo_log::GeometryInfoLog::PointCloudInfo &pointcloud_info =
             *value_log.pointcloud_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Point Cloud: %s points"),
-                     to_string(pointcloud_info.points_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Point Cloud: %s points"),
+                 to_string(pointcloud_info.points_num).c_str());
         ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
         const geo_log::GeometryInfoLog::CurveInfo &curve_info = *value_log.curve_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Curve: %s points, %s splines"),
-                     to_string(curve_info.points_num).c_str(),
-                     to_string(curve_info.splines_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Curve: %s points, %s splines"),
+                 to_string(curve_info.points_num).c_str(),
+                 to_string(curve_info.splines_num).c_str());
         ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const geo_log::GeometryInfoLog::InstancesInfo &instances_info = *value_log.instances_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Instances: %s"),
-                     to_string(instances_info.instances_num).c_str());
+        SNPRINTF(
+            line, TIP_("\u2022 Instances: %s"), to_string(instances_info.instances_num).c_str());
         ss << line;
         break;
       }
@@ -1005,11 +1000,10 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         if (value_log.edit_data_info.has_value()) {
           const geo_log::GeometryInfoLog::EditDataInfo &edit_info = *value_log.edit_data_info;
           char line[256];
-          BLI_snprintf(line,
-                       sizeof(line),
-                       TIP_("\u2022 Edit Curves: %s, %s"),
-                       edit_info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
-                       edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"));
+          SNPRINTF(line,
+                   TIP_("\u2022 Edit Curves: %s, %s"),
+                   edit_info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
+                   edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"));
           ss << line;
         }
         break;
@@ -2993,7 +2987,7 @@ static void reroute_node_draw(
   if (node.label[0] != '\0') {
     /* Draw title (node label). */
     char showname[128]; /* 128 used below */
-    BLI_strncpy(showname, node.label, sizeof(showname));
+    STRNCPY(showname, node.label);
     const short width = 512;
     const int x = BLI_rctf_cent_x(&node.runtime->totr) - (width / 2);
     const int y = node.runtime->totr.ymax;
@@ -3459,7 +3453,7 @@ void node_draw_space(const bContext &C, ARegion &region)
                                                                          snode.id;
 
     if (name_id && UNLIKELY(!STREQ(path->display_name, name_id->name + 2))) {
-      BLI_strncpy(path->display_name, name_id->name + 2, sizeof(path->display_name));
+      STRNCPY(path->display_name, name_id->name + 2);
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */

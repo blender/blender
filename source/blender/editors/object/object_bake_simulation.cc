@@ -51,6 +51,148 @@
 
 namespace blender::ed::object::bake_simulation {
 
+static bool calculate_to_frame_poll(bContext *C)
+{
+  if (!ED_operator_object_active(C)) {
+    return false;
+  }
+  return true;
+}
+
+struct CalculateSimulationJob {
+  wmWindowManager *wm;
+  Main *bmain;
+  Depsgraph *depsgraph;
+  Scene *scene;
+  Vector<Object *> objects;
+  int start_frame;
+  int end_frame;
+};
+
+static void calculate_simulation_job_startjob(void *customdata,
+                                              bool *stop,
+                                              bool *do_update,
+                                              float *progress)
+{
+  using namespace bke::sim;
+
+  CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
+  G.is_rendering = true;
+  G.is_break = false;
+  WM_set_locked_interface(job.wm, true);
+
+  Vector<Object *> objects_to_calc;
+  for (Object *object : job.objects) {
+    if (!BKE_id_is_editable(job.bmain, &object->id)) {
+      continue;
+    }
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        if (nmd->simulation_cache != nullptr) {
+          nmd->simulation_cache->reset();
+        }
+      }
+    }
+    objects_to_calc.append(object);
+  }
+
+  *progress = 0.0f;
+  *do_update = true;
+
+  const float frame_step_size = 1.0f;
+  const float progress_per_frame = 1.0f /
+                                   (float(job.end_frame - job.start_frame + 1) / frame_step_size);
+  const int old_frame = job.scene->r.cfra;
+
+  for (float frame_f = job.start_frame; frame_f <= job.end_frame; frame_f += frame_step_size) {
+    const SubFrame frame{frame_f};
+
+    if (G.is_break || (stop != nullptr && *stop)) {
+      break;
+    }
+
+    job.scene->r.cfra = frame.frame();
+    job.scene->r.subframe = frame.subframe();
+
+    BKE_scene_graph_update_for_newframe(job.depsgraph);
+
+    *progress += progress_per_frame;
+    *do_update = true;
+  }
+
+  job.scene->r.cfra = old_frame;
+  DEG_time_tag_update(job.bmain);
+
+  *progress = 1.0f;
+  *do_update = true;
+}
+
+static void calculate_simulation_job_endjob(void *customdata)
+{
+  CalculateSimulationJob &job = *static_cast<CalculateSimulationJob *>(customdata);
+  WM_set_locked_interface(job.wm, false);
+  G.is_rendering = false;
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
+}
+
+static int calculate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Main *bmain = CTX_data_main(C);
+
+  CalculateSimulationJob *job = MEM_new<CalculateSimulationJob>(__func__);
+  job->wm = wm;
+  job->bmain = bmain;
+  job->depsgraph = depsgraph;
+  job->scene = scene;
+  job->start_frame = scene->r.sfra;
+  job->end_frame = scene->r.cfra;
+
+  if (RNA_boolean_get(op->ptr, "selected")) {
+    CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
+      job->objects.append(object);
+    }
+    CTX_DATA_END;
+  }
+  else {
+    if (Object *object = CTX_data_active_object(C)) {
+      job->objects.append(object);
+    }
+  }
+
+  wmJob *wm_job = WM_jobs_get(wm,
+                              CTX_wm_window(C),
+                              CTX_data_scene(C),
+                              "Bake Simulation Nodes",
+                              WM_JOB_PROGRESS,
+                              WM_JOB_TYPE_CALCULATE_SIMULATION_NODES);
+
+  WM_jobs_customdata_set(
+      wm_job, job, [](void *job) { MEM_delete(static_cast<CalculateSimulationJob *>(job)); });
+  WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
+  WM_jobs_callbacks(wm_job,
+                    calculate_simulation_job_startjob,
+                    nullptr,
+                    nullptr,
+                    calculate_simulation_job_endjob);
+
+  WM_jobs_start(CTX_wm_manager(C), wm_job);
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int calculate_to_frame_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+{
+  if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CALCULATE_SIMULATION_NODES))
+  {
+    return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
+  return OPERATOR_PASS_THROUGH;
+}
+
 static bool bake_simulation_poll(bContext *C)
 {
   if (!ED_operator_object_active(C)) {
@@ -139,7 +281,7 @@ static void bake_simulation_job_startjob(void *customdata,
     job.scene->r.subframe = frame.subframe();
 
     char frame_file_c_str[64];
-    BLI_snprintf(frame_file_c_str, sizeof(frame_file_c_str), "%011.5f", double(frame));
+    SNPRINTF(frame_file_c_str, "%011.5f", double(frame));
     BLI_str_replace_char(frame_file_c_str, '.', '_');
     const StringRefNull frame_file_str = frame_file_c_str;
 
@@ -314,6 +456,26 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
 }
 
 }  // namespace blender::ed::object::bake_simulation
+
+void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
+{
+  using namespace blender::ed::object::bake_simulation;
+
+  ot->name = "Calculate Simulation to Frame";
+  ot->description =
+      "Calculate simulations in geometry nodes modifiers from the start to current frame";
+  ot->idname = __func__;
+
+  ot->invoke = calculate_to_frame_invoke;
+  ot->modal = calculate_to_frame_modal;
+  ot->poll = calculate_to_frame_poll;
+
+  RNA_def_boolean(ot->srna,
+                  "selected",
+                  false,
+                  "Selected",
+                  "Calculate all selected objects instead of just the active object");
+}
 
 void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot)
 {

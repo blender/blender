@@ -610,7 +610,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
     char str[4];
-    BLI_snprintf(str, sizeof(str), "%-3d", i * 20);
+    SNPRINTF(str, "%-3d", i * 20);
     str[3] = '\0';
     BLF_color4f(BLF_default(), 1.0f, 1.0f, 1.0f, 0.08f);
     BLF_draw_default(rect.xmin + 1, yofs - 5 + (i * 0.2f) * h, 0, str, sizeof(str) - 1);

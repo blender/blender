@@ -70,9 +70,13 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, const char *identif
   return find_matching_socket(groupnode->outputs, identifier);
 }
 
-void node_group_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+void node_group_label(const bNodeTree * /*ntree*/,
+                      const bNode *node,
+                      char *label,
+                      int label_maxncpy)
 {
-  BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
+  BLI_strncpy(
+      label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), label_maxncpy);
 }
 
 bool node_group_poll_instance(const bNode *node,

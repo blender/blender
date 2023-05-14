@@ -253,7 +253,7 @@ OutputStereoOperation::OutputStereoOperation(const Scene *scene,
     : OutputSingleLayerOperation(
           scene, rd, tree, datatype, format, path, view_name, save_as_render)
 {
-  BLI_strncpy(pass_name_, pass_name, sizeof(pass_name_));
+  STRNCPY(pass_name_, pass_name);
   channels_ = get_datatype_size(datatype);
 }
 

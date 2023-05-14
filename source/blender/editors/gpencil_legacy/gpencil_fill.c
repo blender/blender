@@ -2291,14 +2291,13 @@ static void gpencil_fill_status_indicators(tGPDfill *tgpf)
   const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
 
   char status_str[UI_MAX_DRAW_STR];
-  BLI_snprintf(status_str,
-               sizeof(status_str),
-               TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
-                    "Switch Mode, D: "
-                    "Stroke Collision | %s %s (%.3f)"),
-               (is_extend) ? TIP_("Extend") : TIP_("Radius"),
-               (is_extend && use_stroke_collide) ? TIP_("Stroke: ON") : TIP_("Stroke: OFF"),
-               tgpf->fill_extend_fac);
+  SNPRINTF(status_str,
+           TIP_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
+                "Switch Mode, D: "
+                "Stroke Collision | %s %s (%.3f)"),
+           (is_extend) ? TIP_("Extend") : TIP_("Radius"),
+           (is_extend && use_stroke_collide) ? TIP_("Stroke: ON") : TIP_("Stroke: OFF"),
+           tgpf->fill_extend_fac);
 
   ED_workspace_status_text(tgpf->C, status_str);
 }

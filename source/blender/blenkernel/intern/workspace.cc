@@ -224,7 +224,7 @@ static void workspace_layout_name_set(WorkSpace *workspace,
                                       WorkSpaceLayout *layout,
                                       const char *new_name)
 {
-  BLI_strncpy(layout->name, new_name, sizeof(layout->name));
+  STRNCPY(layout->name, new_name);
   BLI_uniquename(&workspace->layouts,
                  layout,
                  "Layout",

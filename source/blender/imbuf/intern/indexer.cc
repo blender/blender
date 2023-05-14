@@ -70,9 +70,9 @@ anim_index_builder *IMB_index_builder_create(const char *filepath)
 
   fprintf(stderr, "Starting work on index: %s\n", filepath);
 
-  BLI_strncpy(rv->filepath, filepath, sizeof(rv->filepath));
+  STRNCPY(rv->filepath, filepath);
 
-  BLI_strncpy(rv->filepath_temp, filepath, sizeof(rv->filepath_temp));
+  STRNCPY(rv->filepath_temp, filepath);
   BLI_string_join(rv->filepath_temp, sizeof(rv->filepath_temp), filepath, temp_ext);
 
   BLI_file_ensure_parent_dir_exists(rv->filepath_temp);
@@ -187,7 +187,7 @@ struct anim_index *IMB_indexer_open(const char *filepath)
 
   idx = MEM_cnew<anim_index>("anim_index");
 
-  BLI_strncpy(idx->filepath, filepath, sizeof(idx->filepath));
+  STRNCPY(idx->filepath, filepath);
 
   fseek(fp, 0, SEEK_END);
 
@@ -378,16 +378,16 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
  * - rebuild helper functions
  * ---------------------------------------------------------------------- */
 
-static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_len)
+static void get_index_dir(struct anim *anim, char *index_dir, size_t index_dir_maxncpy)
 {
   if (!anim->index_dir[0]) {
     char filename[FILE_MAXFILE];
     char dirname[FILE_MAXDIR];
     BLI_path_split_dir_file(anim->filepath, dirname, sizeof(dirname), filename, sizeof(filename));
-    BLI_path_join(index_dir, index_dir_len, dirname, "BL_proxy", filename);
+    BLI_path_join(index_dir, index_dir_maxncpy, dirname, "BL_proxy", filename);
   }
   else {
-    BLI_strncpy(index_dir, anim->index_dir, index_dir_len);
+    BLI_strncpy(index_dir, anim->index_dir, index_dir_maxncpy);
   }
 }
 
@@ -413,11 +413,10 @@ static bool get_proxy_filepath(struct anim *anim,
   stream_suffix[0] = 0;
 
   if (anim->streamindex > 0) {
-    BLI_snprintf(stream_suffix, sizeof(stream_suffix), "_st%d", anim->streamindex);
+    SNPRINTF(stream_suffix, "_st%d", anim->streamindex);
   }
 
-  BLI_snprintf(
-      proxy_name, sizeof(proxy_name), name, int(proxy_fac[i] * 100), stream_suffix, anim->suffix);
+  SNPRINTF(proxy_name, name, int(proxy_fac[i] * 100), stream_suffix, anim->suffix);
 
   get_index_dir(anim, index_dir, sizeof(index_dir));
 
@@ -449,10 +448,10 @@ static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc, char *filep
   stream_suffix[0] = 0;
 
   if (anim->streamindex > 0) {
-    BLI_snprintf(stream_suffix, 20, "_st%d", anim->streamindex);
+    SNPRINTF(stream_suffix, "_st%d", anim->streamindex);
   }
 
-  BLI_snprintf(index_name, 256, index_names[i], stream_suffix, anim->suffix);
+  SNPRINTF(index_name, index_names[i], stream_suffix, anim->suffix);
 
   get_index_dir(anim, index_dir, sizeof(index_dir));
 
@@ -1568,7 +1567,7 @@ void IMB_anim_set_index_dir(struct anim *anim, const char *dir)
   if (STREQ(anim->index_dir, dir)) {
     return;
   }
-  BLI_strncpy(anim->index_dir, dir, sizeof(anim->index_dir));
+  STRNCPY(anim->index_dir, dir);
 
   IMB_free_indices(anim);
 }

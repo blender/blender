@@ -9,6 +9,7 @@
 #include "vk_context.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
+#include "vk_state_manager.hh"
 
 namespace blender::gpu {
 
@@ -44,15 +45,19 @@ void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindTyp
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
-  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(bind_type,
-                                                                                      slot);
-  VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
-  descriptor_set.bind(*this, location);
+  const std::optional<VKDescriptorSet::Location> location =
+      shader_interface.descriptor_set_location(bind_type, slot);
+  if (location) {
+    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+    descriptor_set.bind(*this, *location);
+  }
 }
 
 void VKUniformBuffer::bind(int slot)
 {
-  bind(slot, shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
+  /* Uniform buffers can be bound without an shader. */
+  VKContext &context = *VKContext::get();
+  context.state_manager_get().uniform_buffer_bind(this, slot);
 }
 
 void VKUniformBuffer::bind_as_ssbo(int slot)
@@ -60,6 +65,10 @@ void VKUniformBuffer::bind_as_ssbo(int slot)
   bind(slot, shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER);
 }
 
-void VKUniformBuffer::unbind() {}
+void VKUniformBuffer::unbind()
+{
+  VKContext &context = *VKContext::get();
+  context.state_manager_get().uniform_buffer_unbind(this);
+}
 
 }  // namespace blender::gpu

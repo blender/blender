@@ -321,7 +321,7 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
   /* Get the name. */
   if (face->family_name) {
-    BLI_snprintf(vfd->name, sizeof(vfd->name), "%s %s", face->family_name, face->style_name);
+    SNPRINTF(vfd->name, "%s %s", face->family_name, face->style_name);
     BLI_str_utf8_invalid_strip(vfd->name, strlen(vfd->name));
   }
 

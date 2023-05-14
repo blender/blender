@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -5052,10 +5052,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "Группа вершин для тонкой настройки жёсткости внутренних пружин"
 
 
-msgid "Mass Vertex Group"
-msgstr "Группа вершин массы"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "Закрепляемая группа вершин"
 
@@ -7905,10 +7901,6 @@ msgid "Map To"
 msgstr "Разметка для…"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Тип трансформации, которое выполняется для ограничиваемого объекта"
-
-
 msgid "Map To X From"
 msgstr "Разметка на X с…"
 
@@ -8293,28 +8285,8 @@ msgid "Plane for projected stroke"
 msgstr "Плоскость проецирования штрихов"
 
 
-msgid "Normal/View"
-msgstr "Нормаль/Вид"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "Отображать перпендикулярно поверхности"
-
-
-msgid "Normal/Surface"
-msgstr "Нормаль/Поверхность"
-
-
-msgid "Display aligned to the surface"
-msgstr "Отображать с выравниванием к поверхности"
-
-
 msgid "View"
 msgstr "Вид"
-
-
-msgid "Display aligned to the viewport"
-msgstr "Отображать с выравниванием к вьюпорту"
 
 
 msgid "Detect Corners"
@@ -11396,20 +11368,12 @@ msgid "Maximum distance for the field to work"
 msgstr "Максимальное расстояние для работы поля"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "Минимальное расстояние для спада поля"
-
-
 msgid "Falloff Power"
 msgstr "Сила спада"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "Как быстро спадает интенсивность с расстоянием от силового поля"
-
-
-msgid "Fall-Off"
-msgstr "Спад"
 
 
 msgid "Cone"
@@ -11562,10 +11526,6 @@ msgstr "Максимальное радиальное расстояние дл�
 
 msgid "Minimum Radial Distance"
 msgstr "Минимальное радиальное расстояние"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "Минимальное радиальное расстояние для спада поля"
 
 
 msgid "Rest Length"
@@ -11764,16 +11724,8 @@ msgid "Use Min"
 msgstr "Использовать минимум"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "Использовать минимальное расстояние для спада поля"
-
-
 msgid "Multiple Springs"
 msgstr "Несколько пружин"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "Каждая точка находится под воздействием нескольких пружин"
 
 
 msgid "Use Coordinates"
@@ -11786,10 +11738,6 @@ msgstr "Использовать глобальные/объектные коо�
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "Использовать максимальное радиальное расстояние для работы поля"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "Использовать минимальное радиальное расстояние для спада поля"
 
 
 msgid "Root Texture Coordinates"
@@ -39842,6 +39790,10 @@ msgid "Select Children Only"
 msgstr "Выделить только потомки"
 
 
+msgid "Extend Range"
+msgstr "Расширить диапазон"
+
+
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "Свернуть каналы"
@@ -44471,11 +44423,6 @@ msgstr "Перейти в следующую папку"
 msgctxt "Operator"
 msgid "Pack Resources"
 msgstr "Упаковать ресурсы"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Родительская папка"
 
 
 msgid "Move to parent directory"
@@ -54661,10 +54608,6 @@ msgid "Extend selection for activation"
 msgstr "Расширить выделение для активации"
 
 
-msgid "Extend Range"
-msgstr "Расширить диапазон"
-
-
 msgid "Select a range from active element"
 msgstr "Выделить диапазон от активного элемента"
 
@@ -55838,10 +55781,6 @@ msgstr "Добавить ограничитель на активную кост
 msgctxt "Operator"
 msgid "Clear Pose Constraints"
 msgstr "Очистить ограничители позы"
-
-
-msgid "Clear all the constraints for the selected bones"
-msgstr "Снять все ограничители для выделенных костей"
 
 
 msgctxt "Operator"
@@ -58161,15 +58100,6 @@ msgstr "Деинтерлейсинг видео"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Удалить чересстрочную развёртку для выбранных видеоисточников"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Удалить клипы"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Удалить выделенные клипы из видеоредактора"
 
 
 msgid "Duplicate the selected strips"
@@ -64765,10 +64695,6 @@ msgstr "Аудио"
 
 msgid "Video"
 msgstr "Видео"
-
-
-msgid "FFMPEG Presets"
-msgstr "Предустановки FFMPEG"
 
 
 msgid "Views"
@@ -73754,6 +73680,10 @@ msgid "Control point weight values"
 msgstr "Значения весов контрольных точек"
 
 
+msgid "Mass Vertex Group"
+msgstr "Группа вершин массы"
+
+
 msgid "Control point mass values"
 msgstr "Значения масс контрольных точек"
 
@@ -77847,13 +77777,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Вектор нормали, используемый для копирования, добавления или умножения"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "Отображаемый размер для круга пропорционального редактирования"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "Спад пропорционального редактирования"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "Отображаемый размер для круга пропорционального редактирования"
 
 
 msgid "UV Local View"
@@ -78062,14 +77992,6 @@ msgstr "Режим макскировки пропорционального р�
 
 msgid "Proportional editing object mode"
 msgstr "Режим пропорционального редактирования объектов"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "Пропорциональное редактирование F-кривых"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "Пропорциональное редактирование в редакторе F-кривых"
 
 
 msgid "Projected from View"
@@ -85764,16 +85686,6 @@ msgstr "Перерассчитать внутрь"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Копировать вектора"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Вставить вектора"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "Сбросить вектора"
 
@@ -86683,10 +86595,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Высота рендера должна равняться 576 пикселям для DV-PAL!"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG поддерживает только 48 кГц / стерео аудио для DV!"
-
-
 msgid "Error initializing video stream"
 msgstr "Ошибка инициализации видеопотока"
 
@@ -87059,10 +86967,6 @@ msgid "<Missing ID block>"
 msgstr "<Отсутствующий ID-блок>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "Нет доступного RNA-указателя для получения значений этой f-кривой"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Нет F-кривой для добавления ключевых кадров"
 
@@ -87097,10 +87001,6 @@ msgstr "Не удалось разрешить путь к свойству, п�
 
 msgid "No active Keying Set"
 msgstr "Нет активного ключевого набора"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "Флаги этой f-кривой не могут быть обновлены, поскольку RNA-путь недопустим для данного ID (ID = %s, путь = %s)"
 
 
 msgid "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, and try removing F-Modifiers"
@@ -91191,10 +91091,6 @@ msgid "unknown error writing file"
 msgstr "неизвестная ошибка при записи файла"
 
 
-msgid "unknown error stating file"
-msgstr "неизвестная ошибка при выполнении функции stat для файла"
-
-
 msgid "Could not reopen file"
 msgstr "Не удалось переоткрыть файл"
 
@@ -92182,22 +92078,6 @@ msgstr "Модификатор F-кривой «%s» не найден в F-кр
 
 msgid "Already a control point at frame %.6f"
 msgstr "На кадре %.6f уже есть контрольная точка"
-
-
-msgid "FCurve has already sample points"
-msgstr "У F-кривой уже есть точки выборки"
-
-
-msgid "FCurve has no keyframes"
-msgstr "У F-кривой нет ключевых кадров"
-
-
-msgid "FCurve has already keyframes"
-msgstr "У F-кривой уже есть ключевые кадры"
-
-
-msgid "FCurve has no sample points"
-msgstr "У F-кривой нет точек выборки"
 
 
 msgid "Invalid frame range (%d - %d)"

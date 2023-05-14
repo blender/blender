@@ -342,8 +342,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
     }
     case PROP_COLLECTION: {
       char text[256];
-      BLI_snprintf(
-          text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
+      SNPRINTF(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
       but = uiDefBut(
           block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, 0, 0, nullptr);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -1134,7 +1133,7 @@ const char *UI_key_event_operator_string(const bContext *C,
                                          IDProperty *properties,
                                          const bool is_strict,
                                          char *result,
-                                         const int result_len)
+                                         const int result_maxncpy)
 {
   /* NOTE: currently only actions on UI Lists are supported (for the asset manager).
    * Other kinds of events can be supported as needed. */
@@ -1196,7 +1195,7 @@ const char *UI_key_event_operator_string(const bContext *C,
 
   if ((event_val != KM_NOTHING) && (event_type != KM_NOTHING)) {
     WM_keymap_item_raw_to_string(
-        false, false, false, false, 0, event_val, event_type, false, result, result_len);
+        false, false, false, false, 0, event_val, event_type, false, result, result_maxncpy);
     return result;
   }
 

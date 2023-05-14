@@ -177,7 +177,7 @@ void GpencilIO::create_object_list()
 
 void GpencilIO::filepath_set(const char *filepath)
 {
-  BLI_strncpy(filepath_, filepath, FILE_MAX);
+  STRNCPY(filepath_, filepath);
   BLI_path_abs(filepath_, BKE_main_blendfile_path(bmain_));
 }
 

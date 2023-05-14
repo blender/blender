@@ -24,6 +24,7 @@
 #include "DNA_customdata_types.h" /* Scene's runtime custom-data masks. */
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"
+#include "DNA_scene_enums.h"
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
@@ -2395,15 +2396,6 @@ enum {
 };
 
 /* object_vgroup.cc */
-
-/** #ToolSettings.vgroupsubset */
-typedef enum eVGroupSelect {
-  WT_VGROUP_ALL = 0,
-  WT_VGROUP_ACTIVE = 1,
-  WT_VGROUP_BONE_SELECT = 2,
-  WT_VGROUP_BONE_DEFORM = 3,
-  WT_VGROUP_BONE_DEFORM_OFF = 4,
-} eVGroupSelect;
 
 #define WT_VGROUP_MASK_ALL \
   ((1 << WT_VGROUP_ACTIVE) | (1 << WT_VGROUP_BONE_SELECT) | (1 << WT_VGROUP_BONE_DEFORM) | \

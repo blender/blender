@@ -31,6 +31,8 @@
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
+#include "BLI_string_utf8.h"
+
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -460,7 +462,7 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
 void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
-    BLI_strncpy(snode->tree_idname, typeinfo->idname, sizeof(snode->tree_idname));
+    STRNCPY(snode->tree_idname, typeinfo->idname);
   }
   else {
     snode->tree_idname[0] = '\0';
@@ -507,7 +509,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
     ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
-      BLI_strncpy(node_iter->name, DATA_(node_iter->name), NODE_MAXSTR);
+      STRNCPY_UTF8(node_iter->name, DATA_(node_iter->name));
       nodeUniqueName(ma->nodetree, node_iter);
     }
 

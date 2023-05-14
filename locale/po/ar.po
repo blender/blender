@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-08 10:27:51\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -2627,10 +2627,6 @@ msgid "Vertex group for fine control over bending stiffness"
 msgstr "ءﺎﻨﺤﻧﻹ﻿ﺍ ﺔﺑﻼ﻿ﺼﺑ ﻖﻴﻗﺪﻟﺍ ﻢﻜﺤﺘﻠﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "Mass Vertex Group"
-msgstr "ﺔﻠﺘﻜﻟﺍ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻣ"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
@@ -4798,10 +4794,6 @@ msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ"
 
 msgid "Map To"
 msgstr "ﻰﻟﺍ ﻂﻄﺧ"
-
-
-msgid "The transformation type to affect of the constrained object"
-msgstr " ﺪﻴﻘﻤﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻲﻓ ﺮﻴﺛﺄﺘﻠﻟ ﻞﻳﻮﺤﺘﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Map To X From"
@@ -7069,16 +7061,8 @@ msgid "Maximum distance for the field to work"
 msgstr "ﻞﻘﺤﻟﺍ ﻞﻤﻌﻴﻟ ﻯﻮﺼﻘﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺝﺭﺪﺘﻟ ﺎﻴﻧﺪﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgid "Falloff Power"
 msgstr "ﺝﺭﺪﺘﻟﺍ ﺓﻮﻗ"
-
-
-msgid "Fall-Off"
-msgstr "ﺝﺭﺪﺗ"
 
 
 msgid "Cone"
@@ -7233,10 +7217,6 @@ msgid "Minimum Radial Distance"
 msgstr "ﺎﻴﻧﺪﻟﺍ ﺔﻴﻋﺎﻌﺸﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
 
 
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺝﺭﺪﺘﻟ ﺎﻴﻧﺪﻟﺍ ﺔﻴﻋﺎﻌﺸﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgid "Rest Length"
 msgstr "ﺔﻴﻘﺒﻟﺍ ﺩﺍﺪﺘﻣﺍ"
 
@@ -7389,16 +7369,8 @@ msgid "Use Min"
 msgstr "ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻰﺷﻼ﻿ﺘﻳ ﺔﻓﺎﺴﻣ ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
 msgid "Multiple Springs"
 msgstr "ﺓﺩﺪﻌﺘﻣ ﺭﺩﺎﺼﻣ"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "ﺭﺩﺎﺼﻣ ﺓﺪﻋ ﺎﻬﻴﻠﻋ ﺮﺛﺆﻳ ﺔﻄﻘﻧ ﻞﻛ"
 
 
 msgid "Use Coordinates"
@@ -7411,10 +7383,6 @@ msgstr "ﺞﻴﺴﻨﻠﻟ ﺔﻴﻤﻟﺎﻋ/ﻦﺋﺎﻛ ﺕﺎﻴﺛﺍﺪﺣ
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻞﻐﺘﺸﻳ ﺔﻴﻋﺎﻌﺷ ﺔﻓﺎﺴﻣ ﻰﺼﻗﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻰﺷﻼ﻿ﺘﻳ ﺔﻴﻋﺎﻌﺷ ﺔﻓﺎﺴﻣ ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Root Texture Coordinates"
@@ -23666,11 +23634,6 @@ msgstr "ﻲﻟﺎﺘﻟﺍ ﺪﻠﺠﻤﻟﺍ ﻰﻟﺍ ﻞﻘﻧﺍ"
 
 
 msgctxt "Operator"
-msgid "Parent File"
-msgstr "ﻞﺻﻻ﻿ﺍ ﻒﻠﻣ"
-
-
-msgctxt "Operator"
 msgid "Previous Folder"
 msgstr "ﻖﺑﺎﺴﻟﺍ ﺪﻠﺠﻤﻟﺍ"
 
@@ -28435,11 +28398,6 @@ msgid "Deinterlace Movies"
 msgstr "ﻡﻼ﻿ﻓﻷ﻿ﺍ ﻲﻓ ﻚﺑﺎﺸﺘﻟﺍ ﻞﻴﻠﻘﺗ"
 
 
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "ﺔﻃﺮﺷﻻ﻿ﺍ ﻑﺬﺣﺍ"
-
-
 msgid "Slide a sequence strip in time"
 msgstr "ﺖﻗﻮﻟﺍ ﻲﻓ ﻞﺴﻠﺴﺗ ﻂﻳﺮﺷ ﻖﻟﺯﺍ"
 
@@ -30629,10 +30587,6 @@ msgstr "ﺮﻴﻔﺸﺗ"
 
 msgid "Audio"
 msgstr "ﺕﻮﺻ"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG ﻝ ﺔﻘﺒﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻹ﻿ﺍ"
 
 
 msgid "Views"
@@ -34470,6 +34424,10 @@ msgid "Stiff Quads"
 msgstr "ﺔﺒﻠﺼﺘﻣ ﺕﺎﻴﻋﺎﺑﺭ"
 
 
+msgid "Mass Vertex Group"
+msgstr "ﺔﻠﺘﻜﻟﺍ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻣ"
+
+
 msgid "Space data type"
 msgstr "ءﺎﻀﻔﻟﺍ ﺕﺎﻧﺎﻴﺑ ﻉﻮﻧ"
 
@@ -35923,10 +35881,6 @@ msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻠﻟ ﻉﺎﻨﻘﻟﺍ ﻊﺿﻭ"
 
 msgid "Proportional editing object mode"
 msgstr "ﺕﺎﻨﺋﺎﻜﻠﻟ ﻲﺒﺳﺎﻨﺘﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "ﻲﺒﺳﺎﻨﺘﻟﺍ ﺮﻳﺮﺤﺘﻠﻟ ﻞﻤﻋ ﺕﺎﻴﻨﺤﻨﻣ"
 
 
 msgid "Layered"
@@ -40092,10 +40046,6 @@ msgstr "ﻲﻠﺧﺍﺩ ﺺﻨﻟﺍ ﻞﻌﺟﺍ"
 
 
 msgid "unknown error writing file"
-msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
-
-
-msgid "unknown error stating file"
 msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
 
 

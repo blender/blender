@@ -4455,12 +4455,12 @@ void BKE_fluid_particle_system_create(Main *bmain,
   part->phystype = PART_PHYS_NO; /* No physics needed, part system only used to display data. */
   psys->part = part;
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
-  BLI_strncpy(psys->name, parts_name, sizeof(psys->name));
+  STRNCPY(psys->name, parts_name);
   BLI_addtail(&ob->particlesystem, psys);
 
   /* add modifier */
   pfmd = (ParticleSystemModifierData *)BKE_modifier_new(eModifierType_ParticleSystem);
-  BLI_strncpy(pfmd->modifier.name, psys_name, sizeof(pfmd->modifier.name));
+  STRNCPY(pfmd->modifier.name, psys_name);
   pfmd->psys = psys;
   BLI_addtail(&ob->modifiers, pfmd);
   BKE_modifier_unique_name(&ob->modifiers, (ModifierData *)pfmd);
@@ -4968,7 +4968,7 @@ void BKE_fluid_modifier_copy(const FluidModifierData *fmd, FluidModifierData *tf
     tfds->cache_data_format = fds->cache_data_format;
     tfds->cache_particle_format = fds->cache_particle_format;
     tfds->cache_noise_format = fds->cache_noise_format;
-    BLI_strncpy(tfds->cache_directory, fds->cache_directory, sizeof(tfds->cache_directory));
+    STRNCPY(tfds->cache_directory, fds->cache_directory);
 
     /* time options */
     tfds->time_scale = fds->time_scale;
@@ -5056,7 +5056,7 @@ void BKE_fluid_modifier_copy(const FluidModifierData *fmd, FluidModifierData *tf
     /* texture control */
     tffs->texture_size = ffs->texture_size;
     tffs->texture_offset = ffs->texture_offset;
-    BLI_strncpy(tffs->uvlayer_name, ffs->uvlayer_name, sizeof(tffs->uvlayer_name));
+    STRNCPY(tffs->uvlayer_name, ffs->uvlayer_name);
     tffs->vgroup_density = ffs->vgroup_density;
 
     tffs->type = ffs->type;

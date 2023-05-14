@@ -723,8 +723,8 @@ enum {
 
 #define OB_FROMDUPLI (1 << 9)
 #define OB_DONE (1 << 10) /* unknown state, clear before use */
+#define OB_FLAG_USE_SIMULATION_CACHE (1 << 11)
 #ifdef DNA_DEPRECATED_ALLOW
-#  define OB_FLAG_UNUSED_11 (1 << 11) /* cleared */
 #  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
 #endif
 

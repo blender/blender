@@ -3806,7 +3806,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
 
   /* frame number */
   BLF_size(fontid, 11.0f * UI_SCALE_FAC);
-  BLI_snprintf(numstr, sizeof(numstr), "%d", framenr);
+  SNPRINTF(numstr, "%d", framenr);
 
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
 

@@ -725,12 +725,9 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     const uint duplicate_flags_in,    // it's not const!! - joeedh
-                                     const uint duplicate_options_in)  // not const!
+                                     /*eDupli_ID_Flags*/ uint duplicate_flags,
+                                     /*eLibIDDuplicateFlags*/ uint duplicate_options)
 {
-  uint duplicate_flags = duplicate_flags_in;
-  uint duplicate_options = duplicate_options_in;
-
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
   const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
 
@@ -1945,6 +1942,49 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
       collection_parents_rebuild_recursive(collection);
     }
   }
+}
+
+bool BKE_collection_validate(struct Collection *collection)
+{
+  if (!BLI_listbase_validate(&collection->children)) {
+    return false;
+  }
+  if (!BLI_listbase_validate(&collection->runtime.parents)) {
+    return false;
+  }
+  if (BKE_collection_cycle_find(collection, NULL)) {
+    return false;
+  }
+
+  bool is_ok = true;
+
+  /* Check that children have each collection used/referenced only once. */
+  GSet *processed_collections = BLI_gset_ptr_new(__func__);
+  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, child->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = child->collection;
+    }
+  }
+
+  /* Check that parents have each collection used/referenced only once. */
+  BLI_gset_clear(processed_collections, NULL);
+  for (CollectionParent *parent = collection->runtime.parents.first; parent; parent = parent->next)
+  {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, parent->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = parent->collection;
+    }
+  }
+
+  BLI_gset_free(processed_collections, NULL);
+  return is_ok;
 }
 
 /** \} */

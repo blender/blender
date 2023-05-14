@@ -78,7 +78,7 @@ class WM_OT_previews_batch_generate(Operator):
     use_trusted: BoolProperty(
         default=False,
         name="Trusted Blend Files",
-        description="Enable python evaluation for selected files",
+        description="Enable Python evaluation for selected files",
     )
     use_backups: BoolProperty(
         default=True,
@@ -188,7 +188,7 @@ class WM_OT_previews_batch_clear(Operator):
     use_trusted: BoolProperty(
         default=False,
         name="Trusted Blend Files",
-        description="Enable python evaluation for selected files",
+        description="Enable Python evaluation for selected files",
     )
     use_backups: BoolProperty(
         default=True,

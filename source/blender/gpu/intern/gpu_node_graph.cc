@@ -503,10 +503,9 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
     tex->colorband = colorband;
     tex->sky = sky;
     tex->sampler_state = sampler_state;
-    BLI_snprintf(tex->sampler_name, sizeof(tex->sampler_name), "samp%d", num_textures);
+    SNPRINTF(tex->sampler_name, "samp%d", num_textures);
     if (is_tiled) {
-      BLI_snprintf(
-          tex->tiled_mapping_name, sizeof(tex->tiled_mapping_name), "tsamp%d", num_textures);
+      SNPRINTF(tex->tiled_mapping_name, "tsamp%d", num_textures);
     }
     BLI_addtail(&graph->textures, tex);
   }

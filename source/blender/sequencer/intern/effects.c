@@ -3191,7 +3191,7 @@ static void init_text_effect(Sequence *seq)
   data->box_color[3] = 0.7f;
   data->box_margin = 0.01f;
 
-  BLI_strncpy(data->text, "Text", sizeof(data->text));
+  STRNCPY(data->text, "Text");
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;

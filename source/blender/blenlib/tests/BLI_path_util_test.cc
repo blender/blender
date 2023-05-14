@@ -711,7 +711,7 @@ TEST(path_util, SplitDirfile)
   { \
     char path[FILE_MAX]; \
     char ext[FILE_MAX]; \
-    BLI_strncpy(path, (input_path), FILE_MAX); \
+    STRNCPY(path, (input_path)); \
     BLI_path_frame_strip(path, ext, sizeof(ext)); \
     EXPECT_STREQ(path, expect_path); \
     EXPECT_STREQ(ext, expect_ext); \
@@ -814,7 +814,7 @@ TEST(path_util, ExtensionCheck)
   { \
     BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
-    BLI_strncpy(path, input_path, sizeof(path)); \
+    STRNCPY(path, input_path); \
     const bool ret = BLI_path_extension_replace(path, maxlen, input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
@@ -885,7 +885,7 @@ TEST(path_util, ExtensionReplace_Overflow)
   { \
     BLI_assert(maxlen <= FILE_MAX); \
     char path[FILE_MAX]; \
-    BLI_strncpy(path, input_path, sizeof(path)); \
+    STRNCPY(path, input_path); \
     const bool ret = BLI_path_extension_ensure(path, maxlen, input_ext); \
     if (expect_result) { \
       EXPECT_TRUE(ret); \
@@ -986,7 +986,7 @@ TEST(path_util, FrameCheckChars)
   { \
     char path[FILE_MAX]; \
     bool ret; \
-    BLI_strncpy(path, input_path, FILE_MAX); \
+    STRNCPY(path, input_path); \
     ret = BLI_path_frame_range(path, sta, end, digits); \
     if (expect_outpath == nullptr) { \
       EXPECT_FALSE(ret); \
@@ -1023,7 +1023,7 @@ TEST(path_util, FrameRange)
   { \
     char path[FILE_MAX]; \
     int out_frame = -1, out_numdigits = -1; \
-    BLI_strncpy(path, input_path, FILE_MAX); \
+    STRNCPY(path, input_path); \
     const bool ret = BLI_path_frame_get(path, &out_frame, &out_numdigits); \
     if (expect_pathisvalid) { \
       EXPECT_TRUE(ret); \
@@ -1136,7 +1136,7 @@ TEST(path_util, Suffix)
   { \
     char path[FILE_MAX]; \
     const char *ref_path_test = ref_path; \
-    BLI_strncpy(path, abs_path, sizeof(path)); \
+    STRNCPY(path, abs_path); \
     if (SEP == '\\') { \
       BLI_str_replace_char(path, '/', '\\'); \
       ref_path_test = str_replace_char_strdup(ref_path_test, '/', '\\'); \

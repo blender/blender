@@ -703,11 +703,10 @@ static void draw_seq_handle(const Scene *scene,
     BLF_set_default();
 
     /* Calculate if strip is wide enough for showing the labels. */
-    numstr_len = BLI_snprintf_rlen(numstr,
-                                   sizeof(numstr),
-                                   "%d%d",
-                                   SEQ_time_left_handle_frame_get(scene, seq),
-                                   SEQ_time_right_handle_frame_get(scene, seq));
+    numstr_len = SNPRINTF_RLEN(numstr,
+                               "%d%d",
+                               SEQ_time_left_handle_frame_get(scene, seq),
+                               SEQ_time_right_handle_frame_get(scene, seq));
     float tot_width = BLF_width(fontid, numstr, numstr_len);
 
     if ((x2 - x1) / pixelx > 20 + tot_width) {
@@ -715,14 +714,12 @@ static void draw_seq_handle(const Scene *scene,
       float text_margin = 1.2f * handsize_clamped;
 
       if (direction == SEQ_LEFTHANDLE) {
-        numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(scene, seq));
+        numstr_len = SNPRINTF_RLEN(numstr, "%d", SEQ_time_left_handle_frame_get(scene, seq));
         x1 += text_margin;
         y1 += 0.09f;
       }
       else {
-        numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(scene, seq) - 1);
+        numstr_len = SNPRINTF_RLEN(numstr, "%d", SEQ_time_right_handle_frame_get(scene, seq) - 1);
         x1 = x2 - (text_margin + pixelx * BLF_width(fontid, numstr, numstr_len));
         y1 += 0.09f;
       }
@@ -801,7 +798,7 @@ static const char *draw_seq_text_get_name(Sequence *seq)
   return name;
 }
 
-static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t source_len)
+static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t source_maxncpy)
 {
   *r_source = '\0';
 
@@ -809,48 +806,49 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_MOVIE: {
-      BLI_path_join(r_source, source_len, seq->strip->dir, seq->strip->stripdata->name);
+      BLI_path_join(
+          r_source, source_maxncpy, seq->strip->dirpath, seq->strip->stripdata->filename);
       break;
     }
     case SEQ_TYPE_SOUND_RAM: {
       if (seq->sound != NULL) {
-        BLI_strncpy(r_source, seq->sound->filepath, source_len);
+        BLI_strncpy(r_source, seq->sound->filepath, source_maxncpy);
       }
       break;
     }
     case SEQ_TYPE_MULTICAM: {
-      BLI_snprintf(r_source, source_len, "Channel: %d", seq->multicam_source);
+      BLI_snprintf(r_source, source_maxncpy, "Channel: %d", seq->multicam_source);
       break;
     }
     case SEQ_TYPE_TEXT: {
       const TextVars *textdata = seq->effectdata;
-      BLI_strncpy(r_source, textdata->text, source_len);
+      BLI_strncpy(r_source, textdata->text, source_maxncpy);
       break;
     }
     case SEQ_TYPE_SCENE: {
       if (seq->scene != NULL) {
         if (seq->scene_camera != NULL) {
           BLI_snprintf(r_source,
-                       source_len,
+                       source_maxncpy,
                        "%s (%s)",
                        seq->scene->id.name + 2,
                        seq->scene_camera->id.name + 2);
         }
         else {
-          BLI_strncpy(r_source, seq->scene->id.name + 2, source_len);
+          BLI_strncpy(r_source, seq->scene->id.name + 2, source_maxncpy);
         }
       }
       break;
     }
     case SEQ_TYPE_MOVIECLIP: {
       if (seq->clip != NULL) {
-        BLI_strncpy(r_source, seq->clip->id.name + 2, source_len);
+        BLI_strncpy(r_source, seq->clip->id.name + 2, source_maxncpy);
       }
       break;
     }
     case SEQ_TYPE_MASK: {
       if (seq->mask != NULL) {
-        BLI_strncpy(r_source, seq->mask->id.name + 2, source_len);
+        BLI_strncpy(r_source, seq->mask->id.name + 2, source_maxncpy);
       }
       break;
     }

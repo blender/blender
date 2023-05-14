@@ -1770,7 +1770,7 @@ static void sculpt_update_persistent_base(Object *ob)
 }
 
 static void sculpt_update_object(
-    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool need_pmap, bool is_paint_tool)
+    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool /*need_pmap*/, bool is_paint_tool)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1939,7 +1939,7 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
+  if (ob->type == OB_MESH && !ss->pmap) {
     if (!ss->pmap && ss->pbvh) {
       ss->pmap = BKE_pbvh_get_pmap(ss->pbvh);
 
@@ -3160,7 +3160,7 @@ ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
   out->params = *params;
   out->proptype = proptype;
   out->domain = domain;
-  BLI_strncpy_utf8(out->name, name, sizeof(out->name));
+  STRNCPY_UTF8(out->name, name);
 
   /* Force non-CustomData simple_array mode if not PBVH_FACES. */
   if (pbvhtype == PBVH_GRIDS && domain == ATTR_DOMAIN_POINT) {
@@ -3439,7 +3439,7 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       attr->elem_size = CustomData_sizeof(proptype);
       attr->data_for_bmesh = ss->bm && attr->bmesh_cd_offset != -1;
 
-      BLI_strncpy_utf8(attr->name, name, sizeof(attr->name));
+      STRNCPY_UTF8(attr->name, name);
       return attr;
     }
   }

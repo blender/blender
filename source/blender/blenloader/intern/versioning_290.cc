@@ -1068,7 +1068,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
       LISTBASE_FOREACH (CacheFile *, cache_file, &bmain->cachefiles) {
-        BLI_strncpy(cache_file->velocity_name, ".velocities", sizeof(cache_file->velocity_name));
+        STRNCPY(cache_file->velocity_name, ".velocities");
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
@@ -1457,7 +1457,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
               const char *volume_scatter = "VolumeScatterCol";
               if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
-                BLI_strncpy(output_socket->name, RE_PASSNAME_VOLUME_LIGHT, MAX_NAME);
+                STRNCPY(output_socket->name, RE_PASSNAME_VOLUME_LIGHT);
               }
             }
           }

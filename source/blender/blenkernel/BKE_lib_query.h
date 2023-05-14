@@ -269,7 +269,7 @@ bool BKE_library_id_can_use_idtype(struct ID *id_owner, short id_type_used);
 /**
  * Given the id_owner return the type of id_types it can use as a filter_id.
  */
-uint64_t BKE_library_id_can_use_filter_id(const struct ID *id_owner);
+uint64_t BKE_library_id_can_use_filter_id(const struct ID *id_owner, const bool include_ui);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).

@@ -1106,7 +1106,7 @@ static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
   ParticleSystem *part = (ParticleSystem *)ptr->data;
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(part->name, value, sizeof(part->name));
+  STRNCPY_UTF8(part->name, value);
 
   BLI_uniquename(&ob->particlesystem,
                  part,

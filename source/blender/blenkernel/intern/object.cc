@@ -216,7 +216,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   BLI_listbase_clear(&ob_dst->shader_fx);
   LISTBASE_FOREACH (ShaderFxData *, fx, &ob_src->shader_fx) {
     ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
-    BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
+    STRNCPY(nfx->name, fx->name);
     BKE_shaderfx_copydata_ex(fx, nfx, flag_subdata);
     BLI_addtail(&ob_dst->shader_fx, nfx);
   }
@@ -949,12 +949,12 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
     if (ob->id.lib) {
       BLO_reportf_wrap(reports,
                        RPT_INFO,
-                       TIP_("Can't find object data of %s lib %s\n"),
+                       TIP_("Can't find object data of %s lib %s"),
                        ob->id.name + 2,
                        ob->id.lib->filepath);
     }
     else {
-      BLO_reportf_wrap(reports, RPT_INFO, TIP_("Object %s lost data\n"), ob->id.name + 2);
+      BLO_reportf_wrap(reports, RPT_INFO, TIP_("Object %s lost data"), ob->id.name + 2);
     }
     reports->count.missing_obdata++;
   }
@@ -1574,7 +1574,7 @@ bool BKE_object_copy_modifier(
   else {
     md_dst = BKE_modifier_new(md_src->type);
 
-    BLI_strncpy(md_dst->name, md_src->name, sizeof(md_dst->name));
+    STRNCPY(md_dst->name, md_src->name);
 
     if (md_src->type == eModifierType_Multires) {
       /* Has to be done after mod creation, but *before* we actually copy its settings! */
@@ -1618,7 +1618,7 @@ bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData
   BLI_assert(ob_dst->type == OB_GPENCIL_LEGACY);
 
   GpencilModifierData *gmd_dst = BKE_gpencil_modifier_new(gmd_src->type);
-  BLI_strncpy(gmd_dst->name, gmd_src->name, sizeof(gmd_dst->name));
+  STRNCPY(gmd_dst->name, gmd_src->name);
 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       (GpencilModifierType)gmd_src->type);
@@ -1663,7 +1663,7 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
 
   LISTBASE_FOREACH (GpencilModifierData *, gmd_src, &ob_src->greasepencil_modifiers) {
     GpencilModifierData *gmd_dst = BKE_gpencil_modifier_new(gmd_src->type);
-    BLI_strncpy(gmd_dst->name, gmd_src->name, sizeof(gmd_dst->name));
+    STRNCPY(gmd_dst->name, gmd_src->name);
     BKE_gpencil_modifier_copydata_ex(gmd_src, gmd_dst, flag_subdata);
     BLI_addtail(&ob_dst->greasepencil_modifiers, gmd_dst);
   }
@@ -3595,7 +3595,7 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
    * object's local loc/rot/scale instead of after. For example, a "Copy Rotation" constraint would
    * rotate the object's local translation as well. See #82156. */
 
-  BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
+  STRNCPY(workob->parsubstr, ob->parsubstr);
 
   BKE_object_where_is_calc(depsgraph, scene, workob);
 }

@@ -154,7 +154,7 @@ static void scene_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(scene, DNA_struct_default_get(Scene), id);
 
-  BLI_strncpy(scene->r.bake.filepath, U.renderdir, sizeof(scene->r.bake.filepath));
+  STRNCPY(scene->r.bake.filepath, U.renderdir);
 
   mblur_shutter_curve = &scene->r.mblur_shutter_curve;
   BKE_curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -203,9 +203,9 @@ static void scene_init_data(ID *id)
     pset->brush[PE_BRUSH_CUT].strength = 1.0f;
   }
 
-  BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
-  BLI_strncpy(scene->r.pic, U.renderdir, sizeof(scene->r.pic));
+  STRNCPY(scene->r.pic, U.renderdir);
 
   /* NOTE: in header_info.c the scene copy happens...,
    * if you add more to renderdata it has to be checked there. */
@@ -213,11 +213,11 @@ static void scene_init_data(ID *id)
   /* multiview - stereo */
   BKE_scene_add_render_view(scene, STEREO_LEFT_NAME);
   srv = static_cast<SceneRenderView *>(scene->r.views.first);
-  BLI_strncpy(srv->suffix, STEREO_LEFT_SUFFIX, sizeof(srv->suffix));
+  STRNCPY(srv->suffix, STEREO_LEFT_SUFFIX);
 
   BKE_scene_add_render_view(scene, STEREO_RIGHT_NAME);
   srv = static_cast<SceneRenderView *>(scene->r.views.last);
-  BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
+  STRNCPY(srv->suffix, STEREO_RIGHT_SUFFIX);
 
   BKE_sound_reset_scene_runtime(scene);
 
@@ -227,9 +227,7 @@ static void scene_init_data(ID *id)
   BKE_color_managed_display_settings_init(&scene->display_settings);
   BKE_color_managed_view_settings_init_render(
       &scene->view_settings, &scene->display_settings, "Filmic");
-  BLI_strncpy(scene->sequencer_colorspace_settings.name,
-              colorspace_name,
-              sizeof(scene->sequencer_colorspace_settings.name));
+  STRNCPY(scene->sequencer_colorspace_settings.name, colorspace_name);
 
   BKE_image_format_init(&scene->r.im_format, true);
   BKE_image_format_init(&scene->r.bake.im_format, true);
@@ -912,7 +910,7 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
     if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
-      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dir, se->name);
+      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dirpath, se->filename);
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
@@ -925,12 +923,13 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
       }
 
       for (i = 0; i < len; i++, se++) {
-        BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dir, se->name);
+        BKE_bpath_foreach_path_dirfile_fixed_process(
+            bpath_data, seq->strip->dirpath, se->filename);
       }
     }
     else {
       /* simple case */
-      BKE_bpath_foreach_path_fixed_process(bpath_data, seq->strip->dir);
+      BKE_bpath_foreach_path_fixed_process(bpath_data, seq->strip->dirpath);
     }
   }
   return true;
@@ -2853,7 +2852,7 @@ SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
   }
 
   SceneRenderView *srv = MEM_cnew<SceneRenderView>(__func__);
-  BLI_strncpy(srv->name, name, sizeof(srv->name));
+  STRNCPY(srv->name, name);
   BLI_uniquename(&sce->r.views,
                  srv,
                  DATA_("RenderView"),
@@ -3018,14 +3017,12 @@ void BKE_scene_disable_color_management(Scene *scene)
 
   none_display_name = IMB_colormanagement_display_get_none_name();
 
-  BLI_strncpy(display_settings->display_device,
-              none_display_name,
-              sizeof(display_settings->display_device));
+  STRNCPY(display_settings->display_device, none_display_name);
 
   view = IMB_colormanagement_view_get_default_name(display_settings->display_device);
 
   if (view) {
-    BLI_strncpy(view_settings->view_transform, view, sizeof(view_settings->view_transform));
+    STRNCPY(view_settings->view_transform, view);
   }
 }
 
@@ -3303,10 +3300,10 @@ void BKE_scene_multiview_view_filepath_get(const RenderData *rd,
   srv = static_cast<SceneRenderView *>(
       BLI_findstring(&rd->views, viewname, offsetof(SceneRenderView, name)));
   if (srv) {
-    BLI_strncpy(suffix, srv->suffix, sizeof(suffix));
+    STRNCPY(suffix, srv->suffix);
   }
   else {
-    BLI_strncpy(suffix, viewname, sizeof(suffix));
+    STRNCPY(suffix, viewname);
   }
 
   BLI_strncpy(r_filepath, filepath, FILE_MAX);
@@ -3543,7 +3540,7 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
    * we will ever enable debug messages for this depsgraph.
    */
   char name[1024];
-  BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
+  SNPRINTF(name, "%s :: %s", scene->id.name, view_layer->name);
   DEG_debug_name_set(*depsgraph_ptr, name);
 
   /* These viewport depsgraphs communicate changes to the editors. */

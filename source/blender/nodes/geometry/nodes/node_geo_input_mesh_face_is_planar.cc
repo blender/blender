@@ -115,7 +115,7 @@ void register_node_type_geo_input_mesh_face_is_planar()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Face is Planar", NODE_CLASS_INPUT);
+      &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Is Face Planar", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = file_ns::geo_node_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

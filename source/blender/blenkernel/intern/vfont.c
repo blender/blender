@@ -66,7 +66,7 @@ static void vfont_init_data(ID *id)
     if (vfd) {
       vfont->data = vfd;
 
-      BLI_strncpy(vfont->filepath, FO_BUILTIN_NAME, sizeof(vfont->filepath));
+      STRNCPY(vfont->filepath, FO_BUILTIN_NAME);
     }
 
     /* Free the packed file */
@@ -321,7 +321,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   bool is_builtin;
 
   if (STREQ(filepath, FO_BUILTIN_NAME)) {
-    BLI_strncpy(filename, filepath, sizeof(filename));
+    STRNCPY(filename, filepath);
 
     pf = get_builtin_packedfile();
     is_builtin = true;
@@ -341,7 +341,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
       /* If there's a font name, use it for the ID name. */
       vfont = BKE_libblock_alloc(bmain, ID_VF, vfd->name[0] ? vfd->name : filename, 0);
       vfont->data = vfd;
-      BLI_strncpy(vfont->filepath, filepath, sizeof(vfont->filepath));
+      STRNCPY(vfont->filepath, filepath);
 
       /* if auto-pack is on store the packed-file in de font structure */
       if (!is_builtin && (G.fileflags & G_FILE_AUTOPACK)) {
@@ -368,12 +368,12 @@ VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *
   VFont *vfont;
   char str[FILE_MAX], strtest[FILE_MAX];
 
-  BLI_strncpy(str, filepath, sizeof(str));
+  STRNCPY(str, filepath);
   BLI_path_abs(str, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (vfont = bmain->fonts.first; vfont; vfont = vfont->id.next) {
-    BLI_strncpy(strtest, vfont->filepath, sizeof(vfont->filepath));
+    STRNCPY(strtest, vfont->filepath);
     BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &vfont->id));
 
     if (BLI_path_cmp(strtest, str) == 0) {

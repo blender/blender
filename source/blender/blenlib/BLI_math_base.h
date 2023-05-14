@@ -140,6 +140,8 @@ MINLINE float max_ffff(float a, float b, float c, float d);
 
 MINLINE double min_dd(double a, double b);
 MINLINE double max_dd(double a, double b);
+MINLINE double min_ddd(double a, double b, double c);
+MINLINE double max_ddd(double a, double b, double c);
 
 MINLINE int min_ii(int a, int b);
 MINLINE int max_ii(int a, int b);

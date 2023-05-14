@@ -726,13 +726,13 @@ static void tree_element_sequence_dup_activate(Scene *scene, TreeElement * /*te*
 #endif
   Sequence *p = static_cast<Sequence *>(ed->seqbasep->first);
   while (p) {
-    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
+    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->filename[0] == '\0')) {
       p = p->next;
       continue;
     }
 
 #if 0
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
       select_single_seq(p, 0);
     }
 #endif

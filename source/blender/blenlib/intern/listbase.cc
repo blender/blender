@@ -871,6 +871,47 @@ void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
   ((Link *)lb->last)->next = nullptr;
 }
 
+bool BLI_listbase_validate(ListBase *lb)
+{
+  if (lb->first == nullptr && lb->last == nullptr) {
+    /* Empty list. */
+    return true;
+  }
+  if (ELEM(nullptr, lb->first, lb->last)) {
+    /* If one of the pointer is null, but not this other, this is a corrupted listbase. */
+    return false;
+  }
+
+  /* Walk the list in bot directions to ensure all next & prev pointers are valid and consistent.
+   */
+  for (Link *lb_link = static_cast<Link *>(lb->first); lb_link; lb_link = lb_link->next) {
+    if (lb_link == lb->first) {
+      if (lb_link->prev != nullptr) {
+        return false;
+      }
+    }
+    if (lb_link == lb->last) {
+      if (lb_link->next != nullptr) {
+        return false;
+      }
+    }
+  }
+  for (Link *lb_link = static_cast<Link *>(lb->last); lb_link; lb_link = lb_link->prev) {
+    if (lb_link == lb->last) {
+      if (lb_link->next != nullptr) {
+        return false;
+      }
+    }
+    if (lb_link == lb->first) {
+      if (lb_link->prev != nullptr) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 LinkData *BLI_genericNodeN(void *data)
 {
   LinkData *ld;

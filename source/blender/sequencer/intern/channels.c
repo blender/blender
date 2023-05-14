@@ -35,7 +35,7 @@ void SEQ_channels_ensure(ListBase *channels)
   /* Allocate channels. Channel 0 is never used, but allocated to prevent off by 1 issues. */
   for (int i = 0; i < MAXSEQ + 1; i++) {
     SeqTimelineChannel *channel = MEM_callocN(sizeof(SeqTimelineChannel), "seq timeline channel");
-    BLI_snprintf(channel->name, sizeof(channel->name), "Channel %d", i);
+    SNPRINTF(channel->name, "Channel %d", i);
     channel->index = i;
     BLI_addtail(channels, channel);
   }

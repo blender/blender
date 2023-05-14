@@ -149,7 +149,7 @@ static std::string get_image_filepath(const bNode *tex_node)
   }
 
   char path[FILE_MAX];
-  BLI_strncpy(path, tex_image->filepath, FILE_MAX);
+  STRNCPY(path, tex_image->filepath);
 
   if (tex_image->source == IMA_SRC_SEQUENCE) {
     char head[FILE_MAX], tail[FILE_MAX];

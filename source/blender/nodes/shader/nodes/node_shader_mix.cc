@@ -77,7 +77,7 @@ static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *p
 static void sh_node_mix_label(const bNodeTree * /*ntree*/,
                               const bNode *node,
                               char *label,
-                              int maxlen)
+                              int label_maxncpy)
 {
   const NodeShaderMix &storage = node_storage(*node);
   if (storage.data_type == SOCK_RGBA) {
@@ -86,7 +86,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
     if (!enum_label) {
       name = "Unknown";
     }
-    BLI_strncpy(label, IFACE_(name), maxlen);
+    BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
   }
 }
 

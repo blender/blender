@@ -133,8 +133,8 @@ static int mask_parent_set_exec(bContext *C, wmOperator * /*op*/)
           point->parent.id_type = ID_MC;
           point->parent.id = &clip->id;
           point->parent.type = parent_type;
-          BLI_strncpy(point->parent.parent, tracking_object->name, sizeof(point->parent.parent));
-          BLI_strncpy(point->parent.sub_parent, sub_parent_name, sizeof(point->parent.sub_parent));
+          STRNCPY(point->parent.parent, tracking_object->name);
+          STRNCPY(point->parent.sub_parent, sub_parent_name);
 
           copy_v2_v2(point->parent.parent_orig, parmask_pos);
           memcpy(point->parent.parent_corners_orig,

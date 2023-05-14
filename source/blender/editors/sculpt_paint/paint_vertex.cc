@@ -67,7 +67,7 @@
 #include "BKE_ccg.h"
 #include "bmesh.h"
 
-#include "paint_intern.h" /* own include */
+#include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
 
 using blender::IndexRange;
@@ -1564,8 +1564,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   Brush *brush = paint->brush;
   int cur_brush_size = BKE_brush_size_get(scene, brush);
 
-  BLI_strncpy(
-      cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
+  STRNCPY(cache->saved_active_brush_name, brush->id.name + 2);
 
   /* Switch to the blur (smooth) brush. */
   brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);

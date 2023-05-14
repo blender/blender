@@ -630,7 +630,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
      "Align the transformation axes to the 3D cursor"},
     {V3D_ORIENT_PARENT,
      "PARENT",
-     ICON_BLANK1,
+     ICON_ORIENTATION_PARENT,
      "Parent",
      "Align the transformation axes to the object's parent space"},
     // {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
@@ -1633,7 +1633,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
   RenderEngineType *type = BLI_findlink(&R_engines, value);
 
   if (type) {
-    BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
+    STRNCPY_UTF8(rd->engine, type->idname);
     DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
   }
 }
@@ -1768,7 +1768,7 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   SceneRenderView *rv = (SceneRenderView *)ptr->data;
-  BLI_strncpy_utf8(rv->name, value, sizeof(rv->name));
+  STRNCPY_UTF8(rv->name, value);
   BLI_uniquename(&scene->r.views,
                  rv,
                  DATA_("RenderView"),
@@ -2139,7 +2139,7 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[], int frame)
   TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
-  BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
+  STRNCPY_UTF8(marker->name, name);
   BLI_addtail(&scene->markers, marker);
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, NULL);
@@ -2912,6 +2912,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
       prop, "Transform Matrix", "Matrix combining location and rotation of the cursor");
   RNA_def_property_float_funcs(
       prop, "rna_View3DCursor_matrix_get", "rna_View3DCursor_matrix_set", NULL);
+  RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_tool_settings(BlenderRNA *brna)
@@ -3227,7 +3228,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_proportional_fcurve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "proportional_fcurve", 0);
   RNA_def_property_ui_text(
-      prop, "Proportional Editing FCurves", "Proportional editing in FCurve editor");
+      prop, "Proportional Editing F-Curves", "Proportional editing in F-Curve editor");
   RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
@@ -4089,14 +4090,18 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
       {CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,
        "NORMAL_VIEW",
        0,
-       "Normal/View",
-       "Display perpendicular to the surface"},
+       "Normal to Surface",
+       "Draw in a plane perpendicular to the surface"},
       {CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE,
        "NORMAL_SURFACE",
        0,
-       "Normal/Surface",
-       "Display aligned to the surface"},
-      {CURVE_PAINT_SURFACE_PLANE_VIEW, "VIEW", 0, "View", "Display aligned to the viewport"},
+       "Tangent to Surface",
+       "Draw in the surface plane"},
+      {CURVE_PAINT_SURFACE_PLANE_VIEW,
+       "VIEW",
+       0,
+       "View",
+       "Draw in a plane aligned to the viewport"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -4468,7 +4473,7 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
                                "rna_ViewLayer_active_aov_index_get",
                                "rna_ViewLayer_active_aov_index_set",
                                "rna_ViewLayer_active_aov_index_range");
-    RNA_def_property_ui_text(prop, "Active AOV Index", "Index of active aov");
+    RNA_def_property_ui_text(prop, "Active AOV Index", "Index of active AOV");
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
     prop = RNA_def_property(srna, "lightgroups", PROP_COLLECTION, PROP_NONE);
@@ -7982,7 +7987,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Current Frame",
-      "Current frame, to update animation data from python frame_set() instead");
+      "Current frame, to update animation data from Python frame_set() instead");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
 
   prop = RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);

@@ -1899,15 +1899,13 @@ void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settin
 {
   const char *display_name = IMB_colormanagement_display_get_default_name();
 
-  BLI_strncpy(settings->display_device, display_name, sizeof(settings->display_device));
+  STRNCPY(settings->display_device, display_name);
 }
 
 void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
                                              const ColorManagedDisplaySettings *settings)
 {
-  BLI_strncpy(new_settings->display_device,
-              settings->display_device,
-              sizeof(new_settings->display_device));
+  STRNCPY(new_settings->display_device, settings->display_device);
 }
 
 void BKE_color_managed_view_settings_init_render(
@@ -1945,10 +1943,8 @@ void BKE_color_managed_view_settings_init_default(
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {
-  BLI_strncpy(new_settings->look, settings->look, sizeof(new_settings->look));
-  BLI_strncpy(new_settings->view_transform,
-              settings->view_transform,
-              sizeof(new_settings->view_transform));
+  STRNCPY(new_settings->look, settings->look);
+  STRNCPY(new_settings->view_transform, settings->view_transform);
 
   new_settings->flag = settings->flag;
   new_settings->exposure = settings->exposure;
@@ -1991,14 +1987,14 @@ void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
 void BKE_color_managed_colorspace_settings_init(
     ColorManagedColorspaceSettings *colorspace_settings)
 {
-  BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
+  STRNCPY(colorspace_settings->name, "");
 }
 
 void BKE_color_managed_colorspace_settings_copy(
     ColorManagedColorspaceSettings *colorspace_settings,
     const ColorManagedColorspaceSettings *settings)
 {
-  BLI_strncpy(colorspace_settings->name, settings->name, sizeof(colorspace_settings->name));
+  STRNCPY(colorspace_settings->name, settings->name);
 }
 
 bool BKE_color_managed_colorspace_settings_equals(const ColorManagedColorspaceSettings *settings1,

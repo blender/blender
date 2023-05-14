@@ -545,6 +545,15 @@ MINLINE unsigned long long max_ulul(unsigned long long a, unsigned long long b)
   return (b < a) ? a : b;
 }
 
+MINLINE double min_ddd(double a, double b, double c)
+{
+  return min_dd(min_dd(a, b), c);
+}
+MINLINE double max_ddd(double a, double b, double c)
+{
+  return max_dd(max_dd(a, b), c);
+}
+
 MINLINE float min_fff(float a, float b, float c)
 {
   return min_ff(min_ff(a, b), c);

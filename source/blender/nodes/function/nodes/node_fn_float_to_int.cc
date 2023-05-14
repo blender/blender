@@ -4,6 +4,7 @@
 
 #include "BLI_noise.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "RNA_enum_types.h"
 
@@ -26,14 +27,17 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "rounding_mode", 0, "", ICON_NONE);
 }
 
-static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
+static void node_label(const bNodeTree * /*tree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_float_to_int_items, node->custom1, &name);
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)

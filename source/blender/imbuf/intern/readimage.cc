@@ -94,7 +94,7 @@ ImBuf *IMB_ibImageFromMemory(
   }
 
   if (colorspace) {
-    BLI_strncpy(effective_colorspace, colorspace, sizeof(effective_colorspace));
+    STRNCPY(effective_colorspace, colorspace);
   }
 
   for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
@@ -160,7 +160,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
   ibuf = IMB_loadifffile(file, flags, colorspace, filepath);
 
   if (ibuf) {
-    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
+    STRNCPY(ibuf->filepath, filepath);
   }
 
   close(file);
@@ -185,7 +185,7 @@ struct ImBuf *IMB_thumb_load_image(const char *filepath,
 
   char effective_colorspace[IM_MAX_SPACE] = "";
   if (colorspace) {
-    BLI_strncpy(effective_colorspace, colorspace, sizeof(effective_colorspace));
+    STRNCPY(effective_colorspace, colorspace);
   }
 
   if (type->load_filepath_thumbnail) {
@@ -239,7 +239,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
   ibuf = IMB_loadifffile(file, flags | IB_test | IB_multilayer, colorspace, filepath);
 
   if (ibuf) {
-    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
+    STRNCPY(ibuf->filepath, filepath);
   }
 
   close(file);

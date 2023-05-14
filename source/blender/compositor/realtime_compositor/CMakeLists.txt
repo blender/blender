@@ -132,6 +132,7 @@ set(GLSL_SRC
   shaders/compositor_normalize.glsl
   shaders/compositor_parallel_reduction.glsl
   shaders/compositor_plane_deform.glsl
+  shaders/compositor_plane_deform_motion_blur.glsl
   shaders/compositor_projector_lens_distortion.glsl
   shaders/compositor_read_pass.glsl
   shaders/compositor_realize_on_domain.glsl
@@ -231,6 +232,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_normalize_info.hh
   shaders/infos/compositor_parallel_reduction_info.hh
   shaders/infos/compositor_plane_deform_info.hh
+  shaders/infos/compositor_plane_deform_motion_blur_info.hh
   shaders/infos/compositor_projector_lens_distortion_info.hh
   shaders/infos/compositor_read_pass_info.hh
   shaders/infos/compositor_realize_on_domain_info.hh

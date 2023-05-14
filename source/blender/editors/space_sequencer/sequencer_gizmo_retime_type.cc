@@ -388,8 +388,7 @@ static void retime_speed_text_draw(const bContext *C,
   const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
 
   char label_str[20];
-  const size_t label_len = BLI_snprintf_rlen(
-      label_str, sizeof(label_str), "%d%%", round_fl_to_int(speed * 100.0f));
+  const size_t label_len = SNPRINTF_RLEN(label_str, "%d%%", round_fl_to_int(speed * 100.0f));
 
   const float width = pixels_to_view_width(C, BLF_width(BLF_default(), label_str, label_len));
 

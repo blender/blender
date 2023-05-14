@@ -72,4 +72,28 @@ void convert_device_to_host(void *dst_buffer,
                             eGPUDataFormat host_format,
                             eGPUTextureFormat device_format);
 
+/**
+ * Are all attributes of the given vertex format natively supported or does conversion needs to
+ * happen.
+ *
+ * \param vertex_format: the vertex format to check if an associated buffer requires conversion
+ *                       being done on the host.
+ */
+bool conversion_needed(const GPUVertFormat &vertex_format);
+
+/**
+ * Convert the given `data` to contain Vulkan natively supported data formats.
+ *
+ * When for an vertex attribute the fetch mode is set to GPU_FETCH_INT_TO_FLOAT and the attribute
+ * is an int32_t or uint32_t the conversion will be done. Attributes of 16 or 8 bits are supported
+ * natively and will be done in Vulkan.
+ *
+ * \param data: Buffer to convert. Data will be converted in place.
+ * \param vertex_format: Vertex format of the given data. Attributes that aren't supported will be
+ *        converted to a supported one.
+ *  \param vertex_len: Number of vertices of the given data buffer;
+ *        The number of vertices to convert.
+ */
+void convert_in_place(void *data, const GPUVertFormat &vertex_format, const uint vertex_len);
+
 };  // namespace blender::gpu

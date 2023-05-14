@@ -7,6 +7,8 @@
 
 #include "BLT_translation.h"
 
+#include "BLI_string_utf8.h"
+
 #include "DNA_mask_types.h"
 
 #include "UI_interface.h"
@@ -42,14 +44,9 @@ static void node_composit_init_mask(bNodeTree * /*ntree*/, bNode *node)
 static void node_mask_label(const bNodeTree * /*ntree*/,
                             const bNode *node,
                             char *label,
-                            int maxlen)
+                            int label_maxncpy)
 {
-  if (node->id != nullptr) {
-    BLI_strncpy(label, node->id->name + 2, maxlen);
-  }
-  else {
-    BLI_strncpy(label, IFACE_("Mask"), maxlen);
-  }
+  BLI_strncpy_utf8(label, node->id ? node->id->name + 2 : IFACE_("Mask"), label_maxncpy);
 }
 
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)

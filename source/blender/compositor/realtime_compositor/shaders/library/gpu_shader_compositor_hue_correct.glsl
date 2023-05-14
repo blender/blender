@@ -34,6 +34,7 @@ void node_composite_hue_correct(float factor,
   hsv.y = clamp(hsv.y, 0.0, 1.0);
 
   hsv_to_rgb(hsv, result);
+  result.rgb = max(result.rgb, vec3(0.0));
 
   result = mix(color, result, factor);
 }

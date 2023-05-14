@@ -84,7 +84,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Uniform blocks */
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-      copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
+      copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
       input->location = input->binding = res.slot;
       input++;
     }
@@ -196,11 +196,13 @@ const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
   return descriptor_set_location(shader_input);
 }
 
-const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set_location(
     const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
 {
   const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  BLI_assert(shader_input);
+  if (shader_input == nullptr) {
+    return std::nullopt;
+  }
   return descriptor_set_location(shader_input);
 }
 

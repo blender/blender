@@ -111,13 +111,12 @@ static void blender_version_init(void)
     BLI_assert_msg(0, "Invalid Blender version cycle");
   }
 
-  BLI_snprintf(blender_version_string,
-               ARRAY_SIZE(blender_version_string),
-               "%d.%01d.%d%s",
-               BLENDER_VERSION / 100,
-               BLENDER_VERSION % 100,
-               BLENDER_VERSION_PATCH,
-               version_cycle);
+  SNPRINTF(blender_version_string,
+           "%d.%01d.%d%s",
+           BLENDER_VERSION / 100,
+           BLENDER_VERSION % 100,
+           BLENDER_VERSION_PATCH,
+           version_cycle);
 }
 
 const char *BKE_blender_version_string(void)

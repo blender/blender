@@ -25,6 +25,7 @@ class VKTexture;
 class VKUniformBuffer;
 class VKVertexBuffer;
 class VKDescriptorSetTracker;
+class VKSampler;
 
 /**
  * In vulkan shader resources (images and buffers) are grouped in descriptor sets.
@@ -117,7 +118,8 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
     VkBuffer vk_buffer = VK_NULL_HANDLE;
     VkDeviceSize buffer_size = 0;
 
-    VkImageView vk_image_view = VK_NULL_HANDLE;
+    VKTexture *texture = nullptr;
+    VkSampler vk_sampler = VK_NULL_HANDLE;
 
     Binding()
     {
@@ -131,14 +133,17 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
 
     bool is_image() const
     {
-      return ELEM(type, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+      return ELEM(type,
+                  VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                  VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) &&
+             texture != nullptr;
     }
   };
 
  private:
   /** A list of bindings that needs to be updated. */
   Vector<Binding> bindings_;
-  VkDescriptorSetLayout layout_;
+  VkDescriptorSetLayout layout_ = VK_NULL_HANDLE;
 
  public:
   VKDescriptorSetTracker() {}
@@ -149,7 +154,20 @@ class VKDescriptorSetTracker : protected VKResourceTracker<VKDescriptorSet> {
   void bind_as_ssbo(VKIndexBuffer &buffer, VKDescriptorSet::Location location);
   void bind(VKStorageBuffer &buffer, VKDescriptorSet::Location location);
   void bind(VKUniformBuffer &buffer, VKDescriptorSet::Location location);
+  /* TODO: bind as image */
   void image_bind(VKTexture &texture, VKDescriptorSet::Location location);
+  void bind(VKTexture &texture, VKDescriptorSet::Location location, VKSampler &sampler);
+
+  /**
+   * Some shaders don't need any descriptor sets so we don't need to bind them.
+   *
+   * The result of this function determines if the descriptor set has any layout assigned.
+   * TODO: we might want to make descriptor sets optional for pipelines.
+   */
+  bool has_layout() const
+  {
+    return layout_ != VK_NULL_HANDLE;
+  }
 
   /**
    * Update the descriptor set on the device.

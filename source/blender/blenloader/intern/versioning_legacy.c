@@ -326,7 +326,7 @@ static void customdata_version_242(Mesh *me)
           strcpy(layer->name, "UVMap");
         }
         else {
-          BLI_snprintf(layer->name, sizeof(layer->name), "UVMap.%.3d", mtfacen);
+          SNPRINTF(layer->name, "UVMap.%.3d", mtfacen);
         }
       }
       mtfacen++;
@@ -337,7 +337,7 @@ static void customdata_version_242(Mesh *me)
           strcpy(layer->name, "Col");
         }
         else {
-          BLI_snprintf(layer->name, sizeof(layer->name), "Col.%.3d", mcoln);
+          SNPRINTF(layer->name, "Col.%.3d", mcoln);
         }
       }
       mcoln++;
@@ -422,7 +422,7 @@ static void do_version_constraints_245(ListBase *lb)
         ct = MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
 
         ct->tar = data->tar;
-        BLI_strncpy(ct->subtarget, data->subtarget, sizeof(ct->subtarget));
+        STRNCPY(ct->subtarget, data->subtarget);
         ct->space = con->tarspace;
 
         BLI_addtail(&data->targets, ct);
@@ -1480,7 +1480,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
         else {
           if (kb->name[0] == 0) {
-            BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", index);
+            SNPRINTF(kb->name, "Key %d", index);
           }
           index++;
         }
@@ -2223,10 +2223,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         BLI_addtail(&ob->particlesystem, psys);
 
         md = BKE_modifier_new(eModifierType_ParticleSystem);
-        BLI_snprintf(md->name,
-                     sizeof(md->name),
-                     "ParticleSystem %i",
-                     BLI_listbase_count(&ob->particlesystem));
+        SNPRINTF(md->name, "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
         psmd = (ParticleSystemModifierData *)md;
         psmd->psys = psys;
         BLI_addtail(&ob->modifiers, md);

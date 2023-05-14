@@ -254,7 +254,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
       if (rv == nullptr) {
         rv = MEM_cnew<RenderView>("new opengl render view");
-        BLI_strncpy(rv->name, srv->name, sizeof(rv->name));
+        STRNCPY(rv->name, srv->name);
         BLI_addtail(&rr->views, rv);
       }
     }

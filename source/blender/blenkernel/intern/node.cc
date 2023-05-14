@@ -40,6 +40,7 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -1159,7 +1160,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
    *     Data have their own translation option!
    *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
    *     than adding "do_translate" flags to this func (and labelfunc() as well). */
-  BLI_strncpy(node->name, DATA_(ntype->ui_name), NODE_MAXSTR);
+  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name));
   nodeUniqueName(ntree, node);
 
   /* Generally sockets should be added after the initialization, because the set of sockets might
@@ -1596,11 +1597,11 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
 
   if (identifier && identifier[0] != '\0') {
     /* use explicit identifier */
-    BLI_strncpy(auto_identifier, identifier, sizeof(auto_identifier));
+    STRNCPY(auto_identifier, identifier);
   }
   else {
     /* if no explicit identifier is given, assign a unique identifier based on the name */
-    BLI_strncpy(auto_identifier, name, sizeof(auto_identifier));
+    STRNCPY(auto_identifier, name);
   }
   /* Make the identifier unique. */
   BLI_uniquename_cb(
@@ -1610,15 +1611,15 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   sock->in_out = in_out;
 
-  BLI_strncpy(sock->identifier, auto_identifier, NODE_MAXSTR);
+  STRNCPY(sock->identifier, auto_identifier);
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  BLI_strncpy(sock->name, name, NODE_MAXSTR);
+  STRNCPY(sock->name, name);
   sock->storage = nullptr;
   sock->flag |= SOCK_COLLAPSED;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
 
-  BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
+  STRNCPY(sock->idname, idname);
   node_socket_set_typeinfo(ntree, sock, nodeSocketTypeFind(idname));
 
   return sock;
@@ -1772,7 +1773,7 @@ void nodeModifySocketType(bNodeTree *ntree,
     }
   }
 
-  BLI_strncpy(sock->idname, idname, sizeof(sock->idname));
+  STRNCPY(sock->idname, idname);
   node_socket_set_typeinfo(ntree, sock, socktype);
 }
 
@@ -2327,7 +2328,7 @@ bNode *nodeAddNode(const bContext *C, bNodeTree *ntree, const char *idname)
   BLI_addtail(&ntree->nodes, node);
   nodeUniqueID(ntree, node);
 
-  BLI_strncpy(node->idname, idname, sizeof(node->idname));
+  STRNCPY(node->idname, idname);
   node_set_typeinfo(C, ntree, node, nodeTypeFind(idname));
 
   BKE_ntree_update_tag_node_new(ntree, node);
@@ -2898,7 +2899,7 @@ static bNodeTree *ntreeAddTree_do(
     BLI_assert(owner_id == nullptr);
   }
 
-  BLI_strncpy(ntree->idname, idname, sizeof(ntree->idname));
+  STRNCPY(ntree->idname, idname);
   ntree_set_typeinfo(ntree, ntreeTypeFind(idname));
 
   return ntree;
@@ -3283,7 +3284,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
   char prefix[MAX_IDPROP_NAME * 2];
 
   BLI_str_escape(propname_esc, node->name, sizeof(propname_esc));
-  BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
+  SNPRINTF(prefix, "nodes[\"%s\"]", propname_esc);
 
   if (BKE_animdata_fix_paths_remove(&ntree->id, prefix)) {
     if (bmain != nullptr) {
@@ -3538,7 +3539,7 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>("socket template");
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
-  BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
+  STRNCPY(sock->idname, stype->idname);
   sock->in_out = int(in_out);
   sock->type = int(SOCK_CUSTOM); /* int type undefined by default */
   node_socket_set_typeinfo(ntree, sock, stype);
@@ -3547,15 +3548,15 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
   const int own_index = ntree->cur_index++;
   /* use the own_index as socket identifier */
   if (in_out == SOCK_IN) {
-    BLI_snprintf(sock->identifier, MAX_NAME, "Input_%d", own_index);
+    SNPRINTF(sock->identifier, "Input_%d", own_index);
   }
   else {
-    BLI_snprintf(sock->identifier, MAX_NAME, "Output_%d", own_index);
+    SNPRINTF(sock->identifier, "Output_%d", own_index);
   }
 
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  BLI_strncpy(sock->name, name, NODE_MAXSTR);
+  STRNCPY(sock->name, name);
   sock->storage = nullptr;
   sock->flag |= SOCK_COLLAPSED;
 
@@ -4095,15 +4096,15 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
 
 /* ************* node type access ********** */
 
-void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int maxlen)
+void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int label_maxncpy)
 {
   label[0] = '\0';
 
   if (node->label[0] != '\0') {
-    BLI_strncpy(label, node->label, maxlen);
+    BLI_strncpy(label, node->label, label_maxncpy);
   }
   else if (node->typeinfo->labelfunc) {
-    node->typeinfo->labelfunc(ntree, node, label, maxlen);
+    node->typeinfo->labelfunc(ntree, node, label, label_maxncpy);
   }
   if (label[0] != '\0') {
     /* The previous methods (labelfunc) could not provide an adequate label for the node. */
@@ -4115,7 +4116,7 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
   if (tmp == node->typeinfo->ui_name) {
     tmp = IFACE_(node->typeinfo->ui_name);
   }
-  BLI_strncpy(label, tmp, maxlen);
+  BLI_strncpy(label, tmp, label_maxncpy);
 }
 
 const char *nodeSocketLabel(const bNodeSocket *sock)
@@ -4158,7 +4159,7 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
    */
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
   case ID: \
-    BLI_strncpy(ntype->idname, #Category #StructName, sizeof(ntype->idname)); \
+    STRNCPY(ntype->idname, #Category #StructName); \
     ntype->rna_ext.srna = RNA_struct_find(#Category #StructName); \
     BLI_assert(ntype->rna_ext.srna != nullptr); \
     RNA_struct_blender_type_set(ntype->rna_ext.srna, ntype); \
@@ -4172,7 +4173,7 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
   BLI_assert(ntype->idname[0] != '\0');
 
   ntype->type = type;
-  BLI_strncpy(ntype->ui_name, name, sizeof(ntype->ui_name));
+  STRNCPY(ntype->ui_name, name);
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);
@@ -4186,9 +4187,9 @@ void node_type_base_custom(bNodeType *ntype,
                            const char *name,
                            const short nclass)
 {
-  BLI_strncpy(ntype->idname, idname, sizeof(ntype->idname));
+  STRNCPY(ntype->idname, idname);
   ntype->type = NODE_CUSTOM;
-  BLI_strncpy(ntype->ui_name, name, sizeof(ntype->ui_name));
+  STRNCPY(ntype->ui_name, name);
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);
@@ -4247,7 +4248,7 @@ void node_type_socket_templates(bNodeType *ntype,
     }
 
     for (bNodeSocketTemplate *ntemp = inputs; ntemp->type >= 0; ntemp++) {
-      BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
+      STRNCPY(ntemp->identifier, ntemp->name);
       unique_socket_template_identifier(inputs, ntemp, ntemp->identifier, '_');
     }
   }
@@ -4258,7 +4259,7 @@ void node_type_socket_templates(bNodeType *ntype,
     }
 
     for (bNodeSocketTemplate *ntemp = outputs; ntemp->type >= 0; ntemp++) {
-      BLI_strncpy(ntemp->identifier, ntemp->name, sizeof(ntemp->identifier));
+      STRNCPY(ntemp->identifier, ntemp->name);
       unique_socket_template_identifier(outputs, ntemp, ntemp->identifier, '_');
     }
   }
@@ -4302,7 +4303,7 @@ void node_type_storage(bNodeType *ntype,
                                         const bNode *src_node))
 {
   if (storagename) {
-    BLI_strncpy(ntype->storagename, storagename, sizeof(ntype->storagename));
+    STRNCPY(ntype->storagename, storagename);
   }
   else {
     ntype->storagename[0] = '\0';

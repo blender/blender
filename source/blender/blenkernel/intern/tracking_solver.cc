@@ -334,7 +334,7 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(
   const int num_tracks = BLI_listbase_count(&tracking_object->tracks);
   int sfra = INT_MAX, efra = INT_MIN;
 
-  BLI_strncpy(context->object_name, tracking_object->name, sizeof(context->object_name));
+  STRNCPY(context->object_name, tracking_object->name);
   context->motion_flag = tracking->settings.motion_flag;
 
   context->select_keyframes = (tracking->settings.reconstruction_flag &
@@ -393,7 +393,7 @@ void BKE_tracking_reconstruction_report_error_message(MovieReconstructContext *c
     /* Only keep initial error message, the rest are inducted ones. */
     return;
   }
-  BLI_strncpy(context->error_message, error_message, sizeof(context->error_message));
+  STRNCPY(context->error_message, error_message);
 }
 
 const char *BKE_tracking_reconstruction_error_message_get(const MovieReconstructContext *context)

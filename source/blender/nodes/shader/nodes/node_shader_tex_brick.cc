@@ -30,7 +30,11 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
       .max(0.125f)
       .default_value(0.02f)
       .no_muted_links();
-  b.add_input<decl::Float>(N_("Mortar Smooth")).min(0.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>(N_("Mortar Smooth"))
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(0.1f)
+      .no_muted_links();
   b.add_input<decl::Float>(N_("Bias")).min(-1.0f).max(1.0f).no_muted_links();
   b.add_input<decl::Float>(N_("Brick Width"))
       .min(0.01f)
@@ -78,12 +82,6 @@ static void node_shader_init_tex_brick(bNodeTree * /*ntree*/, bNode *node)
   tex->squash_freq = 2;
 
   node->storage = tex;
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Mortar Smooth")) {
-      ((bNodeSocketValueFloat *)sock->default_value)->value = 0.1f;
-    }
-  }
 }
 
 static int node_shader_gpu_tex_brick(GPUMaterial *mat,

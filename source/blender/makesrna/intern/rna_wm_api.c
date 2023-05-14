@@ -111,9 +111,17 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
   WM_enum_search_invoke(C, op, NULL);
 }
 
-static bool rna_event_modal_handler_add(struct bContext *C, struct wmOperator *operator)
+static bool rna_event_modal_handler_add(
+    struct bContext *C, ReportList *reports, struct wmOperator *operator)
 {
-  return WM_event_add_modal_handler(C, operator) != NULL;
+  wmWindow *win = CTX_wm_window(C);
+  if (win == NULL) {
+    BKE_report(reports, RPT_ERROR, "No active window in context!");
+    return false;
+  }
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+  return WM_event_add_modal_handler_ex(win, area, region, operator) != NULL;
 }
 
 static void rna_WindowManager_autosave_write(struct wmWindowManager *wm, Main *main)
@@ -787,7 +795,7 @@ void RNA_api_wm(StructRNA *srna)
       func,
       "Add a modal handler to the window manager, for the given modal operator "
       "(called by invoke() with self, just before returning {'RUNNING_MODAL'})");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "operator", "Operator", "", "Operator to call");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_function_return(

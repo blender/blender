@@ -174,17 +174,17 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
  * \{ */
 
 static void translate_dist_to_str(char *r_str,
-                                  const int len_max,
+                                  const int r_str_maxncpy,
                                   const float val,
                                   const UnitSettings *unit)
 {
   if (unit) {
     BKE_unit_value_as_string(
-        r_str, len_max, val * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
+        r_str, r_str_maxncpy, val * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
   }
   else {
     /* Check range to prevent string buffer overflow. */
-    BLI_snprintf(r_str, len_max, IN_RANGE_INCL(val, -1e10f, 1e10f) ? "%.4f" : "%.4e", val);
+    BLI_snprintf(r_str, r_str_maxncpy, IN_RANGE_INCL(val, -1e10f, 1e10f) ? "%.4f" : "%.4e", val);
   }
 }
 

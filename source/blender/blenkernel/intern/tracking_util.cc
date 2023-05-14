@@ -52,7 +52,7 @@ TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
   TracksMap *map = MEM_cnew<TracksMap>("TrackingsMap");
 
-  BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
+  STRNCPY(map->object_name, object_name);
 
   map->num_tracks = num_tracks;
 

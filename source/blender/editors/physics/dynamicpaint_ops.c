@@ -353,7 +353,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 
   frames = surface->end_frame - surface->start_frame + 1;
   if (frames <= 0) {
-    BLI_strncpy(canvas->error, N_("No frames to bake"), sizeof(canvas->error));
+    STRNCPY(canvas->error, N_("No frames to bake"));
     return;
   }
 
