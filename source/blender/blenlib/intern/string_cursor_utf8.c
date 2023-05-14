@@ -314,3 +314,52 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
     BLI_assert_unreachable();
   }
 }
+
+void BLI_str_cursor_step_bounds_utf8(
+    const char *str, const size_t str_maxlen, int *pos, int *start, int *end)
+{
+  /* What type of characters are on either side of the current cursor position? */
+  const eStrCursorDelimType prev = (*pos > 0) ? cursor_delim_type_utf8(str, str_maxlen, *pos - 1) :
+                                                STRCUR_DELIM_NONE;
+  const eStrCursorDelimType next = (*pos < str_maxlen) ?
+                                       cursor_delim_type_utf8(str, str_maxlen, *pos) :
+                                       STRCUR_DELIM_NONE;
+  *start = *pos;
+  *end = *pos;
+
+  if (prev == next || ELEM(next, STRCUR_DELIM_WHITESPACE, STRCUR_DELIM_NONE)) {
+    /* Expand backward if we are between similar content, before whitespace, or at end. */
+    BLI_str_cursor_step_utf8(str, str_maxlen, start, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, false);
+  }
+  if (prev == next || ELEM(prev, STRCUR_DELIM_WHITESPACE, STRCUR_DELIM_NONE)) {
+    /* Expand forward if we are between similar content, after whitespace, or at beginning. */
+    BLI_str_cursor_step_utf8(str, str_maxlen, end, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, false);
+  }
+
+  /* Move cursor position to the end of selection. */
+  *pos = *end;
+}
+
+void BLI_str_cursor_step_bounds_utf32(
+    const char32_t *str, const size_t str_maxlen, int *pos, int *start, int *end)
+{
+  /* What type of characters are on either side of the current cursor position? */
+  const eStrCursorDelimType prev = (*pos > 0) ? cursor_delim_type_unicode(str[*pos - 1]) :
+                                                STRCUR_DELIM_NONE;
+  const eStrCursorDelimType next = (*pos < str_maxlen) ? cursor_delim_type_unicode(str[*pos]) :
+                                                         STRCUR_DELIM_NONE;
+  *start = *pos;
+  *end = *pos;
+
+  if (prev == next || ELEM(next, STRCUR_DELIM_WHITESPACE, STRCUR_DELIM_NONE)) {
+    /* Expand backward if we are between similar content, before whitespace, or at end. */
+    BLI_str_cursor_step_utf32(str, str_maxlen, start, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, false);
+  }
+  if (prev == next || ELEM(prev, STRCUR_DELIM_WHITESPACE, STRCUR_DELIM_NONE)) {
+    /* Expand forward if we are between similar content, after whitespace, or at beginning. */
+    BLI_str_cursor_step_utf32(str, str_maxlen, end, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, false);
+  }
+
+  /* Move cursor position to the end of selection. */
+  *pos = *end;
+}
