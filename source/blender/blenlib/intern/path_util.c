@@ -1148,10 +1148,10 @@ bool BLI_path_abs_from_cwd(char *path, const size_t path_maxncpy)
   BLI_string_debug_size_after_nil(path, path_maxncpy);
 
   if (!BLI_path_is_abs_from_cwd(path)) {
-    char cwd[FILE_MAX];
+    char cwd[PATH_MAX];
     /* In case the full path to the blend isn't used. */
     if (BLI_current_working_dir(cwd, sizeof(cwd))) {
-      char origpath[FILE_MAX];
+      char origpath[PATH_MAX];
       STRNCPY(origpath, path);
       BLI_path_join(path, path_maxncpy, cwd, origpath);
     }
@@ -1234,7 +1234,7 @@ bool BLI_path_program_search(char *program_filepath,
 
   path = BLI_getenv("PATH");
   if (path) {
-    char filepath_test[FILE_MAX];
+    char filepath_test[PATH_MAX];
     const char *temp;
 
     do {
