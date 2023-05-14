@@ -426,17 +426,6 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * If path begins with "//", strips that and replaces it with `basepath` directory.
- *
- * \note Also converts drive-letter prefix to something more sensible
- * if this is a non-drive-letter-based system.
- *
- * \param path: The path to convert.
- * \param basepath: The directory to base relative paths with.
- * \return true if the path was relative (started with "//").
- */
-bool BLI_path_abs(char *path, const char *basepath) ATTR_NONNULL(1, 2);
-/**
  * Replaces "#" character sequence in last slash-separated component of `path`
  * with frame as decimal integer, with leading zeroes as necessary, to make digits.
  */
@@ -478,17 +467,6 @@ bool BLI_path_is_abs_from_cwd(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED
  * In most cases #BLI_path_abs should be used instead.
  */
 bool BLI_path_abs_from_cwd(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
-/**
- * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
- * the same `basename`, will convert it back to its original value.
- */
-void BLI_path_rel(char *path, const char *basename) ATTR_NONNULL(1);
-
-/**
- * Does path begin with the special "//" prefix that Blender uses to indicate
- * a path relative to the .blend file.
- */
-bool BLI_path_is_rel(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Return true if the path is a UNC share.
  */
@@ -544,13 +522,54 @@ bool BLI_path_suffix(char *path, size_t path_maxncpy, const char *suffix, const 
 int BLI_path_cmp_normalized(const char *p1, const char *p2)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
-/* These values need to be hard-coded in structs, dna does not recognize defines */
-/* also defined in `DNA_space_types.h`. */
+/* -------------------------------------------------------------------- */
+/** \name Blend File Relative Paths
+ * \{ */
+
+/**
+ * These values need to be hard-coded in structs, dna does not recognize defines
+ * (also defined in `DNA_space_types.h`).
+ *
+ * \note In general path functions should *not* depend on these hard coded limits,
+ * there is an exception for:
+ * - #BLI_path_abs
+ * - #BLI_path_rel
+ * These functions deal specifically with `.blend` file paths,
+ * where #FILE_MAX assumed to be the limit of all paths passes into these functions.
+ *
+ * Some parts of the API which use #FILE_MAX which aren't specifically handling blend file paths,
+ * in most cases these can be updated to use #PATH_MAX or a platform specific limit.
+ */
 #ifndef FILE_MAXDIR
 #  define FILE_MAXDIR 768
 #  define FILE_MAXFILE 256
 #  define FILE_MAX 1024
 #endif
+
+/**
+ * If path begins with "//", strips that and replaces it with `basepath` directory.
+ *
+ * \note Also converts drive-letter prefix to something more sensible
+ * if this is a non-drive-letter-based system.
+ *
+ * \param path: The path to convert.
+ * \param basepath: The directory to base relative paths with.
+ * \return true if the path was relative (started with "//").
+ */
+bool BLI_path_abs(char path[FILE_MAX], const char *basepath) ATTR_NONNULL(1, 2);
+/**
+ * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
+ * the same `basename`, will convert it back to its original value.
+ */
+void BLI_path_rel(char path[FILE_MAX], const char *basename) ATTR_NONNULL(1);
+
+/**
+ * Does path begin with the special "//" prefix that Blender uses to indicate
+ * a path relative to the .blend file.
+ */
+bool BLI_path_is_rel(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
+/** \} */
 
 #ifdef WIN32
 #  define SEP '\\'

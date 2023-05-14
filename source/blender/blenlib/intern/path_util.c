@@ -592,7 +592,7 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 }
 #endif
 
-void BLI_path_rel(char *path, const char *basename)
+void BLI_path_rel(char path[FILE_MAX], const char *basename)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
 
@@ -1025,7 +1025,7 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
   }
 }
 
-bool BLI_path_abs(char *path, const char *basepath)
+bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
 
