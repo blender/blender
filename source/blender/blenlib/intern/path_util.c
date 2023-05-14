@@ -1913,11 +1913,17 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   BLI_assert_msg(!BLI_path_is_rel(p1) && !BLI_path_is_rel(p2), "Paths arguments must be absolute");
 
   /* Normalize the paths so we can compare them. */
-  char norm_p1[FILE_MAX];
-  char norm_p2[FILE_MAX];
+  char norm_p1_buf[256];
+  char norm_p2_buf[256];
 
-  STRNCPY(norm_p1, p1);
-  STRNCPY(norm_p2, p2);
+  const size_t p1_size = strlen(p1) + 1;
+  const size_t p2_size = strlen(p2) + 1;
+
+  char *norm_p1 = (p1_size <= sizeof(norm_p1_buf)) ? norm_p1_buf : MEM_mallocN(p1_size, __func__);
+  char *norm_p2 = (p2_size <= sizeof(norm_p2_buf)) ? norm_p2_buf : MEM_mallocN(p2_size, __func__);
+
+  memcpy(norm_p1, p1, p1_size);
+  memcpy(norm_p2, p2, p2_size);
 
   BLI_path_slash_native(norm_p1);
   BLI_path_slash_native(norm_p2);
@@ -1925,5 +1931,13 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   BLI_path_normalize(norm_p1);
   BLI_path_normalize(norm_p2);
 
-  return BLI_path_cmp(norm_p1, norm_p2);
+  const int result = BLI_path_cmp(norm_p1, norm_p2);
+
+  if (norm_p1 != norm_p1_buf) {
+    MEM_freeN(norm_p1);
+  }
+  if (norm_p2 != norm_p2_buf) {
+    MEM_freeN(norm_p2);
+  }
+  return result;
 }
