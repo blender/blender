@@ -123,6 +123,47 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Replace
+ * \{ */
+
+TEST(string, StrReplaceRange)
+{
+#define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
+  { \
+    char string[size] = src; \
+    BLI_str_replace_range(string, sizeof(string), beg, end, dst); \
+    EXPECT_STREQ(string, result_expect); \
+  }
+
+  STR_REPLACE_RANGE("a ", 5, 2, 2, "b!", "a b!");
+  STR_REPLACE_RANGE("a ", 4, 2, 2, "b!", "a b");
+  STR_REPLACE_RANGE("a ", 5, 1, 2, "b!", "ab!");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "A", "XAYZ");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "AB", "XABY");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "ABC", "XABC");
+
+  /* Add at the end when there is no room (no-op). */
+  STR_REPLACE_RANGE("XYZA", 5, 4, 4, "?", "XYZA");
+  /* Add at the start, replace all contents. */
+  STR_REPLACE_RANGE("XYZ", 4, 0, 0, "ABC", "ABC");
+  STR_REPLACE_RANGE("XYZ", 7, 0, 0, "ABC", "ABCXYZ");
+  /* Only remove. */
+  STR_REPLACE_RANGE("XYZ", 4, 1, 3, "", "X");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 2, "", "Z");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 3, "", "");
+  /* Only Add. */
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ", "XYZ");
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ?", "XYZ");
+  /* Do nothing. */
+  STR_REPLACE_RANGE("", 1, 0, 0, "?", "");
+  STR_REPLACE_RANGE("", 1, 0, 0, "", "");
+
+#undef STR_REPLACE_RANGE
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Partition
  * \{ */
 
