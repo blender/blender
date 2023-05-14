@@ -3673,7 +3673,10 @@ static void do_brush_action(Sculpt *sd,
         sd, ob, nodes, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
   }
 
-  bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
+  bool invert = ss->cache->pen_flip || ss->cache->invert;
+  if (brush->flag & BRUSH_DIR_IN) {
+    invert = !invert;
+  }
 
   /* Apply one type of brush action. */
   switch (brush->sculpt_tool) {
