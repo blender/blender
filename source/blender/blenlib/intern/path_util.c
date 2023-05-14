@@ -592,7 +592,7 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 }
 #endif
 
-void BLI_path_rel(char path[FILE_MAX], const char *basename)
+void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
 
@@ -606,24 +606,24 @@ void BLI_path_rel(char path[FILE_MAX], const char *basename)
   }
 
   /* Also bail out if relative path is not set. */
-  if (basename[0] == '\0') {
+  if (basepath[0] == '\0') {
     return;
   }
 
 #ifdef WIN32
-  if (BLI_strnlen(basename, 3) > 2 && !BLI_path_is_abs_win32(basename)) {
+  if (BLI_strnlen(basepath, 3) > 2 && !BLI_path_is_abs_win32(basepath)) {
     char *ptemp;
     /* Fix missing volume name in relative base,
      * can happen with old `recent-files.txt` files. */
     BLI_windows_get_default_root_dir(temp);
     ptemp = &temp[2];
-    if (!ELEM(basename[0], '\\', '/')) {
+    if (!ELEM(basepath[0], '\\', '/')) {
       ptemp++;
     }
-    BLI_strncpy(ptemp, basename, FILE_MAX - 3);
+    BLI_strncpy(ptemp, basepath, FILE_MAX - 3);
   }
   else {
-    BLI_strncpy(temp, basename, FILE_MAX);
+    BLI_strncpy(temp, basepath, FILE_MAX);
   }
 
   if (BLI_strnlen(path, 3) > 2) {
@@ -653,7 +653,7 @@ void BLI_path_rel(char path[FILE_MAX], const char *basename)
     }
   }
 #else
-  STRNCPY(temp, basename);
+  STRNCPY(temp, basepath);
 #endif
 
   BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');

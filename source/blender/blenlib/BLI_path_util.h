@@ -558,10 +558,10 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
  */
 bool BLI_path_abs(char path[FILE_MAX], const char *basepath) ATTR_NONNULL(1, 2);
 /**
- * Replaces `file` with a relative version (prefixed by "//") such that #BLI_path_abs, given
- * the same `basename`, will convert it back to its original value.
+ * Replaces `path` with a relative version (prefixed by "//") such that #BLI_path_abs, given
+ * the same `basepath`, will convert it back to its original value.
  */
-void BLI_path_rel(char path[FILE_MAX], const char *basename) ATTR_NONNULL(1);
+void BLI_path_rel(char path[FILE_MAX], const char *basepath) ATTR_NONNULL(1);
 
 /**
  * Does path begin with the special "//" prefix that Blender uses to indicate
