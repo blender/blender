@@ -3029,7 +3029,10 @@ static void calc_brush_local_mat(const float rotation,
 
   /* Square tips should scale by square root of 2. */
   if (BKE_brush_has_cube_tip(cache->brush, PAINT_MODE_SCULPT)) {
-    radius += (radius * M_SQRT2 - radius) * (1.0f - cache->brush->tip_roundness);
+    radius += (radius / M_SQRT2 - radius) * cache->brush->tip_roundness;
+  }
+  else {
+    radius /= M_SQRT2;
   }
 
   normalize_m4(mat);
