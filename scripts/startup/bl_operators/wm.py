@@ -746,7 +746,7 @@ class WM_OT_operator_pie_enum(Operator):
 
     data_path: StringProperty(
         name="Operator",
-        description="Operator name (in python as string)",
+        description="Operator name (in Python as string)",
         maxlen=1024,
     )
     prop_string: StringProperty(
@@ -1381,7 +1381,7 @@ rna_custom_property_type_items = (
     ('BOOL', "Boolean", "A true or false value"),
     ('BOOL_ARRAY', "Boolean Array", "An array of true or false values"),
     ('STRING', "String", "A string value"),
-    ('PYTHON', "Python", "Edit a python value directly, for unsupported property types"),
+    ('PYTHON', "Python", "Edit a Python value directly, for unsupported property types"),
 )
 
 rna_custom_property_subtype_none_item = ('NONE', "Plain Data", "Data values without special behavior")

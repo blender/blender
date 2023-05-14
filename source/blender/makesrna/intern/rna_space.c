@@ -6112,7 +6112,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_live_edit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "live_edit", 1);
-  RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing");
+  RNA_def_property_ui_text(prop, "Live Edit", "Run Python while editing");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
   /* find */
@@ -6558,7 +6558,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceConsole", "Space");
   RNA_def_struct_sdna(srna, "SpaceConsole");
-  RNA_def_struct_ui_text(srna, "Space Console", "Interactive python console");
+  RNA_def_struct_ui_text(srna, "Space Console", "Interactive Python console");
 
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */

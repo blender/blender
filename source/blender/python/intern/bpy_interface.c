@@ -410,7 +410,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       else {
         /* Set to `sys.executable = None` below (we can't do before Python is initialized). */
         fprintf(stderr,
-                "Unable to find the python binary, "
+                "Unable to find the Python binary, "
                 "the multiprocessing module may not be functional!\n");
       }
     }
@@ -427,7 +427,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
         if (strchr(py_path_bundle, ':')) {
           fprintf(stderr,
                   "Warning! Blender application is located in a path containing ':' or '/' chars\n"
-                  "This may make python import function fail\n");
+                  "This may make Python import function fail\n");
         }
 #  endif /* __APPLE__ */
 

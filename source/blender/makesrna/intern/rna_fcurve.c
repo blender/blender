@@ -2148,7 +2148,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Simple Expression",
-      "The scripted expression can be evaluated without using the full python interpreter");
+      "The scripted expression can be evaluated without using the full Python interpreter");
 
   /* Functions */
   RNA_api_drivers(srna);

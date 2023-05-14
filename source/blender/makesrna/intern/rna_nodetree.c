@@ -9958,7 +9958,7 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Attribute Domain",
-      "Attribute domain where the attribute domain is stored in the simulation state");
+      "Attribute domain where the attribute is stored in the simulation state");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_SimulationStateItem_update");
 
