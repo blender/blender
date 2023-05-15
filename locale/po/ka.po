@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9502,10 +9502,6 @@ msgid "Simple Expression"
 msgstr "მარტივი გამოსახულება"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "დასკრიპტული გამოსახულება შეიძლება გამოთვლილ იქნას სრული python ინტერპრეტატორის გარეშე"
-
-
 msgid "Invalid"
 msgstr "დაუშვებელი"
 
@@ -16981,10 +16977,6 @@ msgid "Falloff Curve"
 msgstr "მილევის წირი"
 
 
-msgid "Custom light falloff curve"
-msgstr "სინათლის მილევის მორგებული წირი"
-
-
 msgid "If not zero, the distance from the hook where influence ends"
 msgstr "თუ ნული არაა, მანძილი კაუჭიდან, სადაც ზეგავლენა მთავრდება"
 
@@ -17413,10 +17405,6 @@ msgstr "მონასმის სიღრმის აცდენა"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "მონასმების ოდნავ კამერისკენ გადაადგილება ჩამოჭრის თავიდან ასაცილებლად, სარკმლისთვის სიღრმის შენარჩუნებით"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "ცვილის ფანქრის შრე მიკუთვნებული წარმოქმნილ მონასმებს"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -18910,14 +18898,6 @@ msgstr "ხილული შრეები"
 
 msgid "Armature layer visibility"
 msgstr "არმატურის შრის ხილულობა"
-
-
-msgid "Layer Proxy Protection"
-msgstr "შრეების პროქსი-დაცვა"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "დაცული შრეები პროქსი ინსტანციებში ფაილის ხელახლა ჩატვირთვისას და ქმედების დაბრუნებისას აღდგება პროქსის პარამეტრებში"
 
 
 msgid "Pose Position"
@@ -20532,10 +20512,6 @@ msgid "Use Plane Trim"
 msgstr "სიბრტყის მოჭრის გამოყენება"
 
 
-msgid "Enable Plane Trim"
-msgstr "სიბრტყის მოჭრის ჩართვა"
-
-
 msgid "Keep Anchor Point"
 msgstr "საღუზე წერტილის შენარჩუნება"
 
@@ -21610,18 +21586,6 @@ msgstr "აღკვეთე წირის ტრაექტორიის 
 
 msgid "Follow"
 msgstr "მიყოლა"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "აიძულე წირის ტრაექტორიის შვილები, ტრაექტორიის გასწვრივ იბრუნონ"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "ვარიანტი ტრაექტორიებისა და წირით დეფორმირებისთვის: გამოიყენე წირის რადიუსი მისი მიმდევარი ბილიკით და დეფორმაციით"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "ვარიანტი წირით დეფორმირებისთვის: აიძულე დეფორმირებული შვილი, მთელი ტრაექტორიის სიგრძეზე გაიწელოს"
 
 
 msgid "Surface Curve"
@@ -23569,6 +23533,10 @@ msgstr "ხარისხი"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "სინათლის მთელი არეალიდან ყველა მიმართულებით გამოცემული შუქის ენერგია"
+
+
+msgid "Custom light falloff curve"
+msgstr "სინათლის მილევის მორგებული წირი"
 
 
 msgid "Falloff Type"
@@ -25751,10 +25719,6 @@ msgid "Shape Key Lock"
 msgstr "ფორმის სოლის საკეტი"
 
 
-msgid "Always show the current shape for this object"
-msgstr "ყოველთვის აჩვენე ამ ობიექტის ამჟამინდელი ფორმა"
-
-
 msgid "Display Texture Space"
 msgstr "ტექსტურული სივრცის ასახვა"
 
@@ -27206,10 +27170,6 @@ msgstr "Eevee პარამეტრები სცენისთვის"
 
 msgid "Current Frame"
 msgstr "მიმდინარე კადრი"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "მიმდინარე კადრი, ანიმაციის მონაცემების python frame_set()-იდან განახლებისთვის"
 
 
 msgid "Current Frame Final"
@@ -32917,16 +32877,8 @@ msgid "Export Keying Set..."
 msgstr "დააექსპორტირე საგასაღებო ნაკრები..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "დააექსპორტირე საგასაღებო ნაკრები პითონის სკრიპტში"
-
-
 msgid "Filter folders"
 msgstr "გაფილტრე საქაღალდეები"
-
-
-msgid "Filter python"
-msgstr "გაფილტრე პითონი"
 
 
 msgctxt "Operator"
@@ -39247,10 +39199,6 @@ msgstr "მთელი რიცხვების მასივ"
 
 msgid "A string value"
 msgstr "ტექსტური მნიშვნელობა"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "დაარედაქტირე პირდაპირ პითონის მნიშვნელობა, თვისებების მხარდაუჭერელი ტიპებისთვის"
 
 
 msgid "Soft Max"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -1505,10 +1505,6 @@ msgstr "Växla angiven inställning för alla markerade animationskanaler"
 
 msgid "Filter folders"
 msgstr "Filtrera mappar"
-
-
-msgid "Filter python"
-msgstr "Filtrera Python"
 
 
 msgid "Toggle selection status of all bones"

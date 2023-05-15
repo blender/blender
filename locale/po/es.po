@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -9603,10 +9603,6 @@ msgid "Simple Expression"
 msgstr "Expresión simple"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "El script de expresión puede ser evaluado sin usar el intérprete completo de Python"
-
-
 msgid "Invalid"
 msgstr "Inválido"
 
@@ -17144,8 +17140,8 @@ msgid "Falloff Curve"
 msgstr "Curva de decaimiento"
 
 
-msgid "Custom light falloff curve"
-msgstr "Curva de decaimiento de luz personalizada"
+msgid "Custom falloff curve"
+msgstr "Curva de decaimiento personalizada"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17576,10 +17572,6 @@ msgstr "Desplazamiento profundidad del trazo"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "Mueve los trazos ligeramente hacia la cámara para evitar ser recortados, mientras que preservan su profundidad en la vista"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "Capa de lápiz de cera asignada a los trazos generados"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -19097,14 +19089,6 @@ msgstr "Capas visibles"
 
 msgid "Armature layer visibility"
 msgstr "Visibilidad de las capas del esqueleto"
-
-
-msgid "Layer Proxy Protection"
-msgstr "Capa protección de reemplazo"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "Las capas protegidas de reemplazos instanciados son restablecidas a las opciones del reemplazo, al recargar el archivo o deshacer cambios"
 
 
 msgid "Pose Position"
@@ -20826,10 +20810,6 @@ msgid "Use Plane Trim"
 msgstr "Usar plano de recorte"
 
 
-msgid "Enable Plane Trim"
-msgstr "Habilitar plano de recorte"
-
-
 msgid "Keep Anchor Point"
 msgstr "Mantener punto de anclaje"
 
@@ -21919,18 +21899,6 @@ msgstr "Limita los objetos subordinados a la trayectoria de la curva para que no
 
 msgid "Follow"
 msgstr "Seguir"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Hace que los subordinados a la curva de trayectoria roten alrededor de la misma"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Opción para Seguir trayectoria y Deformar con curva: Aplica el radio de la curva a la trayectoria o la deformación"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Opción para Deformar con curva: Hace que el subordinado deformado se estire a lo largo de toda la curva"
 
 
 msgid "Surface Curve"
@@ -23930,6 +23898,10 @@ msgstr "Potencia"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Energía lumínica emitida por el área completa de la luz, en todas direcciones"
+
+
+msgid "Custom light falloff curve"
+msgstr "Curva de decaimiento de luz personalizada"
 
 
 msgid "Falloff Type"
@@ -26140,10 +26112,6 @@ msgid "Shape Key Lock"
 msgstr "Bloqueo de Forma clave"
 
 
-msgid "Always show the current shape for this object"
-msgstr "Visualizar siempre la Forma clave seleccionada para este objeto"
-
-
 msgid "Display Texture Space"
 msgstr "Mostrar espacio texturizado"
 
@@ -27619,10 +27587,6 @@ msgstr "Opciones de Eevee para la escena"
 
 msgid "Current Frame"
 msgstr "Fotograma actual"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "Fotograma actual, para actualizar los datos de animación desde Python, usar la función frame_set()"
 
 
 msgid "Current Frame Final"
@@ -37393,10 +37357,6 @@ msgstr "Modificador gancho para modificar la posición de los vértices"
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "Centro del gancho, usado para decaimiento y visualización"
-
-
-msgid "Custom falloff curve"
-msgstr "Curva de decaimiento personalizada"
 
 
 msgid "Vertex Indices"
@@ -49660,16 +49620,8 @@ msgid "Export Keying Set..."
 msgstr "Exportar conjunto de claves..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Exporta el conjunto de claves a un script Python"
-
-
 msgid "Filter folders"
 msgstr "Filtrar carpetas"
-
-
-msgid "Filter python"
-msgstr "Filtrar python"
 
 
 msgid "Filter text"
@@ -50397,10 +50349,6 @@ msgstr "Filtrar archivos de película"
 
 msgid "Filter OBJ files"
 msgstr "Filtrar archivos OBJ"
-
-
-msgid "Filter python files"
-msgstr "Filtrar archivos Python"
 
 
 msgid "Filter sound files"
@@ -52222,10 +52170,6 @@ msgstr "Palabra anterior"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Ejecutar desde consola"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Ejecutar la línea de la consola actual como una expresión de python"
 
 
 msgctxt "Operator"
@@ -71343,10 +71287,6 @@ msgid "Export Key Configuration..."
 msgstr "Exportar mapa de teclado..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Exporta la configuración del teclado a un script Python"
-
-
 msgid "All Keymaps"
 msgstr "Todos los mapas de teclado"
 
@@ -71358,10 +71298,6 @@ msgstr "Guarda todos los mapas de teclado (no sólo los modificados por el usuar
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Importar mapa de teclado..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Importa la configuración del teclado desde un script Python"
 
 
 msgid "Keep Original"
@@ -80625,10 +80561,6 @@ msgid "Operator Enum Pie"
 msgstr "Operador enumerador circular"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Nombre del operador (como una cadena de Python)"
-
-
 msgid "Property name (as a string)"
 msgstr "Nombre de la propiedad (como una cadena)"
 
@@ -80745,10 +80677,6 @@ msgstr "Eliminar previsualizaciones de escenas"
 
 msgid "Trusted Blend Files"
 msgstr "Archivos blend confiables"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Habilita la evaluación de Python para los archivos seleccionados"
 
 
 msgctxt "Operator"
@@ -80938,10 +80866,6 @@ msgstr "Un vector de valores verdaderos o falsos"
 
 msgid "A string value"
 msgstr "Un valor de texto"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "Edita directamente un valor de Python, para tipos de propiedades no soportados"
 
 
 msgid "Soft Max"
@@ -86468,10 +86392,6 @@ msgstr "Habilita la visibilidad de los nuevos nodos de volumen en la interfaz"
 
 msgid "Override Templates"
 msgstr "Plantillas de redefinición"
-
-
-msgid "Enable library override template in the python API"
-msgstr "Habilitar plantillas de redefinición de bibliotecas en la API de python"
 
 
 msgid "Sculpt Texture Paint"
@@ -95726,10 +95646,6 @@ msgid "Space Console"
 msgstr "Espacio consola"
 
 
-msgid "Interactive python console"
-msgstr "Consola interactiva de Python"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Tamaño de tipografía a usar para mostrar texto"
 
@@ -97351,10 +97267,6 @@ msgstr "Busca nuevamente desde el principio del archivo al alcanzar su final"
 
 msgid "Live Edit"
 msgstr "Edición en vivo"
-
-
-msgid "Run python while editing"
-msgstr "Ejecuta Python mientras se edita"
 
 
 msgid "Match Case"
@@ -108300,10 +108212,6 @@ msgstr "Extrapolar"
 
 msgid "Rotation Range"
 msgstr "Rango de rotación"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 aún no soporta restricciones Python"
 
 
 msgctxt "Operator"
@@ -126400,10 +126308,6 @@ msgid "Midtones"
 msgstr "Medios tonos"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "Nodo no soportado en el compositor en las Vistas"
-
-
 msgid "Upper Left"
 msgstr "Superior izquierda"
 
@@ -126426,6 +126330,10 @@ msgstr "El árbol de nodos debe ser el árbol de nodos de composición de cualqu
 
 msgid "Pick"
 msgstr "Escoger"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "Nodo no soportado en el compositor en las Vistas"
 
 
 msgid "Bokeh Type:"

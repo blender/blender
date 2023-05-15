@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -9179,14 +9179,6 @@ msgid "Armature layer visibility"
 msgstr "ﻞﻜﻴﻬﻟﺍ ﺔﻘﻃ ﺔﻳﺮﻫﺎﻇ"
 
 
-msgid "Layer Proxy Protection"
-msgstr "ﻞﻴﻛﻮﻟﺍ ﻦﻣ ﺔﻴﻤﺤﻣ ﺔﻘﻃ"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "ﻊﺟﺍﺮﺘﻟﺍ ﺪﻨﻋ ﻭ ﻒﻠﻤﻟﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺍ ﺪﻨﻋ ﺏﻭﺪﻨﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻻ﻿ ﺏﻭﺪﻨﻤﻟﺍ ﺝﺫﺎﻤﻧ ﻲﻓ ﺏﻭﺪﻨﻤﻟﺍ ﺕﺎﻘﺒﻃ ﻊﺟﺮﺘﺴﺗ"
-
-
 msgid "Pose Position"
 msgstr "ﺔﻔﻗﻮﻟﺍ ﻊﻗﻮﻣ"
 
@@ -9819,10 +9811,6 @@ msgid "Use Plane Trim"
 msgstr "ﺢﻄﺴﻟﺍ ﻢﻴﻠﻘﺗ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Enable Plane Trim"
-msgstr "ﻂﻴﺴﺒﻟﺍ ﺺﻗ ﻞﻌﻓ"
-
-
 msgid "Jitter Pressure"
 msgstr "ﻦﻳﺎﺒﺘﻣ ﻂﻐﺿ"
 
@@ -10345,18 +10333,6 @@ msgstr "ﺔﻛﺮﺤﻠﻟ ﺭﺎﺴﻣ ﺢﺒﺼﻴﻟ ﻰﻨﺤﻨﻤﻟﺍ �
 
 msgid "Follow"
 msgstr "ﻊﺒﺗﺇ"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "ﺭﺎﺴﻤﻟﺍ ﻝﻮﻃ ﻰﻠﻋ ﺭﺎﺴﻤﻟﺍ ﻰﻨﺤﻨﻣ ﻉﻭﺮﻓ ﺭﻭّﺩ"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "ﻊﻳﻮﻄﺘﻟﺍ ﻭ ﻪﺑ ﺭﺎﺴﻤﻟﺍ ﻕﺎﺤﻟﺍ ﻊﻣ ﻰﻨﺤﻨﻤﻟﺍ ﺮﻄﻗ ﻒﺼﻧ ﻖﺒّﻃ :ﻊﻳﻮﻄﺘﻟﺍ ﻰﻨﺤﻨﻣ ﻭ ﺕﺍﺭﺎﺴﻤﻠﻟ ﺭﺎﻴﺧ"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "ﻼ﻿ﻣﺎﻛ ﺭﺎﺴﻤﻟﺍ ﻝﻮﻃ ﻰﻠﻋ ﺩﺪﻤﺘﻳ ﻉﻮّﻄﻤﻟﺍ ﻉﺮﻔﻟﺍ ﻞﻌﺟﺍ :ﻰﻨﺤﻨﻤﻟﺎﺑ ﻊﻳﻮﻄﺘﻠﻟ ﺭﺎﻴﺧ"
 
 
 msgid "Surface Curve"
@@ -21831,10 +21807,6 @@ msgid "Filter folders"
 msgstr "ﺕﺍﺪﻠﺠﻤﻟﺍ ﻲﻔﺻ"
 
 
-msgid "Filter python"
-msgstr "ﻥﻮﺜﻳﺎﺒﻟﺍ ﺕﺎﻔﻠﻣ ﻲﻔﺻ"
-
-
 msgid "Filter text"
 msgstr "ﺺﻨﻟﺍ ﻲﻔﺻ"
 
@@ -22914,10 +22886,6 @@ msgstr "ﻑﺬﺣﺍ"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "ﺮﻣﺍﻭﻷ﻿ﺍ ﺔﺣﻮﻟ ﺢﺘﻓﺃ"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "ﻥﻮﺜﻳﺎﺑ ﺮﻴﺒﻌﺘﻛ ﺮﻣﺍﻭﻻ﻿ﺍ ﺔﺣﻮﻟ ﻲﻓ ﻲﻟﺎﺤﻟﺍ ﺮﻄﺴﻟﺍ ﺬﻔّﻧ"
 
 
 msgctxt "Operator"
@@ -36841,10 +36809,6 @@ msgstr "ﻢﺠﺣ ﻞﻗﺃ"
 
 msgid "Extrapolate"
 msgstr "ﻂﺒﻨﺘﺳﺍ"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "ﺎﻴﻟﺎﺣ ﻥﻮﺜﻳﺎﺑ ﺩﻮﻴﻗ 2.6 ﺭﺪﻨﻠﺑ ﻢﻋﺪﻳ ﻻ﻿"
 
 
 msgid "Pivot Offset"
