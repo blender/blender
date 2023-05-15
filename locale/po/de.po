@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -13549,10 +13549,6 @@ msgid "Use this brush in weight paint mode"
 msgstr "Diesen Pinsel im Malereieinflussmodus verwenden"
 
 
-msgid "Enable Plane Trim"
-msgstr "Markierung umbenennen"
-
-
 msgid "Ramp"
 msgstr "Verlauf"
 
@@ -17085,10 +17081,6 @@ msgstr "Eevee-Einstellungen für die Szene"
 
 msgid "Current Frame"
 msgstr "Aktuelles Einzelbild"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "Aktuelles Einzelbild, um stattdessen Animationsdaten aus Python frame_set() zu aktualisieren"
 
 
 msgid "Current Frame Final"
@@ -27904,16 +27896,8 @@ msgid "Export Keying Set..."
 msgstr "Schlüsselbildsatz exportieren..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Schlüsselbildsatz in ein Python-Skript exportieren"
-
-
 msgid "Filter folders"
 msgstr "Ordner filtern"
-
-
-msgid "Filter python"
-msgstr "Python filtern"
 
 
 msgid "Filter text"
@@ -28314,10 +28298,6 @@ msgstr "Filmdateien filtern"
 
 msgid "Filter OBJ files"
 msgstr "OBJ Dateien filtern"
-
-
-msgid "Filter python files"
-msgstr "Python Dateien filtern"
 
 
 msgid "Filter sound files"
@@ -38260,10 +38240,6 @@ msgstr "Keyconfig aktivieren"
 msgctxt "Operator"
 msgid "Export Key Configuration..."
 msgstr "Tastenbelegung exportieren..."
-
-
-msgid "Export key configuration to a python script"
-msgstr "Tastenkonfiguration in ein Python-Skript exportieren"
 
 
 msgctxt "Operator"

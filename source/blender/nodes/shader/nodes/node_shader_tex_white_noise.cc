@@ -59,8 +59,8 @@ static void node_shader_update_tex_white_noise(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *sockW = nodeFindSocket(node, SOCK_IN, "W");
 
-  nodeSetSocketAvailability(ntree, sockVector, node->custom1 != 1);
-  nodeSetSocketAvailability(ntree, sockW, node->custom1 == 1 || node->custom1 == 4);
+  bke::nodeSetSocketAvailability(ntree, sockVector, node->custom1 != 1);
+  bke::nodeSetSocketAvailability(ntree, sockW, node->custom1 == 1 || node->custom1 == 4);
 }
 
 class WhiteNoiseFunction : public mf::MultiFunction {

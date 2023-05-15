@@ -13,12 +13,13 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_colortools.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
@@ -89,7 +90,7 @@ void node_math_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock1 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
   bNodeSocket *sock2 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *sock3 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
-  nodeSetSocketAvailability(ntree,
+  blender::bke::nodeSetSocketAvailability(ntree,
                             sock2,
                             !ELEM(node->custom1,
                                   NODE_MATH_SQRT,
@@ -114,7 +115,7 @@ void node_math_update(bNodeTree *ntree, bNode *node)
                                       NODE_MATH_COSH,
                                       NODE_MATH_SINH,
                                       NODE_MATH_TANH));
-  nodeSetSocketAvailability(ntree,
+  blender::bke::nodeSetSocketAvailability(ntree,
                             sock3,
                             ELEM(node->custom1,
                                  NODE_MATH_COMPARE,
@@ -185,7 +186,7 @@ void node_blend_label(const bNodeTree * /*ntree*/,
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), label_maxncpy);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 void node_image_label(const bNodeTree * /*ntree*/,
@@ -194,7 +195,7 @@ void node_image_label(const bNodeTree * /*ntree*/,
                       int label_maxncpy)
 {
   /* If there is no loaded image, return an empty string,
-   * and let nodeLabel() fill in the proper type translation. */
+   * and let blender::bke::nodeLabel() fill in the proper type translation. */
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", label_maxncpy);
 }
 
@@ -208,7 +209,7 @@ void node_math_label(const bNodeTree * /*ntree*/,
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
+  BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), label_maxncpy);
 }
 
 void node_vector_math_label(const bNodeTree * /*ntree*/,
@@ -221,7 +222,7 @@ void node_vector_math_label(const bNodeTree * /*ntree*/,
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), label_maxncpy);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 void node_filter_label(const bNodeTree * /*ntree*/,
@@ -234,7 +235,7 @@ void node_filter_label(const bNodeTree * /*ntree*/,
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), label_maxncpy);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode)

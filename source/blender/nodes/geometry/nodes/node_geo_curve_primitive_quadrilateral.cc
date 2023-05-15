@@ -116,7 +116,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
+    bke::nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
   }
 }
 

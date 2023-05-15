@@ -3029,7 +3029,10 @@ static void calc_brush_local_mat(const float rotation,
 
   /* Square tips should scale by square root of 2. */
   if (BKE_brush_has_cube_tip(cache->brush, PAINT_MODE_SCULPT)) {
-    radius += (radius * M_SQRT2 - radius) * (1.0f - cache->brush->tip_roundness);
+    radius += (radius / M_SQRT2 - radius) * cache->brush->tip_roundness;
+  }
+  else {
+    radius /= M_SQRT2;
   }
 
   normalize_m4(mat);
@@ -3670,7 +3673,10 @@ static void do_brush_action(Sculpt *sd,
         sd, ob, nodes, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
   }
 
-  bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
+  bool invert = ss->cache->pen_flip || ss->cache->invert;
+  if (brush->flag & BRUSH_DIR_IN) {
+    invert = !invert;
+  }
 
   /* Apply one type of brush action. */
   switch (brush->sculpt_tool) {

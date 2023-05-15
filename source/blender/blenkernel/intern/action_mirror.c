@@ -169,7 +169,7 @@ static void action_flip_pchan(Object *ob_arm,
   BLI_str_escape(pchan_name_esc, pchan->name, sizeof(pchan_name_esc));
   const int path_xform_prefix_len = SNPRINTF(path_xform, "pose.bones[\"%s\"]", pchan_name_esc);
   char *path_xform_suffix = path_xform + path_xform_prefix_len;
-  const int path_xform_suffix_len = sizeof(path_xform) - path_xform_prefix_len;
+  const int path_xform_suffix_maxncpy = sizeof(path_xform) - path_xform_prefix_len;
 
   /* Lookup and assign all available #FCurve channels,
    * unavailable channels are left NULL. */
@@ -191,11 +191,11 @@ static void action_flip_pchan(Object *ob_arm,
   } fkc_pchan = {{{NULL}}};
 
 #define FCURVE_ASSIGN_VALUE(id, path_test_suffix, index) \
-  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_len); \
+  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_maxncpy); \
   action_flip_pchan_cache_fcurve_assign_value(&fkc_pchan.id, index, path_xform, fcache)
 
 #define FCURVE_ASSIGN_ARRAY(id, path_test_suffix) \
-  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_len); \
+  BLI_strncpy(path_xform_suffix, path_test_suffix, path_xform_suffix_maxncpy); \
   action_flip_pchan_cache_fcurve_assign_array( \
       fkc_pchan.id, ARRAY_SIZE(fkc_pchan.id), path_xform, fcache)
 

@@ -43,6 +43,9 @@
  * - 254..255: invalid.
  *
  * Invalid values fall back to 1 byte or -1 (for an error value).
+ *
+ * \note From testing string copying via #BLI_strncpy_utf8 with large (multi-megabyte) strings,
+ * using a function instead of a lookup-table is between 2 & 3 times faster.
  * \{ */
 
 BLI_INLINE int utf8_char_compute_skip(const char c)
@@ -310,7 +313,7 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
 BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t dst_maxncpy)
 {
   /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning.
-   * No need to check `src` points to a nil byte, this will break out of the switch statement. */
+   * No need to check `src` points to a nil byte as this will return from the switch statement. */
   size_t utf8_size;
   while ((utf8_size = (size_t)utf8_char_compute_skip(*src)) < dst_maxncpy) {
     dst_maxncpy -= utf8_size;
@@ -318,12 +321,12 @@ BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t
     /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
     /* clang-format off */
     switch (utf8_size) {
-      case 6:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 5:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 4:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 3:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 2:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
-      case 1:  if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++;
+      case 6: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 5: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 4: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 3: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 2: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 1: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++;
     }
     /* clang-format on */
     /* NOLINTEND: bugprone-assignment-in-if-condition */

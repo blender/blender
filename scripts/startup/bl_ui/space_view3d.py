@@ -569,7 +569,7 @@ class _draw_tool_settings_context_mode:
             row.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Count Max")
             layout.popover("VIEW3D_PT_tools_brush_falloff")
             layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
-        elif curves_tool == "SLIDE":
+        elif curves_tool == 'SLIDE':
             layout.popover("VIEW3D_PT_tools_brush_falloff")
 
         return True
@@ -3413,7 +3413,7 @@ class VIEW3D_MT_mask(Menu):
         layout.separator()
 
         props = layout.operator("sculpt.mask_from_cavity", text="Mask From Cavity")
-        props.settings_source = "OPERATOR"
+        props.settings_source = 'OPERATOR'
 
         layout.separator()
 
@@ -7899,7 +7899,7 @@ class VIEW3D_PT_sculpt_automasking(Panel):
 
         if is_cavity_active:
             props = row.operator("sculpt.mask_from_cavity", text="Create Mask")
-            props.settings_source = "SCENE"
+            props.settings_source = 'SCENE'
 
         col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (inverted)")
 

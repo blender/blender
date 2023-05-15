@@ -2,7 +2,7 @@
  * Copyright 2017 Blender Foundation. */
 
 #include "COM_SMAAOperation.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "COM_SMAAAreaTexture.h"
 
 extern "C" {

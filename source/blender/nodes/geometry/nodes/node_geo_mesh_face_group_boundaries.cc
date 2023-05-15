@@ -91,7 +91,7 @@ void register_node_type_geo_mesh_face_group_boundaries()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, "Face Group Boundaries", NODE_CLASS_INPUT);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

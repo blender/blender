@@ -1603,7 +1603,7 @@ bool BKE_id_new_name_validate(
 
   if (name[0] == '\0') {
     /* Disallow empty names. */
-    STRNCPY(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
+    STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id->name))));
   }
   else {
     /* disallow non utf8 chars,
@@ -1664,6 +1664,10 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
     /* Note that we keep EXTRAUSER tag here, since some UI users may define it too... */
     if (id->tag & LIB_TAG_EXTRAUSER) {
       id->tag &= ~(LIB_TAG_EXTRAUSER | LIB_TAG_EXTRAUSER_SET);
+      id_us_ensure_real(id);
+    }
+    if (ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS)) {
+      /* These IDs should always have a 'virtual' user. */
       id_us_ensure_real(id);
     }
   }

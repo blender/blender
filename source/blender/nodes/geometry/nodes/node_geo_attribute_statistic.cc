@@ -79,25 +79,25 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   const eCustomDataType data_type = eCustomDataType(node->custom1);
 
-  nodeSetSocketAvailability(ntree, socket_float_attr, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_mean, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_median, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_sum, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_min, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_max, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_range, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_std, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_float_variance, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_attr, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_mean, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_median, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_sum, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_min, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_max, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_range, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_std, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_float_variance, data_type == CD_PROP_FLOAT);
 
-  nodeSetSocketAvailability(ntree, socket_float3_attr, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_mean, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_median, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_sum, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_min, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_max, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_range, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_std, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_float3_attr, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_mean, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_median, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_sum, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_min, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_max, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_range, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_std, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_vector_variance, data_type == CD_PROP_FLOAT3);
 }
 
 static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
@@ -163,7 +163,7 @@ static float compute_variance(const Span<float> data, const float mean)
         return accumulator + difference * difference;
       });
 
-  return sum_of_squared_differences / (data.size() - 1);
+  return sum_of_squared_differences / data.size();
 }
 
 static float median_of_sorted_span(const Span<float> data)

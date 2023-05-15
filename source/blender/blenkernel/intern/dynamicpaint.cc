@@ -405,7 +405,7 @@ static bool surface_duplicateNameExists(void *arg, const char *name)
 void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char *basename)
 {
   char name[64];
-  STRNCPY(name, basename); /* in case basename is surface->name use a copy */
+  STRNCPY_UTF8(name, basename); /* in case basename is surface->name use a copy */
   BLI_uniquename_cb(
       surface_duplicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
 }

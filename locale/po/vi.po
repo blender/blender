@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -9315,10 +9315,6 @@ msgid "Simple Expression"
 msgstr "Biểu Thức Đơn Giản"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "Có thể tính toán biểu thức mà không cần sử dụng toàn bộ biến dịch Python"
-
-
 msgid "Invalid"
 msgstr "Không Hợp Lệ"
 
@@ -16710,8 +16706,8 @@ msgid "Falloff Curve"
 msgstr "Đường Cong Sự Giảm"
 
 
-msgid "Custom light falloff curve"
-msgstr "Đường cong tùy chọn để giảm ánh sáng"
+msgid "Custom falloff curve"
+msgstr "Đường cong sự giảm tùy chọn"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17138,10 +17134,6 @@ msgstr "Nới Độ Sâu Nét"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "Nới gần máy quay phim một chút cho tránh bị cắt khi còn giữ độ sâu cho màn chiếu"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "Lớp Bút Sáp được chỉ định đến các nét được chế tạo"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -18571,14 +18563,6 @@ msgstr "Lớp Hiện"
 
 msgid "Armature layer visibility"
 msgstr "Lớp cốt nào được hiện/ẩn"
-
-
-msgid "Layer Proxy Protection"
-msgstr "Bảo Vệ Đại Lý Lớp"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "Lớp bảo vệ trong Thực Thể Đại Lý được hoàn lại về đcài đặt khi nhập lại tập tin và huỷ bước"
 
 
 msgid "Pose Position"
@@ -20133,10 +20117,6 @@ msgid "Use Plane Trim"
 msgstr "Sử Dụng Cắt Mặt Phẳng"
 
 
-msgid "Enable Plane Trim"
-msgstr "Bật cắt mặt phẳng"
-
-
 msgid "Keep Anchor Point"
 msgstr "Giữ Điểm Neo"
 
@@ -21199,18 +21179,6 @@ msgstr "Kẹp lại con cái của đường cong cho chúng nó không thể đ
 
 msgid "Follow"
 msgstr "Đuối Theo"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Bắt các con cái của đường cong xoay theo đường đi"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Tù chọn cho đường dẫn và méo hóa cong: áp dụng bán kính với đường dẫn theo nó và bị méo hóa"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Lựa chọn cho méo hóa cong: kéo dài con cái bị méo hóa theo toàn đường cong"
 
 
 msgid "Surface Curve"
@@ -23130,6 +23098,10 @@ msgstr "Lũy Thừa"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Năng lượng ánh sáng được trên toàn diện tích của đèn cho mỗi hướng"
+
+
+msgid "Custom light falloff curve"
+msgstr "Đường cong tùy chọn để giảm ánh sáng"
 
 
 msgid "Falloff Type"
@@ -25280,10 +25252,6 @@ msgid "Shape Key Lock"
 msgstr "Khóa Mẫu Dạng"
 
 
-msgid "Always show the current shape for this object"
-msgstr "Lần nào hiện hình dạng hiện tại cho vật thể này"
-
-
 msgid "Display Texture Space"
 msgstr "Hiển Thị Không Gian Chất Liệu"
 
@@ -26731,10 +26699,6 @@ msgstr "Cài đặt Eevee cho cảnh"
 
 msgid "Current Frame"
 msgstr "Bức Ảnh Hiện Tại"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "Bức ảnh hiện tại, để nâng cấp dữ liệu hoạt hình từ Python frame_set() thay thế"
 
 
 msgid "Current Frame Final"
@@ -36253,10 +36217,6 @@ msgstr "Bộ điều chỉnh móc để sửa đổi vị trí của đỉnh"
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "Trung tâm của móc, được dùng cho sự giảm và hiển thị"
-
-
-msgid "Custom falloff curve"
-msgstr "Đường cong sự giảm tùy chọn"
 
 
 msgid "Vertex Indices"
@@ -47913,16 +47873,8 @@ msgid "Export Keying Set..."
 msgstr "Xuất Tập Hợp Bức Ảnh Mẫu..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Xuất Tập Bức Ảnh Mẫu đến một văn thảo Python"
-
-
 msgid "Filter folders"
 msgstr "Lọc hồ sơ"
-
-
-msgid "Filter python"
-msgstr "Lọc Python"
 
 
 msgid "Filter text"
@@ -48634,10 +48586,6 @@ msgstr "Lọc tập tin phim"
 
 msgid "Filter OBJ files"
 msgstr "Lọc tập tin OBJ"
-
-
-msgid "Filter python files"
-msgstr "Lọc tập tin Python"
 
 
 msgid "Filter sound files"
@@ -50419,10 +50367,6 @@ msgstr "Chữ Trước"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Thực Hành Diện Điều Khiển"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Thực hành dòng hiện tại của diện điều khiển như một biểu thức Python"
 
 
 msgctxt "Operator"
@@ -68321,10 +68265,6 @@ msgid "Export Key Configuration..."
 msgstr "Xuất Cấu Hình Bàn Phím..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Xuất cầu hình bàn phím đến một văn thảo Python"
-
-
 msgid "All Keymaps"
 msgstr "Hết Ánh Xạ Bàn Phím"
 
@@ -68336,10 +68276,6 @@ msgstr "Lưu hết ánh xạ phím (không phải chỉ cái nào người dùng
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Nhập Cấu Hình Bàn Phím..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Nhập cấu hình bàn phím từ một văn thảo Python"
 
 
 msgid "Keep Original"
@@ -77115,10 +77051,6 @@ msgid "Operator Enum Pie"
 msgstr "Quạt Liệt Kê Thao Tác"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Tên thao tác (trong Python là xâu)"
-
-
 msgid "Property name (as a string)"
 msgstr "Tên đặc tính (là xâu)"
 
@@ -77179,10 +77111,6 @@ msgstr "Xóa dự khán cảnh"
 
 msgid "Trusted Blend Files"
 msgstr "Tập Tin Blender Tin Tưởng"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Bật tính toán Python cho các tập tin được chọn"
 
 
 msgctxt "Operator"
@@ -77360,10 +77288,6 @@ msgstr "Một mảng số nguyên"
 
 msgid "A string value"
 msgstr "Một cái giá trị xâu"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "Biên tập một giá trị Python trực tiếp, cho các loại đặc tính không được hỗ trợ"
 
 
 msgid "Soft Max"
@@ -82646,10 +82570,6 @@ msgstr "Bật loại mây điểm mới trong giao diện"
 
 msgid "Override Templates"
 msgstr "Bố Cục Mẫu Đồ Vượt Quyền"
-
-
-msgid "Enable library override template in the python API"
-msgstr "Bật bố cục mẫu đồ vượt quyền cho thư viện trong API python"
 
 
 msgid "Sculpt Texture Paint"
@@ -91392,10 +91312,6 @@ msgid "Space Console"
 msgstr "Diện Điều Khiển Không Gian"
 
 
-msgid "Interactive python console"
-msgstr "Diện điều khiển Python tương tác"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Kích cỡ phông dùng cho hiển thị văn bản"
 
@@ -92927,10 +92843,6 @@ msgstr "Tìm kiếm tiếp từ đầu tập tin khi tìm kiếm đến cuối t
 
 msgid "Live Edit"
 msgstr "Biên Tập Trực Tiếp"
-
-
-msgid "Run python while editing"
-msgstr "Chạy Python khi đang biên tập"
 
 
 msgid "Match Case"
@@ -102702,10 +102614,6 @@ msgstr "Suy Ngoại"
 
 msgid "Rotation Range"
 msgstr "Phạm Vi Xoay"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 không hỗ trợ ràng buộc Python"
 
 
 msgctxt "Operator"

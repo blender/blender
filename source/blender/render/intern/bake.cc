@@ -64,7 +64,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_tangent.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

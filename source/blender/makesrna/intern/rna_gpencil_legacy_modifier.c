@@ -2957,7 +2957,7 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-  RNA_def_property_ui_text(prop, "Falloff Curve", "Custom light falloff curve");
+  RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);
@@ -3870,7 +3870,8 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "target_layer", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Layer", "Grease Pencil layer assigned to the generated strokes");
+  RNA_def_property_ui_text(
+      prop, "Layer", "Grease Pencil layer to which assign the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "source_vertex_group", PROP_STRING, PROP_NONE);

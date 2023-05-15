@@ -35,7 +35,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -516,7 +516,7 @@ static bool bake_object_check(const Scene *scene,
       if (image) {
 
         if (node) {
-          if (BKE_node_is_connected_to_output(ntree, node)) {
+          if (blender::bke::node_is_connected_to_output(ntree, node)) {
             /* we don't return false since this may be a false positive
              * this can't be RPT_ERROR though, otherwise it prevents
              * multiple highpoly objects to be baked at once */

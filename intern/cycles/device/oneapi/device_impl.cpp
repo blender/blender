@@ -126,6 +126,7 @@ bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_featu
 #  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
 #  else
+  (void)requested_features;
   return true;
 #  endif
 }

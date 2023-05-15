@@ -57,7 +57,7 @@ void register_node_type_sh_bsdf_glass()
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLASS, "Glass BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_glass;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glass;
 

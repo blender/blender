@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "NOD_node_declaration.hh"
@@ -41,7 +41,7 @@ static InputSocketFieldType get_interface_input_field_type(const bNode &node,
     /* Outputs always support fields when the data type is correct. */
     return InputSocketFieldType::IsSupported;
   }
-  if (node.typeinfo == &NodeTypeUndefined) {
+  if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return InputSocketFieldType::None;
   }
   if (node.type == NODE_CUSTOM) {
@@ -75,7 +75,7 @@ static OutputFieldDependency get_interface_output_field_dependency(const bNode &
     /* Input nodes get special treatment in #determine_group_input_states. */
     return OutputFieldDependency::ForDependentField();
   }
-  if (node.typeinfo == &NodeTypeUndefined) {
+  if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return OutputFieldDependency::ForDataSource();
   }
   if (node.type == NODE_CUSTOM) {

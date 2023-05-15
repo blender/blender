@@ -8,7 +8,7 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 namespace blender::compositor {
 

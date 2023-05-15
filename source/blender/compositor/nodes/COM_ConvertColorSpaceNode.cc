@@ -3,7 +3,7 @@
 
 #include "COM_ConvertColorSpaceNode.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BLI_utildefines.h"
 

@@ -2070,7 +2070,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     }
     else {
       BLI_path_abs(params->dir, BKE_main_blendfile_path(bmain));
-      BLI_path_normalize(params->dir);
+      BLI_path_normalize_native(params->dir);
       BLI_path_append_dir(params->dir, sizeof(params->dir), file->relpath);
     }
     ED_file_change_dir(C);
@@ -2841,7 +2841,7 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
     else if (!can_create_dir(params->dir)) {
       const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
       if (lastdir) {
-        BLI_strncpy(params->dir, lastdir, sizeof(params->dir));
+        STRNCPY(params->dir, lastdir);
       }
     }
 #endif

@@ -43,8 +43,8 @@ void register_node_type_tex_at()
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_AT, "At", NODE_CLASS_DISTORT);
-  node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_size(&ntype, 140, 100, 320);
+  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  blender::bke::node_type_size(&ntype, 140, 100, 320);
   ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);

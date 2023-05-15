@@ -82,15 +82,15 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *center_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
 
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, middle_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, end_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, center_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, radius_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS);
 }
 

@@ -53,7 +53,7 @@ void register_node_type_tex_scale()
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
-  node_type_socket_templates(&ntype, inputs, outputs);
+  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);

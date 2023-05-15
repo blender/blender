@@ -114,7 +114,7 @@ void register_node_type_geo_input_curve_handles()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_CURVE_HANDLES, "Curve Handle Positions", NODE_CLASS_INPUT);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

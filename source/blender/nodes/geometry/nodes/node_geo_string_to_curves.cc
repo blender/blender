@@ -88,11 +88,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const GeometryNodeStringToCurvesOverflowMode overflow = (GeometryNodeStringToCurvesOverflowMode)
                                                               storage.overflow;
   bNodeSocket *socket_remainder = static_cast<bNodeSocket *>(node->outputs.first)->next;
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
 
   bNodeSocket *height_socket = static_cast<bNodeSocket *>(node->inputs.last);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
 }
 
@@ -397,7 +397,7 @@ void register_node_type_geo_string_to_curves()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
-  node_type_size(&ntype, 190, 120, 700);
+  blender::bke::node_type_size(&ntype, 190, 120, 700);
   node_type_storage(&ntype,
                     "NodeGeometryStringToCurves",
                     node_free_standard_storage,

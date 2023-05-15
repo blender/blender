@@ -47,7 +47,7 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
 bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
                                float encoded_hash,
                                char *r_name,
-                               int name_len);
+                               int name_maxncpy);
 
 char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
 void BKE_cryptomatte_matte_id_to_entries(struct NodeCryptomatte *node_storage,

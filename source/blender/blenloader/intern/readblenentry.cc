@@ -17,6 +17,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_path_util.h" /* Only for assertions. */
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -400,6 +401,9 @@ BlendFileData *BLO_read_from_file(const char *filepath,
                                   eBLOReadSkip skip_flags,
                                   BlendFileReadReport *reports)
 {
+  BLI_assert(!BLI_path_is_rel(filepath));
+  BLI_assert(BLI_path_is_abs_from_cwd(filepath));
+
   BlendFileData *bfd = nullptr;
   FileData *fd;
 

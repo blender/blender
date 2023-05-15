@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -7860,10 +7860,6 @@ msgid "Simple Expression"
 msgstr "간단한 표현식"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "스크립팅된 표현식은 전체 Python 인터프리터를 사용하지 않고도 평가할 수 있습니다"
-
-
 msgid "Invalid"
 msgstr "잘못된"
 
@@ -13675,8 +13671,8 @@ msgid "Falloff Curve"
 msgstr "감소 커브"
 
 
-msgid "Custom light falloff curve"
-msgstr "커스텀 라이트 감소 커브"
+msgid "Custom falloff curve"
+msgstr "커스텀 감소 커브"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -14504,14 +14500,6 @@ msgstr "보이는 레이어"
 
 msgid "Armature layer visibility"
 msgstr "아마튜어 레이어 가시성"
-
-
-msgid "Layer Proxy Protection"
-msgstr "레이어 프록시 보호"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "프록시 인스턴스로 보호된 레이어는 파일 다시 불러오기 및 실행 취소시 프록시 설정으로 복원됩니다"
 
 
 msgid "Pose Position"
@@ -15582,10 +15570,6 @@ msgid "Use Plane Trim"
 msgstr "평면 다듬기를 사용"
 
 
-msgid "Enable Plane Trim"
-msgstr "평면 다듬기를 사용"
-
-
 msgid "Jitter Pressure"
 msgstr "지터 압력"
 
@@ -16300,18 +16284,6 @@ msgstr "커브를 옮기기 경로로 사용 가능하게 설정"
 
 msgid "Follow"
 msgstr "따라가기"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "경로를 따라 회전하는 커브 경로의 자식을 만들기"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "경로 및 커브 변형 옵션: 커브 반경을 그 다음 경로와 함께 적용"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "커브 변형에 대한 옵션 : 변형된 자식이 전체 경로를 따라 늘어나도록합니다"
 
 
 msgid "Surface Curve"
@@ -18002,6 +17974,10 @@ msgstr "접촉 섀도우 두께"
 
 msgid "Pixel thickness used to detect occlusion"
 msgstr "폐색을 감지하는 데 사용되는 픽셀 두께"
+
+
+msgid "Custom light falloff curve"
+msgstr "커스텀 라이트 감소 커브"
 
 
 msgid "Falloff Type"
@@ -29156,10 +29132,6 @@ msgid "Center of the hook, used for falloff and display"
 msgstr "감소 및 표시에 사용되는 후크의 중심"
 
 
-msgid "Custom falloff curve"
-msgstr "커스텀 감소 커브"
-
-
 msgid "Vertex Indices"
 msgstr "버텍스 인덱스"
 
@@ -36774,16 +36746,8 @@ msgid "Export Keying Set..."
 msgstr "키잉 설정을 내보내기..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "키잉 설정을 Python 스크립트로 내보내기"
-
-
 msgid "Filter folders"
 msgstr "폴더를 필터"
-
-
-msgid "Filter python"
-msgstr "Python을 필터"
 
 
 msgid "Filter text"
@@ -37404,10 +37368,6 @@ msgstr "이미지 파일을 필터"
 
 msgid "Filter movie files"
 msgstr "영상 파일을 필터"
-
-
-msgid "Filter python files"
-msgstr "Python 파일을 필터"
 
 
 msgid "Filter sound files"
@@ -38882,10 +38842,6 @@ msgstr "이전 단어"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "콘솔 실행"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Python 표현식으로 현재 콘솔 라인을 실행"
 
 
 msgctxt "Operator"
@@ -52808,10 +52764,6 @@ msgid "Export Key Configuration..."
 msgstr "키 구성을 내보내기..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Python 스크립트로 키 구성을 내보내기"
-
-
 msgid "All Keymaps"
 msgstr "모든 키 맵"
 
@@ -52823,10 +52775,6 @@ msgstr "모든 키맵을 작성 (사용자가 수정 한 것이 아닙니다)"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "키 구성을 가져오기..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Python 스크립트에서 키 설정을 가져오기"
 
 
 msgid "Keep Original"
@@ -59203,10 +59151,6 @@ msgid "Operator Enum Pie"
 msgstr "작업자 열거 파이"
 
 
-msgid "Operator name (in python as string)"
-msgstr "작업자 이름 (문자열로 Python에서)"
-
-
 msgid "Property name (as a string)"
 msgstr "속성 이름 (문자열로)"
 
@@ -59263,10 +59207,6 @@ msgstr "씬의 미리보기를 지우기"
 
 msgid "Trusted Blend Files"
 msgstr "신뢰된 Blend 파일"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "선택한 파일에 대한 Python 평가를 사용"
 
 
 msgctxt "Operator"
@@ -70396,10 +70336,6 @@ msgid "Space Console"
 msgstr "공간 콘솔"
 
 
-msgid "Interactive python console"
-msgstr "대화형 Python 콘솔"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "텍스트를 표시하는 데 사용하는 폰트 크기"
 
@@ -71658,10 +71594,6 @@ msgstr "파일 끝에 도달하면 다시 검색"
 
 msgid "Live Edit"
 msgstr "실시간 편집"
-
-
-msgid "Run python while editing"
-msgstr "편집하는 동안 Python을 실행"
 
 
 msgid "Match Case"
@@ -77150,10 +77082,6 @@ msgstr "볼륨 최소"
 
 msgid "Extrapolate"
 msgstr "외삽법"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "블렌더 2.6은 아직 Python 제약을 지원하지 않습니다"
 
 
 msgctxt "Operator"

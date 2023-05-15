@@ -2,7 +2,7 @@
  * Copyright 2011 Blender Foundation. */
 
 #include "COM_FilterNode.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "COM_ConvolutionEdgeFilterOperation.h"
 
 namespace blender::compositor {

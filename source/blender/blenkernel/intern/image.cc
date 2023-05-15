@@ -70,7 +70,7 @@
 #include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_packedFile.h"
@@ -2486,18 +2486,24 @@ void BKE_stamp_data_free(StampData *stamp_data)
 }
 
 /* wrap for callback only */
-static void metadata_set_field(void *data, const char *propname, char *propvalue, int /*len*/)
+static void metadata_set_field(void *data,
+                               const char *propname,
+                               char *propvalue,
+                               int /*propvalue_maxncpy*/)
 {
   /* We know it is an ImBuf* because that's what we pass to BKE_stamp_info_callback. */
   ImBuf *imbuf = static_cast<ImBuf *>(data);
   IMB_metadata_set_field(imbuf->metadata, propname, propvalue);
 }
 
-static void metadata_get_field(void *data, const char *propname, char *propvalue, int len)
+static void metadata_get_field(void *data,
+                               const char *propname,
+                               char *propvalue,
+                               int propvalue_maxncpy)
 {
   /* We know it is an ImBuf* because that's what we pass to BKE_stamp_info_callback. */
   ImBuf *imbuf = static_cast<ImBuf *>(data);
-  IMB_metadata_get_field(imbuf->metadata, propname, propvalue, len);
+  IMB_metadata_get_field(imbuf->metadata, propname, propvalue, propvalue_maxncpy);
 }
 
 void BKE_imbuf_stamp_info(const RenderResult *rr, ImBuf *ibuf)

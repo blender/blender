@@ -60,7 +60,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
   const bool use_single_axis = mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS;
 
-  nodeSetSocketAvailability(ntree, axis_socket, use_single_axis);
+  bke::nodeSetSocketAvailability(ntree, axis_socket, use_single_axis);
 }
 
 struct UniformScaleFields {

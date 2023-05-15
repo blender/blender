@@ -96,7 +96,7 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
 {
   /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
    * The reason why we use this remapping instead of directly doing the
-   * Schlick approximation lerp(F0, 1.0, (1.0-cosLH)^5) is that for cases
+   * Schlick approximation mix(F0, 1.0, (1.0-cosLH)^5) is that for cases
    * with similar IORs (e.g. ice in water), the relative IOR can be close
    * enough to 1.0 that the Schlick approximation becomes inaccurate. */
   float real_F = fresnel_dielectric_cos(dot(L, H), ior);

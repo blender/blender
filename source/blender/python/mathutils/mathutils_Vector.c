@@ -475,7 +475,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize(): "
-                    "cannot resize wrapped data - only python vectors");
+                    "cannot resize wrapped data - only Python vectors");
     return NULL;
   }
   if (self->cb_user) {
@@ -559,7 +559,7 @@ static PyObject *Vector_resize_2d(VectorObject *self)
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize_2d(): "
-                    "cannot resize wrapped data - only python vectors");
+                    "cannot resize wrapped data - only Python vectors");
     return NULL;
   }
   if (self->cb_user) {
@@ -590,7 +590,7 @@ static PyObject *Vector_resize_3d(VectorObject *self)
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize_3d(): "
-                    "cannot resize wrapped data - only python vectors");
+                    "cannot resize wrapped data - only Python vectors");
     return NULL;
   }
   if (self->cb_user) {
@@ -625,7 +625,7 @@ static PyObject *Vector_resize_4d(VectorObject *self)
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize_4d(): "
-                    "cannot resize wrapped data - only python vectors");
+                    "cannot resize wrapped data - only Python vectors");
     return NULL;
   }
   if (self->cb_user) {

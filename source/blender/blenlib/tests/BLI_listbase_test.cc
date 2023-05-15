@@ -107,7 +107,7 @@ TEST(listbase, FindLinkOrIndex)
 TEST(listbase, FindLinkFromStringOrPointer)
 {
   struct TestLink {
-    struct TestLink *prev, *next;
+    struct TestLink *next, *prev;
     char name[64];
     const void *ptr;
   };

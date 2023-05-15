@@ -94,7 +94,7 @@ void register_node_type_geo_sdf_volume_sphere()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SDF_VOLUME_SPHERE, "SDF Volume Sphere", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 180, 120, 300);
+  blender::bke::node_type_size(&ntype, 180, 120, 300);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
   ntype.gather_link_search_ops = file_ns::search_link_ops;

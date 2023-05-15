@@ -1879,7 +1879,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         /* Note this assume all elements (images) have the same dimension,
          * since we only copy the name here. */
         se_new = MEM_reallocN(strip_new->stripdata, sizeof(*se_new));
-        STRNCPY(se_new->name, se->name);
+        STRNCPY(se_new->filename, se->filename);
         strip_new->stripdata = se_new;
 
         if (step > 1) {
@@ -2920,7 +2920,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
        * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
-    STRNCPY(seq->strip->dir, directory);
+    STRNCPY(seq->strip->dirpath, directory);
 
     if (seq->strip->stripdata) {
       MEM_freeN(seq->strip->stripdata);
@@ -2933,7 +2933,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
-        STRNCPY(se->name, filename);
+        STRNCPY(se->filename, filename);
         MEM_freeN(filename);
         se++;
       }
@@ -2991,9 +2991,9 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   Sequence *seq = SEQ_select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
 
-  RNA_string_set(op->ptr, "directory", seq->strip->dir);
+  RNA_string_set(op->ptr, "directory", seq->strip->dirpath);
   RNA_string_set(op->ptr, "filepath", filepath);
 
   /* Set default display depending on seq type. */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -9562,10 +9562,6 @@ msgid "Simple Expression"
 msgstr "简单表达式"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "没有完整的Python解析器无法运行脚本表达式"
-
-
 msgid "Invalid"
 msgstr "非法输入"
 
@@ -17095,8 +17091,8 @@ msgid "Falloff Curve"
 msgstr "衰减曲线"
 
 
-msgid "Custom light falloff curve"
-msgstr "自定义灯光衰减曲线"
+msgid "Custom falloff curve"
+msgstr "自定义衰减曲线"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17527,10 +17523,6 @@ msgstr "笔画深度偏移"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "稍微向摄像机移动笔画以避免剪切，同时保持视图的深度"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "指定给生成笔画的蜡笔层"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -19040,14 +19032,6 @@ msgstr "可见层"
 
 msgid "Armature layer visibility"
 msgstr "骨架层可见性"
-
-
-msgid "Layer Proxy Protection"
-msgstr "层代理保护"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "代理实例中的受保护层会在文件重新加载或撤销时被还原到代理(初始)设置"
 
 
 msgid "Pose Position"
@@ -20741,10 +20725,6 @@ msgid "Use Plane Trim"
 msgstr "使用平面裁切"
 
 
-msgid "Enable Plane Trim"
-msgstr "启用平面裁剪"
-
-
 msgid "Keep Anchor Point"
 msgstr "保留锚点"
 
@@ -21834,18 +21814,6 @@ msgstr "钳制曲线路径子级，使他们无法通过曲线的起点/终点"
 
 msgid "Follow"
 msgstr "跟随"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "使曲线路径的子物体沿路径旋转"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "路径及曲线形变的选项: 将曲线半径应用到跟随它并进行形变的路径上"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "曲线形变选项:  使发生形变的子物体沿整条路径拉伸"
 
 
 msgid "Surface Curve"
@@ -23809,6 +23777,10 @@ msgstr "能量"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "向四面八方发射至整个区域的光能"
+
+
+msgid "Custom light falloff curve"
+msgstr "自定义灯光衰减曲线"
 
 
 msgid "Falloff Type"
@@ -25999,10 +25971,6 @@ msgid "Shape Key Lock"
 msgstr "形态键锁定"
 
 
-msgid "Always show the current shape for this object"
-msgstr "总是显示此物体的当前形变"
-
-
 msgid "Display Texture Space"
 msgstr "显示纹理空间"
 
@@ -27478,10 +27446,6 @@ msgstr "场景的Eevee设置"
 
 msgid "Current Frame"
 msgstr "当前帧"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "当前帧, 通过 python 脚本的 frame_set() 更新动画数据"
 
 
 msgid "Current Frame Final"
@@ -37239,10 +37203,6 @@ msgstr "钩挂修改器, 用于修改顶点位置"
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "挂钩中心，用于衰减和显示"
-
-
-msgid "Custom falloff curve"
-msgstr "自定义衰减曲线"
 
 
 msgid "Vertex Indices"
@@ -49363,16 +49323,8 @@ msgid "Export Keying Set..."
 msgstr "导出插帧集..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "将插帧集导出为 Python 脚本"
-
-
 msgid "Filter folders"
 msgstr "过滤文件夹"
-
-
-msgid "Filter python"
-msgstr "过滤 Python 文件"
 
 
 msgid "Filter text"
@@ -50096,10 +50048,6 @@ msgstr "过滤视频文件"
 
 msgid "Filter OBJ files"
 msgstr "过滤OBJ文件"
-
-
-msgid "Filter python files"
-msgstr "过滤 Python 文件"
 
 
 msgid "Filter sound files"
@@ -51909,10 +51857,6 @@ msgstr "上一单词"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "控制台执行"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "将当前控制台行作为一则 python 表达式执行"
 
 
 msgctxt "Operator"
@@ -70474,10 +70418,6 @@ msgid "Export Key Configuration..."
 msgstr "导出键配置..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "将键配置导出为 Python 脚本"
-
-
 msgid "All Keymaps"
 msgstr "全部按键功能映射表"
 
@@ -70489,10 +70429,6 @@ msgstr "写入所有键位映射 (不只是用户修改的)"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "导入键配置..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "从 python 脚本文件导入键配置"
 
 
 msgid "Keep Original"
@@ -79557,10 +79493,6 @@ msgid "Operator Enum Pie"
 msgstr "枚举饼菜单操作"
 
 
-msgid "Operator name (in python as string)"
-msgstr "操作项名称(在Python中作为字符串)"
-
-
 msgid "Property name (as a string)"
 msgstr "属性名称(字符串)"
 
@@ -79629,10 +79561,6 @@ msgstr "清除场景预览"
 
 msgid "Trusted Blend Files"
 msgstr "信任的Blend文件"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "为选中文件启用执行Python"
 
 
 msgctxt "Operator"
@@ -79822,10 +79750,6 @@ msgstr "真值或假值的数列"
 
 msgid "A string value"
 msgstr "字符串值"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "直接编辑Python值，用于不受支持的属性类型"
 
 
 msgid "Soft Max"
@@ -85254,10 +85178,6 @@ msgstr "在 UI 中启用新体积节点的可见性"
 
 msgid "Override Templates"
 msgstr "覆写模板"
-
-
-msgid "Enable library override template in the python API"
-msgstr "启用python API 中的库重写模板"
 
 
 msgid "Sculpt Texture Paint"
@@ -94359,10 +94279,6 @@ msgid "Space Console"
 msgstr "空间控制台"
 
 
-msgid "Interactive python console"
-msgstr "Python 控制台交互模式"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "用于显示文本的字体大小"
 
@@ -95976,10 +95892,6 @@ msgstr "到达文件尾猴从头再找"
 
 msgid "Live Edit"
 msgstr "实时编辑"
-
-
-msgid "Run python while editing"
-msgstr "编辑并运行Python"
 
 
 msgid "Match Case"
@@ -106497,10 +106409,6 @@ msgstr "延伸"
 
 msgid "Rotation Range"
 msgstr "旋转范围"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 尚未支持 Python 约束"
 
 
 msgctxt "Operator"
@@ -123874,10 +123782,6 @@ msgid "Midtones"
 msgstr "中间调"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "节点在视图合成器中不受支持"
-
-
 msgid "Upper Left"
 msgstr "左上"
 
@@ -123900,6 +123804,10 @@ msgstr "节点树必须是文件中任意场景的合成节点树"
 
 msgid "Pick"
 msgstr "选取"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "节点在视图合成器中不受支持"
 
 
 msgid "Bokeh Type:"

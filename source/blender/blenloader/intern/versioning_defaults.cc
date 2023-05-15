@@ -50,7 +50,7 @@
 #include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"

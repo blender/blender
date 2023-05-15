@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -9027,10 +9027,6 @@ msgid "Simple Expression"
 msgstr "Простое выражение"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "Скриптовое выражение, которое можно рассчитать без полноценного интерпретатора Python"
-
-
 msgid "Invalid"
 msgstr "Недействительно"
 
@@ -16115,8 +16111,8 @@ msgid "Falloff Curve"
 msgstr "Кривая затухания"
 
 
-msgid "Custom light falloff curve"
-msgstr "Особая кривая ослабления света"
+msgid "Custom falloff curve"
+msgstr "Особая кривая спада"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -16359,10 +16355,6 @@ msgstr "Разделение по углу"
 
 msgid "Angle in screen space below which a stroke is split in two"
 msgstr "Угол в пространстве экрана, меньше которого штрих делится на две части"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "Слой Grease Pencil, назначаемый сгенерированным штрихам"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -17518,14 +17510,6 @@ msgid "Armature layer visibility"
 msgstr "Видимость арматурных слоёв"
 
 
-msgid "Layer Proxy Protection"
-msgstr "Прокси-защита слоёв"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "Защищённые слои в прокси-экземплярах восстанавливаются в прокси-настройки при перезагрузке файлов и отмене"
-
-
 msgid "Pose Position"
 msgstr "Положение позы"
 
@@ -18587,10 +18571,6 @@ msgid "Use Plane Trim"
 msgstr "Усечение по плоскости"
 
 
-msgid "Enable Plane Trim"
-msgstr "Включить усечение по плоскости"
-
-
 msgid "Jitter Pressure"
 msgstr "Разброс от давления"
 
@@ -19343,18 +19323,6 @@ msgstr "Включить режим траектории перемещения 
 
 msgid "Follow"
 msgstr "Следить"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Объекты, перемещающиеся по кривой, будут разворачиваться вдоль траектории движения"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Настройка для деформации по пути или кривой: применять радиус кривой с направлением пути и деформацией"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Настройка для деформации по кривой: растягивать деформированных потомков вдоль всего пути"
 
 
 msgid "Surface Curve"
@@ -21038,6 +21006,10 @@ msgstr "Толщина пикселей для определения перек
 msgctxt "Light"
 msgid "Power"
 msgstr "Мощность"
+
+
+msgid "Custom light falloff curve"
+msgstr "Особая кривая ослабления света"
 
 
 msgid "Falloff Type"
@@ -32327,10 +32299,6 @@ msgid "Center of the hook, used for falloff and display"
 msgstr "Центр крюка; используется для спада и отображения"
 
 
-msgid "Custom falloff curve"
-msgstr "Особая кривая спада"
-
-
 msgid "Vertex Indices"
 msgstr "Индексы вершин"
 
@@ -40113,16 +40081,8 @@ msgid "Export Keying Set..."
 msgstr "Экспортировать набор ключей…"
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Экспортировать ключевой набор в скрипт Python"
-
-
 msgid "Filter folders"
 msgstr "Фильтровать папки"
-
-
-msgid "Filter python"
-msgstr "Фильтровать файлы Python"
 
 
 msgid "Filter text"
@@ -40743,10 +40703,6 @@ msgstr "Фильтровать файлы изображений"
 
 msgid "Filter movie files"
 msgstr "Фильтровать видеофайлы"
-
-
-msgid "Filter python files"
-msgstr "Фильтровать файлы Python"
 
 
 msgid "Filter sound files"
@@ -42253,10 +42209,6 @@ msgstr "Предыдущее слово"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Запустить в консоли"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Выполнить текущую строку консоли как выражение Python"
 
 
 msgctxt "Operator"
@@ -56290,10 +56242,6 @@ msgid "Export Key Configuration..."
 msgstr "Экспортировать конфигурацию клавиш…"
 
 
-msgid "Export key configuration to a python script"
-msgstr "Экспортировать конфигурацию клавиш в скрипт Python"
-
-
 msgid "All Keymaps"
 msgstr "Все списки клавиатурных комбинаций"
 
@@ -56305,10 +56253,6 @@ msgstr "Записать все списки клавиатурных комби
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Импортировать конфигурацию клавиш…"
-
-
-msgid "Import key configuration from a python script"
-msgstr "Импортировать конфигурацию клавиш из скрипта Python"
 
 
 msgid "Keep Original"
@@ -62762,10 +62706,6 @@ msgid "Operator Enum Pie"
 msgstr "Круговое меню операторов в контексте"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Имя оператора (как строка в python)"
-
-
 msgid "Property name (as a string)"
 msgstr "Имя свойства (в виде строки)"
 
@@ -62822,10 +62762,6 @@ msgstr "Удалить предпросмотры сцен"
 
 msgid "Trusted Blend Files"
 msgstr "Надёжные blend-файлы"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Включить исполнение скриптов Python для выбранных файлов"
 
 
 msgctxt "Operator"
@@ -74052,10 +73988,6 @@ msgid "Space Console"
 msgstr "Пространство консоли"
 
 
-msgid "Interactive python console"
-msgstr "Интерактивная консоль Python"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Размер шрифта, используемый для отображения текста"
 
@@ -75346,10 +75278,6 @@ msgstr "Продолжать поиск с начала файла при дос
 
 msgid "Live Edit"
 msgstr "Живое редактирование"
-
-
-msgid "Run python while editing"
-msgstr "Запускать Python во время редактирования"
 
 
 msgid "Match Case"
@@ -81276,10 +81204,6 @@ msgstr "Мин. объём"
 
 msgid "Extrapolate"
 msgstr "Экстраполировать"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 пока не поддерживает python-ограничители"
 
 
 msgctxt "Operator"

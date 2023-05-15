@@ -70,11 +70,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             voxel_amount_socket,
                             storage.resolution_mode ==
                                 VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT);
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             voxel_size_socket,
                             storage.resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE);
 }
@@ -219,7 +219,7 @@ void register_node_type_geo_volume_to_mesh()
   ntype.declare = file_ns::node_declare;
   node_type_storage(
       &ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
-  node_type_size(&ntype, 170, 120, 700);
+  blender::bke::node_type_size(&ntype, 170, 120, 700);
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;

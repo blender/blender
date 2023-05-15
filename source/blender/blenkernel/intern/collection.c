@@ -1944,6 +1944,49 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   }
 }
 
+bool BKE_collection_validate(struct Collection *collection)
+{
+  if (!BLI_listbase_validate(&collection->children)) {
+    return false;
+  }
+  if (!BLI_listbase_validate(&collection->runtime.parents)) {
+    return false;
+  }
+  if (BKE_collection_cycle_find(collection, NULL)) {
+    return false;
+  }
+
+  bool is_ok = true;
+
+  /* Check that children have each collection used/referenced only once. */
+  GSet *processed_collections = BLI_gset_ptr_new(__func__);
+  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, child->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = child->collection;
+    }
+  }
+
+  /* Check that parents have each collection used/referenced only once. */
+  BLI_gset_clear(processed_collections, NULL);
+  for (CollectionParent *parent = collection->runtime.parents.first; parent; parent = parent->next)
+  {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, parent->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = parent->collection;
+    }
+  }
+
+  BLI_gset_free(processed_collections, NULL);
+  return is_ok;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

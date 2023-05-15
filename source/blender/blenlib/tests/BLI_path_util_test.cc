@@ -638,6 +638,15 @@ TEST(path_util, Frame)
     EXPECT_TRUE(ret);
     EXPECT_STREQ(path, "test_-0100");
   }
+
+  /* Ensure very large ranges work. */
+  {
+    char path[FILE_MAX * 2];
+    memset(path, '#', sizeof(path));
+    path[sizeof(path) - 1] = '\0';
+    ret = BLI_path_frame(path, sizeof(path), 123456789, 0);
+    EXPECT_TRUE(BLI_str_endswith(path, "0123456789"));
+  }
 }
 
 /** \} */
@@ -987,7 +996,7 @@ TEST(path_util, FrameCheckChars)
     char path[FILE_MAX]; \
     bool ret; \
     STRNCPY(path, input_path); \
-    ret = BLI_path_frame_range(path, sta, end, digits); \
+    ret = BLI_path_frame_range(path, sizeof(path), sta, end, digits); \
     if (expect_outpath == nullptr) { \
       EXPECT_FALSE(ret); \
     } \

@@ -1617,7 +1617,7 @@ BoidRule *boid_new_rule(int type)
 
   rule->type = type;
   rule->flag |= BOIDRULE_IN_AIR | BOIDRULE_ON_LAND;
-  STRNCPY(rule->name, DATA_(rna_enum_boidrule_type_items[type - 1].name));
+  STRNCPY_UTF8(rule->name, DATA_(rna_enum_boidrule_type_items[type - 1].name));
 
   return rule;
 }

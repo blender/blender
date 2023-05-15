@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -8531,10 +8531,6 @@ msgid "Simple Expression"
 msgstr "Простий Вираз"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "Скриптований вираз може бути обчислений без повного інтерпретатора Python"
-
-
 msgid "Invalid"
 msgstr "Хибно"
 
@@ -15513,8 +15509,8 @@ msgid "Falloff Curve"
 msgstr "Крива спаду"
 
 
-msgid "Custom light falloff curve"
-msgstr "Власна крива спаду освітлення"
+msgid "Custom falloff curve"
+msgstr "Власна крива спаду"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -16606,14 +16602,6 @@ msgstr "Видимі шари"
 
 msgid "Armature layer visibility"
 msgstr "Видимість шару арматури"
-
-
-msgid "Layer Proxy Protection"
-msgstr "Захист замісника шару"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "Захищені шари у примірниках замісника відновлюються до параметрів замісника при перезавантаженні файлу та скасуванні"
 
 
 msgid "Pose Position"
@@ -18144,10 +18132,6 @@ msgid "Use Plane Trim"
 msgstr "Вжити підріз по площині"
 
 
-msgid "Enable Plane Trim"
-msgstr "Увімкнути відсікання по площині"
-
-
 msgid "Keep Anchor Point"
 msgstr "Утримати Точку Кріплення"
 
@@ -19078,18 +19062,6 @@ msgstr "Увімкнути для кривої режим шляху перем�
 
 msgid "Follow"
 msgstr "Слідувати"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Зробити, щоб нащадки шляху повернулись навколо нього"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Опція для шляхів та деформації за кривою: застосовувати радіус кривої з напрямом шляху та деформації деформації"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Опція для деформації за кривою: деформований нащадок буде розтягнутий уздовж всього шляху"
 
 
 msgid "Surface Curve"
@@ -20896,6 +20868,10 @@ msgstr "Товщина у пікселях, використовувана дл�
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Енергія світла, емітована на всю область освітлювача у всіх напрямках"
+
+
+msgid "Custom light falloff curve"
+msgstr "Власна крива спаду освітлення"
 
 
 msgid "Falloff Type"
@@ -22898,10 +22874,6 @@ msgid "Shape Key Lock"
 msgstr "Зафіксувати ключ форми"
 
 
-msgid "Always show the current shape for this object"
-msgstr "Завжди показувати поточну форму для цього об'єкта"
-
-
 msgid "Display Texture Space"
 msgstr "Показ Простору Текстур"
 
@@ -24219,10 +24191,6 @@ msgstr "Устави Eevee для сцени"
 
 msgid "Current Frame"
 msgstr "Поточний кадр"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "Поточний кадр, для оновлення даних анімації з python frame_set() натомість"
 
 
 msgid "Current Frame Final"
@@ -32948,10 +32916,6 @@ msgstr "Модифікатор Гачок для зміни розташуван
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "Центра гачка, вживається для спаду та показу"
-
-
-msgid "Custom falloff curve"
-msgstr "Власна крива спаду"
 
 
 msgid "Vertex Indices"
@@ -41921,16 +41885,8 @@ msgid "Export Keying Set..."
 msgstr "Експорт набору ключів ..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Експортувати набір ключів до сценарію Python"
-
-
 msgid "Filter folders"
 msgstr "Фільтрувати теки"
-
-
-msgid "Filter python"
-msgstr "Фільтрувати Python"
 
 
 msgid "Filter text"
@@ -42604,10 +42560,6 @@ msgstr "Фільтрувати файли зображень"
 
 msgid "Filter movie files"
 msgstr "Фільтрувати відеофайли"
-
-
-msgid "Filter python files"
-msgstr "Фільтрувати файли Python"
 
 
 msgid "Filter sound files"
@@ -44252,10 +44204,6 @@ msgstr "Попереднє слово"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Виконати в консолі"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Виконати поточний рядок консолі як вираз Python"
 
 
 msgctxt "Operator"
@@ -60405,10 +60353,6 @@ msgid "Export Key Configuration..."
 msgstr "Експорт конфігурації клавіш..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Експортувати конфігурацію клавіш до скрипту на Python"
-
-
 msgid "All Keymaps"
 msgstr "Всі розкладки"
 
@@ -60420,10 +60364,6 @@ msgstr "Записати усі розкладки клавіш (а не тіл�
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Імпорт конфігурації клавіш..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Імпортувати конфігурацію клавіш зі скрипту на Python"
 
 
 msgid "Keep Original"
@@ -68236,10 +68176,6 @@ msgid "Operator Enum Pie"
 msgstr "Кругове меню операторів"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Назва оператора (як рядок в Python)"
-
-
 msgid "Property name (as a string)"
 msgstr "Назва властивості (як рядок)"
 
@@ -68300,10 +68236,6 @@ msgstr "Зчистити передогляди сцен"
 
 msgid "Trusted Blend Files"
 msgstr "Надійні Blend-файли"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Вмикає обчислення модулем Python вибраних файлів"
 
 
 msgctxt "Operator"
@@ -80675,10 +80607,6 @@ msgid "Space Console"
 msgstr "Простір консолі"
 
 
-msgid "Interactive python console"
-msgstr "Інтерактивна консоль Python"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Розмір шрифту, який використовується для виведення тексту"
 
@@ -82034,10 +81962,6 @@ msgstr "Шукати ще раз від початку файлу, коли до
 
 msgid "Live Edit"
 msgstr "Живе редагування"
-
-
-msgid "Run python while editing"
-msgstr "Виконувати Python при редагуванні"
 
 
 msgid "Match Case"
@@ -89209,10 +89133,6 @@ msgstr "Екстраполювання"
 
 msgid "Rotation Range"
 msgstr "Діапазон Обертання"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 ще не підтримує примуси python"
 
 
 msgctxt "Operator"

@@ -110,16 +110,18 @@ static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
-  nodeSetSocketAvailability(ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
-  nodeSetSocketAvailability(ntree,
-                            inOffsetSock,
-                            storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
-                                storage.musgrave_type != SHD_MUSGRAVE_FBM);
-  nodeSetSocketAvailability(ntree,
-                            inGainSock,
-                            storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
-                                storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+  bke::nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
+  bke::nodeSetSocketAvailability(
+      ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
+  bke::nodeSetSocketAvailability(ntree,
+                                          inOffsetSock,
+                                          storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                              storage.musgrave_type != SHD_MUSGRAVE_FBM);
+  bke::nodeSetSocketAvailability(
+      ntree,
+      inGainSock,
+      storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+          storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
   bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
   node_sock_label(outFacSock, "Height");
@@ -536,7 +538,7 @@ void register_node_type_sh_tex_musgrave()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_musgrave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_musgrave;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_musgrave;
   node_type_storage(
       &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);

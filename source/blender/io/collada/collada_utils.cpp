@@ -42,7 +42,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -1114,7 +1114,7 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 static bNodeTree *prepare_material_nodetree(Material *ma)
 {
   if (ma->nodetree == nullptr) {
-    ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
+    blender::bke::ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
     ma->use_nodes = true;
   }
   return ma->nodetree;

@@ -81,26 +81,27 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Color")) {
-      nodeSetSocketAvailability(ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
+      bke::nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
     }
     else if (STREQ(sock->name, "Melanin")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Melanin Redness")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Tint")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Absorption Coefficient")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
     }
     else if (STREQ(sock->name, "Random Color")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
   }
@@ -129,7 +130,7 @@ void register_node_type_sh_bsdf_hair_principled()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.initfunc = file_ns::node_shader_init_hair_principled;
   ntype.updatefunc = file_ns::node_shader_update_hair_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_hair_principled;

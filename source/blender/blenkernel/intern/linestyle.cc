@@ -33,7 +33,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_texture.h"
 
@@ -2038,7 +2038,8 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 
   BLI_assert(linestyle->nodetree == nullptr);
 
-  ntree = ntreeAddTreeEmbedded(nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
+  ntree = blender::bke::ntreeAddTreeEmbedded(
+      nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
   uv_along_stroke = nodeAddStaticNode(C, ntree, SH_NODE_UVALONGSTROKE);
   uv_along_stroke->locx = 0.0f;

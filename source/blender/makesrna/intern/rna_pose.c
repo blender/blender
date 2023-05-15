@@ -1512,6 +1512,12 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Num Steps", "Divide the frame interval into this many steps");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
+  prop = RNA_def_property(srna, "translate_root_bones", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_TRANSLATE_ROOT_BONES);
+  RNA_def_property_ui_text(
+      prop, "Translate Roots", "Translate root (i.e. parentless) bones to the armature origin");
+  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
+
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, prop_itasc_mode_items);

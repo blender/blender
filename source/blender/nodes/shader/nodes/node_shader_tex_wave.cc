@@ -221,7 +221,7 @@ void register_node_type_sh_tex_wave()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_wave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_wave;
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;

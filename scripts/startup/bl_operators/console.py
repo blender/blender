@@ -16,7 +16,7 @@ def _lang_module_get(sc):
 
 
 class ConsoleExec(Operator):
-    """Execute the current console line as a python expression"""
+    """Execute the current console line as a Python expression"""
     bl_idname = "console.execute"
     bl_label = "Console Execute"
     bl_options = {'UNDO_GROUPED'}

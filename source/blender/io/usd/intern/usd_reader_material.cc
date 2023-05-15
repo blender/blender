@@ -10,7 +10,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 
 #include "BLI_fileops.h"
@@ -374,7 +374,7 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
    * and output shaders. */
 
   /* Add the node tree. */
-  bNodeTree *ntree = ntreeAddTreeEmbedded(nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
+  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
   mtl->use_nodes = true;
 
   /* Create the Principled BSDF shader node. */

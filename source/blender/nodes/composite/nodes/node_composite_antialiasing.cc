@@ -106,7 +106,7 @@ void register_node_type_cmp_antialiasing()
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_antialiasing;
   ntype.flag |= NODE_PREVIEW;
-  node_type_size(&ntype, 170, 140, 200);
+  blender::bke::node_type_size(&ntype, 170, 140, 200);
   ntype.initfunc = file_ns::node_composit_init_antialiasing;
   node_type_storage(
       &ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
