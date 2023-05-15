@@ -29,7 +29,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
@@ -128,8 +128,8 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
   /* replace muted nodes and reroute nodes by internal links */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &localtree->nodes) {
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      nodeInternalRelink(localtree, node);
-      ntreeFreeLocalNode(localtree, node);
+      blender::bke::nodeInternalRelink(localtree, node);
+      blender::bke::ntreeFreeLocalNode(localtree, node);
     }
   }
 }
@@ -154,7 +154,7 @@ static bool shader_validate_link(eNodeSocketDatatype from, eNodeSocketDatatype t
 static bool shader_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
                                                bNodeSocketType *socket_type)
 {
-  return nodeIsStaticSocketType(socket_type) &&
+  return blender::bke::nodeIsStaticSocketType(socket_type) &&
          ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
 }
 
@@ -505,7 +505,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
 
   while (group_interface_nodes) {
     bNode *node = static_cast<bNode *>(BLI_linklist_pop(&group_interface_nodes));
-    ntreeFreeLocalNode(ntree, node);
+    blender::bke::ntreeFreeLocalNode(ntree, node);
   }
 
   BKE_ntree_update_tag_all(ntree);
@@ -525,8 +525,8 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
       node_next = node->next;
       /* delete the group instance and its localtree. */
       bNodeTree *ngroup = (bNodeTree *)node->id;
-      ntreeFreeLocalNode(localtree, node);
-      ntreeFreeTree(ngroup);
+      blender::bke::ntreeFreeLocalNode(localtree, node);
+      blender::bke::ntreeFreeTree(ngroup);
       BLI_assert(!ngroup->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
       MEM_freeN(ngroup);
     }
@@ -578,7 +578,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   branchIterData iter_data;
   iter_data.node_filter = node_filter;
   iter_data.node_count = 1;
-  nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
+  blender::bke::nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
   /* Make a full copy of the branch */
   Array<bNode *> nodes_copy(iter_data.node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -721,7 +721,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   /* Tag nodes from the weight tree. Only tag output node and mix/add shader nodes. */
   output_node->runtime->tmp_flag = 0;
   int node_count = 1;
-  nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
+  blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
   /* Make a mirror copy of the weight tree. */
   Array<bNode *> nodes_copy(node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -984,7 +984,7 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   /* First gather the shader_to_rgba nodes linked to the output. This is separate to avoid
    * conflicting usage of the `node->runtime->tmp_flag`. */
   Vector<bNode *> shader_to_rgba_nodes;
-  nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
+  blender::bke::nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
 
   for (bNode *shader_to_rgba : shader_to_rgba_nodes) {
     bNodeSocket *closure_input = ntree_shader_node_input_get(shader_to_rgba, 0);
@@ -1115,18 +1115,18 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   /* Avoid deleting the output node if it is the only node in the tree. */
   output_node->runtime->tmp_flag = 1;
 
-  nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+  blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
       node->runtime->tmp_flag = 1;
-      nodeChainIterBackwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
+      blender::bke::nodeChainIterBackwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
     }
   }
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (node->runtime->tmp_flag == 0) {
-      ntreeFreeLocalNode(ntree, node);
+      blender::bke::ntreeFreeLocalNode(ntree, node);
       changed = true;
     }
   }

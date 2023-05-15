@@ -123,19 +123,19 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const bool radius_mode = (mode == GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS);
   const bool points_mode = (mode == GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS);
 
-  nodeSetSocketAvailability(ntree, start_socket, points_mode);
-  nodeSetSocketAvailability(ntree, middle_socket, points_mode);
-  nodeSetSocketAvailability(ntree, end_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, start_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, middle_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, end_socket, points_mode);
 
-  nodeSetSocketAvailability(ntree, radius_socket, radius_mode);
-  nodeSetSocketAvailability(ntree, start_angle_socket, radius_mode);
-  nodeSetSocketAvailability(ntree, sweep_angle_socket, radius_mode);
+  bke::nodeSetSocketAvailability(ntree, radius_socket, radius_mode);
+  bke::nodeSetSocketAvailability(ntree, start_angle_socket, radius_mode);
+  bke::nodeSetSocketAvailability(ntree, sweep_angle_socket, radius_mode);
 
-  nodeSetSocketAvailability(ntree, offset_angle_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, offset_angle_socket, points_mode);
 
-  nodeSetSocketAvailability(ntree, center_out_socket, points_mode);
-  nodeSetSocketAvailability(ntree, normal_out_socket, points_mode);
-  nodeSetSocketAvailability(ntree, radius_out_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, center_out_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, normal_out_socket, points_mode);
+  bke::nodeSetSocketAvailability(ntree, radius_out_socket, points_mode);
 }
 
 static float3 rotate_vector_around_axis(const float3 vector, const float3 axis, const float angle)

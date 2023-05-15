@@ -116,16 +116,16 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
   bool use_vector_factor = data_type == SOCK_VECTOR &&
                            storage.factor_mode != NODE_MIX_MODE_UNIFORM;
 
-  nodeSetSocketAvailability(ntree, sock_factor, !use_vector_factor);
+  bke::nodeSetSocketAvailability(ntree, sock_factor, !use_vector_factor);
 
-  nodeSetSocketAvailability(ntree, sock_factor_vec, use_vector_factor);
+  bke::nodeSetSocketAvailability(ntree, sock_factor_vec, use_vector_factor);
 
   for (bNodeSocket *socket = sock_factor_vec->next; socket != nullptr; socket = socket->next) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
+    bke::nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
+    bke::nodeSetSocketAvailability(ntree, socket, socket->type == data_type);
   }
 }
 

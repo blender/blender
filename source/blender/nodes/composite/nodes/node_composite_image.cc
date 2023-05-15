@@ -375,7 +375,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
     sock_next = sock->next;
     if (BLI_linklist_index(available_sockets.list, sock) >= 0) {
       sock->flag &= ~SOCK_HIDDEN;
-      nodeSetSocketAvailability(ntree, sock, true);
+      blender::bke::nodeSetSocketAvailability(ntree, sock, true);
     }
     else {
       bNodeLink *link;
@@ -389,7 +389,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
         nodeRemoveSocket(ntree, node, sock);
       }
       else {
-        nodeSetSocketAvailability(ntree, sock, false);
+        blender::bke::nodeSetSocketAvailability(ntree, sock, false);
       }
     }
   }
@@ -918,7 +918,7 @@ void register_node_type_cmp_rlayers()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
+  blender::bke::node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
   ntype.draw_buttons = file_ns::node_composit_buts_viewlayers;
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
@@ -930,7 +930,7 @@ void register_node_type_cmp_rlayers()
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
   ntype.updatefunc = file_ns::cmp_node_rlayers_update;
   ntype.initfunc = node_cmp_rlayers_outputs;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
 
   nodeRegisterType(&ntype);
 }

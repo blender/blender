@@ -45,6 +45,6 @@ void register_node_type_geo_image()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   nodeRegisterType(&ntype);
 }

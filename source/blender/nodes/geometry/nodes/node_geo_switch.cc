@@ -90,18 +90,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const bool fields_type = ELEM(
       storage.input_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING);
 
-  nodeSetSocketAvailability(ntree, field_switch, fields_type);
-  nodeSetSocketAvailability(ntree, non_field_switch, !fields_type);
+  bke::nodeSetSocketAvailability(ntree, field_switch, fields_type);
+  bke::nodeSetSocketAvailability(ntree, non_field_switch, !fields_type);
 
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
     if (index <= 1) {
       continue;
     }
-    nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
+    bke::nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
+    bke::nodeSetSocketAvailability(ntree, socket, socket->type == storage.input_type);
   }
 }
 

@@ -5,7 +5,7 @@
 
 #include "DNA_node_types.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "COM_NodeOperationBuilder.h"
 
@@ -130,7 +130,7 @@ Node *COM_convert_bnode(bNode *b_node)
   Node *node = nullptr;
 
   /* ignore undefined nodes with missing or invalid node data */
-  if (nodeTypeUndefined(b_node)) {
+  if (blender::bke::node_type_is_undefined(b_node)) {
     return nullptr;
   }
 

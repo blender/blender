@@ -435,7 +435,7 @@ void register_node_type_geo_image_texture()
   ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeGeometryImageTexture", node_free_standard_storage, node_copy_standard_storage);
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);

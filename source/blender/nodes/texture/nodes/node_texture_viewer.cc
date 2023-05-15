@@ -37,7 +37,7 @@ void register_node_type_tex_viewer(void)
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT);
-  node_type_socket_templates(&ntype, inputs, nullptr);
+  blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
   ntype.exec_fn = exec;
 
   ntype.no_muting = true;

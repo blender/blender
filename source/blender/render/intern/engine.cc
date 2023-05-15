@@ -26,7 +26,7 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 

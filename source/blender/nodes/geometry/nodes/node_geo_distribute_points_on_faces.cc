@@ -78,14 +78,14 @@ static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode
   bNodeSocket *sock_density_max = static_cast<bNodeSocket *>(sock_distance_min->next);
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sock_distance_min,
                             node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sock_density_max, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sock_density, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sock_density_factor,
                             node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
 }
@@ -593,7 +593,7 @@ void register_node_type_geo_distribute_points_on_faces()
                      "Distribute Points on Faces",
                      NODE_CLASS_GEOMETRY);
   ntype.updatefunc = file_ns::node_point_distribute_points_on_faces_update;
-  node_type_size(&ntype, 170, 100, 320);
+  blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;

@@ -59,11 +59,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_color4f = in_socket_vector->next;
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
@@ -71,11 +71,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -237,7 +237,7 @@ void register_node_type_geo_sample_nearest_surface()
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

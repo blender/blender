@@ -100,7 +100,7 @@ void register_node_type_geo_mean_filter_sdf_volume()
 
   geo_node_type_base(
       &ntype, GEO_NODE_MEAN_FILTER_SDF_VOLUME, "Mean Filter SDF Volume", NODE_CLASS_GEOMETRY);
-  node_type_size(&ntype, 160, 120, 700);
+  blender::bke::node_type_size(&ntype, 160, 120, 700);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;

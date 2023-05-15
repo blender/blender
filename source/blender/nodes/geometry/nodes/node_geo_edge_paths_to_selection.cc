@@ -141,7 +141,7 @@ void register_node_type_geo_edge_paths_to_selection()
   geo_node_type_base(
       &ntype, GEO_NODE_EDGE_PATHS_TO_SELECTION, "Edge Paths to Selection", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 150, 100, 300);
+  blender::bke::node_type_size(&ntype, 150, 100, 300);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

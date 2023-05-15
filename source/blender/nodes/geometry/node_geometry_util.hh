@@ -13,7 +13,7 @@
 
 #include "DNA_node_types.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BLT_translation.h"
 

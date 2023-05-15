@@ -109,21 +109,21 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_out_total_float = sock_out_total_vector->next;
   bNodeSocket *sock_out_total_int = sock_out_total_float->next;
 
-  nodeSetSocketAvailability(ntree, sock_in_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, sock_in_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, sock_in_int, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, sock_in_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, sock_in_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, sock_in_int, data_type == CD_PROP_INT32);
 
-  nodeSetSocketAvailability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, sock_out_int, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, sock_out_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, sock_out_int, data_type == CD_PROP_INT32);
 
-  nodeSetSocketAvailability(ntree, sock_out_first_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, sock_out_first_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, sock_out_first_int, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, sock_out_first_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, sock_out_first_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, sock_out_first_int, data_type == CD_PROP_INT32);
 
-  nodeSetSocketAvailability(ntree, sock_out_total_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, sock_out_total_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, sock_out_total_int, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, sock_out_total_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, sock_out_total_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, sock_out_total_int, data_type == CD_PROP_INT32);
 }
 
 enum class AccumulationMode { Leading = 0, Trailing = 1 };

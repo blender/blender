@@ -15,7 +15,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
@@ -540,7 +540,7 @@ class NodeTreeMainUpdater {
   void update_individual_nodes(bNodeTree &ntree)
   {
     for (bNode *node : ntree.all_nodes()) {
-      nodeDeclarationEnsure(&ntree, node);
+      blender::bke::nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
         bNodeType &ntype = *node->typeinfo;
         if (ntype.group_update_func) {
@@ -701,7 +701,7 @@ class NodeTreeMainUpdater {
     if ((ntree.runtime->changed_flag & allowed_flags) == ntree.runtime->changed_flag) {
       return;
     }
-    BKE_node_preview_remove_unused(&ntree);
+    blender::bke::node_preview_remove_unused(&ntree);
   }
 
   void propagate_runtime_flags(const bNodeTree &ntree)

@@ -42,7 +42,7 @@ void register_node_type_sh_hue_sat()
 
   sh_node_type_base(&ntype, SH_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.gpu_fn = file_ns::gpu_shader_hue_sat;
 
   nodeRegisterType(&ntype);

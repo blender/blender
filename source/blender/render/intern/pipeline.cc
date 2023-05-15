@@ -52,7 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
