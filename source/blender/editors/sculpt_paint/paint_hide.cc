@@ -386,6 +386,11 @@ static int hide_show_exec(bContext *C, wmOperator *op)
     BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
   }
 
+  RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, rv3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
   ED_region_tag_redraw(region);
 
