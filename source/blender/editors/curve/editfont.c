@@ -1924,7 +1924,8 @@ static int font_select_word_exec(bContext *C, wmOperator *UNUSED(op))
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
 
-  BLI_str_cursor_step_bounds_utf32(ef->textbuf, ef->len, &ef->pos, &ef->selstart, &ef->selend);
+  BLI_str_cursor_step_bounds_utf32(ef->textbuf, ef->len, ef->pos, &ef->selstart, &ef->selend);
+  ef->pos = ef->selend;
 
   /* XXX: Text object selection start is 1-based, unlike text processing elsewhere in Blender. */
   ef->selstart += 1;

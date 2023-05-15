@@ -3730,10 +3730,9 @@ static void ui_do_but_textedit(
 
       /* only select a word in button if there was no selection before */
       if (event->val == KM_DBL_CLICK && had_selection == false) {
-        int pos = (int)but->pos;
         int selsta, selend;
-        BLI_str_cursor_step_bounds_utf8(data->str, strlen(data->str), &pos, &selsta, &selend);
-        but->pos = (short)pos;
+        BLI_str_cursor_step_bounds_utf8(data->str, strlen(data->str), but->pos, &selsta, &selend);
+        but->pos = (short)selend;
         but->selsta = (short)selsta;
         but->selend = (short)selend;
         retval = WM_UI_HANDLER_BREAK;

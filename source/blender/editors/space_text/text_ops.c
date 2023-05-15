@@ -1580,7 +1580,7 @@ static int text_select_word_exec(bContext *C, wmOperator *UNUSED(op))
   Text *text = CTX_data_edit_text(C);
 
   BLI_str_cursor_step_bounds_utf8(
-      text->curl->line, text->curl->len, &text->selc, &text->curc, &text->selc);
+      text->curl->line, text->curl->len, text->selc, &text->curc, &text->selc);
 
   text_update_cursor_moved(C);
   text_select_update_primary_clipboard(text);
