@@ -441,6 +441,8 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(std::string sourc
   shader_creator_ = GPUShaderCreator::Create();
   auto ocio_shader_creator = std::static_pointer_cast<OCIO::GpuShaderCreator>(shader_creator_);
   gpu_processor->extractGpuShaderInfo(ocio_shader_creator);
+#else
+  UNUSED_VARS(source, target);
 #endif
 }
 
