@@ -4020,6 +4020,10 @@ static void sculpt_topology_update(Sculpt *sd,
     }
   }
 
+  if (dyntopo_mode & DYNTOPO_CLEANUP) {
+    mode |= PBVH_Cleanup;
+  }
+
   /* Force both subdivide and collapse for simplify brush. */
   // XXX done with inherit flags now
   if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {

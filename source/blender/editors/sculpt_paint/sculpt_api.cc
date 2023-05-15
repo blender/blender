@@ -204,7 +204,9 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         ret |= (!e->l || e->l == e->l->radial_next) ? SCULPT_BOUNDARY_MESH : 0;
       }
 
-      if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next) {
+      if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next &&
+          ss->cd_faceset_offset != -1)
+      {
         if (ss->boundary_symmetry) {
           // TODO: calc and cache this properly
 
@@ -217,11 +219,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
           int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
           int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, ss->cd_faceset_offset);
 
-          bool ok = (fset1 < 0) != (fset2 < 0);
-
-          ok = ok || fset1 != fset2;
-
-          ret |= ok ? SCULPT_BOUNDARY_FACE_SET : 0;
+          ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
         }
       }
 
@@ -243,14 +241,35 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
       break;
     }
     case PBVH_FACES: {
-      eSculptBoundary mask = typemask & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET);
-      PBVHVertRef v1, v2;
+      eSculptBoundary epmap_mask = typemask & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET);
 
-      SCULPT_edge_get_verts(ss, edge, &v1, &v2);
+      /* Some boundary types require an edge->poly map to be fully accurate. */
+      if (epmap_mask && ss->epmap) {
+        if (epmap_mask & SCULPT_BOUNDARY_FACE_SET) {
+          MeshElemMap *polys = &ss->epmap[edge.i];
+          int fset = -1;
 
-      if (mask) {  // use less accurate approximation for now
-        eSculptBoundary a = SCULPT_vertex_is_boundary(ss, v1, mask);
-        eSculptBoundary b = SCULPT_vertex_is_boundary(ss, v2, mask);
+          for (int i : IndexRange(polys->count)) {
+            if (fset == -1) {
+              fset = ss->face_sets[polys->indices[i]];
+            }
+            else if (ss->face_sets[polys->indices[i]] != fset) {
+              ret |= SCULPT_BOUNDARY_FACE_SET;
+              break;
+            }
+          }
+        }
+        if (epmap_mask & SCULPT_BOUNDARY_MESH) {
+          ret |= ss->epmap[edge.i].count == 1 ? SCULPT_BOUNDARY_MESH : 0;
+        }
+      }
+      else if (epmap_mask)
+      { /* No edge->poly map; approximate from vertices (will give artifacts on corners). */
+        PBVHVertRef v1, v2;
+
+        SCULPT_edge_get_verts(ss, edge, &v1, &v2);
+        eSculptBoundary a = SCULPT_vertex_is_boundary(ss, v1, epmap_mask);
+        eSculptBoundary b = SCULPT_vertex_is_boundary(ss, v2, epmap_mask);
 
         ret |= a & b;
       }
@@ -628,7 +647,8 @@ void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *bru
   ds_final->repeat = ds_final->inherit & DYNTOPO_INHERIT_REPEAT ? ds2->repeat : ds1->repeat;
 }
 
-bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face) {
+bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face)
+{
   if (ss->bm) {
     BMFace *f = reinterpret_cast<BMFace *>(face.i);
     return BM_elem_flag_test(f, BM_ELEM_HIDDEN);

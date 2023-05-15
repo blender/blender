@@ -260,12 +260,27 @@ void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
   BMEdge *e = v->e;
   bm_logstack_push();
 
-  if (log_edges) {
-    if (e) {
-      do {
-        BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
-      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-    }
+  if (e && log_edges) {
+    do {
+      BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+  }
+
+  /* Release IDs. */
+  if (e) {
+    do {
+      BMLoop *l = e->l;
+      if (l) {
+        do {
+          int id = BM_idmap_get_id(pbvh->bm_idmap, reinterpret_cast<BMElem *>(l->f));
+          if (id != BM_ID_NONE) {
+            BM_idmap_release(pbvh->bm_idmap, (BMElem *)l->f, true);
+          }
+        } while ((l = l->radial_next) != e->l);
+      }
+
+      BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
   }
 
   if (log_vert) {

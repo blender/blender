@@ -929,6 +929,13 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             sub,
             context,
             brush,
+            "cleanup"
+        )
+
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
             "mode",
             expand=True
         )

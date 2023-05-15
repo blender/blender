@@ -224,9 +224,7 @@ struct EdgeQueueContext {
 
   int max_heap_mm;
   // TableGSet *used_verts;
-  BMVert **used_verts = nullptr;
-  int used_verts_size;
-  int tot_used_verts;
+  blender::Vector<BMVert *> used_verts;
 
   float view_normal[3];
   bool use_view_normal;

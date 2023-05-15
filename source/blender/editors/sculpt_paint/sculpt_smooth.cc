@@ -129,6 +129,9 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
       ss, result, vertex, projection, use_area_weights, bound_type, corner_type);
 }
 
+/* Compares four vectors seperated by 90 degrees around normal and picks the one closest
+ * to perpindicular to dir. Used for building a cross field.
+ */
 int closest_vec_to_perp(float dir[3], float r_dir2[3], float no[3], float *buckets, float w)
 {
   int bits = 0;
@@ -197,7 +200,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   // zero_v3(direction);
 
-  float *col = BM_ELEM_CD_PTR<float *>(v, cd_temp);
+  float *field = BM_ELEM_CD_PTR<float *>(v, cd_temp);
   float dir[3];
   float dir3[3] = {0.0f, 0.0f, 0.0f};
 
@@ -210,7 +213,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float *origno = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_no->bmesh_cd_offset);
 
   if (do_origco) {
-    // SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)v});
     madd_v3_v3fl(direction, origno, -dot_v3v3(origno, direction));
     normalize_v3(direction);
   }
@@ -237,7 +239,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     }
   }
 
-  copy_v3_v3(dir, col);
+  /* Build final direction from input direction and the cross field. */
+  copy_v3_v3(dir, field);
 
   if (dot_v3v3(dir, dir) == 0.0f) {
     copy_v3_v3(dir, direction);
@@ -263,7 +266,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     PBVHVertRef vertex_other = {reinterpret_cast<intptr_t>(v_other)};
 
     float dir2[3];
-    float *col2 = BM_ELEM_CD_PTR<float *>(v_other, cd_temp);
+    float *field2 = BM_ELEM_CD_PTR<float *>(v_other, cd_temp);
 
     float bucketw = 1.0f;
 
@@ -284,6 +287,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     int bound = SCULPT_edge_is_boundary(ss, BKE_pbvh_make_eref(intptr_t(e)), bflag);
     float dirw = 1.0f;
 
+    /* Add to cross field. */
     if (bound) {
       had_bound = true;
 
@@ -293,15 +297,15 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       dirw = 100000.0f;
     }
     else {
-      dirw = col2[3];
+      dirw = field2[3];
 
-      copy_v3_v3(dir2, col2);
+      copy_v3_v3(dir2, field2);
       if (dot_v3v3(dir2, dir2) == 0.0f) {
         copy_v3_v3(dir2, dir);
       }
     }
 
-    closest_vec_to_perp(dir, dir2, no1, buckets, bucketw);  // col2[3]);
+    closest_vec_to_perp(dir, dir2, no1, buckets, bucketw);  // field2[3]);
 
     madd_v3_v3fl(dir3, dir2, dirw);
     totdir3 += dirw;
@@ -360,16 +364,16 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     // mul_v3_fl(dir3, 1.0 / totdir3);
     normalize_v3(dir3);
     if (had_bound) {
-      copy_v3_v3(col, dir3);
-      col[3] = 1000.0f;
+      copy_v3_v3(field, dir3);
+      field[3] = 1000.0f;
     }
     else {
 
-      mul_v3_fl(col, col[3]);
-      madd_v3_v3fl(col, dir3, outdir);
+      mul_v3_fl(field, field[3]);
+      madd_v3_v3fl(field, dir3, outdir);
 
-      col[3] = (col[3] + outdir) * 0.4;
-      normalize_v3(col);
+      field[3] = (field[3] + outdir) * 0.4;
+      normalize_v3(field);
     }
 
     float maxb = 0.0f;
@@ -381,7 +385,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       }
     }
 
-    vec_transform(col, no1, bi);
+    vec_transform(field, no1, bi);
   }
 }
 
@@ -569,11 +573,14 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   float projection = brush->autosmooth_projection;
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  bool modified = false;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    modified = true;
 
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
@@ -627,6 +634,10 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (modified) {
+    BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
 }
 
 void SCULPT_smooth(

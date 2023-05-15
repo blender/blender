@@ -2823,9 +2823,9 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *>
 /** \name Sculpt Topology Rake (Shared Utility)
  * \{ */
 
-ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
-                                                          const int n,
-                                                          const TaskParallelTLS *__restrict tls)
+static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+                                              const int n,
+                                              const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
@@ -2864,6 +2864,8 @@ ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userd
   }
 
   PBVHVertexIter vd;
+  bool modified = false;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float direction2[3];
 
@@ -2882,6 +2884,8 @@ ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userd
       continue;
     }
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
+    modified = true;
 
     const float fade = bstrength *
                        SCULPT_brush_strength_factor(ss,
@@ -2921,6 +2925,10 @@ ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userd
     }
   }
   BKE_pbvh_vertex_iter_end;
+
+  if (modified) {
+    BKE_pbvh_node_mark_update(data->nodes[n]);
+  }
 }
 
 void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength)

@@ -4138,7 +4138,7 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
         }
 
         if (j >= valence) {
-          printf("%s: error, corrupt edge cycle\n", __func__);
+          printf("%s: error, corrupt edge cycle, valence was %d expected %d\n", __func__, j, valence);
           break;
         }
 
