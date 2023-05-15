@@ -6636,7 +6636,8 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
     case LAYER_ROUGHNESS:
     case LAYER_METALLIC: {
       bNodeTree *ntree = nullptr;
-      bNode *in_node = ma ? blender::bke::ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED) : nullptr;
+      bNode *in_node = ma ? blender::bke::ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED) :
+                            nullptr;
       if (!in_node) {
         /* An existing material or Principled BSDF node could not be found.
          * Copy default color values from a default Principled BSDF instead. */

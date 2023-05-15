@@ -185,13 +185,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
   bke::nodeSetSocketAvailability(ntree,
-                            voxel_amount_socket,
-                            storage.resolution_mode ==
-                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
+                                 voxel_amount_socket,
+                                 storage.resolution_mode ==
+                                     GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
   bke::nodeSetSocketAvailability(ntree,
-                            voxel_size_socket,
-                            storage.resolution_mode ==
-                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
+                                 voxel_size_socket,
+                                 storage.resolution_mode ==
+                                     GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

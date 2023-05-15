@@ -78,8 +78,7 @@ static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
 
   const NodeTexNoise &storage = node_storage(*node);
   bke::nodeSetSocketAvailability(ntree, sockVector, storage.dimensions != 1);
-  bke::nodeSetSocketAvailability(
-      ntree, sockW, storage.dimensions == 1 || storage.dimensions == 4);
+  bke::nodeSetSocketAvailability(ntree, sockW, storage.dimensions == 1 || storage.dimensions == 4);
 }
 
 class NoiseFunction : public mf::MultiFunction {

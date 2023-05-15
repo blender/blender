@@ -738,8 +738,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
         continue;
       }
       const Span<const bNodeLink *> links = bsocket->directly_linked_links();
-      if (links.is_empty() || bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode))
-      {
+      if (links.is_empty() ||
+          bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
         use_field_input_ = false;
         inputs_.pop_last();
         r_lf_index_by_bsocket[bsocket->index_in_tree()] = -1;

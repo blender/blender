@@ -114,14 +114,13 @@ static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
   bke::nodeSetSocketAvailability(
       ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
   bke::nodeSetSocketAvailability(ntree,
-                                          inOffsetSock,
-                                          storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
-                                              storage.musgrave_type != SHD_MUSGRAVE_FBM);
-  bke::nodeSetSocketAvailability(
-      ntree,
-      inGainSock,
-      storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
-          storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+                                 inOffsetSock,
+                                 storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                     storage.musgrave_type != SHD_MUSGRAVE_FBM);
+  bke::nodeSetSocketAvailability(ntree,
+                                 inGainSock,
+                                 storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+                                     storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
   bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
   node_sock_label(outFacSock, "Height");

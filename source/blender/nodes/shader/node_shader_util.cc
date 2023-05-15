@@ -292,7 +292,7 @@ bNode *nodeGetActivePaintCanvas(bNodeTree *ntree)
 {
   return node_get_active(ntree, NODE_ACTIVE_PAINT_CANVAS);
 }
-}
+}  // namespace blender::bke
 
 void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node)
 {

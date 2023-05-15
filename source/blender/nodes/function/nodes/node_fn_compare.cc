@@ -64,23 +64,25 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_epsilon = (bNodeSocket *)BLI_findlink(&node->inputs, 12);
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    bke::nodeSetSocketAvailability(ntree, socket, socket->type == (eNodeSocketDatatype)data->data_type);
+    bke::nodeSetSocketAvailability(
+        ntree, socket, socket->type == (eNodeSocketDatatype)data->data_type);
   }
 
-  bke::nodeSetSocketAvailability(ntree,
-                            sock_epsilon,
-                            ELEM(data->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL) &&
-                                !ELEM(data->data_type, SOCK_INT, SOCK_STRING));
+  bke::nodeSetSocketAvailability(
+      ntree,
+      sock_epsilon,
+      ELEM(data->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL) &&
+          !ELEM(data->data_type, SOCK_INT, SOCK_STRING));
 
   bke::nodeSetSocketAvailability(ntree,
-                            sock_comp,
-                            ELEM(data->mode, NODE_COMPARE_MODE_DOT_PRODUCT) &&
-                                data->data_type == SOCK_VECTOR);
+                                 sock_comp,
+                                 ELEM(data->mode, NODE_COMPARE_MODE_DOT_PRODUCT) &&
+                                     data->data_type == SOCK_VECTOR);
 
   bke::nodeSetSocketAvailability(ntree,
-                            sock_angle,
-                            ELEM(data->mode, NODE_COMPARE_MODE_DIRECTION) &&
-                                data->data_type == SOCK_VECTOR);
+                                 sock_angle,
+                                 ELEM(data->mode, NODE_COMPARE_MODE_DIRECTION) &&
+                                     data->data_type == SOCK_VECTOR);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

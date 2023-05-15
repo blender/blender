@@ -60,7 +60,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  bke::nodeSetSocketAvailability(ntree, socket_vector, ELEM(data_type, CD_PROP_FLOAT2, CD_PROP_FLOAT3));
+  bke::nodeSetSocketAvailability(
+      ntree, socket_vector, ELEM(data_type, CD_PROP_FLOAT2, CD_PROP_FLOAT3));
   bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(
       ntree, socket_color4f, ELEM(data_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));

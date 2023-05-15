@@ -166,19 +166,19 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
   bke::nodeSetSocketAvailability(
       ntree, outDistanceSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
   bke::nodeSetSocketAvailability(ntree,
-                                          outColorSock,
-                                          storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                              storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+                                 outColorSock,
+                                 storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                     storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
   bke::nodeSetSocketAvailability(ntree,
-                                          outPositionSock,
-                                          storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                              storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                              storage.dimensions != 1);
+                                 outPositionSock,
+                                 storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                     storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
+                                     storage.dimensions != 1);
   bke::nodeSetSocketAvailability(ntree,
-                                          outWSock,
-                                          storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                              storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                              ELEM(storage.dimensions, 1, 4));
+                                 outWSock,
+                                 storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                     storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
+                                     ELEM(storage.dimensions, 1, 4));
   bke::nodeSetSocketAvailability(
       ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }

@@ -81,13 +81,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
                                                                  N_("Offset"));
 
   bke::nodeSetSocketAvailability(ntree,
-                            resolution_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
+                                 resolution_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
   bke::nodeSetSocketAvailability(ntree,
-                            count_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
+                                 count_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

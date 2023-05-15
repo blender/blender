@@ -195,7 +195,8 @@ static void node_shader_update_vector_rotate(bNodeTree *ntree, bNode *node)
   bke::nodeSetSocketAvailability(
       ntree, sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
   bNodeSocket *sock_axis = nodeFindSocket(node, SOCK_IN, "Axis");
-  bke::nodeSetSocketAvailability(ntree, sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
+  bke::nodeSetSocketAvailability(
+      ntree, sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
   bNodeSocket *sock_angle = nodeFindSocket(node, SOCK_IN, "Angle");
   bke::nodeSetSocketAvailability(
       ntree, sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
