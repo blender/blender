@@ -605,6 +605,8 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
+  /* A `basepath` starting with `//` will be be made relative multiple times. */
+  BLI_assert_msg(!BLI_path_is_rel(basepath), "The 'basepath' cannot start with '//'!");
 
   const char *lslash;
   char temp[FILE_MAX];
@@ -1043,6 +1045,8 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
 bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
+  /* A `basepath` starting with `//` will be be made absolute multiple times. */
+  BLI_assert_msg(!BLI_path_is_rel(basepath), "The 'basepath' cannot start with '//'!");
 
   const bool wasrelative = BLI_path_is_rel(path);
   char tmp[FILE_MAX];
