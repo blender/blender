@@ -238,8 +238,8 @@ class UILIST_OT_entry_move(GenericUIListOperator, Operator):
         active_index = self.get_active_index(context)
 
         delta = {
-            "DOWN": 1,
-            "UP": -1,
+            'DOWN': 1,
+            'UP': -1,
         }[self.direction]
 
         to_index = (active_index + delta) % len(my_list)

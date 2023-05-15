@@ -156,7 +156,7 @@ PyDoc_STRVAR(
     "   :type str_ref_unit: string or None\n"
     "   :return: The converted/interpreted value.\n"
     "   :rtype: float\n"
-    "   :raises ValueError: if conversion fails to generate a valid python float value.\n");
+    "   :raises ValueError: if conversion fails to generate a valid Python float value.\n");
 static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   char *usys_str = NULL, *ucat_str = NULL, *inpt = NULL, *uref = NULL;
@@ -243,7 +243,7 @@ PyDoc_STRVAR(bpyunits_to_string_doc,
              "   :type compatible_unit: bool\n"
              "   :return: The converted string.\n"
              "   :rtype: str\n"
-             "   :raises ValueError: if conversion fails to generate a valid python string.\n");
+             "   :raises ValueError: if conversion fails to generate a valid Python string.\n");
 static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   char *usys_str = NULL, *ucat_str = NULL;

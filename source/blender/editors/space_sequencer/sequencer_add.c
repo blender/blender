@@ -179,7 +179,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
     if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
       Main *bmain = CTX_data_main(C);
       char path[FILE_MAX];
-      STRNCPY(path, last_seq->strip->dir);
+      STRNCPY(path, last_seq->strip->dirpath);
       BLI_path_abs(path, BKE_main_blendfile_path(bmain));
       RNA_string_set(op->ptr, identifier, path);
     }
@@ -1254,7 +1254,7 @@ void sequencer_image_seq_reserve_frames(
     for (int i = 0; i < len; i++, se++) {
       STRNCPY(filename_stripped, filename);
       BLI_path_frame(filename_stripped, sizeof(filename_stripped), minframe + i, numdigits);
-      SNPRINTF(se->name, "%s%s", filename_stripped, ext);
+      SNPRINTF(se->filename, "%s%s", filename_stripped, ext);
     }
 
     MEM_freeN(filename);
@@ -1282,10 +1282,9 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
                                                  const int numdigits)
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-  /* size of Strip->dir. */
-  char directory[FILE_MAXDIR];
-  BLI_path_split_dir_part(load_data->path, directory, sizeof(directory));
-  SEQ_add_image_set_directory(seq, directory);
+  char dirpath[sizeof(seq->strip->dirpath)];
+  BLI_path_split_dir_part(load_data->path, dirpath, sizeof(dirpath));
+  SEQ_add_image_set_directory(seq, dirpath);
 
   if (use_placeholders) {
     sequencer_image_seq_reserve_frames(

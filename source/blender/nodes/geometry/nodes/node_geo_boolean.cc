@@ -43,13 +43,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
   switch (operation) {
     case GEO_NODE_BOOLEAN_INTERSECT:
     case GEO_NODE_BOOLEAN_UNION:
-      nodeSetSocketAvailability(ntree, geometry_1_socket, false);
-      nodeSetSocketAvailability(ntree, geometry_2_socket, true);
+      bke::nodeSetSocketAvailability(ntree, geometry_1_socket, false);
+      bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, N_("Mesh"));
       break;
     case GEO_NODE_BOOLEAN_DIFFERENCE:
-      nodeSetSocketAvailability(ntree, geometry_1_socket, true);
-      nodeSetSocketAvailability(ntree, geometry_2_socket, true);
+      bke::nodeSetSocketAvailability(ntree, geometry_1_socket, true);
+      bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, N_("Mesh 2"));
       break;
   }

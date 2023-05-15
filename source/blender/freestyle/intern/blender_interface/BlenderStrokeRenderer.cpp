@@ -36,7 +36,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -214,7 +214,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
 
   if (iNodeTree) {
     // make a copy of linestyle->nodetree
-    ntree = ntreeCopyTree_ex(iNodeTree, bmain, do_id_user);
+    ntree = blender::bke::ntreeCopyTree_ex(iNodeTree, bmain, do_id_user);
 
     // find the active Output Line Style node
     for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
@@ -226,7 +226,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     ma->nodetree = ntree;
   }
   else {
-    ntree = ntreeAddTreeEmbedded(nullptr, &ma->id, "stroke_shader", "ShaderNodeTree");
+    ntree = blender::bke::ntreeAddTreeEmbedded(
+        nullptr, &ma->id, "stroke_shader", "ShaderNodeTree");
   }
   ma->use_nodes = true;
   ma->blend_method = MA_BM_HASHED;

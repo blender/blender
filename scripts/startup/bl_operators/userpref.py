@@ -173,7 +173,7 @@ class PREFERENCES_OT_keyconfig_test(Operator):
 
 
 class PREFERENCES_OT_keyconfig_import(Operator):
-    """Import key configuration from a python script"""
+    """Import key configuration from a Python script"""
     bl_idname = "preferences.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
@@ -192,7 +192,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )
@@ -244,7 +244,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
 
 
 class PREFERENCES_OT_keyconfig_export(Operator):
-    """Export key configuration to a python script"""
+    """Export key configuration to a Python script"""
     bl_idname = "preferences.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
@@ -268,7 +268,7 @@ class PREFERENCES_OT_keyconfig_export(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )
@@ -610,7 +610,7 @@ class PREFERENCES_OT_addon_install(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )

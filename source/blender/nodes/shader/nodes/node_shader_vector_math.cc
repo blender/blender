@@ -165,7 +165,7 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_OUT, "Vector");
   bNodeSocket *sockValue = nodeFindSocket(node, SOCK_OUT, "Value");
 
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sockB,
                             !ELEM(node->custom1,
                                   NODE_VECTOR_MATH_SINE,
@@ -178,21 +178,21 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
                                   NODE_VECTOR_MATH_ABSOLUTE,
                                   NODE_VECTOR_MATH_FRACTION,
                                   NODE_VECTOR_MATH_NORMALIZE));
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sockC,
                             ELEM(node->custom1,
                                  NODE_VECTOR_MATH_WRAP,
                                  NODE_VECTOR_MATH_FACEFORWARD,
                                  NODE_VECTOR_MATH_MULTIPLY_ADD));
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sockScale, ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sockVector,
                             !ELEM(node->custom1,
                                   NODE_VECTOR_MATH_LENGTH,
                                   NODE_VECTOR_MATH_DISTANCE,
                                   NODE_VECTOR_MATH_DOT_PRODUCT));
-  nodeSetSocketAvailability(ntree,
+  bke::nodeSetSocketAvailability(ntree,
                             sockValue,
                             ELEM(node->custom1,
                                  NODE_VECTOR_MATH_LENGTH,

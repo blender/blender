@@ -441,6 +441,11 @@ struct GPUSource {
     int64_t cursor = -1;
     StringRef func_return_type, func_name, func_args;
     while (function_parse(input, cursor, func_return_type, func_name, func_args)) {
+      /* Main functions needn't be handled because they are the entry point of the shader. */
+      if (func_name == "main") {
+        continue;
+      }
+
       GPUFunction *func = MEM_new<GPUFunction>(__func__);
       func_name.copy(func->name, sizeof(func->name));
       func->source = reinterpret_cast<void *>(this);

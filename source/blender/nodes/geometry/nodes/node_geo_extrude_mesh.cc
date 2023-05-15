@@ -60,7 +60,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *individual_socket = static_cast<bNodeSocket *>(node->inputs.last);
 
-  nodeSetSocketAvailability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
+  bke::nodeSetSocketAvailability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
 }
 
 struct AttributeOutputs {

@@ -515,6 +515,7 @@ void BlenderSession::render_frame_finish()
 static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int bake_filter)
 {
   Integrator *integrator = scene->integrator;
+  Film *film = scene->film;
   const char *bake_type = bake_type_str.c_str();
 
   PassType type = PASS_NONE;
@@ -542,13 +543,29 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
   else if (strcmp(bake_type, "ENVIRONMENT") == 0) {
     type = PASS_BACKGROUND;
   }
-  /* AO passes. */
+  /* AO pass. */
   else if (strcmp(bake_type, "AO") == 0) {
     type = PASS_AO;
+  }
+  /* Shadow pass. */
+  else if (strcmp(bake_type, "SHADOW") == 0) {
+    /* Bake as combined pass, together with marking the object as a shadow catcher. */
+    type = PASS_SHADOW_CATCHER;
+    film->set_use_approximate_shadow_catcher(true);
+
+    use_direct_light = true;
+    use_indirect_light = true;
+    include_albedo = true;
+
+    integrator->set_use_diffuse(true);
+    integrator->set_use_glossy(true);
+    integrator->set_use_transmission(true);
+    integrator->set_use_emission(true);
   }
   /* Combined pass. */
   else if (strcmp(bake_type, "COMBINED") == 0) {
     type = PASS_COMBINED;
+    film->set_use_approximate_shadow_catcher(true);
 
     use_direct_light = (bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0;
     use_indirect_light = (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) != 0;
@@ -683,17 +700,23 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   /* Object might have been disabled for rendering or excluded in some
    * other way, in that case Blender will report a warning afterwards. */
-  bool object_found = false;
+  Object *bake_object = nullptr;
   if (!session->progress.get_cancel()) {
     foreach (Object *ob, scene->objects) {
       if (ob->name == b_object.name()) {
-        object_found = true;
+        bake_object = ob;
         break;
       }
     }
   }
 
-  if (object_found && !session->progress.get_cancel()) {
+  /* For the shadow pass, temporarily mark the object as a shadow catcher. */
+  const bool was_shadow_catcher = (bake_object) ? bake_object->get_is_shadow_catcher() : false;
+  if (bake_object && bake_type == "SHADOW") {
+    bake_object->set_is_shadow_catcher(true);
+  }
+
+  if (bake_object && !session->progress.get_cancel()) {
     /* Get session and buffer parameters. */
     const SessionParams session_params = BlenderSync::get_session_params(
         b_engine, b_userpref, b_scene, background);
@@ -714,9 +737,14 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   }
 
   /* Perform bake. Check cancel to avoid crash with incomplete scene data. */
-  if (object_found && !session->progress.get_cancel()) {
+  if (bake_object && !session->progress.get_cancel()) {
     session->start();
     session->wait();
+  }
+
+  /* Restore object state. */
+  if (bake_object) {
+    bake_object->set_is_shadow_catcher(was_shadow_catcher);
   }
 }
 

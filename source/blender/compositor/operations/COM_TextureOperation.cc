@@ -5,7 +5,7 @@
 #include "COM_WorkScheduler.h"
 
 #include "BKE_image.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_scene.h"
 
 #include "NOD_texture.h"

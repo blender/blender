@@ -632,7 +632,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
     char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_join(str, sizeof(str), seq->strip->dirpath, seq->strip->stripdata->filename);
     BLI_path_abs(str, BKE_main_blendfile_path(bmain));
     seq->sound = BKE_sound_new_file(bmain, str);
   }
@@ -640,7 +640,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    SNPRINTF(seq->strip->proxy->dir, "%s" SEP_STR "BL_proxy", seq->strip->dir);
+    SNPRINTF(seq->strip->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->strip->dirpath);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE

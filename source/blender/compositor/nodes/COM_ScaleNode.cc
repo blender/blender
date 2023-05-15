@@ -3,7 +3,7 @@
 
 #include "COM_ScaleNode.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"
 

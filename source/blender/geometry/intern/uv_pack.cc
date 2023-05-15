@@ -1184,6 +1184,9 @@ static int64_t pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
                                   MutableSpan<uv_phi> r_phis,
                                   rctf *r_extent)
 {
+  if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
+    return 0; /* Not yet supported. */
+  }
   blender::Array<uv_phi> phis(r_phis.size());
   Occupancy occupancy(guess_initial_scale(islands, scale, margin));
   rctf extent = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -1446,7 +1449,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                      });
   }
 
-  /* Partition `islands`, largest islands will go to a slow packer, the rest alpaca_turbo.
+  /* Partition `islands`, largest islands will go to a slow packer, the rest the fast packer.
    * See discussion above for details. */
   int64_t alpaca_cutoff = 1024; /* Regular situation, pack `32 * 32` islands with slow packer. */
   int64_t alpaca_cutoff_fast = 81; /* Reduce problem size, only `N = 9 * 9` with slow packer. */
@@ -1455,53 +1458,39 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       alpaca_cutoff = alpaca_cutoff_fast;
     }
   }
-  int64_t max_box_pack = std::min(alpaca_cutoff, islands.size());
-
+  Span<UVAABBIsland *> slow_aabbs = aabbs.as_span().take_front(
+      std::min(alpaca_cutoff, islands.size()));
   rctf extent = {0.0f, 1e30f, 0.0f, 1e30f};
 
   if (all_can_translate) {
-    pack_islands_fast(0,
-                      aabbs.as_span().take_front(max_box_pack),
-                      all_can_rotate,
-                      params.target_aspect_y,
-                      r_phis,
-                      &extent);
+    pack_islands_fast(0, slow_aabbs, all_can_rotate, params.target_aspect_y, r_phis, &extent);
   }
 
   if (all_can_translate) {
-    pack_islands_optimal_pack(aabbs.as_span().take_front(max_box_pack), params, r_phis, &extent);
+    pack_islands_optimal_pack(slow_aabbs, params, r_phis, &extent);
   }
 
   /* Call box_pack_2d (slow for large N.) */
   if (all_can_translate) {
-    pack_island_box_pack_2d(aabbs.as_span().take_front(max_box_pack), params, r_phis, &extent);
+    pack_island_box_pack_2d(slow_aabbs, params, r_phis, &extent);
   }
 
   /* Call xatlas (slow for large N.) */
-  switch (params.shape_method) {
-    case ED_UVPACK_SHAPE_CONVEX:
-    case ED_UVPACK_SHAPE_CONCAVE:
-      max_box_pack = pack_island_xatlas(aabbs.as_span().take_front(max_box_pack),
-                                        islands,
-                                        scale,
-                                        margin,
-                                        params,
-                                        r_phis,
-                                        &extent);
-      break;
-    default:
-      break;
+  int64_t max_xatlas = pack_island_xatlas(
+      slow_aabbs, islands, scale, margin, params, r_phis, &extent);
+  if (max_xatlas) {
+    slow_aabbs = aabbs.as_span().take_front(max_xatlas);
   }
 
-  /* At this stage, `max_u` and `max_v` contain the box_pack/xatlas UVs. */
+  /* At this stage, `extent` contains the optimal/box_pack/xatlas UVs. */
 
   if (all_can_rotate) {
-    rotate_inside_square(
-        aabbs.as_span().take_front(max_box_pack), islands, params, scale, margin, r_phis, &extent);
+    rotate_inside_square(slow_aabbs, islands, params, scale, margin, r_phis, &extent);
   }
 
   /* Call fast packer for remaining islands. */
-  pack_islands_fast(max_box_pack, aabbs, all_can_rotate, params.target_aspect_y, r_phis, &extent);
+  pack_islands_fast(
+      slow_aabbs.size(), aabbs, all_can_rotate, params.target_aspect_y, r_phis, &extent);
 
   return get_aspect_scaled_extent(extent, params);
 }

@@ -72,7 +72,7 @@ static int gpu_shader_mapping(GPUMaterial *mat,
 static void node_shader_update_mapping(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock = nodeFindSocket(node, SOCK_IN, "Location");
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sock, ELEM(node->custom1, NODE_MAPPING_TYPE_POINT, NODE_MAPPING_TYPE_TEXTURE));
 }
 

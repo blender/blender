@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -10909,6 +10909,10 @@ msgid "Falloff Curve"
 msgstr "衰弱曲線"
 
 
+msgid "Custom falloff curve"
+msgstr "自訂衰減曲線"
+
+
 msgid "If not zero, the distance from the hook where influence ends"
 msgstr "如果不是零，則為與鉤的影響結束之位置起的距離"
 
@@ -11374,14 +11378,6 @@ msgstr "可見層"
 
 msgid "Armature layer visibility"
 msgstr "骨架分層的可見性"
-
-
-msgid "Layer Proxy Protection"
-msgstr "層代理保護"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "代理實體中的受保護分層會在檔案重新載入與取消動作時還原為代理設定"
 
 
 msgid "Pose Position"
@@ -12080,10 +12076,6 @@ msgid "Use Plane Trim"
 msgstr "使用平面修剪"
 
 
-msgid "Enable Plane Trim"
-msgstr "啟用平面修剪"
-
-
 msgid "Jitter Pressure"
 msgstr "抖動壓力"
 
@@ -12610,18 +12602,6 @@ msgstr "啟用讓曲線成為平移路徑"
 
 msgid "Follow"
 msgstr "跟隨"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "讓曲線路徑子代沿路徑旋轉"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "路徑與曲線變形的選項：套用跟隨曲線的路徑其曲線半徑，並變形"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "曲線變形的選項：讓變形的子代沿整條路徑伸展"
 
 
 msgid "Surface Curve"
@@ -20894,10 +20874,6 @@ msgid "Hook modifier to modify the location of vertices"
 msgstr "修改頂點位置的鉤修改器"
 
 
-msgid "Custom falloff curve"
-msgstr "自訂衰減曲線"
-
-
 msgid "Laplacian Deform Modifier"
 msgstr "拉普拉斯變形修改器"
 
@@ -27033,16 +27009,8 @@ msgid "Export Keying Set..."
 msgstr "匯出鍵處理集..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "將鍵處理集匯出為 Python 指令稿"
-
-
 msgid "Filter folders"
 msgstr "過濾資料夾"
-
-
-msgid "Filter python"
-msgstr "過濾 Python"
 
 
 msgid "Filter text"
@@ -27549,10 +27517,6 @@ msgstr "過濾影像檔案"
 
 msgid "Filter movie files"
 msgstr "過濾視訊檔案"
-
-
-msgid "Filter python files"
-msgstr "過濾 Python 檔案"
 
 
 msgid "Filter sound files"
@@ -28856,10 +28820,6 @@ msgstr "上個單詞"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "主控臺執行"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "將目前的主控臺列作為 Python 表述式執行"
 
 
 msgctxt "Operator"
@@ -38000,10 +37960,6 @@ msgid "Export Key Configuration..."
 msgstr "匯出按鍵組態..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "將按鍵組態匯出為 Python 指令稿"
-
-
 msgid "All Keymaps"
 msgstr "全部按鍵映射"
 
@@ -38011,10 +37967,6 @@ msgstr "全部按鍵映射"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "匯入按鍵組態..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "從 Phthon 指令稿匯入按鍵組態"
 
 
 msgid "Keep Original"
@@ -42845,10 +42797,6 @@ msgstr "將作用中操作器設回其預設值"
 msgctxt "Operator"
 msgid "Operator Enum Pie"
 msgstr "操作器枚舉圓派"
-
-
-msgid "Operator name (in python as string)"
-msgstr "操作器名稱 (python 中為字串)"
 
 
 msgid "Property name (as a string)"
@@ -49623,10 +49571,6 @@ msgid "Space Console"
 msgstr "空間主控臺"
 
 
-msgid "Interactive python console"
-msgstr "互動式 Python 主控臺"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "用於顯示文字的字型大小"
 
@@ -50497,10 +50441,6 @@ msgstr "搜尋到結尾時再次從檔案開頭搜尋"
 
 msgid "Live Edit"
 msgstr "即時編輯"
-
-
-msgid "Run python while editing"
-msgstr "當編輯時執行 Python"
 
 
 msgid "Search string is sensitive to uppercase and lowercase letters"
@@ -54117,10 +54057,6 @@ msgstr "體積最小"
 
 msgid "Extrapolate"
 msgstr "外推"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 尚不支援 Python 約束"
 
 
 msgid "Pivot Offset"

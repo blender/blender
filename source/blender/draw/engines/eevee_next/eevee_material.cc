@@ -10,7 +10,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "NOD_shader.h"
 
 #include "eevee_instance.hh"
@@ -73,7 +73,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
     diffuse_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
         nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     diffuse_mat->use_nodes = true;
     /* To use the forward pipeline. */
@@ -95,7 +95,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   }
   {
     glossy_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
         nullptr, &glossy_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     glossy_mat->use_nodes = true;
     /* To use the forward pipeline. */
@@ -119,7 +119,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   }
   {
     error_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default error");
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = bke::ntreeAddTreeEmbedded(
         nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
     error_mat_->use_nodes = true;
 

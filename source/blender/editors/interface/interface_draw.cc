@@ -25,7 +25,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_colormanagement.h"

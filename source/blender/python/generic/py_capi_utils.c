@@ -607,7 +607,7 @@ void PyC_LineSpit(void)
 
   /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
-    fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+    fprintf(stderr, "Python line lookup failed, interpreter inactive\n");
     return;
   }
 
@@ -621,7 +621,7 @@ void PyC_StackSpit(void)
 {
   /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
-    fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+    fprintf(stderr, "Python line lookup failed, interpreter inactive\n");
     return;
   }
 

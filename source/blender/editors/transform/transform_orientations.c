@@ -585,7 +585,7 @@ static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
   bPoseChannel *active_pchan = BKE_pose_channel_active(ob, false);
 
   /* Check if target bone is a child. */
-  if (active_pchan->parent) {
+  if (active_pchan && active_pchan->parent) {
     /* For child, show parent local regardless if "local location" is set for parent bone. */
     transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
     return;

@@ -8,7 +8,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "ED_curves.h"

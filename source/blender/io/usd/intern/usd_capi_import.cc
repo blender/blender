@@ -19,7 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"

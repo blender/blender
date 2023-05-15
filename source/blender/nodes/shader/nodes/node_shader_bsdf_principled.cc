@@ -225,11 +225,11 @@ static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Transmission Roughness")) {
-      nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
+      bke::nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
     }
 
     if (STR_ELEM(sock->name, "Subsurface IOR", "Subsurface Anisotropy")) {
-      nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
+      bke::nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }
   }
 }
@@ -247,7 +247,7 @@ void register_node_type_sh_bsdf_principled()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_principled;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.initfunc = file_ns::node_shader_init_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_principled;
   ntype.updatefunc = file_ns::node_shader_update_principled;

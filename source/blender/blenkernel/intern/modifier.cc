@@ -37,6 +37,7 @@
 #include "BLI_path_util.h"
 #include "BLI_session_uuid.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -137,7 +138,7 @@ static ModifierData *modifier_allocate_and_init(ModifierType type)
   ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->structSize, mti->structName));
 
   /* NOTE: this name must be made unique later. */
-  STRNCPY(md->name, DATA_(mti->name));
+  STRNCPY_UTF8(md->name, DATA_(mti->name));
 
   md->type = type;
   md->mode = eModifierMode_Realtime | eModifierMode_Render;

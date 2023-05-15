@@ -1845,7 +1845,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   }
   else {
     if (tot == 1) {
-      STRNCPY(kb->name, DATA_("Basis"));
+      STRNCPY_UTF8(kb->name, DATA_("Basis"));
     }
     else {
       SNPRINTF(kb->name, DATA_("Key %d"), tot - 1);

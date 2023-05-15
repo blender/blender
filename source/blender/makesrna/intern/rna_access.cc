@@ -37,7 +37,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -3468,7 +3468,7 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
   }
 }
 
-void RNA_property_string_get_default(PropertyRNA *prop, char *value, const int max_len)
+void RNA_property_string_get_default(PropertyRNA *prop, char *value, const int value_maxncpy)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
@@ -3477,7 +3477,7 @@ void RNA_property_string_get_default(PropertyRNA *prop, char *value, const int m
     if (idprop->ui_data) {
       BLI_assert(idprop->type == IDP_STRING);
       const IDPropertyUIDataString *ui_data = (const IDPropertyUIDataString *)idprop->ui_data;
-      BLI_strncpy(value, ui_data->default_value, max_len);
+      BLI_strncpy(value, ui_data->default_value, value_maxncpy);
       return;
     }
 

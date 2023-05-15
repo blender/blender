@@ -3388,7 +3388,7 @@ void ED_gpencil_layer_merge(bGPdata *gpd,
   }
 }
 
-static void gpencil_layer_new_name_get(bGPdata *gpd, char *rname)
+static void gpencil_layer_new_name_get(bGPdata *gpd, char *r_name, size_t name_maxncpy)
 {
   int index = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
@@ -3398,12 +3398,10 @@ static void gpencil_layer_new_name_get(bGPdata *gpd, char *rname)
   }
 
   if (index == 0) {
-    BLI_strncpy(rname, "GP_Layer", 128);
+    BLI_strncpy(r_name, "GP_Layer", name_maxncpy);
     return;
   }
-  char *name = BLI_sprintfN("%.*s.%03d", 128, "GP_Layer", index);
-  BLI_strncpy(rname, name, 128);
-  MEM_freeN(name);
+  BLI_snprintf(r_name, name_maxncpy, "GP_Layer.%03d", index);
 }
 
 int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
@@ -3415,7 +3413,7 @@ int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
     if (!RNA_property_is_set(op->ptr, prop)) {
       char name[MAX_NAME];
       bGPdata *gpd = ob->data;
-      gpencil_layer_new_name_get(gpd, name);
+      gpencil_layer_new_name_get(gpd, name, sizeof(name));
       RNA_property_string_set(op->ptr, prop, name);
       return WM_operator_props_dialog_popup(C, op, 200);
     }

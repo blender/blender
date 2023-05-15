@@ -3159,7 +3159,7 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "No Self",
-      "Function does not pass itself as an argument (becomes a static method in python)");
+      "Function does not pass itself as an argument (becomes a static method in Python)");
 
   prop = RNA_def_property(srna, "use_self_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -3167,7 +3167,7 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Use Self Type",
                            "Function passes itself type as an argument (becomes a class method "
-                           "in python if use_self is false)");
+                           "in Python if use_self is false)");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)

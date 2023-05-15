@@ -360,7 +360,7 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 
     /* edge intersects the plane => insert intersection to both boxes. */
     if ((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-      float3 t = lerp(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+      float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
       left_bounds.grow(t);
       right_bounds.grow(t);
     }
@@ -408,7 +408,7 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
 
   /* edge intersects the plane => insert intersection to both boxes. */
   if ((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-    float3 t = lerp(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+    float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
     left_bounds.grow(t);
     right_bounds.grow(t);
   }

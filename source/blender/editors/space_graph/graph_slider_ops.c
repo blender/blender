@@ -982,7 +982,7 @@ typedef struct tGaussOperatorData {
 
 /* Store data to smooth an FCurve segment. */
 typedef struct tFCurveSegmentLink {
-  struct tFCurveSegmentLink *prev, *next;
+  struct tFCurveSegmentLink *next, *prev;
   FCurve *fcu;
   FCurveSegment *segment;
   float *samples; /* Array of y-values of the FCurve segment. */

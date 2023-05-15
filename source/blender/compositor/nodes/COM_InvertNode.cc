@@ -2,7 +2,7 @@
  * Copyright 2011 Blender Foundation. */
 
 #include "COM_InvertNode.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "COM_InvertOperation.h"
 
 namespace blender::compositor {

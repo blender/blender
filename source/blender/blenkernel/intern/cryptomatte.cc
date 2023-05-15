@@ -219,14 +219,14 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
 bool BKE_cryptomatte_find_name(const CryptomatteSession *session,
                                const float encoded_hash,
                                char *r_name,
-                               int name_len)
+                               int name_maxncpy)
 {
   std::optional<std::string> name = (*session)[encoded_hash];
   if (!name) {
     return false;
   }
 
-  BLI_strncpy(r_name, name->c_str(), name_len);
+  BLI_strncpy(r_name, name->c_str(), name_maxncpy);
   return true;
 }
 
@@ -580,7 +580,7 @@ blender::StringRef CryptomatteStampDataCallbackData::extract_layer_hash(blender:
 void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
                                                            const char *propname,
                                                            char *propvalue,
-                                                           int /*len*/)
+                                                           int /*propvalue_maxncpy*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 
@@ -598,7 +598,7 @@ void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
 void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
                                                               const char *propname,
                                                               char *propvalue,
-                                                              int /*len*/)
+                                                              int /*propvalue_maxncpy*/)
 {
   CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
 

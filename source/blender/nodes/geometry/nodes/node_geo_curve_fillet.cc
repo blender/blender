@@ -49,7 +49,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveFillet &storage = node_storage(*node);
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
   bNodeSocket *poly_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  bke::nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

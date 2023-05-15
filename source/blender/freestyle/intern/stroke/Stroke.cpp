@@ -11,7 +11,7 @@
 #include "StrokeRenderer.h"
 
 #include "BKE_global.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 namespace Freestyle {
 

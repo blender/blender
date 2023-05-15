@@ -11,7 +11,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 

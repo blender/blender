@@ -104,7 +104,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
@@ -1063,7 +1063,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 #ifdef WITH_BUILDINFO
   /* TODO(sergey): Add branch name to file as well? */
   fg.build_commit_timestamp = build_commit_timestamp;
-  BLI_strncpy(fg.build_hash, build_hash, sizeof(fg.build_hash));
+  STRNCPY(fg.build_hash, build_hash);
 #else
   fg.build_commit_timestamp = 0;
   STRNCPY(fg.build_hash, "unknown");

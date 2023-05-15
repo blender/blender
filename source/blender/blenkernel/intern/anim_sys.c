@@ -131,8 +131,8 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  STRNCPY(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
-  STRNCPY(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
+  STRNCPY_UTF8(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
+  STRNCPY_UTF8(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
 
   ks->flag = flag;
   ks->keyingflag = keyingflag;

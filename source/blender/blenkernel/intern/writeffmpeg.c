@@ -1081,7 +1081,7 @@ static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 static void ffmpeg_add_metadata_callback(void *data,
                                          const char *propname,
                                          char *propvalue,
-                                         int UNUSED(len))
+                                         int UNUSED(propvalue_maxncpy))
 {
   AVDictionary **metadata = (AVDictionary **)data;
   av_dict_set(metadata, propname, propvalue, 0);
@@ -1406,7 +1406,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
     if (*fe == NULL) {
       BLI_strncat(string, autosplit, FILE_MAX);
 
-      BLI_path_frame_range(string, sfra, efra, 4);
+      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
       BLI_strncat(string, *exts, FILE_MAX);
     }
     else {
@@ -1417,7 +1417,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   }
   else {
     if (BLI_path_frame_check_chars(string)) {
-      BLI_path_frame_range(string, sfra, efra, 4);
+      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
     }
 
     BLI_strncat(string, autosplit, FILE_MAX);

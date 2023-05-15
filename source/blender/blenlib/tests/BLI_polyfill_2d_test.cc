@@ -335,7 +335,7 @@ static void polyfill_to_obj(const char *id,
   FILE *f;
   uint i;
 
-  BLI_snprintf(path, sizeof(path), "%s.obj", id);
+  SNPRINTF(path, "%s.obj", id);
 
   f = fopen(path, "w");
   if (!f) {

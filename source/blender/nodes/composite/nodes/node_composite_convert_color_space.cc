@@ -5,8 +5,6 @@
  * \ingroup cmpnodes
  */
 
-#include "node_composite_util.hh"
-
 #include "BLT_translation.h"
 
 #include "RNA_access.h"
@@ -16,13 +14,23 @@
 
 #include "IMB_colormanagement.h"
 
+#include "GPU_shader.h"
+
 #include "COM_node_operation.hh"
+#include "COM_ocio_color_space_conversion_shader.hh"
+#include "COM_utilities.hh"
+
+#include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_convert_color_space_cc {
 
+NODE_STORAGE_FUNCS(NodeConvertColorSpace)
+
 static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>(N_("Image"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
   b.add_output<decl::Color>(N_("Image"));
 }
 
@@ -59,8 +67,79 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    context().set_info_message("Viewport compositor setup not fully supported");
+    Result &input_image = get_input("Image");
+    Result &output_image = get_result("Image");
+    if (is_identity()) {
+      input_image.pass_through(output_image);
+      return;
+    }
+
+    if (input_image.is_single_value()) {
+      execute_single();
+      return;
+    }
+
+    const char *source = node_storage(bnode()).from_color_space;
+    const char *target = node_storage(bnode()).to_color_space;
+
+    OCIOColorSpaceConversionShader &ocio_shader =
+        context().cache_manager().ocio_color_space_conversion_shaders.get(source, target);
+
+    GPUShader *shader = ocio_shader.bind_shader_and_resources();
+
+    /* A null shader indicates that the conversion shader is just a stub implementation since OCIO
+     * is disabled at compile time, so pass the input through in that case. */
+    if (!shader) {
+      input_image.pass_through(output_image);
+      return;
+    }
+
+    input_image.bind_as_texture(shader, ocio_shader.input_sampler_name());
+
+    const Domain domain = compute_domain();
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, ocio_shader.output_image_name());
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    input_image.unbind_as_texture();
+    output_image.unbind_as_image();
+    ocio_shader.unbind_shader_and_resources();
+  }
+
+  void execute_single()
+  {
+    const char *source = node_storage(bnode()).from_color_space;
+    const char *target = node_storage(bnode()).to_color_space;
+    ColormanageProcessor *color_processor = IMB_colormanagement_colorspace_processor_new(source,
+                                                                                         target);
+
+    Result &input_image = get_input("Image");
+    float4 color = input_image.get_color_value();
+
+    IMB_colormanagement_processor_apply_pixel(color_processor, color, 3);
+    IMB_colormanagement_processor_free(color_processor);
+
+    Result &output_image = get_result("Image");
+    output_image.allocate_single_value();
+    output_image.set_color_value(color);
+  }
+
+  bool is_identity()
+  {
+    const char *source = node_storage(bnode()).from_color_space;
+    const char *target = node_storage(bnode()).to_color_space;
+
+    if (STREQ(source, target)) {
+      return true;
+    }
+
+    /* Data color spaces ignore any color transformation that gets applied to them. */
+    if (IMB_colormanagement_space_name_is_data(source)) {
+      return true;
+    }
+
+    return false;
   }
 };
 
@@ -80,13 +159,11 @@ void register_node_type_cmp_convert_color_space(void)
       &ntype, CMP_NODE_CONVERT_COLOR_SPACE, "Convert Colorspace", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_composit_init_convert_colorspace;
   node_type_storage(
       &ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

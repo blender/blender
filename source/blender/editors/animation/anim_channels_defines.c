@@ -368,7 +368,7 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 
   /* just copy the name... */
   if (id && name) {
-    BLI_strncpy(name, id->name + 2, ANIM_CHAN_NAME_SIZE);
+    BLI_strncpy_utf8(name, id->name + 2, ANIM_CHAN_NAME_SIZE);
   }
 }
 
@@ -476,7 +476,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 {
   if (name) {
-    BLI_strncpy(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
+    BLI_strncpy_utf8(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
   }
 }
 
@@ -1178,7 +1178,7 @@ static void acf_nla_controls_backdrop(bAnimContext *ac,
 /* name for nla controls expander entries */
 static void acf_nla_controls_name(bAnimListElem *UNUSED(ale), char *name)
 {
-  BLI_strncpy(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
+  BLI_strncpy_utf8(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -1393,7 +1393,7 @@ static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
 
 static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
 {
-  BLI_strncpy(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
+  BLI_strncpy_utf8(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
@@ -4468,6 +4468,10 @@ void ANIM_channel_draw(
     /* just skip - drawn as widget now */
     offset += ICON_WIDTH;
   }
+  else {
+    /* A bit of padding when there is no expand widget. */
+    offset += (short)(0.2f * U.widget_unit);
+  }
 
   /* step 3) draw icon ............................................... */
   if (acf->icon) {
@@ -4521,10 +4525,6 @@ void ANIM_channel_draw(
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
         offset += ICON_WIDTH;
       }
-    }
-    else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
-      /* just skip - drawn as widget now */
-      offset += ICON_WIDTH;
     }
   }
 
@@ -5252,11 +5252,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
         offset += ICON_WIDTH;
       }
     }
-    else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
-      /* 'solo' setting for NLA Tracks */
-      draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
-      offset += ICON_WIDTH;
-    }
   }
 
   /* step 4) draw text - check if renaming widget is in use... */
@@ -5338,6 +5333,13 @@ void ANIM_channel_draw_widgets(const bContext *C,
     /* check if there's enough space for the toggles if the sliders are drawn too */
     if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
     {
+      /* solo... */
+      if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
+        offset -= ICON_WIDTH;
+        draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
+        /* A touch of padding because the star icon is so wide. */
+        offset -= (short)(0.2f * ICON_WIDTH);
+      }
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset -= ICON_WIDTH;

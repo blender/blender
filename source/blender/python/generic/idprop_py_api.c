@@ -1553,7 +1553,7 @@ static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
 PyDoc_STRVAR(BPy_IDGroup_to_dict_doc,
              ".. method:: to_dict()\n"
              "\n"
-             "   Return a purely python version of the group.\n");
+             "   Return a purely Python version of the group.\n");
 static PyObject *BPy_IDGroup_to_dict(BPy_IDProperty *self)
 {
   return BPy_IDGroup_MapDataToPy(self->prop);
