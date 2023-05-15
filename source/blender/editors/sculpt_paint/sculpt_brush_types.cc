@@ -2859,6 +2859,10 @@ ATTR_NO_OPT static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userd
     SCULPT_curvature_begin(ss, data->nodes[n], false);
   }
 
+  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float direction2[3];
@@ -2942,6 +2946,9 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT))
   {
     BKE_pbvh_update_all_tri_areas(ss->pbvh);
+  }
+  else if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+    BKE_pbvh_face_areas_begin(ss->pbvh);
   }
 
   if (brush->flag2 & BRUSH_CURVATURE_RAKE) {

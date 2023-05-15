@@ -3036,20 +3036,26 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       }
 
       if (newf) {
-#if 1
         rl->e->head.hflag &= ~BM_ELEM_TAG;
-#  if 1
-        long_edge_queue_edge_add_recursive(
-            eq_ctx,
-            rl,
-            rl->next,
-            calc_weighted_length(eq_ctx, rl->e->v1, rl->e->v2, -1.0f),
-            eq_ctx->limit_len_max,
-            0);
-#  else
-        edge_queue_insert_unified(eq_ctx, rl->e);
+#if 1
+        /* Try to improve quality by inserting new edge into queue.
+         * This is a bit tricky since we don't want to expand outside
+         * the brush radius too much, but we can't stay strictly inside
+         * either.
+         */
 
-#  endif
+        float3 co = rl->v->co;
+        co = (co + rl->next->v->co) * 0.5f;
+
+        float len = len_v3v3(co, eq_ctx->center);
+        float radius = sqrtf(eq_ctx->radius_squared);
+        float w = calc_weighted_length(eq_ctx, rl->e->v1, rl->e->v2, -1.0f);
+        float fac = 1.0f + 2.0 * (len / radius);
+
+        if (w / fac > eq_ctx->limit_len_max) {
+
+          long_edge_queue_edge_add_recursive(eq_ctx, rl, rl->next, w, eq_ctx->limit_len_max, 0);
+        }
 #endif
 
         check_face_is_manifold(pbvh, bm, newf);

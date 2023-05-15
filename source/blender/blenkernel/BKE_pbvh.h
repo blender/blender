@@ -679,7 +679,7 @@ struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 
-void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh);
+void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh, bool report);
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
 
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance);

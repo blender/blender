@@ -1229,7 +1229,7 @@ void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
   bke_pbvh_insert_face_finalize(pbvh, f, ni);
 }
 
-static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
+static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node, bool report)
 {
   node->flag &= ~PBVH_RebuildNodeVerts;
 
@@ -1244,7 +1244,9 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
 
   auto check_vert = [&](BMVert *v) {
     if (BM_elem_is_free(reinterpret_cast<BMElem *>(v), BM_VERT)) {
-      printf("%s: corrupted vertex %p\n", __func__, v);
+      if (report) {
+        printf("%s: corrupted vertex %p\n", __func__, v);
+      }
       return;
     }
     int ni2 = BM_ELEM_CD_GET_INT(v, cd_vert_node);
@@ -1298,7 +1300,9 @@ static void pbvh_bmesh_regen_node_verts(PBVH *pbvh, PBVHNode *node)
 
   TGSET_ITER (v, old_unique_verts) {
     if (BM_elem_is_free(reinterpret_cast<BMElem *>(v), BM_VERT)) {
-      printf("%s: corrupted vertex %p\n", __func__, v);
+      if (report) {
+        printf("%s: corrupted vertex %p\n", __func__, v);
+      }
       continue;
     }
 
@@ -1376,7 +1380,7 @@ PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i)
   return nullptr;
 }
 
-void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
+void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh, bool report)
 {
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
@@ -1385,7 +1389,7 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
       continue;
     }
 
-    pbvh_bmesh_regen_node_verts(pbvh, node);
+    pbvh_bmesh_regen_node_verts(pbvh, node, report);
   }
 }
 

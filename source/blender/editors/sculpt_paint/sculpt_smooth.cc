@@ -558,7 +558,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
 
-  BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
   AutomaskingNodeData automask_data;
@@ -652,12 +654,12 @@ void SCULPT_smooth(
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
-  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-    BKE_pbvh_face_areas_begin(ss->pbvh);
-  }
-
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
+
+    if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      BKE_pbvh_face_areas_begin(ss->pbvh);
+    }
 
     SculptThreadedTaskData data{};
     data.sd = sd;

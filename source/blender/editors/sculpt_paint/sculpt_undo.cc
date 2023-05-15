@@ -1001,7 +1001,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     }
 
     // pbvh_bmesh_check_nodes(ss->pbvh);
-    BKE_pbvh_bmesh_regen_node_verts(ss->pbvh);
+    BKE_pbvh_bmesh_regen_node_verts(ss->pbvh, false);
     // pbvh_bmesh_check_nodes(ss->pbvh);
 
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);

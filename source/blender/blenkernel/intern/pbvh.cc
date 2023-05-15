@@ -2270,13 +2270,14 @@ void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
 void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir | PBVH_UpdateTris;
+                PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir | PBVH_UpdateTris |
+                PBVH_UpdateTriAreas;
 }
 
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node)
 {
   node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
-                PBVH_UpdateCurvatureDir;
+                PBVH_UpdateCurvatureDir | PBVH_UpdateTriAreas;
 }
 
 void BKE_pbvh_node_mark_redraw(PBVHNode *node)
