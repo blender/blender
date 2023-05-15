@@ -566,16 +566,70 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
     blender::bke::paint::load_all_original(ob);
   }
 
+  SCULPT_update_all_valence_boundary(ob);
+
   if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
   if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
     BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+}
+
+void SCULPT_update_all_valence_boundary(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  /* Do bmesh seperately to avoid needing the PBVH, which we might not
+   * have inside the undo code.
+   */
+
+  if (ss->bm) {
+    SCULPT_vertex_random_access_ensure(ss);
+    BMIter iter;
+    BMVert *v;
+
+    int cd_flag = CustomData_get_offset_named(
+        &ss->bm->vdata, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(flags));
+    int cd_boundary = CustomData_get_offset_named(
+        &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(boundary_flags));
+    int cd_valence = CustomData_get_offset_named(
+        &ss->bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(valence));
+
+    BLI_assert(cd_flag != -1 && cd_boundary != -1 && cd_valence != -1);
+
+    BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+      *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag) = SCULPTFLAG_NEED_DISK_SORT |
+                                               SCULPTFLAG_NEED_TRIANGULATE;
+      BM_ELEM_CD_SET_INT(v, cd_valence, BM_vert_edge_count(v));
+      BM_ELEM_CD_SET_INT(v, cd_boundary, SCULPT_BOUNDARY_NEEDS_UPDATE);
+
+      /* Update boundary if we have a pbvh. */
+      if (ss->pbvh) {
+        PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v)};
+        SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_ALL);
+      }
+    }
+
+    return;
+  }
+  if (!ss->pbvh) {
+    return;
   }
 
-  if (ss->pbvh) {
-    blender::bke::paint::load_all_original(ob);
+  int verts_count = SCULPT_vertex_count_get(ss);
+  for (int i = 0; i < verts_count; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    blender::bke::paint::vertex_attr_set<int>(
+        vertex,
+        ss->attrs.flags,
+        SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE | SCULPTFLAG_NEED_DISK_SORT);
+    BKE_sculpt_boundary_flag_update(ss, vertex);
+    SCULPT_vertex_valence_get(ss, vertex);
+    SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_ALL);
   }
 }
 

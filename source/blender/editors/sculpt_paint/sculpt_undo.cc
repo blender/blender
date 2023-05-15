@@ -1079,6 +1079,8 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
     BKE_sculptsession_update_attr_refs(ob);
   }
 
+  SCULPT_update_all_valence_boundary(ob);
+
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 }
 

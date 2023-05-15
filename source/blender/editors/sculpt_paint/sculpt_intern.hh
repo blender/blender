@@ -1315,6 +1315,9 @@ void SCULPT_fake_neighbors_free(Object *ob);
 /* Vertex Info. */
 void SCULPT_boundary_info_ensure(Object *object);
 
+/* Update all boundary and valence info in the mesh. */
+void SCULPT_update_all_valence_boundary(Object *ob);
+
 /* Boundary Info needs to be initialized in order to use this function. */
 eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       const PBVHVertRef index,
@@ -1879,11 +1882,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         int cd_temp,
                                         bool do_origco);
 
-void SCULPT_neighbor_coords_average(SculptSession *ss,
-                                    float result[3],
-                                    PBVHVertRef index,
-                                    float projection,
-                                    bool weighted);
+void SCULPT_neighbor_coords_average(
+    SculptSession *ss, float result[3], PBVHVertRef index, float projection, bool weighted);
 float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef index);
 
