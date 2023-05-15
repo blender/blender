@@ -99,7 +99,7 @@ class DATA_UL_bone_groups(UIList):
         layout.prop(item, "name", text="", emboss=False, icon='GROUP_BONE')
 
         if item.is_custom_color_set or item.color_set == 'DEFAULT':
-            layout.prop(item, "color_set", icon_only=True, icon="COLOR")
+            layout.prop(item, "color_set", icon_only=True, icon='COLOR')
         else:
             layout.prop(item, "color_set", icon_only=True)
 
@@ -174,7 +174,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
     bl_label = "Inverse Kinematics"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
