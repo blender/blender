@@ -268,6 +268,10 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("description", "error_message_add")) +
 
+    # Node socket labels
+    tuple((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it)
+          for it in ("node_sock_label",)) +
+
     # Geometry Nodes field inputs
     ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
 
