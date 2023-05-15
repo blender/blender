@@ -35,6 +35,8 @@ AssetShelfSettings *ED_asset_shelf_settings_duplicate(const AssetShelfSettings *
       "AssetShelfSettings needs to be trivial to allow freeing with MEM_freeN() (API promise)");
   AssetShelfSettings *new_settings = MEM_new<AssetShelfSettings>(__func__, *shelf_settings);
 
+  BLI_listbase_clear(&new_settings->enabled_catalog_paths);
+
   LISTBASE_FOREACH (LinkData *, catalog_path_item, &shelf_settings->enabled_catalog_paths) {
     LinkData *new_path_item = static_cast<LinkData *>(MEM_dupallocN(catalog_path_item));
     new_path_item->data = BLI_strdup((char *)catalog_path_item->data);
