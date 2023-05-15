@@ -155,6 +155,14 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
  * \param path: The path to a file or directory which can be absolute or relative.
  */
 void BLI_path_normalize(char *path) ATTR_NONNULL(1);
+
+/**
+ * A version of #BLI_path_normalize without special handling of `//` blend file relative prefix.
+ *
+ * \note On UNIX `//path` is a valid path which gets normalized to `/path`.
+ */
+void BLI_path_normalize_native(char *path) ATTR_NONNULL(1);
+
 /**
  * Cleanup file-path ensuring a trailing slash.
  *

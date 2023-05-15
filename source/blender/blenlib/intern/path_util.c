@@ -135,7 +135,7 @@ void BLI_path_sequence_encode(char *path,
   BLI_snprintf(path, path_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
-void BLI_path_normalize(char *path)
+static void path_normalize_impl(char *path, bool check_blend_relative_prefix)
 {
   const char *path_orig = path;
   int path_len = strlen(path);
@@ -144,7 +144,7 @@ void BLI_path_normalize(char *path)
    * Skip absolute prefix.
    * ---------------------
    */
-  if (path[0] == '/' && path[1] == '/') {
+  if (check_blend_relative_prefix && (path[0] == '/' && path[1] == '/')) {
     path = path + 2; /* Leave the initial `//` untouched. */
     path_len -= 2;
 
@@ -355,6 +355,16 @@ void BLI_path_normalize(char *path)
   BLI_assert(strlen(path) == path_len);
 
 #undef IS_PARENT_DIR
+}
+
+void BLI_path_normalize(char *path)
+{
+  path_normalize_impl(path, true);
+}
+
+void BLI_path_normalize_native(char *path)
+{
+  path_normalize_impl(path, false);
 }
 
 void BLI_path_normalize_dir(char *dir, size_t dir_maxncpy)
