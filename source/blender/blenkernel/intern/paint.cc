@@ -1499,6 +1499,7 @@ static void sculptsession_free_pbvh(Object *object)
 
   MEM_SAFE_FREE(ss->pmap);
   MEM_SAFE_FREE(ss->pmap_mem);
+
   MEM_SAFE_FREE(ss->epmap);
   MEM_SAFE_FREE(ss->epmap_mem);
 
@@ -1936,7 +1937,7 @@ static void sculpt_update_object(
 
   if (ob->type == OB_MESH && !ss->pmap) {
     if (!ss->pmap && ss->pbvh) {
-      ss->pmap = BKE_pbvh_get_pmap(ss->pbvh, &ss->pmap_mem);
+      //ss->pmap = BKE_pbvh_get_pmap(ss->pbvh, &ss->pmap_mem);
     }
 
     if (!ss->pmap) {

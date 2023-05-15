@@ -214,6 +214,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                 &automask_data);
 
     if (fade > 0.05f) {
+      for (int i = 0; i < fd.verts_num; i++) {
+        BKE_sculpt_boundary_flag_update(ss, fd.verts[i]);
+      }
+
       *fd.face_set = ss->cache->paint_face_set;
       changed = true;
     }
@@ -317,7 +321,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
     }
   }
   else {
-    BKE_pbvh_parallel_range_settings(&settings, !data.set_active_faceset, nodes.size());
+    BKE_pbvh_parallel_range_settings(&settings, false, nodes.size());
     BLI_task_parallel_range(0, nodes.size(), &data, do_draw_face_sets_brush_task_cb_ex, &settings);
   }
 }
@@ -760,6 +764,11 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_end(ob);
+
+  int verts_num = SCULPT_vertex_count_get(ob->sculpt);
+  for (int i : IndexRange(verts_num)) {
+    BKE_sculpt_boundary_flag_update(ob->sculpt, BKE_pbvh_index_to_vertex(ss->pbvh, i));
+  }
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
   SCULPT_visibility_sync_all_from_faces(ob);
