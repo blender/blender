@@ -42,7 +42,6 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
                                eStrCursorJumpType jump,
                                bool use_init_step);
 
-
 /**
  * Word/Sequence Selection. Given a position within a string, return the start and end of the
  * closest sequence of delimited characters. Generally a word, but could be a sequence of spaces.
@@ -53,10 +52,10 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
  * \param r_start: returned start of word/sequence boundary (0-based)
  * \param r_end: returned end of word/sequence boundary (0-based)
  */
-
 void BLI_str_cursor_step_bounds_utf8(
     const char *str, const size_t str_maxlen, int *pos, int *r_start, int *r_end);
 
+/** A UTF32 version of #BLI_str_cursor_step_bounds_utf8 */
 void BLI_str_cursor_step_bounds_utf32(
     const char32_t *str, const size_t str_maxlen, int *pos, int *r_start, int *r_end);
 
