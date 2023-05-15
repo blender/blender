@@ -567,6 +567,10 @@ typedef enum eItasc_Flags {
   ITASC_INITIAL_REITERATION = (1 << 1),
   ITASC_REITERATION = (1 << 2),
   ITASC_SIMULATION = (1 << 3),
+
+  /* Set this flag to always translate root bones (i.e. bones without a parent) to (0, 0, 0).
+   * This was the pre-3.6 behaviour, and this flag was introduced for backward compatibility. */
+  ITASC_TRANSLATE_ROOT_BONES = (1 << 4),
 } eItasc_Flags;
 
 /* bItasc->solver */

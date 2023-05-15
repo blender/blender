@@ -192,6 +192,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 
         if itasc:
             layout.prop(itasc, "mode")
+            layout.prop(itasc, "translate_root_bones")
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
                 layout.prop(itasc, "reiteration_method", expand=False)
