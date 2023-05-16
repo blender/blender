@@ -1937,7 +1937,7 @@ static void sculpt_update_object(
 
   if (ob->type == OB_MESH && !ss->pmap) {
     if (!ss->pmap && ss->pbvh) {
-      //ss->pmap = BKE_pbvh_get_pmap(ss->pbvh, &ss->pmap_mem);
+      // ss->pmap = BKE_pbvh_get_pmap(ss->pbvh, &ss->pmap_mem);
     }
 
     if (!ss->pmap) {
@@ -2288,7 +2288,7 @@ void BKE_sculpt_update_object_for_edit(
   sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
 }
 
-ATTR_NO_OPT int *BKE_sculpt_face_sets_ensure(Object *ob)
+int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2670,6 +2670,7 @@ extern "C" bool BKE_sculpt_init_flags_valence(Object *ob,
 
   BKE_sculpt_ensure_origco(ob);
   sculpt_boundary_flags_ensure(ob, pbvh, totvert);
+  BKE_sculptsession_update_attr_refs(ob);
 
   if (reset_flags) {
     if (ss->bm) {
@@ -3146,14 +3147,14 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
   }
 }
 
-ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
-                                                Object *ob,
-                                                eAttrDomain domain,
-                                                eCustomDataType proptype,
-                                                const char *name,
-                                                SculptAttribute *out,
-                                                const SculptAttributeParams *params,
-                                                PBVHType pbvhtype)
+static bool sculpt_attribute_create(SculptSession *ss,
+                                    Object *ob,
+                                    eAttrDomain domain,
+                                    eCustomDataType proptype,
+                                    const char *name,
+                                    SculptAttribute *out,
+                                    const SculptAttributeParams *params,
+                                    PBVHType pbvhtype)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3278,7 +3279,7 @@ ATTR_NO_OPT static bool sculpt_attribute_create(SculptSession *ss,
   return true;
 }
 
-ATTR_NO_OPT static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
+static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
   int elem_num = sculpt_attr_elem_count_get(ob, attr->domain);

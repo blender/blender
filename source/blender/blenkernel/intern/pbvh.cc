@@ -4247,55 +4247,6 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
   pbvh_boundaries_flag_update(pbvh);
 }
 
-ATTR_NO_OPT void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex)
-{
-  SubdivCCG *subdiv_ccg = pbvh->subdiv_ccg;
-  int index = (int)vertex.i;
-
-  /* Update valence. */
-
-  /* TODO: optimize this. We could fill #SculptVertexNeighborIter directly,
-   * maybe provide coordinate and mask pointers directly rather than converting
-   * back and forth between #CCGElem and global index. */
-  const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
-  const int grid_index = index / key->grid_area;
-  const int vertex_index = index - grid_index * key->grid_area;
-
-  SubdivCCGCoord coord = {};
-
-  coord.grid_index = grid_index;
-  coord.x = short(vertex_index % key->grid_size);
-  coord.y = short(vertex_index / key->grid_size);
-
-  SubdivCCGNeighbors neighbors;
-  BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, &coord, false, &neighbors);
-
-  pbvh->valence[vertex.i] = neighbors.size;
-  pbvh->sculpt_flags[vertex.i] &= ~SCULPTFLAG_NEED_VALENCE;
-
-  /* Update boundary */
-  int *boundary_flag = pbvh->boundary_flags + vertex.i;
-  *boundary_flag = 0;
-
-  int face = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid_index);
-  int fset = pbvh->face_sets ? pbvh->face_sets[face] : 0;
-
-  for (int i : IndexRange(neighbors.size)) {
-    int grid_index2 = neighbors.coords[i].grid_index;
-
-    if (grid_index == grid_index2) {
-      continue;
-    }
-
-    int face2 = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid_index2);
-    int fset2 = pbvh->face_sets ? pbvh->face_sets[face2] : 0;
-
-    if (fset2 != fset) {
-      *boundary_flag |= SCULPT_BOUNDARY_FACE_SET;
-    }
-  }
-}
-
 namespace blender::bke::pbvh {
 void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence)
 {

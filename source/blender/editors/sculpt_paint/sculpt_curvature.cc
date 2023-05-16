@@ -141,10 +141,10 @@ BLI_INLINE void normal_covariance(float mat[3][3], float no[3])
   mat[2][2] = no[2] * no[2];
 }
 
-ATTR_NO_OPT bool SCULPT_calc_principle_curvatures(SculptSession *ss,
-                                                  PBVHVertRef vertex,
-                                                  SculptCurvatureData *out,
-                                                  bool useAccurateSolver)
+bool SCULPT_calc_principle_curvatures(SculptSession *ss,
+                                      PBVHVertRef vertex,
+                                      SculptCurvatureData *out,
+                                      bool useAccurateSolver)
 {
   SculptVertexNeighborIter ni;
   float nmat[3][3], nmat2[3][3];
@@ -246,10 +246,10 @@ ATTR_NO_OPT bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   return true;
 }
 
-ATTR_NO_OPT void SCULPT_curvature_dir_get(SculptSession *ss,
-                                          PBVHVertRef v,
-                                          float dir[3],
-                                          bool useAccurateSolver)
+void SCULPT_curvature_dir_get(SculptSession *ss,
+                              PBVHVertRef v,
+                              float dir[3],
+                              bool useAccurateSolver)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     SculptCurvatureData curv;

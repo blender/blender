@@ -14,9 +14,12 @@
 #include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_context.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -30,8 +33,6 @@
 using blender::float2;
 using blender::float3;
 using blender::Vector;
-
-using namespace blender::bke::paint;
 
 static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        float result[3],
@@ -65,7 +66,14 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     neighbor_count++;
     float w = weighted ? areas[ni.i] : 1.0f;
 
-    const eSculptBoundary is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
+    eSculptBoundary is_boundary2;
+
+    if (ni.has_edge) {
+      is_boundary2 = SCULPT_edge_is_boundary(ss, ni.edge, bound_type);
+    }
+    else {
+      is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
+    }
     const eSculptBoundary smooth_types = !ss->hard_edge_mode ?
                                              SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
                                                  SCULPT_BOUNDARY_UV :
@@ -487,7 +495,8 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                 &automask_data);
 
     float disp[3];
-    float *detail_dir = vertex_attr_ptr<float>(vd.vertex, ss->attrs.detail_directions);
+    float *detail_dir = blender::bke::paint::vertex_attr_ptr<float>(vd.vertex,
+                                                                  ss->attrs.detail_directions);
     madd_v3_v3v3fl(disp, vd.co, detail_dir, fade);
     SCULPT_clip(sd, ss, vd.co, disp);
 
@@ -525,7 +534,8 @@ static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
 
       float avg[3];
       SCULPT_neighbor_coords_average(ss, avg, vertex, projection, use_area_weights);
-      float *detail_dir = vertex_attr_ptr<float>(vertex, ss->attrs.detail_directions);
+      float *detail_dir = blender::bke::paint::vertex_attr_ptr<float>(vertex,
+                                                                    ss->attrs.detail_directions);
 
       sub_v3_v3v3(detail_dir, avg, SCULPT_vertex_co_get(ss, vertex));
     }
@@ -652,6 +662,18 @@ void SCULPT_smooth(
   int iteration, count;
   float last;
 
+  /* PBVH_FACES needs ss->epmap. */
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->epmap) {
+    Mesh *mesh = static_cast<Mesh *>(ob->data);
+
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  mesh->edges().size(),
+                                  mesh->polys(),
+                                  mesh->corner_edges().data(),
+                                  mesh->corner_edges().size());
+  }
+
   CLAMP(bstrength, 0.0f, 1.0f);
 
   count = int(bstrength * max_iterations);
@@ -734,7 +756,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
   add_v3_v3v3(d, weigthed_o, weigthed_q);
-  float *laplacian_disp = vertex_attr_ptr<float>(vertex, ss->attrs.laplacian_disp);
+  float *laplacian_disp = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.laplacian_disp);
 
   sub_v3_v3v3(laplacian_disp, laplacian_smooth_co, d);
 
@@ -749,14 +771,16 @@ void SCULPT_surface_smooth_displace_step(
   int total = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    float *laplacian_disp = vertex_attr_ptr<float>(ni.vertex, ss->attrs.laplacian_disp);
+    float *laplacian_disp = blender::bke::paint::vertex_attr_ptr<float>(ni.vertex,
+                                                                        ss->attrs.laplacian_disp);
     add_v3_v3(b_avg, laplacian_disp);
     total++;
   }
 
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   if (total > 0) {
-    float *laplacian_disp = vertex_attr_ptr<float>(vertex, ss->attrs.laplacian_disp);
+    float *laplacian_disp = blender::bke::paint::vertex_attr_ptr<float>(vertex,
+                                                                        ss->attrs.laplacian_disp);
 
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
     madd_v3_v3fl(b_current_vertex, laplacian_disp, beta);

@@ -607,9 +607,9 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
-ATTR_NO_OPT static void unified_edge_queue_task_cb(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict /*tls*/)
+static void unified_edge_queue_task_cb(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict /*tls*/)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVH *pbvh = tdata->pbvh;
@@ -1614,13 +1614,13 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   }
 }
 
-ATTR_NO_OPT static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
-                                            PBVH *pbvh,
-                                            const float center[3],
-                                            const float /*view_normal*/[3],
-                                            float radius,
-                                            const bool /*use_frontface*/,
-                                            const bool /*use_projected*/)
+static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
+                                PBVH *pbvh,
+                                const float center[3],
+                                const float /*view_normal*/[3],
+                                float radius,
+                                const bool /*use_frontface*/,
+                                const bool /*use_projected*/)
 {
   bool modified = false;
 
@@ -1925,13 +1925,13 @@ ATTR_NO_OPT static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
   return modified;
 }
 
-ATTR_NO_OPT static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
-                                       PBVH *pbvh,
-                                       const float center[3],
-                                       const float view_normal[3],
-                                       float radius,
-                                       bool use_frontface,
-                                       bool use_projected)
+static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
+                           PBVH *pbvh,
+                           const float center[3],
+                           const float view_normal[3],
+                           float radius,
+                           bool use_frontface,
+                           bool use_projected)
 {
   bool modified = false;
 

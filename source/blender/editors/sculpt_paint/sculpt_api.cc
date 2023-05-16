@@ -169,24 +169,33 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, i
   return BLI_BITMAP_TEST(ss->vertex_info.boundary, index);
 }
 
-static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss, int index)
+static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss,
+                                                      int vertex,
+                                                      bool *r_corner)
 {
-  if (!ss->face_sets) {
+  if (!ss->attrs.face_set) {
     return true;
   }
-  const MeshElemMap *vert_map = &ss->pmap[index];
-  int face_set = -1;
-  for (int i = 0; i < vert_map->count; i++) {
-    if (face_set == -1) {
-      face_set = ss->face_sets[vert_map->indices[i]];
+  const MeshElemMap *vert_map = &ss->pmap[vertex];
+  int fset1 = -1, fset2 = -1, fset3 = -1;
+
+  for (int i : IndexRange(vert_map->count)) {
+    PBVHFaceRef face = {vert_map->indices[i]};
+    int fset = face_attr_get<int>(face, ss->attrs.face_set);
+
+    if (fset1 == -1) {
+      fset1 = fset;
     }
-    else {
-      if (ss->face_sets[vert_map->indices[i]] != face_set) {
-        return false;
-      }
+    else if (fset2 == -1 && fset != fset1) {
+      fset2 = fset;
+    }
+    else if (fset3 == -1 && fset != fset1 && fset != fset2) {
+      fset3 = fset;
     }
   }
-  return true;
+
+  *r_corner = fset3 != -1;
+  return fset2 == -1;
 }
 
 eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
@@ -349,17 +358,18 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
       ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
 
+  bool fset_corner = false;
   switch (adjacency) {
     case SUBDIV_CCG_ADJACENT_VERTEX:
-      if (sculpt_check_unique_face_set_in_base_mesh(ss, v1)) {
+      if (!sculpt_check_unique_face_set_in_base_mesh(ss, v1, &fset_corner)) {
         *flag |= SCULPT_BOUNDARY_FACE_SET;
       }
-      if (sculpt_check_boundary_vertex_in_base_mesh(ss, v2)) {
+      if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1)) {
         *flag |= SCULPT_BOUNDARY_MESH;
       }
       break;
-    case SUBDIV_CCG_ADJACENT_EDGE:
-      if (sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2)) {
+    case SUBDIV_CCG_ADJACENT_EDGE: {
+      if (!sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2)) {
         *flag |= SCULPT_BOUNDARY_FACE_SET;
       }
 
@@ -369,8 +379,13 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
         *flag |= SCULPT_BOUNDARY_MESH;
       }
       break;
+    }
     case SUBDIV_CCG_ADJACENT_NONE:
       break;
+  }
+
+  if (fset_corner) {
+    *flag |= SCULPT_CORNER_FACE_SET | SCULPT_BOUNDARY_FACE_SET;
   }
 }
 
@@ -422,7 +437,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       const PBVHVertRef vertex,
                                       eSculptCorner cornertype)
 {
-  eSculptCorner flag = *vertex_attr_ptr<eSculptCorner>(vertex, ss->attrs.boundary_flags);
+  eSculptCorner flag = eSculptCorner(vertex_attr_get<int>(vertex, ss->attrs.boundary_flags));
   bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -453,12 +468,13 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
       if (needs_update) {
         grids_update_boundary_flags(ss, vertex);
       }
+
       break;
     }
   }
 
   if (needs_update) {
-    flag = *vertex_attr_ptr<eSculptCorner>(vertex, ss->attrs.boundary_flags);
+    flag = eSculptCorner(vertex_attr_get<int>(vertex, ss->attrs.boundary_flags));
   }
 
   flag &= cornertype;
@@ -502,7 +518,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
 
     case PBVH_GRIDS: {
       if (needs_update) {
-        BKE_pbvh_update_vert_boundary_grids(ss->pbvh, vertex);
+        grids_update_boundary_flags(ss, vertex);
         needs_update = false;
       }
 
