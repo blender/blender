@@ -5,8 +5,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BLT_translation.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 

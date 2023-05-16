@@ -7,8 +7,6 @@
 
 #include <climits>
 
-#include "BLT_translation.h"
-
 #include "RNA_access.h"
 
 #include "UI_interface.h"

@@ -9,8 +9,6 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "BLT_translation.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 

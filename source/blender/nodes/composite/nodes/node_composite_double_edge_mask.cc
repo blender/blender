@@ -8,8 +8,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "BLT_translation.h"
-
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"

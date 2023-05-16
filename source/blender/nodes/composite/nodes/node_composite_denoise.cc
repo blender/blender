@@ -7,8 +7,6 @@
 
 #include "BLI_system.h"
 
-#include "BLT_translation.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "UI_interface.h"

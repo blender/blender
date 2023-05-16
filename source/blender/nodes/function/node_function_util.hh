@@ -13,8 +13,6 @@
 
 #include "BKE_node.hh"
 
-#include "BLT_translation.h"
-
 #include "NOD_multi_function.hh"
 #include "NOD_socket_declarations.hh"
 
