@@ -462,7 +462,7 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
   }
 
   DepsgraphNodeBuilder *builder = static_cast<DepsgraphNodeBuilder *>(cb_data->user_data);
-  ID *id_cow_self = cb_data->id_self;
+  ID *id_cow_self = cb_data->self_id;
 
   return builder->foreach_id_cow_detect_need_for_update_callback(id_cow_self, id);
 }

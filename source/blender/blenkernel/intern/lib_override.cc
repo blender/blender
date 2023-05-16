@@ -373,7 +373,7 @@ bool BKE_lib_override_library_property_is_animated(const ID *id,
 
 static int foreachid_is_hierarchy_leaf_fn(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *id_owner = cb_data->id_owner;
+  ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
   bool *is_leaf = static_cast<bool *>(cb_data->user_data);
 
@@ -3194,7 +3194,7 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
     return IDWALK_RET_NOP;
   }
-  ID *id_owner = cb_data->id_owner;
+  ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
   if (id != nullptr && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
     const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ? id_owner->lib->temp_index :

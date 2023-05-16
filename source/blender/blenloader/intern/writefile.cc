@@ -1165,17 +1165,17 @@ static void id_buffer_init_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const 
  * linked data is tagged accordingly. */
 static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID *id = *cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
 
   if (id == nullptr || !ID_IS_LINKED(id)) {
     return IDWALK_RET_NOP;
   }
-  BLI_assert(!ID_IS_LINKED(id_self));
+  BLI_assert(!ID_IS_LINKED(self_id));
   BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
 
-  if (id_self->tag & LIB_TAG_RUNTIME) {
+  if (self_id->tag & LIB_TAG_RUNTIME) {
     return IDWALK_RET_NOP;
   }
 

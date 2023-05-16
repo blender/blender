@@ -87,8 +87,8 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   const int callback_return = data->callback(
       &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
                                           .bmain = data->bmain,
-                                          .id_owner = data->owner_id,
-                                          .id_self = data->self_id,
+                                          .owner_id = data->owner_id,
+                                          .self_id = data->self_id,
                                           .id_pointer = id_pp,
                                           .cb_flag = cb_flag});
   if (flag & IDWALK_READONLY) {
@@ -126,7 +126,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData 
 }
 
 static bool library_foreach_ID_link(Main *bmain,
-                                    ID *id_owner,
+                                    ID *owner_id,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
@@ -192,7 +192,7 @@ static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)
 
 /** \return false in case iteration over ID pointers must be stopped, true otherwise. */
 static bool library_foreach_ID_link(Main *bmain,
-                                    ID *id_owner,
+                                    ID *owner_id,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
@@ -259,7 +259,7 @@ static bool library_foreach_ID_link(Main *bmain,
      * knowledge of the owner ID then.
      * While not great, and that should be probably sanitized at some point, we cal live with it
      * for now. */
-    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && id_owner != NULL) ? id_owner :
+    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && owner_id != NULL) ? owner_id :
                                                                                 data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
@@ -374,13 +374,13 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner, const bool include_ui)
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui)
 {
   /* any type of ID can be used in custom props. */
-  if (id_owner->properties) {
+  if (owner_id->properties) {
     return FILTER_ID_ALL;
   }
-  const short id_type_owner = GS(id_owner->name);
+  const short id_type_owner = GS(owner_id->name);
 
   /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
   if (ELEM(id_type_owner, ID_NT, ID_AR)) {
@@ -395,16 +395,16 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner, const bool include
   /* Casting to non const.
    * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
    * interested in the result. */
-  if (ntreeFromID((ID *)id_owner)) {
+  if (ntreeFromID((ID *)owner_id)) {
     return FILTER_ID_ALL;
   }
 
-  if (BKE_animdata_from_id(id_owner)) {
+  if (BKE_animdata_from_id(owner_id)) {
     /* AnimationData can use virtually any kind of data-blocks, through drivers especially. */
     return FILTER_ID_ALL;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_owner)) {
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
     /* LibOverride data 'hierarchy root' can virtually point back to any type of ID. */
     return FILTER_ID_ALL;
   }
@@ -496,14 +496,14 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner, const bool include
   return 0;
 }
 
-bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+bool BKE_library_id_can_use_idtype(ID *owner_id, const short id_type_used)
 {
   /* any type of ID can be used in custom props. */
-  if (id_owner->properties) {
+  if (owner_id->properties) {
     return true;
   }
 
-  const short id_type_owner = GS(id_owner->name);
+  const short id_type_owner = GS(owner_id->name);
   /* Exception for ID_LI as they don't exist as a filter. */
   if (id_type_used == ID_LI) {
     return id_type_owner == ID_LI;
@@ -520,7 +520,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
   }
 
   const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
-  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner, false);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(owner_id, false);
   return (can_be_used & filter_id_type_used) != 0;
 }
 
@@ -866,7 +866,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
 
 static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *self_id = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID **id_p = cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
   bool *is_changed = cb_data->user_data;
