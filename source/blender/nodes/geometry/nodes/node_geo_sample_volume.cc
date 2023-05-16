@@ -167,7 +167,7 @@ void sample_grid(openvdb::GridBase::ConstPtr base_grid,
 {
   using ValueT = typename GridT::ValueType;
   using AccessorT = typename GridT::ConstAccessor;
-  const GridT::ConstPtr grid = openvdb::gridConstPtrCast<GridT>(base_grid);
+  const typename GridT::ConstPtr grid = openvdb::gridConstPtrCast<GridT>(base_grid);
   AccessorT accessor = grid->getConstAccessor();
 
   auto sample_data = [&](auto sampler) {
