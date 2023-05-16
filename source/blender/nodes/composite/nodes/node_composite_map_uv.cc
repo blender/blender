@@ -5,8 +5,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BLT_translation.h"
-
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 

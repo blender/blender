@@ -9,8 +9,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "BLT_translation.h"
-
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 

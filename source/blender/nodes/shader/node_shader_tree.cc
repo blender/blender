@@ -23,8 +23,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
-
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"

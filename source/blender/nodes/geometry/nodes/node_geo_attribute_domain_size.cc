@@ -3,8 +3,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "BLT_translation.h"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_attribute_domain_size_cc {

@@ -11,8 +11,6 @@
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
-#include "BLT_translation.h"
-
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"

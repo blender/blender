@@ -15,8 +15,6 @@
 
 #include "BKE_node.hh"
 
-#include "BLT_translation.h"
-
 #include "NOD_geometry.h"
 #include "NOD_geometry_exec.hh"
 #include "NOD_socket_declarations.hh"
