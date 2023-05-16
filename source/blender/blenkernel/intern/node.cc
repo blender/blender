@@ -3736,21 +3736,7 @@ void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock)
   BKE_ntree_update_tag_interface(ntree);
 }
 
-/* ************ find stuff *************** */
-
 namespace blender::bke {
-
-bNode *ntreeFindType(bNodeTree *ntree, const int type)
-{
-  if (ntree) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == type) {
-        return node;
-      }
-    }
-  }
-  return nullptr;
-}
 
 static bool ntree_contains_tree_exec(const bNodeTree *tree_to_search_in,
                                      const bNodeTree *tree_to_search_for,

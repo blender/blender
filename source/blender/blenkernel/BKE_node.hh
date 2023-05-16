@@ -39,7 +39,6 @@ bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree);
 
 void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node);
 
-bNode *ntreeFindType(bNodeTree *ntree, int type);
 
 void ntreeUpdateAllNew(Main *main);
 

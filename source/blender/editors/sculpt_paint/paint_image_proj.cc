@@ -64,6 +64,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -6636,8 +6637,9 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
     case LAYER_ROUGHNESS:
     case LAYER_METALLIC: {
       bNodeTree *ntree = nullptr;
-      bNode *in_node = ma ? blender::bke::ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED) :
-                            nullptr;
+      ma->nodetree->ensure_topology_cache();
+      const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type("ShaderNodeBsdfPrincipled");
+      bNode *in_node = nodes.is_empty() ? nullptr : nodes.first();
       if (!in_node) {
         /* An existing material or Principled BSDF node could not be found.
          * Copy default color values from a default Principled BSDF instead. */
@@ -6741,7 +6743,9 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     nodeSetActive(ntree, new_node);
 
     /* Connect to first available principled BSDF node. */
-    bNode *in_node = blender::bke::ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
+    ntree->ensure_topology_cache();
+    const blender::Span<bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeBsdfPrincipled");
+    bNode *in_node = bsdf_nodes.is_empty() ? nullptr : bsdf_nodes.first();
     bNode *out_node = new_node;
 
     if (in_node != nullptr) {
@@ -6777,7 +6781,9 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       else if (type == LAYER_DISPLACEMENT) {
         /* Connect to the displacement output socket */
-        in_node = blender::bke::ntreeFindType(ntree, SH_NODE_OUTPUT_MATERIAL);
+        const blender::Span<bNode *> output_nodes = ntree->nodes_by_type(
+            "ShaderNodeOutputMaterial");
+        in_node = output_nodes.is_empty() ? nullptr : output_nodes.first();
 
         if (in_node != nullptr) {
           in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
