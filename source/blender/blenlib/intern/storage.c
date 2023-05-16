@@ -568,30 +568,12 @@ void BLI_file_free_lines(LinkNode *lines)
 
 bool BLI_file_older(const char *file1, const char *file2)
 {
-#ifdef WIN32
-  struct _stat st1, st2;
-
-  UTF16_ENCODE(file1);
-  UTF16_ENCODE(file2);
-
-  if (_wstat(file1_16, &st1)) {
+  BLI_stat_t st1, st2;
+  if (BLI_stat(file1, &st1)) {
     return false;
   }
-  if (_wstat(file2_16, &st2)) {
+  if (BLI_stat(file2, &st2)) {
     return false;
   }
-
-  UTF16_UN_ENCODE(file2);
-  UTF16_UN_ENCODE(file1);
-#else
-  struct stat st1, st2;
-
-  if (stat(file1, &st1)) {
-    return false;
-  }
-  if (stat(file2, &st2)) {
-    return false;
-  }
-#endif
   return (st1.st_mtime < st2.st_mtime);
 }
