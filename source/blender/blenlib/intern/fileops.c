@@ -385,6 +385,19 @@ int BLI_rename(const char *from, const char *to)
     return 1;
   }
 
+  /* NOTE(@ideasman42): there are no checks that `from` & `to` *aren't* the same file.
+   * It's up to the caller to ensure this. In practice these paths are often generated
+   * and known to be different rather than arbitrary user input.
+   * In the case of arbitrary paths (renaming a file in the file-selector for example),
+   * the caller must ensure file renaming doesn't cause user data loss.
+   *
+   * Support for checking the files aren't the same could be added, however path comparison
+   * alone is *not* a guarantee the files are different (given the possibility of accessing
+   * the same file through different paths via symbolic-links), we could instead support a
+   * verizon of Python's * `os.path.samefile(..)` which compares the I-node & device.
+   * In this particular case we would not want to follow symbolic-links as well.
+   * Since this functionality isn't required at the moment, leave this as-is.
+   * Noting it as a potential improvement. */
   if (BLI_exists(to)) {
     if (BLI_delete(to, false, false)) {
       return 1;
