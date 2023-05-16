@@ -1751,6 +1751,13 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
     else if (domain == ATTR_DOMAIN_CORNER) {
       data = &pbvh->header.bm->ldata;
     }
+    else {
+      *r_layer = nullptr;
+      *r_attr = ATTR_DOMAIN_POINT;
+
+      BLI_assert_unreachable();
+      return false;
+    }
 
     int layer_i = CustomData_get_named_layer_index(
         data, eCustomDataType(layer->type), layer->name);
@@ -1787,17 +1794,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   eAttrDomain vcol_domain;
 
   BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
-
-  CustomData *vdata, *ldata;
-
-  if (pbvh->header.bm) {
-    vdata = &pbvh->header.bm->vdata;
-    ldata = &pbvh->header.bm->ldata;
-  }
-  else {
-    vdata = pbvh->vdata ? pbvh->vdata : &me->vdata;
-    ldata = pbvh->ldata ? pbvh->ldata : &me->ldata;
-  }
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
     PBVH_GPU_Args args;
@@ -3882,7 +3878,6 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES: {
       for (int i = 0; i < (int)node->totprim; i++) {
-        const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
         const int poly = pbvh->looptri_polys[node->prim_indices[i]];
 
         if (pbvh->hide_poly && pbvh->hide_poly[poly]) {

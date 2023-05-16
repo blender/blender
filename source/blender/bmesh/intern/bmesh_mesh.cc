@@ -202,7 +202,7 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
   return bm;
 }
 
-ATTR_NO_OPT static void customdata_pool_destroy(BMesh * /*bm*/, CustomData *cdata)
+static void customdata_pool_destroy(BMesh * /*bm*/, CustomData *cdata)
 {
   if (cdata->pool) {
     BLI_mempool_destroy(cdata->pool);

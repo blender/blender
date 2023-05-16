@@ -118,8 +118,6 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
    to improve convergence of remesher */
 #define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
 
-#define DYNTOPO_SAFE_SMOOTH_SUBD_ONLY_FAC 0.075f
-
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
 #endif
@@ -242,6 +240,7 @@ struct EdgeQueueContext {
   bool (*edge_queue_vert_in_range)(const struct EdgeQueueContext *q, BMVert *v);
 
   PBVHTopologyUpdateMode mode;
+  bool reproject_cdata;
 };
 
 bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root);

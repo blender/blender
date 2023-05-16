@@ -82,7 +82,8 @@ static void edge_queue_create_local(struct EdgeQueueContext *eq_ctx,
                                     const bool use_projected,
                                     PBVHTopologyUpdateMode local_mode);
 
-BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, float fac)
+static void surface_smooth_v_safe(
+    SculptSession *ss, PBVH *pbvh, BMVert *v, float fac, bool reproject_cdata)
 {
   float co[3];
   float origco[3], origco1[3];
@@ -168,6 +169,13 @@ BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, 
     return;
   }
 
+  float startco[3];
+  float startno[3];
+  if (reproject_cdata) {
+    copy_v3_v3(startco, v->co);
+    copy_v3_v3(startno, v->no);
+  }
+
   mul_v3_fl(co, 1.0f / tot);
   mul_v3_fl(origco, 1.0f / tot);
 
@@ -178,6 +186,11 @@ BLI_INLINE void surface_smooth_v_safe(SculptSession *ss, PBVH *pbvh, BMVert *v, 
   atomic_cas_float(&v->co[0], x, nx);
   atomic_cas_float(&v->co[1], y, ny);
   atomic_cas_float(&v->co[2], z, nz);
+
+  /* Note: threading is disabled if reproject_cdata is on. */
+  if (reproject_cdata) {
+    BKE_sculpt_reproject_cdata(ss, vertex, startco, startno);
+  }
 
   float *start_origco = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 
@@ -477,12 +490,8 @@ static bool edge_queue_vert_in_circle(const EdgeQueueContext *eq_ctx, BMVert *v)
   return len_squared_v3v3(eq_ctx->center_proj, c) <= eq_ctx->radius_squared;
 }
 
-static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
-                                               BMLoop *l_edge,
-                                               BMLoop *l_end,
-                                               const float len_sq,
-                                               float limit_len,
-                                               int depth)
+static void long_edge_queue_edge_add_recursive(
+    EdgeQueueContext *eq_ctx, BMLoop *l_edge, const float len_sq, float limit_len, int depth)
 {
   BLI_assert(len_sq > square_f(limit_len));
 
@@ -517,7 +526,7 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
         }
 
         long_edge_queue_edge_add_recursive(
-            eq_ctx, l_adjacent[i]->radial_next, l_adjacent[i], len_sq_other, limit_len, depth + 1);
+            eq_ctx, l_adjacent[i]->radial_next, len_sq_other, limit_len, depth + 1);
       }
     } while ((l_iter = l_iter->radial_next) != l_edge);
   }
@@ -627,6 +636,9 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
 
   const char facetag = BM_ELEM_TAG_ALT;
 
+  /* Only do reprojection if UVs exist. */
+  bool reproject_cdata = eq_ctx->reproject_cdata;
+
   /*
    * We care more about convergence to accurate results
    * then accuracy in any individual runs.  profiling
@@ -702,7 +714,8 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
                                 tdata->pbvh,
                                 l_iter->v,
                                 eq_ctx->surface_smooth_fac *
-                                    eq_ctx->mask_cb(sv, eq_ctx->mask_cb_data));
+                                    eq_ctx->mask_cb(sv, eq_ctx->mask_cb_data),
+                                reproject_cdata);
         }
 
         float len_sq = calc_edge_length(eq_ctx, l_iter->e->v1, l_iter->e->v2);
@@ -1253,6 +1266,8 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = !eq_ctx->reproject_cdata;
+
 #ifdef DYNTOPO_NO_THREADING
   settings.use_threading = false;
 #endif
@@ -1993,13 +2008,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
                                                void *mask_cb_data,
                                                int custom_max_steps,
                                                bool disable_surface_relax,
-                                               bool is_snake_hook)
+                                               bool /*is_snake_hook*/)
 {
-  /* Disable surface smooth if uv layers are present, to avoid expensive reprojection operation. */
-  if (!is_snake_hook && CustomData_has_layer(&pbvh->header.bm->ldata, CD_PROP_FLOAT2)) {
-    disable_surface_relax = true;
-  }
-
   /* Push a subentry. */
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 
@@ -2049,22 +2059,6 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
   }
 #endif
 
-  float safe_smooth;
-
-  if (disable_surface_relax) {
-    safe_smooth = 0.0f;
-  }
-  else if ((mode & PBVH_Subdivide) && (!(mode & PBVH_Collapse) || (mode & PBVH_LocalCollapse))) {
-    safe_smooth = DYNTOPO_SAFE_SMOOTH_SUBD_ONLY_FAC;
-  }
-  else {
-    safe_smooth = DYNTOPO_SAFE_SMOOTH_FAC;
-  }
-
-  // XXX
-  disable_surface_relax = false;
-  safe_smooth = DYNTOPO_SAFE_SMOOTH_FAC;
-
   EdgeQueueContext eq_ctx = {};
 
   eq_ctx.ss = ss;
@@ -2082,8 +2076,10 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
   eq_ctx.min_elen = 1e17;
   eq_ctx.totedge = 0.0f;
   eq_ctx.local_mode = false;
-  eq_ctx.surface_smooth_fac = safe_smooth;
+  eq_ctx.surface_smooth_fac = disable_surface_relax ? 0.0f : DYNTOPO_SAFE_SMOOTH_FAC;
   eq_ctx.mode = mode;
+  eq_ctx.reproject_cdata = CustomData_has_layer(&pbvh->header.bm->ldata, CD_PROP_FLOAT2) &&
+                           !ss->ignore_uvs;
 
 #ifdef DYNTOPO_USE_MINMAX_HEAP
   // eq_ctx.used_verts = BLI_table_gset_new(__func__);
@@ -2330,7 +2326,8 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
   }
 #endif
 
-  printf("subd: %d, cold: %d, ratio: %.3f\n",
+  printf("%s: subd: %d, cold: %d, ratio: %.3f\n",
+         __func__,
          count_subd,
          count_cold,
          count_cold > 0 ? float(count_subd) / float(count_cold) : 0.0f);
@@ -2733,7 +2730,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     edge_queue_insert_val34_vert(eq_ctx, newv);
 
-#ifdef DYNTOPO_USE_MINMAX_HEAP
+#if 0
     const float elimit = eq_ctx->limit_len_max;
 
     if (0 && e->l) {
@@ -2741,19 +2738,13 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
       newe->head.hflag &= ~BM_ELEM_TAG;
 
       long_edge_queue_edge_add_recursive(
-          eq_ctx, e->l->radial_next, e->l, len_squared_v3v3(e->v1->co, e->v2->co), elimit, 0);
+          eq_ctx, e->l->radial_next, len_squared_v3v3(e->v1->co, e->v2->co), elimit, 0);
       long_edge_queue_edge_add_recursive(eq_ctx,
                                          newe->l->radial_next,
-                                         newe->l,
                                          len_squared_v3v3(newe->v1->co, newe->v2->co),
                                          elimit,
                                          0);
     }
-
-    // edge_queue_insert_unified(eq_ctx, e);
-    // edge_queue_insert_unified(eq_ctx, newe);
-
-    // BLI_table_gset_add(eq_ctx->used_verts, newv);
 #endif
 
     PBVH_CHECK_NAN(newv->co);
@@ -2991,7 +2982,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
         if (w / fac > eq_ctx->limit_len_max) {
 
-          long_edge_queue_edge_add_recursive(eq_ctx, rl, rl->next, w, eq_ctx->limit_len_max, 0);
+          long_edge_queue_edge_add_recursive(eq_ctx, rl, w, eq_ctx->limit_len_max, 0);
         }
 #endif
 
@@ -3267,7 +3258,7 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                                    mask_cb_nop,
                                    nullptr,
                                    ds->pbvh->header.bm->totedge * 5,
-                                   true,
+                                   false,
                                    false);
 
     BKE_pbvh_update_normals(ds->pbvh, nullptr);
@@ -3398,4 +3389,314 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   }
 
   bm_logstack_pop();
+}
+
+void BKE_sculpt_reproject_cdata(SculptSession *ss,
+                                PBVHVertRef vertex,
+                                float startco[3],
+                                float startno[3])
+{
+  BMVert *v = (BMVert *)vertex.i;
+  BMEdge *e;
+
+  if (!v->e) {
+    return;
+  }
+
+  CustomData *ldata = &ss->bm->ldata;
+
+  int totuv = 0;
+  CustomDataLayer *uvlayer = NULL;
+
+  /* Optimized substitute for CustomData_number_of_layers. */
+  if (ldata->typemap[CD_PROP_FLOAT2] != -1) {
+    for (int i = ldata->typemap[CD_PROP_FLOAT2];
+         i < ldata->totlayer && ldata->layers[i].type == CD_PROP_FLOAT2;
+         i++)
+    {
+      totuv++;
+    }
+
+    uvlayer = ldata->layers + ldata->typemap[CD_PROP_FLOAT2];
+  }
+
+  int tag = BM_ELEM_TAG_ALT;
+
+  float origin[3];
+  float ray[3];
+
+  copy_v3_v3(origin, v->co);
+  copy_v3_v3(ray, v->no);
+  negate_v3(ray);
+
+  struct IsectRayPrecalc precalc;
+  isect_ray_tri_watertight_v3_precalc(&precalc, ray);
+
+  float *lastuvs = (float *)BLI_array_alloca(lastuvs, totuv * 2);
+  bool *snapuvs = (bool *)BLI_array_alloca(snapuvs, totuv);
+
+  e = v->e;
+
+  /* first clear some flags */
+  do {
+    e->head.api_flag &= ~tag;
+
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l = e->l;
+    do {
+      l->head.hflag &= ~tag;
+      l->next->head.hflag &= ~tag;
+      l->prev->head.hflag &= ~tag;
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  Vector<BMLoop *, 8> ls;
+
+  bool first = true;
+  bool bad = false;
+
+  for (int i = 0; i < totuv; i++) {
+    snapuvs[i] = true;
+  }
+
+  do {
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+#if 0
+    bool bound = l == l->radial_next;
+
+    // check for faceset boundaries
+    bound = bound || (BM_ELEM_CD_GET_INT(l->f,ss->cd_faceset_offset) !=
+      BM_ELEM_CD_GET_INT(l->radial_next->f,ss->cd_faceset_offset));
+
+    // check for seam and sharp edges
+    bound = bound || (e->head.hflag & BM_ELEM_SEAM) || !(e->head.hflag & BM_ELEM_SMOOTH);
+
+    if (bound) {
+      continue;
+    }
+#endif
+    do {
+      BMLoop *l2 = l->v != v ? l->next : l;
+
+      if (l2->head.hflag & tag) {
+        continue;
+      }
+
+      l2->head.hflag |= tag;
+      ls.append(l2);
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        float *luv = BM_ELEM_CD_PTR<float *>(l2, cd_uv);
+
+        // check that we are not part of a uv seam
+        if (!first) {
+          const float dx = lastuvs[i * 2] - luv[0];
+          const float dy = lastuvs[i * 2 + 1] - luv[1];
+          const float eps = 0.00001f;
+
+          if (dx * dx + dy * dy > eps) {
+            bad = true;
+            snapuvs[i] = false;
+          }
+        }
+
+        lastuvs[i * 2] = luv[0];
+        lastuvs[i * 2 + 1] = luv[1];
+      }
+
+      first = false;
+
+      if (bad) {
+        break;
+      }
+    } while ((l = l->radial_next) != e->l);
+
+    if (bad) {
+      break;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  if (bad || !ls.size()) {
+    return;
+  }
+
+  int totloop = ls.size();
+
+  /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
+
+  char *_blocks = (char *)alloca(ldata->totsize * totloop);
+  void **blocks = (void **)BLI_array_alloca(blocks, totloop);
+
+  for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
+    blocks[i] = (void *)_blocks;
+  }
+
+  float vco[3], vno[3];
+
+  copy_v3_v3(vco, v->co);
+  copy_v3_v3(vno, v->no);
+
+  BMFace _fakef, *fakef = &_fakef;
+
+#if 0
+  BMFace *projf = NULL;
+  // find face vertex projects into
+  for (int i = 0; i < totloop; i++) {
+    BMLoop *l = ls[i];
+
+    copy_v3_v3(ray,l->f->no);
+    negate_v3(ray);
+
+    float t,uv[2];
+
+    //*
+    bool hit = isect_ray_tri_v3(origin,ray,l->prev->v->co,origco,l->next->v->co,&t,uv);
+    if (hit) {
+      projf = l->f;
+      break;
+    }  //*/
+  }
+
+  if (!projf) {
+    return;
+  }
+#endif
+
+  /* Build fake face with original coordinates. */
+  for (int i = 0; i < totloop; i++) {
+    BMLoop *l = ls[i];
+    float no[3] = {0.0f, 0.0f, 0.0f};
+
+    BMLoop *fakels = (BMLoop *)BLI_array_alloca(fakels, l->f->len);
+    BMVert *fakevs = (BMVert *)BLI_array_alloca(fakevs, l->f->len);
+    BMLoop *l2 = l->f->l_first;
+    BMLoop *fakel = fakels;
+    BMVert *fakev = fakevs;
+    int j = 0;
+
+    do {
+      *fakel = *l2;
+      fakel->next = fakels + ((j + 1) % l->f->len);
+      fakel->prev = fakels + ((j + l->f->len - 1) % l->f->len);
+
+      *fakev = *l2->v;
+      fakel->v = fakev;
+
+      /* Make sure original coordinate is up to date. */
+      blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
+
+      if (l2->v == v) {
+        copy_v3_v3(fakev->co, startco);
+        copy_v3_v3(fakev->no, startno);
+        add_v3_v3(no, startno);
+      }
+      else {
+        add_v3_v3(no, l2->v->no);
+      }
+
+      fakel++;
+      fakev++;
+      j++;
+    } while ((l2 = l2->next) != l->f->l_first);
+
+    *fakef = *l->f;
+    fakef->l_first = fakels;
+
+    normalize_v3(no);
+
+    if (len_squared_v3(no) > 0.0f) {
+      copy_v3_v3(fakef->no, no);
+    }
+    else if (fakef->len == 4) {
+      normal_quad_v3(
+          fakef->no, l->v->co, l->next->v->co, l->next->next->v->co, l->next->next->next->v->co);
+    }
+    else {
+      normal_tri_v3(fakef->no, l->v->co, l->next->v->co, l->next->next->v->co);
+    }
+
+    /* Interpolate. */
+    BMLoop _interpl, *interpl = &_interpl;
+
+    uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.flags->bmesh_cd_offset);
+    uint8_t *stroke_id = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.stroke_id->bmesh_cd_offset);
+
+    int flag_saved = *flag;
+    int stroke_id_saved = *stroke_id;
+
+    *interpl = *l;
+    interpl->head.data = blocks[i];
+
+    BM_loop_interp_from_face(ss->bm, interpl, fakef, false, false);
+
+    *stroke_id = stroke_id_saved;
+    *flag = flag_saved;
+
+    CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
+  }
+
+  int *tots = (int *)BLI_array_alloca(tots, totuv);
+
+  for (int i = 0; i < totuv; i++) {
+    lastuvs[i * 2] = lastuvs[i * 2 + 1] = 0.0f;
+    tots[i] = 0;
+  }
+
+  // re-snap uvs
+  v = (BMVert *)vertex.i;
+
+  e = v->e;
+  do {
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l_iter = e->l;
+    do {
+      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        float *luv = BM_ELEM_CD_PTR<float *>(l, cd_uv);
+
+        add_v2_v2(lastuvs + i * 2, luv);
+        tots[i]++;
+      }
+    } while ((l_iter = l_iter->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  for (int i = 0; i < totuv; i++) {
+    if (tots[i]) {
+      mul_v2_fl(lastuvs + i * 2, 1.0f / (float)tots[i]);
+    }
+  }
+
+  e = v->e;
+  do {
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l_iter = e->l;
+    do {
+      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
+
+      for (int i = 0; i < totuv; i++) {
+        const int cd_uv = uvlayer[i].offset;
+        float *luv = BM_ELEM_CD_PTR<float *>(l, cd_uv);
+
+        if (snapuvs[i]) {
+          copy_v2_v2(luv, lastuvs + i * 2);
+        }
+      }
+    } while ((l_iter = l_iter->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }

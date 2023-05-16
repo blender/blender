@@ -984,37 +984,6 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vert
   return !SCULPT_vertex_is_boundary(ss, vertex, SCULPT_BOUNDARY_FACE_SET);
 }
 
-/**
- * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
- * in the base mesh are equal.
- */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
-{
-  const MeshElemMap *vert_map = &ss->pmap[v1];
-  int p1 = -1, p2 = -1;
-  for (int i = 0; i < vert_map->count; i++) {
-    const int poly_i = vert_map->indices[i];
-    for (const int corner : ss->polys[poly_i]) {
-      if (ss->corner_verts[corner] == v2) {
-        if (p1 == -1) {
-          p1 = vert_map->indices[i];
-          break;
-        }
-
-        if (p2 == -1) {
-          p2 = vert_map->indices[i];
-          break;
-        }
-      }
-    }
-  }
-
-  if (p1 != -1 && p2 != -1) {
-    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
-  }
-  return true;
-}
-
 int SCULPT_face_set_next_available_get(SculptSession *ss)
 {
   if (ss->cd_faceset_offset == -1) {
@@ -4075,7 +4044,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                        true,
                                        mask_cb,
                                        mask_cb_data,
-                                       /*XXX implement me: disable dyntopo smooth setting*/ false,
+                                       false,
                                        brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);

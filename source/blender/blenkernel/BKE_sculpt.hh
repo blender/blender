@@ -35,6 +35,11 @@ enum StrokeIDUser {
 };
 ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
 
+void BKE_sculpt_reproject_cdata(SculptSession *ss,
+                                PBVHVertRef vertex,
+                                float startco[3],
+                                float startno[3]);
+
 namespace blender::bke::sculpt {
 BLI_INLINE bool stroke_id_clear(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
 {
@@ -88,5 +93,4 @@ BLI_INLINE bool test_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t 
 {
   return blender::bke::paint::vertex_attr_get<uint8_t>(vertex, ss->attrs.flags) & flag;
 }
-
 }  // namespace blender::bke::sculpt

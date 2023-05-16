@@ -2920,7 +2920,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     SCULPT_clip(sd, ss, vd.co, val);
 
     if (do_reproject) {
-      SCULPT_reproject_cdata(ss, vd.vertex, oldco, oldno);
+      BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
 
     if (vd.is_mesh) {
@@ -2939,6 +2939,8 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
+
+  SCULPT_smooth_undo_push(ob, nodes);
 
   /* Interactions increase both strength and quality. */
   const int iterations = 3;

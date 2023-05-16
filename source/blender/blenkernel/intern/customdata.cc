@@ -17,6 +17,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_asan.h"
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
@@ -35,6 +36,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #ifndef NDEBUG
 #  include "BLI_dynstr.h"
@@ -61,6 +63,7 @@
 /* only for customdata_data_transfer_interp_normal_normals */
 #include "data_transfer_intern.h"
 
+using blender::Array;
 using blender::float2;
 using blender::ImplicitSharingInfo;
 using blender::IndexRange;
@@ -2770,9 +2773,11 @@ static void customData_update_offsets(CustomData *data)
   int offset = 0;
 
   /* Sort by alignment. */
-  int aligns[] = {16, 8, 4, 2, 1};
-  BLI_bitmap *donemap = BLI_BITMAP_NEW_ALLOCA(data->totlayer);
-  int alignment = 1;
+  int aligns[] = {8, 4, 2, 1};
+  Array<bool> donemap(data->totlayer, false);
+  Array<int> alignmap(data->totlayer);
+
+  int max_alignment = 1;
 
   /* Do large structs first. */
   for (int j = 0; j < data->totlayer; j++) {
@@ -2781,26 +2786,38 @@ static void customData_update_offsets(CustomData *data)
     typeInfo = layerType_getInfo(eCustomDataType(layer->type));
     int size = (int)typeInfo->size;
 
+    int alignment;
+
     /* Float vectors get 4-byte alignment. */
-    if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3, CD_PROP_INT32_2D)) {
-      alignment = max_ii(alignment, 4);
+    if (ELEM(layer->type,
+             CD_PROP_COLOR,
+             CD_PROP_FLOAT2,
+             CD_PROP_FLOAT3,
+             CD_PROP_INT32_2D,
+             CD_CUSTOMLOOPNORMAL,
+             CD_NORMAL))
+    {
+      alignment = 4;
     }
     else if (size > 4) {
-      alignment = max_ii(alignment, 8);
+      alignment = 8;
     }
     else if (size > 2) {
-      alignment = max_ii(alignment, 4);
+      alignment = 4;
     }
     else if (size > 1) {
-      alignment = max_ii(alignment, 2);
+      alignment = 2;
     }
     else {
-      alignment = max_ii(alignment, 1);
+      alignment = 1;
     }
+
+    max_alignment = max_ii(max_alignment, alignment);
+    alignmap[j] = alignment;
 
     /* Detect large structures */
     if (size > 8) {
-      BLI_BITMAP_SET(donemap, j, true);
+      donemap[j] = true;
 
       /* Align to 8-byte boundary. */
       if (size & 7) {
@@ -2824,14 +2841,14 @@ static void customData_update_offsets(CustomData *data)
     for (int j = 0; j < data->totlayer; j++) {
       CustomDataLayer *layer = data->layers + j;
 
-      if (BLI_BITMAP_TEST(donemap, j)) {
+      if (donemap[j]) {
         continue;
       }
 
       typeInfo = layerType_getInfo(eCustomDataType(layer->type));
       int size = (int)typeInfo->size;
 
-      if (i < ARRAY_SIZE(aligns) && (size % aligns[i]) != 0) {
+      if (i < ARRAY_SIZE(aligns) && aligns[i] != alignmap[j]) {
         continue;
       }
 
@@ -2839,7 +2856,7 @@ static void customData_update_offsets(CustomData *data)
       offset += BM_ASAN_PAD;
 #endif
 
-      BLI_BITMAP_SET(donemap, j, true);
+      donemap[j] = true;
 
       int align2 = aligns[i] - (offset % aligns[i]);
       if (align2 != aligns[i]) {
@@ -2855,8 +2872,8 @@ static void customData_update_offsets(CustomData *data)
     }
   }
 
-  if (offset % alignment != 0) {
-    offset += alignment - (offset % alignment);
+  if (offset % max_alignment != 0) {
+    offset += max_alignment - (offset % max_alignment);
   }
 
   data->totsize = offset;
