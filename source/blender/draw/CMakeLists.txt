@@ -180,6 +180,7 @@ set(SRC
   engines/workbench/workbench_state.cc
   engines/workbench/workbench_transparent.c
   engines/workbench/workbench_volume.c
+  engines/workbench/workbench_volume_next.cc
   engines/external/external_engine.c
   engines/gpencil/gpencil_antialiasing.c
   engines/gpencil/gpencil_cache_utils.c

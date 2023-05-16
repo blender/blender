@@ -126,6 +126,9 @@ GPU_SHADER_CREATE_INFO(draw_pointcloud)
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");
 
+GPU_SHADER_CREATE_INFO(draw_volume_new)
+    .additional_info("draw_modelmat_new", "draw_resource_handle_new");
+
 GPU_SHADER_CREATE_INFO(draw_gpencil)
     .typedef_source("gpencil_shader_shared.h")
     .define("DRW_GPENCIL_INFO")
