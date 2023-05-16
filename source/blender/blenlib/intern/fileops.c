@@ -379,6 +379,27 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
   return BLI_dir_create_recursive(di);
 }
 
+int BLI_rename(const char *from, const char *to)
+{
+  if (!BLI_exists(from)) {
+    return 1;
+  }
+
+  if (BLI_exists(to)) {
+    if (BLI_delete(to, false, false)) {
+      return 1;
+    }
+  }
+
+  int ret;
+#ifdef WIN32
+  ret = urename(from, to);
+#else
+  ret = rename(from, to);
+#endif
+  return ret;
+}
+
 #ifdef WIN32
 
 static void callLocalErrorCallBack(const char *err)
@@ -690,22 +711,6 @@ int BLI_create_symlink(const char *file, const char *to)
   return 1;
 }
 #  endif
-
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 1;
-  }
-
-  /* Make sure `from` & `to` are different (case insensitive) before removing. */
-  if (BLI_exists(to) && BLI_strcasecmp(from, to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return urename(from, to);
-}
 
 #else /* The UNIX world */
 
@@ -1321,20 +1326,5 @@ int BLI_create_symlink(const char *file, const char *to)
   return symlink(to, file);
 }
 #  endif
-
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 1;
-  }
-
-  if (BLI_exists(to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return rename(from, to);
-}
 
 #endif
