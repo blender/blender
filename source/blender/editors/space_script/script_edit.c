@@ -15,6 +15,8 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
+#include "BLT_translation.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_event_system.h"
@@ -50,6 +52,8 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 
 void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Run Python File";
   ot->description = "Run Python file";
@@ -61,7 +65,8 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-  RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "Path", "");
+  prop = RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "Path", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
 }
 
 #ifdef WITH_PYTHON

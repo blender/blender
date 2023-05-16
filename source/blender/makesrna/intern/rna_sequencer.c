@@ -1753,6 +1753,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "Path", "Location of custom proxy file");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_string_funcs(prop,
                                 "rna_Sequence_proxy_filepath_get",
                                 "rna_Sequence_proxy_filepath_length",

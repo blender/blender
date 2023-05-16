@@ -2860,6 +2860,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, kink_type_items);
   RNA_def_property_ui_text(prop, "Kink", "Type of periodic offset on the path");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_PARTICLESETTINGS);
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "kink_axis", PROP_ENUM, PROP_NONE);

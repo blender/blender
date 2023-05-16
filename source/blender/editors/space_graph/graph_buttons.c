@@ -772,7 +772,11 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
     /* rna path */
     col = uiLayoutColumn(layout, true);
     uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
-    uiTemplatePathBuilder(col, &dtar_ptr, "data_path", &root_ptr, IFACE_("Path"));
+    uiTemplatePathBuilder(col,
+                          &dtar_ptr,
+                          "data_path",
+                          &root_ptr,
+                          CTX_IFACE_(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "Path"));
   }
 }
 
@@ -925,7 +929,8 @@ static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverV
   {
     uiLayout *col = uiLayoutColumn(layout, true);
     uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
-    uiTemplatePathBuilder(col, &dtar_ptr, "data_path", NULL, IFACE_("Path"));
+    uiTemplatePathBuilder(
+        col, &dtar_ptr, "data_path", NULL, CTX_IFACE_(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "Path"));
   }
 }
 
