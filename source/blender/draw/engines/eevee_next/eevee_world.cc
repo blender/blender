@@ -59,7 +59,9 @@ bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
 
 World::~World()
 {
-  BKE_id_free(nullptr, default_world_);
+  if (default_world_ != nullptr) {
+    BKE_id_free(nullptr, default_world_);
+  }
 }
 
 ::World *World::default_world_get()
