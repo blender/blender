@@ -691,11 +691,10 @@ int BLI_create_symlink(const char *file, const char *to)
 }
 #  endif
 
-/** \return true on success (i.e. given path now exists on FS), false otherwise. */
 int BLI_rename(const char *from, const char *to)
 {
   if (!BLI_exists(from)) {
-    return 0;
+    return 1;
   }
 
   /* Make sure `from` & `to` are different (case insensitive) before removing. */
