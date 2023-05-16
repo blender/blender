@@ -819,6 +819,11 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, sound_cfra, &pitch, animated);
 }
 
+void BKE_sound_set_scene_sound_pitch_at_frame(void *handle, int frame, float pitch, char animated)
+{
+  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, frame, &pitch, animated);
+}
+
 void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
                                                     int frame_start,
                                                     int frame_end,
