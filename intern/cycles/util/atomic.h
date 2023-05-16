@@ -21,6 +21,10 @@
 
 #else /* __KERNEL_GPU__ */
 
+#  ifndef __KERNEL_ONEAPI__
+#    define atomic_fetch_and_add_uint32_shared atomic_fetch_and_add_uint32
+#  endif
+
 #  if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
 
 #    define atomic_add_and_fetch_float(p, x) (atomicAdd((float *)(p), (float)(x)) + (float)(x))
@@ -140,6 +144,11 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
 #    define atomic_store(p, x) atomic_store_explicit(p, x, memory_order_relaxed)
 #    define atomic_fetch(p) atomic_load_explicit(p, memory_order_relaxed)
 
+#    define atomic_store_local(p, x) \
+      atomic_store_explicit((ccl_gpu_shared atomic_int *)p, x, memory_order_relaxed)
+#    define atomic_load_local(p) \
+      atomic_load_explicit((ccl_gpu_shared atomic_int *)p, memory_order_relaxed)
+
 #    define CCL_LOCAL_MEM_FENCE mem_flags::mem_threadgroup
 #    define ccl_barrier(flags) threadgroup_barrier(flags)
 
@@ -187,6 +196,16 @@ ccl_device_inline int atomic_fetch_and_add_uint32(ccl_global int *p, int x)
                    sycl::memory_order::relaxed,
                    sycl::memory_scope::device,
                    sycl::access::address_space::ext_intel_global_device_space>
+      atomic(*p);
+  return atomic.fetch_add(x);
+}
+
+ccl_device_inline int atomic_fetch_and_add_uint32_shared(int *p, int x)
+{
+  sycl::atomic_ref<int,
+                   sycl::memory_order::relaxed,
+                   sycl::memory_scope::device,
+                   sycl::access::address_space::local_space>
       atomic(*p);
   return atomic.fetch_add(x);
 }
@@ -251,6 +270,26 @@ ccl_device_inline int atomic_fetch_and_or_uint32(ccl_global int *p, int x)
                    sycl::access::address_space::ext_intel_global_device_space>
       atomic(*p);
   return atomic.fetch_or(x);
+}
+
+ccl_device_inline void atomic_store_local(int *p, int x)
+{
+  sycl::atomic_ref<int,
+                   sycl::memory_order::relaxed,
+                   sycl::memory_scope::device,
+                   sycl::access::address_space::local_space>
+      atomic(*p);
+  atomic.store(x);
+}
+
+ccl_device_inline int atomic_load_local(int *p)
+{
+  sycl::atomic_ref<int,
+                   sycl::memory_order::relaxed,
+                   sycl::memory_scope::device,
+                   sycl::access::address_space::local_space>
+      atomic(*p);
+  return atomic.load();
 }
 
 #  endif /* __KERNEL_ONEAPI__ */

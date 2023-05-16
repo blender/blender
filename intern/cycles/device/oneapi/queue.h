@@ -39,6 +39,11 @@ class OneapiDeviceQueue : public DeviceQueue {
   virtual void copy_to_device(device_memory &mem) override;
   virtual void copy_from_device(device_memory &mem) override;
 
+  virtual bool supports_local_atomic_sort() const
+  {
+    return true;
+  }
+
  protected:
   OneapiDevice *oneapi_device_;
   KernelContext *kernel_context_;

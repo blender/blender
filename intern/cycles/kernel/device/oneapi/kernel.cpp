@@ -367,6 +367,14 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 #    pragma GCC diagnostic error "-Wswitch"
 #  endif
 
+  int max_shaders = 0;
+
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS ||
+      device_kernel == DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS)
+  {
+    max_shaders = (kernel_context->scene_max_shaders);
+  }
+
   try {
     queue->submit([&](sycl::handler &cgh) {
 #  ifdef WITH_EMBREE_GPU
@@ -509,13 +517,31 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_bucket_pass);
+          sycl::local_accessor<int> local_mem(max_shaders, cgh);
+          oneapi_kernel_integrator_sort_bucket_pass(kg,
+                                                    global_size,
+                                                    local_size,
+                                                    cgh,
+                                                    *(int *)(args[0]),
+                                                    *(int *)(args[1]),
+                                                    *(int *)(args[2]),
+                                                    *(int **)(args[3]),
+                                                    *(int *)(args[4]),
+                                                    local_mem);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_write_pass);
+          sycl::local_accessor<int> local_mem(max_shaders, cgh);
+          oneapi_kernel_integrator_sort_write_pass(kg,
+                                                   global_size,
+                                                   local_size,
+                                                   cgh,
+                                                   *(int *)(args[0]),
+                                                   *(int *)(args[1]),
+                                                   *(int *)(args[2]),
+                                                   *(int **)(args[3]),
+                                                   *(int *)(args[4]),
+                                                   local_mem);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY: {
