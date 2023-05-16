@@ -385,11 +385,17 @@ void PathTraceWorkGPU::enqueue_reset()
 
   queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_RESET, max_num_paths_, args);
   queue_->zero_to_device(integrator_queue_counter_);
-  queue_->zero_to_device(integrator_shader_sort_counter_);
-  if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+  if (integrator_shader_sort_counter_.size() != 0) {
+    queue_->zero_to_device(integrator_shader_sort_counter_);
+  }
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE &&
+      integrator_shader_raytrace_sort_counter_.size() != 0)
+  {
     queue_->zero_to_device(integrator_shader_raytrace_sort_counter_);
   }
-  if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE &&
+      integrator_shader_mnee_sort_counter_.size() != 0)
+  {
     queue_->zero_to_device(integrator_shader_mnee_sort_counter_);
   }
 
