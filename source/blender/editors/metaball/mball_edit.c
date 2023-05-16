@@ -631,12 +631,13 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
   ot->idname = "MBALL_OT_delete_metaelems";
 
   /* callback functions */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_metaelems_exec;
   ot->poll = ED_operator_editmball;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */
