@@ -153,6 +153,7 @@ set(SRC
   nodes/node_geo_sample_nearest.cc
   nodes/node_geo_sample_nearest_surface.cc
   nodes/node_geo_sample_uv_surface.cc
+  nodes/node_geo_sample_volume.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_sdf_volume_sphere.cc
