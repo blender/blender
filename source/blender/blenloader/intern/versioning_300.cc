@@ -4390,6 +4390,14 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 10)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      /* Set default values for new members. */
+      scene->toolsettings->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      scene->toolsettings->plane_axis = 2;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

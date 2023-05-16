@@ -421,7 +421,8 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
 
 #ifdef USE_AXIS_CONSTRAINTS
       if (!(ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF) {
+          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF)
+      {
 
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1234,7 +1235,6 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
     gzt_snap = WM_gizmotype_find("GIZMO_GT_snap_3d", true);
     gizmo = WM_gizmo_new_ptr(gzt_snap, gzgroup, nullptr);
 
-    RNA_enum_set(gizmo->ptr, "snap_elements_force", SCE_SNAP_MODE_GEOM);
     ED_gizmotypes_snap_3d_flag_set(gizmo, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE);
     WM_gizmo_set_color(gizmo, blender::float4(1.0f));
 
@@ -1386,7 +1386,8 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
     if (ruler_info->item_active) {
       RulerItem *ruler_item = ruler_info->item_active;
       if ((ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
+          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE))
+      {
         ruler_item->flag &= ~(RULERITEM_USE_ANGLE | RULERITEM_USE_ANGLE_ACTIVE);
       }
       else {
