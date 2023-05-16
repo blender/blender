@@ -3790,23 +3790,6 @@ bool ntreeContainsTree(const bNodeTree *tree_to_search_in, const bNodeTree *tree
       tree_to_search_in, tree_to_search_for, already_passed);
 }
 
-namespace blender::bke {
-
-bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to)
-{
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->fromsock == from && link->tosock == to) {
-      return link;
-    }
-    if (link->fromsock == to && link->tosock == from) { /* hrms? */
-      return link;
-    }
-  }
-  return nullptr;
-}
-
-}  // namespace blender::bke
-
 int nodeCountSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock)
 {
   int tot = 0;

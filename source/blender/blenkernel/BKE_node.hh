@@ -217,8 +217,6 @@ void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userd
  */
 bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node);
 
-bNodeLink *nodeFindLink(bNodeTree *ntree, const bNodeSocket *from, const bNodeSocket *to);
-
 bNode *nodeGetActivePaintCanvas(bNodeTree *ntree);
 
 /**
