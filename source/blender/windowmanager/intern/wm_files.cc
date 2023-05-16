@@ -2144,7 +2144,7 @@ void wm_autosave_delete(void)
       BLI_delete(filepath, false, false);
     }
     else {
-      BLI_rename(filepath, str);
+      BLI_rename_overwrite(filepath, str);
     }
   }
 }

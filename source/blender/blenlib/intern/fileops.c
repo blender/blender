@@ -381,6 +381,15 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
 
 int BLI_rename(const char *from, const char *to)
 {
+#ifdef WIN32
+  return urename(from, to);
+#else
+  return rename(from, to);
+#endif
+}
+
+int BLI_rename_overwrite(const char *from, const char *to)
+{
   if (!BLI_exists(from)) {
     return 1;
   }
@@ -404,13 +413,7 @@ int BLI_rename(const char *from, const char *to)
     }
   }
 
-  int ret;
-#ifdef WIN32
-  ret = urename(from, to);
-#else
-  ret = rename(from, to);
-#endif
-  return ret;
+  return BLI_rename(from, to);
 }
 
 #ifdef WIN32

@@ -39,6 +39,14 @@ extern "C" {
  */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
+
+/**
+ * Rename a file or directory.
+ *
+ * \return zero on success (matching 'rename' behavior).
+ */
+int BLI_rename(const char *from, const char *to);
+
 /**
  * Rename a file or directory.
  *
@@ -53,7 +61,7 @@ int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
  * This will be deleted if it already exists, unless it's a directory which will fail.
  * \return zero on success (matching 'rename' behavior).
  */
-int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
+int BLI_rename_overwrite(const char *from, const char *to) ATTR_NONNULL();
 /**
  * Deletes the specified file or directory (depending on dir), optionally
  * doing recursive delete of directory contents.
