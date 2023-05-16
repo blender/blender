@@ -340,11 +340,10 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
 
+  SCULPT_stroke_id_next(ob);
+
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, nullptr);
   if (use_automasking) {
-    /* Increment stroke id for auto-masking system. */
-    SCULPT_stroke_id_next(ob);
-
     if (v3d) {
       /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
        * Filter Tool. */

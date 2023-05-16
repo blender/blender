@@ -360,6 +360,25 @@ static bool sculpt_mesh_filter_is_continuous(eSculptMeshFilterType type)
               MESH_FILTER_RELAX_FACE_SETS);
 }
 
+static void mesh_filter_task_update_boundaries_cb(void *__restrict userdata,
+                                                  const int i,
+                                                  const TaskParallelTLS *__restrict /*tls*/)
+{
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
+  SculptSession *ss = data->ob->sculpt;
+  PBVHNode *node = data->nodes[i];
+
+  BKE_pbvh_check_tri_areas(ss->pbvh, node);
+
+  /* Ensure boundaries and valences are up to date. */
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_vertex_is_boundary(ss, vd.vertex, SCULPT_BOUNDARY_ALL);
+    SCULPT_vertex_valence_get(ss, vd.vertex);
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 static void mesh_filter_task_cb(void *__restrict userdata,
                                 const int i,
                                 const TaskParallelTLS *__restrict /*tls*/)
@@ -422,7 +441,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, projection, true);
+        SCULPT_neighbor_coords_average_interior(
+            ss, avg, vd.vertex, projection, ss->filter_cache->hard_corner_pin, true);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
@@ -510,7 +530,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         float disp_avg[3];
         float avg_co[3];
-        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, projection, true);
+        SCULPT_neighbor_coords_average(
+            ss, avg_co, vd.vertex, projection, ss->filter_cache->hard_corner_pin, true);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
@@ -574,7 +595,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, true);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, filter_cache->hard_corner_pin, true);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
@@ -624,7 +645,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, true);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, filter_cache->hard_corner_pin, true);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }
@@ -776,7 +797,22 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
   ss->filter_cache->preserve_fset_boundaries = !ss->hard_edge_mode;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BKE_pbvh_parallel_range_settings(&settings, false, ss->filter_cache->nodes.size());
+
+  if (ELEM(filter_type,
+           MESH_FILTER_SMOOTH,
+           MESH_FILTER_SURFACE_SMOOTH,
+           MESH_FILTER_ENHANCE_DETAILS,
+           MESH_FILTER_SHARPEN))
+  {
+    BKE_pbvh_face_areas_begin(ss->pbvh);
+    BLI_task_parallel_range(0,
+                            ss->filter_cache->nodes.size(),
+                            &data,
+                            mesh_filter_task_update_boundaries_cb,
+                            &settings);
+  }
+
   BLI_task_parallel_range(
       0, ss->filter_cache->nodes.size(), &data, mesh_filter_task_cb, &settings);
 
@@ -794,7 +830,8 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
     SCULPT_flush_stroke_deform(sd, ob, true);
   }
 
-  /* The relax mesh filter needs the updated normals of the modified mesh after each iteration. */
+  /* The relax mesh filter needs the updated normals of the modified mesh after each iteration.
+   */
   if (ELEM(MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
     BKE_pbvh_update_normals(ss->pbvh, ss->subdiv_ccg);
   }
@@ -1009,7 +1046,8 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+  Sculpt *sd = tool_settings->sculpt;
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
 
@@ -1028,10 +1066,9 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (use_automasking) {
-    /* Increment stroke id for automasking system. */
-    SCULPT_stroke_id_next(ob);
+  SCULPT_stroke_id_next(ob);
 
+  if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
     float mval_fl[2] = {float(mval[0]), float(mval[1])};
@@ -1067,6 +1104,9 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   SculptFilterOrientation orientation = SculptFilterOrientation(
       RNA_enum_get(op->ptr, "orientation"));
   ss->filter_cache->orientation = orientation;
+
+  ss->filter_cache->hard_corner_pin = RNA_float_get(op->ptr, "hard_corner_pin");
+  ss->hard_edge_mode = tool_settings->unified_paint_settings.hard_edge_mode;
 
   return OPERATOR_PASS_THROUGH;
 }
@@ -1144,6 +1184,16 @@ void SCULPT_mesh_filter_properties(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_collection_runtime(
       ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
   RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
+
+  RNA_def_float(ot->srna,
+                "hard_corner_pin",
+                1.0f,
+                0.0,
+                1.0f,
+                "Corner Pin",
+                "How much to pin corners in hard edge mode",
+                0.0f,
+                1.0f);
 }
 
 static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
@@ -1151,6 +1201,15 @@ static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
 
   uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
+  if (ELEM(RNA_enum_get(op->ptr, "type"),
+           MESH_FILTER_SMOOTH,
+           MESH_FILTER_SURFACE_SMOOTH,
+           MESH_FILTER_ENHANCE_DETAILS,
+           MESH_FILTER_SHARPEN))
+  {
+    uiItemR(layout, op->ptr, "hard_corner_pin", 0, nullptr, ICON_NONE);
+  }
+
   uiItemR(layout, op->ptr, "iteration_count", 0, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "orientation", 0, nullptr, ICON_NONE);
   layout = uiLayoutRow(layout, true);

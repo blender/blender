@@ -4248,9 +4248,16 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "autosmooth_fset_slide")) {
+  if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "hard_corner_pin")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      brush->autosmooth_fset_slide = 1.0f;
+      brush->hard_corner_pin = 1.0f;
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings) {
+        scene->toolsettings->unified_paint_settings.hard_corner_pin = 1.0f;
+        scene->toolsettings->unified_paint_settings.flag |= UNIFIED_PAINT_HARD_CORNER_PIN |
+                                                            UNIFIED_PAINT_FLAG_HARD_EDGE_MODE;
+      }
     }
   }
 

@@ -2697,11 +2697,6 @@ void BKE_brush_hard_edge_mode_set(Scene *scene, Brush *brush, bool val)
   }
 }
 
-float BKE_brush_fset_slide_get(const Scene *scene, const Brush *brush)
-{
-  return BKE_brush_hard_edge_mode_get(scene, brush) ? 0.0f : brush->autosmooth_fset_slide;
-}
-
 bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
 {
   switch (paint_mode) {
@@ -2724,4 +2719,13 @@ bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
   }
 
   return false;
+}
+
+float BKE_brush_hard_corner_pin_get(const Scene *scene, const Brush *brush)
+{
+  if (scene && scene->toolsettings->unified_paint_settings.flag & UNIFIED_PAINT_HARD_CORNER_PIN) {
+    return scene->toolsettings->unified_paint_settings.hard_corner_pin;
+  }
+
+  return brush->hard_corner_pin;
 }

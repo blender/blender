@@ -2834,6 +2834,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
   const bool use_curvature = brush->flag2 & BRUSH_CURVATURE_RAKE;
   const bool do_reproject = SCULPT_need_reproject(ss);
+  float hard_corner_pin = BKE_brush_hard_corner_pin_get(ss->scene, brush);
 
   float direction[3];
   copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
@@ -2859,7 +2860,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     SCULPT_curvature_begin(ss, data->nodes[n], false);
   }
 
-  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+  bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+  if (weighted) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
   }
 
@@ -2908,7 +2910,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     float avg[3], val[3];
 
     int cd_temp = data->scl->bmesh_cd_offset;
-    SCULPT_bmesh_four_neighbor_average(ss, avg, direction2, vd.bm_vert, 1.0f, cd_temp, false);
+    SCULPT_bmesh_four_neighbor_average(
+        ss, avg, direction2, vd.bm_vert, 1.0f, hard_corner_pin, cd_temp, weighted, false);
 
     sub_v3_v3v3(val, avg, vd.co);
 

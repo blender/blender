@@ -312,7 +312,7 @@ typedef struct Brush {
   float autosmooth_projection;
   int autosmooth_spacing;  // spacing for BRUSH_CUSTOM_AUTOSMOOTH_SPACING
   float boundary_smooth_factor;
-  float autosmooth_fset_slide;
+  float hard_corner_pin;
 
   float tilt_strength_factor;
 

@@ -238,7 +238,7 @@ static ReplaySerialDef brush_def[] = {
     DEF(autosmooth_projection, REPLAY_FLOAT, Brush),
     DEF(autosmooth_spacing, REPLAY_FLOAT, Brush),
     DEF(boundary_smooth_factor, REPLAY_FLOAT, Brush),
-    DEF(autosmooth_fset_slide, REPLAY_FLOAT, Brush),
+    DEF(hard_corner_pin, REPLAY_FLOAT, Brush),
     DEF(sculpt_tool, REPLAY_BYTE, Brush),
     DEF(falloff_shape, REPLAY_BYTE, Brush),
     DEF(falloff_angle, REPLAY_FLOAT, Brush),

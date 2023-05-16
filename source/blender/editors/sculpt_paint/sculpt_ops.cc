@@ -1333,7 +1333,7 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator * /* op */)
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     float *f = vertex_attr_ptr<float>(vertex, scl);
 
-    SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, weighted);
+    SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, 0.0f, weighted);
   }
 
   return OPERATOR_FINISHED;

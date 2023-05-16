@@ -1703,6 +1703,7 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   float projection = ss->cache->brush->autosmooth_projection;
+  float hard_corner_pin = BKE_brush_hard_corner_pin_get(ss->scene, ss->cache->brush);
 
   for (int iteration = 0; iteration <= count; iteration++) {
     for (int i = 0; i < nodes.size(); i++) {
@@ -1730,7 +1731,8 @@ static void SCULPT_boundary_autosmooth(SculptSession *ss, SculptBoundary *bounda
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, true);
+        SCULPT_neighbor_coords_average_interior(
+            ss, sco, vd.vertex, projection, hard_corner_pin, true);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 
@@ -1749,6 +1751,7 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
   boundary->smoothco = MEM_cnew_array<float[3]>(totvert, "boundary->smoothco");
 
   float projection = ss->cache->brush->autosmooth_projection;
+  float hard_corner_pin = BKE_brush_hard_corner_pin_get(ss->scene, ss->cache->brush);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
@@ -1764,7 +1767,8 @@ static void SCULPT_boundary_build_smoothco(SculptSession *ss, SculptBoundary *bo
 
         float sco[3];
 
-        SCULPT_neighbor_coords_average_interior(ss, sco, vd.vertex, projection, true);
+        SCULPT_neighbor_coords_average_interior(
+            ss, sco, vd.vertex, projection, hard_corner_pin, true);
 
         float *co = SCULPT_brush_deform_target_vertex_co_get(ss, boundary->deform_target, &vd);
 

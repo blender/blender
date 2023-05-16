@@ -220,6 +220,7 @@ void BKE_brush_get_dyntopo(struct Brush *brush, struct Sculpt *sd, struct DynTop
 
 bool BKE_brush_hard_edge_mode_get(const struct Scene *scene, const struct Brush *brush);
 void BKE_brush_hard_edge_mode_set(struct Scene *scene, struct Brush *brush, bool val);
+float BKE_brush_hard_corner_pin_get(const struct Scene *scene, const struct Brush *brush);
 
 float BKE_brush_fset_slide_get(const struct Scene *scene, const struct Brush *brush);
 float BKE_brush_curve_strength_ex(int curve_preset,

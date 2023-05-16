@@ -641,6 +641,7 @@ struct FilterCache {
   bool weighted_smooth;
   float hard_edge_fac;
   bool hard_edge_mode;
+  float hard_corner_pin;
   float bound_smooth_radius;
   float bevel_smooth_fac;
 
@@ -1879,11 +1880,17 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float direction[3],
                                         struct BMVert *v,
                                         float projection,
+                                        float hard_corner_pin,
                                         int cd_temp,
+                                        bool weighted,
                                         bool do_origco);
 
-void SCULPT_neighbor_coords_average(
-    SculptSession *ss, float result[3], PBVHVertRef index, float projection, bool weighted);
+void SCULPT_neighbor_coords_average(SculptSession *ss,
+                                    float result[3],
+                                    PBVHVertRef index,
+                                    float projection,
+                                    float hard_corner_pin,
+                                    bool weighted);
 float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef index);
 
@@ -1893,6 +1900,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              PBVHVertRef vertex,
                                              float projection,
+                                             float hard_corner_pin,
                                              bool use_area_weights);
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)

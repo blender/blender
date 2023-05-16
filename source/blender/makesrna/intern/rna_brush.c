@@ -441,7 +441,11 @@ static EnumPropertyItem rna_enum_brush_dyntopo_flag[] = {
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
     {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
     {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
-    {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", "Cleanup 3 and 4 pole vertices (development option)"},
+    {DYNTOPO_CLEANUP,
+     "CLEANUP",
+     ICON_NONE,
+     "Cleanup",
+     "Cleanup 3 and 4 pole vertices (development option)"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3361,7 +3365,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "autosmooth_projection");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
-  RNA_def_property_ui_text(prop, "Projection", "How much autosmooth should stick to surface");
+  RNA_def_property_ui_text(
+      prop, "Projection", "How much autosmooth should stick to surface\n(prevents shrinking).");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -3434,13 +3439,12 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Boundary Smoothing", "How much to smooth sharp boundaries ");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "autosmooth_fset_slide", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, NULL, "autosmooth_fset_slide");
+  prop = RNA_def_property(srna, "hard_corner_pin", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "hard_corner_pin");
   RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, -2.0f, 2.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
-  RNA_def_property_ui_text(
-      prop, "Face Set Projection", "Slide face set boundaries instead of sharpening them");
+  RNA_def_property_ui_text(prop, "Corner Pin", "How much to pin corners in hard edge mode.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "vcol_boundary_exponent", PROP_FLOAT, PROP_FACTOR);
