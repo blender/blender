@@ -1523,16 +1523,16 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   }
 
   /* Call fast packer for remaining islands, excluding everything already placed. */
-  rctf slow_extent = extent;
+  rctf final_extent = {0.0f, 1e30f, 0.0f, 1e30f};
   pack_islands_fast(slow_aabbs.size(),
-                    slow_extent,
+                    extent,
                     aabbs,
                     all_can_rotate,
                     params.target_aspect_y,
                     r_phis,
-                    &extent);
+                    &final_extent);
 
-  return get_aspect_scaled_extent(extent, params);
+  return get_aspect_scaled_extent(final_extent, params);
 }
 
 /** Find the optimal scale to pack islands into the unit square.
@@ -1540,6 +1540,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
  */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
                                           const float margin_fraction,
+                                          const bool rescale_margin,
                                           const UVPackIsland_Params &params)
 {
 
@@ -1616,8 +1617,8 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
 
     /* Evaluate our `f`. */
     blender::Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
-    const float max_uv = pack_islands_scale_margin(
-        islands, scale, margin_fraction, params, *phis_target);
+    const float margin = rescale_margin ? margin_fraction * scale : margin_fraction;
+    const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, *phis_target);
     const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
@@ -1826,7 +1827,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
       params.scale_to_fit)
   {
     /* Uses a line search on scale. ~10x slower than other method. */
-    return pack_islands_margin_fraction(islands, params.margin, params);
+    return pack_islands_margin_fraction(islands, params.margin, false, params);
   }
 
   float margin = params.margin;
@@ -1848,7 +1849,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
     case ED_UVPACK_PIN_LOCK_ALL:
     case ED_UVPACK_PIN_LOCK_SCALE:
     case ED_UVPACK_PIN_LOCK_ROTATION_SCALE:
-      return pack_islands_margin_fraction(islands, margin, params);
+      return pack_islands_margin_fraction(islands, margin, true, params);
     default:
       break;
   }
