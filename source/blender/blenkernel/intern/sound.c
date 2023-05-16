@@ -1387,7 +1387,7 @@ void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
 void BKE_sound_set_scene_sound_pitch_at_frame(void *UNUSED(handle),
                                               int UNUSED(frame),
                                               float UNUSED(pitch),
-                                              char(animated));
+                                              char UNUSED(animated))
 {
 }
 void BKE_sound_set_scene_sound_pitch_constant_range(void *UNUSED(handle),

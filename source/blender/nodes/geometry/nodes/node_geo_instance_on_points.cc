@@ -170,8 +170,7 @@ static void add_instances_from_component(
 
     const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.varray.type());
     if (src.varray.size() == dst_component.instances_num() && src.sharing_info &&
-        src.varray.is_span())
-    {
+        src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
       dst_attributes.add(id, ATTR_DOMAIN_INSTANCE, type, init);

@@ -39,7 +39,6 @@ bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree);
 
 void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node);
 
-
 void ntreeUpdateAllNew(Main *main);
 
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);

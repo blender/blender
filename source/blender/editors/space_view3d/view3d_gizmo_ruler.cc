@@ -421,8 +421,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
 
 #ifdef USE_AXIS_CONSTRAINTS
       if (!(ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF)
-      {
+          ruler_info->constrain_mode != CONSTRAIN_MODE_OFF) {
 
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1386,8 +1385,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
     if (ruler_info->item_active) {
       RulerItem *ruler_item = ruler_info->item_active;
       if ((ruler_item->flag & RULERITEM_USE_ANGLE) &&
-          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE))
-      {
+          (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
         ruler_item->flag &= ~(RULERITEM_USE_ANGLE | RULERITEM_USE_ANGLE_ACTIVE);
       }
       else {
