@@ -1733,7 +1733,8 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
   float obsize[3], size[3];
 
   mat4_to_size(size, cob->matrix);
-  mat4_to_size(obsize, cob->matrix);
+
+  copy_v3_v3(obsize, size);
 
   if (data->flag & LIMIT_XMIN) {
     if (size[0] < data->xmin) {
