@@ -464,49 +464,6 @@ static bool layers_poll(bContext *C)
           !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
-/*********************** Sculpt Vertex colors operators ************************/
-
-int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, ReportList *reports)
-{
-  /* If no name is supplied, provide a backwards compatible default. */
-  if (!name) {
-    name = "Color";
-  }
-
-  if (const CustomDataLayer *layer = BKE_id_attribute_find(
-          &me->id, me->active_color_attribute, CD_PROP_COLOR, ATTR_DOMAIN_POINT))
-  {
-    int dummy;
-    const CustomData *data = mesh_customdata_get_type(me, BM_LOOP, &dummy);
-    return CustomData_get_named_layer(data, CD_PROP_BYTE_COLOR, layer->name);
-  }
-
-  CustomDataLayer *layer = BKE_id_attribute_new(
-      &me->id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT, reports);
-
-  if (do_init) {
-    const char *active_name = me->active_color_attribute;
-    if (const CustomDataLayer *active_layer = BKE_id_attributes_color_find(&me->id, active_name)) {
-      if (const BMEditMesh *em = me->edit_mesh) {
-        BMesh &bm = *em->bm;
-        const int src_i = CustomData_get_named_layer(&bm.vdata, CD_PROP_COLOR, active_name);
-        const int dst_i = CustomData_get_named_layer(&bm.vdata, CD_PROP_COLOR, layer->name);
-        BM_data_layer_copy(&bm, &bm.vdata, CD_PROP_COLOR, src_i, dst_i);
-      }
-      else {
-        memcpy(layer->data, active_layer->data, CustomData_get_elem_size(layer) * me->totloop);
-      }
-    }
-  }
-
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
-
-  int dummy;
-  const CustomData *data = mesh_customdata_get_type(me, BM_VERT, &dummy);
-  return CustomData_get_named_layer(data, CD_PROP_COLOR, layer->name);
-}
-
 /*********************** UV texture operators ************************/
 
 static bool uv_texture_remove_poll(bContext *C)
