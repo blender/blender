@@ -148,7 +148,7 @@ void IMB_index_builder_finish(anim_index_builder *fp, int rollback)
   }
   else {
     unlink(fp->filepath);
-    BLI_rename_overwrite(fp->filepath_temp, fp->filepath);
+    BLI_rename(fp->filepath_temp, fp->filepath);
   }
 
   MEM_freeN(fp);
@@ -784,7 +784,7 @@ static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, int rollback)
   else {
     get_proxy_filepath(ctx->anim, ctx->proxy_size, filepath, false);
     unlink(filepath);
-    BLI_rename_overwrite(filepath_tmp, filepath);
+    BLI_rename(filepath_tmp, filepath);
   }
 
   MEM_freeN(ctx);
