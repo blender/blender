@@ -308,6 +308,7 @@ static void update_cb(PBVHNode *node, void *rebuild)
 
 struct PartialUpdateData {
   PBVH *pbvh;
+  SculptSession *ss;
   bool rebuild;
   char *modified_grids;
   bool *modified_hidden_verts;
@@ -365,6 +366,8 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
     if (data->modified_hidden_verts != nullptr) {
       for (int i = 0; i < verts_num; i++) {
         if (data->modified_hidden_verts[vert_indices[i]]) {
+          BKE_sculpt_boundary_flag_update(data->ss, BKE_pbvh_make_vref(vert_indices[i]));
+
           if (data->rebuild) {
             BKE_pbvh_vert_tag_update_normal_visibility(node);
           }
@@ -374,12 +377,21 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
       }
     }
   }
+
   if (data->modified_face_set_faces) {
     PBVHFaceIter fd;
+    bool updated = false;
+
     BKE_pbvh_face_iter_begin (data->pbvh, node, fd) {
       if (data->modified_face_set_faces[fd.index]) {
-        BKE_pbvh_node_mark_update_face_sets(node);
-        break;
+        for (int i = 0; i < fd.verts_num; i++) {
+          BKE_sculpt_boundary_flag_update(data->ss, fd.verts[i]);
+        }
+
+        if (!updated) {
+          BKE_pbvh_node_mark_update_face_sets(node);
+          updated = true;
+        }
       }
     }
     BKE_pbvh_face_iter_end(fd);
@@ -671,7 +683,7 @@ static bool sculpt_undo_restore_face_sets(bContext *C,
 
     SWAP(int, unode->face_sets[i], ss->face_sets[face_index]);
 
-    modified_face_set_faces[face_index] = unode->face_sets[i] != ss->face_sets[face_index];
+    modified_face_set_faces[face_index] |= unode->face_sets[i] != ss->face_sets[face_index];
     modified |= modified_face_set_faces[face_index];
   }
 
@@ -895,6 +907,12 @@ static void bmesh_undo_on_face_change(BMFace *f,
   h.head.data = old_customdata;
 
   int ni = BM_ELEM_CD_GET_INT(&h, data->cd_face_node_offset);
+
+  BMLoop *l = f->l_first;
+  do {
+    int flag = BM_ELEM_CD_GET_INT(l->v, data->cd_boundary_flag);
+    BM_ELEM_CD_SET_INT(l->v, data->cd_boundary_flag, flag | SCULPT_BOUNDARY_NEEDS_UPDATE);
+  } while ((l = l->next) != f->l_first);
 
   // attempt to find old node in old_customdata
   PBVHNode *node = BKE_pbvh_get_node_leaf_safe(data->pbvh, ni);
@@ -1609,6 +1627,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * the nodes get recreated, though in that case it could do all. */
     PartialUpdateData data{};
     data.rebuild = rebuild;
+    data.ss = ss;
     data.pbvh = ss->pbvh;
     data.modified_grids = undo_modified_grids;
     data.modified_hidden_verts = modified_hidden_verts;

@@ -477,7 +477,7 @@ int SCULPT_active_face_set_get(SculptSession *ss)
       return ss->face_sets[face_index];
     }
     case PBVH_BMESH:
-      if (ss->cd_faceset_offset && (ss->active_face.i != PBVH_REF_NONE)) {
+      if (ss->cd_faceset_offset != -1 && (ss->active_face.i != PBVH_REF_NONE)) {
         BMFace *f = (BMFace *)ss->active_face.i;
         return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
       }
@@ -1009,7 +1009,7 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
       int next_face_set = 0;
       BMIter iter;
       BMFace *f;
-      if (!ss->cd_faceset_offset) {
+      if (ss->cd_faceset_offset == -1) {
         return 0;
       }
 
