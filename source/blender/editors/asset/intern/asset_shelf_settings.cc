@@ -65,6 +65,8 @@ void ED_asset_shelf_settings_blend_write(BlendWriter *writer,
     BLO_write_struct(writer, LinkData, catalog_path_item);
     BLO_write_string(writer, (const char *)catalog_path_item->data);
   }
+
+  BLO_write_string(writer, shelf_settings->active_catalog_path);
 }
 
 void ED_asset_shelf_settings_blend_read_data(BlendDataReader *reader,
@@ -80,6 +82,7 @@ void ED_asset_shelf_settings_blend_read_data(BlendDataReader *reader,
   LISTBASE_FOREACH (LinkData *, catalog_path_item, &(*shelf_settings)->enabled_catalog_paths) {
     BLO_read_data_address(reader, &catalog_path_item->data);
   }
+  BLO_read_data_address(reader, &(*shelf_settings)->active_catalog_path);
 }
 
 namespace blender::ed::asset::shelf {
