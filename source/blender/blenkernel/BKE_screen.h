@@ -417,12 +417,24 @@ typedef struct Menu {
 
 /* asset shelf types */
 
+/* #PanelType.flag */
+typedef enum AssetShelfTypeFlag {
+  /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
+     keymap items then. */
+  ASSET_SHELF_TYPE_NO_ASSET_DRAG = (1 << 0),
+
+  ASSET_SHELF_TYPE_FLAG_MAX
+} AssetShelfTypeFlag;
+ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
+
 typedef struct AssetShelfType {
   struct AssetShelfType *next, *prev;
 
   char idname[BKE_ST_MAXNAME]; /* unique name */
 
   int space_type;
+
+  AssetShelfTypeFlag flag;
 
   /* Determine if the asset shelf should be visible or not. */
   bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);

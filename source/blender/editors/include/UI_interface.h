@@ -3276,6 +3276,7 @@ void UI_view_item_context_menu_build(struct bContext *C,
                                      const uiViewItemHandle *item_handle,
                                      uiLayout *column);
 
+bool UI_view_item_supports_drag(const uiViewItemHandle *item_);
 /**
  * Attempt to start dragging \a item_. This will not work if the view item doesn't
  * support dragging, i.e. if it won't create a drag-controller upon request.

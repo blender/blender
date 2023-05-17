@@ -2037,6 +2037,16 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem asset_shelf_flag_items[] = {
+      {ASSET_SHELF_TYPE_NO_ASSET_DRAG,
+       "NO_ASSET_DRAG",
+       0,
+       "No Asset Dragging",
+       "Disable the default asset dragging on drag events. Useful for implementing custom "
+       "dragging via custom key-map items"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "AssetShelf", NULL);
   RNA_def_struct_ui_text(srna, "Asset Shelf", "Regions for quick access to assets");
   RNA_def_struct_refine_func(srna, "rna_AssetShelf_refine");
@@ -2063,6 +2073,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(
       prop, "Space Type", "The space where the asset shelf is going to be used in");
+
+  prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+  RNA_def_property_enum_items(prop, asset_shelf_flag_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_ui_text(prop, "Options", "Options for this asset shelf type");
 
   PropertyRNA *parm;
   FunctionRNA *func;
