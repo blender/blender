@@ -156,6 +156,26 @@ TEST(path_util, Normalize_UnbalancedRelativeTrailing)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_cmp_normalized
+ *
+ * \note #BLI_path_normalize tests handle most of the corner cases.
+ * \{ */
+
+TEST(path_util, CompareNormalized)
+{
+  /* Trailing slash should not matter. */
+  EXPECT_EQ(BLI_path_cmp_normalized("/tmp/", "/tmp"), 0);
+  /* Slash direction should not matter. */
+  EXPECT_EQ(BLI_path_cmp_normalized("\\tmp\\", "/tmp/"), 0);
+  /* Empty paths should be supported. */
+  EXPECT_EQ(BLI_path_cmp_normalized("", ""), 0);
+
+  EXPECT_NE(BLI_path_cmp_normalized("A", "B"), 0);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_parent_dir
  * \{ */
 

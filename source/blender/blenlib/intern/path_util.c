@@ -1947,6 +1947,10 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   BLI_path_slash_native(norm_p1);
   BLI_path_slash_native(norm_p2);
 
+  /* One of the paths ending with a slash does not make them different, strip both. */
+  BLI_path_slash_rstrip(norm_p1);
+  BLI_path_slash_rstrip(norm_p2);
+
   BLI_path_normalize(norm_p1);
   BLI_path_normalize(norm_p2);
 
