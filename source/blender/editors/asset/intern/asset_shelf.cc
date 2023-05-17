@@ -367,6 +367,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
                         "Enable catalog, making contained assets visible in the asset shelf");
 
   UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
+  UI_but_flag_disable(but, UI_BUT_UNDO);
 
   return but;
 }
