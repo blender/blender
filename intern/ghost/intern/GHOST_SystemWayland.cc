@@ -173,7 +173,7 @@ static bool use_gnome_confine_hack = false;
  * This is a hack because it seems there is no way to check if the compositor supports
  * server side decorations when initializing WAYLAND.
  */
-#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_GHOST_X11)
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
 #  define USE_GNOME_NEEDS_LIBDECOR_HACK
 #endif
 
@@ -1332,6 +1332,22 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
     backtrace_fn(stderr); /* Includes newline. */
   }
 }
+
+#ifdef WITH_GHOST_X11
+/**
+ * Check if the system is running X11.
+ * This is not intended to be a fool-proof check (the `DISPLAY` is not validated for e.g.).
+ * Just check `DISPLAY` is set and not-empty.
+ */
+static bool ghost_wayland_is_x11_available()
+{
+  const char *x11_display = getenv("DISPLAY");
+  if (x11_display && x11_display[0]) {
+    return true;
+  }
+  return false;
+}
+#endif /* WITH_GHOST_X11 */
 
 static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 {
@@ -5517,12 +5533,21 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  /* Ignore windowing requirements when running in background mode,
-   * as it doesn't make sense to fall back to X11 because of windowing functionality
-   * in background mode, also LIBDECOR is crashing in background mode `blender -b -f 1`
-   * for e.g. while it could be fixed, requiring the library at all makes no sense . */
-  if (background) {
-    display_->libdecor_required = false;
+  if (display_->libdecor_required) {
+    /* Ignore windowing requirements when running in background mode,
+     * as it doesn't make sense to fall back to X11 because of windowing functionality
+     * in background mode, also LIBDECOR is crashing in background mode `blender -b -f 1`
+     * for e.g. while it could be fixed, requiring the library at all makes no sense . */
+    if (background) {
+      display_->libdecor_required = false;
+    }
+#  ifdef WITH_GHOST_X11
+    else if (!has_libdecor && !ghost_wayland_is_x11_available()) {
+      /* Only require LIBDECOR when X11 is available, otherwise there is nothing to fall back to.
+       * It's better to open without window decorations than failing entirely. */
+      display_->libdecor_required = false;
+    }
+#  endif /* WITH_GHOST_X11 */
   }
 
   if (display_->libdecor_required) {
