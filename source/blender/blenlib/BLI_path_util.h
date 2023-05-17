@@ -41,6 +41,9 @@ bool BLI_path_name_at_index(const char *__restrict path,
  */
 bool BLI_path_is_unc(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
+bool BLI_path_is_win32_drive(const char *path);
+bool BLI_path_is_win32_drive_with_slash(const char *path);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
