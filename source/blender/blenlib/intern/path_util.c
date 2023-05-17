@@ -361,7 +361,7 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
 
 #undef IS_PARENT_DIR
 
-  return path_len;
+  return (path - path_orig) + path_len;
 }
 
 int BLI_path_normalize(char *path)

@@ -48,11 +48,12 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
     if (SEP == '\\') { \
       str_replace_char_with_relative_exception(path, '/', '\\'); \
     } \
-    BLI_path_normalize(path); \
+    const int path_len_test = BLI_path_normalize(path); \
     if (SEP == '\\') { \
       BLI_str_replace_char(path, '\\', '/'); \
     } \
     EXPECT_STREQ(path, output_expect); \
+    EXPECT_EQ(path_len_test, strlen(path)); \
   } \
   ((void)0)
 
@@ -166,7 +167,7 @@ TEST(path_util, CompareNormalized)
   /* Trailing slash should not matter. */
   EXPECT_EQ(BLI_path_cmp_normalized("/tmp/", "/tmp"), 0);
   /* Slash direction should not matter. */
-  EXPECT_EQ(BLI_path_cmp_normalized("\\tmp\\", "/tmp/"), 0);
+  EXPECT_EQ(BLI_path_cmp_normalized("c:\\tmp\\", "c:/tmp/"), 0);
   /* Empty paths should be supported. */
   EXPECT_EQ(BLI_path_cmp_normalized("", ""), 0);
 
