@@ -1004,7 +1004,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, ".uv_seam");
       }
@@ -1022,7 +1022,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, "sharp_edge");
       }
@@ -1110,7 +1110,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
+      if (!CustomData_has_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
         CustomData_add_layer_named(
             &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totpoly, "sharp_face");
       }

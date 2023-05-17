@@ -314,6 +314,9 @@ void CustomData_free_layers(struct CustomData *data, eCustomDataType type, int t
  * Returns true if a layer with the specified type exists.
  */
 bool CustomData_has_layer(const struct CustomData *data, eCustomDataType type);
+bool CustomData_has_layer_named(const struct CustomData *data,
+                                eCustomDataType type,
+                                const char *name);
 
 /**
  * Returns the number of layers with this type.

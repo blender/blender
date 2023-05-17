@@ -3176,6 +3176,13 @@ void CustomData_free_layers(CustomData *data, const eCustomDataType type, const 
   }
 }
 
+bool CustomData_has_layer_named(const CustomData *data,
+                                const eCustomDataType type,
+                                const char *name)
+{
+  return CustomData_get_named_layer_index(data, type, name) != -1;
+}
+
 bool CustomData_has_layer(const CustomData *data, const eCustomDataType type)
 {
   return (CustomData_get_layer_index(data, type) != -1);

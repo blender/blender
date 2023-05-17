@@ -1106,7 +1106,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->vdata, &vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
   CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
 
-  if (!CustomData_get_layer_named(&vdata, CD_PROP_FLOAT3, "position")) {
+  if (!CustomData_has_layer_named(&vdata, CD_PROP_FLOAT3, "position")) {
     CustomData_add_layer_named(&vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   }
 
@@ -1140,7 +1140,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
-  if (!CustomData_get_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
+  if (!CustomData_has_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
     CustomData_add_layer_named(&edata, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
   }
 
@@ -1173,10 +1173,10 @@ static void mesh_add_loops(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->ldata, &ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
   CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
 
-  if (!CustomData_get_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
+  if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_vert")) {
     CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_vert");
   }
-  if (!CustomData_get_layer_named(&ldata, CD_PROP_INT32, ".corner_edge")) {
+  if (!CustomData_has_layer_named(&ldata, CD_PROP_INT32, ".corner_edge")) {
     CustomData_add_layer_named(&ldata, CD_PROP_INT32, CD_SET_DEFAULT, totloop, ".corner_edge");
   }
 
