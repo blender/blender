@@ -1621,7 +1621,7 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   data.brush = brush;
   data.nodes = nodes;
 
-  if (!use_persistent_base) {
+  if (!use_persistent_base && !ss->attrs.layer_displayment) {
     SculptAttributeParams params = {};
 
     ss->attrs.layer_displayment = BKE_sculpt_attribute_ensure(

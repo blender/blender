@@ -1385,7 +1385,10 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
   return ok;
 }
 
-static bool sculpt_boundary_flags_ensure(Object *ob, PBVH *pbvh, int totvert)
+static bool sculpt_boundary_flags_ensure(Object *ob,
+                                         PBVH *pbvh,
+                                         int totvert,
+                                         bool force_update = false)
 {
   SculptSession *ss = ob->sculpt;
   bool ret = false;
@@ -1403,12 +1406,15 @@ static bool sculpt_boundary_flags_ensure(Object *ob, PBVH *pbvh, int totvert)
                                                           &params,
                                                           BKE_pbvh_type(pbvh));
 
+    force_update = true;
+    ret = true;
+  }
+
+  if (force_update) {
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(pbvh, i);
       BKE_sculpt_boundary_flag_update(ss, vertex);
     }
-
-    ret = true;
   }
 
   BKE_pbvh_set_boundary_flags(pbvh, reinterpret_cast<int *>(ss->attrs.boundary_flags->data));
@@ -2714,9 +2720,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     return nullptr;
   }
 
+  SculptSession *ss = ob->sculpt;
   Scene *scene = DEG_get_input_scene(depsgraph);
 
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH *pbvh = ss->pbvh;
   if (pbvh != nullptr) {
     /* NOTE: It is possible that pointers to grids or other geometry data changed. Need to update
      * those pointers. */
@@ -2746,13 +2753,13 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     return pbvh;
   }
 
-  ob->sculpt->islands_valid = false;
+  ss->islands_valid = false;
 
-  if (ob->sculpt->bm != nullptr) {
+  if (ss->bm != nullptr) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special PBVH. */
     pbvh = build_pbvh_for_dynamic_topology(ob, false);
 
-    ob->sculpt->pbvh = pbvh;
+    ss->pbvh = pbvh;
   }
   else {
     /* Detect if we are loading from an undo memfile step. */
@@ -2771,15 +2778,27 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       params.copy_temp_cdlayers = true;
 
       BM_mesh_bm_from_me(bm, mesh_orig, &params);
+      BM_mesh_elem_table_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
-      ob->sculpt->bm = bm;
+      ss->bm = bm;
 
       SCULPT_undo_ensure_bmlog(ob);
 
       /* Note build_pbvh_for_dynamic_topology respects the pbvh cache. */
-      pbvh = build_pbvh_for_dynamic_topology(ob, true);
+      pbvh = ss->pbvh = build_pbvh_for_dynamic_topology(ob, true);
+
+      if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
+        BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+      }
 
       BKE_sculptsession_update_attr_refs(ob);
+      BKE_sculpt_ensure_origco(ob);
+      BKE_sculpt_ensure_sculpt_layers(ob);
+
+      BKE_sculpt_init_flags_valence(ob, pbvh, bm->totvert, true);
+      blender::bke::paint::load_all_original(ob);
+
+      sculpt_boundary_flags_ensure(ob, pbvh, ss->bm->totvert);
     }
     else {
       Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -2794,17 +2813,14 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
   }
 
-  if (!ob->sculpt->pmap) {
+  if (!ss->pmap) {
     Mesh *me = BKE_object_get_original_mesh(ob);
-    BKE_mesh_vert_poly_map_create(&ob->sculpt->pmap,
-                                  &ob->sculpt->pmap_mem,
-                                  me->polys(),
-                                  me->corner_verts().data(),
-                                  me->totvert);
+    BKE_mesh_vert_poly_map_create(
+        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
   }
 
-  BKE_pbvh_set_pmap(pbvh, ob->sculpt->pmap, ob->sculpt->pmap_mem);
-  ob->sculpt->pbvh = pbvh;
+  BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
+  ss->pbvh = pbvh;
 
   sculpt_attribute_update_refs(ob);
 

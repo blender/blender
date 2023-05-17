@@ -1334,7 +1334,7 @@ static int sculpt_undo_bmesh_restore(
       ss->active_vertex.i = -1;
     }
 #endif
-    ss->active_face.i = ss->active_vertex.i = 0;
+    ss->active_face.i = ss->active_vertex.i = -1;
   }
   else {
     ss->active_face.i = ss->active_vertex.i = -1;
