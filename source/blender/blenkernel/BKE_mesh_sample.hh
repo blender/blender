@@ -35,6 +35,14 @@ void sample_point_attribute(Span<int> corner_verts,
                             IndexMask mask,
                             GMutableSpan dst);
 
+void sample_point_normals(Span<int> corner_verts,
+                          Span<MLoopTri> looptris,
+                          Span<int> looptri_indices,
+                          Span<float3> bary_coords,
+                          Span<float3> src,
+                          IndexMask mask,
+                          MutableSpan<float3> dst);
+
 void sample_corner_attribute(Span<MLoopTri> looptris,
                              Span<int> looptri_indices,
                              Span<float3> bary_coords,
