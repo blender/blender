@@ -1604,18 +1604,19 @@ size_t BLI_path_append(char *__restrict dst, const size_t dst_maxncpy, const cha
 {
   BLI_string_debug_size_after_nil(dst, dst_maxncpy);
 
-  size_t dirlen = BLI_strnlen(dst, dst_maxncpy);
+  size_t dst_len = BLI_strnlen(dst, dst_maxncpy);
   /* Inline #BLI_path_slash_ensure. */
-  if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
-    dst[dirlen++] = SEP;
-    dst[dirlen] = '\0';
+  if (dst_len + 1 < dst_maxncpy) {
+    if ((dst_len > 0) && !BLI_path_slash_is_native_compat(dst[dst_len - 1])) {
+      dst[dst_len++] = SEP;
+      dst[dst_len] = '\0';
+    }
+    if (dst_len + 1 < dst_maxncpy) {
+      dst_len += BLI_strncpy_rlen(dst + dst_len, file, dst_maxncpy - dst_len);
+    }
   }
 
-  if (dirlen >= dst_maxncpy) {
-    return dirlen; /* Fills the path. */
-  }
-
-  return dirlen + BLI_strncpy_rlen(dst + dirlen, file, dst_maxncpy - dirlen);
+  return dst_len;
 }
 
 size_t BLI_path_append_dir(char *__restrict dst,

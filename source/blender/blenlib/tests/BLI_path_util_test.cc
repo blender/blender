@@ -581,6 +581,47 @@ TEST(path_util, JoinRelativePrefix)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_append
+ * \{ */
+
+/* For systems with `/` path separator (non WIN32). */
+#define APPEND(str_expect, size, path, filename) \
+  { \
+    const char *expect = str_expect; \
+    char result[(size) + 1024] = path; \
+    char filename_native[] = filename; \
+    /* Check we don't write past the last byte. */ \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(filename_native, '/', '\\'); \
+      BLI_str_replace_char(result, '/', '\\'); \
+    } \
+    BLI_path_append(result, size, filename_native); \
+    if (SEP == '\\') { \
+      BLI_str_replace_char(result, '\\', '/'); \
+    } \
+    EXPECT_STREQ(result, expect); \
+  } \
+  ((void)0)
+
+TEST(path_util, AppendFile)
+{
+  APPEND("a/b", 100, "a", "b");
+  APPEND("a/b", 100, "a/", "b");
+}
+
+TEST(path_util, AppendFile_Truncate)
+{
+  APPEND("/A", 3, "/", "ABC");
+  APPEND("/", 2, "/", "test");
+  APPEND("X", 2, "X", "ABC");
+  APPEND("X/", 3, "X/", "ABC");
+}
+
+#undef APPEND
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Tests for: #BLI_path_frame
  * \{ */
 
