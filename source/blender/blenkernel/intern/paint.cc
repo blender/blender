@@ -3981,12 +3981,14 @@ bool get_original_vertex(SculptSession *ss,
       switch (BKE_pbvh_type(ss->pbvh)) {
         case PBVH_FACES:
           mask = ss->vmask ? &ss->vmask[vertex.i] : nullptr;
+          break;
         case PBVH_BMESH: {
           BMVert *v;
           int cd_mask = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
           v = (BMVert *)vertex.i;
           mask = cd_mask != -1 ? static_cast<float *>(BM_ELEM_CD_GET_VOID_P(v, cd_mask)) : nullptr;
+          break;
         }
         case PBVH_GRIDS: {
           const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
@@ -4000,6 +4002,7 @@ bool get_original_vertex(SculptSession *ss,
             CCGElem *elem = BKE_pbvh_get_grids(ss->pbvh)[grid_index];
             mask = CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
           }
+          break;
         }
       }
 
