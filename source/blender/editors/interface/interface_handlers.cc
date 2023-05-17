@@ -2168,7 +2168,7 @@ static bool ui_but_drag_init(bContext *C,
     else if (but->type == UI_BTYPE_VIEW_ITEM) {
       const uiButViewItem *view_item_but = (uiButViewItem *)but;
       if (view_item_but->view_item) {
-        UI_view_item_drag_start(C, view_item_but->view_item);
+        return UI_view_item_drag_start(C, view_item_but->view_item);
       }
     }
     else {
@@ -4820,10 +4820,6 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
           data->dragstartx = event->xy[0];
           data->dragstarty = event->xy[1];
           return WM_UI_HANDLER_CONTINUE;
-
-        case KM_CLICK:
-          button_activate_state(C, but, BUTTON_STATE_EXIT);
-          return WM_UI_HANDLER_BREAK;
 
         case KM_DBL_CLICK:
           data->cancel = true;

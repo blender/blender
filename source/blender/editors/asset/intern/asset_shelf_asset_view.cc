@@ -24,6 +24,9 @@
 #include "UI_interface.hh"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+#include "RNA_prototypes.h"
+
 #include "WM_api.h"
 
 #include "asset_shelf.hh"
@@ -57,6 +60,9 @@ class AssetViewItem : public ui::PreviewGridItem {
                 StringRef identifier,
                 StringRef label,
                 int preview_icon_id);
+
+  void build_grid_tile(uiLayout &layout) const override;
+
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
 };
 
@@ -169,6 +175,22 @@ AssetViewItem::AssetViewItem(const AssetHandle &asset,
                              int preview_icon_id)
     : ui::PreviewGridItem(identifier, label, preview_icon_id), asset_(asset)
 {
+}
+
+void AssetViewItem::build_grid_tile(uiLayout &layout) const
+{
+  PointerRNA file_ptr;
+  RNA_pointer_create(
+      nullptr,
+      &RNA_FileSelectEntry,
+      /* XXX passing file pointer here, should be asset handle or asset representation. */
+      const_cast<FileDirEntry *>(asset_.file_data),
+      &file_ptr);
+
+  uiBlock *block = uiLayoutGetBlock(&layout);
+  UI_but_context_ptr_set(
+      block, reinterpret_cast<uiBut *>(view_item_but_), "active_file", &file_ptr);
+  ui::PreviewGridItem::build_grid_tile(layout);
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const

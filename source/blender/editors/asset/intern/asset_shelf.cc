@@ -302,9 +302,10 @@ int ED_asset_shelf_context(const bContext *C,
     return CTX_RESULT_OK;
   }
 
-  /* XXX hack. Get the asset from the hovered button, but needs to be the file... */
+  /* XXX hack. Get the asset from the active item, but needs to be the file... */
   if (CTX_data_equals(member, "active_file")) {
-    const uiBut *but = UI_context_active_but_get(C);
+    const ARegion *region = CTX_wm_region(C);
+    const uiBut *but = UI_region_views_find_active_item_but(region);
     if (!but) {
       return CTX_RESULT_NO_DATA;
     }

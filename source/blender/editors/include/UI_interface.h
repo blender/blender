@@ -3294,6 +3294,7 @@ uiViewHandle *UI_region_view_find_at(const struct ARegion *region, const int xy[
 uiViewItemHandle *UI_region_views_find_item_at(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL();
 uiViewItemHandle *UI_region_views_find_active_item(const struct ARegion *region);
+uiBut *UI_region_views_find_active_item_but(const struct ARegion *region);
 
 #ifdef __cplusplus
 }
