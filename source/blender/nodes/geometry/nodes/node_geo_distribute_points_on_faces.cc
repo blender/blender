@@ -33,33 +33,30 @@ static void node_declare(NodeDeclarationBuilder &b)
     node.custom1 = GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON;
   };
 
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Distance Min"))
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>("Distance Min")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .make_available(enable_poisson);
-  b.add_input<decl::Float>(N_("Density Max"))
+  b.add_input<decl::Float>("Density Max")
       .default_value(10.0f)
       .min(0.0f)
       .make_available(enable_poisson);
-  b.add_input<decl::Float>(N_("Density"))
-      .default_value(10.0f)
-      .min(0.0f)
-      .field_on_all()
-      .make_available(enable_random);
-  b.add_input<decl::Float>(N_("Density Factor"))
+  b.add_input<decl::Float>("Density").default_value(10.0f).min(0.0f).field_on_all().make_available(
+      enable_random);
+  b.add_input<decl::Float>("Density Factor")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .field_on_all()
       .make_available(enable_poisson);
-  b.add_input<decl::Int>(N_("Seed"));
+  b.add_input<decl::Int>("Seed");
 
-  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
-  b.add_output<decl::Vector>(N_("Normal")).field_on_all();
-  b.add_output<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).field_on_all();
+  b.add_output<decl::Geometry>("Points").propagate_all();
+  b.add_output<decl::Vector>("Normal").field_on_all();
+  b.add_output<decl::Vector>("Rotation").subtype(PROP_EULER).field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -79,15 +76,17 @@ static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
   bke::nodeSetSocketAvailability(ntree,
-                            sock_distance_min,
-                            node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
+                                 sock_distance_min,
+                                 node->custom1 ==
+                                     GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
   bke::nodeSetSocketAvailability(
       ntree, sock_density_max, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
   bke::nodeSetSocketAvailability(
       ntree, sock_density, node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM);
   bke::nodeSetSocketAvailability(ntree,
-                            sock_density_factor,
-                            node->custom1 == GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
+                                 sock_density_factor,
+                                 node->custom1 ==
+                                     GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON);
 }
 
 /**

@@ -18,33 +18,33 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Start"))
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Float>("Start")
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
       .field_on_all();
-  b.add_input<decl::Float>(N_("End"))
+  b.add_input<decl::Float>("End")
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; })
       .field_on_all();
-  b.add_input<decl::Float>(N_("Start"), "Start_001")
+  b.add_input<decl::Float>("Start", "Start_001")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
       .field_on_all();
-  b.add_input<decl::Float>(N_("End"), "End_001")
+  b.add_input<decl::Float>("End", "End_001")
       .min(0.0f)
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; })
       .field_on_all();
-  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

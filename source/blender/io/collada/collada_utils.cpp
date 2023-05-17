@@ -1140,66 +1140,6 @@ static bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx
   return bc_add_node(C, ntree, node_type, locx, locy, "");
 }
 
-#if 0
-/* experimental, probably not used */
-static bNodeSocket *bc_group_add_input_socket(bNodeTree *ntree,
-                                              bNode *to_node,
-                                              int to_index,
-                                              std::string label)
-{
-  bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
-
-#  if 0
-  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  return socket;
-#  endif
-
-  bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  bNode *inputGroup = ntreeFindType(ntree, NODE_GROUP_INPUT);
-  node_group_input_verify(ntree, inputGroup, (ID *)ntree);
-  bNodeSocket *newsock = node_group_input_find_socket(inputGroup, gsock->identifier);
-  nodeAddLink(ntree, inputGroup, newsock, to_node, to_socket);
-  strcpy(newsock->name, label.c_str());
-  return newsock;
-}
-
-static bNodeSocket *bc_group_add_output_socket(bNodeTree *ntree,
-                                               bNode *from_node,
-                                               int from_index,
-                                               std::string label)
-{
-  bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
-
-#  if 0
-  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  return socket;
-#  endif
-
-  bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, from_node, from_socket);
-  bNode *outputGroup = ntreeFindType(ntree, NODE_GROUP_OUTPUT);
-  node_group_output_verify(ntree, outputGroup, (ID *)ntree);
-  bNodeSocket *newsock = node_group_output_find_socket(outputGroup, gsock->identifier);
-  nodeAddLink(ntree, from_node, from_socket, outputGroup, newsock);
-  strcpy(newsock->name, label.c_str());
-  return newsock;
-}
-
-void bc_make_group(bContext *C, bNodeTree *ntree, std::map<std::string, bNode *> nmap)
-{
-  bNode *gnode = node_group_make_from_selected(C, ntree, "ShaderNodeGroup", "ShaderNodeTree");
-  bNodeTree *gtree = (bNodeTree *)gnode->id;
-
-  bc_group_add_input_socket(gtree, nmap["main"], 0, "Diffuse");
-  bc_group_add_input_socket(gtree, nmap["emission"], 0, "Emission");
-  bc_group_add_input_socket(gtree, nmap["mix"], 0, "Transparency");
-  bc_group_add_input_socket(gtree, nmap["emission"], 1, "Emission");
-  bc_group_add_input_socket(gtree, nmap["main"], 4, "Metallic");
-  bc_group_add_input_socket(gtree, nmap["main"], 5, "Specular");
-
-  bc_group_add_output_socket(gtree, nmap["mix"], 0, "Shader");
-}
-#endif
-
 static void bc_node_add_link(
     bNodeTree *ntree, bNode *from_node, int from_index, bNode *to_node, int to_index)
 {

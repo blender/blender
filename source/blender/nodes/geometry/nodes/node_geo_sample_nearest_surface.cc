@@ -21,21 +21,21 @@ using namespace blender::bke::mesh_surface_sample;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
 
-  b.add_input<decl::Vector>(N_("Sample Position")).implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Sample Position").implicit_field(implicit_field_inputs::position);
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6});
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6});
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

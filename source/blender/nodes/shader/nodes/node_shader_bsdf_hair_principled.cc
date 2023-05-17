@@ -11,56 +11,48 @@ namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.017513f, 0.005763f, 0.002059f, 1.0f});
-  b.add_input<decl::Float>(N_("Melanin"))
-      .default_value(0.8f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Melanin Redness"))
+  b.add_input<decl::Color>("Color").default_value({0.017513f, 0.005763f, 0.002059f, 1.0f});
+  b.add_input<decl::Float>("Melanin").default_value(0.8f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Melanin Redness")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>(N_("Absorption Coefficient"))
+  b.add_input<decl::Color>("Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("Absorption Coefficient")
       .default_value({0.245531f, 0.52f, 1.365f})
       .min(0.0f)
       .max(1000.0f);
-  b.add_input<decl::Float>(N_("Roughness"))
+  b.add_input<decl::Float>("Roughness")
       .default_value(0.3f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Radial Roughness"))
+  b.add_input<decl::Float>("Radial Roughness")
       .default_value(0.3f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Coat"))
-      .default_value(0.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("IOR")).default_value(1.55f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Offset"))
+  b.add_input<decl::Float>("Coat").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("IOR").default_value(1.55f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Offset")
       .default_value(2.0f * float(M_PI) / 180.0f)
       .min(-M_PI_2)
       .max(M_PI_2)
       .subtype(PROP_ANGLE);
-  b.add_input<decl::Float>(N_("Random Color"))
+  b.add_input<decl::Float>("Random Color")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Random Roughness"))
+  b.add_input<decl::Float>("Random Roughness")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Random")).hide_value();
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("BSDF"));
+  b.add_input<decl::Float>("Random").hide_value();
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("BSDF");
 }
 
 static void node_shader_buts_principled_hair(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

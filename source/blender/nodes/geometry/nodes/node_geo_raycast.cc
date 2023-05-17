@@ -23,36 +23,34 @@ NODE_STORAGE_FUNCS(NodeGeometryRaycast)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Target Geometry"))
+  b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Attribute").hide_value().field_on_all();
+  b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().field_on_all();
 
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Vector>(N_("Ray Direction"))
-      .default_value({0.0f, 0.0f, -1.0f})
-      .supports_field();
-  b.add_input<decl::Float>(N_("Ray Length"))
+  b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
+  b.add_input<decl::Float>("Ray Length")
       .default_value(100.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>(N_("Is Hit")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Position")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Normal")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Hit Distance")).dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Is Hit").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Position").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Normal").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Hit Distance").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

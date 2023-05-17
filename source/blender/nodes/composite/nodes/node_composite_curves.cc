@@ -25,7 +25,7 @@ namespace blender::nodes::node_composite_time_curves_cc {
 
 static void cmp_node_time_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Fac"));
+  b.add_output<decl::Float>("Fac");
 }
 
 /* custom1 = start_frame, custom2 = end_frame */
@@ -113,12 +113,12 @@ namespace blender::nodes::node_composite_vector_curves_cc {
 
 static void cmp_node_curve_vec_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector"))
+  b.add_input<decl::Vector>("Vector")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(-1.0f)
       .max(1.0f)
       .compositor_domain_priority(0);
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_composit_init_curve_vec(bNodeTree * /*ntree*/, bNode *node)
@@ -208,18 +208,18 @@ namespace blender::nodes::node_composite_rgb_curves_cc {
 
 static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Fac"))
+  b.add_input<decl::Float>("Fac")
       .default_value(1.0f)
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1);
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Color>(N_("Black Level")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Color>(N_("White Level")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_input<decl::Color>("Black Level").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Color>("White Level").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)

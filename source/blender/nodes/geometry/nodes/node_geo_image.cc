@@ -11,7 +11,7 @@ namespace blender::nodes::node_geo_image_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Image>(N_("Image"));
+  b.add_output<decl::Image>("Image");
 }
 
 static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)

@@ -49,10 +49,10 @@ static void create_transform_data_for_node(TransData &td,
   /* account for parents (nested nodes) */
   if (node.parent) {
     blender::bke::nodeToView(node.parent,
-               node.locx + roundf(node.offsetx),
-               node.locy + roundf(node.offsety),
-               &locx,
-               &locy);
+                             node.locx + roundf(node.offsetx),
+                             node.locy + roundf(node.offsety),
+                             &locx,
+                             &locy);
   }
   else {
     locx = node.locx + roundf(node.offsetx);
@@ -250,10 +250,10 @@ static void flushTransNodes(TransInfo *t)
       /* account for parents (nested nodes) */
       if (node->parent) {
         blender::bke::nodeFromView(node->parent,
-                     loc[0] - roundf(node->offsetx),
-                     loc[1] - roundf(node->offsety),
-                     &node->locx,
-                     &node->locy);
+                                   loc[0] - roundf(node->offsetx),
+                                   loc[1] - roundf(node->offsety),
+                                   &node->locx,
+                                   &node->locy);
       }
       else {
         node->locx = loc[0] - roundf(node->offsetx);

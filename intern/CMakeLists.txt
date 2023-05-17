@@ -67,7 +67,7 @@ if(UNIX AND NOT APPLE)
   add_subdirectory(libc_compat)
 endif()
 
-if (WITH_RENDERDOC)
+if(WITH_RENDERDOC)
   add_subdirectory(renderdoc_dynload)
 endif()
 

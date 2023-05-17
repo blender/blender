@@ -16,30 +16,30 @@ NODE_STORAGE_FUNCS(NodeRandomValue)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Min")).supports_field();
-  b.add_input<decl::Vector>(N_("Max")).default_value({1.0f, 1.0f, 1.0f}).supports_field();
-  b.add_input<decl::Float>(N_("Min"), "Min_001").supports_field();
-  b.add_input<decl::Float>(N_("Max"), "Max_001").default_value(1.0f).supports_field();
-  b.add_input<decl::Int>(N_("Min"), "Min_002").min(-100000).max(100000).supports_field();
-  b.add_input<decl::Int>(N_("Max"), "Max_002")
+  b.add_input<decl::Vector>("Min").supports_field();
+  b.add_input<decl::Vector>("Max").default_value({1.0f, 1.0f, 1.0f}).supports_field();
+  b.add_input<decl::Float>("Min", "Min_001").supports_field();
+  b.add_input<decl::Float>("Max", "Max_001").default_value(1.0f).supports_field();
+  b.add_input<decl::Int>("Min", "Min_002").min(-100000).max(100000).supports_field();
+  b.add_input<decl::Int>("Max", "Max_002")
       .default_value(100)
       .min(-100000)
       .max(100000)
       .supports_field();
-  b.add_input<decl::Float>(N_("Probability"))
+  b.add_input<decl::Float>("Probability")
       .min(0.0f)
       .max(1.0f)
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
       .supports_field()
       .make_available([](bNode &node) { node_storage(node).data_type = CD_PROP_BOOL; });
-  b.add_input<decl::Int>(N_("ID")).implicit_field(implicit_field_inputs::id_or_index);
-  b.add_input<decl::Int>(N_("Seed")).default_value(0).min(-10000).max(10000).supports_field();
+  b.add_input<decl::Int>("ID").implicit_field(implicit_field_inputs::id_or_index);
+  b.add_input<decl::Int>("Seed").default_value(0).min(-10000).max(10000).supports_field();
 
-  b.add_output<decl::Vector>(N_("Value")).dependent_field();
-  b.add_output<decl::Float>(N_("Value"), "Value_001").dependent_field();
-  b.add_output<decl::Int>(N_("Value"), "Value_002").dependent_field();
-  b.add_output<decl::Bool>(N_("Value"), "Value_003").dependent_field();
+  b.add_output<decl::Vector>("Value").dependent_field();
+  b.add_output<decl::Float>("Value", "Value_001").dependent_field();
+  b.add_output<decl::Int>("Value", "Value_002").dependent_field();
+  b.add_output<decl::Bool>("Value", "Value_003").dependent_field();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

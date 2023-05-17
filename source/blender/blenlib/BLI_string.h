@@ -624,7 +624,11 @@ int BLI_string_find_split_words(const char *str,
  */
 void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
-#  define BLI_string_debug_size(str, str_maxncpy) (void)(0 ? ((str) + (str_maxncpy)) : 0)
+#  define BLI_string_debug_size(str, str_maxncpy) \
+    if (0) { \
+      (void)str, (void)str_maxncpy; \
+    } \
+    ((void)0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
 #endif /* !WITH_STRSIZE_DEBUG */
 

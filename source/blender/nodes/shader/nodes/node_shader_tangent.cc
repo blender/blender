@@ -14,7 +14,7 @@ namespace blender::nodes::node_shader_tangent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Tangent"));
+  b.add_output<decl::Vector>("Tangent");
 }
 
 static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)

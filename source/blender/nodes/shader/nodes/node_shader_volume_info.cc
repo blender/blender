@@ -7,10 +7,10 @@ namespace blender::nodes::node_shader_volume_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(N_("Color"));
-  b.add_output<decl::Float>(N_("Density"));
-  b.add_output<decl::Float>(N_("Flame"));
-  b.add_output<decl::Float>(N_("Temperature"));
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Density");
+  b.add_output<decl::Float>("Flame");
+  b.add_output<decl::Float>("Temperature");
 }
 
 static int node_shader_gpu_volume_info(GPUMaterial *mat,

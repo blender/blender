@@ -20,12 +20,11 @@ NODE_STORAGE_FUNCS(NodeGeometryProximity)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Target"))
-      .only_realized_data()
-      .supported_type({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_output<decl::Vector>(N_("Position")).dependent_field().reference_pass_all();
-  b.add_output<decl::Float>(N_("Distance")).dependent_field().reference_pass_all();
+  b.add_input<decl::Geometry>("Target").only_realized_data().supported_type(
+      {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD});
+  b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
+  b.add_output<decl::Vector>("Position").dependent_field().reference_pass_all();
+  b.add_output<decl::Float>("Distance").dependent_field().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

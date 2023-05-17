@@ -2144,7 +2144,7 @@ void wm_autosave_delete(void)
       BLI_delete(filepath, false, false);
     }
     else {
-      BLI_rename(filepath, str);
+      BLI_rename_overwrite(filepath, str);
     }
   }
 }
@@ -2797,8 +2797,7 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
   bool success;
 
   RNA_string_get(op->ptr, "filepath", filepath);
-  BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-  BLI_path_normalize_native(filepath);
+  BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   /* re-use last loaded setting so we can reload a file without changing */
   wm_open_init_load_ui(op, false);
@@ -3103,8 +3102,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   bool success;
 
   RNA_string_get(op->ptr, "filepath", filepath);
-  BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-  BLI_path_normalize_native(filepath);
+  BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
@@ -3246,8 +3244,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   const bool is_filepath_set = RNA_struct_property_is_set(op->ptr, "filepath");
   if (is_filepath_set) {
     RNA_string_get(op->ptr, "filepath", filepath);
-    BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-    BLI_path_normalize_native(filepath);
+    BLI_path_canonicalize_native(filepath, sizeof(filepath));
   }
   else {
     STRNCPY(filepath, BKE_main_blendfile_path(bmain));

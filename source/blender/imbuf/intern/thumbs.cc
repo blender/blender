@@ -436,7 +436,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 #endif
       // printf("%s saving thumb: '%s'\n", __func__, tpath);
 
-      BLI_rename(temp, tpath);
+      BLI_rename_overwrite(temp, tpath);
     }
   }
   return img;

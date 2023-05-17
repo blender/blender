@@ -18,9 +18,9 @@ namespace blender::nodes::node_composite_switch_cc {
 
 static void cmp_node_switch_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Off")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>(N_("On")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_input<decl::Color>("Off").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("On").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_buts_switch(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

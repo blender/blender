@@ -20,16 +20,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   };
 
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).hide_value();
-  b.add_input<decl::Vector>(N_("Rotate By")).subtype(PROP_EULER).make_available([](bNode &node) {
+  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).hide_value();
+  b.add_input<decl::Vector>("Rotate By").subtype(PROP_EULER).make_available([](bNode &node) {
     node.custom1 = FN_NODE_ROTATE_EULER_TYPE_EULER;
   });
-  b.add_input<decl::Vector>(N_("Axis"))
+  b.add_input<decl::Vector>("Axis")
       .default_value({0.0, 0.0, 1.0})
       .subtype(PROP_XYZ)
       .make_available(enable_axis_angle);
-  b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE).make_available(enable_axis_angle);
-  b.add_output<decl::Vector>(N_("Rotation"));
+  b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE).make_available(enable_axis_angle);
+  b.add_output<decl::Vector>("Rotation");
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)

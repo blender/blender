@@ -120,7 +120,18 @@ enum {
 
 typedef struct Main {
   struct Main *next, *prev;
-  /** The file-path of this blend file, an empty string indicates an unsaved file. */
+  /**
+   * The file-path of this blend file, an empty string indicates an unsaved file.
+   *
+   * \note For the current loaded blend file this path should be absolute & normalized
+   * to prevent redundant leading slashes or current-working-directory relative paths
+   * from causing problems with absolute/relative patch conversion that relies on this being
+   * an absolute path. See #BLI_path_canonicalize_native.
+   *
+   * This rule is not strictly enforced as in some cases loading a #Main is performed
+   * to read data temporarily (preferences & startup) for e.g.
+   * where the `filepath` is not persistent or used as a basis for other paths.
+   */
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;

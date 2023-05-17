@@ -613,6 +613,7 @@ class NODE_MT_category_GEO_VOLUME(Menu):
             layout.separator()
             node_add_menu.add_node_type(layout, "GeometryNodeMeanFilterSDFVolume")
             node_add_menu.add_node_type(layout, "GeometryNodeOffsetSDFVolume")
+            node_add_menu.add_node_type(layout, "GeometryNodeSampleVolume")
             node_add_menu.add_node_type(layout, "GeometryNodeSDFVolumeSphere")
             node_add_menu.add_node_type(layout, "GeometryNodeInputSignedDistance")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)

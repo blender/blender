@@ -584,11 +584,11 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
   }
   ID *id = *id_p;
 
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   const int cb_flag = cb_data->cb_flag;
-  if (cb_flag == IDWALK_CB_LOOPBACK || id == id_self) {
+  if (cb_flag == IDWALK_CB_LOOPBACK || id == self_id) {
     /* IDs may end up referencing themselves one way or the other, and those
-     * (the id_self ones) have always already been processed. */
+     * (the self_id ones) have always already been processed. */
     return IDWALK_RET_STOP_RECURSION;
   }
 

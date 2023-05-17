@@ -99,16 +99,16 @@ static bool memfile_undosys_step_encode(struct bContext * /*C*/,
 
 static int memfile_undosys_step_id_reused_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID **id_pointer = cb_data->id_pointer;
-  BLI_assert((id_self->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0);
+  BLI_assert((self_id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0);
 
   ID *id = *id_pointer;
   if (id != nullptr && !ID_IS_LINKED(id) && (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) == 0)
   {
     bool do_stop_iter = true;
-    if (GS(id_self->name) == ID_OB) {
-      Object *ob_self = (Object *)id_self;
+    if (GS(self_id->name) == ID_OB) {
+      Object *ob_self = (Object *)self_id;
       if (ob_self->type == OB_ARMATURE) {
         if (ob_self->data == id) {
           BLI_assert(GS(id->name) == ID_AR);

@@ -18,8 +18,8 @@ namespace blender::nodes::node_shader_tex_sky_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector")).hide_value();
-  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_output<decl::Color>("Color").no_muted_links();
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -275,8 +275,7 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_IN, "Vector");
 
   NodeTexSky *tex = (NodeTexSky *)node->storage;
-  bke::nodeSetSocketAvailability(
-      ntree, sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
+  bke::nodeSetSocketAvailability(ntree, sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

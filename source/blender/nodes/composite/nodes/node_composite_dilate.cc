@@ -32,8 +32,8 @@ NODE_STORAGE_FUNCS(NodeDilateErode)
 
 static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Mask")).default_value(0.0f).min(0.0f).max(1.0f);
-  b.add_output<decl::Float>(N_("Mask"));
+  b.add_input<decl::Float>("Mask").default_value(0.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Float>("Mask");
 }
 
 static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)

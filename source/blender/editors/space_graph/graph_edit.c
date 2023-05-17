@@ -950,12 +950,13 @@ void GRAPH_OT_bake(wmOperatorType *ot)
   ot->description = "Bake selected F-Curves to a set of sampled points defining a similar curve";
 
   /* API callbacks */
-  ot->invoke = WM_operator_confirm; /* FIXME */
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = graphkeys_bake_exec;
   ot->poll = graphop_selected_fcurve_poll;
 
   /* Flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 
   /* TODO: add props for start/end frames (Joshua Leung 2009) */
 }

@@ -219,6 +219,15 @@ static void gizmo_retime_handle_add_draw(const bContext *C, wmGizmo *gz)
     return;
   }
 
+  const Scene *scene = CTX_data_scene(C);
+  const Sequence *seq = active_seq_from_context(C);
+  const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
+  const SeqRetimingHandle *handle = SEQ_retiming_find_segment_start_handle(seq, frame_index);
+
+  if (handle != nullptr && SEQ_retiming_handle_is_transition_type(handle)) {
+    return;
+  }
+
   const ButtonDimensions button = button_dimensions_get(C, gizmo);
   const rctf strip_box = strip_box_get(C, active_seq_from_context(C));
   if (!BLI_rctf_isect_pt(&strip_box, button.x, button.y)) {
@@ -315,6 +324,7 @@ typedef struct RetimeHandleMoveGizmo {
   wmGizmo gizmo;
   const Sequence *mouse_over_seq;
   int mouse_over_handle_x;
+  bool create_transition_operation;
 } RetimeHandleMoveGizmo;
 
 static void retime_handle_draw(const bContext *C,
@@ -344,12 +354,23 @@ static void retime_handle_draw(const bContext *C,
   const float top = UI_view2d_view_to_region_y(v2d, strip_y_rescale(seq, 1.0f)) - 2;
   const float handle_position = UI_view2d_view_to_region_x(v2d, handle_x);
 
+  float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
   if (seq == gizmo->mouse_over_seq && handle_x == gizmo->mouse_over_handle_x) {
-    immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    if (gizmo->create_transition_operation) {
+      bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
+      bool prev_handle_is_transition = SEQ_retiming_handle_is_transition_type(handle - 1);
+      if (!(handle_is_transition || prev_handle_is_transition)) {
+        col[0] = 0.5f;
+        col[2] = 0.4f;
+      }
+    }
   }
   else {
-    immUniformColor4f(0.65f, 0.65f, 0.65f, 1.0f);
+    mul_v3_fl(col, 0.65f);
   }
+
+  immUniformColor4fv(col);
 
   immBegin(GPU_PRIM_TRI_FAN, 3);
   immVertex2f(pos, handle_position - ui_triangle_size / 2, bottom);
@@ -385,10 +406,21 @@ static void retime_speed_text_draw(const bContext *C,
     return; /* Label out of strip bounds. */
   }
 
-  const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
+  char label_str[40];
+  size_t label_len;
 
-  char label_str[20];
-  const size_t label_len = SNPRINTF_RLEN(label_str, "%d%%", round_fl_to_int(speed * 100.0f));
+  if (SEQ_retiming_handle_is_transition_type(handle)) {
+    const float prev_speed = SEQ_retiming_handle_speed_get(seq, handle - 1);
+    const float next_speed = SEQ_retiming_handle_speed_get(seq, next_handle + 1);
+    label_len = SNPRINTF_RLEN(label_str,
+                              "%d%% - %d%%",
+                              round_fl_to_int(prev_speed * 100.0f),
+                              round_fl_to_int(next_speed * 100.0f));
+  }
+  else {
+    const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
+    label_len = SNPRINTF_RLEN(label_str, "%d%%", round_fl_to_int(speed * 100.0f));
+  }
 
   const float width = pixels_to_view_width(C, BLF_width(BLF_default(), label_str, label_len));
 
@@ -410,8 +442,14 @@ static void retime_speed_text_draw(const bContext *C,
 
 static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
 {
-  const RetimeHandleMoveGizmo *gizmo = (RetimeHandleMoveGizmo *)gz;
+  RetimeHandleMoveGizmo *gizmo = (RetimeHandleMoveGizmo *)gz;
   const View2D *v2d = UI_view2d_fromcontext(C);
+
+  /* TODO: This is hardcoded behavior, same as preselect gizmos in 3D view.
+   * Better solution would be to check operator keymap and display this information in status bar
+   * and tooltip. */
+  wmEvent *event = CTX_wm_window(C)->eventstate;
+  gizmo->create_transition_operation = (event->modifier & KM_SHIFT) != 0;
 
   wmOrtho2_region_pixelspace(CTX_wm_region(C));
   GPU_blend(GPU_BLEND_ALPHA);

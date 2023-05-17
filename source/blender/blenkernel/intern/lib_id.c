@@ -173,7 +173,7 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
     /* Even though the ID itself remain the same after being made local, from depsgraph point of
      * view this is a different ID. Hence we need to tag all of its users for COW update. */
     DEG_id_tag_update_ex(
-        cb_data->bmain, cb_data->id_owner, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
+        cb_data->bmain, cb_data->owner_id, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
     return IDWALK_RET_STOP_ITER;
   }
   return IDWALK_RET_NOP;
@@ -396,7 +396,7 @@ void BKE_id_newptr_and_tag_clear(ID *id)
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
 {
   Main *bmain = cb_data->bmain;
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID **id_pointer = cb_data->id_pointer;
   int const cb_flag = cb_data->cb_flag;
   const int flags = POINTER_AS_INT(cb_data->user_data);
@@ -412,7 +412,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
      * local directly), its embedded IDs should also have already been duplicated, and hence be
      * fully local here already. */
     if (*id_pointer != NULL && ID_IS_LINKED(*id_pointer)) {
-      BLI_assert(*id_pointer != id_self);
+      BLI_assert(*id_pointer != self_id);
 
       BKE_lib_id_clear_library_data(bmain, *id_pointer, flags);
     }
@@ -423,7 +423,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
    * (through drivers)...
    * Just skip it, shape key can only be either indirectly linked, or fully local, period.
    * And let's curse one more time that stupid useless shape-key ID type! */
-  if (*id_pointer && *id_pointer != id_self &&
+  if (*id_pointer && *id_pointer != self_id &&
       BKE_idtype_idcode_is_linkable(GS((*id_pointer)->name)))
   {
     id_lib_extern(*id_pointer);
@@ -583,14 +583,14 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
   /* Remap self-references to new copied ID. */
   if (id == data->id_src) {
-    /* We cannot use id_self here, it is not *always* id_dst (thanks to $£!+@#&/? nodetrees). */
+    /* We cannot use self_id here, it is not *always* id_dst (thanks to $£!+@#&/? nodetrees). */
     id = *id_pointer = data->id_dst;
   }
 
   /* Increase used IDs refcount if needed and required. */
   if ((data->flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && (cb_flag & IDWALK_CB_USER)) {
     if ((data->flag & LIB_ID_CREATE_NO_MAIN) != 0) {
-      BLI_assert(cb_data->id_self->tag & LIB_TAG_NO_MAIN);
+      BLI_assert(cb_data->self_id->tag & LIB_TAG_NO_MAIN);
       id_us_plus_no_lib(id);
     }
     else {

@@ -17,6 +17,8 @@
 
 #include "BLI_math_vector.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
@@ -147,7 +149,7 @@ static int paintcurve_new_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
 
   if (p && p->brush) {
-    p->brush->paint_curve = BKE_paint_curve_add(bmain, "PaintCurve");
+    p->brush->paint_curve = BKE_paint_curve_add(bmain, DATA_("PaintCurve"));
   }
 
   WM_event_add_notifier(C, NC_PAINTCURVE | NA_ADDED, nullptr);
@@ -181,7 +183,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   PaintCurve *pc = br->paint_curve;
   if (!pc) {
-    br->paint_curve = pc = BKE_paint_curve_add(bmain, "PaintCurve");
+    br->paint_curve = pc = BKE_paint_curve_add(bmain, DATA_("PaintCurve"));
   }
 
   ED_paintcurve_undo_push_begin(op->type->name);

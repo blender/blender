@@ -646,7 +646,7 @@ add_blender_test(
 endif()
 
 # SVG Import
-if(True)
+if(TRUE)
   if(NOT OPENIMAGEIO_IDIFF)
     message(WARNING "Disabling SVG tests because OIIO idiff does not exist")
   else()

@@ -120,21 +120,6 @@ static V3DSnapCursorState *gizmo_snap_state_from_rna_get(struct PointerRNA *ptr)
   return ED_view3d_cursor_snap_state_active_get();
 }
 
-static int gizmo_snap_rna_snap_elements_force_get_fn(struct PointerRNA *ptr,
-                                                     struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = gizmo_snap_state_from_rna_get(ptr);
-  return snap_state->snap_elem_force;
-}
-
-static void gizmo_snap_rna_snap_elements_force_set_fn(struct PointerRNA *ptr,
-                                                      struct PropertyRNA *UNUSED(prop),
-                                                      int value)
-{
-  V3DSnapCursorState *snap_state = gizmo_snap_state_from_rna_get(ptr);
-  snap_state->snap_elem_force = (short)value;
-}
-
 static void gizmo_snap_rna_prevpoint_get_fn(struct PointerRNA *ptr,
                                             struct PropertyRNA *UNUSED(prop),
                                             float *values)
@@ -336,17 +321,6 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
 
   /* Setup. */
   PropertyRNA *prop;
-  prop = RNA_def_enum_flag(gzt->srna,
-                           "snap_elements_force",
-                           rna_enum_snap_element_items,
-                           SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST,
-                           "Snap Elements",
-                           "");
-  RNA_def_property_enum_funcs_runtime(prop,
-                                      gizmo_snap_rna_snap_elements_force_get_fn,
-                                      gizmo_snap_rna_snap_elements_force_set_fn,
-                                      NULL);
-
   prop = RNA_def_float_array(gzt->srna,
                              "prev_point",
                              3,

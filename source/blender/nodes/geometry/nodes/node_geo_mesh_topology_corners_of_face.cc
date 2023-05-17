@@ -10,24 +10,20 @@ namespace blender::nodes::node_geo_mesh_topology_corners_of_face_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Face Index"))
+  b.add_input<decl::Int>("Face Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(N_("The face to retrieve data from. Defaults to the face from the context"));
-  b.add_input<decl::Float>(N_("Weights"))
-      .supports_field()
-      .hide_value()
-      .description(N_("Values used to sort the face's corners. Uses indices by default"));
-  b.add_input<decl::Int>(N_("Sort Index"))
+      .description("The face to retrieve data from. Defaults to the face from the context");
+  b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
+      "Values used to sort the face's corners. Uses indices by default");
+  b.add_input<decl::Int>("Sort Index")
       .min(0)
       .supports_field()
-      .description(N_("Which of the sorted corners to output"));
-  b.add_output<decl::Int>(N_("Corner Index"))
+      .description("Which of the sorted corners to output");
+  b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
-      .description(N_("A corner of the face, chosen by the sort index"));
-  b.add_output<decl::Int>(N_("Total"))
-      .field_source()
-      .reference_pass({0})
-      .description(N_("The number of corners in the face"));
+      .description("A corner of the face, chosen by the sort index");
+  b.add_output<decl::Int>("Total").field_source().reference_pass({0}).description(
+      "The number of corners in the face");
 }
 
 class CornersOfFaceInput final : public bke::MeshFieldInput {

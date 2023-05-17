@@ -10,8 +10,8 @@ namespace blender::nodes::node_shader_wireframe_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Size")).default_value(0.01f).min(0.0f).max(100.0f);
-  b.add_output<decl::Float>(N_("Fac"));
+  b.add_input<decl::Float>("Size").default_value(0.01f).min(0.0f).max(100.0f);
+  b.add_output<decl::Float>("Fac");
 }
 
 static void node_shader_buts_wireframe(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

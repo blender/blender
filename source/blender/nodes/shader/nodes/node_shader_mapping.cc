@@ -14,26 +14,23 @@ namespace blender::nodes::node_shader_mapping_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector"))
-      .default_value({0.0f, 0.0f, 0.0f})
-      .min(-FLT_MAX)
-      .max(FLT_MAX);
-  b.add_input<decl::Vector>(N_("Location"))
+  b.add_input<decl::Vector>("Vector").default_value({0.0f, 0.0f, 0.0f}).min(-FLT_MAX).max(FLT_MAX);
+  b.add_input<decl::Vector>("Location")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(-FLT_MAX)
       .max(FLT_MAX)
       .subtype(PROP_TRANSLATION);
-  b.add_input<decl::Vector>(N_("Rotation"))
+  b.add_input<decl::Vector>("Rotation")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(-FLT_MAX)
       .max(FLT_MAX)
       .subtype(PROP_EULER);
-  b.add_input<decl::Vector>(N_("Scale"))
+  b.add_input<decl::Vector>("Scale")
       .default_value({1.0f, 1.0f, 1.0f})
       .min(-FLT_MAX)
       .max(FLT_MAX)
       .subtype(PROP_XYZ);
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_buts_mapping(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

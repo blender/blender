@@ -738,8 +738,8 @@ class LazyFunctionForViewerNode : public LazyFunction {
         continue;
       }
       const Span<const bNodeLink *> links = bsocket->directly_linked_links();
-      if (links.is_empty() || bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode))
-      {
+      if (links.is_empty() ||
+          bke::nodeIsDanglingReroute(&bnode.owner_tree(), links.first()->fromnode)) {
         use_field_input_ = false;
         inputs_.pop_last();
         r_lf_index_by_bsocket[bsocket->index_in_tree()] = -1;
@@ -1893,6 +1893,9 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     for (const bNodeSocket *bsocket : bnode.output_sockets()) {
       const int lf_index = mapping_->lf_index_by_bsocket[bsocket->index_in_tree()];
+      if (lf_index == -1) {
+        continue;
+      }
       lf::OutputSocket &lf_socket = lf_node.output(lf_index);
       output_socket_map_.add(bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);

@@ -1866,7 +1866,7 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
     /* Make the path absolute because its needed for relative linked blends to be found */
     char filepath[FILE_MAX];
     STRNCPY(filepath, argv[1]);
-    BLI_path_abs_from_cwd(filepath, sizeof(filepath));
+    BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
     bool ok;
     BPY_CTX_SETUP(ok = BPY_run_filepath(C, filepath, NULL));
@@ -2063,9 +2063,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   }
 
   STRNCPY(filepath, argv[0]);
-  BLI_path_slash_native(filepath);
-  BLI_path_abs_from_cwd(filepath, sizeof(filepath));
-  BLI_path_normalize_native(filepath);
+  BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   /* load the file */
   BKE_reports_init(&reports, RPT_PRINT);

@@ -3991,6 +3991,7 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_prop_dynamicpaint_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SIMULATION);
   RNA_def_property_ui_text(prop, "Type", "");
 
   RNA_define_lib_overridable(false);
@@ -4499,6 +4500,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, simple_deform_mode_items);
   RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);

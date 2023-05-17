@@ -810,7 +810,7 @@ class ASSETBROWSER_UL_metadata_tags(UIList):
         row = layout.row(align=True)
         # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
         if tag.is_property_readonly("name"):
-            row.label(text=tag.name, icon_value=icon)
+            row.label(text=tag.name, icon_value=icon, translate=False)
         else:
             row.prop(tag, "name", text="", emboss=False, icon_value=icon)
 

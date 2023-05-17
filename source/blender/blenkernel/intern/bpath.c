@@ -513,7 +513,14 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     data->count_changed++;
   }
   else {
-    BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made relative", path_src);
+    const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
+    const char *id_name = bpath_data->owner_id->name + 2;
+    BKE_reportf(data->reports,
+                RPT_WARNING,
+                "Path '%s' cannot be made relative for %s '%s'",
+                path_src,
+                type_name,
+                id_name);
     data->count_failed++;
   }
   return true;
@@ -537,7 +544,14 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     data->count_changed++;
   }
   else {
-    BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
+    const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
+    const char *id_name = bpath_data->owner_id->name + 2;
+    BKE_reportf(data->reports,
+                RPT_WARNING,
+                "Path '%s' cannot be made absolute for %s '%s'",
+                path_src,
+                type_name,
+                id_name);
     data->count_failed++;
   }
   return true;

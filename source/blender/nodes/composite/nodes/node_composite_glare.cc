@@ -42,10 +42,10 @@ NODE_STORAGE_FUNCS(NodeGlare)
 
 static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)

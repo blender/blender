@@ -27,11 +27,11 @@ namespace blender::nodes::node_composite_levels_cc {
 
 static void cmp_node_levels_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Mean"));
-  b.add_output<decl::Float>(N_("Std Dev"));
+  b.add_output<decl::Float>("Mean");
+  b.add_output<decl::Float>("Std Dev");
 }
 
 static void node_composit_init_view_levels(bNodeTree * /*ntree*/, bNode *node)

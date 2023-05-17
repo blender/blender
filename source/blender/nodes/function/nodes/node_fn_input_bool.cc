@@ -11,7 +11,7 @@ namespace blender::nodes::node_fn_input_bool_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>(N_("Boolean"));
+  b.add_output<decl::Bool>("Boolean");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

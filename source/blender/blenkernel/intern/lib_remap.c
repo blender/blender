@@ -177,8 +177,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  ID *id_owner = cb_data->id_owner;
-  ID *id_self = cb_data->id_self;
+  ID *id_owner = cb_data->owner_id;
+  ID *id_self = cb_data->self_id;
   ID **id_p = cb_data->id_pointer;
   IDRemap *id_remap_data = cb_data->user_data;
 
