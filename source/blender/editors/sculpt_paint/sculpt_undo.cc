@@ -1359,6 +1359,8 @@ static int sculpt_undo_bmesh_restore(
       break;
   }
 
+  BKE_pbvh_flush_tri_areas(ss->pbvh);
+
   if (set_active_vertex && ss->bm_log && ss->bm) {
     if (ss->active_face.i != -1) {
       BMFace *f = BM_log_id_face_get(ss->bm, ss->bm_log, (uint)ss->active_face.i);

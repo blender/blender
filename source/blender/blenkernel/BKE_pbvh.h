@@ -1277,6 +1277,8 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
 bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 
+void BKE_pbvh_flush_tri_areas(PBVH *pbvh);
+
 #ifdef __cplusplus
 }
 

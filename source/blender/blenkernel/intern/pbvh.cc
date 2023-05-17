@@ -4133,7 +4133,8 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
         }
 
         if (j >= valence) {
-          printf("%s: error, corrupt edge cycle, valence was %d expected %d\n", __func__, j, valence);
+          printf(
+              "%s: error, corrupt edge cycle, valence was %d expected %d\n", __func__, j, valence);
           break;
         }
 
@@ -4770,6 +4771,32 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
       break;
     }
+  }
+}
+
+void BKE_pbvh_flush_tri_areas(PBVH *pbvh)
+{
+  for (int i : IndexRange(pbvh->totnode)) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf) || !(node->flag & PBVH_UpdateTriAreas)) {
+      continue;
+    }
+
+    BKE_pbvh_check_tri_areas(pbvh, node);
+    node->flag |= PBVH_UpdateTriAreas;
+  }
+
+  BKE_pbvh_face_areas_begin(pbvh);
+
+  for (int i : IndexRange(pbvh->totnode)) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    BKE_pbvh_check_tri_areas(pbvh, node);
   }
 }
 
