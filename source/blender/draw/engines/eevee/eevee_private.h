@@ -267,6 +267,7 @@ typedef struct EEVEE_PassList {
   /* Render-pass Accumulation. */
   struct DRWPass *material_accum_ps;
   struct DRWPass *background_accum_ps;
+  struct DRWPass *transparent_accum_ps;
   struct DRWPass *cryptomatte_ps;
 
   struct DRWPass *depth_ps;
@@ -350,6 +351,8 @@ typedef struct EEVEE_FramebufferList {
   struct GPUFrameBuffer *double_buffer_fb;
   struct GPUFrameBuffer *double_buffer_color_fb;
   struct GPUFrameBuffer *double_buffer_depth_fb;
+  struct GPUFrameBuffer *transparent_rpass_fb;
+  struct GPUFrameBuffer *transparent_rpass_accum_fb;
   struct GPUFrameBuffer *taa_history_fb;
   struct GPUFrameBuffer *taa_history_color_fb;
 } EEVEE_FramebufferList;
@@ -370,6 +373,9 @@ typedef struct EEVEE_TextureList {
   struct GPUTexture *bloom_accum;
   struct GPUTexture *ssr_accum;
   struct GPUTexture *shadow_accum;
+  struct GPUTexture *transparent_accum;
+  struct GPUTexture *transparent_depth_tmp;
+  struct GPUTexture *transparent_color_tmp;
   struct GPUTexture *cryptomatte;
   struct GPUTexture *taa_history;
   /* Could not be pool texture because of mipmapping. */
@@ -1217,6 +1223,7 @@ struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_refl_sh_get(void);
+struct GPUShader *EEVEE_shaders_renderpasses_accumulate_sh_get(void);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
 struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);
@@ -1475,6 +1482,8 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
                                           EEVEE_Data *vedata,
                                           bool post_effect);
+void EEVEE_material_transparent_output_init(EEVEE_Data *vedata);
+void EEVEE_material_transparent_output_accumulate(EEVEE_Data *vedata);
 /**
  * Post-process data to construct a specific render-pass
  *

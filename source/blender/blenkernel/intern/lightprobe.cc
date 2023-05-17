@@ -66,7 +66,7 @@ static void lightprobe_blend_read_data(BlendDataReader *reader, ID *id)
 static void lightprobe_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   LightProbe *prb = (LightProbe *)id;
-  BLO_read_id_address(reader, prb->id.lib, &prb->visibility_grp);
+  BLO_read_id_address(reader, &prb->id, &prb->visibility_grp);
 }
 
 IDTypeInfo IDType_ID_LP = {

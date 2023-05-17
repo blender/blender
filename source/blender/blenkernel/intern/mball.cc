@@ -141,10 +141,10 @@ static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   MetaBall *mb = (MetaBall *)id;
   for (int a = 0; a < mb->totcol; a++) {
-    BLO_read_id_address(reader, mb->id.lib, &mb->mat[a]);
+    BLO_read_id_address(reader, id, &mb->mat[a]);
   }
 
-  BLO_read_id_address(reader, mb->id.lib, &mb->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, id, &mb->ipo);  // XXX deprecated - old animation system
 }
 
 static void metaball_blend_read_expand(BlendExpander *expander, ID *id)

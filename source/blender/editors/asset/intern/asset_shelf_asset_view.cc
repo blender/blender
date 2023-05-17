@@ -66,7 +66,7 @@ class AssetDragController : public ui::AbstractViewItemDragController {
  public:
   AssetDragController(ui::AbstractGridView &view, const AssetHandle &asset);
 
-  int get_drag_type() const override;
+  eWM_DragDataType get_drag_type() const override;
   void *create_drag_data() const override;
 };
 
@@ -216,7 +216,7 @@ AssetDragController::AssetDragController(ui::AbstractGridView &view, const Asset
 {
 }
 
-int AssetDragController::get_drag_type() const
+eWM_DragDataType AssetDragController::get_drag_type() const
 {
   const ID *local_id = ED_asset_handle_get_local_id(&asset_);
   return local_id ? WM_DRAG_ID : WM_DRAG_ASSET;

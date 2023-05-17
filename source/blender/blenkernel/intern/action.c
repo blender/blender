@@ -222,7 +222,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 static void blend_read_lib_constraint_channels(BlendLibReader *reader, ID *id, ListBase *chanbase)
 {
   LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
-    BLO_read_id_address(reader, id->lib, &chan->ipo);
+    BLO_read_id_address(reader, id, &chan->ipo);
   }
 }
 
@@ -232,16 +232,16 @@ static void action_blend_read_lib(BlendLibReader *reader, ID *id)
 
   /* XXX deprecated - old animation system <<< */
   LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_read_id_address(reader, act->id.lib, &chan->ipo);
+    BLO_read_id_address(reader, id, &chan->ipo);
     blend_read_lib_constraint_channels(reader, &act->id, &chan->constraintChannels);
   }
   /* >>> XXX deprecated - old animation system */
 
-  BKE_fcurve_blend_read_lib(reader, &act->id, &act->curves);
+  BKE_fcurve_blend_read_lib(reader, id, &act->curves);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     if (marker->camera) {
-      BLO_read_id_address(reader, act->id.lib, &marker->camera);
+      BLO_read_id_address(reader, id, &marker->camera);
     }
   }
 }
@@ -1952,9 +1952,9 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_BlendReadLib(reader, ob->id.lib, pchan->prop);
+    IDP_BlendReadLib(reader, &ob->id, pchan->prop);
 
-    BLO_read_id_address(reader, ob->id.lib, &pchan->custom);
+    BLO_read_id_address(reader, &ob->id, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
       rebuild = true;
     }

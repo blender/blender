@@ -270,19 +270,19 @@ static void curve_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Curve *cu = (Curve *)id;
   for (int a = 0; a < cu->totcol; a++) {
-    BLO_read_id_address(reader, cu->id.lib, &cu->mat[a]);
+    BLO_read_id_address(reader, id, &cu->mat[a]);
   }
 
-  BLO_read_id_address(reader, cu->id.lib, &cu->bevobj);
-  BLO_read_id_address(reader, cu->id.lib, &cu->taperobj);
-  BLO_read_id_address(reader, cu->id.lib, &cu->textoncurve);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfont);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfontb);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfonti);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfontbi);
+  BLO_read_id_address(reader, id, &cu->bevobj);
+  BLO_read_id_address(reader, id, &cu->taperobj);
+  BLO_read_id_address(reader, id, &cu->textoncurve);
+  BLO_read_id_address(reader, id, &cu->vfont);
+  BLO_read_id_address(reader, id, &cu->vfontb);
+  BLO_read_id_address(reader, id, &cu->vfonti);
+  BLO_read_id_address(reader, id, &cu->vfontbi);
 
-  BLO_read_id_address(reader, cu->id.lib, &cu->ipo); /* XXX deprecated - old animation system */
-  BLO_read_id_address(reader, cu->id.lib, &cu->key);
+  BLO_read_id_address(reader, id, &cu->ipo); /* XXX deprecated - old animation system */
+  BLO_read_id_address(reader, id, &cu->key);
 }
 
 static void curve_blend_read_expand(BlendExpander *expander, ID *id)

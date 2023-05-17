@@ -5478,7 +5478,6 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
-  float font_dims[2] = {0.0f, 0.0f};
   const bool has_text = name && name[0];
 
   if (has_text) {
@@ -5493,15 +5492,11 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     return;
   }
 
-  BLF_width_and_height(
-      fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
-
   /* text rect */
-  trect.ymin += U.widget_unit / 2;
-  trect.ymax = trect.ymin + font_dims[1];
-  if (trect.xmax > rect->xmax - PREVIEW_PAD) {
-    trect.xmax = rect->xmax - PREVIEW_PAD;
-  }
+  trect.ymax = trect.ymin + text_size;
+  trect.ymin += PREVIEW_PAD;
+  trect.xmin += PREVIEW_PAD;
+  trect.xmax -= PREVIEW_PAD;
 
   {
     char drawstr[UI_MAX_DRAW_STR];

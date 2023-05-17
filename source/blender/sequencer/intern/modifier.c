@@ -1619,7 +1619,7 @@ void SEQ_modifier_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase 
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
     if (smd->mask_id) {
-      BLO_read_id_address(reader, scene->id.lib, &smd->mask_id);
+      BLO_read_id_address(reader, &scene->id, &smd->mask_id);
     }
   }
 }

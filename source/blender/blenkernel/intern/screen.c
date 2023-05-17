@@ -368,7 +368,7 @@ static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bScreen *screen = (bScreen *)id;
   /* deprecated, but needed for versioning (will be NULL'ed then) */
-  BLO_read_id_address(reader, screen->id.lib, &screen->scene);
+  BLO_read_id_address(reader, id, &screen->scene);
 
   screen->animtimer = NULL; /* saved in rare cases */
   screen->tool_tip = NULL;
@@ -1484,7 +1484,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
 
 void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
-  BLO_read_id_address(reader, parent_id->lib, &area->full);
+  BLO_read_id_address(reader, parent_id, &area->full);
 
   memset(&area->runtime, 0x0, sizeof(area->runtime));
 

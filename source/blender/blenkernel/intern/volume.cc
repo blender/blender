@@ -631,7 +631,7 @@ static void volume_blend_read_lib(BlendLibReader *reader, ID *id)
   BKE_volume_init_grids(volume);
 
   for (int a = 0; a < volume->totcol; a++) {
-    BLO_read_id_address(reader, volume->id.lib, &volume->mat[a]);
+    BLO_read_id_address(reader, id, &volume->mat[a]);
   }
 }
 

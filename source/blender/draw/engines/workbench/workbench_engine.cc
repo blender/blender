@@ -102,6 +102,7 @@ class Instance {
         if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
+        ATTR_FALLTHROUGH;
       default:
         return Material(*BKE_material_default_empty());
     }

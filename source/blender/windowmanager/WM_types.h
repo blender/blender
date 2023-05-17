@@ -1064,19 +1064,21 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 
 /* *************** Drag and drop *************** */
 
-#define WM_DRAG_ID 0
-#define WM_DRAG_ASSET 1
-/** The user is dragging multiple assets. This is only supported in few specific cases, proper
- * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
- * #WM_DRAG_ASSET. */
-#define WM_DRAG_ASSET_LIST 2
-#define WM_DRAG_RNA 3
-#define WM_DRAG_PATH 4
-#define WM_DRAG_NAME 5
-#define WM_DRAG_VALUE 6
-#define WM_DRAG_COLOR 7
-#define WM_DRAG_DATASTACK 8
-#define WM_DRAG_ASSET_CATALOG 9
+typedef enum eWM_DragDataType {
+  WM_DRAG_ID,
+  WM_DRAG_ASSET,
+  /** The user is dragging multiple assets. This is only supported in few specific cases, proper
+   * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
+   * #WM_DRAG_ASSET. */
+  WM_DRAG_ASSET_LIST,
+  WM_DRAG_RNA,
+  WM_DRAG_PATH,
+  WM_DRAG_NAME,
+  WM_DRAG_VALUE,
+  WM_DRAG_COLOR,
+  WM_DRAG_DATASTACK,
+  WM_DRAG_ASSET_CATALOG,
+} eWM_DragDataType;
 
 typedef enum eWM_DragFlags {
   WM_DRAG_NOP = 0,
@@ -1176,8 +1178,7 @@ typedef struct wmDrag {
   struct wmDrag *next, *prev;
 
   int icon;
-  /** See 'WM_DRAG_' defines above. */
-  int type;
+  eWM_DragDataType type;
   void *poin;
   double value;
 

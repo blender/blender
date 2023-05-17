@@ -183,7 +183,7 @@ static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bSound *sound = (bSound *)id;
   /* XXX: deprecated - old animation system. */
-  BLO_read_id_address(reader, sound->id.lib, &sound->ipo);
+  BLO_read_id_address(reader, id, &sound->ipo);
 }
 
 static void sound_blend_read_expand(BlendExpander *expander, ID *id)

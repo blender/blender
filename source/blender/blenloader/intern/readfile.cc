@@ -285,7 +285,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool inc
 }
 
 /* for libdata, NewAddress.nr has ID code, no increment */
-static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
+static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const bool is_linked_only)
 {
   if (addr == nullptr) {
     return nullptr;
@@ -295,7 +295,7 @@ static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *l
   if (id == nullptr) {
     return nullptr;
   }
-  if (!lib || id->lib) {
+  if (!is_linked_only || ID_IS_LINKED(id)) {
     return id;
   }
   return nullptr;
@@ -1386,14 +1386,20 @@ static void *newpackedadr(FileData *fd, const void *adr)
 }
 
 /* only lib data */
-static void *newlibadr(FileData *fd, const void *lib, const void *adr)
+static void *newlibadr(FileData *fd,
+                       ID * /* self_id */,
+                       const bool is_linked_only,
+                       const void *adr)
 {
-  return oldnewmap_liblookup(fd->libmap, adr, lib);
+  return oldnewmap_liblookup(fd->libmap, adr, is_linked_only);
 }
 
-void *blo_do_versions_newlibadr(FileData *fd, const void *lib, const void *adr)
+void *blo_do_versions_newlibadr(FileData *fd,
+                                ID *self_id,
+                                const bool is_linked_only,
+                                const void *adr)
 {
-  return newlibadr(fd, lib, adr);
+  return newlibadr(fd, self_id, is_linked_only, adr);
 }
 
 /* increases user number */
@@ -1860,7 +1866,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* NOTE: WM IDProperties are never written to file, hence they should always be nullptr here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == nullptr);
-  IDP_BlendReadLib(reader, id->lib, id->properties);
+  IDP_BlendReadLib(reader, id, id->properties);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != nullptr) {
@@ -1868,9 +1874,9 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
   }
 
   if (id->override_library) {
-    BLO_read_id_address(reader, id->lib, &id->override_library->reference);
-    BLO_read_id_address(reader, id->lib, &id->override_library->storage);
-    BLO_read_id_address(reader, id->lib, &id->override_library->hierarchy_root);
+    BLO_read_id_address(reader, id, &id->override_library->reference);
+    BLO_read_id_address(reader, id, &id->override_library->storage);
+    BLO_read_id_address(reader, id, &id->override_library->hierarchy_root);
   }
 
   lib_link_id_embedded_id(reader, id);
@@ -3444,8 +3450,8 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 {
   bfd->cur_view_layer = static_cast<ViewLayer *>(
       blo_read_get_new_globaldata_address(fd, bfd->cur_view_layer));
-  bfd->curscreen = static_cast<bScreen *>(newlibadr(fd, nullptr, bfd->curscreen));
-  bfd->curscene = static_cast<Scene *>(newlibadr(fd, nullptr, bfd->curscene));
+  bfd->curscreen = static_cast<bScreen *>(newlibadr(fd, nullptr, false, bfd->curscreen));
+  bfd->curscene = static_cast<Scene *>(newlibadr(fd, nullptr, false, bfd->curscene));
   /* this happens in files older than 2.35 */
   if (bfd->curscene == nullptr) {
     if (bfd->curscreen) {
@@ -4996,9 +5002,12 @@ void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_a
   return newpackedadr(reader->fd, old_address);
 }
 
-ID *BLO_read_get_new_id_address(BlendLibReader *reader, Library *lib, ID *id)
+ID *BLO_read_get_new_id_address(BlendLibReader *reader,
+                                ID *self_id,
+                                const bool is_linked_only,
+                                ID *id)
 {
-  return static_cast<ID *>(newlibadr(reader->fd, lib, id));
+  return static_cast<ID *>(newlibadr(reader->fd, self_id, is_linked_only, id));
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader)

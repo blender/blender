@@ -1813,7 +1813,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (tex = bmain->textures.first; tex; tex = tex->id.next) {
       if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
-        Image *image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
+        Image *image = blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima);
 
         if (image && (image->flag & IMA_DO_PREMUL) == 0) {
           enum { IMA_IGNORE_ALPHA = (1 << 12) };
@@ -1827,7 +1827,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         bNode *node;
         for (node = ntree->nodes.first; node; node = node->next) {
           if (node->type == CMP_NODE_IMAGE) {
-            Image *image = blo_do_versions_newlibadr(fd, ntree->id.lib, node->id);
+            Image *image = blo_do_versions_newlibadr(
+                fd, &ntree->id, ID_IS_LINKED(ntree), node->id);
 
             if (image) {
               if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {
