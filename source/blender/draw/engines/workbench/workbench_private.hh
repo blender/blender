@@ -334,6 +334,8 @@ class VolumePass {
   Texture dummy_volume_tx_ = {"Volume.Dummy Volume Tx"};
   Texture dummy_coba_tx_ = {"Volume.Dummy Coba Tx"};
 
+  GPUTexture *stencil_tx_ = nullptr;
+
   GPUShader *shaders_[2 /*slice*/][2 /*coba*/][3 /*interpolation*/][2 /*smoke*/];
 
  public:

@@ -222,6 +222,14 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
 
 void main()
 {
+#ifdef WORKBENCH_NEXT
+  uint stencil = texelFetch(stencil_tx, ivec2(gl_FragCoord.xy), 0).r;
+  if (stencil != 0) {
+    /* Don't draw on top of "in front" objects. */
+    discard;
+    return;
+  }
+#endif
 #ifdef VOLUME_SLICE
   /* Manual depth test. TODO: remove. */
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
