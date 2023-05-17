@@ -142,14 +142,14 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Camera *ca = (Camera *)id;
-  BLO_read_id_address(reader, ca->id.lib, &ca->ipo); /* deprecated, for versioning */
+  BLO_read_id_address(reader, id, &ca->ipo); /* deprecated, for versioning */
 
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof_ob); /* deprecated, for versioning */
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof.focus_object);
+  BLO_read_id_address(reader, id, &ca->dof_ob); /* deprecated, for versioning */
+  BLO_read_id_address(reader, id, &ca->dof.focus_object);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->ima);
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->clip);
+    BLO_read_id_address(reader, id, &bgpic->ima);
+    BLO_read_id_address(reader, id, &bgpic->clip);
   }
 }
 

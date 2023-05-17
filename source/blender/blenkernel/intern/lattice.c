@@ -161,8 +161,8 @@ static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 static void lattice_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Lattice *lt = (Lattice *)id;
-  BLO_read_id_address(reader, lt->id.lib, &lt->ipo);  // XXX deprecated - old animation system
-  BLO_read_id_address(reader, lt->id.lib, &lt->key);
+  BLO_read_id_address(reader, id, &lt->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, id, &lt->key);
 }
 
 static void lattice_blend_read_expand(BlendExpander *expander, ID *id)

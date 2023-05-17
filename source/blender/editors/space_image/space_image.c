@@ -1064,13 +1064,13 @@ static void image_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, Sp
 {
   SpaceImage *sima = (SpaceImage *)sl;
 
-  BLO_read_id_address(reader, parent_id->lib, &sima->image);
-  BLO_read_id_address(reader, parent_id->lib, &sima->mask_info.mask);
+  BLO_read_id_address(reader, parent_id, &sima->image);
+  BLO_read_id_address(reader, parent_id, &sima->mask_info.mask);
 
   /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
    * so fingers crossed this works fine!
    */
-  BLO_read_id_address(reader, parent_id->lib, &sima->gpd);
+  BLO_read_id_address(reader, parent_id, &sima->gpd);
 }
 
 static void image_space_blend_write(BlendWriter *writer, SpaceLink *sl)

@@ -325,11 +325,11 @@ static void collection_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_collection_blend_read_data(reader, collection, NULL);
 }
 
-static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
+static void lib_link_collection_data(BlendLibReader *reader, ID *self_id, Collection *collection)
 {
   BLI_assert(collection->runtime.gobject_hash == NULL);
   LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    BLO_read_id_address(reader, lib, &cob->ob);
+    BLO_read_id_address(reader, self_id, &cob->ob);
 
     if (cob->ob == NULL) {
       BLI_freelinkN(&collection->gobject, cob);
@@ -337,22 +337,20 @@ static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Colle
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BLO_read_id_address(reader, lib, &child->collection);
+    BLO_read_id_address(reader, self_id, &child->collection);
   }
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
-void BKE_collection_compat_blend_read_lib(BlendLibReader *reader,
-                                          Library *lib,
-                                          SceneCollection *sc)
+void BKE_collection_compat_blend_read_lib(BlendLibReader *reader, ID *self_id, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    BLO_read_id_address(reader, lib, &link->data);
+    BLO_read_id_address(reader, self_id, &link->data);
     BLI_assert(link->data);
   }
 
   LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    BKE_collection_compat_blend_read_lib(reader, lib, nsc);
+    BKE_collection_compat_blend_read_lib(reader, self_id, nsc);
   }
 }
 #endif
@@ -361,15 +359,15 @@ void BKE_collection_blend_read_lib(BlendLibReader *reader, Collection *collectio
 {
 #ifdef USE_COLLECTION_COMPAT_28
   if (collection->collection) {
-    BKE_collection_compat_blend_read_lib(reader, collection->id.lib, collection->collection);
+    BKE_collection_compat_blend_read_lib(reader, &collection->id, collection->collection);
   }
 
   if (collection->view_layer) {
-    BKE_view_layer_blend_read_lib(reader, collection->id.lib, collection->view_layer);
+    BKE_view_layer_blend_read_lib(reader, &collection->id, collection->view_layer);
   }
 #endif
 
-  lib_link_collection_data(reader, collection->id.lib, collection);
+  lib_link_collection_data(reader, &collection->id, collection);
 }
 
 static void collection_blend_read_lib(BlendLibReader *reader, ID *id)

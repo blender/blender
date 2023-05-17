@@ -922,7 +922,7 @@ static void buttons_space_blend_read_data(BlendDataReader *UNUSED(reader), Space
 static void buttons_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;
-  BLO_read_id_address(reader, parent_id->lib, &sbuts->pinid);
+  BLO_read_id_address(reader, parent_id, &sbuts->pinid);
   if (sbuts->pinid == NULL) {
     sbuts->flag &= ~SB_PIN_CONTEXT;
   }

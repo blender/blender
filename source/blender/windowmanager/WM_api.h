@@ -1360,8 +1360,12 @@ int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent
  * Start dragging immediately with the given data.
  * Note that \a poin should be valid allocated and not on stack.
  */
-void WM_event_start_drag(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
+void WM_event_start_drag(struct bContext *C,
+                         int icon,
+                         eWM_DragDataType type,
+                         void *poin,
+                         double value,
+                         unsigned int flags);
 /**
  * Create and fill the dragging data, but don't start dragging just yet (unlike
  * #WM_event_start_drag()). Must be followed up by #WM_event_start_prepared_drag(), otherwise the
@@ -1369,15 +1373,19 @@ void WM_event_start_drag(
  *
  * Note that \a poin should be valid allocated and not on stack.
  */
-wmDrag *WM_drag_data_create(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
+wmDrag *WM_drag_data_create(struct bContext *C,
+                            int icon,
+                            eWM_DragDataType type,
+                            void *poin,
+                            double value,
+                            unsigned int flags);
 /**
  * Invoke dragging using the given \a drag data.
  */
 void WM_event_start_prepared_drag(struct bContext *C, wmDrag *drag);
 void WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale);
 void WM_drag_free(struct wmDrag *drag);
-void WM_drag_data_free(int dragtype, void *poin);
+void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(struct ListBase *lb);
 struct wmDropBox *WM_dropbox_add(
     ListBase *lb,

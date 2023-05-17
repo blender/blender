@@ -19,6 +19,8 @@ void VolumePass::sync(SceneResources &resources)
   dummy_shadow_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
   dummy_volume_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
   dummy_coba_tx_.ensure_1d(GPU_RGBA8, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
+
+  stencil_tx_ = resources.depth_tx.stencil_view();
 }
 
 void VolumePass::object_sync_volume(Manager &manager,
@@ -53,6 +55,7 @@ void VolumePass::object_sync_volume(Manager &manager,
                               BKE_volume_density_scale(volume, ob->object_to_world);
 
   sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.bind_texture("stencil_tx", &stencil_tx_);
   sub_ps.bind_texture("densityTexture", grid->texture);
   /* TODO: implement shadow texture, see manta_smoke_calc_transparency. */
   sub_ps.bind_texture("shadowTexture", dummy_shadow_tx_);
@@ -66,9 +69,8 @@ void VolumePass::object_sync_volume(Manager &manager,
         manager, sub_ps, ob_ref, volume->display.slice_axis, volume->display.slice_depth);
   }
   else {
-    float3 world_size;
     float4x4 texture_to_world = float4x4(ob->object_to_world) * float4x4(grid->texture_to_object);
-    math::normalize_and_get_size(float3x3(texture_to_world), world_size);
+    float3 world_size = math::to_scale(texture_to_world);
 
     int3 resolution;
     GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
@@ -158,6 +160,7 @@ void VolumePass::object_sync_modifier(Manager &manager,
 
   sub_ps.push_constant("densityScale", 10.0f * settings.display_thickness);
   sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.bind_texture("stencil_tx", &stencil_tx_);
 
   if (use_slice) {
     draw_slice_ps(manager, sub_ps, ob_ref, settings.slice_axis, settings.slice_depth);

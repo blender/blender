@@ -23,6 +23,7 @@ GPU_SHADER_CREATE_INFO(workbench_volume)
 
 GPU_SHADER_CREATE_INFO(workbench_next_volume)
     .define("WORKBENCH_NEXT")
+    .sampler(6, ImageType::UINT_2D, "stencil_tx")
     .additional_info("workbench_volume_common", "draw_object_infos_new", "draw_view");
 /** \} */
 

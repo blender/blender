@@ -381,6 +381,19 @@ static void eevee_render_result_bloom(RenderLayer *rl,
   }
 }
 
+static void eevee_render_result_transparent(RenderLayer *rl,
+                                            const char *viewname,
+                                            const rcti *rect,
+                                            EEVEE_Data *vedata,
+                                            EEVEE_ViewLayerData *sldata)
+{
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_TRANSPARENT) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_TRANSPARENT, 0);
+    eevee_render_color_result(
+        rl, viewname, rect, RE_PASSNAME_TRANSPARENT, 4, vedata->fbl->renderpass_fb, vedata);
+  }
+}
+
 #define EEVEE_RENDER_RESULT_MATERIAL_PASS(pass_name, eevee_pass_type) \
   if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_##eevee_pass_type) != 0) { \
     EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_##eevee_pass_type, 0); \
@@ -631,6 +644,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Subsurface output, Occlusion output, Mist output */
     EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
     /* Transparent */
+    EEVEE_material_transparent_output_accumulate(vedata);
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);
     DRW_draw_pass(psl->transparent_pass);
@@ -672,6 +686,7 @@ void EEVEE_render_read_result(EEVEE_Data *vedata,
   eevee_render_result_environment(rl, viewname, rect, vedata, sldata);
   eevee_render_result_bloom(rl, viewname, rect, vedata, sldata);
   eevee_render_result_volume_light(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_transparent(rl, viewname, rect, vedata, sldata);
   eevee_render_result_aovs(rl, viewname, rect, vedata, sldata);
   eevee_render_result_cryptomatte(rl, viewname, rect, vedata, sldata);
 }
@@ -706,6 +721,7 @@ void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *v
   CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(BLOOM, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
 
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     if ((aov->flag & AOV_CONFLICT) != 0) {

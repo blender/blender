@@ -185,8 +185,8 @@ static void shapekey_blend_read_lib(BlendLibReader *reader, ID *id)
   Key *key = (Key *)id;
   BLI_assert((key->id.tag & LIB_TAG_EXTERN) == 0);
 
-  BLO_read_id_address(reader, key->id.lib, &key->ipo); /* XXX deprecated - old animation system */
-  BLO_read_id_address(reader, key->id.lib, &key->from);
+  BLO_read_id_address(reader, id, &key->ipo); /* XXX deprecated - old animation system */
+  BLO_read_id_address(reader, id, &key->from);
 }
 
 static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
