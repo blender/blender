@@ -443,6 +443,11 @@ typedef struct AssetShelfType {
    * visibility should be first and foremost controlled by asset traits. */
   bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
 
+  void (*draw_context_menu)(const struct bContext *C,
+                            const struct AssetShelfType *shelf_type,
+                            const struct AssetHandle *asset,
+                            struct uiLayout *layout);
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 } AssetShelfType;

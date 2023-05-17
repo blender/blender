@@ -490,6 +490,17 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
   RNA_string_set(&props_ptr, "filepath", dir);
 }
 
+static void set_layout_context_from_button(bContext *C, uiLayout *layout, uiBut *but)
+{
+  if (!but->context) {
+    return;
+  }
+  uiLayoutContextCopy(layout, but->context);
+  CTX_store_set(C, uiLayoutGetContextStore(layout));
+
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+}
+
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
 {
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
@@ -513,11 +524,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       MEM_freeN(label.strinfo);
     }
 
-    if (but->context) {
-      uiLayoutContextCopy(layout, but->context);
-      CTX_store_set(C, uiLayoutGetContextStore(layout));
-    }
-    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+    set_layout_context_from_button(C, layout, but);
   }
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED;
@@ -959,7 +966,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                                                                                  event->xy);
     if (view_item_but) {
       BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
-      UI_view_item_context_menu_build(C, view_item_but->view_item, uiLayoutColumn(layout, false));
+
+      bContextStore *prev_ctx = CTX_store_get(C);
+      /* Sub-layout for context override. */
+      uiLayout *sub = uiLayoutColumn(layout, false);
+      set_layout_context_from_button(C, sub, view_item_but);
+      UI_view_item_context_menu_build(C, view_item_but->view_item, sub);
+
+      /* Reset context. */
+      CTX_store_set(C, prev_ctx);
+
       uiItemS(layout);
     }
   }

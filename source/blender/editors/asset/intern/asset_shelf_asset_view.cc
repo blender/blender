@@ -64,6 +64,7 @@ class AssetViewItem : public ui::PreviewGridItem {
 
   void disable_asset_drag();
   void build_grid_tile(uiLayout &layout) const override;
+  void build_context_menu(bContext &C, uiLayout &column) const override;
 
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
 };
@@ -222,6 +223,18 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
   UI_but_context_ptr_set(
       block, reinterpret_cast<uiBut *>(view_item_but_), "active_file", &file_ptr);
   ui::PreviewGridItem::build_grid_tile(layout);
+}
+
+void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
+{
+  const SpaceLink *space_link = CTX_wm_space_data(&C);
+  const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
+  Vector<AssetShelfType *> shelves_showing_asset = asset_shelf_types_showing_asset(
+      *space_type, C, asset_);
+
+  for (AssetShelfType *shelf : shelves_showing_asset) {
+    shelf->draw_context_menu(&C, shelf, &asset_, &column);
+  }
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const

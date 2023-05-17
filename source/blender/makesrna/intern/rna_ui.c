@@ -1116,6 +1116,28 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
   return is_visible;
 }
 
+static void asset_shelf_draw_context_menu(const bContext *C,
+                                          const AssetShelfType *shelf_type,
+                                          const AssetHandle *asset,
+                                          uiLayout *layout)
+{
+  extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
+
+  PointerRNA ptr;
+  RNA_pointer_create(NULL, shelf_type->rna_ext.srna, NULL, &ptr); /* dummy */
+  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func;     /* RNA_struct_find_function(&ptr,
+                                                                         "draw_context_menu"); */
+
+  ParameterList list;
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "context", &C);
+  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "layout", &layout);
+  shelf_type->rna_ext.call((bContext *)C, &ptr, func, &list);
+
+  RNA_parameter_list_free(&list);
+}
+
 static bool rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   AssetShelfType *shelf_type = RNA_struct_blender_type_get(type);
@@ -1156,7 +1178,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   dummy_shelf.type = &dummy_shelf_type;
   RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_type_ptr);
 
-  bool have_function[2];
+  bool have_function[3];
 
   /* validate the python class */
   if (validate(&dummy_shelf_type_ptr, data, have_function) != 0) {
@@ -1205,6 +1227,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 
   shelf_type->poll = have_function[0] ? asset_shelf_poll : NULL;
   shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : NULL;
+  shelf_type->draw_context_menu = have_function[2] ? asset_shelf_draw_context_menu : NULL;
 
   BLI_addtail(&space_type->asset_shelf_types, shelf_type);
 
@@ -2100,6 +2123,17 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
   parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "draw_context_menu", NULL);
+  RNA_def_function_ui_description(
+      func, "Draw UI elements into the context menu UI layout displayed on right click");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
