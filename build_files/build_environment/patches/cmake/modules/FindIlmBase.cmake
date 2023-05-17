@@ -8,7 +8,7 @@
 # It also supports non-standard names for the library components.
 #
 # To use a custom IlmBase:
-#   - Set the variable ILMBASE_CUSTOM to True
+#   - Set the variable ILMBASE_CUSTOM to TRUE
 #   - Set the variable ILMBASE_CUSTOM_LIBRARIES to a list of the libraries to
 #     use, e.g. "SpiImath SpiHalf SpiIlmThread SpiIex"
 #   - Optionally set the variable ILMBASE_CUSTOM_INCLUDE_DIR to any
@@ -20,7 +20,7 @@
 #
 # ILMBASE_INCLUDE_DIR - where to find half.h, IlmBaseConfig.h, etc.
 # ILMBASE_LIBRARIES   - list of libraries to link against when using IlmBase.
-# ILMBASE_FOUND       - True if IlmBase was found.
+# ILMBASE_FOUND       - TRUE if IlmBase was found.
 
 # Other standard issue macros
 include(FindPackageHandleStandardArgs)
