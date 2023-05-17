@@ -249,8 +249,7 @@ struct uiBut {
 
   ListBase extra_op_icons = {nullptr, nullptr}; /** #uiButExtraOpIcon */
 
-  /* Drag-able data, type is WM_DRAG_... */
-  char dragtype = WM_DRAG_ID;
+  eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
   ImBuf *imb = nullptr;

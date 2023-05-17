@@ -103,7 +103,7 @@ class AssetCatalogDragController : public ui::AbstractViewItemDragController {
   explicit AssetCatalogDragController(AssetCatalogTreeView &tree_view,
                                       AssetCatalogTreeItem &catalog_item);
 
-  int get_drag_type() const override;
+  eWM_DragDataType get_drag_type() const override;
   void *create_drag_data() const override;
   void on_drag_start() override;
 };
@@ -545,7 +545,7 @@ AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeView &tre
 {
 }
 
-int AssetCatalogDragController::get_drag_type() const
+eWM_DragDataType AssetCatalogDragController::get_drag_type() const
 {
   return WM_DRAG_ASSET_CATALOG;
 }
