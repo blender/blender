@@ -5181,9 +5181,6 @@ void CustomData_blend_write(BlendWriter *writer,
       case CD_PAINT_MASK:
         BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
         break;
-      case CD_SCULPT_FACE_SETS:
-        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
-        break;
       case CD_GRID_PAINT_MASK:
         write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
         break;
