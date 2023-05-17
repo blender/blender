@@ -384,4 +384,16 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   region->visible = !((region->flag & RGN_FLAG_HIDDEN) || (region->flag & RGN_FLAG_TOO_SMALL));
 }
 
+ARegion *ED_area_type_hud_redo_region_find(const ScrArea *area, const ARegion *hud_region)
+{
+  BLI_assert(hud_region->regiontype == RGN_TYPE_HUD);
+  HudRegionData *hrd = static_cast<HudRegionData *>(hud_region->regiondata);
+
+  if (hrd->regionid == -1) {
+    return nullptr;
+  }
+
+  return BKE_area_find_region_type(area, hrd->regionid);
+}
+
 /** \} */
