@@ -437,7 +437,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                "%s on frame %f",
                IFACE_(first_frame_curve_type_name),
                IFACE_(current_curve_type_name),
-               timecode);
+               timecode.GetValue());
     return;
   }
 
