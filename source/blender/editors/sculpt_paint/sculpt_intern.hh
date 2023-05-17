@@ -1341,7 +1341,12 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
 bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
 void SCULPT_face_visibility_all_invert(SculptSession *ss);
-void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
+void SCULPT_face_visibility_all_set(Object *ob, bool visible);
+
+/* Flags all the vertices of face for boundary update. For PBVH_GRIDS
+ * this includes all the verts in all the grids belonging to that face. 
+ */
+void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face);
 
 void SCULPT_visibility_sync_all_from_faces(Object *ob);
 

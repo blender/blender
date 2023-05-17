@@ -692,6 +692,7 @@ void SCULPT_smooth(
   int iteration, count;
   float last;
 
+  SCULPT_boundary_info_ensure(ob);
   SCULPT_smooth_undo_push(ob, nodes);
 
   /* PBVH_FACES needs ss->epmap. */
@@ -917,6 +918,7 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  SCULPT_boundary_info_ensure(ob);
   SCULPT_smooth_undo_push(ob, nodes);
 
   /* Threaded loop over nodes. */

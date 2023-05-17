@@ -1999,7 +1999,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
       BM_log_face_modified(ss->bm, ss->bm_log, f);
     }
 
-    SCULPT_face_visibility_all_set(ss, true);
+    SCULPT_face_visibility_all_set(ob, true);
   }
 
   SCULPT_visibility_sync_all_from_faces(ob);

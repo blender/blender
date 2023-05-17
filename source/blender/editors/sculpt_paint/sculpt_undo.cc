@@ -384,9 +384,7 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
 
     BKE_pbvh_face_iter_begin (data->pbvh, node, fd) {
       if (data->modified_face_set_faces[fd.index]) {
-        for (int i = 0; i < fd.verts_num; i++) {
-          BKE_sculpt_boundary_flag_update(data->ss, fd.verts[i]);
-        }
+        SCULPT_face_mark_boundary_update(data->ss, fd.face);
 
         if (!updated) {
           BKE_pbvh_node_mark_update_face_sets(node);
@@ -1377,7 +1375,9 @@ static int sculpt_undo_bmesh_restore(
       break;
   }
 
-  BKE_pbvh_flush_tri_areas(ss->pbvh);
+  if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BKE_pbvh_flush_tri_areas(ss->pbvh);
+  }
 
   if (set_active_vertex && ss->bm_log && ss->bm) {
     if (ss->active_face.i != -1) {
@@ -2162,13 +2162,12 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  /*log exists or not in sculpt mode? good then*/
-  if (ss->bm_log || !ob->sculpt) {
+  /* Log exists or object is not in sculpt mode? */
+  if (!ss || ss->bm_log) {
     return;
   }
 
-  /*try to find log from entries in the undo stack*/
-
+  /* Try to find log from entries in the undo stack. */
   UndoStack *ustack = ED_undo_stack_get();
 
   if (!ustack) {
@@ -2704,13 +2703,12 @@ static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_firs
 
   SculptSession *ss = ob->sculpt;
 
-  /*when pusing an undo node after
-    undoing to the start of the stack
-    the log ref count hits zero, we have to check it,
-    do cleanup and recreate it*/
+  /* When pushing an undo node after undoing to the start of the stack
+   * the log ref count hits zero; we must detect this and handle it.
+   */
 
   if (ss && ss->bm && ss->bm_log && BM_log_is_dead(ss->bm_log)) {
-    // forcibly destroy all entries? the 'true' parameter
+    /* Forcibly destroy all entries (the 'true' parameter). */
     BM_log_free(ss->bm_log, true);
 
     BKE_sculpt_ensure_idmap(ob);

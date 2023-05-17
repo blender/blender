@@ -41,6 +41,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph.h"
 
@@ -54,10 +55,13 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
 
 using blender::Array;
 using blender::float3;
+using blender::IndexRange;
+using blender::Span;
 using blender::Vector;
 
 /* Utils. */
@@ -852,14 +856,9 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
-  /* Not supported for dyntopo. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int tot_vert = SCULPT_vertex_count_get(ss);
@@ -895,36 +894,37 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
         }
       }
 
-      if (ss->hide_poly) {
+      if (ss->attrs.hide_poly) {
         for (int i = 0; i < ss->totfaces; i++) {
-          if (ss->hide_poly[i]) {
+          PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
+          if (SCULPT_face_is_hidden(ss, face)) {
             hidden_vertex = true;
             break;
           }
         }
       }
 
-      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+      BKE_sculpt_hide_poly_ensure(ob);
 
       if (hidden_vertex) {
-        SCULPT_face_visibility_all_set(ss, true);
+        SCULPT_face_visibility_all_set(ob, true);
       }
       else {
-        if (ss->face_sets) {
-          SCULPT_face_visibility_all_set(ss, false);
+        if (ss->attrs.face_set) {
+          SCULPT_face_visibility_all_set(ob, false);
           SCULPT_face_set_visibility_set(ss, active_face_set, true);
         }
         else {
-          SCULPT_face_visibility_all_set(ss, true);
+          SCULPT_face_visibility_all_set(ob, true);
         }
       }
       break;
     }
     case SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE:
-      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+      BKE_sculpt_hide_poly_ensure(ob);
 
-      if (ss->face_sets) {
-        SCULPT_face_visibility_all_set(ss, false);
+      if (ss->attrs.face_set) {
+        SCULPT_face_visibility_all_set(ob, false);
         SCULPT_face_set_visibility_set(ss, active_face_set, true);
       }
       else {
@@ -932,13 +932,13 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
       }
       break;
     case SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE:
-      ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+      BKE_sculpt_hide_poly_ensure(ob);
 
-      if (ss->face_sets) {
+      if (ss->attrs.face_set) {
         SCULPT_face_set_visibility_set(ss, active_face_set, false);
       }
       else {
-        SCULPT_face_visibility_all_set(ss, false);
+        SCULPT_face_visibility_all_set(ob, false);
       }
 
       break;
@@ -1017,24 +1017,24 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator * /*op
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+  if (!ss->attrs.face_set) {
     return OPERATOR_CANCELLED;
   }
 
-  if (!ss->face_sets) {
-    return OPERATOR_CANCELLED;
-  }
+  SCULPT_face_random_access_ensure(ss);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   mesh->face_sets_color_seed += 1;
-  if (ss->face_sets) {
+  if (ss->attrs.face_set) {
     const int random_index = clamp_i(ss->totfaces * BLI_hash_int_01(mesh->face_sets_color_seed),
                                      0,
                                      max_ii(0, ss->totfaces - 1));
-    mesh->face_sets_color_default = ss->face_sets[random_index];
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, random_index);
+
+    mesh->face_sets_color_default = blender::bke::paint::face_attr_get<int>(face,
+                                                                            ss->attrs.face_set);
   }
   BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
 
@@ -1111,86 +1111,138 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void sculpt_face_set_grow(Object *ob,
-                                 SculptSession *ss,
-                                 const int *prev_face_sets,
-                                 const int active_face_set_id,
-                                 const bool modify_hidden)
+void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
 {
-  using namespace blender;
-  Mesh *mesh = BKE_mesh_from_object(ob);
-  const OffsetIndices polys = mesh->polys();
-  const Span<int> corner_verts = mesh->corner_verts();
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMFace *f = reinterpret_cast<BMFace *>(face.i);
+      BMLoop *l = f->l_first;
+      do {
+        PBVHVertRef vertex = {reinterpret_cast<intptr_t>(l->v)};
+        BKE_sculpt_boundary_flag_update(ss, vertex);
+      } while ((l = l->next) != f->l_first);
 
-  for (const int p : polys.index_range()) {
-    if (!modify_hidden && prev_face_sets[p] <= 0) {
-      continue;
+      break;
     }
-    for (const int vert : corner_verts.slice(polys[p])) {
-      const MeshElemMap *vert_map = &ss->pmap[vert];
-      for (int i = 0; i < vert_map->count; i++) {
-        const int neighbor_face_index = vert_map->indices[i];
-        if (neighbor_face_index == p) {
-          continue;
-        }
-        if (abs(prev_face_sets[neighbor_face_index]) == active_face_set_id) {
-          ss->face_sets[p] = active_face_set_id;
-        }
+    case PBVH_FACES: {
+      for (int vert_i : ss->corner_verts.slice(ss->polys[face.i])) {
+        PBVHVertRef vertex = {vert_i};
+        BKE_sculpt_boundary_flag_update(ss, vertex);
       }
+      break;
     }
-  }
-}
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      int grid_index = BKE_subdiv_ccg_start_face_grid_index_get(ss->subdiv_ccg)[face.i];
+      int vertex_i = grid_index * key->grid_area;
+      int verts_num = ss->polys[face.i].size() * key->grid_area;
 
-static void sculpt_face_set_shrink(Object *ob,
-                                   SculptSession *ss,
-                                   const int *prev_face_sets,
-                                   const int active_face_set_id,
-                                   const bool modify_hidden)
-{
-  using namespace blender;
-  Mesh *mesh = BKE_mesh_from_object(ob);
-  const OffsetIndices polys = mesh->polys();
-  const Span<int> corner_verts = mesh->corner_verts();
-  for (const int p : polys.index_range()) {
-    if (!modify_hidden && prev_face_sets[p] <= 0) {
-      continue;
-    }
-    if (abs(prev_face_sets[p]) == active_face_set_id) {
-      for (const int vert_i : corner_verts.slice(polys[p])) {
-        const MeshElemMap *vert_map = &ss->pmap[vert_i];
-        for (int i = 0; i < vert_map->count; i++) {
-          const int neighbor_face_index = vert_map->indices[i];
-          if (neighbor_face_index == p) {
-            continue;
-          }
-          if (abs(prev_face_sets[neighbor_face_index]) != active_face_set_id) {
-            ss->face_sets[p] = prev_face_sets[neighbor_face_index];
-          }
-        }
+      for (int i = 0; i < verts_num; i++, vertex_i++) {
+        BKE_sculpt_boundary_flag_update(ss, {vertex_i});
       }
-    }
-  }
-}
 
-static bool check_single_face_set(SculptSession *ss,
-                                  const int *face_sets,
-                                  const bool check_visible_only)
-{
-  if (face_sets == nullptr) {
-    return true;
-  }
-  int first_face_set = SCULPT_FACE_SET_NONE;
-  if (check_visible_only) {
-    for (int f = 0; f < ss->totfaces; f++) {
-      if (ss->hide_poly && ss->hide_poly[f]) {
-        continue;
-      }
-      first_face_set = face_sets[f];
       break;
     }
   }
+}
+
+static void sculpt_face_set_grow_shrink(Object *ob,
+                                        SculptSession *ss,
+                                        const Array<int> prev_face_sets,
+                                        const int active_face_set_id,
+                                        const bool modify_hidden,
+                                        bool grow)
+{
+  using namespace blender;
+
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
+
+  Vector<PBVHFaceRef> modified_faces;
+
+  for (int face_i = 0; face_i < ss->totfaces; face_i++) {
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, face_i);
+
+    if ((!modify_hidden && SCULPT_face_is_hidden(ss, face)) ||
+        prev_face_sets[face_i] != active_face_set_id)
+    {
+      continue;
+    }
+
+    if (ss->bm) {
+      BMFace *f = reinterpret_cast<BMFace *>(face.i);
+      BMLoop *l = f->l_first;
+      BMIter iter;
+      BMFace *f2;
+
+      do {
+        BM_ITER_ELEM (f2, &iter, l->v, BM_FACES_OF_VERT) {
+          if (f2 == f || (!modify_hidden && BM_elem_flag_test(f2, BM_ELEM_HIDDEN))) {
+            continue;
+          }
+
+          PBVHFaceRef face2 = {reinterpret_cast<intptr_t>(f2)};
+          int face2_i = BKE_pbvh_face_to_index(ss->pbvh, face2);
+
+          if (grow) {
+            SCULPT_face_set_set(ss, face2, active_face_set_id);
+            modified_faces.append(face2);
+          }
+          else if (prev_face_sets[face2_i] != active_face_set_id) {
+            SCULPT_face_set_set(ss, face, prev_face_sets[face2_i]);
+            modified_faces.append(face);
+          }
+        }
+      } while ((l = l->next) != f->l_first);
+    }
+    else {  //
+      for (const int vert_i : corner_verts.slice(polys[face_i])) {
+        const MeshElemMap *vert_map = &ss->pmap[vert_i];
+        for (int i = 0; i < vert_map->count; i++) {
+          const int neighbor_face_index = vert_map->indices[i];
+          if (neighbor_face_index == face_i) {
+            continue;
+          }
+
+          if (grow) {
+            ss->face_sets[neighbor_face_index] = active_face_set_id;
+            modified_faces.append(BKE_pbvh_index_to_face(ss->pbvh, neighbor_face_index));
+          }
+          else if (prev_face_sets[neighbor_face_index] != active_face_set_id) {
+            ss->face_sets[face_i] = prev_face_sets[neighbor_face_index];
+            modified_faces.append(face);
+          }
+        }
+      }
+    }
+  }
+
+  for (PBVHFaceRef face : modified_faces) {
+    SCULPT_face_mark_boundary_update(ss, face);
+  }
+}
+
+static bool check_single_face_set(SculptSession *ss, const bool check_visible_only)
+{
+  int first_face_set = SCULPT_FACE_SET_NONE;
+  if (check_visible_only) {
+    for (int f = 0; f < ss->totfaces; f++) {
+      PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, f);
+      if (SCULPT_face_is_hidden(ss, face)) {
+        continue;
+      }
+
+      first_face_set = SCULPT_face_set_get(ss, face);
+      break;
+    }
+  }
+  else if (ss->totfaces > 0) {
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, 0);
+    first_face_set = SCULPT_face_set_get(ss, face);
+  }
   else {
-    first_face_set = face_sets[0];
+    first_face_set = SCULPT_FACE_SET_NONE;
   }
 
   if (first_face_set == SCULPT_FACE_SET_NONE) {
@@ -1198,14 +1250,100 @@ static bool check_single_face_set(SculptSession *ss,
   }
 
   for (int f = 0; f < ss->totfaces; f++) {
-    if (check_visible_only && ss->hide_poly && ss->hide_poly[f]) {
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, f);
+
+    if (check_visible_only && SCULPT_face_is_hidden(ss, face)) {
       continue;
     }
-    if (face_sets[f] != first_face_set) {
+    if (SCULPT_face_set_get(ss, face) != first_face_set) {
       return false;
     }
   }
   return true;
+}
+
+/* Deletes geometry without destroying the underlying PBVH. */
+static void sculpt_face_set_delete_geometry_bmesh(Object *ob, BMesh *bm)
+{
+  SculptSession *ss = ob->sculpt;
+  BMIter iter;
+  int cd_face_node = ss->cd_face_node_offset;
+
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    /* Only need to do this once. */
+    SCULPT_ensure_dyntopo_node_undo(ob, node, SCULPT_UNDO_NO_TYPE, 0);
+    break;
+  }
+
+  /* Tag verts/edges for deletion. */
+  BMFace *f;
+  BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+    if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    BMLoop *l = f->l_first;
+    do {
+      BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+      BM_elem_flag_enable(l->e, BM_ELEM_TAG);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  /* Untag any shared verts/edges we want to keep. */
+  BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+    if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    BMLoop *l = f->l_first;
+    do {
+      BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+      BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+    } while ((l = l->next) != f->l_first);
+  }
+
+  BMVert *v;
+  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      BKE_pbvh_bmesh_remove_vertex(ss->pbvh, v, false);
+    }
+  }
+
+  BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+    if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+      continue;
+    }
+
+    int ni = BM_ELEM_CD_GET_INT(f, cd_face_node);
+    BKE_pbvh_bmesh_remove_face(ss->pbvh, f, true);
+
+    BM_idmap_release(ss->bm_idmap, reinterpret_cast<BMElem *>(f), true);
+    BM_face_kill(bm, f);
+  }
+
+  BMEdge *e;
+  BM_ITER_MESH (e, &iter, ss->bm, BM_EDGES_OF_MESH) {
+    if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+      BM_log_edge_removed(ss->bm, ss->bm_log, e);
+      BM_idmap_release(ss->bm_idmap, reinterpret_cast<BMElem *>(e), true);
+      BM_edge_kill(bm, e);
+    }
+  }
+
+  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      BM_log_vert_removed(ss->bm, ss->bm_log, v);
+      BM_idmap_release(ss->bm_idmap, reinterpret_cast<BMElem *>(v), true);
+      BM_vert_kill(bm, v);
+    }
+  }
+
+  ss->totfaces = bm->totface;
+  ss->totvert = bm->totvert;
+
+  BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
+  BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
 }
 
 static void sculpt_face_set_delete_geometry(Object *ob,
@@ -1215,15 +1353,34 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 {
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMeshCreateParams create_params{};
-  create_params.use_toolflags = true;
-  BMesh *bm = BM_mesh_create(&allocsize, &create_params);
+  BMesh *bm;
 
-  BMeshFromMeshParams convert_params{};
-  convert_params.calc_vert_normal = true;
-  convert_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &convert_params);
+  if (ss->bm) {
+    bm = ss->bm;
+    BM_mesh_toolflags_set(bm, true);
+    BM_idmap_check_attributes(ss->bm_idmap);
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+  else {
+    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+    BMeshCreateParams create_params{};
+    create_params.use_toolflags = true;
+
+    bm = BM_mesh_create(&allocsize, &create_params);
+
+    BMeshFromMeshParams convert_params{};
+    convert_params.calc_vert_normal = true;
+    convert_params.calc_face_normal = true;
+
+    BM_mesh_bm_from_me(bm, mesh, &convert_params);
+  }
+
+  int cd_fset_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(face_set));
+
+  if (cd_fset_offset == -1) {
+    return;
+  }
 
   BM_mesh_elem_table_init(bm, BM_FACE);
   BM_mesh_elem_table_ensure(bm, BM_FACE);
@@ -1231,20 +1388,35 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   BMIter iter;
   BMFace *f;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    const int face_index = BM_elem_index_get(f);
-    if (!modify_hidden && ss->hide_poly && ss->hide_poly[face_index]) {
+    if (!modify_hidden && BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       continue;
     }
-    BM_elem_flag_set(f, BM_ELEM_TAG, ss->face_sets[face_index] == active_face_set_id);
+
+    int fset = BM_ELEM_CD_GET_INT(f, cd_fset_offset);
+    BM_elem_flag_set(f, BM_ELEM_TAG, fset == active_face_set_id);
   }
-  BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
+
+  if (ss->bm) {
+    sculpt_face_set_delete_geometry_bmesh(ob, bm);
+  }
+  else {
+    BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
+  }
+
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  BMeshToMeshParams bmesh_to_mesh_params{};
-  bmesh_to_mesh_params.calc_object_remap = false;
-  BM_mesh_bm_to_me(nullptr, bm, mesh, &bmesh_to_mesh_params);
+  if (ss->bm) {
+    BM_mesh_toolflags_set(bm, false);
+    BM_idmap_check_attributes(ss->bm_idmap);
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+  else {
+    BMeshToMeshParams bmesh_to_mesh_params{};
+    bmesh_to_mesh_params.calc_object_remap = false;
+    BM_mesh_bm_to_me(nullptr, bm, mesh, &bmesh_to_mesh_params);
 
-  BM_mesh_free(bm);
+    BM_mesh_free(bm);
+  }
 }
 
 static void sculpt_face_set_edit_fair_face_set(Object *ob,
@@ -1263,6 +1435,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   fair_verts.resize(totvert);
 
   SCULPT_boundary_info_ensure(ob);
+  SCULPT_vertex_random_access_ensure(ss);
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
@@ -1273,14 +1446,37 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                     SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
-  float(*positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
-  BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
+  float(*positions)[3] = nullptr;
+
+  if (ss->bm) {
+    BKE_bmesh_prefair_and_fair_verts(ss->bm, fair_verts.data(), fair_order);
+  }
+  else {
+    positions = SCULPT_mesh_deformed_positions_get(ss);
+    BKE_mesh_prefair_and_fair_verts(mesh, positions, fair_verts.data(), fair_order);
+  }
 
   for (int i = 0; i < totvert; i++) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    float *co = ss->bm ? reinterpret_cast<BMVert *>(vertex.i)->co : positions[i];
+
     if (fair_verts[i]) {
-      interp_v3_v3v3(positions[i], orig_positions[i], positions[i], strength);
+      interp_v3_v3v3(co, orig_positions[i], co, strength);
     }
   }
+}
+
+static Array<int> save_face_sets(SculptSession *ss)
+{
+  Array<int> prev_face_sets(ss->totfaces);
+
+  for (int i = 0; i < ss->totfaces; i++) {
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
+
+    prev_face_sets[i] = ss->attrs.face_set ? SCULPT_face_set_get(ss, face) : 0;
+  }
+
+  return prev_face_sets;
 }
 
 static void sculpt_face_set_apply_edit(Object *ob,
@@ -1293,15 +1489,13 @@ static void sculpt_face_set_apply_edit(Object *ob,
 
   switch (mode) {
     case SCULPT_FACE_SET_EDIT_GROW: {
-      int *prev_face_sets = static_cast<int *>(MEM_dupallocN(ss->face_sets));
-      sculpt_face_set_grow(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
-      MEM_SAFE_FREE(prev_face_sets);
+      sculpt_face_set_grow_shrink(
+          ob, ss, save_face_sets(ss), active_face_set_id, modify_hidden, true);
       break;
     }
     case SCULPT_FACE_SET_EDIT_SHRINK: {
-      int *prev_face_sets = static_cast<int *>(MEM_dupallocN(ss->face_sets));
-      sculpt_face_set_shrink(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
-      MEM_SAFE_FREE(prev_face_sets);
+      sculpt_face_set_grow_shrink(
+          ob, ss, save_face_sets(ss), active_face_set_id, modify_hidden, false);
       break;
     }
     case SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY:
@@ -1322,20 +1516,15 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
                                                     const eSculptFaceSetEditMode mode,
                                                     const bool modify_hidden)
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    /* Dyntopo is not supported. */
-    return false;
-  }
-
   if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* Modification of base mesh geometry requires special remapping of multi-resolution
        * displacement, which does not happen here.
-       * Disable delete operation. It can be supported in the future by doing similar displacement
-       * data remapping as what happens in the mesh edit mode. */
+       * Disable delete operation. It can be supported in the future by doing similar
+       * displacement data remapping as what happens in the mesh edit mode. */
       return false;
     }
-    if (check_single_face_set(ss, ss->face_sets, !modify_hidden)) {
+    if (check_single_face_set(ss, !modify_hidden)) {
       /* Cancel the operator if the mesh only contains one Face Set to avoid deleting the
        * entire object. */
       return false;
@@ -1361,13 +1550,30 @@ static void sculpt_face_set_edit_modify_geometry(bContext *C,
                                                  const bool modify_hidden,
                                                  wmOperator *op)
 {
+  SculptSession *ss = ob->sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  ED_sculpt_undo_geometry_begin(ob, op);
-  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
-  ED_sculpt_undo_geometry_end(ob);
-  BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+
+  if (!ss->bm) {
+    ED_sculpt_undo_geometry_begin(ob, op);
+  }
+  else {
+    SCULPT_undo_push_begin(ob, op);
+  }
+
+  sculpt_face_set_apply_edit(ob, active_face_set, mode, modify_hidden);
+
+  if (!ss->bm) {
+    ED_sculpt_undo_geometry_end(ob);
+  }
+  else {
+    SCULPT_undo_push_end(ob);
+  }
+
+  if (BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_BMESH) {
+    BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  }
 }
 
 static void face_set_edit_do_post_visibility_updates(Object *ob, Span<PBVHNode *> nodes)
@@ -1453,8 +1659,8 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_face_sets_ensure(ob);
 
   return true;
 }
@@ -1466,6 +1672,9 @@ static int sculpt_face_set_edit_exec(bContext *C, wmOperator *op)
   }
 
   Object *ob = CTX_data_active_object(C);
+
+  SCULPT_vertex_random_access_ensure(ob->sculpt);
+  SCULPT_face_random_access_ensure(ob->sculpt);
 
   const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
   const eSculptFaceSetEditMode mode = static_cast<eSculptFaceSetEditMode>(

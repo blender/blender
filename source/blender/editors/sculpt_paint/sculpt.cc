@@ -544,10 +544,6 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
       BMIter iter;
       BMFace *f;
 
-      if (!ss->attrs.hide_poly) {
-        return;
-      }
-
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
         int node = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
@@ -571,11 +567,11 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
 {
   SCULPT_topology_islands_invalidate(ss);
 
-  BLI_assert(ss->face_sets != nullptr);
-  BLI_assert(ss->hide_poly != nullptr);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
+      BLI_assert(ss->hide_poly != nullptr);
+
       for (int i = 0; i < ss->totfaces; i++) {
         ss->hide_poly[i] = !ss->hide_poly[i];
       }
@@ -593,13 +589,17 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
   }
 }
 
-void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
+void SCULPT_face_visibility_all_set(Object *ob, bool visible)
 {
-  if (visible && !ss->attrs.hide_poly) {
-    /* This case is allowed. */
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss->bm && visible && !ss->attrs.hide_poly) {
+    /* Nothing is hidden. */
     return;
   }
+
   SCULPT_topology_islands_invalidate(ss);
+  SCULPT_face_random_access_ensure(ss);
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -608,7 +608,18 @@ void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible)
 
       BLI_assert(ss->hide_poly != nullptr);
 
-      memset(ss->hide_poly, !visible, sizeof(bool) * ss->totfaces);
+      if (visible) {
+        if (ss->attrs.hide_poly) {
+          BKE_sculpt_attribute_destroy(ob, ss->attrs.hide_poly);
+        }
+        ss->hide_poly = nullptr;
+      }
+      else {
+        if (!ss->hide_poly) {
+          ss->hide_poly = BKE_sculpt_hide_poly_ensure(ob);
+        }
+        memset(ss->hide_poly, !visible, sizeof(bool) * ss->totfaces);
+      }
       break;
     case PBVH_BMESH:
       for (int i = 0; i < ss->totfaces; i++) {
@@ -936,20 +947,6 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
-
-      if (!ss->attrs.hide_poly) {
-        BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-          BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
-
-          BMLoop *l = f->l_first;
-          do {
-            BM_elem_flag_disable(l->v, BM_ELEM_HIDDEN);
-            BM_elem_flag_disable(l->e, BM_ELEM_HIDDEN);
-          } while ((l = l->next) != f->l_first);
-        }
-
-        return;
-      }
 
       /* Hide all verts and edges attached to faces. */
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {

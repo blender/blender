@@ -2154,6 +2154,11 @@ static void sculpt_update_object(
     }
   }
 
+  if (ss->bm_log && ss->pbvh) {
+    BKE_pbvh_set_idmap(ss->pbvh, ss->bm_idmap);
+    BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
+  }
+
   if (is_paint_tool) {
     if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
       /* Ensure pbvh nodes have loop indices; the sculpt undo system
@@ -2652,6 +2657,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
   int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
   BKE_sculpt_init_flags_valence(ob, pbvh, totvert, true);
 
+  BKE_subdiv_ccg_start_face_grid_index_ensure(ss->subdiv_ccg);
+
   return pbvh;
 }
 
@@ -3140,7 +3147,6 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
       break;
     case ATTR_DOMAIN_FACE:
       return ss->totfaces;
-      break;
     default:
       BLI_assert_unreachable();
       return 0;

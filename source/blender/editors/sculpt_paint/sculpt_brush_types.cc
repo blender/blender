@@ -1547,7 +1547,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
                                                     thread_id,
                                                     &automask_data);
 
-    const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
       disp_factor = vertex_attr_ptr<float>(vd.vertex, ss->attrs.persistent_disp);
@@ -2565,6 +2564,8 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
     return;
   }
 
+  SCULPT_boundary_info_ensure(ob);
+
   BKE_curvemapping_init(brush->curve);
 
   SculptThreadedTaskData data{};
@@ -2818,7 +2819,7 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *>
 
 static void update_curvatures_task_cb_ex(void *__restrict userdata,
                                          const int n,
-                                         const TaskParallelTLS *__restrict tls)
+                                         const TaskParallelTLS *__restrict /*tls*/)
 {
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
