@@ -135,7 +135,11 @@ void BLI_path_sequence_encode(char *path,
   BLI_snprintf(path, path_maxncpy, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }
 
-static void path_normalize_impl(char *path, bool check_blend_relative_prefix)
+/**
+ * Implementation for #BLI_path_normalize & #BLI_path_normalize_native.
+ * \return The path length.
+ */
+static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
 {
   const char *path_orig = path;
   int path_len = strlen(path);
@@ -355,27 +359,29 @@ static void path_normalize_impl(char *path, bool check_blend_relative_prefix)
   BLI_assert(strlen(path) == path_len);
 
 #undef IS_PARENT_DIR
+
+  return path_len;
 }
 
-void BLI_path_normalize(char *path)
+int BLI_path_normalize(char *path)
 {
-  path_normalize_impl(path, true);
+  return path_normalize_impl(path, true);
 }
 
-void BLI_path_normalize_native(char *path)
+int BLI_path_normalize_native(char *path)
 {
-  path_normalize_impl(path, false);
+  return path_normalize_impl(path, false);
 }
 
-void BLI_path_normalize_dir(char *dir, size_t dir_maxncpy)
+int BLI_path_normalize_dir(char *dir, size_t dir_maxncpy)
 {
   /* Would just create an unexpected "/" path, just early exit entirely. */
   if (dir[0] == '\0') {
-    return;
+    return 0;
   }
 
-  BLI_path_normalize(dir);
-  BLI_path_slash_ensure(dir, dir_maxncpy);
+  int dir_len = BLI_path_normalize(dir);
+  return BLI_path_slash_ensure_ex(dir, dir_maxncpy, dir_len);
 }
 
 bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
@@ -1602,20 +1608,11 @@ const char *BLI_path_extension(const char *filepath)
 
 size_t BLI_path_append(char *__restrict dst, const size_t dst_maxncpy, const char *__restrict file)
 {
-  BLI_string_debug_size_after_nil(dst, dst_maxncpy);
-
-  size_t dst_len = BLI_strnlen(dst, dst_maxncpy);
-  /* Inline #BLI_path_slash_ensure. */
+  /* Slash ensure uses #BLI_string_debug_size */
+  int dst_len = BLI_path_slash_ensure(dst, dst_maxncpy);
   if (dst_len + 1 < dst_maxncpy) {
-    if ((dst_len > 0) && !BLI_path_slash_is_native_compat(dst[dst_len - 1])) {
-      dst[dst_len++] = SEP;
-      dst[dst_len] = '\0';
-    }
-    if (dst_len + 1 < dst_maxncpy) {
-      dst_len += BLI_strncpy_rlen(dst + dst_len, file, dst_maxncpy - dst_len);
-    }
+    dst_len += BLI_strncpy_rlen(dst + dst_len, file, dst_maxncpy - dst_len);
   }
-
   return dst_len;
 }
 
@@ -1623,15 +1620,8 @@ size_t BLI_path_append_dir(char *__restrict dst,
                            const size_t dst_maxncpy,
                            const char *__restrict dir)
 {
-  size_t dirlen = BLI_path_append(dst, dst_maxncpy, dir);
-  if (dirlen + 1 < dst_maxncpy) {
-    /* Inline #BLI_path_slash_ensure. */
-    if ((dirlen > 0) && !BLI_path_slash_is_native_compat(dst[dirlen - 1])) {
-      dst[dirlen++] = SEP;
-      dst[dirlen] = '\0';
-    }
-  }
-  return dirlen;
+  size_t dst_len = BLI_path_append(dst, dst_maxncpy, dir);
+  return BLI_path_slash_ensure_ex(dst, dst_maxncpy, dst_len);
 }
 
 size_t BLI_path_join_array(char *__restrict dst,
@@ -1886,21 +1876,24 @@ const char *BLI_path_slash_rfind(const char *path)
   return (lfslash > lbslash) ? lfslash : lbslash;
 }
 
-int BLI_path_slash_ensure(char *path, size_t path_maxncpy)
+int BLI_path_slash_ensure_ex(char *path, size_t path_maxncpy, size_t path_len)
 {
   BLI_string_debug_size_after_nil(path, path_maxncpy);
-
-  int len = strlen(path);
-  BLI_assert(len < path_maxncpy);
-  if (len == 0 || !BLI_path_slash_is_native_compat(path[len - 1])) {
+  BLI_assert(strlen(path) == path_len);
+  BLI_assert(path_len < path_maxncpy);
+  if (path_len == 0 || !BLI_path_slash_is_native_compat(path[path_len - 1])) {
     /* Avoid unlikely buffer overflow. */
-    if (len + 1 < path_maxncpy) {
-      path[len] = SEP;
-      path[len + 1] = '\0';
-      return len + 1;
+    if (path_len + 1 < path_maxncpy) {
+      path[path_len++] = SEP;
+      path[path_len] = '\0';
     }
   }
-  return len;
+  return path_len;
+}
+
+int BLI_path_slash_ensure(char *path, size_t path_maxncpy)
+{
+  return BLI_path_slash_ensure_ex(path, path_maxncpy, strlen(path));
 }
 
 void BLI_path_slash_rstrip(char *path)

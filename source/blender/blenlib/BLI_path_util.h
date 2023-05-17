@@ -153,22 +153,27 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
  *   such as `//../parent` or `../parent`.
  *
  * \param path: The path to a file or directory which can be absolute or relative.
+ * \return the length of `path`.
  */
-void BLI_path_normalize(char *path) ATTR_NONNULL(1);
+int BLI_path_normalize(char *path) ATTR_NONNULL(1);
 
 /**
  * A version of #BLI_path_normalize without special handling of `//` blend file relative prefix.
  *
  * \note On UNIX `//path` is a valid path which gets normalized to `/path`.
+ *
+ * \return the length of `path`.
  */
-void BLI_path_normalize_native(char *path) ATTR_NONNULL(1);
+int BLI_path_normalize_native(char *path) ATTR_NONNULL(1);
 
 /**
  * Cleanup file-path ensuring a trailing slash.
  *
  * \note Same as #BLI_path_normalize but adds a trailing slash.
+ *
+ * \return the length of `dir`.
  */
-void BLI_path_normalize_dir(char *dir, size_t dir_maxncpy) ATTR_NONNULL(1);
+int BLI_path_normalize_dir(char *dir, size_t dir_maxncpy) ATTR_NONNULL(1);
 
 #if defined(WIN32)
 void BLI_path_normalize_unc_16(wchar_t *path_16);
@@ -219,7 +224,14 @@ const char *BLI_path_slash_find(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUS
 const char *BLI_path_slash_rfind(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Appends a slash to path if there isn't one there already.
- * Returns the new length of the path.
+ * \param path_len: The length of `path`.
+ * \return the new length of the path.
+ */
+int BLI_path_slash_ensure_ex(char *path, size_t path_maxncpy, const size_t path_len)
+    ATTR_NONNULL(1);
+/**
+ * Appends a slash to path if there isn't one there already.
+ * \return the new length of the path.
  */
 int BLI_path_slash_ensure(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
 /**
