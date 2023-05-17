@@ -2425,7 +2425,6 @@ void SCULPT_relax_vertex(SculptSession *ss,
   float smooth_pos[3];
   float final_disp[3];
   int avg_count = 0;
-  int neighbor_count = 0;
   zero_v3(smooth_pos);
 
   eSculptBoundary bset = boundary_mask;
@@ -2444,8 +2443,6 @@ void SCULPT_relax_vertex(SculptSession *ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
-    neighbor_count++;
-
     /* When the vertex to relax is boundary, use only connected boundary vertices for the
      * average position. */
     if (is_boundary) {
@@ -2819,6 +2816,23 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *>
 
 /** \} */
 
+static void update_curvatures_task_cb_ex(void *__restrict userdata,
+                                         const int n,
+                                         const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+
+  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
+  if (brush->flag2 & BRUSH_CURVATURE_RAKE) {
+    SCULPT_curvature_begin(ss, data->nodes[n], false);
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Topology Rake (Shared Utility)
  * \{ */
@@ -2856,14 +2870,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
-  if (use_curvature) {
-    SCULPT_curvature_begin(ss, data->nodes[n], false);
-  }
-
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
-  if (weighted) {
-    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
-  }
 
   PBVHVertexIter vd;
   bool modified = false;
@@ -2910,6 +2917,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     float avg[3], val[3];
 
     int cd_temp = data->scl->bmesh_cd_offset;
+
     SCULPT_bmesh_four_neighbor_average(
         ss, avg, direction2, vd.bm_vert, 1.0f, hard_corner_pin, cd_temp, weighted, false);
 
@@ -2955,15 +2963,6 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
         ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
   }
 
-  if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
-      (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT))
-  {
-    BKE_pbvh_update_all_tri_areas(ss->pbvh);
-  }
-  else if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-    BKE_pbvh_face_areas_begin(ss->pbvh);
-  }
-
   if (brush->flag2 & BRUSH_CURVATURE_RAKE) {
     BKE_sculpt_ensure_curvature_dir(ob);
   }
@@ -2978,9 +2977,14 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
     data.strength = factor;
     data.scl = ss->attrs.rake_temp;
 
+    if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      BKE_pbvh_face_areas_begin(ss->pbvh);
+    }
+
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
 
+    BLI_task_parallel_range(0, nodes.size(), &data, update_curvatures_task_cb_ex, &settings);
     BLI_task_parallel_range(0, nodes.size(), &data, do_topology_rake_bmesh_task_cb_ex, &settings);
   }
 }

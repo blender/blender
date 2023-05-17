@@ -45,7 +45,6 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        eSculptCorner corner_type)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
-  int neighbor_count = 0;
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
@@ -65,7 +64,6 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-    neighbor_count++;
     float w = weighted ? areas[ni.i] : 1.0f;
 
     eSculptBoundary is_boundary2;
@@ -213,8 +211,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   float buckets[8] = {0};
   PBVHVertRef vertex = {(intptr_t)v};
-
-  // zero_v3(direction);
 
   float *field = BM_ELEM_CD_PTR<float *>(v, cd_temp);
   float dir[3];
@@ -669,11 +665,12 @@ void SCULPT_smooth_undo_push(Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && SCULPT_need_reproject(ss)) {
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && SCULPT_need_reproject(ss) &&
+      CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2))
+  {
     BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
 
     for (PBVHNode *node : nodes) {
-      PBVHVertexIter vd;
       PBVHFaceIter fd;
       BKE_pbvh_face_iter_begin (ss->pbvh, node, fd) {
         BM_log_face_modified(ss->bm, ss->bm_log, reinterpret_cast<BMFace *>(fd.face.i));
@@ -718,9 +715,6 @@ void SCULPT_smooth(
     BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }
-
-  SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_boundary_info_ensure(ob);
 
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
@@ -784,7 +778,6 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
 {
   float laplacian_smooth_co[3];
   float weigthed_o[3], weigthed_q[3], d[3];
-  int v_index = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, vertex, 0.0f, 0.0f, use_area_weights);
 

@@ -5865,7 +5865,6 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
 
   /* Update the active vertex of the SculptSession. */
   ss->active_vertex = srd.active_vertex;
-  SCULPT_vertex_random_access_ensure(ss);
   copy_v3_v3(out->active_vertex_co, SCULPT_active_vertex_co_get(ss));
 
   switch (BKE_pbvh_type(ss->pbvh)) {

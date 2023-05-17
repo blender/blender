@@ -1905,7 +1905,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
-  return !ss->ignore_uvs && ss->bm; // && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
+  return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
 }
 
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
