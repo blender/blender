@@ -234,6 +234,7 @@ void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_290(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_400(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
 /**

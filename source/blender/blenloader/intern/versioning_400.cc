@@ -25,6 +25,11 @@
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
+void do_versions_after_linking_400(FileData * /*fd*/, Main *bmain)
+{
+  UNUSED_VARS(bmain);
+}
+
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
 {
   BKE_mesh_legacy_convert_flags_to_selection_layers(&mesh);
