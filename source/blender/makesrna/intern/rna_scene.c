@@ -630,10 +630,50 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
      "Align the transformation axes to the 3D cursor"},
     {V3D_ORIENT_PARENT,
      "PARENT",
-     ICON_BLANK1,
+     ICON_ORIENTATION_PARENT,
      "Parent",
      "Align the transformation axes to the object's parent space"},
     // {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static const EnumPropertyItem plane_depth_items[] = {
+    {V3D_PLACE_DEPTH_SURFACE,
+     "SURFACE",
+     0,
+     "Surface",
+     "Start placing on the surface, using the 3D cursor position as a fallback"},
+    {V3D_PLACE_DEPTH_CURSOR_PLANE,
+     "CURSOR_PLANE",
+     0,
+     "Cursor Plane",
+     "Start placement using a point projected onto the orientation axis "
+     "at the 3D cursor position"},
+    {V3D_PLACE_DEPTH_CURSOR_VIEW,
+     "CURSOR_VIEW",
+     0,
+     "Cursor View",
+     "Start placement using a point projected onto the view plane at the 3D cursor position"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static const EnumPropertyItem plane_orientation_items[] = {
+    {V3D_PLACE_ORIENT_SURFACE,
+     "SURFACE",
+     ICON_SNAP_NORMAL,
+     "Surface",
+     "Use the surface normal (using the transform orientation as a fallback)"},
+    {V3D_PLACE_ORIENT_DEFAULT,
+     "DEFAULT",
+     ICON_ORIENTATION_GLOBAL,
+     "Default",
+     "Use the current transform orientation"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static const EnumPropertyItem snap_to_items[] = {
+    {SCE_SNAP_MODE_GEOM, "GEOMETRY", 0, "Geometry", "Snap to all geometry"},
+    {SCE_SNAP_MODE_NONE, "DEFAULT", 0, "Default", "Use the current snap settings"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3471,6 +3511,38 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Snap for Scale", "Scale is affected by snapping settings");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+  prop = RNA_def_property(srna, "plane_axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "plane_axis");
+  RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
+  RNA_def_property_enum_default(prop, 2);
+  RNA_def_property_ui_text(prop, "Plane Axis", "The axis used for placing the base region");
+
+  prop = RNA_def_property(srna, "plane_axis_auto", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_plane_axis_auto", 1);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(prop,
+                           "Auto Axis",
+                           "Select the closest axis when placing objects "
+                           "(surface overrides)");
+
+  prop = RNA_def_property(srna, "plane_depth", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "plane_depth");
+  RNA_def_property_enum_items(prop, plane_depth_items);
+  RNA_def_property_enum_default(prop, V3D_PLACE_DEPTH_SURFACE);
+  RNA_def_property_ui_text(prop, "Position", "The initial depth used when placing the cursor");
+
+  prop = RNA_def_property(srna, "plane_orientation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "plane_orient");
+  RNA_def_property_enum_items(prop, plane_orientation_items);
+  RNA_def_property_enum_default(prop, V3D_PLACE_ORIENT_SURFACE);
+  RNA_def_property_ui_text(prop, "Orientation", "The initial depth used when placing the cursor");
+
+  prop = RNA_def_property(srna, "snap_elements_tool", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "snap_mode_tools");
+  RNA_def_property_enum_items(prop, snap_to_items);
+  RNA_def_property_enum_default(prop, SCE_SNAP_MODE_GEOM);
+  RNA_def_property_ui_text(prop, "Snap to", "The target to use while snapping");
+
   /* Grease Pencil */
   prop = RNA_def_property(srna, "use_gpencil_draw_additive", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_RETAIN_LAST);
@@ -4281,6 +4353,12 @@ static void rna_def_view_layer_eevee(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_pass_bloom", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "render_passes", EEVEE_RENDER_PASS_BLOOM);
   RNA_def_property_ui_text(prop, "Bloom", "Deliver bloom pass");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+  prop = RNA_def_property(srna, "use_pass_transparent", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "render_passes", EEVEE_RENDER_PASS_TRANSPARENT);
+  RNA_def_property_ui_text(
+      prop, "Transparent", "Deliver alpha blended surfaces in a separate pass");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
 }
 
@@ -7956,7 +8034,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Current Frame",
-      "Current frame, to update animation data from python frame_set() instead");
+      "Current frame, to update animation data from Python frame_set() instead");
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
 
   prop = RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);

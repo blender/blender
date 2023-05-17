@@ -405,7 +405,7 @@ static void text_space_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLin
 static void text_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
-  BLO_read_id_address(reader, parent_id->lib, &st->text);
+  BLO_read_id_address(reader, parent_id, &st->text);
 }
 
 static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)

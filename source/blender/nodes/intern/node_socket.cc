@@ -18,7 +18,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
@@ -240,7 +240,7 @@ static void refresh_socket_list(bNodeTree &ntree,
   }
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, old_socket, &sockets) {
     if (!new_sockets.contains(old_socket)) {
-      nodeRemoveSocketEx(&ntree, &node, old_socket, do_id_user);
+      blender::bke::nodeRemoveSocketEx(&ntree, &node, old_socket, do_id_user);
     }
   }
   BLI_listbase_clear(&sockets);
@@ -261,7 +261,7 @@ static void refresh_node(bNodeTree &ntree,
     refresh_socket_list(ntree, node, node.inputs, node_decl.inputs, do_id_user);
     refresh_socket_list(ntree, node, node.outputs, node_decl.outputs, do_id_user);
   }
-  nodeSocketDeclarationsUpdate(&node);
+  blender::bke::nodeSocketDeclarationsUpdate(&node);
 }
 
 void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node)
@@ -284,7 +284,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     return;
   }
   if (ntype->declare || ntype->declare_dynamic) {
-    nodeDeclarationEnsureOnOutdatedNode(ntree, node);
+    blender::bke::nodeDeclarationEnsureOnOutdatedNode(ntree, node);
     refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
     return;
   }
@@ -537,7 +537,7 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   const char *socket_idname = nodeStaticSocketType(type, subtype);
   const char *interface_idname = nodeStaticSocketInterfaceType(type, subtype);
   const char *socket_label = nodeStaticSocketLabel(type, subtype);
-  const char *socket_subtype_label = nodeSocketSubTypeLabel(subtype);
+  const char *socket_subtype_label = blender::bke::nodeSocketSubTypeLabel(subtype);
   bNodeSocketType *stype;
   StructRNA *srna;
 

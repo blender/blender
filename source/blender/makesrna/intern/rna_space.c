@@ -453,6 +453,7 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
     {EEVEE_RENDER_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
     {EEVEE_RENDER_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
+    {EEVEE_RENDER_PASS_TRANSPARENT, "TRANSPARENT", 0, "Transparent", ""},
 
     RNA_ENUM_ITEM_HEADING(N_("Light"), NULL),
     {EEVEE_RENDER_PASS_DIFFUSE_LIGHT, "DIFFUSE_LIGHT", 0, "Diffuse Light", ""},
@@ -6160,7 +6161,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_live_edit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "live_edit", 1);
-  RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing");
+  RNA_def_property_ui_text(prop, "Live Edit", "Run Python while editing");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
   /* find */
@@ -6332,6 +6333,12 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cache_smoke", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_SMOKE);
   RNA_def_property_ui_text(prop, "Smoke", "Show the active object's smoke cache");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
+
+  prop = RNA_def_property(srna, "cache_simulation_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_SIMULATION_NODES);
+  RNA_def_property_ui_text(
+      prop, "Simulation Nodes", "Show the active object's simulation nodes cache and bake data");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
 
   prop = RNA_def_property(srna, "cache_dynamicpaint", PROP_BOOLEAN, PROP_NONE);
@@ -6600,7 +6607,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceConsole", "Space");
   RNA_def_struct_sdna(srna, "SpaceConsole");
-  RNA_def_struct_ui_text(srna, "Space Console", "Interactive python console");
+  RNA_def_struct_ui_text(srna, "Space Console", "Interactive Python console");
 
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */

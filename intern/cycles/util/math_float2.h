@@ -134,6 +134,21 @@ ccl_device_inline float len(const float2 a)
   return sqrtf(dot(a, a));
 }
 
+ccl_device_inline float reduce_min(const float2 a)
+{
+  return min(a.x, a.y);
+}
+
+ccl_device_inline float reduce_max(const float2 a)
+{
+  return max(a.x, a.y);
+}
+
+ccl_device_inline float reduce_add(const float2 a)
+{
+  return a.x + a.y;
+}
+
 ccl_device_inline float len_squared(const float2 a)
 {
   return dot(a, a);

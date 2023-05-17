@@ -65,7 +65,7 @@ ShaderFxData *BKE_shaderfx_new(int type)
   ShaderFxData *fx = MEM_callocN(fxi->struct_size, fxi->struct_name);
 
   /* NOTE: this name must be made unique later. */
-  STRNCPY(fx->name, DATA_(fxi->name));
+  STRNCPY_UTF8(fx->name, DATA_(fxi->name));
 
   fx->type = type;
   fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render;

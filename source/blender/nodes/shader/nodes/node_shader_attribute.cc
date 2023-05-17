@@ -10,10 +10,10 @@ namespace blender::nodes::node_shader_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(N_("Color"));
-  b.add_output<decl::Vector>(N_("Vector"));
-  b.add_output<decl::Float>(N_("Fac"));
-  b.add_output<decl::Float>(N_("Alpha"));
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Vector>("Vector");
+  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Alpha");
 }
 
 static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

@@ -857,11 +857,13 @@ enum {
   LIB_TAG_NEED_LINK = 1 << 16,
   /**
    * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
-   * processing.
+   * processing, because it was detected as unchanged.
+   *
+   * \note: Also means that such ID does not need to be lib-linked during undo readfile process.
    *
    * RESET_AFTER_USE
    */
-  LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 17,
+  LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED = 1 << 17,
   /**
    * ID has be re-read in-place, the ID address is the same as in the old BMain, but the content is
    * different.

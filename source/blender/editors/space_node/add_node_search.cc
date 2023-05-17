@@ -70,17 +70,17 @@ static void search_items_for_asset_metadata(const bNodeTree &node_tree,
   }
 
   const AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
-  params.add_single_node_item(ED_asset_handle_get_name(&asset_handle),
-                              asset_data.description == nullptr ? "" : asset_data.description,
-                              [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
-                                Main &bmain = *CTX_data_main(&C);
-                                node.flag &= ~NODE_OPTIONS;
-                                node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(
-                                    &bmain, asset, ID_NT);
-                                id_us_plus(node.id);
-                                BKE_ntree_update_tag_node_property(&node_tree, &node);
-                                DEG_relations_tag_update(&bmain);
-                              });
+  params.add_single_node_item(
+      IFACE_(ED_asset_handle_get_name(&asset_handle)),
+      asset_data.description == nullptr ? "" : IFACE_(asset_data.description),
+      [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
+        Main &bmain = *CTX_data_main(&C);
+        node.flag &= ~NODE_OPTIONS;
+        node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT);
+        id_us_plus(node.id);
+        BKE_ntree_update_tag_node_property(&node_tree, &node);
+        DEG_relations_tag_update(&bmain);
+      });
 }
 
 static void gather_search_items_for_all_assets(const bContext &C,

@@ -275,12 +275,12 @@ static void greasepencil_blend_read_lib(BlendLibReader *reader, ID *id)
   /* Layers */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* Layer -> Parent References */
-    BLO_read_id_address(reader, gpd->id.lib, &gpl->parent);
+    BLO_read_id_address(reader, id, &gpl->parent);
   }
 
   /* materials */
   for (int a = 0; a < gpd->totcol; a++) {
-    BLO_read_id_address(reader, gpd->id.lib, &gpd->mat[a]);
+    BLO_read_id_address(reader, id, &gpd->mat[a]);
   }
 }
 
@@ -675,7 +675,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   }
 
   /* auto-name */
-  STRNCPY(gpl->info, DATA_(name));
+  STRNCPY_UTF8(gpl->info, DATA_(name));
   BLI_uniquename(&gpd->layers,
                  gpl,
                  (gpd->flag & GP_DATA_ANNOTATIONS) ? DATA_("Note") : DATA_("GP_Layer"),

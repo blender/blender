@@ -1521,8 +1521,10 @@ void multires_ensure_external_read(struct Mesh *mesh, int top_level)
     return;
   }
 
-  MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
+  /* Modify the data array from the original mesh, not the evaluated mesh.
+   * When multiple objects share the same mesh, this can lead to memory leaks. */
+  MDisps *mdisps = const_cast<MDisps *>(
+      static_cast<const MDisps *>(CustomData_get_layer(&mesh->ldata, CD_MDISPS)));
   if (mdisps == nullptr) {
     mdisps = static_cast<MDisps *>(
         CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, mesh->totloop));

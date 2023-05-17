@@ -10,7 +10,7 @@ namespace blender::nodes::node_fn_input_string_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_output<decl::String>(N_("String"));
+  b.add_output<decl::String>("String");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

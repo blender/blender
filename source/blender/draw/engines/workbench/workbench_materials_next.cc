@@ -4,7 +4,7 @@
 
 #include "BLI_hash.h"
 /* get_image */
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "DNA_node_types.h"
 #include "ED_uvedit.h"
 /* get_image */

@@ -306,12 +306,13 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_vertex_parent_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->poll = vertex_parent_set_poll;
   ot->exec = vertex_parent_set_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */
@@ -1125,12 +1126,13 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_parent_no_inverse_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = parent_noinv_set_exec;
   ot->poll = ED_operator_object_active_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 
   RNA_def_boolean(ot->srna,
                   "keep_transform",

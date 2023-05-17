@@ -14,28 +14,28 @@ namespace blender::nodes::node_geo_mesh_primitive_cube_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Size"))
+  b.add_input<decl::Vector>("Size")
       .default_value(float3(1))
       .min(0.0f)
       .subtype(PROP_TRANSLATION)
-      .description(N_("Side length along each axis"));
-  b.add_input<decl::Int>(N_("Vertices X"))
+      .description("Side length along each axis");
+  b.add_input<decl::Int>("Vertices X")
       .default_value(2)
       .min(2)
       .max(1000)
-      .description(N_("Number of vertices for the X side of the shape"));
-  b.add_input<decl::Int>(N_("Vertices Y"))
+      .description("Number of vertices for the X side of the shape");
+  b.add_input<decl::Int>("Vertices Y")
       .default_value(2)
       .min(2)
       .max(1000)
-      .description(N_("Number of vertices for the Y side of the shape"));
-  b.add_input<decl::Int>(N_("Vertices Z"))
+      .description("Number of vertices for the Y side of the shape");
+  b.add_input<decl::Int>("Vertices Z")
       .default_value(2)
       .min(2)
       .max(1000)
-      .description(N_("Number of vertices for the Z side of the shape"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
+      .description("Number of vertices for the Z side of the shape");
+  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
 static Mesh *create_cuboid_mesh(const float3 &size,

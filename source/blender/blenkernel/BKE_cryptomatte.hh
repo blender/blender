@@ -118,9 +118,15 @@ struct CryptomatteStampDataCallbackData {
   static blender::StringRef extract_layer_hash(blender::StringRefNull key);
 
   /* C type callback function (StampCallback). */
-  static void extract_layer_names(void *_data, const char *propname, char *propvalue, int len);
+  static void extract_layer_names(void *_data,
+                                  const char *propname,
+                                  char *propvalue,
+                                  int propvalue_maxncpy);
   /* C type callback function (StampCallback). */
-  static void extract_layer_manifest(void *_data, const char *propname, char *propvalue, int len);
+  static void extract_layer_manifest(void *_data,
+                                     const char *propname,
+                                     char *propvalue,
+                                     int propvalue_maxncpy);
 };
 
 const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(

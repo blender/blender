@@ -151,7 +151,7 @@ static void pointcloud_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   PointCloud *pointcloud = (PointCloud *)id;
   for (int a = 0; a < pointcloud->totcol; a++) {
-    BLO_read_id_address(reader, pointcloud->id.lib, &pointcloud->mat[a]);
+    BLO_read_id_address(reader, id, &pointcloud->mat[a]);
   }
 }
 

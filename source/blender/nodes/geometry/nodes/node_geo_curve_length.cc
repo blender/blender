@@ -8,8 +8,8 @@ namespace blender::nodes::node_geo_curve_length_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_output<decl::Float>(N_("Length"));
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_output<decl::Float>("Length");
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

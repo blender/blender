@@ -34,6 +34,9 @@
 #include "file_intern.h"
 #include "filelist.h"
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
 using namespace blender;
 using namespace blender::asset_system;
 
@@ -100,7 +103,7 @@ class AssetCatalogDragController : public ui::AbstractViewItemDragController {
   explicit AssetCatalogDragController(AssetCatalogTreeView &tree_view,
                                       AssetCatalogTreeItem &catalog_item);
 
-  int get_drag_type() const override;
+  eWM_DragDataType get_drag_type() const override;
   void *create_drag_data() const override;
   void on_drag_start() override;
 };
@@ -374,11 +377,11 @@ bool AssetCatalogDropTarget::can_drop(const wmDrag &drag, const char **r_disable
      * path and the catalog system will generate missing parents from the path). But it does
      * appear broken to users, so disabling entirely. */
     if (catalog_item_.catalog_path().is_contained_in(drag_catalog->path)) {
-      *r_disabled_hint = "Catalog cannot be dropped into itself";
+      *r_disabled_hint = TIP_("Catalog cannot be dropped into itself");
       return false;
     }
     if (catalog_item_.catalog_path() == drag_catalog->path.parent()) {
-      *r_disabled_hint = "Catalog is already placed inside this catalog";
+      *r_disabled_hint = TIP_("Catalog is already placed inside this catalog");
       return false;
     }
     return true;
@@ -402,8 +405,8 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_catalog(const wmDrag &dra
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   const AssetCatalog *src_catalog = get_drag_catalog(drag, get_asset_library());
 
-  return std::string(TIP_("Move Catalog")) + " '" + src_catalog->path.name() + "' " +
-         TIP_("into") + " '" + catalog_item_.get_name() + "'";
+  return fmt::format(
+      TIP_("Move catalog {} into {}"), src_catalog->path.name(), catalog_item_.get_name());
 }
 
 std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) const
@@ -524,7 +527,7 @@ bool AssetCatalogDropTarget::can_modify_catalogs(const ::AssetLibrary &library,
                                                  const char **r_disabled_hint)
 {
   if (ED_asset_catalogs_read_only(library)) {
-    *r_disabled_hint = "Catalogs cannot be edited in this asset library";
+    *r_disabled_hint = TIP_("Catalogs cannot be edited in this asset library");
     return false;
   }
   return true;
@@ -543,7 +546,7 @@ AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeView &tre
 {
 }
 
-int AssetCatalogDragController::get_drag_type() const
+eWM_DragDataType AssetCatalogDragController::get_drag_type() const
 {
   return WM_DRAG_ASSET_CATALOG;
 }
@@ -603,7 +606,7 @@ bool AssetCatalogTreeViewAllItem::DropTarget::can_drop(const wmDrag &drag,
 
   const AssetCatalog *drag_catalog = AssetCatalogDropTarget::get_drag_catalog(drag, library);
   if (drag_catalog->path.parent() == "") {
-    *r_disabled_hint = "Catalog is already placed at the highest level";
+    *r_disabled_hint = TIP_("Catalog is already placed at the highest level");
     return false;
   }
 
@@ -616,8 +619,8 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(const wmDrag &
   const AssetCatalog *drag_catalog = AssetCatalogDropTarget::get_drag_catalog(
       drag, *get_view<AssetCatalogTreeView>().asset_library_);
 
-  return std::string(TIP_("Move Catalog")) + " '" + drag_catalog->path.name() + "' " +
-         TIP_("to the top level of the tree");
+  return fmt::format(TIP_("Move catalog {} to the top level of the tree"),
+                     drag_catalog->path.name());
 }
 
 bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(struct bContext * /*C*/,

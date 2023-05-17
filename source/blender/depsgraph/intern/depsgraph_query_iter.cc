@@ -16,7 +16,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 
 #include "BLI_math.h"

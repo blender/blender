@@ -38,7 +38,7 @@ bool tex_node_poll_default(const bNodeType * /*ntype*/,
 
 void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass)
 {
-  node_type_base(ntype, type, name, nclass);
+  blender::bke::node_type_base(ntype, type, name, nclass);
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;

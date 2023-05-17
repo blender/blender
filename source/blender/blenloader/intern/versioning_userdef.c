@@ -11,6 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -815,7 +816,7 @@ void blo_do_versions_userdef(UserDef *userdef)
                                                      "Versioning user script path");
 
       STRNCPY(script_dir->dir_path, userdef->pythondir_legacy);
-      STRNCPY(script_dir->name, DATA_("Untitled"));
+      STRNCPY_UTF8(script_dir->name, DATA_("Untitled"));
       BLI_addhead(&userdef->script_directories, script_dir);
     }
   }

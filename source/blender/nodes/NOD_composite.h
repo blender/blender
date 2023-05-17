@@ -86,7 +86,7 @@ int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
 void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
                                          const bNode *node,
                                          char *r_prefix,
-                                         size_t prefix_len);
+                                         size_t prefix_maxncpy);
 
 /**
  * Update the runtime layer names with the crypto-matte layer names of the references render layer

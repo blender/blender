@@ -131,8 +131,8 @@ KeyingSet *BKE_keyingset_add(
   /* allocate new KeyingSet */
   ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-  STRNCPY(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
-  STRNCPY(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
+  STRNCPY_UTF8(ks->idname, (idname) ? idname : (name) ? name : DATA_("KeyingSet"));
+  STRNCPY_UTF8(ks->name, (name) ? name : (idname) ? idname : DATA_("Keying Set"));
 
   ks->flag = flag;
   ks->keyingflag = keyingflag;
@@ -329,7 +329,7 @@ void BKE_keyingsets_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *lis
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_read_id_address(reader, id->lib, &ksp->id);
+      BLO_read_id_address(reader, id, &ksp->id);
     }
   }
 }

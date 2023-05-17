@@ -15,6 +15,8 @@
 
 namespace blender::gpu {
 class VKFrameBuffer;
+class VKVertexAttributeObject;
+class VKBatch;
 class VKStateManager;
 
 class VKContext : public Context, NonCopyable {
@@ -50,6 +52,9 @@ class VKContext : public Context, NonCopyable {
   void deactivate_framebuffer();
   VKFrameBuffer *active_framebuffer_get() const;
 
+  void bind_compute_pipeline();
+  void bind_graphics_pipeline(const GPUPrimType prim_type,
+                              const VKVertexAttributeObject &vertex_attribute_object);
   void sync_backbuffer();
 
   static VKContext *get(void)
@@ -63,6 +68,7 @@ class VKContext : public Context, NonCopyable {
   }
 
   const VKStateManager &state_manager_get() const;
+  VKStateManager &state_manager_get();
 };
 
 }  // namespace blender::gpu

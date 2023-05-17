@@ -7,6 +7,8 @@
 
 #include "BLT_translation.h"
 
+#include "BLI_string_utf8.h"
+
 #include "DNA_mask_types.h"
 
 #include "UI_interface.h"
@@ -26,7 +28,7 @@ NODE_STORAGE_FUNCS(NodeMask)
 
 static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Mask"));
+  b.add_output<decl::Float>("Mask");
 }
 
 static void node_composit_init_mask(bNodeTree * /*ntree*/, bNode *node)
@@ -44,12 +46,7 @@ static void node_mask_label(const bNodeTree * /*ntree*/,
                             char *label,
                             int label_maxncpy)
 {
-  if (node->id != nullptr) {
-    BLI_strncpy(label, node->id->name + 2, label_maxncpy);
-  }
-  else {
-    BLI_strncpy(label, IFACE_("Mask"), label_maxncpy);
-  }
+  BLI_strncpy_utf8(label, node->id ? node->id->name + 2 : IFACE_("Mask"), label_maxncpy);
 }
 
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)

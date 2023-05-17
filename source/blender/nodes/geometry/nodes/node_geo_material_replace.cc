@@ -14,10 +14,10 @@ namespace blender::nodes::node_geo_material_replace_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Material>(N_("Old"));
-  b.add_input<decl::Material>(N_("New")).translation_context(BLT_I18NCONTEXT_ID_MATERIAL);
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Material>("Old");
+  b.add_input<decl::Material>("New").translation_context(BLT_I18NCONTEXT_ID_MATERIAL);
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -28,20 +28,17 @@ NODE_STORAGE_FUNCS(NodeGeometryDuplicateElements);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::Bool>(N_("Selection")).hide_value().default_value(true).field_on_all();
-  b.add_input<decl::Int>(N_("Amount"))
-      .min(0)
-      .default_value(1)
-      .field_on_all()
-      .description(N_("The number of duplicates to create for each element"));
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Bool>("Selection").hide_value().default_value(true).field_on_all();
+  b.add_input<decl::Int>("Amount").min(0).default_value(1).field_on_all().description(
+      "The number of duplicates to create for each element");
 
-  b.add_output<decl::Geometry>(N_("Geometry"))
+  b.add_output<decl::Geometry>("Geometry")
       .propagate_all()
-      .description(N_("The duplicated geometry, not including the original geometry"));
-  b.add_output<decl::Int>(N_("Duplicate Index"))
+      .description("The duplicated geometry, not including the original geometry");
+  b.add_output<decl::Int>("Duplicate Index")
       .field_on_all()
-      .description(N_("The indices of the duplicates for each element"));
+      .description("The indices of the duplicates for each element");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -100,6 +97,17 @@ static void threaded_slice_fill(const OffsetIndices<int> offsets,
     for (const int i : range) {
       dst.slice(offsets[i]).fill(src[selection[i]]);
     }
+  });
+}
+
+static void threaded_slice_fill(const OffsetIndices<int> offsets,
+                                const IndexMask selection,
+                                const GSpan src,
+                                GMutableSpan dst)
+{
+  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    threaded_slice_fill<T>(offsets, selection, src.typed<T>(), dst.typed<T>());
   });
 }
 
@@ -181,12 +189,7 @@ static void copy_attributes_without_id(const OffsetIndices<int> offsets,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes, dst_attributes, ATTR_DOMAIN_AS_MASK(domain), propagation_info, {"id"}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-      threaded_slice_fill<T>(offsets, selection, src, dst);
-    });
+    threaded_slice_fill(offsets, selection, attribute.src, attribute.dst.span);
     attribute.dst.finish();
   }
 }
@@ -217,16 +220,15 @@ static void copy_curve_attributes_without_id(
                                                                propagation_info,
                                                                {"id"}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-
-      switch (attribute.meta_data.domain) {
-        case ATTR_DOMAIN_CURVE:
-          threaded_slice_fill<T>(curve_offsets, selection, src, dst);
-          break;
-        case ATTR_DOMAIN_POINT:
+    switch (attribute.meta_data.domain) {
+      case ATTR_DOMAIN_CURVE:
+        threaded_slice_fill(curve_offsets, selection, attribute.src, attribute.dst.span);
+        break;
+      case ATTR_DOMAIN_POINT:
+        bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          const Span<T> src = attribute.src.typed<T>();
+          MutableSpan<T> dst = attribute.dst.span.typed<T>();
           threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
             for (const int i_selection : range) {
               const int i_src_curve = selection[i_selection];
@@ -236,12 +238,12 @@ static void copy_curve_attributes_without_id(
               }
             }
           });
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    });
+        });
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
     attribute.dst.finish();
   }
 }
@@ -395,29 +397,23 @@ static void copy_face_attributes_without_id(
            propagation_info,
            {"id", ".corner_vert", ".corner_edge", ".edge_verts"}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-
-      switch (attribute.meta_data.domain) {
-        case ATTR_DOMAIN_POINT:
-          array_utils::gather(src, vert_mapping, dst);
-          break;
-        case ATTR_DOMAIN_EDGE:
-          array_utils::gather(src, edge_mapping, dst);
-          break;
-        case ATTR_DOMAIN_FACE:
-          threaded_slice_fill<T>(offsets, selection, src, dst);
-          break;
-        case ATTR_DOMAIN_CORNER:
-          array_utils::gather(src, loop_mapping, dst);
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    });
+    switch (attribute.meta_data.domain) {
+      case ATTR_DOMAIN_POINT:
+        bke::attribute_math::gather(attribute.src, vert_mapping, attribute.dst.span);
+        break;
+      case ATTR_DOMAIN_EDGE:
+        bke::attribute_math::gather(attribute.src, edge_mapping, attribute.dst.span);
+        break;
+      case ATTR_DOMAIN_FACE:
+        threaded_slice_fill(offsets, selection, attribute.src, attribute.dst.span);
+        break;
+      case ATTR_DOMAIN_CORNER:
+        bke::attribute_math::gather(attribute.src, loop_mapping, attribute.dst.span);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
     attribute.dst.finish();
   }
 }
@@ -606,23 +602,17 @@ static void copy_edge_attributes_without_id(
                                              propagation_info,
                                              {"id", ".edge_verts"}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-
-      switch (attribute.meta_data.domain) {
-        case ATTR_DOMAIN_EDGE:
-          threaded_slice_fill<T>(offsets, selection, src, dst);
-          break;
-        case ATTR_DOMAIN_POINT:
-          array_utils::gather(src, point_mapping, dst);
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    });
+    switch (attribute.meta_data.domain) {
+      case ATTR_DOMAIN_EDGE:
+        threaded_slice_fill(offsets, selection, attribute.src, attribute.dst.span);
+        break;
+      case ATTR_DOMAIN_POINT:
+        bke::attribute_math::gather(attribute.src, point_mapping, attribute.dst.span);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
     attribute.dst.finish();
   }
 }
@@ -784,10 +774,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   bke::curves_copy_parameters(src_curves_id, *new_curves_id);
   bke::CurvesGeometry &new_curves = new_curves_id->geometry.wrap();
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
-  for (const int i : new_curves.curves_range()) {
-    new_curve_offsets[i] = i;
-  }
-  new_curve_offsets.last() = dst_num;
+  std::iota(new_curve_offsets.begin(), new_curve_offsets.end(), 0);
 
   for (auto &attribute : bke::retrieve_attributes_for_transfer(src_curves.attributes(),
                                                                new_curves.attributes_for_write(),
@@ -795,27 +782,27 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                                                propagation_info,
                                                                {"id"}))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      const Span<T> src = attribute.src.typed<T>();
-      MutableSpan<T> dst = attribute.dst.span.typed<T>();
-      switch (attribute.meta_data.domain) {
-        case ATTR_DOMAIN_CURVE:
+    switch (attribute.meta_data.domain) {
+      case ATTR_DOMAIN_CURVE:
+        bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          const Span<T> src = attribute.src.typed<T>();
+          MutableSpan<T> dst = attribute.dst.span.typed<T>();
           threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
             for (const int i_selection : range) {
               const T &src_value = src[point_to_curve_map[selection[i_selection]]];
               dst.slice(duplicates[i_selection]).fill(src_value);
             }
           });
-          break;
-        case ATTR_DOMAIN_POINT:
-          threaded_slice_fill(duplicates, selection, src, dst);
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    });
+        });
+        break;
+      case ATTR_DOMAIN_POINT:
+        threaded_slice_fill(duplicates, selection, attribute.src, attribute.dst.span);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
     attribute.dst.finish();
   }
 

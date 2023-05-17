@@ -249,7 +249,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
   }
 
   if (count == 1) {
-    STRNCPY(title, IFACE_("Unpack 1 File"));
+    STRNCPY_UTF8(title, IFACE_("Unpack 1 File"));
   }
   else {
     SNPRINTF(title, IFACE_("Unpack %d Files"), count);

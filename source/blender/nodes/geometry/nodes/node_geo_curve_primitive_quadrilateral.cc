@@ -14,58 +14,58 @@ NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveQuad)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Width"))
+  b.add_input<decl::Float>("Width")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The X axis size of the shape"));
-  b.add_input<decl::Float>(N_("Height"))
+      .description("The X axis size of the shape");
+  b.add_input<decl::Float>("Height")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The Y axis size of the shape"));
-  b.add_input<decl::Float>(N_("Bottom Width"))
+      .description("The Y axis size of the shape");
+  b.add_input<decl::Float>("Bottom Width")
       .default_value(4.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The X axis size of the shape"));
-  b.add_input<decl::Float>(N_("Top Width"))
+      .description("The X axis size of the shape");
+  b.add_input<decl::Float>("Top Width")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The X axis size of the shape"));
-  b.add_input<decl::Float>(N_("Offset"))
+      .description("The X axis size of the shape");
+  b.add_input<decl::Float>("Offset")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
       .description(
-          N_("For Parallelogram, the relative X difference between the top and bottom edges. For "
-             "Trapezoid, the amount to move the top edge in the positive X axis"));
-  b.add_input<decl::Float>(N_("Bottom Height"))
+          "For Parallelogram, the relative X difference between the top and bottom edges. For "
+          "Trapezoid, the amount to move the top edge in the positive X axis");
+  b.add_input<decl::Float>("Bottom Height")
       .default_value(3.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The distance between the bottom point and the X axis"));
-  b.add_input<decl::Float>(N_("Top Height"))
+      .description("The distance between the bottom point and the X axis");
+  b.add_input<decl::Float>("Top Height")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The distance between the top point and the X axis"));
-  b.add_input<decl::Vector>(N_("Point 1"))
+      .description("The distance between the top point and the X axis");
+  b.add_input<decl::Vector>("Point 1")
       .default_value({-1.0f, -1.0f, 0.0f})
       .subtype(PROP_DISTANCE)
-      .description(N_("The exact location of the point to use"));
-  b.add_input<decl::Vector>(N_("Point 2"))
+      .description("The exact location of the point to use");
+  b.add_input<decl::Vector>("Point 2")
       .default_value({1.0f, -1.0f, 0.0f})
       .subtype(PROP_DISTANCE)
-      .description(N_("The exact location of the point to use"));
-  b.add_input<decl::Vector>(N_("Point 3"))
+      .description("The exact location of the point to use");
+  b.add_input<decl::Vector>("Point 3")
       .default_value({1.0f, 1.0f, 0.0f})
       .subtype(PROP_DISTANCE)
-      .description(N_("The exact location of the point to use"));
-  b.add_input<decl::Vector>(N_("Point 4"))
+      .description("The exact location of the point to use");
+  b.add_input<decl::Vector>("Point 4")
       .default_value({-1.0f, 1.0f, 0.0f})
       .subtype(PROP_DISTANCE)
-      .description(N_("The exact location of the point to use"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+      .description("The exact location of the point to use");
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -116,7 +116,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
+    bke::nodeSetSocketAvailability(ntree, sock, available_sockets.contains(sock));
   }
 }
 

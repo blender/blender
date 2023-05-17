@@ -1133,8 +1133,8 @@ static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
 static void clip_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceClip *sclip = (SpaceClip *)sl;
-  BLO_read_id_address(reader, parent_id->lib, &sclip->clip);
-  BLO_read_id_address(reader, parent_id->lib, &sclip->mask_info.mask);
+  BLO_read_id_address(reader, parent_id, &sclip->clip);
+  BLO_read_id_address(reader, parent_id, &sclip->mask_info.mask);
 }
 
 static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)

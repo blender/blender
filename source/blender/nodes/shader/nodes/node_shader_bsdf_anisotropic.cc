@@ -10,22 +10,22 @@ namespace blender::nodes::node_shader_bsdf_anisotropic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Float>(N_("Roughness"))
+  b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>("Roughness")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Anisotropy")).default_value(0.5f).min(-1.0f).max(1.0f);
-  b.add_input<decl::Float>(N_("Rotation"))
+  b.add_input<decl::Float>("Anisotropy").default_value(0.5f).min(-1.0f).max(1.0f);
+  b.add_input<decl::Float>("Rotation")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Normal")).hide_value();
-  b.add_input<decl::Vector>(N_("Tangent")).hide_value();
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("BSDF"));
+  b.add_input<decl::Vector>("Normal").hide_value();
+  b.add_input<decl::Vector>("Tangent").hide_value();
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("BSDF");
 }
 
 static void node_shader_buts_anisotropic(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -69,7 +69,7 @@ void register_node_type_sh_bsdf_anisotropic()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_anisotropic;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_anisotropic;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_anisotropic;
 

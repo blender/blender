@@ -78,29 +78,30 @@ class PREFERENCES_OT_copy_prev(Operator):
 
     @classmethod
     def previous_version(cls):
-        # Find config folder from previous version.
         import os
-        version = bpy.app.version
-        version_new = ((version[0] * 100) + version[1])
-        version_old = ((version[0] * 100) + version[1]) - 1
+        # Find config folder from previous version.
+        #
+        # Always allow to load startup data from any release from current major release cycle, and the previous one.
 
-        # Ensure we only try to copy files from a point release.
-        # The check below ensures the second numbers match.
-        while (version_new % 100) // 10 == (version_old % 100) // 10:
-            version_split = version_old // 100, version_old % 100
-            if os.path.isdir(cls._old_version_path(version_split)):
-                return version_split
-            version_old = version_old - 1
+        # NOTE: This value may need to be updated when the release cycle system is modified.
+        # Here could be `6` in theory (Blender 3.6 LTS), just give it a bit of extra room, such that it does not have to
+        # be updated if there ever exist a 3.7 release e.g.
+        MAX_MINOR_VERSION_FOR_PREVIOUS_MAJOR_LOOKUP = 10
 
-        # Support loading 2.8x..2.9x startup (any older isn't so useful to load).
-        # NOTE: remove this block for Blender 4.0 and later.
-        if version_old == 299:
-            version_old = 294
-            while version_old >= 280:
-                version_split = version_old // 100, version_old % 100
-                if os.path.isdir(cls._old_version_path(version_split)):
-                    return version_split
-                version_old = version_old - 1
+        version_new = bpy.app.version[:2]
+        version_old = [version_new[0], version_new[1] - 1]
+
+        while True:
+            while version_old[1] >= 0:
+                if os.path.isdir(cls._old_version_path(version_old)):
+                    return tuple(version_old)
+                version_old[1] -= 1
+            if version_new[0] == version_old[0]:
+                # Retry with older major version.
+                version_old[0] -= 1
+                version_old[1] = MAX_MINOR_VERSION_FOR_PREVIOUS_MAJOR_LOOKUP
+            else:
+                break
 
         return None
 
@@ -173,7 +174,7 @@ class PREFERENCES_OT_keyconfig_test(Operator):
 
 
 class PREFERENCES_OT_keyconfig_import(Operator):
-    """Import key configuration from a python script"""
+    """Import key configuration from a Python script"""
     bl_idname = "preferences.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
@@ -192,7 +193,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )
@@ -244,7 +245,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
 
 
 class PREFERENCES_OT_keyconfig_export(Operator):
-    """Export key configuration to a python script"""
+    """Export key configuration to a Python script"""
     bl_idname = "preferences.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
@@ -268,7 +269,7 @@ class PREFERENCES_OT_keyconfig_export(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )
@@ -610,7 +611,7 @@ class PREFERENCES_OT_addon_install(Operator):
         options={'HIDDEN'},
     )
     filter_python: BoolProperty(
-        name="Filter python",
+        name="Filter Python",
         default=True,
         options={'HIDDEN'},
     )

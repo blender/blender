@@ -25,14 +25,14 @@ namespace blender::nodes::node_composite_color_ramp_cc {
 
 static void cmp_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Fac"))
+  b.add_input<decl::Float>("Fac")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1);
-  b.add_output<decl::Color>(N_("Image")).compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Alpha"));
+  b.add_output<decl::Color>("Image").compositor_domain_priority(0);
+  b.add_output<decl::Float>("Alpha");
 }
 
 static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
@@ -137,7 +137,7 @@ void register_node_type_cmp_valtorgb()
 
   cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_valtorgb_declare;
-  node_type_size(&ntype, 240, 200, 320);
+  blender::bke::node_type_size(&ntype, 240, 200, 320);
   ntype.initfunc = file_ns::node_composit_init_valtorgb;
   node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -151,10 +151,10 @@ namespace blender::nodes::node_composite_rgb_to_bw_cc {
 
 static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Val"));
+  b.add_output<decl::Float>("Val");
 }
 
 using namespace blender::realtime_compositor;
@@ -195,7 +195,7 @@ void register_node_type_cmp_rgbtobw()
 
   cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_DEFAULT);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::DEFAULT);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

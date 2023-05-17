@@ -23,7 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
@@ -31,6 +31,8 @@
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
+#include "BLI_string_utf8.h"
+
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
@@ -204,7 +206,7 @@ static void compo_freejob(void *cjv)
   CompoJob *cj = (CompoJob *)cjv;
 
   if (cj->localtree) {
-    ntreeLocalMerge(cj->bmain, cj->localtree, cj->ntree);
+    bke::ntreeLocalMerge(cj->bmain, cj->localtree, cj->ntree);
   }
   if (cj->compositor_depsgraph != nullptr) {
     DEG_graph_free(cj->compositor_depsgraph);
@@ -504,10 +506,10 @@ void ED_node_shader_default(const bContext *C, ID *id)
       ma_default = BKE_material_default_surface();
     }
 
-    ma->nodetree = ntreeCopyTree(bmain, ma_default->nodetree);
+    ma->nodetree = blender::bke::ntreeCopyTree(bmain, ma_default->nodetree);
     ma->nodetree->owner_id = &ma->id;
     for (bNode *node_iter : ma->nodetree->all_nodes()) {
-      STRNCPY(node_iter->name, DATA_(node_iter->name));
+      STRNCPY_UTF8(node_iter->name, DATA_(node_iter->name));
       nodeUniqueName(ma->nodetree, node_iter);
     }
 
@@ -515,7 +517,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
     /* Emission */
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
         nullptr, id, "Shader Nodetree", ntreeType_Shader->idname);
     bNode *shader, *output;
 
@@ -566,7 +568,7 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
     return;
   }
 
-  sce->nodetree = ntreeAddTreeEmbedded(
+  sce->nodetree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
 
   sce->nodetree->chunksize = 256;
@@ -599,7 +601,7 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
     return;
   }
 
-  tex->nodetree = ntreeAddTreeEmbedded(
+  tex->nodetree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &tex->id, "Texture Nodetree", ntreeType_Texture->idname);
 
   bNode *out = nodeAddStaticNode(C, tex->nodetree, TEX_NODE_OUTPUT);
@@ -1352,7 +1354,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   for (bNode *node : node_map.values()) {
-    nodeDeclarationEnsure(ntree, node);
+    blender::bke::nodeDeclarationEnsure(ntree, node);
   }
 
   /* Clear flags for recursive depth-first iteration. */
@@ -1897,7 +1899,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator * /*op*/)
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &snode->edittree->nodes) {
     if (node->flag & SELECT) {
-      nodeInternalRelink(snode->edittree, node);
+      blender::bke::nodeInternalRelink(snode->edittree, node);
       nodeRemoveNode(bmain, snode->edittree, node, true);
     }
   }
@@ -2184,7 +2186,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
   bNodeSocket *sock;
   if (active_sock) {
     /* Insert a copy of the active socket right after it. */
-    sock = ntreeInsertSocketInterface(
+    sock = blender::bke::ntreeInsertSocketInterface(
         ntree, in_out, active_sock->idname, active_sock->next, active_sock->name);
     /* XXX this only works for actual sockets, not interface templates! */
     // nodeSocketCopyValue(sock, &ntree_ptr, active_sock, &ntree_ptr);
@@ -2302,7 +2304,7 @@ static int ntree_socket_change_type_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
+  blender::bke::nodeModifySocketType(ntree, nullptr, iosock, socket_type->idname);
 
   /* Need the extra update here because the loop above does not check for valid links in the node
    * group we're currently editing. */

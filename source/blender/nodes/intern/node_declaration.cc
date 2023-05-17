@@ -5,7 +5,7 @@
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "BKE_geometry_fields.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 namespace blender::nodes {
 

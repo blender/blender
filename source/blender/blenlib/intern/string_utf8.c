@@ -26,21 +26,121 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name UTF8 Character Decoding (Skip & Mask Lookup)
+ *
+ * Derived from GLIB `gutf8.c`.
+ *
+ * Ranges (zero based, inclusive):
+ *
+ * - 000..127: 1 byte.
+ * - 128..191: invalid.
+ * - 192..223: 2 bytes.
+ * - 224..239: 3 bytes.
+ * - 240..247: 4 bytes.
+ * - 248..251: 4 bytes.
+ * - 252..253: 4 bytes.
+ * - 254..255: invalid.
+ *
+ * Invalid values fall back to 1 byte or -1 (for an error value).
+ *
+ * \note From testing string copying via #BLI_strncpy_utf8 with large (multi-megabyte) strings,
+ * using a function instead of a lookup-table is between 2 & 3 times faster.
+ * \{ */
+
+BLI_INLINE int utf8_char_compute_skip(const char c)
+{
+  if (UNLIKELY(c >= 192)) {
+    if ((c & 0xe0) == 0xc0) {
+      return 2;
+    }
+    if ((c & 0xf0) == 0xe0) {
+      return 3;
+    }
+    if ((c & 0xf8) == 0xf0) {
+      return 4;
+    }
+    if ((c & 0xfc) == 0xf8) {
+      return 5;
+    }
+    if ((c & 0xfe) == 0xfc) {
+      return 6;
+    }
+  }
+  return 1;
+}
+
+BLI_INLINE int utf8_char_compute_skip_or_error(const char c)
+{
+  if (c < 128) {
+    return 1;
+  }
+  if ((c & 0xe0) == 0xc0) {
+    return 2;
+  }
+  if ((c & 0xf0) == 0xe0) {
+    return 3;
+  }
+  if ((c & 0xf8) == 0xf0) {
+    return 4;
+  }
+  if ((c & 0xfc) == 0xf8) {
+    return 5;
+  }
+  if ((c & 0xfe) == 0xfc) {
+    return 6;
+  }
+  return -1;
+}
+
+BLI_INLINE int utf8_char_compute_skip_or_error_with_mask(const char c, char *r_mask)
+{
+  /* Originally from GLIB `UTF8_COMPUTE` macro. */
+  if (c < 128) {
+    *r_mask = 0x7f;
+    return 1;
+  }
+  if ((c & 0xe0) == 0xc0) {
+    *r_mask = 0x1f;
+    return 2;
+  }
+  if ((c & 0xf0) == 0xe0) {
+    *r_mask = 0x0f;
+    return 3;
+  }
+  if ((c & 0xf8) == 0xf0) {
+    *r_mask = 0x07;
+    return 4;
+  }
+  if ((c & 0xfc) == 0xf8) {
+    *r_mask = 0x03;
+    return 5;
+  }
+  if ((c & 0xfe) == 0xfc) {
+    *r_mask = 0x01;
+    return 6;
+  }
+  return -1;
+}
+
 /**
- * Array copied from GLIB's `gutf8.c`.
- * \note last two values (0xfe and 0xff) are forbidden in UTF-8,
- * so they are considered 1 byte length too.
+ * Decode a UTF8 code-point, use in combination with #utf8_char_compute_skip_or_error_with_mask.
  */
-static const size_t utf8_skip_data[256] = {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1,
-};
+BLI_INLINE uint utf8_char_decode(const char *p, const char mask, const int len, const uint err)
+{
+  /* Originally from GLIB `UTF8_GET` macro, added an 'err' argument. */
+  uint result = p[0] & mask;
+  for (int count = 1; count < len; count++) {
+    if ((p[count] & 0xc0) != 0x80) {
+      return err;
+    }
+    result <<= 6;
+    result |= p[count] & 0x3f;
+  }
+  return result;
+}
+
+/** \} */
 
 ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
 {
@@ -75,7 +175,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
     /* Note that since we always increase p (and decrease length) by one byte in main loop,
      * we only add/subtract extra utf8 bytes in code below
      * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
-    ab = (int)utf8_skip_data[c] - 1;
+    ab = utf8_char_compute_skip(c) - 1;
     if (length <= ab) {
       goto utf8_error;
     }
@@ -212,21 +312,24 @@ int BLI_str_utf8_invalid_strip(char *str, size_t length)
  */
 BLI_INLINE char *str_utf8_copy_max_bytes_impl(char *dst, const char *src, size_t dst_maxncpy)
 {
-  /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning. */
+  /* Cast to `uint8_t` is a no-op, quiets array subscript of type `char` warning.
+   * No need to check `src` points to a nil byte as this will return from the switch statement. */
   size_t utf8_size;
-  while (*src != '\0' && (utf8_size = utf8_skip_data[(uint8_t)*src]) < dst_maxncpy) {
+  while ((utf8_size = (size_t)utf8_char_compute_skip(*src)) < dst_maxncpy) {
     dst_maxncpy -= utf8_size;
     /* Prefer more compact block. */
+    /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
     /* clang-format off */
     switch (utf8_size) {
-      case 6: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 5: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 4: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 3: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 2: *dst++ = *src++; ATTR_FALLTHROUGH;
-      case 1: *dst++ = *src++;
+      case 6: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 5: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 4: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 3: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 2: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++; ATTR_FALLTHROUGH;
+      case 1: if (UNLIKELY(!(*dst = *src++))) { return dst; } dst++;
     }
     /* clang-format on */
+    /* NOLINTEND: bugprone-assignment-in-if-condition */
   }
   *dst = '\0';
   return dst;
@@ -237,10 +340,8 @@ char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t 
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  char *r_dst = dst;
   str_utf8_copy_max_bytes_impl(dst, src, dst_maxncpy);
-
-  return r_dst;
+  return dst;
 }
 
 size_t BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
@@ -615,115 +716,46 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
 
 /** \} */ /* -------------------------------------------------------------------- */
 
-/* copied from glib's gutf8.c, added 'Err' arg */
-
-/* NOTE(@ideasman42): glib uses uint for unicode, best we do the same,
- * though we don't typedef it. */
-
-#define UTF8_COMPUTE(Char, Mask, Len, Err) \
-  if (Char < 128) { \
-    Len = 1; \
-    Mask = 0x7f; \
-  } \
-  else if ((Char & 0xe0) == 0xc0) { \
-    Len = 2; \
-    Mask = 0x1f; \
-  } \
-  else if ((Char & 0xf0) == 0xe0) { \
-    Len = 3; \
-    Mask = 0x0f; \
-  } \
-  else if ((Char & 0xf8) == 0xf0) { \
-    Len = 4; \
-    Mask = 0x07; \
-  } \
-  else if ((Char & 0xfc) == 0xf8) { \
-    Len = 5; \
-    Mask = 0x03; \
-  } \
-  else if ((Char & 0xfe) == 0xfc) { \
-    Len = 6; \
-    Mask = 0x01; \
-  } \
-  else { \
-    Len = Err; /* -1 is the typical error value or 1 to skip */ \
-  } \
-  (void)0
-
-/* same as glib define but added an 'Err' arg */
-#define UTF8_GET(Result, Chars, Count, Mask, Len, Err) \
-  (Result) = (Chars)[0] & (Mask); \
-  for ((Count) = 1; (Count) < (Len); ++(Count)) { \
-    if (((Chars)[(Count)] & 0xc0) != 0x80) { \
-      (Result) = Err; \
-      break; \
-    } \
-    (Result) <<= 6; \
-    (Result) |= ((Chars)[(Count)] & 0x3f); \
-  } \
-  (void)0
-
 int BLI_str_utf8_size(const char *p)
 {
-  /* NOTE: uses glib functions but not from GLIB. */
-
-  int mask = 0, len;
-  const uchar c = (uchar)*p;
-
-  UTF8_COMPUTE(c, mask, len, -1);
-
-  (void)mask; /* quiet warning */
-
-  return len;
+  return utf8_char_compute_skip_or_error(*p);
 }
 
 int BLI_str_utf8_size_safe(const char *p)
 {
-  int mask = 0, len;
-  const uchar c = (uchar)*p;
-
-  UTF8_COMPUTE(c, mask, len, 1);
-
-  (void)mask; /* quiet warning */
-
-  return len;
+  return utf8_char_compute_skip(*p);
 }
 
 uint BLI_str_utf8_as_unicode(const char *p)
 {
   /* Originally `g_utf8_get_char` in GLIB. */
 
-  int i, len;
-  uint mask = 0;
-  uint result;
   const uchar c = (uchar)*p;
 
-  UTF8_COMPUTE(c, mask, len, -1);
+  char mask = 0;
+  const int len = utf8_char_compute_skip_or_error_with_mask(c, &mask);
   if (UNLIKELY(len == -1)) {
     return BLI_UTF8_ERR;
   }
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
-
-  return result;
+  return utf8_char_decode(p, mask, len, BLI_UTF8_ERR);
 }
 
 uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
                                            const size_t p_len,
                                            size_t *__restrict index)
 {
-  int i, len;
-  uint mask = 0;
-  uint result;
   const uchar c = (uchar) * (p += *index);
 
   BLI_assert(*index < p_len);
   BLI_assert(c != '\0');
 
-  UTF8_COMPUTE(c, mask, len, -1);
+  char mask = 0;
+  const int len = utf8_char_compute_skip_or_error_with_mask(c, &mask);
   if (UNLIKELY(len == -1) || (*index + (size_t)len > p_len)) {
     return BLI_UTF8_ERR;
   }
-  UTF8_GET(result, p, i, mask, len, BLI_UTF8_ERR);
+
+  const uint result = utf8_char_decode(p, mask, len, BLI_UTF8_ERR);
   if (UNLIKELY(result == BLI_UTF8_ERR)) {
     return BLI_UTF8_ERR;
   }

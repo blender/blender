@@ -1276,6 +1276,9 @@ static void bm_to_mesh_verts(const BMesh &bm,
       bmesh_block_copy_to_mesh_attributes(info, vert_i, src_vert.head.data);
       any_loose_vert_local = any_loose_vert_local || src_vert.e == nullptr;
     }
+    if (any_loose_vert_local) {
+      any_loose_vert.store(true, std::memory_order_relaxed);
+    }
     if (!select_vert.is_empty()) {
       for (const int vert_i : range) {
         select_vert[vert_i] = BM_elem_flag_test(bm_verts[vert_i], BM_ELEM_SELECT);

@@ -18,26 +18,22 @@ NODE_STORAGE_FUNCS(NodeGeometryUVUnwrap)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>(N_("Selection"))
+  b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()
       .supports_field()
-      .description(N_("Faces to participate in the unwrap operation"));
-  b.add_input<decl::Bool>(N_("Seam"))
-      .hide_value()
-      .supports_field()
-      .description(N_("Edges to mark where the mesh is \"cut\" for the purposes of unwrapping"));
-  b.add_input<decl::Float>(N_("Margin"))
-      .default_value(0.001f)
-      .min(0.0f)
-      .max(1.0f)
-      .description(N_("Space between islands"));
-  b.add_input<decl::Bool>(N_("Fill Holes"))
+      .description("Faces to participate in the unwrap operation");
+  b.add_input<decl::Bool>("Seam").hide_value().supports_field().description(
+      "Edges to mark where the mesh is \"cut\" for the purposes of unwrapping");
+  b.add_input<decl::Float>("Margin").default_value(0.001f).min(0.0f).max(1.0f).description(
+      "Space between islands");
+  b.add_input<decl::Bool>("Fill Holes")
       .default_value(true)
-      .description(N_("Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
-                      "and preserve symmetry"));
-  b.add_output<decl::Vector>(N_("UV")).field_source_reference_all().description(
-      N_("UV coordinates between 0 and 1 for each face corner in the selected faces"));
+      .description(
+          "Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
+          "and preserve symmetry");
+  b.add_output<decl::Vector>("UV").field_source_reference_all().description(
+      "UV coordinates between 0 and 1 for each face corner in the selected faces");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

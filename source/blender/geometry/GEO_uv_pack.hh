@@ -37,7 +37,7 @@ enum eUVPackIsland_ShapeMethod {
 
 enum eUVPackIsland_PinMethod {
   ED_UVPACK_PIN_IGNORED = 0,
-  ED_UVPACK_PIN_NORMAL,
+  ED_UVPACK_PIN_DEFAULT,
   ED_UVPACK_PIN_LOCK_ROTATION,
   ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
   ED_UVPACK_PIN_LOCK_SCALE,
@@ -55,6 +55,7 @@ class UVPackIsland_Params {
 
   void setFromUnwrapOptions(const UnwrapOptions &options);
   void setUDIMOffsetFromSpaceImage(const SpaceImage *sima);
+  bool isCancelled() const;
 
   /** Islands can be rotated to improve packing. */
   bool rotate;
@@ -84,6 +85,12 @@ class UVPackIsland_Params {
   float target_aspect_y;
   /** Which shape to use when packing. */
   eUVPackIsland_ShapeMethod shape_method;
+
+  /** Abandon packing early when set by the job system. */
+  bool *stop;
+  bool *do_update;
+  /** How much progress we have made. From wmJob. */
+  float *progress;
 };
 
 class uv_phi;

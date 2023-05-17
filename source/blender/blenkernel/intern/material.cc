@@ -57,7 +57,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -223,16 +223,16 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 static void material_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Material *ma = (Material *)id;
-  BLO_read_id_address(reader, ma->id.lib, &ma->ipo); /* XXX deprecated - old animation system */
+  BLO_read_id_address(reader, id, &ma->ipo); /* XXX deprecated - old animation system */
 
   /* relink grease pencil settings */
   if (ma->gp_style != nullptr) {
     MaterialGPencilStyle *gp_style = ma->gp_style;
     if (gp_style->sima != nullptr) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
+      BLO_read_id_address(reader, id, &gp_style->sima);
     }
     if (gp_style->ima != nullptr) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
+      BLO_read_id_address(reader, id, &gp_style->ima);
     }
   }
 }
@@ -1560,7 +1560,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
       ma->texpaintslot = static_cast<TexPaintSlot *>(
           MEM_callocN(sizeof(TexPaintSlot) * count, "texpaint_slots"));
 
-      bNode *active_node = nodeGetActivePaintCanvas(ma->nodetree);
+      bNode *active_node = blender::bke::nodeGetActivePaintCanvas(ma->nodetree);
 
       fill_texpaint_slots_recursive(ma->nodetree, active_node, ob, ma, count, slot_filter);
 
@@ -1932,7 +1932,7 @@ void BKE_material_copybuf_copy(Main *bmain, Material *ma)
   matcopybuf = blender::dna::shallow_copy(*ma);
 
   if (ma->nodetree != nullptr) {
-    matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
+    matcopybuf.nodetree = blender::bke::ntreeCopyTree_ex(ma->nodetree, bmain, false);
   }
 
   matcopybuf.preview = nullptr;
@@ -1962,7 +1962,7 @@ void BKE_material_copybuf_paste(Main *bmain, Material *ma)
   (ma->id) = id;
 
   if (matcopybuf.nodetree != nullptr) {
-    ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
+    ma->nodetree = blender::bke::ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
   }
 }
 
@@ -2001,7 +2001,7 @@ static void material_default_surface_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Surface");
 
-  bNodeTree *ntree = ntreeAddTreeEmbedded(
+  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
@@ -2029,7 +2029,7 @@ static void material_default_volume_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Volume");
 
-  bNodeTree *ntree = ntreeAddTreeEmbedded(
+  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
@@ -2054,7 +2054,7 @@ static void material_default_holdout_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Holdout");
 
-  bNodeTree *ntree = ntreeAddTreeEmbedded(
+  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 

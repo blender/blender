@@ -25,18 +25,18 @@ NODE_STORAGE_FUNCS(NodeGeometryExtrudeMesh)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Vector>(N_("Offset"))
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Vector>("Offset")
       .subtype(PROP_TRANSLATION)
       .implicit_field_on_all(implicit_field_inputs::normal)
       .hide_value();
-  b.add_input<decl::Float>(N_("Offset Scale")).default_value(1.0f).field_on_all();
-  b.add_input<decl::Bool>(N_("Individual")).default_value(true).make_available([](bNode &node) {
+  b.add_input<decl::Float>("Offset Scale").default_value(1.0f).field_on_all();
+  b.add_input<decl::Bool>("Individual").default_value(true).make_available([](bNode &node) {
     node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
   });
   b.add_output<decl::Geometry>("Mesh").propagate_all();
-  b.add_output<decl::Bool>(N_("Top")).field_on_all();
-  b.add_output<decl::Bool>(N_("Side")).field_on_all();
+  b.add_output<decl::Bool>("Top").field_on_all();
+  b.add_output<decl::Bool>("Side").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -60,7 +60,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *individual_socket = static_cast<bNodeSocket *>(node->inputs.last);
 
-  nodeSetSocketAvailability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
+  bke::nodeSetSocketAvailability(ntree, individual_socket, mode == GEO_NODE_EXTRUDE_MESH_FACES);
 }
 
 struct AttributeOutputs {
@@ -199,15 +199,16 @@ static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domai
  * \param get_mix_indices_fn: Returns a Span of indices of the source points to mix for every
  * result point.
  */
-template<typename T, typename GetMixIndicesFn>
+template<typename T>
 void copy_with_mixing(const Span<T> src,
-                      const GetMixIndicesFn &get_mix_indices_fn,
+                      const FunctionRef<Span<int>(int)> get_mix_indices_fn,
                       MutableSpan<T> dst)
 {
   threading::parallel_for(dst.index_range(), 512, [&](const IndexRange range) {
     bke::attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(range)};
     for (const int i_dst : IndexRange(range.size())) {
-      for (const int i_src : get_mix_indices_fn(range[i_dst])) {
+      const Span<int> indices = get_mix_indices_fn(range[i_dst]);
+      for (const int i_src : indices) {
         mixer.mix_in(i_dst, src[i_src]);
       }
     }
@@ -215,8 +216,9 @@ void copy_with_mixing(const Span<T> src,
   });
 }
 
-template<typename GetMixIndicesFn>
-void copy_with_mixing(const GSpan src, const GetMixIndicesFn &get_mix_indices_fn, GMutableSpan dst)
+static void copy_with_mixing(const GSpan src,
+                             const FunctionRef<Span<int>(int)> get_mix_indices_fn,
+                             GMutableSpan dst)
 {
   bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
@@ -533,44 +535,42 @@ static void extrude_mesh_edges(Mesh &mesh,
     if (ELEM(id.name(), ".corner_vert", ".corner_edge", ".edge_verts")) {
       return true;
     }
-    GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
-        id, meta_data.domain, meta_data.data_type);
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
 
-    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      MutableSpan<T> data = attribute.span.typed<T>();
-      switch (attribute.domain) {
-        case ATTR_DOMAIN_POINT: {
-          /* New vertices copy the attribute values from their source vertex. */
-          array_utils::gather(
-              data.as_span(), new_vert_indices.as_span(), data.slice(new_vert_range));
-          break;
-        }
-        case ATTR_DOMAIN_EDGE: {
-          /* Edges parallel to original edges copy the edge attributes from the original edges. */
-          MutableSpan<T> duplicate_data = data.slice(duplicate_edge_range);
-          array_utils::gather(data.as_span(), edge_selection, duplicate_data);
+    switch (attribute.domain) {
+      case ATTR_DOMAIN_POINT: {
+        /* New vertices copy the attribute values from their source vertex. */
+        bke::attribute_math::gather(
+            attribute.span, new_vert_indices, attribute.span.slice(new_vert_range));
+        break;
+      }
+      case ATTR_DOMAIN_EDGE: {
+        /* Edges parallel to original edges copy the edge attributes from the original edges. */
+        GMutableSpan duplicate_data = attribute.span.slice(duplicate_edge_range);
+        array_utils::gather(attribute.span, edge_selection, duplicate_data);
 
-          /* Edges connected to original vertices mix values of selected connected edges. */
-          copy_with_mixing(
-              duplicate_data.as_span(),
-              [&](const int i) { return new_vert_to_duplicate_edge_map[i].as_span(); },
-              data.slice(connect_edge_range));
-          break;
-        }
-        case ATTR_DOMAIN_FACE: {
-          /* Attribute values for new faces are a mix of the values of faces connected to the its
-           * original edge. */
-          copy_with_mixing(
-              data.as_span(),
-              [&](const int i) { return edge_to_poly_map[edge_selection[i]].as_span(); },
-              data.slice(new_poly_range));
-
-          break;
-        }
-        case ATTR_DOMAIN_CORNER: {
-          /* New corners get the average value of all adjacent corners on original faces connected
-           * to the original edge of their face. */
+        /* Edges connected to original vertices mix values of selected connected edges. */
+        copy_with_mixing(
+            duplicate_data,
+            [&](const int i) { return new_vert_to_duplicate_edge_map[i].as_span(); },
+            attribute.span.slice(connect_edge_range));
+        break;
+      }
+      case ATTR_DOMAIN_FACE: {
+        /* Attribute values for new faces are a mix of the values of faces connected to the its
+         * original edge. */
+        copy_with_mixing(
+            attribute.span,
+            [&](const int i) { return edge_to_poly_map[edge_selection[i]].as_span(); },
+            attribute.span.slice(new_poly_range));
+        break;
+      }
+      case ATTR_DOMAIN_CORNER: {
+        /* New corners get the average value of all adjacent corners on original faces connected
+         * to the original edge of their face. */
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(new_loop_range);
           threading::parallel_for(edge_selection.index_range(), 256, [&](const IndexRange range) {
             for (const int i_edge_selection : range) {
@@ -624,12 +624,12 @@ static void extrude_mesh_edges(Mesh &mesh,
               }
             }
           });
-          break;
-        }
-        default:
-          BLI_assert_unreachable();
+        });
+        break;
       }
-    });
+      default:
+        BLI_assert_unreachable();
+    }
 
     attribute.finish();
     return true;
@@ -934,44 +934,43 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     if (ELEM(id.name(), ".corner_vert", ".corner_edge", ".edge_verts")) {
       return true;
     }
-    GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
-        id, meta_data.domain, meta_data.data_type);
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
 
-    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      MutableSpan<T> data = attribute.span.typed<T>();
-      switch (attribute.domain) {
-        case ATTR_DOMAIN_POINT: {
-          /* New vertices copy the attributes from their original vertices. */
-          array_utils::gather(
-              data.as_span(), new_vert_indices.as_span(), data.slice(new_vert_range));
-          break;
-        }
-        case ATTR_DOMAIN_EDGE: {
-          /* Edges parallel to original edges copy the edge attributes from the original edges. */
-          MutableSpan<T> boundary_data = data.slice(boundary_edge_range);
-          array_utils::gather(data.as_span(), boundary_edge_indices.as_span(), boundary_data);
+    switch (attribute.domain) {
+      case ATTR_DOMAIN_POINT: {
+        /* New vertices copy the attributes from their original vertices. */
+        bke::attribute_math::gather(
+            attribute.span, new_vert_indices, attribute.span.slice(new_vert_range));
+        break;
+      }
+      case ATTR_DOMAIN_EDGE: {
+        /* Edges parallel to original edges copy the edge attributes from the original edges. */
+        GMutableSpan boundary_data = attribute.span.slice(boundary_edge_range);
+        bke::attribute_math::gather(attribute.span, boundary_edge_indices, boundary_data);
 
-          /* Edges inside of face regions also just duplicate their source data. */
-          MutableSpan<T> new_inner_data = data.slice(new_inner_edge_range);
-          array_utils::gather(data.as_span(), new_inner_edge_indices.as_span(), new_inner_data);
+        /* Edges inside of face regions also just duplicate their source data. */
+        GMutableSpan new_inner_data = attribute.span.slice(new_inner_edge_range);
+        bke::attribute_math::gather(attribute.span, new_inner_edge_indices, new_inner_data);
 
-          /* Edges connected to original vertices mix values of selected connected edges. */
-          copy_with_mixing(
-              boundary_data.as_span(),
-              [&](const int i) { return new_vert_to_duplicate_edge_map[i].as_span(); },
-              data.slice(connect_edge_range));
-          break;
-        }
-        case ATTR_DOMAIN_FACE: {
-          /* New faces on the side of extrusions get the values from the corresponding selected
-           * face. */
-          array_utils::gather(
-              data.as_span(), edge_extruded_face_indices.as_span(), data.slice(side_poly_range));
-          break;
-        }
-        case ATTR_DOMAIN_CORNER: {
-          /* New corners get the values from the corresponding corner on the extruded face. */
+        /* Edges connected to original vertices mix values of selected connected edges. */
+        copy_with_mixing(
+            boundary_data,
+            [&](const int i) { return new_vert_to_duplicate_edge_map[i].as_span(); },
+            attribute.span.slice(connect_edge_range));
+        break;
+      }
+      case ATTR_DOMAIN_FACE: {
+        /* New faces on the side of extrusions get the values from the corresponding selected
+         * face. */
+        GMutableSpan side_data = attribute.span.slice(side_poly_range);
+        bke::attribute_math::gather(attribute.span, edge_extruded_face_indices, side_data);
+        break;
+      }
+      case ATTR_DOMAIN_CORNER: {
+        /* New corners get the values from the corresponding corner on the extruded face. */
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_loop_range);
           threading::parallel_for(
               boundary_edge_indices.index_range(), 256, [&](const IndexRange range) {
@@ -1011,12 +1010,12 @@ static void extrude_mesh_face_regions(Mesh &mesh,
                   }
                 }
               });
-          break;
-        }
-        default:
-          BLI_assert_unreachable();
+        });
+        break;
       }
-    });
+      default:
+        BLI_assert_unreachable();
+    }
 
     attribute.finish();
     return true;
@@ -1094,14 +1093,6 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   BKE_mesh_runtime_clear_cache(&mesh);
 }
 
-/* Get the range into an array of extruded corners, edges, or vertices for a particular polygon. */
-static IndexRange selected_corner_range(Span<int> offsets, const int index)
-{
-  const int offset = offsets[index];
-  const int next_offset = offsets[index + 1];
-  return IndexRange(offset, next_offset - offset);
-}
-
 static void extrude_individual_mesh_faces(
     Mesh &mesh,
     const Field<bool> &selection_field,
@@ -1132,12 +1123,13 @@ static void extrude_individual_mesh_faces(
    * parallelism later on by avoiding the need to keep track of an offset when iterating through
    * all polygons. */
   int extrude_corner_size = 0;
-  Array<int> index_offsets(poly_selection.size() + 1);
+  Array<int> group_per_face_data(poly_selection.size() + 1);
   for (const int i_selection : poly_selection.index_range()) {
-    index_offsets[i_selection] = extrude_corner_size;
+    group_per_face_data[i_selection] = extrude_corner_size;
     extrude_corner_size += orig_polys[poly_selection[i_selection]].size();
   }
-  index_offsets.last() = extrude_corner_size;
+  group_per_face_data.last() = extrude_corner_size;
+  const OffsetIndices<int> group_per_face(group_per_face_data);
 
   const IndexRange new_vert_range{orig_vert_size, extrude_corner_size};
   /* One edge connects each selected vertex to a new vertex on the extruded polygons. */
@@ -1178,7 +1170,7 @@ static void extrude_individual_mesh_faces(
   Array<int> duplicate_edge_indices(extrude_corner_size);
   threading::parallel_for(poly_selection.index_range(), 256, [&](const IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+      const IndexRange extrude_range = group_per_face[i_selection];
 
       const IndexRange poly = polys[poly_selection[i_selection]];
       MutableSpan<int> poly_verts = corner_verts.slice(poly);
@@ -1234,29 +1226,28 @@ static void extrude_individual_mesh_faces(
     if (ELEM(id.name(), ".corner_vert", ".corner_edge", ".edge_verts")) {
       return true;
     }
-    GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
-        id, meta_data.domain, meta_data.data_type);
+    GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
 
-    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      MutableSpan<T> data = attribute.span.typed<T>();
-      switch (attribute.domain) {
-        case ATTR_DOMAIN_POINT: {
-          /* New vertices copy the attributes from their original vertices. */
-          MutableSpan<T> new_data = data.slice(new_vert_range);
-          array_utils::gather(data.as_span(), new_vert_indices.as_span(), new_data);
-          break;
-        }
-        case ATTR_DOMAIN_EDGE: {
-          /* The data for the duplicate edge is simply a copy of the original edge's data. */
-          MutableSpan<T> duplicate_data = data.slice(duplicate_edge_range);
-          array_utils::gather(data.as_span(), duplicate_edge_indices.as_span(), duplicate_data);
+    switch (attribute.domain) {
+      case ATTR_DOMAIN_POINT: {
+        /* New vertices copy the attributes from their original vertices. */
+        GMutableSpan new_data = attribute.span.slice(new_vert_range);
+        bke::attribute_math::gather(attribute.span, new_vert_indices, new_data);
+        break;
+      }
+      case ATTR_DOMAIN_EDGE: {
+        /* The data for the duplicate edge is simply a copy of the original edge's data. */
+        GMutableSpan duplicate_data = attribute.span.slice(duplicate_edge_range);
+        bke::attribute_math::gather(attribute.span, duplicate_edge_indices, duplicate_data);
 
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> connect_data = data.slice(connect_edge_range);
           threading::parallel_for(poly_selection.index_range(), 512, [&](const IndexRange range) {
             for (const int i_selection : range) {
               const IndexRange poly = polys[poly_selection[i_selection]];
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
 
               /* For the extruded edges, mix the data from the two neighboring original edges of
                * the extruded polygon. */
@@ -1278,29 +1269,37 @@ static void extrude_individual_mesh_faces(
               }
             }
           });
-          break;
-        }
-        case ATTR_DOMAIN_FACE: {
-          /* Each side face gets the values from the corresponding new face. */
+        });
+        break;
+      }
+      case ATTR_DOMAIN_FACE: {
+        /* Each side face gets the values from the corresponding new face. */
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_poly_range);
           threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
             for (const int i_selection : range) {
               const int poly_index = poly_selection[i_selection];
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
               new_data.slice(extrude_range).fill(data[poly_index]);
             }
           });
-          break;
-        }
-        case ATTR_DOMAIN_CORNER: {
-          /* Each corner on a side face gets its value from the matching corner on an extruded
-           * face. */
+        });
+        break;
+      }
+      case ATTR_DOMAIN_CORNER: {
+        /* Each corner on a side face gets its value from the matching corner on an extruded
+         * face. */
+        bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+          using T = decltype(dummy);
+          MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_loop_range);
           threading::parallel_for(poly_selection.index_range(), 256, [&](const IndexRange range) {
             for (const int i_selection : range) {
               const IndexRange poly = polys[poly_selection[i_selection]];
               const Span<T> poly_loop_data = data.slice(poly);
-              const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+              const IndexRange extrude_range = group_per_face[i_selection];
 
               for (const int i : IndexRange(poly.size())) {
                 const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
@@ -1318,12 +1317,12 @@ static void extrude_individual_mesh_faces(
               }
             }
           });
-          break;
-        }
-        default:
-          BLI_assert_unreachable();
+        });
+        break;
       }
-    });
+      default:
+        BLI_assert_unreachable();
+    }
 
     attribute.finish();
     return true;
@@ -1332,7 +1331,7 @@ static void extrude_individual_mesh_faces(
   /* Offset the new vertices. */
   threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
     for (const int i_selection : range) {
-      const IndexRange extrude_range = selected_corner_range(index_offsets, i_selection);
+      const IndexRange extrude_range = group_per_face[i_selection];
       for (float3 &position : new_positions.slice(extrude_range)) {
         position += poly_offset[poly_selection[i_selection]];
       }
@@ -1360,7 +1359,7 @@ static void extrude_individual_mesh_faces(
     threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
       for (const int selection_i : range) {
         const int poly_i = poly_selection[selection_i];
-        const IndexRange extrude_range = selected_corner_range(index_offsets, selection_i);
+        const IndexRange extrude_range = group_per_face[selection_i];
         new_poly_orig_indices.slice(extrude_range).fill(poly_orig_indices[poly_i]);
       }
     });

@@ -1920,9 +1920,19 @@ void FONT_OT_selection_set(struct wmOperatorType *ot)
 
 static int font_select_word_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  move_cursor(C, NEXT_CHAR, false);
-  move_cursor(C, PREV_WORD, false);
-  move_cursor(C, NEXT_WORD, true);
+  Object *obedit = CTX_data_edit_object(C);
+  Curve *cu = obedit->data;
+  EditFont *ef = cu->editfont;
+
+  BLI_str_cursor_step_bounds_utf32(ef->textbuf, ef->len, ef->pos, &ef->selstart, &ef->selend);
+  ef->pos = ef->selend;
+
+  /* XXX: Text object selection start is 1-based, unlike text processing elsewhere in Blender. */
+  ef->selstart += 1;
+
+  font_select_update_primary_clipboard(obedit);
+  text_update_edited(C, obedit, FO_CURS);
+
   return OPERATOR_FINISHED;
 }
 

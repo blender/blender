@@ -12,11 +12,11 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>(N_("Red"));
-  b.add_output<decl::Float>(N_("Green"));
-  b.add_output<decl::Float>(N_("Blue"));
-  b.add_output<decl::Float>(N_("Alpha"));
+  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Float>("Red");
+  b.add_output<decl::Float>("Green");
+  b.add_output<decl::Float>("Blue");
+  b.add_output<decl::Float>("Alpha");
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

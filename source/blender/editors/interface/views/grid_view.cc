@@ -306,6 +306,7 @@ void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
                                             AbstractGridViewItem &item) const
 {
   uiLayout *overlap = uiLayoutOverlap(&grid_layout);
+  uiLayoutSetFixedSize(overlap, true);
 
   item.add_grid_tile_button(block_);
   item.build_grid_tile(*uiLayoutRow(overlap, false));
@@ -316,7 +317,7 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
 {
   uiLayout *parent_layout = current_layout();
 
-  uiLayout &layout = *uiLayoutColumn(current_layout(), false);
+  uiLayout &layout = *uiLayoutColumn(current_layout(), true);
   const GridViewStyle &style = grid_view.get_style();
 
   const int cols_per_row = std::max(uiLayoutGetWidth(&layout) / style.tile_width, 1);
@@ -325,12 +326,8 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
 
   build_visible_helper.fill_layout_before_visible(block_);
 
-  /* Use `-cols_per_row` because the grid layout uses a multiple of the passed absolute value for
-   * the number of columns then, rather than distributing the number of items evenly over rows and
-   * stretching the items to fit (see #uiLayoutItemGridFlow.columns_len). */
-  uiLayout *grid_layout = uiLayoutGridFlow(&layout, true, -cols_per_row, true, true, true);
-
   int item_idx = 0;
+  uiLayout *row = nullptr;
   grid_view.foreach_item([&](AbstractGridViewItem &item) {
     /* Skip if item isn't visible. */
     if (!build_visible_helper.is_item_visible(item_idx)) {
@@ -338,19 +335,14 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
       return;
     }
 
-    build_grid_tile(*grid_layout, item);
+    /* Start a new row for every first item in the row. */
+    if ((item_idx % cols_per_row) == 0) {
+      row = uiLayoutRow(&layout, true);
+    }
+
+    build_grid_tile(*row, item);
     item_idx++;
   });
-
-  /* If there are not enough items to fill the layout, add padding items so the layout doesn't
-   * stretch over the entire width. */
-  if (grid_view.get_item_count() < cols_per_row) {
-    for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - grid_view.get_item_count());
-         padding_item_idx++)
-    {
-      uiItemS(grid_layout);
-    }
-  }
 
   UI_block_layout_set_current(&block_, parent_layout);
 

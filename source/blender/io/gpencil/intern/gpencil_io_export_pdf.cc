@@ -238,9 +238,11 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
 
   if (is_stroke && !do_fill) {
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
-    const float width = MAX2(
-        MAX2(gps->thickness + gpl->line_change, (radius * 2.0f) + gpl->line_change), 1.0f);
-    HPDF_Page_SetLineWidth(page_, width);
+    const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
+    const float estimated_width = (radius * 2.0f) + gpl->line_change;
+    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+                                                       estimated_width;
+    HPDF_Page_SetLineWidth(page_, MAX2(final_width, 1.0f));
   }
 
   /* Loop all points. */

@@ -615,6 +615,20 @@ static void rna_float_print(FILE *f, float num)
   }
 }
 
+static const char *rna_ui_scale_type_string(const PropertyScaleType type)
+{
+  switch (type) {
+    case PROP_SCALE_LINEAR:
+      return "PROP_SCALE_LINEAR";
+    case PROP_SCALE_LOG:
+      return "PROP_SCALE_LOG";
+    case PROP_SCALE_CUBIC:
+      return "PROP_SCALE_CUBIC";
+  }
+  BLI_assert_unreachable();
+  return "";
+}
+
 static void rna_int_print(FILE *f, int64_t num)
 {
   if (num == INT_MIN) {
@@ -4164,8 +4178,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               rna_function_string(fprop->getarray_ex),
               rna_function_string(fprop->setarray_ex),
               rna_function_string(fprop->range_ex));
-      rna_float_print(f, fprop->ui_scale_type);
-      fprintf(f, ", ");
+      fprintf(f, "%s, ", rna_ui_scale_type_string(fprop->ui_scale_type));
       rna_float_print(f, fprop->softmin);
       fprintf(f, ", ");
       rna_float_print(f, fprop->softmax);

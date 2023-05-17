@@ -230,22 +230,22 @@ void BKE_main_unlock(struct Main *bmain)
 static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
 {
   MainIDRelations *bmain_relations = cb_data->user_data;
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID **id_pointer = cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
 
   if (*id_pointer) {
     MainIDRelationsEntry **entry_p;
 
-    /* Add `id_pointer` as child of `id_self`. */
+    /* Add `id_pointer` as child of `self_id`. */
     {
       if (!BLI_ghash_ensure_p(
-              bmain_relations->relations_from_pointers, id_self, (void ***)&entry_p)) {
+              bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p)) {
         *entry_p = MEM_callocN(sizeof(**entry_p), __func__);
-        (*entry_p)->session_uuid = id_self->session_uuid;
+        (*entry_p)->session_uuid = self_id->session_uuid;
       }
       else {
-        BLI_assert((*entry_p)->session_uuid == id_self->session_uuid);
+        BLI_assert((*entry_p)->session_uuid == self_id->session_uuid);
       }
       MainIDRelationsEntryItem *to_id_entry = BLI_mempool_alloc(bmain_relations->entry_items_pool);
       to_id_entry->next = (*entry_p)->to_ids;
@@ -256,7 +256,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       (*entry_p)->to_ids = to_id_entry;
     }
 
-    /* Add `id_self` as parent of `id_pointer`. */
+    /* Add `self_id` as parent of `id_pointer`. */
     if (*id_pointer != NULL) {
       if (!BLI_ghash_ensure_p(
               bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p)) {
@@ -269,8 +269,8 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       MainIDRelationsEntryItem *from_id_entry = BLI_mempool_alloc(
           bmain_relations->entry_items_pool);
       from_id_entry->next = (*entry_p)->from_ids;
-      from_id_entry->id_pointer.from = id_self;
-      from_id_entry->session_uuid = id_self->session_uuid;
+      from_id_entry->id_pointer.from = self_id;
+      from_id_entry->session_uuid = self_id->session_uuid;
       from_id_entry->usage_flag = cb_flag;
       (*entry_p)->from_ids = from_id_entry;
     }

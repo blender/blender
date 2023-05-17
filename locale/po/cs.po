@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -8511,10 +8511,6 @@ msgid "Armature layer visibility"
 msgstr "Přepíná viditelnost vrstev"
 
 
-msgid "Layer Proxy Protection"
-msgstr "Vytvořit proxy objekt"
-
-
 msgid "Pose Position"
 msgstr "Poloha"
 
@@ -9049,10 +9045,6 @@ msgstr "Nastavit váhu"
 
 msgid "Use this brush in weight paint mode"
 msgstr "Nastavit váhu vertexů"
-
-
-msgid "Enable Plane Trim"
-msgstr "Přejmenovat značku"
 
 
 msgid "Jitter Pressure"
@@ -19640,10 +19632,6 @@ msgid "Filter folders"
 msgstr "Filtry"
 
 
-msgid "Filter python"
-msgstr "Typ filtru"
-
-
 msgid "Filter text"
 msgstr "Filter Y"
 
@@ -20064,10 +20052,6 @@ msgstr "Filtrovat obrazkové soubory"
 
 msgid "Filter movie files"
 msgstr "Filtr video souborů"
-
-
-msgid "Filter python files"
-msgstr "Filtr python souborů"
 
 
 msgid "Filter sound files"
@@ -37929,10 +37913,6 @@ msgid "Space Console"
 msgstr "Zobrazit kontrolery"
 
 
-msgid "Interactive python console"
-msgstr "Interaktivně stahuje vertexy k sobě v dané oblasti"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Velikost písma použitého pro zobrazení textu"
 
@@ -38572,10 +38552,6 @@ msgstr "Najít: "
 
 msgid "Live Edit"
 msgstr "NLA editor"
-
-
-msgid "Run python while editing"
-msgstr "Typ filtru"
 
 
 msgid "3D View Space"

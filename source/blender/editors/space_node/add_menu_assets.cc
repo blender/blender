@@ -331,6 +331,11 @@ void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *cat
   using namespace blender::ed::space_node;
   bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
+
+  if (snode.runtime->assets_for_menu == nullptr) {
+    return;
+  }
+
   AssetItemTree &tree = *snode.runtime->assets_for_menu;
   const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
   if (!item) {

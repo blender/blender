@@ -136,7 +136,7 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
     workspace->pin_scene = nullptr;
   }
   else {
-    BLO_read_id_address(reader, nullptr, &workspace->pin_scene);
+    BLO_read_id_address(reader, id, &workspace->pin_scene);
   }
 
   /* Restore proper 'parent' pointers to relevant data, and clean up unused/invalid entries. */
@@ -155,7 +155,7 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_read_id_address(reader, id->lib, &layout->screen);
+    BLO_read_id_address(reader, id, &layout->screen);
 
     if (layout->screen) {
       if (ID_IS_LINKED(id)) {
@@ -173,7 +173,7 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
     }
   }
 
-  BKE_viewer_path_blend_read_lib(reader, id->lib, &workspace->viewer_path);
+  BKE_viewer_path_blend_read_lib(reader, id, &workspace->viewer_path);
 }
 
 static void workspace_blend_read_expand(BlendExpander *expander, ID *id)

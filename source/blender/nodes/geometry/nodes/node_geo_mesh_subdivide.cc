@@ -13,9 +13,9 @@ namespace blender::nodes::node_geo_mesh_subdivide_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 #ifdef WITH_OPENSUBDIV

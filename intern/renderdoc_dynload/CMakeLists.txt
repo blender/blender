@@ -9,9 +9,9 @@ set(INC_SYS
 )
 
 set(SRC
-    intern/renderdoc_api.cc
+  intern/renderdoc_api.cc
 
-    include/renderdoc_api.hh
+  include/renderdoc_api.hh
 )
 
 blender_add_lib(bf_intern_renderdoc_dynload "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

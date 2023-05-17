@@ -10,9 +10,9 @@ namespace blender::nodes::node_geo_mesh_to_curve_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

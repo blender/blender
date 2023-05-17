@@ -7,9 +7,8 @@ namespace blender::nodes::node_shader_output_world_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Shader>(N_("Surface"));
-  b.add_input<decl::Shader>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_input<decl::Shader>("Surface");
+  b.add_input<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static int node_shader_gpu_output_world(GPUMaterial *mat,

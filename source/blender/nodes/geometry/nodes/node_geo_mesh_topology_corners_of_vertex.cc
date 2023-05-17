@@ -11,26 +11,20 @@ namespace blender::nodes::node_geo_mesh_topology_corners_of_vertex_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertex Index"))
+  b.add_input<decl::Int>("Vertex Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(
-          N_("The vertex to retrieve data from. Defaults to the vertex from the context"));
-  b.add_input<decl::Float>(N_("Weights"))
-      .supports_field()
-      .hide_value()
-      .description(
-          N_("Values used to sort corners attached to the vertex. Uses indices by default"));
-  b.add_input<decl::Int>(N_("Sort Index"))
+      .description("The vertex to retrieve data from. Defaults to the vertex from the context");
+  b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
+      "Values used to sort corners attached to the vertex. Uses indices by default");
+  b.add_input<decl::Int>("Sort Index")
       .min(0)
       .supports_field()
-      .description(N_("Which of the sorted corners to output"));
-  b.add_output<decl::Int>(N_("Corner Index"))
+      .description("Which of the sorted corners to output");
+  b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
-      .description(N_("A corner connected to the face, chosen by the sort index"));
-  b.add_output<decl::Int>(N_("Total"))
-      .field_source()
-      .reference_pass({0})
-      .description(N_("The number of faces or corners connected to each vertex"));
+      .description("A corner connected to the face, chosen by the sort index");
+  b.add_output<decl::Int>("Total").field_source().reference_pass({0}).description(
+      "The number of faces or corners connected to each vertex");
 }
 
 static void convert_span(const Span<int> src, MutableSpan<int64_t> dst)

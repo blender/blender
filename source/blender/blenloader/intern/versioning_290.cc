@@ -51,7 +51,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"

@@ -111,12 +111,12 @@ typedef struct LibraryIDLinkCallbackData {
    * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is an
    * embedded one.
    */
-  struct ID *id_owner;
+  struct ID *owner_id;
   /**
    * ID from which the current ID pointer is being processed. It may be an embedded ID like master
    * collection or root node tree.
    */
-  struct ID *id_self;
+  struct ID *self_id;
   struct ID **id_pointer;
   int cb_flag;
 } LibraryIDLinkCallbackData;
@@ -259,17 +259,17 @@ void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, int c
 int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
 
 /**
- * Say whether given \a id_owner may use (in any way) a data-block of \a id_type_used.
+ * Say whether given \a owner_id may use (in any way) a data-block of \a id_type_used.
  *
  * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
  * quite useful to reduce useless iterations in some cases.
  */
-bool BKE_library_id_can_use_idtype(struct ID *id_owner, short id_type_used);
+bool BKE_library_id_can_use_idtype(struct ID *owner_id, short id_type_used);
 
 /**
- * Given the id_owner return the type of id_types it can use as a filter_id.
+ * Given the owner_id return the type of id_types it can use as a filter_id.
  */
-uint64_t BKE_library_id_can_use_filter_id(const struct ID *id_owner, const bool include_ui);
+uint64_t BKE_library_id_can_use_filter_id(const struct ID *owner_id, const bool include_ui);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).

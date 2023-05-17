@@ -15,10 +15,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .hide_value()
       .supports_field()
-      .description(N_("Edges used to split faces into separate groups"));
+      .description("Edges used to split faces into separate groups");
   b.add_output<decl::Int>("Face Group ID")
       .dependent_field()
-      .description(N_("Index of the face group inside each boundary edge region"));
+      .description("Index of the face group inside each boundary edge region");
 }
 
 /** Join all unique unordered combinations of indices. */

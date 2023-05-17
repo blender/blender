@@ -555,16 +555,6 @@ CCL_NAMESPACE_END
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_METAL__)
-/* Interpolation */
-
-template<class A, class B> A lerp(const A &a, const A &b, const B &t)
-{
-  return (A)(a * ((B)1 - t) + b * t);
-}
-
-#endif /* __KERNEL_METAL__ */
-
 /* Triangle */
 
 ccl_device_inline float triangle_area(ccl_private const float3 &v1,

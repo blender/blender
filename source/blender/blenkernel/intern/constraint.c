@@ -1733,7 +1733,8 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
   float obsize[3], size[3];
 
   mat4_to_size(size, cob->matrix);
-  mat4_to_size(obsize, cob->matrix);
+
+  copy_v3_v3(obsize, size);
 
   if (data->flag & LIMIT_XMIN) {
     if (size[0] < data->xmin) {
@@ -6555,7 +6556,7 @@ static void lib_link_constraint_cb(bConstraint *UNUSED(con),
                                    void *userdata)
 {
   tConstraintLinkData *cld = (tConstraintLinkData *)userdata;
-  BLO_read_id_address(cld->reader, cld->id->lib, idpoin);
+  BLO_read_id_address(cld->reader, cld->id, idpoin);
 }
 
 void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *conlist)
@@ -6570,7 +6571,7 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
       con->type = CONSTRAINT_TYPE_NULL;
     }
     /* own ipo, all constraints have it */
-    BLO_read_id_address(reader, id->lib, &con->ipo); /* XXX deprecated - old animation system */
+    BLO_read_id_address(reader, id, &con->ipo); /* XXX deprecated - old animation system */
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(id)) {

@@ -5,6 +5,7 @@
 #include "COM_cached_mask.hh"
 #include "COM_cached_texture.hh"
 #include "COM_morphological_distance_feather_weights.hh"
+#include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
@@ -41,6 +42,7 @@ class StaticCacheManager {
   CachedTextureContainer cached_textures;
   CachedMaskContainer cached_masks;
   SMAAPrecomputedTexturesContainer smaa_precomputed_textures;
+  OCIOColorSpaceConversionShaderContainer ocio_color_space_conversion_shaders;
 
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track

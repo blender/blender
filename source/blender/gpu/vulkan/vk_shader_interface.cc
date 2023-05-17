@@ -196,11 +196,13 @@ const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
   return descriptor_set_location(shader_input);
 }
 
-const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
+const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set_location(
     const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
 {
   const ShaderInput *shader_input = shader_input_get(bind_type, binding);
-  BLI_assert(shader_input);
+  if (shader_input == nullptr) {
+    return std::nullopt;
+  }
   return descriptor_set_location(shader_input);
 }
 

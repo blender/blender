@@ -9,41 +9,28 @@ namespace blender::nodes::node_shader_volume_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 0.5f, 1.0f});
-  b.add_input<decl::String>(N_("Color Attribute"));
-  b.add_input<decl::Float>(N_("Density")).default_value(1.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::String>(N_("Density Attribute"));
-  b.add_input<decl::Float>(N_("Anisotropy"))
+  b.add_input<decl::Color>("Color").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_input<decl::String>("Color Attribute");
+  b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::String>("Density Attribute").default_value("density");
+  b.add_input<decl::Float>("Anisotropy")
       .default_value(0.0f)
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Absorption Color")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Emission Strength")).default_value(0.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Color>(N_("Emission Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Blackbody Intensity"))
+  b.add_input<decl::Color>("Absorption Color").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>("Emission Strength").default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Color>("Emission Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Blackbody Intensity")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Blackbody Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Temperature")).default_value(1000.0f).min(0.0f).max(6500.0f);
-  b.add_input<decl::String>(N_("Temperature Attribute"));
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
-}
-
-static void node_shader_init_volume_principled(bNodeTree * /*ntree*/, bNode *node)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Density Attribute")) {
-      strcpy(((bNodeSocketValueString *)sock->default_value)->value, "density");
-    }
-    else if (STREQ(sock->name, "Temperature Attribute")) {
-      strcpy(((bNodeSocketValueString *)sock->default_value)->value, "temperature");
-    }
-  }
+  b.add_input<decl::Color>("Blackbody Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Temperature").default_value(1000.0f).min(0.0f).max(6500.0f);
+  b.add_input<decl::String>("Temperature Attribute").default_value("temperature");
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void attribute_post_process(GPUMaterial *mat,
@@ -142,8 +129,7 @@ void register_node_type_sh_volume_principled()
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_PRINCIPLED, "Principled Volume", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
-  ntype.initfunc = file_ns::node_shader_init_volume_principled;
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_principled;
 
   nodeRegisterType(&ntype);

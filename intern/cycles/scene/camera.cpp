@@ -36,7 +36,7 @@ static float shutter_curve_eval(float x, array<float> &shutter_curve)
   int index = (int)x;
   float frac = x - index;
   if (index < shutter_curve.size() - 1) {
-    return lerp(shutter_curve[index], shutter_curve[index + 1], frac);
+    return mix(shutter_curve[index], shutter_curve[index + 1], frac);
   }
   else {
     return shutter_curve[shutter_curve.size() - 1];

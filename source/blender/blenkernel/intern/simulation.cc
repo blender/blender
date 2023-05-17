@@ -30,7 +30,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_pointcache.h"
 #include "BKE_simulation.h"
 
@@ -51,7 +51,7 @@ static void simulation_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(simulation, DNA_struct_default_get(Simulation), id);
 
-  ntreeAddTreeEmbedded(nullptr, id, "Geometry Nodetree", ntreeType_Geometry->idname);
+  blender::bke::ntreeAddTreeEmbedded(nullptr, id, "Geometry Nodetree", ntreeType_Geometry->idname);
 }
 
 static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)

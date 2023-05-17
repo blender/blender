@@ -40,7 +40,7 @@ bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b);
 void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_lib(struct BlendLibReader *reader,
-                                    struct Library *lib,
+                                    struct ID *self_id,
                                     ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(struct LibraryForeachIDData *data, ViewerPath *viewer_path);
 void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const struct IDRemapper *mappings);

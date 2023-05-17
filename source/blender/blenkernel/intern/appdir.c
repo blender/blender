@@ -386,7 +386,7 @@ static bool get_path_local_ex(char *targetpath,
   char osx_resourses[FILE_MAX + 4 + 9];
   BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources");
   /* Remove the '/../' added above. */
-  BLI_path_normalize(osx_resourses);
+  BLI_path_normalize_native(osx_resourses);
   path_base = osx_resourses;
 #endif
   return test_path(targetpath,
@@ -879,7 +879,7 @@ static void where_am_i(char *program_filepath,
       BLI_path_program_search(program_filepath, program_filepath_maxncpy, program_name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
-    BLI_path_normalize(program_filepath);
+    BLI_path_normalize_native(program_filepath);
 
 #  if defined(DEBUG)
     if (!STREQ(program_name, program_filepath)) {
@@ -897,8 +897,7 @@ void BKE_appdir_program_path_init(const char *argv0)
    * Otherwise other methods of detecting the binary that override this argument
    * which must point to the Python module for data-files to be detected. */
   STRNCPY(g_app.program_filepath, argv0);
-  BLI_path_abs_from_cwd(g_app.program_filepath, sizeof(g_app.program_filepath));
-  BLI_path_normalize(g_app.program_filepath);
+  BLI_path_canonicalize_native(g_app.program_filepath, sizeof(g_app.program_filepath));
 
   if (g_app.program_dirname[0] == '\0') {
     /* First time initializing, the file binary path isn't valid from a Python module.

@@ -1010,11 +1010,11 @@ void ArmatureImporter::set_tags_map(TagsMap &tags_map)
 
 void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,
                                               char *joint_path,
-                                              size_t count)
+                                              size_t joint_path_maxncpy)
 {
   char bone_name_esc[sizeof(Bone::name) * 2];
   BLI_str_escape(bone_name_esc, bc_get_joint_name(node), sizeof(bone_name_esc));
-  BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bone_name_esc);
+  BLI_snprintf(joint_path, joint_path_maxncpy, "pose.bones[\"%s\"]", bone_name_esc);
 }
 
 bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)

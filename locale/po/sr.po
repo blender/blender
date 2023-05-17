@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -12627,16 +12627,8 @@ msgid "Add Empty Keying Set"
 msgstr "Додај празну збирку кључева"
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Извези збирку кључева у python скрипту"
-
-
 msgid "Filter folders"
 msgstr "Филтрирај директоријуме"
-
-
-msgid "Filter python"
-msgstr "Филтрирај python"
 
 
 msgid "Filter text"
@@ -12976,10 +12968,6 @@ msgstr "Филтрирај слике"
 
 msgid "Filter movie files"
 msgstr "Филтрирај филмове"
-
-
-msgid "Filter python files"
-msgstr "Филтрирај python датотеке"
 
 
 msgid "Filter sound files"
@@ -23331,10 +23319,6 @@ msgstr "Утишај видео"
 msgctxt "MovieClip"
 msgid "Graph"
 msgstr "Графикон"
-
-
-msgid "Interactive python console"
-msgstr "Интерактивна python конзола"
 
 
 msgid "Command history"

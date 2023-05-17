@@ -51,21 +51,19 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
       continue;
     }
 
-    const GVArray mesh_attribute = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
+    const GVArray src = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
-    if (!mesh_attribute) {
+    if (!src) {
       continue;
     }
+    const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.type());
 
     /* Copy attribute based on the map for this curve. */
-    bke::attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      bke::SpanAttributeWriter<T> attribute =
-          curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
-      array_utils::gather<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
-      attribute.finish();
-    });
+    bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, ATTR_DOMAIN_POINT, type);
+    bke::attribute_math::gather(src, vert_indices, dst.span);
+    dst.finish();
   }
 
   return curves;

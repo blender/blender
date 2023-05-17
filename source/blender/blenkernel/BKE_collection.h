@@ -303,6 +303,12 @@ void BKE_collection_parent_relations_rebuild(struct Collection *collection);
  */
 void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 
+/**
+ * Perform some validation on integrity of the data of this collection.
+ *
+ * \return `true` if everything is OK, false if some errors are detected. */
+bool BKE_collection_validate(struct Collection *collection);
+
 /* .blend file I/O */
 
 void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collection *collection);
@@ -316,7 +322,7 @@ void BKE_collection_blend_read_expand(struct BlendExpander *expander,
 void BKE_collection_compat_blend_read_data(struct BlendDataReader *reader,
                                            struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_lib(struct BlendLibReader *reader,
-                                          struct Library *lib,
+                                          struct ID *self_id,
                                           struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
                                              struct SceneCollection *sc);

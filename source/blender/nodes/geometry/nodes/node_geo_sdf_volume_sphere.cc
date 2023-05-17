@@ -18,15 +18,14 @@ namespace blender::nodes::node_geo_sdf_volume_sphere_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Radius")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Voxel Size")).default_value(0.2f).min(0.01f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Half-Band Width"))
-      .description(N_("Half the width of the narrow band in voxel units"))
+  b.add_input<decl::Float>("Radius").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Voxel Size").default_value(0.2f).min(0.01f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Half-Band Width")
+      .description("Half the width of the narrow band in voxel units")
       .default_value(3.0f)
       .min(1.01f)
       .max(10.0f);
-  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)
@@ -94,7 +93,7 @@ void register_node_type_geo_sdf_volume_sphere()
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SDF_VOLUME_SPHERE, "SDF Volume Sphere", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 180, 120, 300);
+  blender::bke::node_type_size(&ntype, 180, 120, 300);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
   ntype.gather_link_search_ops = file_ns::search_link_ops;

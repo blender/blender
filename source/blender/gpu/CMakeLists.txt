@@ -212,14 +212,17 @@ set(VULKAN_SRC
   vulkan/vk_drawlist.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
+  vulkan/vk_immediate.cc
   vulkan/vk_index_buffer.cc
   vulkan/vk_memory.cc
   vulkan/vk_memory_layout.cc
   vulkan/vk_pipeline.cc
+  vulkan/vk_pipeline_state.cc
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_push_constants.cc
   vulkan/vk_query.cc
   vulkan/vk_resource_tracker.cc
+  vulkan/vk_sampler.cc
   vulkan/vk_shader.cc
   vulkan/vk_shader_interface.cc
   vulkan/vk_shader_log.cc
@@ -227,6 +230,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.cc
   vulkan/vk_texture.cc
   vulkan/vk_uniform_buffer.cc
+  vulkan/vk_vertex_attribute_object.cc
   vulkan/vk_vertex_buffer.cc
 
   vulkan/vk_backend.hh
@@ -243,14 +247,17 @@ set(VULKAN_SRC
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
+  vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
   vulkan/vk_memory.hh
   vulkan/vk_memory_layout.hh
   vulkan/vk_pipeline.hh
+  vulkan/vk_pipeline_state.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_push_constants.hh
   vulkan/vk_query.hh
   vulkan/vk_resource_tracker.hh
+  vulkan/vk_sampler.hh
   vulkan/vk_shader.hh
   vulkan/vk_shader_interface.hh
   vulkan/vk_shader_log.hh
@@ -258,6 +265,7 @@ set(VULKAN_SRC
   vulkan/vk_storage_buffer.hh
   vulkan/vk_texture.hh
   vulkan/vk_uniform_buffer.hh
+  vulkan/vk_vertex_attribute_object.hh
   vulkan/vk_vertex_buffer.hh
 )
 
@@ -841,11 +849,14 @@ if(WITH_GTESTS)
       tests/gpu_testing.cc
 
       tests/framebuffer_test.cc
+      tests/immediate_test.cc
       tests/index_buffer_test.cc
       tests/push_constants_test.cc
       tests/shader_test.cc
+      tests/state_blend_test.cc
       tests/storage_buffer_test.cc
       tests/texture_test.cc
+      tests/vertex_buffer_test.cc
 
       tests/gpu_testing.hh
     )

@@ -15,20 +15,18 @@ NODE_STORAGE_FUNCS(NodeTexMusgrave)
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .hide_value()
-      .implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+  b.add_input<decl::Vector>("Vector").hide_value().implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
   });
-  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Dimension")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Lacunarity")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Offset")).min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Gain")).min(0.0f).max(1000.0f).default_value(1.0f);
-  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Dimension").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Lacunarity").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -110,16 +108,17 @@ static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
-  nodeSetSocketAvailability(ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
-  nodeSetSocketAvailability(ntree,
-                            inOffsetSock,
-                            storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
-                                storage.musgrave_type != SHD_MUSGRAVE_FBM);
-  nodeSetSocketAvailability(ntree,
-                            inGainSock,
-                            storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
-                                storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+  bke::nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
+  bke::nodeSetSocketAvailability(
+      ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
+  bke::nodeSetSocketAvailability(ntree,
+                                 inOffsetSock,
+                                 storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                     storage.musgrave_type != SHD_MUSGRAVE_FBM);
+  bke::nodeSetSocketAvailability(ntree,
+                                 inGainSock,
+                                 storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+                                     storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
   bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
   node_sock_label(outFacSock, "Height");
@@ -536,7 +535,7 @@ void register_node_type_sh_tex_musgrave()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_musgrave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_musgrave;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_musgrave;
   node_type_storage(
       &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);

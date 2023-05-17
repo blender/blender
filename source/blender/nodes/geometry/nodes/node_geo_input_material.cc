@@ -9,7 +9,7 @@ namespace blender::nodes::node_geo_input_material_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Material>(N_("Material"));
+  b.add_output<decl::Material>("Material");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

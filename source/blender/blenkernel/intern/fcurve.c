@@ -2540,7 +2540,7 @@ void BKE_fmodifiers_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fmo
     switch (fcm->type) {
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *data = (FMod_Python *)fcm->data;
-        BLO_read_id_address(reader, id->lib, &data->script);
+        BLO_read_id_address(reader, id, &data->script);
         break;
       }
     }
@@ -2670,7 +2670,7 @@ void BKE_fcurve_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fcurves
         DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
           /* only relink if still used */
           if (tarIndex < dvar->num_targets) {
-            BLO_read_id_address(reader, id->lib, &dtar->id);
+            BLO_read_id_address(reader, id, &dtar->id);
           }
           else {
             dtar->id = NULL;

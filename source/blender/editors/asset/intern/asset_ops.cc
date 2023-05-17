@@ -472,7 +472,7 @@ static int asset_catalog_new_exec(bContext *C, wmOperator *op)
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
   blender::asset_system::AssetCatalog *new_catalog = ED_asset_catalog_add(
-      asset_library, "Catalog", parent_path);
+      asset_library, DATA_("Catalog"), parent_path);
 
   if (SpaceFile *sfile = CTX_wm_space_file(C)) {
     ED_fileselect_activate_asset_catalog(sfile, new_catalog->catalog_id);

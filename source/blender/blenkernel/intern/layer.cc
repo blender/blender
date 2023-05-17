@@ -26,7 +26,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 
 #include "DNA_ID.h"
@@ -787,7 +787,7 @@ void BKE_layer_collection_resync_allow(void)
 }
 
 struct LayerCollectionResync {
-  LayerCollectionResync *prev, *next;
+  LayerCollectionResync *next, *prev;
 
   /* Temp data used to generate a queue during valid layer search. See
    * #layer_collection_resync_find. */
@@ -1006,7 +1006,7 @@ void BKE_main_view_layers_synced_ensure(const Main *bmain)
     BKE_scene_view_layers_synced_ensure(scene);
   }
 
-  /* NOTE: This is not (yet?) covered by the dirty tag and differed re-sync system */
+  /* NOTE: This is not (yet?) covered by the dirty tag and deffered re-sync system. */
   BKE_layer_collection_local_sync_all(bmain);
 }
 
@@ -2438,35 +2438,35 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
 }
 
 static void lib_link_layer_collection(BlendLibReader *reader,
-                                      Library *lib,
+                                      ID *self_id,
                                       LayerCollection *layer_collection,
-                                      bool master)
+                                      const bool master)
 {
   /* Master collection is not a real data-block. */
   if (!master) {
-    BLO_read_id_address(reader, lib, &layer_collection->collection);
+    BLO_read_id_address(reader, self_id, &layer_collection->collection);
   }
 
   LISTBASE_FOREACH (
       LayerCollection *, layer_collection_nested, &layer_collection->layer_collections) {
-    lib_link_layer_collection(reader, lib, layer_collection_nested, false);
+    lib_link_layer_collection(reader, self_id, layer_collection_nested, false);
   }
 }
 
-void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLayer *view_layer)
+void BKE_view_layer_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewLayer *view_layer)
 {
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_read_id_address(reader, lib, &fmc->script);
+    BLO_read_id_address(reader, self_id, &fmc->script);
   }
 
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_read_id_address(reader, lib, &fls->linestyle);
-    BLO_read_id_address(reader, lib, &fls->group);
+    BLO_read_id_address(reader, self_id, &fls->linestyle);
+    BLO_read_id_address(reader, self_id, &fls->group);
   }
 
   LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
     /* we only bump the use count for the collection objects */
-    BLO_read_id_address(reader, lib, &base->object);
+    BLO_read_id_address(reader, self_id, &base->object);
 
     if (base->object == nullptr) {
       /* Free in case linked object got lost. */
@@ -2478,12 +2478,12 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
   }
 
   LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    lib_link_layer_collection(reader, lib, layer_collection, true);
+    lib_link_layer_collection(reader, self_id, layer_collection, true);
   }
 
-  BLO_read_id_address(reader, lib, &view_layer->mat_override);
+  BLO_read_id_address(reader, self_id, &view_layer->mat_override);
 
-  IDP_BlendReadLib(reader, lib, view_layer->id_properties);
+  IDP_BlendReadLib(reader, self_id, view_layer->id_properties);
 }
 
 /** \} */
@@ -2522,7 +2522,7 @@ ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
   ViewLayerAOV *aov;
   aov = MEM_cnew<ViewLayerAOV>(__func__);
   aov->type = AOV_TYPE_COLOR;
-  STRNCPY(aov->name, DATA_("AOV"));
+  STRNCPY_UTF8(aov->name, DATA_("AOV"));
   BLI_addtail(&view_layer->aovs, aov);
   viewlayer_aov_active_set(view_layer, aov);
   viewlayer_aov_make_name_unique(view_layer);
@@ -2642,12 +2642,7 @@ ViewLayerLightgroup *BKE_view_layer_add_lightgroup(ViewLayer *view_layer, const 
 {
   ViewLayerLightgroup *lightgroup;
   lightgroup = MEM_cnew<ViewLayerLightgroup>(__func__);
-  if (name && name[0]) {
-    STRNCPY(lightgroup->name, name);
-  }
-  else {
-    STRNCPY(lightgroup->name, DATA_("Lightgroup"));
-  }
+  STRNCPY_UTF8(lightgroup->name, (name && name[0]) ? name : DATA_("Lightgroup"));
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);

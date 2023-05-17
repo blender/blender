@@ -122,8 +122,13 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
 
 bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
 {
-  /* MNEE and Ray-trace kernels currently don't work correctly with HWRT. */
+  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1. */
+#  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
+#  else
+  (void)requested_features;
+  return true;
+#  endif
 }
 
 BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint requested_features) const
@@ -255,6 +260,11 @@ SyclQueue *OneapiDevice::sycl_queue()
 string OneapiDevice::oneapi_error_message()
 {
   return string(oneapi_error_string_);
+}
+
+int OneapiDevice::scene_max_shaders()
+{
+  return scene_max_shaders_;
 }
 
 void *OneapiDevice::kernel_globals_device_pointer()
@@ -431,6 +441,9 @@ void OneapiDevice::const_copy_to(const char *name, void *host, size_t size)
     /* Update scene handle(since it is different for each device on multi devices) */
     KernelData *const data = (KernelData *)host;
     data->device_bvh = embree_scene;
+
+    /* We need this number later for proper local memory allocation. */
+    scene_max_shaders_ = data->max_shaders;
   }
 #  endif
 

@@ -22,26 +22,23 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshLine)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Count"))
-      .default_value(10)
-      .min(1)
-      .max(10000)
-      .description(N_("Number of vertices on the line"));
-  b.add_input<decl::Float>(N_("Resolution"))
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(10000).description(
+      "Number of vertices on the line");
+  b.add_input<decl::Float>("Resolution")
       .default_value(1.0f)
       .min(0.1f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Length of each individual edge"));
-  b.add_input<decl::Vector>(N_("Start Location"))
+      .description("Length of each individual edge");
+  b.add_input<decl::Vector>("Start Location")
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the first vertex"));
-  b.add_input<decl::Vector>(N_("Offset"))
+      .description("Position of the first vertex");
+  b.add_input<decl::Vector>("Offset")
       .default_value({0.0f, 0.0f, 1.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_(
+      .description(
           "In offset mode, the distance between each socket on each axis. In end points mode, the "
-          "position of the final vertex"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
+          "position of the final vertex");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -80,14 +77,14 @@ static void node_update(bNodeTree *ntree, bNode *node)
                   (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
                                                                  N_("Offset"));
 
-  nodeSetSocketAvailability(ntree,
-                            resolution_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  nodeSetSocketAvailability(ntree,
-                            count_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
+  bke::nodeSetSocketAvailability(ntree,
+                                 resolution_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
+  bke::nodeSetSocketAvailability(ntree,
+                                 count_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

@@ -26,21 +26,21 @@ namespace blender::nodes::node_geo_offset_point_in_curve_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Point Index"))
+  b.add_input<decl::Int>("Point Index")
       .implicit_field(implicit_field_inputs::index)
+      .description("The index of the control point to evaluate. Defaults to the current index");
+  b.add_input<decl::Int>("Offset").supports_field().description(
+      "The number of control points along the curve to traverse");
+  b.add_output<decl::Bool>("Is Valid Offset")
+      .field_source_reference_all()
       .description(
-          N_("The index of the control point to evaluate. Defaults to the current index"));
-  b.add_input<decl::Int>(N_("Offset"))
-      .supports_field()
-      .description(N_("The number of control points along the curve to traverse"));
-  b.add_output<decl::Bool>(N_("Is Valid Offset"))
+          "Whether the input control point plus the offset is a valid index of the "
+          "original curve");
+  b.add_output<decl::Int>("Point Index")
       .field_source_reference_all()
-      .description(N_("Whether the input control point plus the offset is a valid index of the "
-                      "original curve"));
-  b.add_output<decl::Int>(N_("Point Index"))
-      .field_source_reference_all()
-      .description(N_("The index of the control point plus the offset within the entire "
-                      "curves data-block"));
+      .description(
+          "The index of the control point plus the offset within the entire "
+          "curves data-block");
 }
 
 class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {

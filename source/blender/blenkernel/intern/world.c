@@ -178,7 +178,7 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 static void world_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   World *wrld = (World *)id;
-  BLO_read_id_address(reader, wrld->id.lib, &wrld->ipo); /* XXX deprecated, old animation system */
+  BLO_read_id_address(reader, id, &wrld->ipo); /* XXX deprecated, old animation system */
 }
 
 static void world_blend_read_expand(BlendExpander *expander, ID *id)

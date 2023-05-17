@@ -1812,13 +1812,13 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
  * so the internal value may be NULL, without allowing Python to assign `None` which doesn't
  * make any sense in this case.
  */
-#  define OPERATOR_STR_MAYBE_NULL_GETSET(attr, len) \
+#  define OPERATOR_STR_MAYBE_NULL_GETSET(attr, attr_maxncpy) \
     static void rna_Operator_bl_##attr##_set(PointerRNA *ptr, const char *value) \
     { \
       wmOperator *data = (wmOperator *)(ptr->data); \
       char *str = (char *)data->type->attr; \
       if (str && !str[0]) { \
-        BLI_strncpy(str, value, len); /* utf8 already ensured */ \
+        BLI_strncpy(str, value, attr_maxncpy); /* utf8 already ensured */ \
       } \
       else { \
         BLI_assert( \

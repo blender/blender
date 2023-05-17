@@ -848,8 +848,8 @@ static void graph_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, Sp
   bDopeSheet *ads = sipo->ads;
 
   if (ads) {
-    BLO_read_id_address(reader, parent_id->lib, &ads->source);
-    BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
+    BLO_read_id_address(reader, parent_id, &ads->source);
+    BLO_read_id_address(reader, parent_id, &ads->filter_grp);
   }
 }
 

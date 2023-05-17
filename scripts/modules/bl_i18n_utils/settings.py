@@ -34,7 +34,7 @@ LANGUAGES = (
     (0, "Automatic (Automatic)", "DEFAULT"),
     (1, "English (English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
-    (3, "Dutch (Nederlandse taal)", "nl_NL"),
+    (3, "Dutch (Nederlands)", "nl_NL"),
     (4, "Italian (Italiano)", "it_IT"),
     (5, "German (Deutsch)", "de_DE"),
     (6, "Finnish (Suomi)", "fi_FI"),
@@ -74,11 +74,11 @@ LANGUAGES = (
     (37, "Amharic (አማርኛ)", "am_ET"),
     (38, "Uzbek (Oʻzbek)", "uz_UZ"),
     (39, "Uzbek Cyrillic (Ўзбек)", "uz_UZ@cyrillic"),
-    (40, "Hindi (मानक हिन्दी)", "hi_IN"),
-    (41, "Vietnamese (tiếng Việt)", "vi_VN"),
+    (40, "Hindi (हिन्दी)", "hi_IN"),
+    (41, "Vietnamese (Tiếng Việt)", "vi_VN"),
     (42, "Basque (Euskara)", "eu_EU"),
     (43, "Hausa (Hausa)", "ha"),
-    (44, "Kazakh (қазақша)", "kk_KZ"),
+    (44, "Kazakh (Қазақша)", "kk_KZ"),
     (45, "Abkhaz (Аԥсуа бызшәа)", "ab"),
     (46, "Thai (ภาษาไทย)", "th_TH"),
     (47, "Slovak (Slovenčina)", "sk_SK"),
@@ -255,6 +255,25 @@ PYGETTEXT_KEYWORDS = (() +
     # (the second one in those functions) to ever have a comma in it, so think this is fine.
     tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
+
+    # Node socket declarations: contextless names
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)").format(it)
+          for it in ("add_input", "add_output")) +
+
+    # Node socket declarations: names with contexts
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" + _ctxt_re + r"\s*\)").format(it)
+          for it in ("add_input", "add_output")) +
+
+    # Node socket declarations: description and error messages
+    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
+          for it in ("description", "error_message_add")) +
+
+    # Node socket labels
+    tuple((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it)
+          for it in ("node_sock_label",)) +
+
+    # Geometry Nodes field inputs
+    ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
 
     # bUnitDef unit names.
     # NOTE: regex is a bit more complex than it would need too. Since the actual

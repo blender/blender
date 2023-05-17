@@ -8,7 +8,7 @@
 #include "DRW_render.h"
 
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.h"
@@ -107,6 +107,7 @@ static struct {
   struct GPUShader *ggx_refraction_lut_sh;
 
   /* Render Passes */
+  struct GPUShader *rpass_accumulate_sh;
   struct GPUShader *postprocess_sh;
   struct GPUShader *cryptomatte_sh[2];
 
@@ -605,6 +606,15 @@ GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void)
 /** \name Render Passes
  * \{ */
 
+GPUShader *EEVEE_shaders_renderpasses_accumulate_sh_get(void)
+{
+  if (e_data.rpass_accumulate_sh == nullptr) {
+    e_data.rpass_accumulate_sh = DRW_shader_create_from_info_name(
+        "eevee_legacy_renderpass_accumulate");
+  }
+  return e_data.rpass_accumulate_sh;
+}
+
 GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void)
 {
   if (e_data.postprocess_sh == nullptr) {
@@ -1029,7 +1039,7 @@ Material *EEVEE_material_default_diffuse_get(void)
   if (!e_data.diffuse_mat) {
     Material *ma = static_cast<Material *>(BKE_id_new_nomain(ID_MA, "EEVEEE default diffuse"));
 
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
         nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
@@ -1056,7 +1066,7 @@ Material *EEVEE_material_default_glossy_get(void)
   if (!e_data.glossy_mat) {
     Material *ma = static_cast<Material *>(BKE_id_new_nomain(ID_MA, "EEVEEE default metal"));
 
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
         nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
@@ -1085,7 +1095,7 @@ Material *EEVEE_material_default_error_get(void)
   if (!e_data.error_mat) {
     Material *ma = static_cast<Material *>(BKE_id_new_nomain(ID_MA, "EEVEEE default error"));
 
-    bNodeTree *ntree = ntreeAddTreeEmbedded(
+    bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
         nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
@@ -1467,6 +1477,7 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gtao_layer_sh);
   DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
+  DRW_SHADER_FREE_SAFE(e_data.rpass_accumulate_sh);
   DRW_SHADER_FREE_SAFE(e_data.postprocess_sh);
   DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
   DRW_SHADER_FREE_SAFE(e_data.shadow_accum_sh);

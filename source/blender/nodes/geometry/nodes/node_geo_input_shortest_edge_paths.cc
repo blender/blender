@@ -15,10 +15,10 @@ namespace blender::nodes::node_geo_input_shortest_edge_paths_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>(N_("End Vertex")).default_value(false).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Edge Cost")).default_value(1.0f).hide_value().supports_field();
-  b.add_output<decl::Int>(N_("Next Vertex Index")).field_source();
-  b.add_output<decl::Float>(N_("Total Cost")).field_source();
+  b.add_input<decl::Bool>("End Vertex").default_value(false).hide_value().supports_field();
+  b.add_input<decl::Float>("Edge Cost").default_value(1.0f).hide_value().supports_field();
+  b.add_output<decl::Int>("Next Vertex Index").field_source();
+  b.add_output<decl::Float>("Total Cost").field_source();
 }
 
 typedef std::pair<float, int> VertPriority;

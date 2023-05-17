@@ -22,13 +22,13 @@ NODE_STORAGE_FUNCS(NodeGeometryImageTexture)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>(N_("Image")).hide_label();
-  b.add_input<decl::Vector>(N_("Vector"))
+  b.add_input<decl::Image>("Image").hide_label();
+  b.add_input<decl::Vector>("Vector")
       .implicit_field(implicit_field_inputs::position)
       .description("Texture coordinates from 0 to 1");
-  b.add_input<decl::Int>(N_("Frame")).min(0).max(MAXFRAMEF);
-  b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field().reference_pass_all();
-  b.add_output<decl::Float>(N_("Alpha")).no_muted_links().dependent_field().reference_pass_all();
+  b.add_input<decl::Int>("Frame").min(0).max(MAXFRAMEF);
+  b.add_output<decl::Color>("Color").no_muted_links().dependent_field().reference_pass_all();
+  b.add_output<decl::Float>("Alpha").no_muted_links().dependent_field().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -435,7 +435,7 @@ void register_node_type_geo_image_texture()
   ntype.initfunc = file_ns::node_init;
   node_type_storage(
       &ntype, "NodeGeometryImageTexture", node_free_standard_storage, node_copy_standard_storage);
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);

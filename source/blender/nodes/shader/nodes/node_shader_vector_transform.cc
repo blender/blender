@@ -14,11 +14,11 @@ namespace blender::nodes::node_shader_vector_transform_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector"))
+  b.add_input<decl::Vector>("Vector")
       .default_value({0.5f, 0.5f, 0.5f})
       .min(-10000.0f)
       .max(10000.0f);
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_buts_vect_transform(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

@@ -27,20 +27,19 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshToVolume)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Float>(N_("Voxel Size"))
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
       .max(FLT_MAX)
       .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Voxel Amount")).default_value(64.0f).min(0.0f).max(FLT_MAX);
-  b.add_input<decl::Float>(N_("Half-Band Width"))
-      .description(N_("Half the width of the narrow band in voxel units"))
+  b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f).max(FLT_MAX);
+  b.add_input<decl::Float>("Half-Band Width")
+      .description("Half the width of the narrow band in voxel units")
       .default_value(3.0f)
       .min(1.01f)
       .max(10.0f);
-  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)
@@ -77,10 +76,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(ntree,
-                            voxel_amount_socket,
-                            data.resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(ntree,
+                                 voxel_amount_socket,
+                                 data.resolution_mode ==
+                                     MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT);
+  bke::nodeSetSocketAvailability(
       ntree, voxel_size_socket, data.resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE);
 }
 
@@ -170,7 +170,7 @@ void register_node_type_geo_mesh_to_sdf_volume()
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_TO_SDF_VOLUME, "Mesh to SDF Volume", NODE_CLASS_GEOMETRY);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 180, 120, 300);
+  blender::bke::node_type_size(&ntype, 180, 120, 300);
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
