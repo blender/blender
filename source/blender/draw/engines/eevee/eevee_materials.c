@@ -1186,4 +1186,77 @@ void EEVEE_material_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   }
 }
 
+void EEVEE_material_transparent_output_init(EEVEE_Data *vedata)
+{
+  EEVEE_PassList *psl = vedata->psl;
+  EEVEE_FramebufferList *fbl = vedata->fbl;
+  EEVEE_PrivateData *pd = vedata->stl->g_data;
+  EEVEE_TextureList *txl = vedata->txl;
+
+  if (pd->render_passes & EEVEE_RENDER_PASS_TRANSPARENT) {
+    /* Intermediate result to blend objects on. */
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    DRW_texture_ensure_fullscreen_2d_ex(
+        &txl->transparent_depth_tmp, GPU_DEPTH24_STENCIL8, usage, 0);
+    DRW_texture_ensure_fullscreen_2d_ex(&txl->transparent_color_tmp, GPU_RGBA16F, usage, 0);
+    GPU_framebuffer_ensure_config(&fbl->transparent_rpass_fb,
+                                  {GPU_ATTACHMENT_TEXTURE(txl->transparent_depth_tmp),
+                                   GPU_ATTACHMENT_TEXTURE(txl->transparent_color_tmp)});
+    /* Final result to with AntiAliasing. */
+    /* TODO mem usage. */
+    const eGPUTextureFormat texture_format = (true) ? GPU_RGBA32F : GPU_RGBA16F;
+    eGPUTextureUsage usage_accum = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ |
+                                   GPU_TEXTURE_USAGE_ATTACHMENT;
+    DRW_texture_ensure_fullscreen_2d_ex(&txl->transparent_accum, texture_format, usage_accum, 0);
+    GPU_framebuffer_ensure_config(
+        &fbl->transparent_rpass_accum_fb,
+        {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->transparent_accum)});
+
+    {
+      /* This pass Accumulate 1 sample of the transparent pass into the the transparent
+       * accumulation buffer. */
+      DRW_PASS_CREATE(psl->transparent_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+      DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_renderpasses_accumulate_sh_get(),
+                                                psl->transparent_accum_ps);
+      DRW_shgroup_uniform_texture(grp, "inputBuffer", txl->transparent_color_tmp);
+      DRW_shgroup_call(grp, DRW_cache_fullscreen_quad_get(), NULL);
+    }
+  }
+}
+
+void EEVEE_material_transparent_output_accumulate(EEVEE_Data *vedata)
+{
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
+  EEVEE_FramebufferList *fbl = vedata->fbl;
+  EEVEE_PassList *psl = vedata->psl;
+  EEVEE_PrivateData *pd = vedata->stl->g_data;
+  EEVEE_TextureList *txl = vedata->txl;
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+  if (pd->render_passes & EEVEE_RENDER_PASS_TRANSPARENT) {
+    const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    pd->renderpass_current_sample = effects->taa_current_sample;
+
+    /* Work on a copy of the depth texture to allow re-rendering
+     * the transparent object to the main pass. */
+    GPU_texture_copy(txl->transparent_depth_tmp, dtxl->depth);
+
+    /* Render transparent objects on a black background. */
+    GPU_framebuffer_bind(fbl->transparent_rpass_fb);
+    GPU_framebuffer_clear_color(fbl->transparent_rpass_fb, clear);
+    DRW_draw_pass(psl->transparent_pass);
+
+    /* Accumulate the resulting color buffer. */
+    GPU_framebuffer_bind(fbl->transparent_rpass_accum_fb);
+    if (effects->taa_current_sample == 1) {
+      GPU_framebuffer_clear_color(fbl->transparent_rpass_accum_fb, clear);
+    }
+    DRW_draw_pass(psl->transparent_accum_ps);
+
+    /* Restore default. */
+    GPU_framebuffer_bind(fbl->main_fb);
+  }
+}
+
 /** \} */

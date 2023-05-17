@@ -107,6 +107,7 @@ static struct {
   struct GPUShader *ggx_refraction_lut_sh;
 
   /* Render Passes */
+  struct GPUShader *rpass_accumulate_sh;
   struct GPUShader *postprocess_sh;
   struct GPUShader *cryptomatte_sh[2];
 
@@ -604,6 +605,15 @@ GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void)
 /* -------------------------------------------------------------------- */
 /** \name Render Passes
  * \{ */
+
+GPUShader *EEVEE_shaders_renderpasses_accumulate_sh_get(void)
+{
+  if (e_data.rpass_accumulate_sh == nullptr) {
+    e_data.rpass_accumulate_sh = DRW_shader_create_from_info_name(
+        "eevee_legacy_renderpass_accumulate");
+  }
+  return e_data.rpass_accumulate_sh;
+}
 
 GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void)
 {
@@ -1467,6 +1477,7 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.gtao_layer_sh);
   DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
+  DRW_SHADER_FREE_SAFE(e_data.rpass_accumulate_sh);
   DRW_SHADER_FREE_SAFE(e_data.postprocess_sh);
   DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
   DRW_SHADER_FREE_SAFE(e_data.shadow_accum_sh);

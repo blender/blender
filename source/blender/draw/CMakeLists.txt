@@ -399,6 +399,7 @@ set(GLSL_SRC
   engines/eevee/shaders/bsdf_sampling_lib.glsl
   engines/eevee/shaders/random_lib.glsl
   engines/eevee/shaders/raytrace_lib.glsl
+  engines/eevee/shaders/renderpass_accumulate_frag.glsl
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
