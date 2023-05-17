@@ -43,6 +43,7 @@ static int BLI_path_unc_prefix_len(const char *path);
 
 #ifdef WIN32
 static bool BLI_path_is_abs_win32(const char *path);
+static int BLI_path_win32_prefix_len(const char *path);
 #endif /* WIN32 */
 
 /**
@@ -384,6 +385,29 @@ int BLI_path_normalize_dir(char *dir, size_t dir_maxncpy)
   return BLI_path_slash_ensure_ex(dir, dir_maxncpy, dir_len);
 }
 
+int BLI_path_canonicalize_native(char *path, int path_maxncpy)
+{
+  BLI_path_abs_from_cwd(path, path_maxncpy);
+  /* As these are system level paths, only convert slashes
+   * if the alternate direction is accepted as a slash. */
+  if (BLI_path_slash_is_native_compat(ALTSEP)) {
+    BLI_path_slash_native(path);
+  }
+  int path_len = BLI_path_normalize_native(path);
+  /* Strip trailing slash but don't strip `/` away to nothing. */
+  if (path_len > 1 && path[path_len - 1] == SEP) {
+#ifdef WIN32
+    /* Don't strip `C:\` -> `C:` as this is no longer a valid directory. */
+    if (BLI_path_win32_prefix_len(path) + 1 < path_len)
+#endif
+    {
+      path_len -= 1;
+      path[path_len] = '\0';
+    }
+  }
+  return path_len;
+}
+
 bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
 {
 #define INVALID_CHARS \
@@ -528,6 +552,16 @@ static int BLI_path_unc_prefix_len(const char *path)
 
   return 0;
 }
+
+#ifdef WIN32
+static int BLI_path_win32_prefix_len(const char *path)
+{
+  if (BLI_path_is_win32_drive(path)) {
+    return 2;
+  }
+  return BLI_path_unc_prefix_len(path);
+}
+#endif
 
 bool BLI_path_is_win32_drive(const char *path)
 {

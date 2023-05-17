@@ -897,8 +897,7 @@ void BKE_appdir_program_path_init(const char *argv0)
    * Otherwise other methods of detecting the binary that override this argument
    * which must point to the Python module for data-files to be detected. */
   STRNCPY(g_app.program_filepath, argv0);
-  BLI_path_abs_from_cwd(g_app.program_filepath, sizeof(g_app.program_filepath));
-  BLI_path_normalize_native(g_app.program_filepath);
+  BLI_path_canonicalize_native(g_app.program_filepath, sizeof(g_app.program_filepath));
 
   if (g_app.program_dirname[0] == '\0') {
     /* First time initializing, the file binary path isn't valid from a Python module.

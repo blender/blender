@@ -186,6 +186,28 @@ void BLI_path_normalize_unc(char *path, int path_maxncpy);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Path Canonicalize
+ * \{ */
+
+/**
+ * Convert `path` to a canonical representation.
+ * This is intended for system paths (passed in as command-line arguments of via scripts)
+ * which are valid in that they resolve to a file/directory and but could be `CWD` relative or
+ * contain redundant slashes that cause absolute/relative conversion to fail.
+ * (specifically the "//" prefix used by Blender).
+ *
+ * Perform the following operations:
+ *
+ * - Make absolute (relative to the current working directory).
+ * - Convert slash direction (WIN32 only, as other systems may use back-slashes in filenames).
+ * - Normalize redundant slashes.
+ * - Strip trailing slashes.
+ */
+int BLI_path_canonicalize_native(char *path, int path_maxncpy);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Path FileName Manipulation
  * \{ */
 
