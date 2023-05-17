@@ -27,27 +27,27 @@ NODE_STORAGE_FUNCS(NodeGeometryVolumeToMesh)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
+  b.add_input<decl::Geometry>("Volume")
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .supported_type(GEO_COMPONENT_TYPE_VOLUME);
-  b.add_input<decl::Float>(N_("Voxel Size"))
+  b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE;
       });
-  b.add_input<decl::Float>(N_("Voxel Amount"))
+  b.add_input<decl::Float>("Voxel Amount")
       .default_value(64.0f)
       .min(0.0f)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT;
       });
-  b.add_input<decl::Float>(N_("Threshold"))
+  b.add_input<decl::Float>("Threshold")
       .default_value(0.1f)
-      .description(N_("Values larger than the threshold are inside the generated mesh"));
-  b.add_input<decl::Float>(N_("Adaptivity")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>(N_("Mesh"));
+      .description("Values larger than the threshold are inside the generated mesh");
+  b.add_input<decl::Float>("Adaptivity").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -71,12 +71,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
   bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
   bke::nodeSetSocketAvailability(ntree,
-                            voxel_amount_socket,
-                            storage.resolution_mode ==
-                                VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT);
+                                 voxel_amount_socket,
+                                 storage.resolution_mode ==
+                                     VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT);
   bke::nodeSetSocketAvailability(ntree,
-                            voxel_size_socket,
-                            storage.resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE);
+                                 voxel_size_socket,
+                                 storage.resolution_mode ==
+                                     VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE);
 }
 
 #ifdef WITH_OPENVDB

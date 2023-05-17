@@ -402,6 +402,7 @@ DefNode(GeometryNode, GEO_NODE_SAMPLE_INDEX, def_geo_sample_index, "SAMPLE_INDEX
 DefNode(GeometryNode, GEO_NODE_SAMPLE_NEAREST_SURFACE, def_geo_sample_nearest_surface, "SAMPLE_NEAREST_SURFACE", SampleNearestSurface, "Sample Nearest Surface", "Calculate the interpolated value of a mesh attribute on the closest point of its surface")
 DefNode(GeometryNode, GEO_NODE_SAMPLE_NEAREST, def_geo_sample_nearest, "SAMPLE_NEAREST", SampleNearest, "Sample Nearest", "Find the element of a geometry closest to a position. Similar to the \"Index of Nearest\" node")
 DefNode(GeometryNode, GEO_NODE_SAMPLE_UV_SURFACE, def_geo_sample_uv_surface, "SAMPLE_UV_SURFACE", SampleUVSurface, "Sample UV Surface", "Calculate the interpolated values of a mesh attribute at a UV coordinate")
+DefNode(GeometryNode, GEO_NODE_SAMPLE_VOLUME, def_geo_sample_volume, "SAMPLE_VOLUME", SampleVolume, "Sample Volume", "Calculate the interpolated values of a Volume grid at the specified position")
 DefNode(GeometryNode, GEO_NODE_SCALE_ELEMENTS, def_geo_scale_elements, "SCALE_ELEMENTS", ScaleElements, "Scale Elements", "Scale groups of connected edges and faces")
 DefNode(GeometryNode, GEO_NODE_SCALE_INSTANCES, 0, "SCALE_INSTANCES", ScaleInstances, "Scale Instances", "Scale geometry instances in local or global space")
 DefNode(GeometryNode, GEO_NODE_SDF_VOLUME_SPHERE, 0, "SDF_VOLUME_SPHERE", SDFVolumeSphere, "SDF Volume Sphere", "Generate an SDF Volume Sphere")

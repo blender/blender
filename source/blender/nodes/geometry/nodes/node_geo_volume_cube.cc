@@ -22,35 +22,33 @@ namespace blender::nodes::node_geo_volume_cube_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Density"))
-      .description(N_("Volume density per voxel"))
+  b.add_input<decl::Float>("Density")
+      .description("Volume density per voxel")
       .supports_field()
       .default_value(1.0f);
-  b.add_input<decl::Float>(N_("Background"))
-      .description(N_("Value for voxels outside of the cube"));
+  b.add_input<decl::Float>("Background").description("Value for voxels outside of the cube");
 
-  b.add_input<decl::Vector>(N_("Min"))
-      .description(N_("Minimum boundary of volume"))
+  b.add_input<decl::Vector>("Min")
+      .description("Minimum boundary of volume")
       .default_value(float3(-1.0f));
-  b.add_input<decl::Vector>(N_("Max"))
-      .description(N_("Maximum boundary of volume"))
+  b.add_input<decl::Vector>("Max")
+      .description("Maximum boundary of volume")
       .default_value(float3(1.0f));
 
-  b.add_input<decl::Int>(N_("Resolution X"))
-      .description(N_("Number of voxels in the X axis"))
+  b.add_input<decl::Int>("Resolution X")
+      .description("Number of voxels in the X axis")
       .default_value(32)
       .min(2);
-  b.add_input<decl::Int>(N_("Resolution Y"))
-      .description(N_("Number of voxels in the Y axis"))
+  b.add_input<decl::Int>("Resolution Y")
+      .description("Number of voxels in the Y axis")
       .default_value(32)
       .min(2);
-  b.add_input<decl::Int>(N_("Resolution Z"))
-      .description(N_("Number of voxels in the Z axis"))
+  b.add_input<decl::Int>("Resolution Z")
+      .description("Number of voxels in the Z axis")
       .default_value(32)
       .min(2);
 
-  b.add_output<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static float map(const float x,

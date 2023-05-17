@@ -39,8 +39,6 @@ bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree);
 
 void ntreeFreeLocalNode(bNodeTree *ntree, bNode *node);
 
-bNode *ntreeFindType(bNodeTree *ntree, int type);
-
 void ntreeUpdateAllNew(Main *main);
 
 void ntreeNodeFlagSet(const bNodeTree *ntree, int flag, bool enable);
@@ -215,44 +213,38 @@ void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userd
  * A dangling reroute node is a reroute node that does *not* have a "data source", i.e. no
  * non-reroute node is connected to its input.
  */
-bool nodeIsDanglingReroute(const struct bNodeTree *ntree, const struct bNode *node);
+bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node);
 
-struct bNodeLink *nodeFindLink(struct bNodeTree *ntree,
-                               const struct bNodeSocket *from,
-                               const struct bNodeSocket *to);
-
-struct bNode *nodeGetActivePaintCanvas(struct bNodeTree *ntree);
+bNode *nodeGetActivePaintCanvas(bNodeTree *ntree);
 
 /**
  * \brief Does the given node supports the sub active flag.
  *
  * \param sub_active: The active flag to check. #NODE_ACTIVE_TEXTURE / #NODE_ACTIVE_PAINT_CANVAS.
  */
-bool nodeSupportsActiveFlag(const struct bNode *node, int sub_active);
+bool nodeSupportsActiveFlag(const bNode *node, int sub_active);
 
-void nodeSetSocketAvailability(struct bNodeTree *ntree,
-                               struct bNodeSocket *sock,
-                               bool is_available);
+void nodeSetSocketAvailability(bNodeTree *ntree, bNodeSocket *sock, bool is_available);
 
 /**
  * If the node implements a `declare` function, this function makes sure that `node->declaration`
  * is up to date. It is expected that the sockets of the node are up to date already.
  */
-bool nodeDeclarationEnsure(struct bNodeTree *ntree, struct bNode *node);
+bool nodeDeclarationEnsure(bNodeTree *ntree, bNode *node);
 
 /**
  * Just update `node->declaration` if necessary. This can also be called on nodes that may not be
  * up to date (e.g. because the need versioning or are dynamic).
  */
-bool nodeDeclarationEnsureOnOutdatedNode(struct bNodeTree *ntree, struct bNode *node);
+bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *ntree, bNode *node);
 
 /**
  * Update `socket->declaration` for all sockets in the node. This assumes that the node declaration
  * and sockets are up to date already.
  */
-void nodeSocketDeclarationsUpdate(struct bNode *node);
+void nodeSocketDeclarationsUpdate(bNode *node);
 
-typedef GHashIterator bNodeInstanceHashIterator;
+using bNodeInstanceHashIterator = GHashIterator;
 
 BLI_INLINE bNodeInstanceHashIterator *node_instance_hash_iterator_new(bNodeInstanceHash *hash)
 {
@@ -316,6 +308,7 @@ void node_preview_merge_tree(bNodeTree *to_ntree, bNodeTree *from_ntree, bool re
 /* -------------------------------------------------------------------- */
 /** \name Node Type Access
  * \{ */
+
 void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
 
 /**
@@ -347,7 +340,7 @@ void node_type_size_preset(bNodeType *ntype, eNodeSizePreset size);
 /** \name Node Generic Functions
  * \{ */
 
-bool node_is_connected_to_output(const struct bNodeTree *ntree, const struct bNode *node);
+bool node_is_connected_to_output(const bNodeTree *ntree, const bNode *node);
 
 bNodeSocket *node_find_enabled_socket(bNode &node, eNodeSocketInOut in_out, StringRef name);
 

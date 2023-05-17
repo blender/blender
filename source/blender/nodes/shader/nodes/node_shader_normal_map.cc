@@ -15,9 +15,9 @@ namespace blender::nodes::node_shader_normal_map_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Strength")).default_value(1.0f).min(0.0f).max(10.0f);
-  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 1.0f, 1.0f});
-  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_input<decl::Float>("Strength").default_value(1.0f).min(0.0f).max(10.0f);
+  b.add_input<decl::Color>("Color").default_value({0.5f, 0.5f, 1.0f, 1.0f});
+  b.add_output<decl::Vector>("Normal");
 }
 
 static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)

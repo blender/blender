@@ -18,40 +18,39 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curves"))
-      .only_realized_data()
-      .supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curves").only_realized_data().supported_type(
+      GEO_COMPONENT_TYPE_CURVE);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
 
-  b.add_input<decl::Float>(N_("Factor"))
+  b.add_input<decl::Float>("Factor")
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; });
-  b.add_input<decl::Float>(N_("Length"))
+  b.add_input<decl::Float>("Length")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; });
-  b.add_input<decl::Int>(N_("Curve Index")).field_on_all().make_available([](bNode &node) {
+  b.add_input<decl::Int>("Curve Index").field_on_all().make_available([](bNode &node) {
     node_storage(node).use_all_curves = false;
   });
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Position")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Tangent")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Normal")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Position").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Tangent").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Normal").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

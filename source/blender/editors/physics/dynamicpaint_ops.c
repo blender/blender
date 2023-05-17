@@ -200,6 +200,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
                       MOD_DYNAMICPAINT_TYPE_CANVAS,
                       "Type",
                       "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SIMULATION);
   ot->prop = prop;
 }
 

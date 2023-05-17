@@ -335,7 +335,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 
   if (remove_tmp) {
     if (ret_value == RET_ERROR) {
-      if (BLI_rename(filepath_temp, filepath) != 0) {
+      if (BLI_rename_overwrite(filepath_temp, filepath) != 0) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Error restoring temp file (check files '%s' '%s')",

@@ -578,7 +578,8 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   branchIterData iter_data;
   iter_data.node_filter = node_filter;
   iter_data.node_count = 1;
-  blender::bke::nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
+  blender::bke::nodeChainIterBackwards(
+      ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
   /* Make a full copy of the branch */
   Array<bNode *> nodes_copy(iter_data.node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -721,7 +722,8 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   /* Tag nodes from the weight tree. Only tag output node and mix/add shader nodes. */
   output_node->runtime->tmp_flag = 0;
   int node_count = 1;
-  blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
+  blender::bke::nodeChainIterBackwards(
+      ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
   /* Make a mirror copy of the weight tree. */
   Array<bNode *> nodes_copy(node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -984,7 +986,8 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   /* First gather the shader_to_rgba nodes linked to the output. This is separate to avoid
    * conflicting usage of the `node->runtime->tmp_flag`. */
   Vector<bNode *> shader_to_rgba_nodes;
-  blender::bke::nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
+  blender::bke::nodeChainIterBackwards(
+      ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
 
   for (bNode *shader_to_rgba : shader_to_rgba_nodes) {
     bNodeSocket *closure_input = ntree_shader_node_input_get(shader_to_rgba, 0);

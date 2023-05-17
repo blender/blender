@@ -8,3 +8,5 @@ Local modifications:
 * Added special definitions of HAVE_SNPRINTF and HAVE_LIB_GFLAGS
   in Windows' specific config.h.
 * Silenced syscall deprecation warnings on macOS >= 10.12.
+* Usage of syscall() is not allowed and use getthrid() to
+  retreive the thread ID on OpenBSD

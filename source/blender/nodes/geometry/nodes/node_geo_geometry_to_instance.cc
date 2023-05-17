@@ -8,8 +8,8 @@ namespace blender::nodes::node_geo_geometry_to_instance_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry")).multi_input();
-  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
+  b.add_input<decl::Geometry>("Geometry").multi_input();
+  b.add_output<decl::Geometry>("Instances").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

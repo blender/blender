@@ -11,7 +11,7 @@ namespace blender::nodes::node_shader_value_cc {
 
 static void sh_node_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Value"));
+  b.add_output<decl::Float>("Value");
 }
 
 static int gpu_shader_value(GPUMaterial *mat,

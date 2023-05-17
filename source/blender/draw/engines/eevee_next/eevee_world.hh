@@ -53,8 +53,13 @@ class World {
   /* Used to detect if world change. */
   ::World *prev_original_world = nullptr;
 
+  /* Used when the scene doesn't have a world. */
+  ::World *default_world_ = nullptr;
+  ::World *default_world_get();
+
  public:
   World(Instance &inst) : inst_(inst){};
+  ~World();
 
   void sync();
 };

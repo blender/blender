@@ -7,34 +7,34 @@ namespace blender::nodes::node_shader_eevee_specular_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Base Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>(N_("Specular")).default_value({0.03f, 0.03f, 0.03f, 1.0f});
-  b.add_input<decl::Float>(N_("Roughness"))
+  b.add_input<decl::Color>("Base Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Specular").default_value({0.03f, 0.03f, 0.03f, 1.0f});
+  b.add_input<decl::Float>("Roughness")
       .default_value(0.2f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Emissive Color")).default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Transparency"))
+  b.add_input<decl::Color>("Emissive Color").default_value({0.0f, 0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Float>("Transparency")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Normal")).hide_value();
-  b.add_input<decl::Float>(N_("Clear Coat"))
+  b.add_input<decl::Vector>("Normal").hide_value();
+  b.add_input<decl::Float>("Clear Coat")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Clear Coat Roughness"))
+  b.add_input<decl::Float>("Clear Coat Roughness")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Clear Coat Normal")).hide_value();
-  b.add_input<decl::Float>(N_("Ambient Occlusion")).hide_value();
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("BSDF"));
+  b.add_input<decl::Vector>("Clear Coat Normal").hide_value();
+  b.add_input<decl::Float>("Ambient Occlusion").hide_value();
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("BSDF");
 }
 
 #define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))

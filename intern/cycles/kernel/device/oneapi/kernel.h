@@ -32,6 +32,8 @@ struct KernelContext {
   SyclQueue *queue;
   /* Pointer to USM device memory with all global/constant allocation on this device */
   void *kernel_globals;
+  /* We needs this additional data for some kernels. */
+  int scene_max_shaders;
 };
 
 /* Use extern C linking so that the symbols can be easily load from the dynamic library at runtime.

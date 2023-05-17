@@ -26,28 +26,25 @@ NODE_STORAGE_FUNCS(NodeGeometryStringToCurves)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>(N_("String"));
-  b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Character Spacing")).default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>(N_("Word Spacing")).default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>(N_("Line Spacing")).default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>(N_("Text Box Width"))
-      .default_value(0.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Text Box Height"))
+  b.add_input<decl::String>("String");
+  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Character Spacing").default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f);
+  b.add_input<decl::Float>("Text Box Width").default_value(0.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Float>("Text Box Height")
       .default_value(0.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .make_available([](bNode &node) {
         node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
       });
-  b.add_output<decl::Geometry>(N_("Curve Instances"));
-  b.add_output<decl::String>(N_("Remainder")).make_available([](bNode &node) {
+  b.add_output<decl::Geometry>("Curve Instances");
+  b.add_output<decl::String>("Remainder").make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
-  b.add_output<decl::Int>(N_("Line")).field_on_all();
-  b.add_output<decl::Vector>(N_("Pivot Point")).field_on_all();
+  b.add_output<decl::Int>("Line").field_on_all();
+  b.add_output<decl::Vector>("Pivot Point").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)

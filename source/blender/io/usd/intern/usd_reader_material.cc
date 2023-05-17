@@ -84,6 +84,29 @@ static const char *temp_textures_dir()
   return temp_dir;
 }
 
+using blender::io::usd::ShaderToNodeMap;
+
+/* Returns the Blender node previously cached for
+ * the given USD shader in the given map.  Returns
+ * null if no cached shader was found. */
+static bNode *get_cached_node(const ShaderToNodeMap &node_cache,
+                              const pxr::UsdShadeShader &usd_shader)
+{
+  if (bNode *const *node_ptr = node_cache.lookup_ptr(usd_shader.GetPath().GetAsString())) {
+    return *node_ptr;
+  }
+  return nullptr;
+}
+
+/* Cache the Blender node translated from the given USD shader
+ * in the given map. */
+static void cache_node(ShaderToNodeMap &node_cache,
+                       const pxr::UsdShadeShader &usd_shader,
+                       bNode *node)
+{
+  node_cache.add(usd_shader.GetPath().GetAsString(), node);
+}
+
 /* Add a node of the given type at the given location coordinates. */
 static bNode *add_node(
     const bContext *C, bNodeTree *ntree, const int type, const float locx, const float locy)
@@ -374,7 +397,8 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
    * and output shaders. */
 
   /* Add the node tree. */
-  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
+  bNodeTree *ntree = blender::bke::ntreeAddTreeEmbedded(
+      nullptr, &mtl->id, "Shader Nodetree", "ShaderNodeTree");
   mtl->use_nodes = true;
 
   /* Create the Principled BSDF shader node. */
@@ -626,21 +650,28 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
     return;
   }
 
-  float locx = 0.0f;
-  float locy = 0.0f;
-  compute_node_loc(column, &locx, &locy, r_ctx);
+  bNode *tex_image = get_cached_node(r_ctx->node_cache, usd_shader);
 
-  /* Create the Texture Image node. */
-  bNode *tex_image = add_node(nullptr, ntree, SH_NODE_TEX_IMAGE, locx, locy);
+  if (tex_image == nullptr) {
+    float locx = 0.0f;
+    float locy = 0.0f;
+    compute_node_loc(column, &locx, &locy, r_ctx);
 
-  if (!tex_image) {
-    std::cerr << "ERROR: Couldn't create SH_NODE_TEX_IMAGE for node input " << dest_socket_name
-              << std::endl;
-    return;
+    /* Create the Texture Image node. */
+    tex_image = add_node(nullptr, ntree, SH_NODE_TEX_IMAGE, locx, locy);
+
+    if (!tex_image) {
+      std::cerr << "ERROR: Couldn't create SH_NODE_TEX_IMAGE for node input " << dest_socket_name
+                << std::endl;
+      return;
+    }
+
+    /* Cache newly created node. */
+    cache_node(r_ctx->node_cache, usd_shader, tex_image);
+
+    /* Load the texture image. */
+    load_tex_image(usd_shader, tex_image);
   }
-
-  /* Load the texture image. */
-  load_tex_image(usd_shader, tex_image);
 
   /* Connect to destination node input. */
 
@@ -778,45 +809,52 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
     return;
   }
 
-  float locx = 0.0f;
-  float locy = 0.0f;
-  compute_node_loc(column, &locx, &locy, r_ctx);
+  bNode *uv_map = get_cached_node(r_ctx->node_cache, usd_shader);
 
-  /* Create the UV Map node. */
-  bNode *uv_map = add_node(nullptr, ntree, SH_NODE_UVMAP, locx, locy);
+  if (uv_map == nullptr) {
+    float locx = 0.0f;
+    float locy = 0.0f;
+    compute_node_loc(column, &locx, &locy, r_ctx);
 
-  if (!uv_map) {
-    std::cerr << "ERROR: Couldn't create SH_NODE_UVMAP for node input " << dest_socket_name
-              << std::endl;
-    return;
-  }
+    /* Create the UV Map node. */
+    uv_map = add_node(nullptr, ntree, SH_NODE_UVMAP, locx, locy);
 
-  /* Set the texmap name. */
-  pxr::UsdShadeInput varname_input = usd_shader.GetInput(usdtokens::varname);
+    if (!uv_map) {
+      std::cerr << "ERROR: Couldn't create SH_NODE_UVMAP for node input " << dest_socket_name
+                << std::endl;
+      return;
+    }
 
-  /* First check if the shader's "varname" input is connected to another source,
-   * and use that instead if so. */
-  if (varname_input) {
-    for (const pxr::UsdShadeConnectionSourceInfo &source_info :
-         varname_input.GetConnectedSources()) {
-      pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
-      pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
-      if (secondary_varname_input) {
-        varname_input = secondary_varname_input;
-        break;
+    /* Cache newly created node. */
+    cache_node(r_ctx->node_cache, usd_shader, uv_map);
+
+    /* Set the texmap name. */
+    pxr::UsdShadeInput varname_input = usd_shader.GetInput(usdtokens::varname);
+
+    /* First check if the shader's "varname" input is connected to another source,
+     * and use that instead if so. */
+    if (varname_input) {
+      for (const pxr::UsdShadeConnectionSourceInfo &source_info :
+           varname_input.GetConnectedSources()) {
+        pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
+        pxr::UsdShadeInput secondary_varname_input = shader.GetInput(source_info.sourceName);
+        if (secondary_varname_input) {
+          varname_input = secondary_varname_input;
+          break;
+        }
       }
     }
-  }
 
-  if (varname_input) {
-    pxr::VtValue varname_val;
-    /* The varname input may be a string or TfToken, so just cast it to a string.
-     * The Cast function is defined to provide an empty result if it fails. */
-    if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
-      std::string varname = varname_val.Cast<std::string>().Get<std::string>();
-      if (!varname.empty()) {
-        NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
-        BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
+    if (varname_input) {
+      pxr::VtValue varname_val;
+      /* The varname input may be a string or TfToken, so just cast it to a string.
+       * The Cast function is defined to provide an empty result if it fails. */
+      if (varname_input.Get(&varname_val) && varname_val.CanCastToTypeid(typeid(std::string))) {
+        std::string varname = varname_val.Cast<std::string>().Get<std::string>();
+        if (!varname.empty()) {
+          NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
+          BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
+        }
       }
     }
   }

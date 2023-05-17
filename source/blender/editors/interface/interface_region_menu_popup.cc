@@ -191,8 +191,15 @@ static void ui_popup_menu_create_block(bContext *C,
   if (!pup->but) {
     pup->block->flag |= UI_BLOCK_NO_FLIP;
   }
+  /* A title is only provided when a Menu has a label, this is not alwas the case, see e.g.
+   * `VIEW3D_MT_edit_mesh_context_menu` -- this specifies its own label inside the draw function
+   * depending on vertex/edge/face mode. We still want to flag the uiBlock (but only insert into
+   * the puphash if we have a title provided). Choosing an entry in a menu will still handle
+   * puphash later (see `button_activate_exit`) though multiple menus without a label might fight
+   * for the same storage of the menu memory. Using idname instead (or in combination with the
+   * label) for the hash could be looked at to solve this. */
+  pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
   if (title && title[0]) {
-    pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
     pup->block->puphash = ui_popup_menu_hash(title);
   }
   pup->layout = UI_block_layout(

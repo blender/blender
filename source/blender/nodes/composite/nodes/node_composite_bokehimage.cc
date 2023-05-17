@@ -26,7 +26,7 @@ NODE_STORAGE_FUNCS(NodeBokehImage)
 
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_bokehimage(bNodeTree * /*ntree*/, bNode *node)

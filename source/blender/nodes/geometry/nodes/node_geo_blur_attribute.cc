@@ -29,19 +29,19 @@ namespace blender::nodes::node_geo_blur_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Value"), "Value_Float")
+  b.add_input<decl::Float>("Value", "Value_Float")
       .supports_field()
       .hide_value()
       .is_default_link_socket();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int")
+  b.add_input<decl::Int>("Value", "Value_Int")
       .supports_field()
       .hide_value()
       .is_default_link_socket();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector")
+  b.add_input<decl::Vector>("Value", "Value_Vector")
       .supports_field()
       .hide_value()
       .is_default_link_socket();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color")
+  b.add_input<decl::Color>("Value", "Value_Color")
       .supports_field()
       .hide_value()
       .is_default_link_socket();
@@ -49,25 +49,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Iterations")
       .default_value(1)
       .min(0)
-      .description(N_("How many times to blur the values for all elements"));
+      .description("How many times to blur the values for all elements");
   b.add_input<decl::Float>("Weight")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
       .supports_field()
-      .description(N_("Relative mix weight of neighboring elements"));
+      .description("Relative mix weight of neighboring elements");
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float")
+  b.add_output<decl::Float>("Value", "Value_Float").field_source_reference_all().dependent_field();
+  b.add_output<decl::Int>("Value", "Value_Int").field_source_reference_all().dependent_field();
+  b.add_output<decl::Vector>("Value", "Value_Vector")
       .field_source_reference_all()
       .dependent_field();
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").field_source_reference_all().dependent_field();
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector")
-      .field_source_reference_all()
-      .dependent_field();
-  b.add_output<decl::Color>(N_("Value"), "Value_Color")
-      .field_source_reference_all()
-      .dependent_field();
+  b.add_output<decl::Color>("Value", "Value_Color").field_source_reference_all().dependent_field();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

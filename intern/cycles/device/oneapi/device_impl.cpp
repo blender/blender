@@ -262,6 +262,11 @@ string OneapiDevice::oneapi_error_message()
   return string(oneapi_error_string_);
 }
 
+int OneapiDevice::scene_max_shaders()
+{
+  return scene_max_shaders_;
+}
+
 void *OneapiDevice::kernel_globals_device_pointer()
 {
   return kg_memory_device_;
@@ -436,6 +441,9 @@ void OneapiDevice::const_copy_to(const char *name, void *host, size_t size)
     /* Update scene handle(since it is different for each device on multi devices) */
     KernelData *const data = (KernelData *)host;
     data->device_bvh = embree_scene;
+
+    /* We need this number later for proper local memory allocation. */
+    scene_max_shaders_ = data->max_shaders;
   }
 #  endif
 

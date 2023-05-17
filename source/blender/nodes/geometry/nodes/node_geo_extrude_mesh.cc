@@ -25,18 +25,18 @@ NODE_STORAGE_FUNCS(NodeGeometryExtrudeMesh)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Vector>(N_("Offset"))
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Vector>("Offset")
       .subtype(PROP_TRANSLATION)
       .implicit_field_on_all(implicit_field_inputs::normal)
       .hide_value();
-  b.add_input<decl::Float>(N_("Offset Scale")).default_value(1.0f).field_on_all();
-  b.add_input<decl::Bool>(N_("Individual")).default_value(true).make_available([](bNode &node) {
+  b.add_input<decl::Float>("Offset Scale").default_value(1.0f).field_on_all();
+  b.add_input<decl::Bool>("Individual").default_value(true).make_available([](bNode &node) {
     node_storage(node).mode = GEO_NODE_EXTRUDE_MESH_FACES;
   });
   b.add_output<decl::Geometry>("Mesh").propagate_all();
-  b.add_output<decl::Bool>(N_("Top")).field_on_all();
-  b.add_output<decl::Bool>(N_("Side")).field_on_all();
+  b.add_output<decl::Bool>("Top").field_on_all();
+  b.add_output<decl::Bool>("Side").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

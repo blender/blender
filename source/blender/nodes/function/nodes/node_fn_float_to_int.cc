@@ -18,8 +18,8 @@ namespace blender::nodes::node_fn_float_to_int_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Float"));
-  b.add_output<decl::Int>(N_("Integer"));
+  b.add_input<decl::Float>("Float");
+  b.add_output<decl::Int>("Integer");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

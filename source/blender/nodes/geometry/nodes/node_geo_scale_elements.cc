@@ -21,20 +21,21 @@ namespace blender::nodes::node_geo_scale_elements_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).field_on_all();
-  b.add_input<decl::Vector>(N_("Center"))
+  b.add_input<decl::Geometry>("Geometry").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>("Scale", "Scale").default_value(1.0f).min(0.0f).field_on_all();
+  b.add_input<decl::Vector>("Center")
       .subtype(PROP_TRANSLATION)
       .implicit_field_on_all(implicit_field_inputs::position)
-      .description(N_("Origin of the scaling for each element. If multiple elements are "
-                      "connected, their center is averaged"));
-  b.add_input<decl::Vector>(N_("Axis"))
+      .description(
+          "Origin of the scaling for each element. If multiple elements are connected, their "
+          "center is averaged");
+  b.add_input<decl::Vector>("Axis")
       .default_value({1.0f, 0.0f, 0.0f})
       .field_on_all()
-      .description(N_("Direction in which to scale the element"))
+      .description("Direction in which to scale the element")
       .make_available([](bNode &node) { node.custom2 = GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS; });
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

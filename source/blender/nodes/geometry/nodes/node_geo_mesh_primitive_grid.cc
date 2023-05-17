@@ -164,28 +164,28 @@ namespace blender::nodes::node_geo_mesh_primitive_grid_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Size X"))
+  b.add_input<decl::Float>("Size X")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Side length of the plane in the X direction"));
-  b.add_input<decl::Float>(N_("Size Y"))
+      .description("Side length of the plane in the X direction");
+  b.add_input<decl::Float>("Size Y")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Side length of the plane in the Y direction"));
-  b.add_input<decl::Int>(N_("Vertices X"))
+      .description("Side length of the plane in the Y direction");
+  b.add_input<decl::Int>("Vertices X")
       .default_value(3)
       .min(2)
       .max(1000)
-      .description(N_("Number of vertices in the X direction"));
-  b.add_input<decl::Int>(N_("Vertices Y"))
+      .description("Number of vertices in the X direction");
+  b.add_input<decl::Int>("Vertices Y")
       .default_value(3)
       .min(2)
       .max(1000)
-      .description(N_("Number of vertices in the Y direction"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
+      .description("Number of vertices in the Y direction");
+  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

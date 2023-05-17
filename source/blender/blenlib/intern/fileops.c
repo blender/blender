@@ -379,6 +379,43 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath)
   return BLI_dir_create_recursive(di);
 }
 
+int BLI_rename(const char *from, const char *to)
+{
+#ifdef WIN32
+  return urename(from, to);
+#else
+  return rename(from, to);
+#endif
+}
+
+int BLI_rename_overwrite(const char *from, const char *to)
+{
+  if (!BLI_exists(from)) {
+    return 1;
+  }
+
+  /* NOTE(@ideasman42): there are no checks that `from` & `to` *aren't* the same file.
+   * It's up to the caller to ensure this. In practice these paths are often generated
+   * and known to be different rather than arbitrary user input.
+   * In the case of arbitrary paths (renaming a file in the file-selector for example),
+   * the caller must ensure file renaming doesn't cause user data loss.
+   *
+   * Support for checking the files aren't the same could be added, however path comparison
+   * alone is *not* a guarantee the files are different (given the possibility of accessing
+   * the same file through different paths via symbolic-links), we could instead support a
+   * verizon of Python's * `os.path.samefile(..)` which compares the I-node & device.
+   * In this particular case we would not want to follow symbolic-links as well.
+   * Since this functionality isn't required at the moment, leave this as-is.
+   * Noting it as a potential improvement. */
+  if (BLI_exists(to)) {
+    if (BLI_delete(to, false, false)) {
+      return 1;
+    }
+  }
+
+  return BLI_rename(from, to);
+}
+
 #ifdef WIN32
 
 static void callLocalErrorCallBack(const char *err)
@@ -690,23 +727,6 @@ int BLI_create_symlink(const char *file, const char *to)
   return 1;
 }
 #  endif
-
-/** \return true on success (i.e. given path now exists on FS), false otherwise. */
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 0;
-  }
-
-  /* Make sure `from` & `to` are different (case insensitive) before removing. */
-  if (BLI_exists(to) && BLI_strcasecmp(from, to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return urename(from, to);
-}
 
 #else /* The UNIX world */
 
@@ -1322,20 +1342,5 @@ int BLI_create_symlink(const char *file, const char *to)
   return symlink(to, file);
 }
 #  endif
-
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 1;
-  }
-
-  if (BLI_exists(to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return rename(from, to);
-}
 
 #endif

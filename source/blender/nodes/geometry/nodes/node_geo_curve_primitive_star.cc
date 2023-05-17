@@ -8,29 +8,29 @@ namespace blender::nodes::node_geo_curve_primitive_star_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Points"))
+  b.add_input<decl::Int>("Points")
       .default_value(8)
       .min(3)
       .max(256)
       .subtype(PROP_UNSIGNED)
-      .description(N_("Number of points on each of the circles"));
-  b.add_input<decl::Float>(N_("Inner Radius"))
+      .description("Number of points on each of the circles");
+  b.add_input<decl::Float>("Inner Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Radius of the inner circle; can be larger than outer radius"));
-  b.add_input<decl::Float>(N_("Outer Radius"))
+      .description("Radius of the inner circle; can be larger than outer radius");
+  b.add_input<decl::Float>("Outer Radius")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Radius of the outer circle; can be smaller than inner radius"));
-  b.add_input<decl::Float>(N_("Twist"))
+      .description("Radius of the outer circle; can be smaller than inner radius");
+  b.add_input<decl::Float>("Twist")
       .subtype(PROP_ANGLE)
-      .description(N_("The counterclockwise rotation of the inner set of points"));
-  b.add_output<decl::Geometry>(N_("Curve"));
-  b.add_output<decl::Bool>(N_("Outer Points"))
+      .description("The counterclockwise rotation of the inner set of points");
+  b.add_output<decl::Geometry>("Curve");
+  b.add_output<decl::Bool>("Outer Points")
       .field_on_all()
-      .description(N_("An attribute field with a selection of the outer points"));
+      .description("An attribute field with a selection of the outer points");
 }
 
 static Curves *create_star_curve(const float inner_radius,

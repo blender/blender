@@ -20,14 +20,14 @@ else()
     # Choose the best suitable libraries.
     if(EXISTS ${LIBDIR_NATIVE_ABI})
       set(LIBDIR ${LIBDIR_NATIVE_ABI})
-      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND TRUE)
     elseif(EXISTS ${LIBDIR_GLIBC228_ABI})
       set(LIBDIR ${LIBDIR_GLIBC228_ABI})
       if(WITH_MEM_JEMALLOC)
         # jemalloc provides malloc hooks.
-        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND FALSE)
       else()
-        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+        set(WITH_LIBC_MALLOC_HOOK_WORKAROUND TRUE)
       endif()
     endif()
 
