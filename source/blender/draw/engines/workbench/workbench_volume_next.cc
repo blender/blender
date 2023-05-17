@@ -66,9 +66,8 @@ void VolumePass::object_sync_volume(Manager &manager,
         manager, sub_ps, ob_ref, volume->display.slice_axis, volume->display.slice_depth);
   }
   else {
-    float3 world_size;
     float4x4 texture_to_world = float4x4(ob->object_to_world) * float4x4(grid->texture_to_object);
-    math::normalize_and_get_size(float3x3(texture_to_world), world_size);
+    float3 world_size = math::to_scale(texture_to_world);
 
     int3 resolution;
     GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
