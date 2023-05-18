@@ -68,7 +68,7 @@ LANGUAGES = (
     (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR"),
     # Using the utf8 flipped form of Hebrew (עִבְרִית)).
     (33, "Hebrew (תירִבְעִ)", "he_IL"),
-    (34, "Estonian (Eestlane)", "et_EE"),
+    (34, "Estonian (Eesti keel)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
     (36, "Spanish from Spain (Español de España)", "es_ES"),
     (37, "Amharic (አማርኛ)", "am_ET"),
