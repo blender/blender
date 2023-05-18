@@ -4260,6 +4260,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
   if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "float", "sharp_angle_limit")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings) {
@@ -4275,6 +4276,17 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       brush->sharp_angle_limit = (DNA_struct_default_get(Brush))->sharp_angle_limit;
+    }
+  }
+
+  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings) {
+        continue;
+      }
+
+      scene->toolsettings->unified_paint_settings.smooth_boundary_flag =
+          (DNA_struct_default_get(UnifiedPaintSettings))->smooth_boundary_flag;
     }
   }
 
@@ -4382,8 +4394,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    /* Use `SEQ_SINGLE_FRAME_CONTENT` flag instead of weird function to check if strip has multiple
-     * frames. */
+    /* Use `SEQ_SINGLE_FRAME_CONTENT` flag instead of weird function to check if strip has
+     * multiple frames. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = SEQ_editing_get(scene);
       if (ed != nullptr) {
@@ -4416,14 +4428,15 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 306, 5)) {
-    /* Some regions used to be added/removed dynamically. Ensure they are always there, there is a
-     * `ARegionType.poll()` now. */
+    /* Some regions used to be added/removed dynamically. Ensure they are always there, there is
+     * a `ARegionType.poll()` now. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           version_ensure_missing_regions(area, sl);
 
-          /* Ensure expected region state. Previously this was modified to hide/unhide regions. */
+          /* Ensure expected region state. Previously this was modified to hide/unhide regions.
+           */
 
           const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                        &sl->regionbase;

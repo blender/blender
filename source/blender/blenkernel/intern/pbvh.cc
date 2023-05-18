@@ -4283,7 +4283,7 @@ void update_vert_boundary_faces(int *boundary_flags,
   int *boundary_flag = boundary_flags + vertex.i;
   *boundary_flag = 0;
 
-  int totsharp = 0, totseam = 0;
+  int totsharp = 0, totseam = 0, totsharp_angle = 0;
   int visible = false;
 
   for (int i = 0; i < vert_map->count; i++) {

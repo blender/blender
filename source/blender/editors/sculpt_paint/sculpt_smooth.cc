@@ -101,6 +101,11 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
 
+  if (ss->bm) {
+    BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+    BM_vert_select_set(ss->bm, v, is_corner & SCULPT_CORNER_SHARP_ANGLE);
+  }
+
   float *areas = nullptr;
   float3 no, co;
   SCULPT_vertex_normal_get(ss, vertex, no);
@@ -127,9 +132,8 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
     }
     const eSculptBoundary smooth_types = !ss->hard_edge_mode ?
-                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
-                                                 SCULPT_BOUNDARY_UV :
-                                             SCULPT_BOUNDARY_UV;
+                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_UV :
+                                             SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_SEAM;
 
     /* Boundary vertices use only other boundary vertices. */
     if (is_boundary) {
@@ -181,12 +185,15 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float hard_corner_pin,
                                              bool use_area_weights)
 {
-  eSculptBoundary bound_type = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET |
-                               SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP_MARK;
-  eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP_MARK;
+  eSculptBoundary bound_type = ss->smooth_boundary_flag;
+  eSculptCorner corner_type;
 
-  if (ss->hard_edge_mode) {
-    corner_type |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
+  corner_type = eSculptCorner(int(bound_type & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP_MARK |
+                                                SCULPT_BOUNDARY_SHARP_ANGLE))
+                              << SCULPT_CORNER_BIT_SHIFT);
+
+  if (ss->hard_edge_mode && ss->smooth_boundary_flag & SCULPT_BOUNDARY_FACE_SET) {
+    corner_type |= SCULPT_CORNER_FACE_SET;
   }
 
   SCULPT_neighbor_coords_average_interior_ex(

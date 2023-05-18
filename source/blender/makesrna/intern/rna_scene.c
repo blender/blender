@@ -14,6 +14,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_scene_enums.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h" /* TransformOrientation */
 #include "DNA_userdef_types.h"
@@ -4003,6 +4004,42 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_ui_text(
       prop, "Hard Edge Mode", "Hard edge mode; treat all face set boundaries as hard edges");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_mesh", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_MESH);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Mesh", "Open mesh boundaries (holes in the mesh).");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_seam", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_SEAM);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Seam", "Seam edges");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_sharp_mark", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_SHARP_MARK);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Marked Sharp", "Edges marked as sharp");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_sharp_angle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_SHARP_ANGLE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Sharp By Angle", "Edges whose face angle exceeds a limit");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_face_set", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_FACE_SET);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Face Sets", "Face set boundaries");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "smooth_boundary_uv", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "smooth_boundary_flag", SCULPT_BOUNDARY_UV);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "UV", "UV island boundaries");
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 }
 

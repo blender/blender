@@ -1381,8 +1381,9 @@ typedef struct UnifiedPaintSettings {
 
   float hard_corner_pin;
   float sharp_angle_limit;
-  char _pad[7];
+  char _pad[3];
   char hard_edge_mode;
+  int smooth_boundary_flag;
 
   float start_pixel_radius;
 

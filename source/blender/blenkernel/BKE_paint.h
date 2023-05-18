@@ -17,6 +17,7 @@
 #include "DNA_brush_enums.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
+#include "DNA_scene_enums.h"
 
 #include "BKE_attribute.h"
 #include "BKE_pbvh.h"
@@ -1005,40 +1006,11 @@ struct SculptSession {
   bool hard_edge_mode;
   DynTopoSettings cached_dyntopo;
   float sharp_angle_limit;
+  eSculptBoundary smooth_boundary_flag;
 };
 #else
 struct SculptSession;
 #endif
-
-typedef enum eSculptBoundary {
-  SCULPT_BOUNDARY_NONE = 0,
-  SCULPT_BOUNDARY_MESH = 1 << 0,
-  SCULPT_BOUNDARY_FACE_SET = 1 << 1,
-  SCULPT_BOUNDARY_SEAM = 1 << 2,
-  SCULPT_BOUNDARY_SHARP_MARK = 1 << 3,  /* Edges marked as sharp. */
-  SCULPT_BOUNDARY_SHARP_ANGLE = 1 << 4, /* Edges whose face angle is above a limit */
-  SCULPT_BOUNDARY_UV = 1 << 5,
-  SCULPT_BOUNDARY_NEEDS_UPDATE = 1 << 6,
-  SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE = 1 << 7,
-
-  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
-  SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
-} eSculptBoundary;
-
-ENUM_OPERATORS(eSculptBoundary, SCULPT_BOUNDARY_NEEDS_UPDATE);
-
-/* Note: This is stored in a single attribute with boundary flags */
-typedef enum eSculptCorner {
-  SCULPT_CORNER_NONE = 0,
-  SCULPT_CORNER_MESH = 1 << 10,
-  SCULPT_CORNER_FACE_SET = 1 << 11,
-  SCULPT_CORNER_SEAM = 1 << 12,
-  SCULPT_CORNER_SHARP_MARK = 1 << 13,
-  SCULPT_CORNER_SHARP_ANGLE = 1 << 14,
-  SCULPT_CORNER_UV = 1 << 15,
-} eSculptCorner;
-
-ENUM_OPERATORS(eSculptCorner, SCULPT_CORNER_UV);
 
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);

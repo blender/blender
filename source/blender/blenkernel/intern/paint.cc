@@ -1794,6 +1794,8 @@ static void sculpt_update_object(
   ss->sharp_angle_limit = (!brush || ups.flag & UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT) ?
                               ups.sharp_angle_limit :
                               brush->sharp_angle_limit;
+  ss->smooth_boundary_flag = eSculptBoundary(ups.smooth_boundary_flag);
+
   ss->depsgraph = depsgraph;
 
   ss->bm_smooth_shading = scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING;
@@ -4082,9 +4084,7 @@ void load_all_original(Object *ob)
 
 }  // namespace blender::bke::paint
 
-ATTR_NO_OPT void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss,
-                                                       PBVHVertRef vertex,
-                                                       bool update_ring)
+void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex, bool update_ring)
 {
   int *flags = blender::bke::paint::vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
   *flags |= SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;

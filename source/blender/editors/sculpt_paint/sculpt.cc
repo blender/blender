@@ -5125,6 +5125,7 @@ static void sculpt_update_cache_invariants(
   int mode;
 
   ss->hard_edge_mode = ups->hard_edge_mode;
+  ss->smooth_boundary_flag = eSculptBoundary(ups->smooth_boundary_flag);
 
   Mesh *me = BKE_object_get_original_mesh(ob);
   BKE_sculptsession_ignore_uvs_set(ob, me->flag & ME_SCULPT_IGNORE_UVS);

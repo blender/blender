@@ -2431,7 +2431,11 @@ void SCULPT_relax_vertex(SculptSession *ss,
   eSculptBoundary bset = boundary_mask;
   bset |= SCULPT_BOUNDARY_FACE_SET;
 
-  if (SCULPT_vertex_is_corner(ss, vd->vertex, (eSculptCorner)bset)) {
+  eSculptCorner corner_mask = eSculptCorner(
+      int(bset & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SHARP_ANGLE))
+      << SCULPT_CORNER_BIT_SHIFT);
+
+  if (SCULPT_vertex_is_corner(ss, vd->vertex, corner_mask)) {
     copy_v3_v3(r_final_pos, vd->co);
     return;
   }

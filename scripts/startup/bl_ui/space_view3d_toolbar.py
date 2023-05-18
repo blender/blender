@@ -1026,6 +1026,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
         brush = sculpt.brush
+        ups = tool_settings.unified_paint_settings
 
         col = layout.column(heading="Display", align=True)
         col.prop(sculpt, "show_low_resolution")
@@ -1033,15 +1034,43 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_deform_only")
         col.prop(tool_settings, "show_origco")
         col.prop(context.object.data, "sculpt_ignore_uvs")
-        col.prop(tool_settings.unified_paint_settings, "hard_edge_mode")
 
+        col.label(text="Smooth Boundaries")
+        col = layout.column(align=True)
+        col.prop(ups, "smooth_boundary_mesh")
+        col.prop(ups, "smooth_boundary_face_set")
+
+        row = col.row()
+        row.enabled = ups.smooth_boundary_face_set
+        row.prop(ups, "hard_edge_mode", text="Sharp Face Sets")
+
+        col.prop(ups, "smooth_boundary_seam")
+        col.prop(ups, "smooth_boundary_sharp_mark")
+        col.prop(ups, "smooth_boundary_sharp_angle")
+
+        row = col.row()
+        row.enabled = ups.smooth_boundary_sharp_angle
         UnifiedPaintPanel.prop_unified(
-            layout,
+            row,
             context,
             tool_settings.unified_paint_settings,
             "sharp_angle_limit",
             unified_name = "use_unified_sharp_angle_limit"
         )
+
+        col.prop(ups, "smooth_boundary_uv")
+        col.separator();
+
+        UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "hard_corner_pin",
+                slider=True,
+                unified_name = "use_unified_hard_corner_pin",
+                text="Corner Pin"
+            )
+      
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
