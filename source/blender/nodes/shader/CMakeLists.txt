@@ -32,7 +32,6 @@ set(SRC
   nodes/node_shader_bevel.cc
   nodes/node_shader_blackbody.cc
   nodes/node_shader_brightness.cc
-  nodes/node_shader_bsdf_anisotropic.cc
   nodes/node_shader_bsdf_diffuse.cc
   nodes/node_shader_bsdf_glass.cc
   nodes/node_shader_bsdf_glossy.cc

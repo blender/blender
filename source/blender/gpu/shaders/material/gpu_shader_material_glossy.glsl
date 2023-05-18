@@ -1,6 +1,13 @@
 
-void node_bsdf_glossy(
-    vec4 color, float roughness, vec3 N, float weight, float do_multiscatter, out Closure result)
+void node_bsdf_glossy(vec4 color,
+                      float roughness,
+                      float anisotropy,
+                      float rotation,
+                      vec3 N,
+                      vec3 T,
+                      float weight,
+                      const float do_multiscatter,
+                      out Closure result)
 {
   N = safe_normalize(N);
   vec3 V = cameraVec(g_data.P);

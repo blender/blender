@@ -1185,6 +1185,9 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     return NULL;
   }
 
+  /* If the given idname is an alias, translate it to the proper idname. */
+  type = nodeTypeFindAlias(type);
+
   ntype = nodeTypeFind(type);
   if (!ntype) {
     BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type);
@@ -4740,11 +4743,6 @@ static const EnumPropertyItem node_ycc_items[] = {
 };
 
 static const EnumPropertyItem node_glossy_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
@@ -4754,28 +4752,10 @@ static const EnumPropertyItem node_glossy_items[] = {
      "Multiscatter GGX",
      "Slower than GGX but gives a more energy conserving results, which would otherwise be "
      "visible as excessive darkening"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem node_anisotropic_items[] = {
-    {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
-    {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
-    {SHD_GLOSSY_MULTI_GGX,
-     "MULTI_GGX",
-     0,
-     "Multiscatter GGX",
-     "Slower than GGX but gives a more energy conserving results, which would otherwise be "
-     "visible as excessive darkening"},
-    {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_glass_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_MULTI_GGX,
@@ -4788,11 +4768,6 @@ static const EnumPropertyItem node_glass_items[] = {
 };
 
 static const EnumPropertyItem node_refraction_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {0, NULL, 0, NULL, NULL},
@@ -6297,17 +6272,6 @@ static void def_refraction(StructRNA *srna)
   prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, node_refraction_items);
-  RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_anisotropic(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
-  RNA_def_property_enum_items(prop, node_anisotropic_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }

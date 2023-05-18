@@ -4086,6 +4086,9 @@ static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
 
   PointerRNA ptr;
   if (srna_base == &RNA_Node) {
+    /* If the given idname is an alias, translate it to the proper idname. */
+    id = nodeTypeFindAlias(id);
+
     bNodeType *nt = nodeTypeFind(id);
     if (nt) {
       RNA_pointer_create(NULL, &RNA_Struct, nt->rna_ext.srna, &ptr);
