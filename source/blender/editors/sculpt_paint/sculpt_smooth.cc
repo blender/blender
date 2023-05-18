@@ -34,6 +34,51 @@
 using blender::float2;
 using blender::float3;
 using blender::Vector;
+float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh);
+
+/* */
+static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
+                                                     float result[3],
+                                                     PBVHVertRef vertex)
+{
+  float detail = BKE_pbvh_bmesh_detail_size_avg_get(ss->pbvh);
+
+  float original_vertex_co[3];
+  copy_v3_v3(original_vertex_co, SCULPT_vertex_co_get(ss, vertex));
+
+  float edge_length_accum = 0;
+  int neighbor_count = 0;
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    edge_length_accum = len_v3v3(original_vertex_co, SCULPT_vertex_co_get(ss, ni.vertex));
+    neighbor_count++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (neighbor_count == 0) {
+    copy_v3_v3(result, original_vertex_co);
+    return;
+  }
+
+  const float edge_length_avg = edge_length_accum / neighbor_count;
+  /* This ensures a common length average for all vertices. The smaller this factor is, the more
+   * uniform smoothing is going to be across different mesh detail areas, but it will make the
+   * smooth brush effect weaker. It can be exposed as a parameter in the future. */
+  const float detail_factor = detail * 0.1f;
+
+  float pos_accum[3] = {0.0f};
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    float disp[3];
+    sub_v3_v3v3(disp, SCULPT_vertex_co_get(ss, ni.vertex), original_vertex_co);
+    const float original_length = normalize_v3(disp);
+    float new_length = min_ff(original_length, detail_factor * original_length / edge_length_avg);
+    float new_co[3];
+    madd_v3_v3v3fl(new_co, original_vertex_co, disp, new_length);
+    add_v3_v3(pos_accum, new_co);
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  mul_v3_v3fl(result, pos_accum, 1.0f / neighbor_count);
+}
 
 static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        float result[3],
@@ -45,6 +90,13 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        eSculptCorner corner_type)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
+
+#if 0
+  if (weighted) {
+    SCULPT_neighbor_coors_average_for_detail(ss, result, vertex);
+    return;
+  }
+#endif
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
@@ -130,8 +182,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              bool use_area_weights)
 {
   eSculptBoundary bound_type = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET |
-                               SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP;
-  eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+                               SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP_MARK;
+  eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP_MARK;
 
   if (ss->hard_edge_mode) {
     corner_type |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
@@ -293,7 +345,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     }
 
     eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
-                            SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
+                            SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
     int bound = SCULPT_edge_is_boundary(ss, BKE_pbvh_make_eref(intptr_t(e)), bflag);
     float dirw = 1.0f;
@@ -361,7 +413,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     copy_v3_v3(avg, co1);
   }
 
-  eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
+  eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP_MARK;
   if (ss->hard_edge_mode) {
     corner_type |= SCULPT_CORNER_FACE_SET;
   }
@@ -418,9 +470,9 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     float hard_corner_pin,
                                     bool weighted)
 {
-  eSculptCorner corner_type = SCULPT_CORNER_SHARP | SCULPT_CORNER_FACE_SET;
-  eSculptBoundary bound_type = SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV |
-                               SCULPT_BOUNDARY_FACE_SET;
+  eSculptCorner corner_type = SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_FACE_SET;
+  eSculptBoundary bound_type = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SEAM |
+                               SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_FACE_SET;
 
   SCULPT_neighbor_coords_average_interior_ex(
       ss, result, vertex, projection, hard_corner_pin, weighted, bound_type, corner_type);
@@ -518,6 +570,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
+    BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -652,6 +705,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       if (vd.is_mesh) {
         BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
+      BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -910,6 +964,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
                                                                 thread_id,
                                                                 &automask_data);
     SCULPT_surface_smooth_displace_step(ss, vd.co, vd.vertex, beta, fade);
+    BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }

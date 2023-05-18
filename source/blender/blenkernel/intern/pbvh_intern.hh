@@ -299,6 +299,7 @@ struct PBVH {
 
   PBVHPixels pixels;
   bool show_orig;
+  float sharp_angle_limit;
 };
 
 /* pbvh.cc */
@@ -437,24 +438,13 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
 
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
-void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
-                                   int cd_vert_node_offset,
-                                   int cd_face_node_offset,
-                                   int cd_vcol_offset,
-                                   int cd_boundary_flags,
-                                   int cd_flags,
-                                   int cd_valence,
-                                   BMVert *v,
-                                   int bound_symmetry,
-                                   const struct CustomData *ldata,
-                                   const int totuv);
 
 BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 {
-  int *flag = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
+  int flag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
 
-  if (*flag & SCULPT_BOUNDARY_NEEDS_UPDATE) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
+  if (flag & SCULPT_BOUNDARY_NEEDS_UPDATE) {
+    BKE_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
@@ -464,8 +454,14 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,
-                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
+                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv,
+                                  pbvh->flags & PBVH_IGNORE_UVS,
+                                  pbvh->sharp_angle_limit);
     return true;
+  }
+  else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
+    blender::bke::pbvh::update_sharp_boundary_bmesh(
+        v, pbvh->cd_boundary_flag, pbvh->sharp_angle_limit);
   }
 
   return false;

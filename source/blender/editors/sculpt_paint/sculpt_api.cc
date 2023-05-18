@@ -239,8 +239,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         ret |= (boundflag1 | boundflag2) & SCULPT_BOUNDARY_UV;
       }
 
-      if (typemask & SCULPT_BOUNDARY_SHARP) {
-        ret |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP : 0;
+      if (typemask & SCULPT_BOUNDARY_SHARP_MARK) {
+        ret |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
       }
 
       if (typemask & SCULPT_BOUNDARY_SEAM) {
@@ -283,8 +283,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         ret |= a & b;
       }
 
-      if (typemask & SCULPT_BOUNDARY_SHARP) {
-        ret |= (ss->sharp_edge && ss->sharp_edge[edge.i]) ? SCULPT_BOUNDARY_SHARP : 0;
+      if (typemask & SCULPT_BOUNDARY_SHARP_MARK) {
+        ret |= (ss->sharp_edge && ss->sharp_edge[edge.i]) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
       }
 
       if (typemask & SCULPT_BOUNDARY_SEAM) {
@@ -442,6 +442,8 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
+      BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+
       if (needs_update) {
         BKE_pbvh_update_vert_boundary(ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
@@ -450,11 +452,17 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       ss->attrs.boundary_flags->bmesh_cd_offset,
                                       ss->attrs.flags->bmesh_cd_offset,
                                       ss->attrs.valence->bmesh_cd_offset,
-                                      (BMVert *)vertex.i,
+                                      v,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
                                       ss->totuv,
-                                      !ss->ignore_uvs);
+                                      !ss->ignore_uvs,
+                                      ss->sharp_angle_limit);
+      }
+      else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
+        blender::bke::pbvh::update_sharp_boundary_bmesh(
+            v, ss->attrs.boundary_flags->bmesh_cd_offset, ss->sharp_angle_limit);
+        flag = eSculptCorner(vertex_attr_get<int>(vertex, ss->attrs.boundary_flags));
       }
 
       break;
@@ -480,7 +488,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
   flag &= cornertype;
 
   return flag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM |
-                 SCULPT_CORNER_SHARP | SCULPT_CORNER_UV);
+                 SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_UV);
 }
 
 eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
@@ -492,6 +500,8 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
+      BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+
       if (needs_update) {
         BKE_pbvh_update_vert_boundary(ss->cd_faceset_offset,
                                       ss->cd_vert_node_offset,
@@ -504,7 +514,13 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
                                       ss->boundary_symmetry,
                                       &ss->bm->ldata,
                                       ss->totuv,
-                                      !ss->ignore_uvs);
+                                      !ss->ignore_uvs,
+                                      ss->sharp_angle_limit);
+      }
+      else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
+        blender::bke::pbvh::update_sharp_boundary_bmesh(
+            v, ss->attrs.boundary_flags->bmesh_cd_offset, ss->sharp_angle_limit);
+        flag = *vertex_attr_ptr<eSculptBoundary>(vertex, ss->attrs.boundary_flags);
       }
 
       break;
@@ -562,7 +578,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
   flag &= boundary_types;
 
   return flag & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM |
-                 SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_UV);
+                 SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_UV);
 }
 
 bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex)

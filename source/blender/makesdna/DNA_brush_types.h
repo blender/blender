@@ -428,7 +428,7 @@ typedef struct Brush {
 
   float concave_mask_factor;
 
-  char _pad2[4];
+  float sharp_angle_limit;
   struct BrushGpencilSettings *gpencil_settings;
 
   DynTopoSettings dyntopo;

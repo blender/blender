@@ -4850,7 +4850,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
     if (j < mp->totloop) {
       const MEdge *me = medge + ml->e;
       if (sharp_edges && sharp_edges[ml->e]) {
-        *flags |= SCULPT_BOUNDARY_SHARP;
+        *flags |= SCULPT_BOUNDARY_SHARP_MARK;
         totsharp++;
       }
 
@@ -4888,7 +4888,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *boundary_flags,
   }
 
   if (totsharp > 2) {
-    *flags |= SCULPT_CORNER_SHARP;
+    *flags |= SCULPT_CORNER_SHARP_MARK;
   }
 
   if (totseam > 2) {

@@ -1776,6 +1776,7 @@ static void sculpt_update_object(
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
+  UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
@@ -1789,6 +1790,10 @@ static void sculpt_update_object(
     return;
   }
 
+  Brush *brush = sd->paint.brush;
+  ss->sharp_angle_limit = (!brush || ups.flag & UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT) ?
+                              ups.sharp_angle_limit :
+                              brush->sharp_angle_limit;
   ss->depsgraph = depsgraph;
 
   ss->bm_smooth_shading = scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING;
@@ -1892,6 +1897,10 @@ static void sculpt_update_object(
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   sculpt_check_face_areas(ob, pbvh);
+
+  if (pbvh) {
+    BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
+  }
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
@@ -2582,6 +2591,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
   if (ob->sculpt->bm_log) {
     BKE_pbvh_set_bm_log(pbvh, ob->sculpt->bm_log);
   }
+  BKE_pbvh_sharp_limit_set(pbvh, ob->sculpt->sharp_angle_limit);
 
   BKE_pbvh_set_symmetry(pbvh, 0, (int)BKE_get_fset_boundary_symflag(ob));
 
@@ -2606,6 +2616,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
 
   BKE_pbvh_build_mesh(pbvh, me);
+  BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
   BKE_pbvh_fast_draw_set(pbvh, ss->fast_draw);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
@@ -2643,6 +2654,8 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        (float *)ss->attrs.face_areas->data,
                        base_mesh,
                        subdiv_ccg);
+
+  BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
 
   CustomData_reset(&ob->sculpt->temp_vdata);
   CustomData_reset(&ob->sculpt->temp_pdata);
@@ -2725,6 +2738,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   PBVH *pbvh = ss->pbvh;
   if (pbvh != nullptr) {
+    BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
+
     /* NOTE: It is possible that pointers to grids or other geometry data changed. Need to update
      * those pointers. */
     const PBVHType pbvh_type = BKE_pbvh_type(pbvh);
@@ -4066,3 +4081,28 @@ void load_all_original(Object *ob)
 }
 
 }  // namespace blender::bke::paint
+
+ATTR_NO_OPT void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss,
+                                                       PBVHVertRef vertex,
+                                                       bool update_ring)
+{
+  int *flags = blender::bke::paint::vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
+  *flags |= SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+
+#if 1
+  if (update_ring && ss->bm) {
+    BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+    if (!v->e) {
+      return;
+    }
+
+    BMEdge *e = v->e;
+    do {
+      PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(BM_edge_other_vert(e, v))};
+
+      int *flags2 = blender::bke::paint::vertex_attr_ptr<int>(vertex2, ss->attrs.boundary_flags);
+      *flags2 |= SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+  }
+#endif
+}

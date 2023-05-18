@@ -2097,17 +2097,19 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
-void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
+void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
                                    int /*cd_vcol*/,
                                    int cd_boundary_flag,
-                                   int cd_flag,
-                                   int cd_valence,
+                                   const int cd_flag,
+                                   const int cd_valence,
                                    BMVert *v,
                                    int bound_symmetry,
                                    const CustomData *ldata,
-                                   const int totuv)
+                                   const int totuv,
+                                   const bool do_uvs,
+                                   float sharp_angle_limit)
 {
   int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
   int boundflag = 0;
@@ -2146,20 +2148,23 @@ void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
 #endif
   Vector<int, 16> fsets;
 
-  float(*lastuv)[2] = (float(*)[2])BLI_array_alloca(lastuv, totuv);
-  float(*lastuv2)[2] = (float(*)[2])BLI_array_alloca(lastuv2, totuv);
+  float(*lastuv)[2] = do_uvs ? (float(*)[2])BLI_array_alloca(lastuv, totuv) : nullptr;
+  float(*lastuv2)[2] = do_uvs ? (float(*)[2])BLI_array_alloca(lastuv2, totuv) : nullptr;
 
-  int *disjount_uv_count = (int *)BLI_array_alloca(disjount_uv_count, totuv);
+  int *disjount_uv_count = do_uvs ? (int *)BLI_array_alloca(disjount_uv_count, totuv) : nullptr;
   int *cd_uvs = (int *)BLI_array_alloca(cd_uvs, totuv);
   int base_uv_idx = ldata->typemap[CD_PROP_FLOAT2];
   bool uv_first = true;
 
-  for (int i = 0; i < totuv; i++) {
-    CustomDataLayer *layer = ldata->layers + base_uv_idx + i;
-    cd_uvs[i] = layer->offset;
-    disjount_uv_count[i] = 0;
+  if (do_uvs) {
+    for (int i = 0; i < totuv; i++) {
+      CustomDataLayer *layer = ldata->layers + base_uv_idx + i;
+      cd_uvs[i] = layer->offset;
+      disjount_uv_count[i] = 0;
+    }
   }
 
+  int sharp_angle_num = 0;
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
 
@@ -2167,6 +2172,12 @@ void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
       newflag |= SCULPTFLAG_PBVH_BOUNDARY;
     }
 
+    if (e->l) {
+      if (saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > sharp_angle_limit) {
+        boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
+        sharp_angle_num++;
+      }
+    }
     if (e->head.hflag & BM_ELEM_SEAM) {
       boundflag |= SCULPT_BOUNDARY_SEAM;
       seamcount++;
@@ -2195,17 +2206,17 @@ void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
 #endif
 
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
-      boundflag |= SCULPT_BOUNDARY_SHARP;
+      boundflag |= SCULPT_BOUNDARY_SHARP_MARK;
       sharpcount++;
 
       if (sharpcount > 2) {
-        boundflag |= SCULPT_CORNER_SHARP;
+        boundflag |= SCULPT_CORNER_SHARP_MARK;
       }
     }
 
     if (e->l) {
       /* detect uv island boundaries */
-      if (totuv) {
+      if (do_uvs && totuv) {
         BMLoop *l_iter = e->l;
         do {
           BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
@@ -2326,8 +2337,12 @@ void bke_pbvh_update_vert_boundary(int cd_faceset_offset,
     boundflag |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (sharpcount == 1) {
-    boundflag |= SCULPT_CORNER_SHARP;
+  if (sharp_angle_num > 2) {
+    boundflag |= SCULPT_CORNER_SHARP_ANGLE;
+  }
+
+  if (!ELEM(sharpcount, 0, 2)) {
+    boundflag |= SCULPT_CORNER_SHARP_MARK;
   }
 
   if (seamcount == 1) {
@@ -2349,30 +2364,9 @@ bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, BMVert *v)
   return pbvh_check_vert_boundary(pbvh, v);
 }
 
-void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
-                                   int cd_vert_node_offset,
-                                   int cd_face_node_offset,
-                                   int cd_vcol,
-                                   int cd_boundary_flag,
-                                   int cd_flag,
-                                   int cd_valence,
-                                   BMVert *v,
-                                   int bound_symmetry,
-                                   const CustomData *ldata,
-                                   const int totuv,
-                                   const bool do_uvs)
+void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit)
 {
-  bke_pbvh_update_vert_boundary(cd_faceset_offset,
-                                cd_vert_node_offset,
-                                cd_face_node_offset,
-                                cd_vcol,
-                                cd_boundary_flag,
-                                cd_flag,
-                                cd_valence,
-                                v,
-                                bound_symmetry,
-                                ldata,
-                                do_uvs ? totuv : 0);
+  pbvh->sharp_angle_limit = limit;
 }
 
 /*Used by symmetrize to update boundary flags*/
@@ -2382,7 +2376,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    bke_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
+    BKE_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
                                   pbvh->cd_face_node_offset,
                                   pbvh->cd_vcol_offset,
@@ -2392,7 +2386,9 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   v,
                                   pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,
-                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
+                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv,
+                                  pbvh->flags & PBVH_IGNORE_UVS,
+                                  pbvh->sharp_angle_limit);
   }
 }
 
@@ -2412,8 +2408,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
-                          const int cd_flag_offset,
-                          const int cd_valence_offset,
+                          const int /*cd_flag_offset*/,
+                          const int /*cd_valence_offset*/,
                           const int cd_origco,
                           const int cd_origno,
                           bool fast_draw)
@@ -3529,23 +3525,6 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
   }
 
   MEM_freeN(map);
-}
-
-static void recursive_delete_nodes(PBVH *pbvh, int ni)
-{
-  PBVHNode *node = pbvh->nodes + ni;
-
-  node->flag |= PBVH_Delete;
-
-  if (!(node->flag & PBVH_Leaf) && node->children_offset) {
-    if (node->children_offset < pbvh->totnode) {
-      recursive_delete_nodes(pbvh, node->children_offset);
-    }
-
-    if (node->children_offset + 1 < pbvh->totnode) {
-      recursive_delete_nodes(pbvh, node->children_offset + 1);
-    }
-  }
 }
 
 /* Prunes leaf nodes that are too small or degenerate. */
@@ -4932,3 +4911,41 @@ void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags)
   /* Customdata layout might've changed. */
   pbvh_bmesh_fetch_cdrefs(pbvh);
 }
+
+float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh)
+{
+  return (pbvh->bm_max_edge_len + pbvh->bm_min_edge_len) * 0.5f;
+}
+
+namespace blender::bke::pbvh {
+void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit)
+{
+  int flag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
+  flag &= ~(SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE | SCULPT_BOUNDARY_SHARP_ANGLE |
+            SCULPT_CORNER_SHARP_ANGLE);
+
+  if (!v->e) {
+    return;
+  }
+
+  int sharp_num = 0;
+
+  BMEdge *e = v->e;
+  do {
+    if (!e->l || e->l == e->l->radial_next) {
+      continue;
+    }
+
+    if (saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > sharp_angle_limit) {
+      flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
+      sharp_num++;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  if (sharp_num > 2) {
+    flag |= SCULPT_CORNER_SHARP_ANGLE;
+  }
+
+  BM_ELEM_CD_SET_INT(v, cd_boundary_flag, flag);
+}
+}  // namespace blender::bke::pbvh

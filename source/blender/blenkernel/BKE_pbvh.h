@@ -1056,6 +1056,7 @@ PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
+void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit);
 void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
@@ -1067,7 +1068,8 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int bound_symmetry,
                                    const CustomData *ldata,
                                    const int totuv,
-                                   const bool do_uvs);
+                                   const bool do_uvs,
+                                   float sharp_angle_limit);
 
 #define DYNTOPO_DYNAMIC_TESS
 
@@ -1287,7 +1289,7 @@ void BKE_pbvh_flush_tri_areas(PBVH *pbvh);
 namespace blender::bke::pbvh {
 void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence);
 void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno);
-
+void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit);
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,

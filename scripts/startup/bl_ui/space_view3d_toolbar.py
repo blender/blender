@@ -1025,6 +1025,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
+        brush = sculpt.brush
 
         col = layout.column(heading="Display", align=True)
         col.prop(sculpt, "show_low_resolution")
@@ -1033,6 +1034,14 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(tool_settings, "show_origco")
         col.prop(context.object.data, "sculpt_ignore_uvs")
         col.prop(tool_settings.unified_paint_settings, "hard_edge_mode")
+
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            tool_settings.unified_paint_settings,
+            "sharp_angle_limit",
+            unified_name = "use_unified_sharp_angle_limit"
+        )
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)

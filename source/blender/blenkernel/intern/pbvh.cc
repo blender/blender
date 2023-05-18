@@ -4306,7 +4306,7 @@ void update_vert_boundary_faces(int *boundary_flags,
       int e_index = corner_edges[loopstart + j];
 
       if (sharp_edges && sharp_edges[e_index]) {
-        *boundary_flag |= SCULPT_BOUNDARY_SHARP;
+        *boundary_flag |= SCULPT_BOUNDARY_SHARP_MARK;
         totsharp++;
       }
 
@@ -4343,8 +4343,8 @@ void update_vert_boundary_faces(int *boundary_flags,
     *flag |= SCULPTFLAG_VERT_FSET_HIDDEN;
   }
 
-  if (totsharp > 2) {
-    *boundary_flag |= SCULPT_CORNER_SHARP;
+  if (!ELEM(totsharp, 0, 2)) {
+    *boundary_flag |= SCULPT_CORNER_SHARP_MARK;
   }
 
   if (totseam > 2) {

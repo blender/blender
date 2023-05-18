@@ -123,6 +123,7 @@
     .concave_mask_factor = 0.75f,\
     .falloff_shape = 0,\
     .hard_corner_pin = 1.0f,\
+    .sharp_angle_limit = 0.38f,\
   }
 /** \} */
 

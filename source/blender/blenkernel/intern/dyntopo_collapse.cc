@@ -407,7 +407,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
 
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
-  if ((boundflag1 & SCULPT_BOUNDARY_SHARP) && (e->head.hflag & BM_ELEM_SMOOTH)) {
+  if ((boundflag1 & SCULPT_BOUNDARY_SHARP_MARK) && (e->head.hflag & BM_ELEM_SMOOTH)) {
     bm_logstack_pop();
     return false;
   }

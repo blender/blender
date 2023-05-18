@@ -1380,7 +1380,8 @@ typedef struct UnifiedPaintSettings {
   float initial_pixel_radius;
 
   float hard_corner_pin;
-  char _pad[3];
+  float sharp_angle_limit;
+  char _pad[7];
   char hard_edge_mode;
 
   float start_pixel_radius;
@@ -1402,13 +1403,13 @@ typedef struct UnifiedPaintSettings {
 typedef enum {
   UNIFIED_PAINT_SIZE = (1 << 0),
   UNIFIED_PAINT_ALPHA = (1 << 1),
+  /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
+  UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
   UNIFIED_PAINT_WEIGHT = (1 << 5),
   UNIFIED_PAINT_COLOR = (1 << 6),
   UNIFIED_PAINT_HARD_CORNER_PIN = (1 << 7),
   UNIFIED_PAINT_FLAG_HARD_EDGE_MODE = (1 << 8),
-
-  /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
-  UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
+  UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT = (1 << 9),
 } eUnifiedPaintSettingsFlags;
 
 typedef struct CurvePaintSettings {

@@ -1302,6 +1302,7 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
+    BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2094,6 +2095,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
+    BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
   }
   BKE_pbvh_vertex_iter_end;
 }

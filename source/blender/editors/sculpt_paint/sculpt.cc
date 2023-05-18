@@ -4543,21 +4543,29 @@ static void sculpt_combine_proxies_node(Object &object,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, &node, vd, PBVH_ITER_UNIQUE) {
     float val[3];
 
-    if (use_orco) {
-      copy_v3_v3(val, SCULPT_vertex_origco_get(ss, vd.vertex));
-    }
-    else {
-      copy_v3_v3(val, vd.co);
-    }
+    zero_v3(val);
 
     for (int p = 0; p < proxy_count; p++) {
       add_v3_v3(val, proxies[p].co[vd.i]);
+    }
+
+    bool modified = len_squared_v3(val) > 0.0f;
+
+    if (use_orco) {
+      add_v3_v3(val, SCULPT_vertex_origco_get(ss, vd.vertex));
+    }
+    else {
+      add_v3_v3(val, vd.co);
     }
 
     SCULPT_clip(&sd, ss, vd.co, val);
 
     if (ss->deform_modifiers_active) {
       sculpt_flush_pbvhvert_deform(*ss, vd, positions);
+    }
+
+    if (modified) {
+      BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

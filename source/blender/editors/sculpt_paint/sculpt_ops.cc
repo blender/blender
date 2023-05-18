@@ -1433,7 +1433,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
       int *boundflag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
 
       if (*boundflag &
-          (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP | SCULPT_CORNER_SEAM))
+          (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_SEAM))
       {
         continue;
       }
@@ -1456,7 +1456,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
       ListBase queue = {node, node};
       const int boundtest = SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET |
-                            SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP;
+                            SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_SHARP_MARK;
       while (queue.first) {
         BMLinkItem *node2 = static_cast<BMLinkItem *>(BLI_poptail(&queue));
         BMVert *v2 = node2->item;

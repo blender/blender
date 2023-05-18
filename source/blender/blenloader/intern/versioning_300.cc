@@ -4260,6 +4260,23 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "float", "sharp_angle_limit")) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings) {
+        continue;
+      }
+
+      scene->toolsettings->unified_paint_settings.flag |= UNIFIED_PAINT_FLAG_HARD_EDGE_MODE |
+                                                          UNIFIED_PAINT_HARD_CORNER_PIN |
+                                                          UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT;
+      scene->toolsettings->unified_paint_settings.sharp_angle_limit =
+          (DNA_struct_default_get(UnifiedPaintSettings))->sharp_angle_limit;
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->sharp_angle_limit = (DNA_struct_default_get(Brush))->sharp_angle_limit;
+    }
+  }
 
   if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "DynTopoSettings", "dyntopo")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {

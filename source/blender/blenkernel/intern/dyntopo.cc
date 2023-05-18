@@ -115,17 +115,41 @@ static void surface_smooth_v_safe(
     pbvh_check_vert_boundary(pbvh, v);
   }
 
-  const int boundflag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
+  int boundmask = SCULPTVERT_SMOOTH_BOUNDARY;
+  int cornermask = SCULPTVERT_SMOOTH_CORNER;
 
-  const bool bound1 = boundflag & SCULPTVERT_SMOOTH_BOUNDARY;
+  int boundflag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
+  int bound1 = boundflag & boundmask;
 
-  if (boundflag & SCULPTVERT_SMOOTH_CORNER) {
+  if (boundflag & (cornermask | SCULPT_BOUNDARY_SHARP_ANGLE)) {
     return;
   }
 
   if (bound1) {
     fac *= 0.1;
   }
+
+  const int sharp_tag = 1 << 13;
+  float limit = 22.0 / 180.0 * M_PI;
+
+  do {
+    if (!e->l) {
+      continue;
+    }
+
+    BMLoop *l1 = e->l;
+    BMLoop *l2 = l1->radial_next;
+
+    bool sharp = l1 == l2;
+    sharp = sharp || saacos(dot_v3v3(l1->f->no, l2->f->no)) > limit;
+
+    if (sharp && (bound1 & sharp_tag)) {
+      return; /* corner */
+    }
+    else if (sharp) {
+      bound1 |= sharp_tag;
+    }
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
   do {
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
@@ -136,8 +160,15 @@ static void surface_smooth_v_safe(
      */
 
     int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
+    int bound2 = boundflag2 & boundmask;
 
-    const bool bound2 = boundflag2 & SCULPTVERT_SMOOTH_BOUNDARY;
+    if (e->l) {
+      bool sharp = e->l == e->l->radial_next;
+      sharp = sharp || saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > limit;
+      if (sharp) {
+        bound2 |= sharp_tag;
+      }
+    }
 
     if (bound1 && !bound2) {
       continue;
@@ -146,7 +177,7 @@ static void surface_smooth_v_safe(
     sub_v3_v3v3(tan, v2->co, v->co);
     float d = dot_v3v3(tan, v->no);
 
-    madd_v3_v3fl(tan, v->no, -d * 0.99f);
+    madd_v3_v3fl(tan, v->no, -d * 0.95f);
     add_v3_v3(co, tan);
 
     if (!stroke_id_test_no_update(ss, vertex2, STROKEID_USER_ORIGINAL)) {
@@ -158,7 +189,7 @@ static void surface_smooth_v_safe(
     }
 
     d = dot_v3v3(tan, origno1);
-    madd_v3_v3fl(tan, origno1, -d * 0.99f);
+    madd_v3_v3fl(tan, origno1, -d * 0.95f);
     add_v3_v3(origco, tan);
 
     tot += 1.0f;
@@ -2326,11 +2357,13 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
   }
 #endif
 
+#if 0
   printf("%s: subd: %d, cold: %d, ratio: %.3f\n",
          __func__,
          count_subd,
          count_cold,
          count_cold > 0 ? float(count_subd) / float(count_cold) : 0.0f);
+#endif
 
   if (etot > 0) {
     modified = true;
@@ -3358,7 +3391,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
     return;
   }
 
-  /* Look for node in surrounding geometry. */
+  /* Look for node in srounding geometry. */
   BMLoop *l = f->l_first;
   do {
     ni = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);

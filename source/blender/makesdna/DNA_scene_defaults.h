@@ -276,7 +276,9 @@
     .unprojected_radius = 0.29, \
     .alpha = 0.5f, \
     .weight = 0.5f, \
-    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA | UNIFIED_PAINT_FLAG_HARD_EDGE_MODE | UNIFIED_PAINT_HARD_CORNER_PIN, \
+    .flag = UNIFIED_PAINT_SIZE | UNIFIED_PAINT_ALPHA | UNIFIED_PAINT_FLAG_HARD_EDGE_MODE | UNIFIED_PAINT_HARD_CORNER_PIN | UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT, \
+    .hard_corner_pin = 1.0f,\
+    .sharp_angle_limit = 0.38f,\
   }
 
 #define _DNA_DEFAULTS_ParticleEditSettings \

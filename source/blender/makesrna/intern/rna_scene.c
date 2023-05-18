@@ -3913,6 +3913,18 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
+  prop = RNA_def_property(srna, "use_unified_sharp_angle_limit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT);
+  RNA_def_property_ui_text(
+      prop, "Use Unified Sharp Angle Limit", "Use global setting for sharp angle limit");
+
+  prop = RNA_def_property(srna, "sharp_angle_limit", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "sharp_angle_limit");
+  RNA_def_property_range(prop, 0.0f, M_PI);
+  RNA_def_property_ui_text(prop, "Sharp Limit", "");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
   prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_ALPHA);
   RNA_def_property_ui_text(prop,
