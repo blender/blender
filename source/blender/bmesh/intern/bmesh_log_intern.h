@@ -141,32 +141,6 @@ void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 /* Log a vertex before it is modified */
 void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v);
 
-/* Log a vertex before it is modified
- *
- * Before modifying vertex coordinates, masks, or hflags, call this
- * function to log its current values. This is better than logging
- * after the coordinates have been modified, because only those
- * vertices that are modified need to have their original values
- * stored.
- *
- * Handles two separate cases:
- *
- * If the vertex was added in the current log entry, update the
- * vertex in the map of added vertices.
- *
- * If the vertex already existed prior to the current log entry, a
- * separate key/value map of modified vertices is used (using the
- * vertex's ID as the key). The values stored in that case are
- * the vertex's original state so that an undo can restore the
- * previous state.
- *
- * On undo, the current vertex state will be swapped with the stored
- * state so that a subsequent redo operation will restore the newer
- * vertex state.
- */
-void BM_log_edge_before_modified(BMLog *log, BMEdge *v, bool log_customdata);
-
-/* Log a new vertex as added to the BMesh */
 /* Log a new vertex as added to the BMesh
  *
  * The new vertex gets a unique ID assigned. It is then added to a map
@@ -178,7 +152,8 @@ void BM_log_vert_added(BMesh *bm, BMLog *log, struct BMVert *v);
 /* Log a new edge as added to the BMesh */
 void BM_log_edge_added(BMesh *bm, BMLog *log, BMEdge *e);
 
-/* Log a face before it is modified */
+void BM_log_edge_modified(BMesh *bm, BMLog *log, BMEdge *e);
+
 /* Log a face before it is modified
  *
  * This is intended to handle only header flags and we always

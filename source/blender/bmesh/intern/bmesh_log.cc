@@ -569,6 +569,8 @@ struct BMLogEntry {
     if (e->head.data && le->customdata) {
       CustomData_bmesh_swap_data(&edata, &bm->edata, le->customdata, &e->head.data);
     }
+
+    std::swap(e->head.hflag, le->flag);
   }
 
   void swap_logface(BMesh *bm, BMID<BMFace> /*id*/, BMFace *f, BMLogFace *lf)
@@ -634,10 +636,11 @@ struct BMLogEntry {
   {
     BMLogEdge *le = epool.alloc();
 
-    CustomData_bmesh_copy_data(&bm->edata, &edata, e->head.data, &le->customdata);
     le->id = get_elem_id<BMEdge>(bm, e);
     le->v1 = get_elem_id<BMVert>(bm, e->v1);
     le->v2 = get_elem_id<BMVert>(bm, e->v2);
+
+    update_logedge(bm, e, le);
 
     return le;
   }
@@ -1089,7 +1092,16 @@ void BMLogSetDiff::remove_edge(BMesh *bm, BMEdge *e)
   removed_edges.add(id, le);
 }
 
-void BMLogSetDiff::modify_edge(BMesh * /*bm*/, BMEdge * /*e*/) {}
+void BMLogSetDiff::modify_edge(BMesh *bm, BMEdge *e)
+{
+  BMID<BMEdge> id = entry->get_elem_id(bm, e);
+
+  if (modified_edges.contains(id)) {
+    return;
+  }
+
+  modified_edges.add(id, entry->alloc_logedge(bm, e));
+}
 
 void BMLogSetDiff::add_face(BMesh *bm, BMFace *f)
 {
@@ -1259,6 +1271,8 @@ void BMLogSetDiff::restore_edges(BMesh *bm,
     }
 
     BMEdge *e = BM_edge_create(bm, v1, v2, nullptr, BM_CREATE_NOP);
+    e->head.hflag = le->flag;
+
     CustomData_bmesh_copy_data(&entry->edata, &bm->edata, le->customdata, &e->head.data);
 
     entry->assign_elem_id<BMEdge>(bm, e, le->id, true);
@@ -1353,8 +1367,8 @@ void BMLogSetDiff::restore_faces(BMesh *bm,
     }
 
     BMFace *f = BM_face_create_verts(bm, verts.data(), verts.size(), nullptr, BM_CREATE_NOP, true);
-
     f->head.hflag = lf->flag;
+
     CustomData_bmesh_copy_data(&entry->pdata, &bm->pdata, lf->customdata, &f->head.data);
     entry->assign_elem_id<BMFace>(bm, f, lf->id, true);
 
@@ -1461,6 +1475,7 @@ void BMLogSetDiff::undo(BMesh *bm, BMLogCallbacks *callbacks)
   restore_faces(bm, removed_faces, callbacks);
 
   swap_faces(bm, modified_faces, callbacks);
+  swap_edges(bm, modified_edges, callbacks);
   swap_verts(bm, modified_verts, callbacks);
 }
 
