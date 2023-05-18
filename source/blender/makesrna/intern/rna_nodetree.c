@@ -2687,13 +2687,6 @@ static void rna_Node_width_range(
   *max = *softmax = node->typeinfo->maxwidth;
 }
 
-static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value)) {}
-
-static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
-{
-  return 0.0f;
-}
-
 static void rna_Node_height_range(
     PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
@@ -12617,13 +12610,6 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
   RNA_def_property_ui_text(prop, "Width", "Width of the node");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
-
-  prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_funcs(
-      prop, "rna_Node_width_hidden_get", "rna_Node_width_hidden_set", "rna_Node_width_range");
-  RNA_def_property_ui_text(
-      prop, "Width Hidden", "Deprecated width of the node when it is collapsed");
-  RNA_def_property_update(prop, 0, NULL);
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "height");
