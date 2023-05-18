@@ -822,18 +822,15 @@ static void foreach_edge(const SubdivForeachContext *foreach_context,
     return;
   }
 
-  /* Ignore all inner face edges as they have sharpness of zero when using Catmull-Clark mode. In
-   * simple mode, all edges have maximum sharpness, so they can't be skipped. */
-  if (coarse_edge_index == ORIGINDEX_NONE &&
-      reshape_smooth_context->smoothing_type != MULTIRES_SUBDIVIDE_SIMPLE)
-  {
+  /* Ignore all inner face edges as they have sharpness of zero. */
+  if (coarse_edge_index == ORIGINDEX_NONE) {
     return;
   }
   /* Ignore all loose edges as well, as they are not communicated to the OpenSubdiv. */
-  if (!reshape_smooth_context->loose_base_edges.is_empty() &&
-      reshape_smooth_context->loose_base_edges[coarse_edge_index])
-  {
-    return;
+  if (!reshape_smooth_context->loose_base_edges.is_empty()) {
+    if (reshape_smooth_context->loose_base_edges[coarse_edge_index]) {
+      return;
+    }
   }
   /* Edges without crease are to be ignored as well. */
   const float crease = get_effective_crease(reshape_smooth_context, coarse_edge_index);
