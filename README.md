@@ -29,7 +29,7 @@ Development
 - [Developer Documentation](https://wiki.blender.org)
 
 
-License
+Licenses
 -------
 
 Blender as a whole is licensed under the GNU General Public License, Version 3.
