@@ -80,14 +80,14 @@ static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
   mul_v3_v3fl(result, pos_accum, 1.0f / neighbor_count);
 }
 
-static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
-                                                       float result[3],
-                                                       PBVHVertRef vertex,
-                                                       float projection,
-                                                       float hard_corner_pin,
-                                                       bool weighted,
-                                                       eSculptBoundary bound_type,
-                                                       eSculptCorner corner_type)
+ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
+                                                                   float result[3],
+                                                                   PBVHVertRef vertex,
+                                                                   float projection,
+                                                                   float hard_corner_pin,
+                                                                   bool weighted,
+                                                                   eSculptBoundary bound_type,
+                                                                   eSculptCorner corner_type)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
 
@@ -118,6 +118,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 
   float total = 0.0f;
+  int totboundary = 0;
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
@@ -132,8 +133,13 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
     }
     const eSculptBoundary smooth_types = !ss->hard_edge_mode ?
-                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_UV :
+                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_UV |
+                                                 SCULPT_BOUNDARY_SEAM :
                                              SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_SEAM;
+
+    if (is_boundary2) {
+      totboundary++;
+    }
 
     /* Boundary vertices use only other boundary vertices. */
     if (is_boundary) {
@@ -157,6 +163,20 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     }
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  /* Ensure open strings of boundary edges don't shrink at the endpoints. */
+  if (totboundary == 1) {
+    total = 0.0;
+    zero_v3(avg);
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      float w = weighted ? areas[ni.i] : 1.0f;
+      avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
+      total += w;
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  }
 
   /* Avoid division by 0 when there are no neighbors. */
   if (total == 0) {
@@ -805,8 +825,8 @@ void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
   /* NOTE: The enhance brush needs to initialize its state on the first brush step. The stroke
    * strength can become 0 during the stroke, but it can not change sign (the sign is determined
-   * in the beginning of the stroke. So here it is important to not switch to enhance brush in the
-   * middle of the stroke. */
+   * in the beginning of the stroke. So here it is important to not switch to enhance brush in
+   * the middle of the stroke. */
   if (ss->cache->bstrength < 0.0f) {
     /* Invert mode, intensify details. */
     SCULPT_enhance_details_brush(sd, ob, nodes);
