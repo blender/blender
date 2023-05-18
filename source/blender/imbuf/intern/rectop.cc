@@ -252,10 +252,11 @@ void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
     return;
   }
 
-  rect_crop_4bytes((void **)&ibuf->rect, size_src, crop);
-  rect_crop_4bytes((void **)&ibuf->zbuf, size_src, crop);
-  rect_crop_4bytes((void **)&ibuf->zbuf_float, size_src, crop);
-  rect_crop_16bytes((void **)&ibuf->rect_float, size_src, crop);
+  /* TODO(sergey: Validate ownership. */
+  rect_crop_4bytes((void **)&ibuf->byte_buffer.data, size_src, crop);
+  rect_crop_4bytes((void **)&ibuf->z_buffer.data, size_src, crop);
+  rect_crop_4bytes((void **)&ibuf->float_z_buffer.data, size_src, crop);
+  rect_crop_16bytes((void **)&ibuf->float_buffer.data, size_src, crop);
 
   ibuf->x = size_dst[0];
   ibuf->y = size_dst[1];
@@ -289,10 +290,11 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
     return;
   }
 
-  rect_realloc_4bytes((void **)&ibuf->rect, size);
-  rect_realloc_4bytes((void **)&ibuf->zbuf, size);
-  rect_realloc_4bytes((void **)&ibuf->zbuf_float, size);
-  rect_realloc_16bytes((void **)&ibuf->rect_float, size);
+  /* TODO(sergey: Validate ownership. */
+  rect_realloc_4bytes((void **)&ibuf->byte_buffer.data, size);
+  rect_realloc_4bytes((void **)&ibuf->z_buffer.data, size);
+  rect_realloc_4bytes((void **)&ibuf->float_z_buffer.data, size);
+  rect_realloc_16bytes((void **)&ibuf->float_buffer.data, size);
 
   ibuf->x = size[0];
   ibuf->y = size[1];
@@ -533,16 +535,18 @@ void IMB_rectblend(ImBuf *dbuf,
     return;
   }
 
-  const bool do_char = (sbuf && sbuf->rect && dbuf->rect && obuf->rect);
-  const bool do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
+  const bool do_char = (sbuf && sbuf->byte_buffer.data && dbuf->byte_buffer.data &&
+                        obuf->byte_buffer.data);
+  const bool do_float = (sbuf && sbuf->float_buffer.data && dbuf->float_buffer.data &&
+                         obuf->float_buffer.data);
 
   if (do_char) {
-    drect = dbuf->rect + size_t(desty) * dbuf->x + destx;
-    orect = obuf->rect + size_t(origy) * obuf->x + origx;
+    drect = (uint *)dbuf->byte_buffer.data + size_t(desty) * dbuf->x + destx;
+    orect = (uint *)obuf->byte_buffer.data + size_t(origy) * obuf->x + origx;
   }
   if (do_float) {
-    drectf = dbuf->rect_float + (size_t(desty) * dbuf->x + destx) * 4;
-    orectf = obuf->rect_float + (size_t(origy) * obuf->x + origx) * 4;
+    drectf = dbuf->float_buffer.data + (size_t(desty) * dbuf->x + destx) * 4;
+    orectf = obuf->float_buffer.data + (size_t(origy) * obuf->x + origx) * 4;
   }
 
   if (dmaskrect) {
@@ -554,10 +558,10 @@ void IMB_rectblend(ImBuf *dbuf,
 
   if (sbuf) {
     if (do_char) {
-      srect = sbuf->rect + size_t(srcy) * sbuf->x + srcx;
+      srect = (uint *)sbuf->byte_buffer.data + size_t(srcy) * sbuf->x + srcx;
     }
     if (do_float) {
-      srectf = sbuf->rect_float + (size_t(srcy) * sbuf->x + srcx) * 4;
+      srectf = sbuf->float_buffer.data + (size_t(srcy) * sbuf->x + srcx) * 4;
     }
     srcskip = sbuf->x;
 
@@ -1049,8 +1053,8 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
 {
   int num;
 
-  if (drect->rect) {
-    uint *rrect = drect->rect;
+  if (drect->byte_buffer.data) {
+    uint *rrect = (uint *)drect->byte_buffer.data;
     char ccol[4];
 
     ccol[0] = int(col[0] * 255);
@@ -1064,8 +1068,8 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
     }
   }
 
-  if (drect->rect_float) {
-    float *rrectf = drect->rect_float;
+  if (drect->float_buffer.data) {
+    float *rrectf = drect->float_buffer.data;
 
     num = drect->x * drect->y;
     for (; num > 0; num--) {
@@ -1111,13 +1115,13 @@ void IMB_rectfill_area_replace(
     for (int x = x1; x < x2; x++) {
       size_t offset = size_t(ibuf->x) * y * 4 + 4 * x;
 
-      if (ibuf->rect) {
-        uchar *rrect = (uchar *)ibuf->rect + offset;
+      if (ibuf->byte_buffer.data) {
+        uchar *rrect = ibuf->byte_buffer.data + offset;
         memcpy(rrect, col_char, sizeof(uchar[4]));
       }
 
-      if (ibuf->rect_float) {
-        float *rrectf = ibuf->rect_float + offset;
+      if (ibuf->float_buffer.data) {
+        float *rrectf = ibuf->float_buffer.data + offset;
         memcpy(rrectf, col, sizeof(float[4]));
       }
     }
@@ -1246,24 +1250,32 @@ void IMB_rectfill_area(ImBuf *ibuf,
   if (!ibuf) {
     return;
   }
-  buf_rectfill_area(
-      (uchar *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, display, x1, y1, x2, y2);
+  buf_rectfill_area(ibuf->byte_buffer.data,
+                    ibuf->float_buffer.data,
+                    ibuf->x,
+                    ibuf->y,
+                    col,
+                    display,
+                    x1,
+                    y1,
+                    x2,
+                    y2);
 }
 
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
 {
   int i;
 
-  if (ibuf->rect_float && (ibuf->channels == 4)) {
-    float *fbuf = ibuf->rect_float + 3;
+  if (ibuf->float_buffer.data && (ibuf->channels == 4)) {
+    float *fbuf = ibuf->float_buffer.data + 3;
     for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf += 4) {
       *fbuf = value;
     }
   }
 
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     const uchar cvalue = value * 255;
-    uchar *cbuf = ((uchar *)ibuf->rect) + 3;
+    uchar *cbuf = ibuf->byte_buffer.data + 3;
     for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf += 4) {
       *cbuf = cvalue;
     }

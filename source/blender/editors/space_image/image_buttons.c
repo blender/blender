@@ -946,7 +946,7 @@ void uiTemplateImage(uiLayout *layout,
           void *lock;
           ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
-          if (ibuf && ibuf->rect_float && (ibuf->flags & IB_halffloat) == 0) {
+          if (ibuf && ibuf->float_buffer.data && (ibuf->flags & IB_halffloat) == 0) {
             uiItemR(col, &imaptr, "use_half_precision", 0, NULL, ICON_NONE);
           }
           BKE_image_release_ibuf(ima, ibuf, lock);
@@ -1200,7 +1200,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_("%d x %d, "), ibuf->x, ibuf->y);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf_rlen(
             str + ofs, len - ofs, TIP_("%d float channel(s)"), ibuf->channels);
@@ -1220,7 +1220,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
         ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGB byte"), len - ofs);
       }
     }
-    if (ibuf->zbuf || ibuf->zbuf_float) {
+    if (ibuf->z_buffer.data || ibuf->float_z_buffer.data) {
       ofs += BLI_strncpy_rlen(str + ofs, TIP_(" + Z"), len - ofs);
     }
 

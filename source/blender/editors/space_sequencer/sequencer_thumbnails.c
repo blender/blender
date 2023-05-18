@@ -541,14 +541,14 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     /* Transparency on overlap. */
     if (seq->flag & SEQ_OVERLAP) {
       GPU_blend(GPU_BLEND_ALPHA);
-      if (ibuf->rect) {
-        uchar *buf = (uchar *)ibuf->rect;
+      if (ibuf->byte_buffer.data) {
+        uchar *buf = ibuf->byte_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
           buf[3] = OVERLAP_ALPHA;
         }
       }
-      else if (ibuf->rect_float) {
-        float *buf = (float *)ibuf->rect_float;
+      else if (ibuf->float_buffer.data) {
+        float *buf = ibuf->float_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += ibuf->channels) {
           buf[3] = (OVERLAP_ALPHA / 255.0f);
         }

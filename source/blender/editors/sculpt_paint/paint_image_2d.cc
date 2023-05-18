@@ -419,13 +419,13 @@ static ImBuf *brush_painter_imbuf_new(
 
       if (use_float) {
         /* write to float pixel */
-        float *dstf = ibuf->rect_float + (y * size + x) * 4;
+        float *dstf = ibuf->float_buffer.data + (y * size + x) * 4;
         mul_v3_v3fl(dstf, rgba, rgba[3]); /* premultiply */
         dstf[3] = rgba[3];
       }
       else {
         /* write to byte pixel */
-        uchar *dst = (uchar *)ibuf->rect + (y * size + x) * 4;
+        uchar *dst = ibuf->byte_buffer.data + (y * size + x) * 4;
 
         rgb_float_to_uchar(dst, rgba);
         dst[3] = unit_float_to_uchar_clamp(rgba[3]);
@@ -504,12 +504,12 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
 
       if (use_float) {
         /* handle float pixel */
-        float *bf = ibuf->rect_float + (y * ibuf->x + x) * 4;
-        float *tf = texibuf->rect_float + (y * texibuf->x + x) * 4;
+        float *bf = ibuf->float_buffer.data + (y * ibuf->x + x) * 4;
+        float *tf = texibuf->float_buffer.data + (y * texibuf->x + x) * 4;
 
         /* read from old texture buffer */
         if (use_texture_old) {
-          const float *otf = oldtexibuf->rect_float +
+          const float *otf = oldtexibuf->float_buffer.data +
                              ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
           copy_v4_v4(rgba, otf);
         }
@@ -525,12 +525,12 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
         uchar crgba[4];
 
         /* handle byte pixel */
-        uchar *b = (uchar *)ibuf->rect + (y * ibuf->x + x) * 4;
-        uchar *t = (uchar *)texibuf->rect + (y * texibuf->x + x) * 4;
+        uchar *b = ibuf->byte_buffer.data + (y * ibuf->x + x) * 4;
+        uchar *t = texibuf->byte_buffer.data + (y * texibuf->x + x) * 4;
 
         /* read from old texture buffer */
         if (use_texture_old) {
-          uchar *ot = (uchar *)oldtexibuf->rect +
+          uchar *ot = oldtexibuf->byte_buffer.data +
                       ((y - origy + yt) * oldtexibuf->x + (x - origx + xt)) * 4;
           crgba[0] = ot[0];
           crgba[1] = ot[1];
@@ -820,8 +820,8 @@ static bool paint_2d_ensure_tile_canvas(ImagePaintState *s, int i)
     if (ibuf->channels != 4) {
       s->tiles[i].state = PAINT2D_TILE_MISSING;
     }
-    else if ((s->tiles[0].canvas->rect && !ibuf->rect) ||
-             (s->tiles[0].canvas->rect_float && !ibuf->rect_float))
+    else if ((s->tiles[0].canvas->byte_buffer.data && !ibuf->byte_buffer.data) ||
+             (s->tiles[0].canvas->float_buffer.data && !ibuf->float_buffer.data))
     {
       s->tiles[i].state = PAINT2D_TILE_MISSING;
     }
@@ -849,12 +849,12 @@ static bool paint_2d_ensure_tile_canvas(ImagePaintState *s, int i)
 /* keep these functions in sync */
 static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, float r_rgb[4])
 {
-  if (ibuf->rect_float) {
-    const float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+  if (ibuf->float_buffer.data) {
+    const float *rrgbf = ibuf->float_buffer.data + (ibuf->x * y + x) * 4;
     copy_v4_v4(r_rgb, rrgbf);
   }
   else {
-    uchar *rrgb = (uchar *)ibuf->rect + (ibuf->x * y + x) * 4;
+    uchar *rrgb = ibuf->byte_buffer.data + (ibuf->x * y + x) * 4;
     straight_uchar_to_premul_float(r_rgb, rrgb);
   }
 }
@@ -872,8 +872,8 @@ static void paint_2d_ibuf_rgb_set(
     }
   }
 
-  if (ibuf->rect_float) {
-    float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+  if (ibuf->float_buffer.data) {
+    float *rrgbf = ibuf->float_buffer.data + (ibuf->x * y + x) * 4;
     float map_alpha = (rgb[3] == 0.0f) ? rrgbf[3] : rrgbf[3] / rgb[3];
 
     mul_v3_v3fl(rrgbf, rgb, map_alpha);
@@ -881,7 +881,7 @@ static void paint_2d_ibuf_rgb_set(
   }
   else {
     uchar straight[4];
-    uchar *rrgb = (uchar *)ibuf->rect + (ibuf->x * y + x) * 4;
+    uchar *rrgb = ibuf->byte_buffer.data + (ibuf->x * y + x) * 4;
 
     premul_float_to_straight_uchar(straight, rgb);
     rrgb[0] = straight[0];
@@ -1212,13 +1212,19 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
       int origx = region->destx - tx * ED_IMAGE_UNDO_TILE_SIZE;
       int origy = region->desty - ty * ED_IMAGE_UNDO_TILE_SIZE;
 
-      if (tile->canvas->rect_float) {
-        tmpbuf.rect_float = static_cast<float *>(ED_image_paint_tile_find(
-            undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false));
+      if (tile->canvas->float_buffer.data) {
+        IMB_assign_float_buffer(
+            &tmpbuf,
+            static_cast<float *>(ED_image_paint_tile_find(
+                undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false)),
+            IB_DO_NOT_TAKE_OWNERSHIP);
       }
       else {
-        tmpbuf.rect = static_cast<uint *>(ED_image_paint_tile_find(
-            undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false));
+        IMB_assign_byte_buffer(
+            &tmpbuf,
+            static_cast<uchar *>(ED_image_paint_tile_find(
+                undo_tiles, s->image, tile->canvas, &tile->iuser, tx, ty, &mask, false)),
+            IB_DO_NOT_TAKE_OWNERSHIP);
       }
 
       IMB_rectblend(tile->canvas,
@@ -1404,7 +1410,7 @@ static int paint_2d_canvas_set(ImagePaintState *s)
     Image *ima = s->brush->clone.image;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
 
-    if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
+    if (!ima || !ibuf || !(ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return 0;
     }
@@ -1412,10 +1418,10 @@ static int paint_2d_canvas_set(ImagePaintState *s)
     s->clonecanvas = ibuf;
 
     /* temporarily add float rect for cloning */
-    if (s->tiles[0].canvas->rect_float && !s->clonecanvas->rect_float) {
+    if (s->tiles[0].canvas->float_buffer.data && !s->clonecanvas->float_buffer.data) {
       IMB_float_from_rect(s->clonecanvas);
     }
-    else if (!s->tiles[0].canvas->rect_float && !s->clonecanvas->rect) {
+    else if (!s->tiles[0].canvas->float_buffer.data && !s->clonecanvas->byte_buffer.data) {
       IMB_rect_from_float(s->clonecanvas);
     }
   }
@@ -1535,8 +1541,11 @@ void paint_2d_stroke(void *ps,
     /* OCIO_TODO: float buffers are now always linear, so always use color correction
      *            this should probably be changed when texture painting color space is supported
      */
-    brush_painter_2d_require_imbuf(
-        painter->brush, tile, (ibuf->rect_float != nullptr), !is_data, painter->cache_invert);
+    brush_painter_2d_require_imbuf(painter->brush,
+                                   tile,
+                                   (ibuf->float_buffer.data != nullptr),
+                                   !is_data,
+                                   painter->cache_invert);
 
     brush_painter_2d_refresh_cache(s, painter, tile, new_coord, mval, pressure, distance, size);
 
@@ -1710,7 +1719,7 @@ static void paint_2d_fill_add_pixel_byte(const int x_px,
 
   if (!BLI_BITMAP_TEST(touched, coordinate)) {
     float color_f[4];
-    uchar *color_b = (uchar *)(ibuf->rect + coordinate);
+    uchar *color_b = ibuf->byte_buffer.data + 4 * coordinate;
     rgba_uchar_to_float(color_f, color_b);
     straight_to_premul_v4(color_f);
 
@@ -1738,7 +1747,7 @@ static void paint_2d_fill_add_pixel_float(const int x_px,
   coordinate = ((size_t)y_px) * ibuf->x + x_px;
 
   if (!BLI_BITMAP_TEST(touched, coordinate)) {
-    if (len_squared_v4v4(ibuf->rect_float + 4 * coordinate, color) <= threshold_sq) {
+    if (len_squared_v4v4(ibuf->float_buffer.data + 4 * coordinate, color) <= threshold_sq) {
       BLI_stack_push(stack, &coordinate);
     }
     BLI_BITMAP_SET(touched, coordinate, true);
@@ -1810,7 +1819,7 @@ void paint_2d_bucket_fill(const bContext *C,
     return;
   }
 
-  do_float = (ibuf->rect_float != nullptr);
+  do_float = (ibuf->float_buffer.data != nullptr);
   /* first check if our image is float. If it is not we should correct the color to
    * be in gamma space. strictly speaking this is not correct, but blender does not paint
    * byte images in linear space */
@@ -1830,8 +1839,8 @@ void paint_2d_bucket_fill(const bContext *C,
     if (do_float) {
       for (x_px = 0; x_px < ibuf->x; x_px++) {
         for (y_px = 0; y_px < ibuf->y; y_px++) {
-          blend_color_mix_float(ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
-                                ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
+          blend_color_mix_float(ibuf->float_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
+                                ibuf->float_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
                                 color_f);
         }
       }
@@ -1839,8 +1848,8 @@ void paint_2d_bucket_fill(const bContext *C,
     else {
       for (x_px = 0; x_px < ibuf->x; x_px++) {
         for (y_px = 0; y_px < ibuf->y; y_px++) {
-          blend_color_mix_byte((uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                               (uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+          blend_color_mix_byte(ibuf->byte_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
+                               ibuf->byte_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
                                (uchar *)&color_b);
         }
       }
@@ -1876,10 +1885,10 @@ void paint_2d_bucket_fill(const bContext *C,
     coordinate = (((size_t)y_px) * ibuf->x + x_px);
 
     if (do_float) {
-      copy_v4_v4(pixel_color, ibuf->rect_float + 4 * coordinate);
+      copy_v4_v4(pixel_color, ibuf->float_buffer.data + 4 * coordinate);
     }
     else {
-      int pixel_color_b = *(ibuf->rect + coordinate);
+      int pixel_color_b = *ibuf->byte_buffer.data + 4 * coordinate;
       rgba_uchar_to_float(pixel_color, (uchar *)&pixel_color_b);
       straight_to_premul_v4(pixel_color);
     }
@@ -1891,8 +1900,8 @@ void paint_2d_bucket_fill(const bContext *C,
       while (!BLI_stack_is_empty(stack)) {
         BLI_stack_pop(stack, &coordinate);
 
-        IMB_blend_color_float(ibuf->rect_float + 4 * (coordinate),
-                              ibuf->rect_float + 4 * (coordinate),
+        IMB_blend_color_float(ibuf->float_buffer.data + 4 * (coordinate),
+                              ibuf->float_buffer.data + 4 * (coordinate),
                               color_f,
                               IMB_BlendMode(br->blend));
 
@@ -1935,8 +1944,8 @@ void paint_2d_bucket_fill(const bContext *C,
       while (!BLI_stack_is_empty(stack)) {
         BLI_stack_pop(stack, &coordinate);
 
-        IMB_blend_color_byte((uchar *)(ibuf->rect + coordinate),
-                             (uchar *)(ibuf->rect + coordinate),
+        IMB_blend_color_byte(ibuf->byte_buffer.data + 4 * coordinate,
+                             ibuf->byte_buffer.data + 4 * coordinate,
                              (uchar *)&color_b,
                              IMB_BlendMode(br->blend));
 
@@ -2039,7 +2048,7 @@ void paint_2d_gradient_fill(
   line_len_sq_inv = 1.0f / line_len;
   line_len = sqrtf(line_len);
 
-  do_float = (ibuf->rect_float != nullptr);
+  do_float = (ibuf->float_buffer.data != nullptr);
 
   /* this will be substituted by something else when selection is available */
   ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
@@ -2065,8 +2074,8 @@ void paint_2d_gradient_fill(
         /* convert to premultiplied */
         mul_v3_fl(color_f, color_f[3]);
         color_f[3] *= brush_alpha;
-        IMB_blend_color_float(ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
-                              ibuf->rect_float + 4 * (((size_t)y_px) * ibuf->x + x_px),
+        IMB_blend_color_float(ibuf->float_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
+                              ibuf->float_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
                               color_f,
                               IMB_BlendMode(br->blend));
       }
@@ -2094,8 +2103,8 @@ void paint_2d_gradient_fill(
         linearrgb_to_srgb_v3_v3(color_f, color_f);
         rgba_float_to_uchar((uchar *)&color_b, color_f);
         ((uchar *)&color_b)[3] *= brush_alpha;
-        IMB_blend_color_byte((uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
-                             (uchar *)(ibuf->rect + ((size_t)y_px) * ibuf->x + x_px),
+        IMB_blend_color_byte(ibuf->byte_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
+                             ibuf->byte_buffer.data + 4 * (((size_t)y_px) * ibuf->x + x_px),
                              (uchar *)&color_b,
                              IMB_BlendMode(br->blend));
       }

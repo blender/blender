@@ -1219,9 +1219,9 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
  * Include here since it can involve low level buffer switching.
  * \{ */
 
-uint *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
-                                             const wmWindow *win,
-                                             int r_size[2])
+uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
+                                                const wmWindow *win,
+                                                int r_size[2])
 {
   /* Don't assert as file-save uses this for a screenshot, where redrawing isn't an option
    * because of the side-effects of drawing a window on save.
@@ -1242,7 +1242,7 @@ uint *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   r_size[0] = WM_window_pixels_x(win);
   r_size[1] = WM_window_pixels_y(win);
   const uint rect_len = r_size[0] * r_size[1];
-  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+  uint8_t *rect = MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__);
 
   GPU_frontbuffer_read_color(0, 0, r_size[0], r_size[1], 4, GPU_DATA_UBYTE, rect);
 
@@ -1259,7 +1259,7 @@ uint *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   for (i = 0, cp += 3; i < rect_len; i++, cp += 4) {
     *cp = 0xff;
   }
-  return (uint *)rect;
+  return rect;
 }
 
 void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
@@ -1285,7 +1285,7 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   }
 }
 
-uint *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_size[2])
+uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_size[2])
 {
   /* NOTE(@ideasman42): There is a problem reading the windows front-buffer after redrawing
    * the window in some cases (typically to clear UI elements such as menus or search popup).
@@ -1310,7 +1310,7 @@ uint *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_siz
   }
 
   const uint rect_len = r_size[0] * r_size[1];
-  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+  uint8_t *rect = MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__);
   GPU_offscreen_bind(offscreen, false);
   wm_draw_window_onscreen(C, win, -1);
   GPU_offscreen_unbind(offscreen, false);
@@ -1350,7 +1350,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
   return true;
 }
 
-uint *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
+uint8_t *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
 {
   if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
     return WM_window_pixels_read_from_frontbuffer(CTX_wm_manager(C), win, r_size);

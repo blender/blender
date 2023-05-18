@@ -889,7 +889,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   drag->imb->y,
                                   GPU_RGBA8,
                                   false,
-                                  drag->imb->rect,
+                                  drag->imb->byte_buffer.data,
                                   drag->imbuf_scale,
                                   drag->imbuf_scale,
                                   1.0f,

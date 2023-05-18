@@ -50,11 +50,11 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
     }
     /* Generated images use pre multiplied float buffer, but straight alpha for byte buffers. */
     if (image->type == IMA_TYPE_UV_TEST && ibuf) {
-      return ibuf->rect_float != nullptr;
+      return ibuf->float_buffer.data != nullptr;
     }
   }
   if (ibuf) {
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       return image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
     }
 
@@ -643,7 +643,7 @@ static ImBuf *update_do_scale(uchar *rect,
   }
 
   /* Scale pixels. */
-  ImBuf *ibuf = IMB_allocFromBuffer((uint *)rect, rect_float, part_w, part_h, 4);
+  ImBuf *ibuf = IMB_allocFromBuffer(rect, rect_float, part_w, part_h, 4);
   IMB_scaleImBuf(ibuf, *w, *h);
 
   return ibuf;
@@ -679,8 +679,9 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
     ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
   }
 
-  void *data = (ibuf->rect_float) ? (void *)(ibuf->rect_float) : (void *)(ibuf->rect);
-  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  void *data = (ibuf->float_buffer.data) ? (void *)(ibuf->float_buffer.data) :
+                                           (void *)(ibuf->byte_buffer.data);
+  eGPUDataFormat data_format = (ibuf->float_buffer.data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
 
@@ -742,8 +743,8 @@ static void gpu_texture_update_from_ibuf(
   }
 
   /* Get texture data pointers. */
-  float *rect_float = ibuf->rect_float;
-  uchar *rect = (uchar *)ibuf->rect;
+  float *rect_float = ibuf->float_buffer.data;
+  uchar *rect = ibuf->byte_buffer.data;
   int tex_stride = ibuf->x;
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
 
@@ -832,10 +833,10 @@ static void gpu_texture_update_from_ibuf(
   }
 
   /* Free buffers if needed. */
-  if (rect && rect != (uchar *)ibuf->rect) {
+  if (rect && rect != ibuf->byte_buffer.data) {
     MEM_freeN(rect);
   }
-  if (rect_float && rect_float != ibuf->rect_float) {
+  if (rect_float && rect_float != ibuf->float_buffer.data) {
     MEM_freeN(rect_float);
   }
 

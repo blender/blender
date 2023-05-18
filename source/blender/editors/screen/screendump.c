@@ -43,7 +43,7 @@
 #include "screen_intern.h"
 
 typedef struct ScreenshotData {
-  uint *dumprect;
+  uint8_t *dumprect;
   int dumpsx, dumpsy;
   rcti crop;
   bool use_crop;
@@ -61,7 +61,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
   /* do redraw so we don't show popups/menus */
   WM_redraw_windows(C);
 
-  uint *dumprect = WM_window_pixels_read(C, win, dumprect_size);
+  uint8_t *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
   if (dumprect) {
     ScreenshotData *scd = MEM_callocN(sizeof(ScreenshotData), "screenshot");
@@ -118,12 +118,12 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 
       /* operator ensures the extension */
       ibuf = IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
-      ibuf->rect = scd->dumprect;
+      IMB_assign_byte_buffer(ibuf, scd->dumprect, IB_DO_NOT_TAKE_OWNERSHIP);
 
       /* crop to show only single editor */
       if (use_crop) {
         IMB_rect_crop(ibuf, &scd->crop);
-        scd->dumprect = ibuf->rect;
+        scd->dumprect = ibuf->byte_buffer.data;
       }
 
       if ((scd->im_format.planes == R_IMF_PLANES_BW) &&

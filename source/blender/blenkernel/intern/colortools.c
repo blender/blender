@@ -1382,11 +1382,11 @@ void BKE_histogram_update_sample_line(Histogram *hist,
   hist->xmax = 1.0f;
   /* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL) {
     return;
   }
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
 
@@ -1399,9 +1399,9 @@ void BKE_histogram_update_sample_line(Histogram *hist,
           0.0f;
     }
     else {
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         float rgba[4];
-        fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+        fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
 
         switch (ibuf->channels) {
           case 4:
@@ -1431,8 +1431,8 @@ void BKE_histogram_update_sample_line(Histogram *hist,
         hist->data_b[i] = rgba[2];
         hist->data_a[i] = rgba[3];
       }
-      else if (ibuf->rect) {
-        cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+      else if (ibuf->byte_buffer.data) {
+        cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
         hist->data_luma[i] = (float)IMB_colormanagement_get_luminance_byte(cp) / 255.0f;
         hist->data_r[i] = (float)cp[0] / 255.0f;
         hist->data_g[i] = (float)cp[1] / 255.0f;
@@ -1492,10 +1492,10 @@ static void scopes_update_cb(void *__restrict userdata,
   const int savedlines = y / rows_per_sample_line;
   const bool do_sample_line = (savedlines < scopes->sample_lines) &&
                               (y % rows_per_sample_line) == 0;
-  const bool is_float = (ibuf->rect_float != NULL);
+  const bool is_float = (ibuf->float_buffer.data != NULL);
 
   if (is_float) {
-    rf = ibuf->rect_float + ((size_t)y) * ibuf->x * ibuf->channels;
+    rf = ibuf->float_buffer.data + ((size_t)y) * ibuf->x * ibuf->channels;
   }
   else {
     rc = display_buffer + ((size_t)y) * ibuf->x * ibuf->channels;
@@ -1616,7 +1616,7 @@ void BKE_scopes_update(Scopes *scopes,
   void *cache_handle = NULL;
   struct ColormanageProcessor *cm_processor = NULL;
 
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL) {
     return;
   }
 
@@ -1692,7 +1692,7 @@ void BKE_scopes_update(Scopes *scopes,
   scopes->vecscope = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float),
                                  "vectorscope point channel");
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
   else {

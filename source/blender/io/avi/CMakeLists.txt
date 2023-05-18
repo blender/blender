@@ -5,6 +5,7 @@ set(INC
   .
   ../../blenlib
   ../../imbuf
+  ../../makesdna
   ../../../../intern/guardedalloc
 )
 

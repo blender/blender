@@ -2093,7 +2093,7 @@ ImBuf *WM_clipboard_image_get(void)
 
   int width, height;
 
-  uint *rgba = GHOST_getClipboardImage(&width, &height);
+  uint8_t *rgba = (uint8_t *)GHOST_getClipboardImage(&width, &height);
   if (!rgba) {
     return NULL;
   }
@@ -2111,13 +2111,13 @@ bool WM_clipboard_image_set(ImBuf *ibuf)
   }
 
   bool free_byte_buffer = false;
-  if (ibuf->rect == NULL) {
+  if (ibuf->byte_buffer.data == NULL) {
     /* Add a byte buffer if it does not have one. */
     IMB_rect_from_float(ibuf);
     free_byte_buffer = true;
   }
 
-  bool success = (bool)GHOST_putClipboardImage(ibuf->rect, ibuf->x, ibuf->y);
+  bool success = (bool)GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y);
 
   if (free_byte_buffer) {
     /* Remove the byte buffer if we added it. */

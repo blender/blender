@@ -27,7 +27,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);
 
-  if (!BLF_thumb_preview(filename, (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels)) {
+  if (!BLF_thumb_preview(filename, ibuf->byte_buffer.data, ibuf->x, ibuf->y, ibuf->channels)) {
     IMB_freeImBuf(ibuf);
     ibuf = nullptr;
   }

@@ -1918,7 +1918,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                             rd,
                             preview ? scene->r.psfra : scene->r.sfra,
                             scene->r.cfra,
-                            (int *)ibuf->rect,
+                            (int *)ibuf->byte_buffer.data,
                             ibuf->x,
                             ibuf->y,
                             suffix,
@@ -1952,7 +1952,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                           rd,
                           preview ? scene->r.psfra : scene->r.sfra,
                           scene->r.cfra,
-                          (int *)ibuf_arr[2]->rect,
+                          (int *)ibuf_arr[2]->byte_buffer.data,
                           ibuf_arr[2]->x,
                           ibuf_arr[2]->y,
                           "",
@@ -2458,19 +2458,19 @@ void RE_layer_load_from_file(
                 filepath);
   }
 
-  if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+  if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
     if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
-      if (ibuf->rect_float == nullptr) {
+      if (ibuf->float_buffer.data == nullptr) {
         IMB_float_from_rect(ibuf);
       }
 
-      memcpy(rpass->rect, ibuf->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
+      memcpy(rpass->rect, ibuf->float_buffer.data, sizeof(float[4]) * layer->rectx * layer->recty);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
         ImBuf *ibuf_clip;
 
-        if (ibuf->rect_float == nullptr) {
+        if (ibuf->float_buffer.data == nullptr) {
           IMB_float_from_rect(ibuf);
         }
 
@@ -2478,8 +2478,9 @@ void RE_layer_load_from_file(
         if (ibuf_clip) {
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
-          memcpy(
-              rpass->rect, ibuf_clip->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
+          memcpy(rpass->rect,
+                 ibuf_clip->float_buffer.data,
+                 sizeof(float[4]) * layer->rectx * layer->recty);
           IMB_freeImBuf(ibuf_clip);
         }
         else {

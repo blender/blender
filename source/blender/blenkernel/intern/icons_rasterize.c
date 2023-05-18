@@ -85,7 +85,7 @@ ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, 
   data.rect_size[0] = rect_size[0];
   data.rect_size[1] = rect_size[1];
 
-  data.rect = ibuf->rect;
+  data.rect = (uint *)ibuf->byte_buffer.data;
 
   float scale[2];
   const bool use_scale = (rect_size[0] != 256) || (rect_size[1] != 256);

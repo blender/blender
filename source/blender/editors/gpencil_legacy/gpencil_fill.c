@@ -1322,13 +1322,13 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   GPU_matrix_pop();
 
   /* create a image to see result of template */
-  if (ibuf->rect_float) {
-    GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, ibuf->rect_float);
+  if (ibuf->float_buffer.data) {
+    GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, ibuf->float_buffer.data);
   }
-  else if (ibuf->rect) {
-    GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, ibuf->rect);
+  else if (ibuf->byte_buffer.data) {
+    GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, ibuf->byte_buffer.data);
   }
-  if (ibuf->rect_float && ibuf->rect) {
+  if (ibuf->float_buffer.data && ibuf->byte_buffer.data) {
     IMB_rect_from_float(ibuf);
   }
 
@@ -1347,22 +1347,22 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
 /* Return pixel data (RGBA) at index. */
 static void get_pixel(const ImBuf *ibuf, const int idx, float r_col[4])
 {
-  BLI_assert(ibuf->rect_float != NULL);
-  memcpy(r_col, &ibuf->rect_float[idx * 4], sizeof(float[4]));
+  BLI_assert(ibuf->float_buffer.data != NULL);
+  memcpy(r_col, &ibuf->float_buffer.data[idx * 4], sizeof(float[4]));
 }
 
 /* Set pixel data (RGBA) at index. */
 static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
 {
-  BLI_assert(ibuf->rect_float != NULL);
-  float *rrectf = &ibuf->rect_float[idx * 4];
+  BLI_assert(ibuf->float_buffer.data != NULL);
+  float *rrectf = &ibuf->float_buffer.data[idx * 4];
   copy_v4_v4(rrectf, col);
 }
 
 /* Helper: Check if one image row is empty. */
 static bool is_row_filled(const ImBuf *ibuf, const int row_index)
 {
-  float *row = &ibuf->rect_float[ibuf->x * 4 * row_index];
+  float *row = &ibuf->float_buffer.data[ibuf->x * 4 * row_index];
   return (row[0] == 0.0f && memcmp(row, row + 1, ((ibuf->x * 4) - 1) * sizeof(float)) != 0);
 }
 

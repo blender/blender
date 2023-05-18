@@ -2311,12 +2311,12 @@ static void radial_control_set_tex(RadialControl *rc)
                                             GPU_R8,
                                             GPU_TEXTURE_USAGE_SHADER_READ |
                                                 GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                                            ibuf->rect_float);
+                                            ibuf->float_buffer.data);
 
         GPU_texture_filter_mode(rc->texture, true);
         GPU_texture_swizzle_set(rc->texture, "111r");
 
-        MEM_freeN(ibuf->rect_float);
+        MEM_freeN(ibuf->float_buffer.data);
         MEM_freeN(ibuf);
       }
       break;

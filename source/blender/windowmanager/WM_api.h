@@ -181,9 +181,9 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area
  * \warning Drawing (swap-buffers) immediately before calling this function causes
  * the front-buffer state to be invalid under some EGL configurations.
  */
-uint *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
-                                             const struct wmWindow *win,
-                                             int r_size[2]);
+uint8_t *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
+                                                const struct wmWindow *win,
+                                                int r_size[2]);
 /** A version of #WM_window_pixels_read_from_frontbuffer that samples a pixel at `pos`. */
 void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
                                                    const struct wmWindow *win,
@@ -197,9 +197,9 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
  * \note This is needed because the state of the front-buffer may be damaged
  * (see in-line code comments for details).
  */
-uint *WM_window_pixels_read_from_offscreen(struct bContext *C,
-                                           struct wmWindow *win,
-                                           int r_size[2]);
+uint8_t *WM_window_pixels_read_from_offscreen(struct bContext *C,
+                                              struct wmWindow *win,
+                                              int r_size[2]);
 /** A version of #WM_window_pixels_read_from_offscreen that samples a pixel at `pos`. */
 bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
                                                  struct wmWindow *win,
@@ -211,7 +211,7 @@ bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
  *
  * \note Use off-screen drawing when front-buffer reading is not supported.
  */
-uint *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
+uint8_t *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
 /**
  * Read a single pixel from the screen.
  *

@@ -140,11 +140,11 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
 
     if (pattern_ibuf) {
       for (int j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
-        if (pattern_ibuf->rect_float) {
-          add_v3_v3(site->color, &pattern_ibuf->rect_float[4 * j]);
+        if (pattern_ibuf->float_buffer.data) {
+          add_v3_v3(site->color, &pattern_ibuf->float_buffer.data[4 * j]);
         }
         else {
-          uchar *rrgb = (uchar *)pattern_ibuf->rect;
+          uchar *rrgb = pattern_ibuf->byte_buffer.data;
 
           site->color[0] += srgb_to_linearrgb(float(rrgb[4 * j + 0]) / 255.0f);
           site->color[1] += srgb_to_linearrgb(float(rrgb[4 * j + 1]) / 255.0f);

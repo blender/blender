@@ -472,11 +472,11 @@ void paint_sample_color(
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
-            if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+            if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
               u = u * ibuf->x;
               v = v * ibuf->y;
 
-              if (ibuf->rect_float) {
+              if (ibuf->float_buffer.data) {
                 float rgba_f[4];
                 if (interp == SHD_INTERP_CLOSEST) {
                   nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);

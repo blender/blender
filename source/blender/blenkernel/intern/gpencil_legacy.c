@@ -2308,7 +2308,7 @@ bool BKE_gpencil_from_image(
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf && ibuf->rect) {
+  if (ibuf && ibuf->byte_buffer.data) {
     int img_x = ibuf->x;
     int img_y = ibuf->y;
 

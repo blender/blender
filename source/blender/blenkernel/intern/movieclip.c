@@ -548,11 +548,9 @@ void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf)
                              movieclip_convert_multilayer_add_layer,
                              movieclip_convert_multilayer_add_pass);
   if (ctx.combined_pass != NULL) {
-    BLI_assert(ibuf->rect_float == NULL);
-    ibuf->rect_float = ctx.combined_pass;
+    BLI_assert(ibuf->float_buffer.data == NULL);
+    IMB_assign_float_buffer(ibuf, ctx.combined_pass, IB_TAKE_OWNERSHIP);
     ibuf->channels = ctx.num_combined_channels;
-    ibuf->flags |= IB_rectfloat;
-    ibuf->mall |= IB_rectfloat;
   }
   IMB_exr_close(ibuf->userdata);
   ibuf->userdata = NULL;
@@ -1732,7 +1730,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip,
 
     scopes->track_disabled = false;
 
-    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+    if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       MovieTrackingMarker undist_marker = *marker;
 
       if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
@@ -2049,7 +2047,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
 
   /* This only means RGBA16F instead of RGBA32F. */
   const bool high_bitdepth = false;
-  const bool store_premultiplied = ibuf->rect_float ? false : true;
+  const bool store_premultiplied = ibuf->float_buffer.data ? false : true;
   *tex = IMB_create_gpu_texture(clip->id.name + 2, ibuf, high_bitdepth, store_premultiplied);
 
   /* Do not generate mips for movieclips... too slow. */

@@ -405,8 +405,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
         short ex = MAX2(1, short(img->x * scale));
         short ey = MAX2(1, short(img->y * scale));
         /* Save some time by only scaling byte buffer. */
-        if (img->rect_float) {
-          if (img->rect == nullptr) {
+        if (img->float_buffer.data) {
+          if (img->byte_buffer.data == nullptr) {
             IMB_rect_from_float(img);
           }
           imb_freerectfloatImBuf(img);

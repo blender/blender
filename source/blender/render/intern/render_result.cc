@@ -931,9 +931,9 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
-  ibuf->rect = (uint *)rv->rect32;
-  ibuf->rect_float = rv->rectf;
-  ibuf->zbuf_float = rv->rectz;
+  IMB_assign_byte_buffer(ibuf, reinterpret_cast<uint8_t *>(rv->rect32), IB_DO_NOT_TAKE_OWNERSHIP);
+  IMB_assign_float_buffer(ibuf, rv->rectf, IB_DO_NOT_TAKE_OWNERSHIP);
+  IMB_assign_float_z_buffer(ibuf, rv->rectz, IB_DO_NOT_TAKE_OWNERSHIP);
 
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;
@@ -941,13 +941,13 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   /* prepare to gamma correct to sRGB color space
    * note that sequence editor can generate 8bpc render buffers
    */
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     if (BKE_imtype_valid_depths(imf->imtype) &
         (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
     {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
-        ibuf->rect_float = nullptr;
+        IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
       }
       else {
         IMB_float_from_rect(ibuf);
@@ -955,7 +955,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
     }
     else {
       /* ensure no float buffer remained from previous frame */
-      ibuf->rect_float = nullptr;
+      IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
     }
   }
 
@@ -975,27 +975,27 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     rr->have_combined = true;
 
     if (!rv->rectf) {
       rv->rectf = MEM_cnew_array<float>(4 * rr->rectx * rr->recty, "render_seq rectf");
     }
 
-    memcpy(rv->rectf, ibuf->rect_float, sizeof(float[4]) * rr->rectx * rr->recty);
+    memcpy(rv->rectf, ibuf->float_buffer.data, sizeof(float[4]) * rr->rectx * rr->recty);
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
     MEM_SAFE_FREE(rv->rect32);
   }
-  else if (ibuf->rect) {
+  else if (ibuf->byte_buffer.data) {
     rr->have_combined = true;
 
     if (!rv->rect32) {
       rv->rect32 = MEM_cnew_array<int>(rr->rectx * rr->recty, "render_seq rect");
     }
 
-    memcpy(rv->rect32, ibuf->rect, sizeof(int) * rr->rectx * rr->recty);
+    memcpy(rv->rect32, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
 
     /* Same things as above, old rectf can hang around from previous render. */
     MEM_SAFE_FREE(rv->rectf);

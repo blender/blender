@@ -257,9 +257,9 @@ void OutputSingleLayerOperation::deinit_execution()
     const char *suffix;
 
     ibuf->channels = size;
-    ibuf->rect_float = output_buffer_;
-    ibuf->mall |= IB_rectfloat;
     ibuf->dither = rd_->dither_intensity;
+
+    IMB_assign_float_buffer(ibuf, output_buffer_, IB_TAKE_OWNERSHIP);
 
     IMB_colormanagement_imbuf_for_write(ibuf, save_as_render_, false, &format_);
 

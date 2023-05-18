@@ -523,7 +523,7 @@ BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
     IMB_rect_from_float(img); /* Just in case... */
     data->width = img->x;
     data->height = img->y;
-    memcpy(data->rect, img->rect, data_size - sizeof(*data));
+    memcpy(data->rect, img->byte_buffer.data, data_size - sizeof(*data));
   }
 
   if (bmain) {
@@ -542,7 +542,7 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
 
   if (data) {
     img = IMB_allocFromBuffer(
-        (const uint *)data->rect, NULL, (uint)data->width, (uint)data->height, 4);
+        (const uint8_t *)data->rect, NULL, (uint)data->width, (uint)data->height, 4);
   }
 
   return img;
