@@ -2497,7 +2497,7 @@ def km_nla_generic(_params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS'},
-         {"properties": [("use_upper_stack_evaluation", False)]}),
+         {"properties": [("use_upper_stack_evaluation", True)]}),
         ("nla.tweakmode_exit", {"type": 'TAB', "value": 'PRESS'}, None),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS', "shift": True},
          {"properties": [("isolate_action", True)]}),
