@@ -434,6 +434,7 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_view:
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("sequencer.view_all")
+            layout.operator("sequencer.view_frame")
             layout.operator("view2d.zoom_border", text="Zoom")
             layout.prop(st, "use_clamp_view")
 
