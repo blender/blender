@@ -80,14 +80,14 @@ static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
   mul_v3_v3fl(result, pos_accum, 1.0f / neighbor_count);
 }
 
-ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
-                                                                   float result[3],
-                                                                   PBVHVertRef vertex,
-                                                                   float projection,
-                                                                   float hard_corner_pin,
-                                                                   bool weighted,
-                                                                   eSculptBoundary bound_type,
-                                                                   eSculptCorner corner_type)
+static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
+                                                       float result[3],
+                                                       PBVHVertRef vertex,
+                                                       float projection,
+                                                       float hard_corner_pin,
+                                                       bool weighted,
+                                                       eSculptBoundary bound_type,
+                                                       eSculptCorner corner_type)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
 
@@ -100,11 +100,6 @@ ATTR_NO_OPT static void SCULPT_neighbor_coords_average_interior_ex(SculptSession
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
-
-  if (ss->bm) {
-    BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
-    BM_vert_select_set(ss->bm, v, is_corner & SCULPT_CORNER_SHARP_ANGLE);
-  }
 
   float *areas = nullptr;
   float3 no, co;
