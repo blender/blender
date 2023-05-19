@@ -724,7 +724,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   calculate_selection_outputs(config, attribute_outputs, mesh->attributes_for_write());
 
   mesh->tag_loose_verts_none();
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
   mesh->bounds_set_eager(calculate_bounds_cylinder(config));
 
   return mesh;

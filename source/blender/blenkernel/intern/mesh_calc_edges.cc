@@ -271,7 +271,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
 
   if (!keep_existing_edges) {
     /* All edges are rebuilt from the faces, so there are no loose edges. */
-    mesh->loose_edges_tag_none();
+    mesh->tag_loose_edges_none();
   }
 
   /* Explicitly clear edge maps, because that way it can be parallelized. */

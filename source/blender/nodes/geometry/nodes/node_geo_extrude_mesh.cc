@@ -417,7 +417,7 @@ static void tag_mesh_added_faces(Mesh &mesh)
     mesh.tag_loose_verts_none();
   }
   if (no_loose_edge_hint) {
-    mesh.loose_edges_tag_none();
+    mesh.tag_loose_edges_none();
   }
 }
 

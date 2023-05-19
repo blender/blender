@@ -80,7 +80,7 @@ static void geometry_set_points_to_vertices(
     }
   }
 
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
 
   geometry_set.replace_mesh(mesh);
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});

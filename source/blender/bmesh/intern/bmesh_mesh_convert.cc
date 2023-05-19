@@ -1344,7 +1344,7 @@ static void bm_to_mesh_edges(const BMesh &bm,
   });
 
   if (!any_loose_edge) {
-    mesh.loose_edges_tag_none();
+    mesh.tag_loose_edges_none();
   }
 }
 
