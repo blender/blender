@@ -41,6 +41,7 @@ struct TransDataContainer;
 struct TransInfo;
 struct TransSnap;
 struct ViewLayer;
+struct ViewOpsData;
 struct bContext;
 struct wmEvent;
 struct wmKeyConfig;
@@ -672,6 +673,8 @@ typedef struct TransInfo {
 
   /** Currently only used for random curve of proportional editing. */
   struct RNG *rng;
+
+  struct ViewOpsData *vod;
 
   /** Typically for mode settings. */
   TransCustomDataContainer custom;

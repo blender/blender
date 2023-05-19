@@ -1038,10 +1038,22 @@ class VIEW3D_MT_transform_base:
     # TODO: get rid of the custom text strings?
     def draw(self, context):
         layout = self.layout
+        allow_navigation = getattr(
+            context.window_manager.keyconfigs.active.preferences,
+            "use_transform_navigation",
+            False)
 
-        layout.operator("transform.translate")
-        layout.operator("transform.rotate")
-        layout.operator("transform.resize", text="Scale")
+        props = layout.operator("transform.translate")
+        props.release_confirm = False
+        props.allow_navigation = allow_navigation
+
+        props = layout.operator("transform.rotate")
+        props.release_confirm = False
+        props.allow_navigation = allow_navigation
+
+        props = layout.operator("transform.resize", text="Scale")
+        props.release_confirm = False
+        props.allow_navigation = allow_navigation
 
         layout.separator()
 
