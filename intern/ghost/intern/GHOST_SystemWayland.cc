@@ -1002,6 +1002,10 @@ static void gwl_display_destroy(GWL_Display *display)
     delete display->ghost_timer_manager;
     display->ghost_timer_manager = nullptr;
   }
+  /* Pending events may be left unhandled. */
+  for (GHOST_IEvent *event : display->events_pending) {
+    delete event;
+  }
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
