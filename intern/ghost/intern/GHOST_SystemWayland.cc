@@ -5470,6 +5470,13 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
       break;
     }
   }
+
+  /* Wait until the main thread cancels this thread, otherwise this thread may exit
+   * before cancel is called, causing a crash on exit. */
+  while (true) {
+    pause();
+  }
+
   return nullptr;
 }
 
