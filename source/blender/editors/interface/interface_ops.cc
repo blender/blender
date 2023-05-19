@@ -1396,7 +1396,6 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr, lptr;
   PropertyRNA *prop, *lprop;
-  bool success = false;
   int index;
 
   /* try to reset the nominated setting to its default value */
@@ -1407,36 +1406,31 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
     return false;
   }
 
+  bool success = false;
   char *path = nullptr;
   bool use_path_from_id;
   ListBase lb = {nullptr};
 
-  if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
-    return false;
-  }
-  if (BLI_listbase_is_empty(&lb)) {
-    MEM_SAFE_FREE(path);
-    return false;
-  }
+  if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
+    LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
+      if (link->ptr.data == ptr.data) {
+        continue;
+      }
 
-  LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
-    if (link->ptr.data == ptr.data) {
-      continue;
-    }
+      if (!UI_context_copy_to_selected_check(
+              &ptr, &link->ptr, prop, path, use_path_from_id, &lptr, &lprop))
+      {
+        continue;
+      }
 
-    if (!UI_context_copy_to_selected_check(
-            &ptr, &link->ptr, prop, path, use_path_from_id, &lptr, &lprop))
-    {
-      continue;
-    }
-
-    if (poll) {
-      success = true;
-      break;
-    }
-    if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
-      RNA_property_update(C, &lptr, prop);
-      success = true;
+      if (poll) {
+        success = true;
+        break;
+      }
+      if (RNA_property_copy(bmain, &lptr, &ptr, prop, (all) ? -1 : index)) {
+        RNA_property_update(C, &lptr, prop);
+        success = true;
+      }
     }
   }
 
