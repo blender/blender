@@ -1616,14 +1616,15 @@ void WM_job_main_thread_lock_release(struct wmJob *job);
 
 /**
  * Return text from the clipboard.
- *
- * \note Caller needs to check for valid utf8 if this is a requirement.
+ * \param selection: Use the "primary" clipboard, see: #WM_CAPABILITY_PRIMARY_CLIPBOARD.
+ * \param ensure_utf8: Ensure the resulting string does not contain invalid UTF8 encoding.
  */
-char *WM_clipboard_text_get(bool selection, int *r_len);
+char *WM_clipboard_text_get(bool selection, bool ensure_utf8, int *r_len);
 /**
  * Convenience function for pasting to areas of Blender which don't support newlines.
  */
-char *WM_clipboard_text_get_firstline(bool selection, int *r_len);
+char *WM_clipboard_text_get_firstline(bool selection, bool ensure_utf8, int *r_len);
+
 void WM_clipboard_text_set(const char *buf, bool selection);
 
 /**

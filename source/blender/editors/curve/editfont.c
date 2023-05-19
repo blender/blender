@@ -1051,7 +1051,8 @@ static int paste_text_exec(bContext *C, wmOperator *op)
     int len;
   } clipboard_system = {NULL}, clipboard_vfont = {NULL};
 
-  clipboard_system.buf = WM_clipboard_text_get(selection, &clipboard_system.len);
+  /* No need for UTF8 validation as the conversion handles invalid sequences gracefully. */
+  clipboard_system.buf = WM_clipboard_text_get(selection, false, &clipboard_system.len);
 
   if (clipboard_system.buf == NULL) {
     return OPERATOR_CANCELLED;
