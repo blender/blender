@@ -1037,16 +1037,32 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
         col.label(text="Smooth Boundaries")
         col = layout.column(align=True)
-        col.prop(ups, "smooth_boundary_mesh")
-        col.prop(ups, "smooth_boundary_face_set")
+
+        col.prop(ups, "smooth_boundary_seam", text="Relax Marked Seams")
+        col.prop(ups, "smooth_boundary_uv", text="Relax UV Seams")
+        col.prop(ups, "smooth_boundary_face_set", text="Relax Face Sets")
+
+        col.separator();
 
         row = col.row()
         row.enabled = ups.smooth_boundary_face_set
-        row.prop(ups, "hard_edge_mode", text="Sharp Face Sets")
+        row.prop(ups, "hard_edge_mode", text="Crease Face Sets")
 
-        col.prop(ups, "smooth_boundary_seam")
-        col.prop(ups, "smooth_boundary_sharp_mark")
-        col.prop(ups, "smooth_boundary_sharp_angle")
+        UnifiedPaintPanel.prop_unified(
+                col,
+                context,
+                brush,
+                "hard_corner_pin",
+                slider=True,
+                unified_name = "use_unified_hard_corner_pin",
+                text="Corner Pin"
+            )
+      
+        col.separator();
+
+        col.prop(ups, "smooth_boundary_mesh", text="Crease Boundaries")
+        col.prop(ups, "smooth_boundary_sharp_mark", text="Crease Marked Sharp")
+        col.prop(ups, "smooth_boundary_sharp_angle", text="Crease By Angle")
 
         row = col.row()
         row.enabled = ups.smooth_boundary_sharp_angle
@@ -1057,20 +1073,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             "sharp_angle_limit",
             unified_name = "use_unified_sharp_angle_limit"
         )
-
-        col.prop(ups, "smooth_boundary_uv")
-        col.separator();
-
-        UnifiedPaintPanel.prop_unified(
-                layout,
-                context,
-                brush,
-                "hard_corner_pin",
-                slider=True,
-                unified_name = "use_unified_hard_corner_pin",
-                text="Corner Pin"
-            )
-      
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
