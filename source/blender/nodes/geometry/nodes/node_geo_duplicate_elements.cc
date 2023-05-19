@@ -548,7 +548,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
   }
 
   new_mesh->tag_loose_verts_none();
-  new_mesh->loose_edges_tag_none();
+  new_mesh->tag_loose_edges_none();
 
   copy_face_attributes_without_id(edge_mapping,
                                   vert_mapping,

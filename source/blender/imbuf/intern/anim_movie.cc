@@ -482,7 +482,9 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
     }
 
     for (y = 0; y < anim->y; y++) {
-      memcpy(&(ibuf->rect)[((anim->y - y) - 1) * anim->x], &tmp[y * anim->x], anim->x * 4);
+      memcpy(&(ibuf->byte_buffer.data)[((anim->y - y) - 1) * anim->x],
+             &tmp[y * anim->x],
+             anim->x * 4);
     }
 
     MEM_freeN(tmp);
@@ -909,8 +911,14 @@ static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
   const int src_linesize[4] = {-anim->pFrameRGB->linesize[0], 0, 0, 0};
   int dst_size = av_image_get_buffer_size(
       AVPixelFormat(anim->pFrameRGB->format), anim->pFrameRGB->width, anim->pFrameRGB->height, 1);
-  av_image_copy_to_buffer(
-      (uint8_t *)ibuf->rect, dst_size, src, src_linesize, AV_PIX_FMT_RGBA, anim->x, anim->y, 1);
+  av_image_copy_to_buffer((uint8_t *)ibuf->byte_buffer.data,
+                          dst_size,
+                          src,
+                          src_linesize,
+                          AV_PIX_FMT_RGBA,
+                          anim->x,
+                          anim->y,
+                          1);
   if (filter_y) {
     IMB_filtery(ibuf);
   }
@@ -1459,9 +1467,11 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   }
 
   anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
-  anim->cur_frame_final->rect = static_cast<uint *>(
+
+  /* Allocate the storage explicitly to ensure the memory is aligned. */
+  uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
-  anim->cur_frame_final->mall |= IB_rect;
+  IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
   anim->cur_frame_final->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 

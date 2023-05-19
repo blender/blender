@@ -450,7 +450,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   if (use_float) {
-    float *rect_float = ibuf->rect_float;
+    float *rect_float = ibuf->float_buffer.data;
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
@@ -503,7 +503,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     }
   }
   else {
-    uchar *rect_uchar = (uchar *)ibuf->rect;
+    uchar *rect_uchar = ibuf->byte_buffer.data;
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
@@ -907,8 +907,8 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
 
   /* set image data */
-  rect_uchar = (uchar *)ibuf->rect;
-  rect_float = ibuf->rect_float;
+  rect_uchar = ibuf->byte_buffer.data;
+  rect_float = ibuf->float_buffer.data;
 
   /* set the destination channels */
   r = image->comps[0].data;

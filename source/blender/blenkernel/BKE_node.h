@@ -554,8 +554,10 @@ struct bNodeSocket *ntreeAddSocketInterface(struct bNodeTree *ntree,
  * \{ */
 
 struct bNodeType *nodeTypeFind(const char *idname);
+const char *nodeTypeFindAlias(const char *idname);
 void nodeRegisterType(struct bNodeType *ntype);
 void nodeUnregisterType(struct bNodeType *ntype);
+void nodeRegisterAlias(struct bNodeType *nt, const char *alias);
 struct GHashIterator *nodeTypeGetIterator(void);
 
 /* Helper macros for iterating over node types. */
@@ -893,9 +895,9 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_MIX_SHADER 128
 #define SH_NODE_ATTRIBUTE 129
 #define SH_NODE_BACKGROUND 130
-#define SH_NODE_BSDF_ANISOTROPIC 131
+#define SH_NODE_BSDF_GLOSSY 131
 #define SH_NODE_BSDF_DIFFUSE 132
-#define SH_NODE_BSDF_GLOSSY 133
+#define SH_NODE_BSDF_GLOSSY_LEGACY 133
 #define SH_NODE_BSDF_GLASS 134
 #define SH_NODE_BSDF_TRANSLUCENT 137
 #define SH_NODE_BSDF_TRANSPARENT 138

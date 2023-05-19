@@ -1441,7 +1441,7 @@ static void pack_islands_endjob(void *pidv)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
   }
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, NULL);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   if (pid->undo_str) {
     ED_undo_push(pid->undo_context, pid->undo_str);

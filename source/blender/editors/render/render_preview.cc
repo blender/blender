@@ -1352,7 +1352,8 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   short ex, ey, dx, dy;
 
   /* paranoia test */
-  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     return;
   }
 
@@ -1382,11 +1383,11 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   IMB_scalefastImBuf(ima, ex, ey);
 
   /* if needed, convert to 32 bits */
-  if (ima->rect == nullptr) {
+  if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = ima->rect;
+  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
   drect = rect;
 
   drect += dy * w + dx;
@@ -1440,7 +1441,8 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
      * already there. Very expensive for large images. Need to find a way to
      * only get existing `ibuf`. */
     ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
-    if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+    if (ibuf == nullptr ||
+        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr)) {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return;
     }
@@ -1458,7 +1460,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
-    if (!(br->icon_imbuf) || !(br->icon_imbuf->rect)) {
+    if (!(br->icon_imbuf) || !(br->icon_imbuf->byte_buffer.data)) {
       return;
     }
 

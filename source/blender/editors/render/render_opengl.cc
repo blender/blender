@@ -301,7 +301,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
        * TODO(sergey): In the case of output to float container (EXR)
        * it actually makes sense to keep float buffer instead.
        */
-      if (ibuf_result->rect_float != nullptr) {
+      if (ibuf_result->float_buffer.data != nullptr) {
         IMB_rect_from_float(ibuf_result);
         imb_freerectfloatImBuf(ibuf_result);
       }
@@ -315,7 +315,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     if (gpd) {
       int i;
       uchar *gp_rect;
-      uchar *render_rect = (uchar *)ibuf_result->rect;
+      uchar *render_rect = ibuf_result->byte_buffer.data;
 
       DRW_opengl_context_enable();
       GPU_offscreen_bind(oglrender->ofs, true);
@@ -404,11 +404,11 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
       float *rectf = nullptr;
       uchar *rect = nullptr;
-      if (ibuf_result->rect_float) {
-        rectf = ibuf_result->rect_float;
+      if (ibuf_result->float_buffer.data) {
+        rectf = ibuf_result->float_buffer.data;
       }
       else {
-        rect = (uchar *)ibuf_result->rect;
+        rect = ibuf_result->byte_buffer.data;
       }
       BKE_image_stamp_buf(scene, camera, nullptr, rect, rectf, rr->rectx, rr->recty, 4);
     }

@@ -3573,6 +3573,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
     do_versions_after_linking_300(fd, main);
   }
   if (!main->is_read_invalid) {
+    do_versions_after_linking_400(fd, main);
+  }
+  if (!main->is_read_invalid) {
     do_versions_after_linking_cycles(main);
   }
 

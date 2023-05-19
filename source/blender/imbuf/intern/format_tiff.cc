@@ -48,7 +48,7 @@ ImBuf *imb_load_tiff(const uchar *mem, size_t size, int flags, char colorspace[I
 
 bool imb_save_tiff(struct ImBuf *ibuf, const char *filepath, int flags)
 {
-  const bool is_16bit = ((ibuf->foptions.flag & TIF_16BIT) && ibuf->rect_float);
+  const bool is_16bit = ((ibuf->foptions.flag & TIF_16BIT) && ibuf->float_buffer.data);
   const int file_channels = ibuf->planes >> 3;
   const TypeDesc data_format = is_16bit ? TypeDesc::UINT16 : TypeDesc::UINT8;
 

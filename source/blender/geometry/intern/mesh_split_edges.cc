@@ -21,7 +21,6 @@ static inline bool naive_edges_equal(const int2 &edge1, const int2 &edge2)
 static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   /* These types aren't supported for interpolation below. */
-  CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);

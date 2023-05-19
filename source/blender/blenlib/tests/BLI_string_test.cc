@@ -30,7 +30,7 @@ TEST(string, StrCopyUTF8_ASCII)
     const char src[] = {__VA_ARGS__, 0}; \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
   }
@@ -70,7 +70,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
     EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
     BLI_strncpy_utf8(dst, src, sizeof(dst) - 1); \
@@ -97,13 +97,13 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
     EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
     for (int i = sizeof(dst) - 1; i > 1; i--) { \
       src[i] = '\0'; \
       memset(dst, 0xff, sizeof(dst)); \
-      const int dst_copied = BLI_strncpy_utf8_rlen(dst, src, sizeof(dst)); \
+      const int dst_copied = STRNCPY_UTF8_RLEN(dst, src); \
       EXPECT_STREQ(dst, src); \
       EXPECT_EQ(strlen(dst), i); \
       EXPECT_EQ(dst_copied, i); \

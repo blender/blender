@@ -2422,7 +2422,7 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
     *r_width = ibuf->x;
     *r_height = ibuf->y;
     rgba = (uint *)malloc(4 * ibuf->x * ibuf->y);
-    memcpy(rgba, ibuf->rect, 4 * ibuf->x * ibuf->y);
+    memcpy(rgba, ibuf->byte_buffer.data, 4 * ibuf->x * ibuf->y);
     IMB_freeImBuf(ibuf);
   }
 
@@ -2513,7 +2513,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
   UINT cf = RegisterClipboardFormat("PNG");
 
   /* Load buffer into ImBuf, convert to PNG. */
-  ImBuf *ibuf = IMB_allocFromBuffer(rgba, nullptr, width, height, 32);
+  ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
   if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
@@ -2521,7 +2521,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
     return false;
   }
 
-  HGLOBAL hMem = GlobalAlloc(GHND, ibuf->encodedbuffersize);
+  HGLOBAL hMem = GlobalAlloc(GHND, ibuf->encoded_buffer_size);
   if (!hMem) {
     IMB_freeImBuf(ibuf);
     return false;
@@ -2534,7 +2534,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
     return false;
   }
 
-  memcpy(pMem, ibuf->encodedbuffer, ibuf->encodedbuffersize);
+  memcpy(pMem, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
 
   GlobalUnlock(hMem);
   IMB_freeImBuf(ibuf);

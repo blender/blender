@@ -799,7 +799,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     if (custom_flags & OPENEXR_COMPRESS) {
       im_format->exr_codec = R_IMF_EXR_CODEC_ZIP; /* Can't determine compression */
     }
-    if (imbuf->zbuf_float) {
+    if (imbuf->float_z_buffer.data) {
       im_format->flag |= R_IMF_FLAG_ZBUF;
     }
   }

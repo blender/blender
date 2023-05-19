@@ -120,7 +120,6 @@ static void expand_mesh(Mesh &mesh,
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
     CustomData_free_layers(&mesh.vdata, CD_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
@@ -129,7 +128,6 @@ static void expand_mesh(Mesh &mesh,
     CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
-    CustomData_free_layers(&mesh.edata, CD_BWEIGHT, mesh.totedge);
     CustomData_free_layers(&mesh.edata, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
@@ -339,7 +337,12 @@ static void extrude_mesh_vertices(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_EDGE, new_edge_range);
   }
 
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
   BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
 }
 
 static void fill_quad_consistent_direction(const Span<int> other_poly_verts,
@@ -399,6 +402,21 @@ static VectorSet<int> vert_indices_from_edges(const Mesh &mesh, const Span<T> ed
     vert_indices.add(edge[1]);
   }
   return vert_indices;
+}
+
+static void tag_mesh_added_faces(Mesh &mesh)
+{
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
+  const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
+                                  mesh.runtime->loose_edges_cache.data().count == 0;
+  BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
+  if (no_loose_edge_hint) {
+    mesh.tag_loose_edges_none();
+  }
 }
 
 static void extrude_mesh_edges(Mesh &mesh,
@@ -679,7 +697,7 @@ static void extrude_mesh_edges(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 /**
@@ -1090,7 +1108,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void extrude_individual_mesh_faces(
@@ -1374,7 +1392,7 @@ static void extrude_individual_mesh_faces(
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

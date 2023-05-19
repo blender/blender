@@ -446,7 +446,7 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
 
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
-    if (CustomData_get_layer_named(custom_data, data_type_, name_.c_str())) {
+    if (CustomData_has_layer_named(custom_data, data_type_, name_.c_str())) {
       /* Exists already. */
       return false;
     }
@@ -469,7 +469,7 @@ bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
     return false;
   }
   if (stored_as_named_attribute_) {
-    return CustomData_get_layer_named(custom_data, stored_type_, name_.c_str()) != nullptr;
+    return CustomData_has_layer_named(custom_data, stored_type_, name_.c_str());
   }
   return CustomData_get_layer(custom_data, stored_type_) != nullptr;
 }

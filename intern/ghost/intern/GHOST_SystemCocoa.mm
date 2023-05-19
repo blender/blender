@@ -1261,7 +1261,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
               ![bitmapImage isPlanar])
           {
             /* Try a fast copy if the image is a meshed RGBA 32bit bitmap. */
-            toIBuf = (uint8_t *)ibuf->rect;
+            toIBuf = ibuf->byte_buffer.data;
             rasterRGB = (uint8_t *)[bitmapImage bitmapData];
             for (y = 0; y < imgSize.height; y++) {
               to_i = (imgSize.height - y - 1) * imgSize.width;
@@ -1338,7 +1338,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             }
 
             /* Copy the image to ibuf, flipping it vertically. */
-            toIBuf = (uint8_t *)ibuf->rect;
+            toIBuf = ibuf->byte_buffer.data;
             for (y = 0; y < imgSize.height; y++) {
               for (x = 0; x < imgSize.width; x++) {
                 to_i = (imgSize.height - y - 1) * imgSize.width + x;

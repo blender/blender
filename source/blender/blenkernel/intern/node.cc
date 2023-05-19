@@ -1352,6 +1352,7 @@ namespace blender::bke {
 
 static GHash *nodetreetypes_hash = nullptr;
 static GHash *nodetypes_hash = nullptr;
+static GHash *nodetypes_alias_hash = nullptr;
 static GHash *nodesockettypes_hash = nullptr;
 
 }  // namespace blender::bke
@@ -1416,6 +1417,19 @@ bNodeType *nodeTypeFind(const char *idname)
   return nullptr;
 }
 
+const char *nodeTypeFindAlias(const char *alias)
+{
+  if (alias[0]) {
+    const char *idname = static_cast<const char *>(
+        BLI_ghash_lookup(blender::bke::nodetypes_alias_hash, alias));
+    if (idname) {
+      return idname;
+    }
+  }
+
+  return alias;
+}
+
 static void node_free_type(void *nodetype_v)
 {
   bNodeType *nodetype = static_cast<bNodeType *>(nodetype_v);
@@ -1456,6 +1470,11 @@ void nodeRegisterType(bNodeType *nt)
 void nodeUnregisterType(bNodeType *nt)
 {
   BLI_ghash_remove(blender::bke::nodetypes_hash, nt->idname, nullptr, node_free_type);
+}
+
+void nodeRegisterAlias(bNodeType *nt, const char *alias)
+{
+  BLI_ghash_insert(blender::bke::nodetypes_alias_hash, BLI_strdup(alias), BLI_strdup(nt->idname));
 }
 
 namespace blender::bke {
@@ -4389,6 +4408,7 @@ void BKE_node_system_init()
 {
   blender::bke::nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
   blender::bke::nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
+  blender::bke::nodetypes_alias_hash = BLI_ghash_str_new("nodetypes_alias_hash gh");
   blender::bke::nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
 
   register_nodes();
@@ -4396,6 +4416,11 @@ void BKE_node_system_init()
 
 void BKE_node_system_exit()
 {
+  if (blender::bke::nodetypes_alias_hash) {
+    BLI_ghash_free(blender::bke::nodetypes_alias_hash, MEM_freeN, MEM_freeN);
+    blender::bke::nodetypes_alias_hash = nullptr;
+  }
+
   if (blender::bke::nodetypes_hash) {
     NODE_TYPES_BEGIN (nt) {
       if (nt->rna_ext.free) {

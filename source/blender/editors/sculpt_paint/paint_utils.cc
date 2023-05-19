@@ -358,7 +358,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   ED_view3d_select_id_validate(vc);
   *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
-  if ((*r_index) == 0 || (*r_index) > (uint)totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(totpoly)) {
     return 0;
   }
 
@@ -472,11 +472,11 @@ void paint_sample_color(
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
-            if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+            if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
               u = u * ibuf->x;
               v = v * ibuf->y;
 
-              if (ibuf->rect_float) {
+              if (ibuf->float_buffer.data) {
                 float rgba_f[4];
                 if (interp == SHD_INTERP_CLOSEST) {
                   nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);

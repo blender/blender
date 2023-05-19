@@ -193,7 +193,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SKIN:
       return CD_MVERT_SKIN;
     case DT_TYPE_BWEIGHT_VERT:
-      return CD_BWEIGHT;
+      return CD_FAKE_BWEIGHT;
 
     case DT_TYPE_SHARP_EDGE:
       return CD_FAKE_SHARP;
@@ -202,7 +202,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_CREASE:
       return CD_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
-      return CD_BWEIGHT;
+      return CD_FAKE_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
       return CD_FREESTYLE_EDGE;
 
@@ -977,6 +977,24 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
        * since we can't access them from mesh vertices :/ */
       return false;
     }
+    if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
+      if (!CustomData_get_layer_named(&me_dst->vdata, CD_PROP_FLOAT, "bevel_weight_vert")) {
+        CustomData_add_layer_named(
+            &me_dst->vdata, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totvert, "bevel_weight_vert");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->vdata, CD_PROP_FLOAT, "bevel_weight_vert"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->vdata, CD_PROP_FLOAT, "bevel_weight_vert", me_dst->totvert),
+          interp,
+          interp_data);
+      return true;
+    }
   }
   else if (elem_type == ME_EDGE) {
     if (!(cddata_type & CD_FAKE)) { /* Unused for edges, currently... */
@@ -1004,7 +1022,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, ".uv_seam");
       }
@@ -1022,7 +1040,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, "sharp_edge");
       }
@@ -1039,6 +1057,25 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           interp_data);
       return true;
     }
+    if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
+      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+        CustomData_add_layer_named(
+            &me_dst->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "bevel_weight_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edata, CD_PROP_FLOAT, "bevel_weight_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edata, CD_PROP_FLOAT, "bevel_weight_edge", me_dst->totedge),
+          interp,
+          interp_data);
+      return true;
+    }
+
     return false;
   }
   else if (elem_type == ME_LOOP) {
@@ -1110,7 +1147,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
+      if (!CustomData_has_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
         CustomData_add_layer_named(
             &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totpoly, "sharp_face");
       }

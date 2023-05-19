@@ -802,7 +802,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, TIP_("%d x %d"), width, height);
 
   if (ibuf) {
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf_rlen(
             str + ofs, sizeof(str) - ofs, TIP_(", %d float channel(s)"), ibuf->channels);

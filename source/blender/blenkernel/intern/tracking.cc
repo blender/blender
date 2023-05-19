@@ -2277,48 +2277,46 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion,
 
   resibuf = IMB_dupImBuf(ibuf);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     if (undistort) {
       libmv_cameraIntrinsicsUndistortFloat(distortion->intrinsics,
-                                           ibuf->rect_float,
+                                           ibuf->float_buffer.data,
                                            ibuf->x,
                                            ibuf->y,
                                            overscan,
                                            ibuf->channels,
-                                           resibuf->rect_float);
+                                           resibuf->float_buffer.data);
     }
     else {
       libmv_cameraIntrinsicsDistortFloat(distortion->intrinsics,
-                                         ibuf->rect_float,
+                                         ibuf->float_buffer.data,
                                          ibuf->x,
                                          ibuf->y,
                                          overscan,
                                          ibuf->channels,
-                                         resibuf->rect_float);
+                                         resibuf->float_buffer.data);
     }
 
-    if (ibuf->rect) {
-      imb_freerectImBuf(ibuf);
-    }
+    imb_freerectImBuf(ibuf);
   }
   else {
     if (undistort) {
       libmv_cameraIntrinsicsUndistortByte(distortion->intrinsics,
-                                          (uchar *)ibuf->rect,
+                                          ibuf->byte_buffer.data,
                                           ibuf->x,
                                           ibuf->y,
                                           overscan,
                                           ibuf->channels,
-                                          (uchar *)resibuf->rect);
+                                          resibuf->byte_buffer.data);
     }
     else {
       libmv_cameraIntrinsicsDistortByte(distortion->intrinsics,
-                                        (uchar *)ibuf->rect,
+                                        ibuf->byte_buffer.data,
                                         ibuf->x,
                                         ibuf->y,
                                         overscan,
                                         ibuf->channels,
-                                        (uchar *)resibuf->rect);
+                                        resibuf->byte_buffer.data);
     }
   }
 
@@ -2573,7 +2571,7 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
   }
 
   pattern_ibuf = IMB_allocImBuf(
-      num_samples_x, num_samples_y, 32, search_ibuf->rect_float ? IB_rectfloat : IB_rect);
+      num_samples_x, num_samples_y, 32, search_ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
 
   tracking_get_marker_coords_for_tracking(
       frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
@@ -2606,8 +2604,8 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
     mask = BKE_tracking_track_get_mask(frame_width, frame_height, track, marker);
   }
 
-  if (search_ibuf->rect_float) {
-    libmv_samplePlanarPatchFloat(search_ibuf->rect_float,
+  if (search_ibuf->float_buffer.data) {
+    libmv_samplePlanarPatchFloat(search_ibuf->float_buffer.data,
                                  search_ibuf->x,
                                  search_ibuf->y,
                                  4,
@@ -2616,12 +2614,12 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
                                  num_samples_x,
                                  num_samples_y,
                                  mask,
-                                 pattern_ibuf->rect_float,
+                                 pattern_ibuf->float_buffer.data,
                                  &warped_position_x,
                                  &warped_position_y);
   }
   else {
-    libmv_samplePlanarPatchByte((uchar *)search_ibuf->rect,
+    libmv_samplePlanarPatchByte(search_ibuf->byte_buffer.data,
                                 search_ibuf->x,
                                 search_ibuf->y,
                                 4,
@@ -2630,7 +2628,7 @@ ImBuf *BKE_tracking_sample_pattern(const int frame_width,
                                 num_samples_x,
                                 num_samples_y,
                                 mask,
-                                (uchar *)pattern_ibuf->rect,
+                                pattern_ibuf->byte_buffer.data,
                                 &warped_position_x,
                                 &warped_position_y);
   }
@@ -2712,7 +2710,7 @@ ImBuf *BKE_tracking_get_search_imbuf(const ImBuf *ibuf,
     return nullptr;
   }
 
-  searchibuf = IMB_allocImBuf(w, h, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
+  searchibuf = IMB_allocImBuf(w, h, 32, ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
 
   IMB_rectcpy(searchibuf, ibuf, 0, 0, x, y, w, h);
 
@@ -2766,7 +2764,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
 
   /* Create new result image with the same type of content as the original. */
   ImBuf *plane_ibuf = IMB_allocImBuf(
-      num_samples_x, num_samples_y, 32, frame_ibuf->rect_float ? IB_rectfloat : IB_rect);
+      num_samples_x, num_samples_y, 32, frame_ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
 
   /* Calculate corner coordinates in pixel space, as separate X/Y arrays. */
   const double src_pixel_x[4] = {corners[0][0] * frame_width,
@@ -2782,8 +2780,8 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
   double warped_position_x, warped_position_y;
 
   /* Actual sampling. */
-  if (frame_ibuf->rect_float != nullptr) {
-    libmv_samplePlanarPatchFloat(frame_ibuf->rect_float,
+  if (frame_ibuf->float_buffer.data != nullptr) {
+    libmv_samplePlanarPatchFloat(frame_ibuf->float_buffer.data,
                                  frame_ibuf->x,
                                  frame_ibuf->y,
                                  4,
@@ -2792,12 +2790,12 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                  num_samples_x,
                                  num_samples_y,
                                  nullptr,
-                                 plane_ibuf->rect_float,
+                                 plane_ibuf->float_buffer.data,
                                  &warped_position_x,
                                  &warped_position_y);
   }
   else {
-    libmv_samplePlanarPatchByte((uchar *)frame_ibuf->rect,
+    libmv_samplePlanarPatchByte(frame_ibuf->byte_buffer.data,
                                 frame_ibuf->x,
                                 frame_ibuf->y,
                                 4,
@@ -2806,7 +2804,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                 num_samples_x,
                                 num_samples_y,
                                 nullptr,
-                                (uchar *)plane_ibuf->rect,
+                                plane_ibuf->byte_buffer.data,
                                 &warped_position_x,
                                 &warped_position_y);
   }
@@ -2834,8 +2832,8 @@ void BKE_tracking_disable_channels(
     for (int x = 0; x < ibuf->x; x++) {
       int pixel = ibuf->x * y + x;
 
-      if (ibuf->rect_float) {
-        float *rrgbf = ibuf->rect_float + pixel * 4;
+      if (ibuf->float_buffer.data) {
+        float *rrgbf = ibuf->float_buffer.data + pixel * 4;
         float r = disable_red ? 0.0f : rrgbf[0];
         float g = disable_green ? 0.0f : rrgbf[1];
         float b = disable_blue ? 0.0f : rrgbf[2];
@@ -2852,10 +2850,10 @@ void BKE_tracking_disable_channels(
         }
       }
       else {
-        char *rrgb = (char *)ibuf->rect + pixel * 4;
-        char r = disable_red ? 0 : rrgb[0];
-        char g = disable_green ? 0 : rrgb[1];
-        char b = disable_blue ? 0 : rrgb[2];
+        uchar *rrgb = ibuf->byte_buffer.data + pixel * 4;
+        uchar r = disable_red ? 0 : rrgb[0];
+        uchar g = disable_green ? 0 : rrgb[1];
+        uchar b = disable_blue ? 0 : rrgb[2];
 
         if (grayscale) {
           float gray = (0.2126f * r + 0.7152f * g + 0.0722f * b) / scale;
@@ -2871,7 +2869,7 @@ void BKE_tracking_disable_channels(
     }
   }
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     ibuf->userflags |= IB_RECT_INVALID;
   }
 }
