@@ -604,7 +604,7 @@ class RetimingRange {
   {
     for (int frame = start; frame <= end; frame++) {
       /* We need number actual number of frames here. */
-      const double normal_step = 1 / (double)seq->len;
+      const double normal_step = 1 / double(seq->len);
 
       /* Who needs calculus, when you can have slow code? */
       const double val_prev = seq_retiming_evaluate(seq, frame - 1);

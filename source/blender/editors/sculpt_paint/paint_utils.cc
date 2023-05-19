@@ -358,7 +358,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   ED_view3d_select_id_validate(vc);
   *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
-  if ((*r_index) == 0 || (*r_index) > (uint)totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(totpoly)) {
     return 0;
   }
 

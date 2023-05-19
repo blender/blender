@@ -3732,9 +3732,9 @@ static void ui_do_but_textedit(
       if (event->val == KM_DBL_CLICK && had_selection == false) {
         int selsta, selend;
         BLI_str_cursor_step_bounds_utf8(data->str, strlen(data->str), but->pos, &selsta, &selend);
-        but->pos = (short)selend;
-        but->selsta = (short)selsta;
-        but->selend = (short)selend;
+        but->pos = short(selend);
+        but->selsta = short(selsta);
+        but->selend = short(selend);
         retval = WM_UI_HANDLER_BREAK;
         changed = true;
       }

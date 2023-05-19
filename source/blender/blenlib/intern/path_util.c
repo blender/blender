@@ -963,7 +963,7 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[FILENAME_FRAME_CHARS_MAX + 1]; /* One for null. */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
-    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d", ch_span, frame);
+    SNPRINTF(frame_str, "%.*d", ch_span, frame);
     BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
@@ -983,7 +983,7 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[(FILENAME_FRAME_CHARS_MAX * 2) + 1 + 1]; /* One for null, one for the '-' */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
-    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d-%.*d", ch_span, sta, ch_span, end);
+    SNPRINTF(frame_str, "%.*d-%.*d", ch_span, sta, ch_span, end);
     BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
