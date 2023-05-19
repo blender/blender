@@ -703,6 +703,8 @@ enum {
                  CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
 
   CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
+
+  CD_FAKE_BWEIGHT = CD_FAKE | 300, /* UV seam flag for edges. */
 };
 
 enum {

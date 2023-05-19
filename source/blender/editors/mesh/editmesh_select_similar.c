@@ -630,7 +630,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
   const float thresh = RNA_float_get(op->ptr, "threshold");
   const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
   const int compare = RNA_enum_get(op->ptr, "compare");
-  int custom_data_type = -1;
 
   int tot_edges_selected_all = 0;
   uint objects_len = 0;
@@ -669,15 +668,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  switch (type) {
-    case SIMEDGE_CREASE:
-      custom_data_type = CD_CREASE;
-      break;
-    case SIMEDGE_BEVEL:
-      custom_data_type = CD_BWEIGHT;
-      break;
-  }
-
   int tree_index = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -696,14 +686,31 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case SIMEDGE_CREASE:
-      case SIMEDGE_BEVEL: {
-        if (!CustomData_has_layer(&bm->edata, custom_data_type)) {
+      case SIMEDGE_CREASE: {
+        if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
           BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
           continue;
         }
         break;
       }
+      case SIMEDGE_BEVEL: {
+        if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+          BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
+          continue;
+        }
+        break;
+      }
+    }
+
+    int custom_data_offset;
+    switch (type) {
+      case SIMEDGE_CREASE:
+        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        break;
+      case SIMEDGE_BEVEL:
+        custom_data_offset = CustomData_get_offset_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+        break;
     }
 
     float ob_m3[3][3], ob_m3_inv[3][3];
@@ -763,8 +770,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
           }
           case SIMEDGE_CREASE:
           case SIMEDGE_BEVEL: {
-            const float *value = CustomData_bmesh_get(
-                &bm->edata, edge->head.data, custom_data_type);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             BLI_kdtree_1d_insert(tree_1d, tree_index++, value);
             break;
           }
@@ -799,9 +805,13 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case SIMEDGE_CREASE:
+      case SIMEDGE_CREASE: {
+        has_custom_data_layer = CustomData_has_layer(&bm->edata, CD_CREASE);
+        ATTR_FALLTHROUGH;
+      }
       case SIMEDGE_BEVEL: {
-        has_custom_data_layer = CustomData_has_layer(&bm->edata, custom_data_type);
+        has_custom_data_layer = CustomData_has_layer_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
         if (!has_custom_data_layer) {
           /* Proceed only if we have to select all the edges that have custom data value of 0.0f.
            * In this case we will just select all the edges.
@@ -816,6 +826,17 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     float ob_m3[3][3], ob_m3_inv[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world);
     invert_m3_m3(ob_m3_inv, ob_m3);
+
+    int custom_data_offset;
+    switch (type) {
+      case SIMEDGE_CREASE:
+        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        break;
+      case SIMEDGE_BEVEL:
+        custom_data_offset = CustomData_get_offset_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+        break;
+    }
 
     BMEdge *edge; /* Mesh edge. */
     BMIter iter;  /* Selected edges iterator. */
@@ -903,8 +924,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
               break;
             }
 
-            const float *value = CustomData_bmesh_get(
-                &bm->edata, edge->head.data, custom_data_type);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             if (ED_select_similar_compare_float_tree(tree_1d, *value, thresh, compare)) {
               select = true;
             }

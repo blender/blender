@@ -108,6 +108,12 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     version_movieclips_legacy_camera_object(bmain);
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 2)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      BKE_mesh_legacy_bevel_weight_to_generic(mesh);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

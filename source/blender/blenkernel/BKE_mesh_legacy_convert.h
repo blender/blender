@@ -44,6 +44,10 @@ void BKE_mesh_legacy_edge_crease_to_layers(struct Mesh *mesh);
  * Copy bevel weights from vertices and edges to separate layers.
  */
 void BKE_mesh_legacy_bevel_weight_to_layers(struct Mesh *mesh);
+/**
+ * Move bevel weight to generic float attribute type.
+ */
+void BKE_mesh_legacy_bevel_weight_to_generic(struct Mesh *mesh);
 
 /**
  * Convert the old hide flags (#ME_HIDE) to the hidden element attribute for reading.

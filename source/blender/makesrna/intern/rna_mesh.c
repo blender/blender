@@ -185,16 +185,6 @@ static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
   return BKE_mesh_has_custom_loop_normals(me);
 }
 
-static bool rna_Mesh_has_edge_bevel_weight_get(PointerRNA *ptr)
-{
-  return CustomData_has_layer(rna_mesh_edata(ptr), CD_BWEIGHT);
-}
-
-static bool rna_Mesh_has_vertex_bevel_weight_get(PointerRNA *ptr)
-{
-  return CustomData_has_layer(rna_mesh_vdata(ptr), CD_BWEIGHT);
-}
-
 static bool rna_Mesh_has_edge_crease_get(PointerRNA *ptr)
 {
   return CustomData_has_layer(rna_mesh_edata(ptr), CD_CREASE);
@@ -497,40 +487,6 @@ static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
   }
   const int index = rna_MeshVertex_index_get(ptr);
   select_vert[index] = value;
-}
-
-static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshVertex_index_get(ptr);
-  const float *values = (const float *)CustomData_get_layer(&mesh->vdata, CD_BWEIGHT);
-  return values == NULL ? 0.0f : values[index];
-}
-
-static void rna_MeshVertex_bevel_weight_set(PointerRNA *ptr, float value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshVertex_index_get(ptr);
-  float *values = (float *)CustomData_add_layer(
-      &mesh->vdata, CD_BWEIGHT, CD_SET_DEFAULT, mesh->totvert);
-  values[index] = clamp_f(value, 0.0f, 1.0f);
-}
-
-static float rna_MEdge_bevel_weight_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshEdge_index_get(ptr);
-  const float *values = (const float *)CustomData_get_layer(&mesh->edata, CD_BWEIGHT);
-  return values == NULL ? 0.0f : values[index];
-}
-
-static void rna_MEdge_bevel_weight_set(PointerRNA *ptr, float value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshEdge_index_get(ptr);
-  float *values = (float *)CustomData_add_layer(
-      &mesh->edata, CD_BWEIGHT, CD_SET_DEFAULT, mesh->totedge);
-  values[index] = clamp_f(value, 0.0f, 1.0f);
 }
 
 static float rna_MEdge_crease_get(PointerRNA *ptr)
@@ -2324,13 +2280,6 @@ static void rna_def_mvert(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_MeshVertex_hide_get", "rna_MeshVertex_hide_set");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-  prop = RNA_def_property(srna, "bevel_weight", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_funcs(
-      prop, "rna_MeshVertex_bevel_weight_get", "rna_MeshVertex_bevel_weight_set", NULL);
-  RNA_def_property_ui_text(
-      prop, "Bevel Weight", "Weight used by the Bevel modifier 'Only Vertices' option");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
   prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_MeshVertex_groups_begin",
@@ -2382,12 +2331,6 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, "rna_MEdge_crease_get", "rna_MEdge_crease_set", NULL);
   RNA_def_property_ui_text(
       prop, "Crease", "Weight used by the Subdivision Surface modifier for creasing");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
-  prop = RNA_def_property(srna, "bevel_weight", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_funcs(
-      prop, "rna_MEdge_bevel_weight_get", "rna_MEdge_bevel_weight_set", NULL);
-  RNA_def_property_ui_text(prop, "Bevel Weight", "Weight used by the Bevel modifier");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
@@ -3822,18 +3765,6 @@ static void rna_def_mesh(BlenderRNA *brna)
       prop, "Has Custom Normals", "True if there are custom split normals data in this mesh");
   RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_custom_normals_get", NULL);
   RNA_define_verify_sdna(true);
-
-  prop = RNA_def_property(srna, "has_bevel_weight_edge", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Has Edge Bevel Weight", "True if the mesh has an edge bevel weight layer");
-  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_edge_bevel_weight_get", NULL);
-
-  prop = RNA_def_property(srna, "has_bevel_weight_vertex", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Has Vertex Bevel Weight", "True if the mesh has an vertex bevel weight layer");
-  RNA_def_property_boolean_funcs(prop, "rna_Mesh_has_vertex_bevel_weight_get", NULL);
 
   prop = RNA_def_property(srna, "has_crease_edge", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -120,7 +120,6 @@ static void expand_mesh(Mesh &mesh,
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
     CustomData_free_layers(&mesh.vdata, CD_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
@@ -129,7 +128,6 @@ static void expand_mesh(Mesh &mesh,
     CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
-    CustomData_free_layers(&mesh.edata, CD_BWEIGHT, mesh.totedge);
     CustomData_free_layers(&mesh.edata, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
