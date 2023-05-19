@@ -4069,7 +4069,7 @@ PyDoc_STRVAR(pyrna_struct_bl_rna_get_subclass_doc,
              "   :rtype: :class:`bpy.types.Struct` subclass\n");
 static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
 {
-  char *id;
+  const char *id;
   PyObject *ret_default = Py_None;
 
   if (!PyArg_ParseTuple(args, "s|O:bl_rna_get_subclass", &id, &ret_default)) {
