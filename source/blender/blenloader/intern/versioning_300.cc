@@ -3251,20 +3251,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_REALIZE_INSTANCES) {
-          continue;
-        }
-        node->custom1 |= GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR;
-      }
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 301, 6)) {
     /* Add node storage for map range node. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {

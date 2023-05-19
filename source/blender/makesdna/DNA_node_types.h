@@ -2432,9 +2432,6 @@ typedef enum GeometryNodeDeleteGeometryMode {
   GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
 } GeometryNodeDeleteGeometryMode;
 
-typedef enum GeometryNodeRealizeInstancesFlag {
-  GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR = (1 << 0),
-} GeometryNodeRealizeInstancesFlag;
 
 typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,

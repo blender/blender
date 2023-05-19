@@ -11238,16 +11238,6 @@ static void def_geo_viewer(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_realize_instances(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "legacy_behavior", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom1", GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR);
-  RNA_def_property_ui_text(
-      prop, "Legacy Behavior", "Behave like before instance attributes existed");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
-}
 
 static void def_geo_evaluate_at_index(StructRNA *srna)
 {
