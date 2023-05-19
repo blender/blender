@@ -489,6 +489,8 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(struct bContext *C,
                                                        struct ListBase *handlers,
                                                        const struct wmEvent *event);
 
+bool WM_event_match(const struct wmEvent *winevent, const struct wmKeyMapItem *kmi);
+
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 
