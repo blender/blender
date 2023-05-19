@@ -845,7 +845,10 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 
   float memsize3[3] = {(float)(ptrsize * pbvh->bm_idmap->map_size) / 1024.0f / 1024.0f,
                        (float)(ptrsize * pbvh->bm_idmap->freelist.capacity()) / 1024.0f / 1024.0f,
-                       pbvh->bm_idmap->free_idx_map ? (float)(4 * pbvh->bm_idmap->free_idx_map->capacity()) / 1024.0f / 1024.0f : 0.0f};
+                       pbvh->bm_idmap->free_idx_map ?
+                           (float)(4 * pbvh->bm_idmap->free_idx_map->capacity()) / 1024.0f /
+                               1024.0f :
+                           0.0f};
 
   printf("idmap sizes:\n  map_size: %.2fmb freelist_len: %.2fmb free_ids_size: %.2fmb\n",
          memsize3[0],
@@ -2097,6 +2100,44 @@ static int color_boundary_key(float col[4])
 }
 #endif
 
+static bool test_colinear_tri(BMFace *f)
+{
+  BMLoop *l = f->l_first;
+
+  float area_limit = 0.00001f;
+  area_limit = len_squared_v3v3(l->v->co, l->next->v->co) * 0.001;
+
+  return area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co) <= area_limit;
+}
+
+static float test_sharp_faces(BMFace *f1, BMFace *f2, float limit)
+{
+  float angle = saacos(dot_v3v3(f1->no, f2->no));
+
+#if 0  // XXX
+  float no1[3], no2[3];
+  normal_tri_v3(no1, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->next->next->v->co);
+  normal_tri_v3(no2, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->next->next->v->co);
+
+  angle = saacos(dot_v3v3(no1, no2));
+#endif
+
+  /* Detect coincident triangles. */
+  if (f1->len == 3 && test_colinear_tri(f1)) {
+    return false;
+  }
+  if (f2->len == 3 && test_colinear_tri(f2)) {
+    return false;
+  }
+
+  /* Try to ignore folded over edges. */
+  if (angle > M_PI * 0.6) {
+    return false;
+  }
+
+  return angle > limit;
+}
+
 void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,
@@ -2172,12 +2213,13 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
       newflag |= SCULPTFLAG_PBVH_BOUNDARY;
     }
 
-    if (e->l) {
-      if (saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > sharp_angle_limit) {
+    if (e->l && e->l != e->l->radial_next) {
+      if (test_sharp_faces(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
         boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
         sharp_angle_num++;
       }
     }
+
     if (e->head.hflag & BM_ELEM_SEAM) {
       boundflag |= SCULPT_BOUNDARY_SEAM;
       seamcount++;
@@ -4918,6 +4960,7 @@ float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh)
 }
 
 namespace blender::bke::pbvh {
+
 void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit)
 {
   int flag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
@@ -4936,7 +4979,7 @@ void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sh
       continue;
     }
 
-    if (saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > sharp_angle_limit) {
+    if (test_sharp_faces(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
       flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
       sharp_num++;
     }

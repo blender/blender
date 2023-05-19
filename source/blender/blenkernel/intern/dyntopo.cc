@@ -2194,13 +2194,14 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
     totop = 2;
 
     steps[1] = DYNTOPO_MAX_ITER / 3.0;
-    steps[0] = DYNTOPO_MAX_ITER <= steps[1] ? DYNTOPO_MAX_ITER : DYNTOPO_MAX_ITER - steps[1];
+    steps[0] = DYNTOPO_MAX_ITER_SUBD;  // DYNTOPO_MAX_ITER <= steps[1] ? DYNTOPO_MAX_ITER :
+                                       // DYNTOPO_MAX_ITER - steps[1];
   }
   else if (mode & PBVH_Subdivide) {
     ops[0] = PBVH_Subdivide;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER;
+    steps[0] = DYNTOPO_MAX_ITER_SUBD;
   }
   else if (mode & PBVH_Collapse) {
     ops[0] = PBVH_Collapse;

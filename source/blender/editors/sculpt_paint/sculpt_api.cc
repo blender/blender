@@ -260,7 +260,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
 
       /* Some boundary types require an edge->poly map to be fully accurate. */
       if (epmap_mask && ss->epmap) {
-        if (epmap_mask & SCULPT_BOUNDARY_FACE_SET) {
+        if (ss->face_sets && epmap_mask & SCULPT_BOUNDARY_FACE_SET) {
           MeshElemMap *polys = &ss->epmap[edge.i];
           int fset = -1;
 
