@@ -712,7 +712,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   drawcache->valid_tail = 0;
 }
 
-void text_drawcache_tag_update(SpaceText *st, int full)
+void text_drawcache_tag_update(SpaceText *st, const bool full)
 {
   /* This happens if text editor ops are called from Python. */
   if (st == NULL) {

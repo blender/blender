@@ -132,7 +132,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
       switch (wmn->action) {
         case NA_EDITED:
           if (st->text) {
-            text_drawcache_tag_update(st, 1);
+            text_drawcache_tag_update(st, true);
             text_update_edited(st->text);
           }
 
