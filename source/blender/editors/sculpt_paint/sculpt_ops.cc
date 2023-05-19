@@ -516,7 +516,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
       else if (need_bmlog) {
         if (ob->sculpt->bm_log) {
-          BM_log_free(ob->sculpt->bm_log, true);
+          BM_log_free(ob->sculpt->bm_log);
           ob->sculpt->bm_log = nullptr;
         }
 
@@ -1432,8 +1432,8 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
       int *boundflag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
 
-      if (*boundflag &
-          (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_SEAM))
+      if (*boundflag & (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP_MARK |
+                        SCULPT_CORNER_SEAM))
       {
         continue;
       }

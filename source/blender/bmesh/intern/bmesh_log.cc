@@ -1625,28 +1625,13 @@ void BM_log_set_idmap(BMLog *log, struct BMIdMap *idmap)
   log->set_idmap(idmap);
 }
 
-/* Free all the data in a BMLog including the log itself
- * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
- */
-static bool bm_log_free_direct(BMLog *log, bool safe_mode)
-{
-  if (safe_mode && log->refcount) {
-    return false;
-  }
-
-  log->dead = true;
-  log->free_all_entries();
-
-  return true;
-}
-
-// if true, make sure to call BM_log_free on the log
+/* XXX get rid of bmlog refcounting. */
 bool BM_log_is_dead(BMLog *log)
 {
   return log->dead;
 }
 
-bool BM_log_free(BMLog *log, bool safe_mode)
+bool BM_log_free(BMLog *log)
 {
   BMLogEntry *entry = log->first_entry;
 

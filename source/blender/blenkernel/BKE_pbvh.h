@@ -1057,6 +1057,7 @@ PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
 struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
 void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit);
+float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit);
 void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    int cd_vert_node_offset,
                                    int cd_face_node_offset,

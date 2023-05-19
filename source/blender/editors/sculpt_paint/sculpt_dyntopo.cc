@@ -674,7 +674,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   }
 
   if (ss->bm_log) {
-    BM_log_free(ss->bm_log, true);
+    BM_log_free(ss->bm_log);
     ss->bm_log = nullptr;
   }
 

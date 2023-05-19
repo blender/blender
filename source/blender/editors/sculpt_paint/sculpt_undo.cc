@@ -945,7 +945,8 @@ static void update_unode_bmesh_memsize(SculptUndoNode *unode)
   }
 
   unode->undo_size = BM_log_entry_size(unode->bm_entry);
-  //printf("unode->unode_size: size: %.4fmb\n", __func__, float(unode->undo_size) / 1024.0f / 1024.0f);
+  // printf("unode->unode_size: size: %.4fmb\n", __func__, float(unode->undo_size) / 1024.0f /
+  // 1024.0f);
 
   // add new size
   usculpt->undo_size += unode->undo_size;
@@ -2701,25 +2702,6 @@ static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_firs
   if (!us->active_color_end.was_set) {
     sculpt_save_active_attribute_color(ob, &us->active_color_end);
     us->active_color_end.was_set = false;
-  }
-
-  SculptSession *ss = ob->sculpt;
-
-  /* When pushing an undo node after undoing to the start of the stack
-   * the log ref count hits zero; we must detect this and handle it.
-   */
-
-  if (ss && ss->bm && ss->bm_log && BM_log_is_dead(ss->bm_log)) {
-    /* Forcibly destroy all entries (the 'true' parameter). */
-    BM_log_free(ss->bm_log, true);
-
-    BKE_sculpt_ensure_idmap(ob);
-
-    ss->bm_log = BM_log_create(ss->bm, ss->bm_idmap);
-
-    if (ss->pbvh) {
-      BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
-    }
   }
 }
 

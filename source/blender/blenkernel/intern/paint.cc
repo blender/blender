@@ -1555,7 +1555,7 @@ void BKE_sculptsession_free(Object *ob)
 
     if (ss->bm_log) {
       /* Does not free the actual entries, the undo system does that */
-      BM_log_free(ss->bm_log, true);
+      BM_log_free(ss->bm_log);
       ss->bm_log = nullptr;
     }
 

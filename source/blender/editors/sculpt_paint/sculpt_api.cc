@@ -210,7 +210,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
       BMEdge *e = (BMEdge *)edge.i;
 
       if (e->l && e->l != e->l->radial_next && typemask & SCULPT_BOUNDARY_SHARP_ANGLE) {
-        if (saacos(dot_v3v3(e->l->f->no, e->l->radial_next->f->no)) > ss->sharp_angle_limit) {
+        if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, ss->sharp_angle_limit))
+        {
           ret |= SCULPT_BOUNDARY_SHARP_ANGLE;
         }
       }

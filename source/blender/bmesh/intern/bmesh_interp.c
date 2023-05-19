@@ -741,12 +741,12 @@ void BM_loop_interp_from_face(
   /* interpolate */
   interp_weights_poly_v2(w, cos_2d, f_src->len, co);
 
-  /* Clamp negative weights to zero.  Prevents numerical
+  /* Clamp excessively negative weights to zero.  Prevents numerical
    * instability when interpolating UVs.
    */
   float totw = 0.0f;
   for (int i = 0; i < f_src->len; i++) {
-    if (w[i] < 0.0f) {
+    if (w[i] < -5.0) {
       w[i] = 0.0f;
     }
 

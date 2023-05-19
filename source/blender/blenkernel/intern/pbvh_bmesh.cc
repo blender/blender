@@ -2110,7 +2110,7 @@ static bool test_colinear_tri(BMFace *f)
   return area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co) <= area_limit;
 }
 
-static float test_sharp_faces(BMFace *f1, BMFace *f2, float limit)
+float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit)
 {
   float angle = saacos(dot_v3v3(f1->no, f2->no));
 
@@ -2214,7 +2214,7 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
     }
 
     if (e->l && e->l != e->l->radial_next) {
-      if (test_sharp_faces(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+      if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
         boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
         sharp_angle_num++;
       }
@@ -4979,7 +4979,7 @@ void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sh
       continue;
     }
 
-    if (test_sharp_faces(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+    if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
       flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
       sharp_num++;
     }

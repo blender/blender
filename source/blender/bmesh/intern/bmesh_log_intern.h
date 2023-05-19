@@ -103,8 +103,8 @@ BMLog *BM_log_create(BMesh *bm, struct BMIdMap *idmap);
  */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, struct BMIdMap *idmap, BMLogEntry *entry);
 
-/* Free all the data in a BMLog including the log itself */
-bool BM_log_free(BMLog *log, bool safe_mode);
+/* Does not free the log's entries, just the BMLog itself. */
+bool BM_log_free(BMLog *log);
 
 BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
 
