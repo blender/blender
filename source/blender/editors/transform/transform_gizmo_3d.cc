@@ -972,7 +972,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     copy_m3_m4(diff_mat, ob->object_to_world);
     normalize_m3(diff_mat);
     invert_m3(diff_mat);
-    mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
+    mul_m3_m3_pre(tbounds->axis, diff_mat);
     normalize_m3(tbounds->axis);
 
     tbounds->use_matrix_space = true;
