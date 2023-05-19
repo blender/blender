@@ -474,6 +474,23 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
   }
 }
 
+/* Similar to #transform_object_deform_pose_armature_get but does not check visibility. */
+static Object *gizmo_3d_transform_space_object_get(Scene *scene, ViewLayer *view_layer)
+{
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+    /* It is assumed that when the object is in Weight Paint mode, it is not in Edit mode. So we
+     * don't need to check the #OB_MODE_EDIT flag. */
+    BLI_assert(!(ob->mode & OB_MODE_EDIT));
+    Object *obpose = BKE_object_pose_armature_get(ob);
+    if (obpose != nullptr) {
+      ob = obpose;
+    }
+  }
+  return ob;
+}
+
 /**
  * Run \a user_fn for each coordinate of elements selected in View3D (vertices, particles...).
  * \note Each coordinate has the space matrix of the active object.
@@ -519,15 +536,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   const bool is_curve_edit = GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   int a, totsel = 0;
 
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Object *obedit = OBEDIT_FROM_OBACT(ob);
-  if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-    Object *obpose = BKE_object_pose_armature_get(ob);
-    if (obpose != nullptr) {
-      ob = obpose;
-    }
-  }
+  Object *ob = gizmo_3d_transform_space_object_get(scene, view_layer);
 
   if (is_gp_edit) {
     float diff_mat[4][4];
@@ -586,7 +595,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
     }
   }
-  else if (obedit) {
+  else if (Object *obedit = OBEDIT_FROM_OBACT(ob)) {
 
 #define FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) \
   { \
@@ -937,15 +946,8 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                  (params->orientation_index - 1) :
                                  BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  Object *ob = gizmo_3d_transform_space_object_get(scene, view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
-    Object *obpose = BKE_object_pose_armature_get(ob);
-    if (obpose != nullptr) {
-      ob = obpose;
-    }
-  }
 
   tbounds->use_matrix_space = false;
   unit_m3(tbounds->axis);
@@ -997,7 +999,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     bGPdata *gpd = CTX_data_gpencil_data(C);
     const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
     if (!is_gp_edit && (obedit || (ob && (ob->mode & (OB_MODE_POSE | OB_MODE_SCULPT))))) {
-      if (ob && (ob->mode & OB_MODE_POSE)) {
+      if (ob->mode & OB_MODE_POSE) {
         invert_m4_m4(ob->world_to_object, ob->object_to_world);
       }
       mul_m4_v3(ob->object_to_world, tbounds->center);
