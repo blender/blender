@@ -90,7 +90,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
           usd_light_api.CreateWidthAttr();
           usd_light_api.SetWidthAttr(light->area_size, timecode);
           usd_light_api.CreateHeightAttr();
-          usd_light_api.SetHeightAttr(light->area_sizey, timecode);
+          usd_light_api.SetHeightAttr(light->area_size, timecode);
 
           break;
         }

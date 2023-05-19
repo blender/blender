@@ -203,12 +203,12 @@ float nits_to_energy_scale_factor(const Light *light,
       }
       break;
     case LA_LOCAL: {
-      float r = light->area_size * radius_scale;
+      float r = light->radius * radius_scale;
       scale *= 4.0f * M_PI * (r * r) * mpu_sq;
       break;
     }
     case LA_SPOT: {
-      float r = light->area_size * radius_scale;
+      float r = light->radius * radius_scale;
       float angle = light->spotsize / 2.0f;
       scale *= 2.0f * M_PI * (r * r) * (1.0f - cosf(angle)) * mpu_sq;
       break;
@@ -221,6 +221,9 @@ float nits_to_energy_scale_factor(const Light *light,
       break;
   }
 
+  if (scale < .000001) {
+    scale = .000001;
+  }
   return scale;
 }
 
