@@ -339,7 +339,12 @@ static void extrude_mesh_vertices(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_EDGE, new_edge_range);
   }
 
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
   BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
 }
 
 static void fill_quad_consistent_direction(const Span<int> other_poly_verts,
@@ -399,6 +404,21 @@ static VectorSet<int> vert_indices_from_edges(const Mesh &mesh, const Span<T> ed
     vert_indices.add(edge[1]);
   }
   return vert_indices;
+}
+
+static void tag_mesh_added_faces(Mesh &mesh)
+{
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
+  const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
+                                  mesh.runtime->loose_edges_cache.data().count == 0;
+  BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
+  if (no_loose_edge_hint) {
+    mesh.loose_edges_tag_none();
+  }
 }
 
 static void extrude_mesh_edges(Mesh &mesh,
@@ -679,7 +699,7 @@ static void extrude_mesh_edges(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 /**
@@ -1090,7 +1110,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void extrude_individual_mesh_faces(
@@ -1374,7 +1394,7 @@ static void extrude_individual_mesh_faces(
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

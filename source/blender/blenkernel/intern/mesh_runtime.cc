@@ -314,9 +314,21 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   free_bvh_cache(*mesh->runtime);
   reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
+  if (mesh->runtime->loose_edges_cache.is_cached() &&
+      mesh->runtime->loose_edges_cache.data().count != 0)
+  {
   mesh->runtime->loose_edges_cache.tag_dirty();
+  }
+  if (mesh->runtime->loose_verts_cache.is_cached() &&
+      mesh->runtime->loose_verts_cache.data().count != 0)
+  {
   mesh->runtime->loose_verts_cache.tag_dirty();
+  }
+  if (mesh->runtime->verts_no_face_cache.is_cached() &&
+      mesh->runtime->verts_no_face_cache.data().count != 0)
+  {
   mesh->runtime->verts_no_face_cache.tag_dirty();
+  }
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {
