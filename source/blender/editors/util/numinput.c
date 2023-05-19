@@ -506,7 +506,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       if (event->modifier & KM_CTRL) {
         /* extract the first line from the clipboard */
         int pbuf_len;
-        char *pbuf = WM_clipboard_text_get_firstline(false, &pbuf_len);
+        char *pbuf = WM_clipboard_text_get_firstline(false, true, &pbuf_len);
 
         if (pbuf) {
           const bool success = editstr_insert_at_cursor(n, pbuf, pbuf_len);

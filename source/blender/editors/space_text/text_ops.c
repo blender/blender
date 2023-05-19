@@ -923,7 +923,8 @@ static int text_paste_exec(bContext *C, wmOperator *op)
   char *buf;
   int buf_len;
 
-  buf = WM_clipboard_text_get(selection, &buf_len);
+  /* No need for UTF8 validation as the conversion handles invalid sequences gracefully. */
+  buf = WM_clipboard_text_get(selection, false, &buf_len);
 
   if (!buf) {
     return OPERATOR_CANCELLED;
