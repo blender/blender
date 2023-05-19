@@ -684,7 +684,8 @@ typedef struct UserDef_Experimental {
   char use_sculpt_texture_paint;
   char enable_workbench_next;
   char use_new_volume_nodes;
-  char _pad[6];
+  char use_asset_shelf;
+  char _pad[5];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

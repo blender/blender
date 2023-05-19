@@ -51,6 +51,10 @@ void send_redraw_notifier(const bContext &C)
 
 static bool asset_shelf_poll(const bContext *C, const SpaceLink *space_link)
 {
+  if (!U.experimental.use_asset_shelf) {
+    return false;
+  }
+
   const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
 
   /* Is there any asset shelf type registered that returns true for it's poll? */
