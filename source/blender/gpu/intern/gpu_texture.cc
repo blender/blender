@@ -178,6 +178,9 @@ bool Texture::init_view(GPUTexture *src_,
 void Texture::usage_set(eGPUTextureUsage usage_flags)
 {
   gpu_image_usage_flags_ = usage_flags;
+  /* Metal: Texture clearing is done using framebuffer clear. This has no performance impact. */
+  /* TODO(fclem): Move this to metal backend instead to avoid side effects in other backends. */
+  gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
 }
 
 /** \} */
