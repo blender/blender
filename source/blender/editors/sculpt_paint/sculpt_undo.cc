@@ -856,9 +856,7 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
   BMElem h;
   h.head.data = old_customdata;
 
-  int ni = data->cd_vert_node_offset_old != -1 ?
-               BM_ELEM_CD_GET_INT(&h, data->cd_vert_node_offset_old) :
-               DYNTOPO_NODE_NONE;
+  int ni = BM_ELEM_CD_GET_INT(&h, data->cd_vert_node_offset);
 
   /* Attempt to find old node reference. */
   PBVHNode *node = BKE_pbvh_get_node_leaf_safe(data->pbvh, ni);
@@ -869,7 +867,10 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
   }
   else {
     if (ni != DYNTOPO_NODE_NONE) {
-      printf("%s: error: corrupted vertex. ni: %d\n", __func__, ni);
+      printf("%s: error: corrupted vertex. ni: %d, cd_node_offset: %d\n",
+             __func__,
+             ni,
+             data->cd_vert_node_offset_old);
       BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, DYNTOPO_NODE_NONE);
     }
 
@@ -944,6 +945,7 @@ static void update_unode_bmesh_memsize(SculptUndoNode *unode)
   }
 
   unode->undo_size = BM_log_entry_size(unode->bm_entry);
+  //printf("unode->unode_size: size: %.4fmb\n", __func__, float(unode->undo_size) / 1024.0f / 1024.0f);
 
   // add new size
   usculpt->undo_size += unode->undo_size;

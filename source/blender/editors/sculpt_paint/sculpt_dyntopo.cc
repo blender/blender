@@ -680,7 +680,7 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Typically valid but with global-undo they can be nullptr, see: T36234. */
   if (ss->bm) {
-    /* PBVH now frees bmesh, just null it. */
+    BM_mesh_free(ss->bm);
     ss->bm = nullptr;
   }
 

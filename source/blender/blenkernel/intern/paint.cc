@@ -1553,17 +1553,19 @@ void BKE_sculptsession_free(Object *ob)
       ss->bm_idmap = nullptr;
     }
 
-    if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
+    if (ss->bm_log) {
+      /* Does not free the actual entries, the undo system does that */
+      BM_log_free(ss->bm_log, true);
       ss->bm_log = nullptr;
     }
 
-    /*try to save current mesh*/
+    /* Destroy temporary attributes. */
     BKE_sculpt_attribute_destroy_temporary_all(ob);
 
     if (ss->bm) {
       BKE_sculptsession_bm_to_me(ob, true);
+      BM_mesh_free(ss->bm);
       ss->bm = nullptr;
-      // BM_mesh_free(ss->bm);
     }
 
     CustomData_free(&ss->temp_vdata, ss->temp_vdata_elems);
@@ -2564,6 +2566,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
 {
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_BMESH);
   BKE_pbvh_set_bmesh(pbvh, ob->sculpt->bm);
+  sculptsession_bmesh_add_layers(ob);
 
   BM_mesh_elem_table_ensure(ob->sculpt->bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -2573,7 +2576,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
 
   BKE_sculpt_ensure_idmap(ob);
 
-  sculptsession_bmesh_add_layers(ob);
   BKE_pbvh_build_bmesh(pbvh,
                        BKE_object_get_original_mesh(ob),
                        ob->sculpt->bm,
@@ -2799,6 +2801,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
       ss->bm = bm;
 
+      BKE_sculpt_ensure_idmap(ob);
       SCULPT_undo_ensure_bmlog(ob);
 
       /* Note build_pbvh_for_dynamic_topology respects the pbvh cache. */
@@ -2806,9 +2809,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
       if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
         BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+        BKE_sculptsession_update_attr_refs(ob);
       }
 
-      BKE_sculptsession_update_attr_refs(ob);
       BKE_sculpt_ensure_origco(ob);
       BKE_sculpt_ensure_sculpt_layers(ob);
 

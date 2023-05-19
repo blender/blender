@@ -2370,10 +2370,8 @@ static bool customdata_typemap_is_valid(const CustomData *data)
 void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
 {
   *dest = *source;
-
-  if (dest->pool) {
-    dest->pool = nullptr;
-  }
+  dest->external = nullptr;
+  dest->pool = nullptr;
 
   if (source->layers) {
     dest->layers = static_cast<CustomDataLayer *>(
@@ -2384,6 +2382,7 @@ void CustomData_copy_all_layout(const struct CustomData *source, struct CustomDa
 
       *layer = source->layers[i];
       layer->data = nullptr;
+      layer->sharing_info = nullptr;
 
       if (layer->default_data) {
         layer->default_data = MEM_dupallocN(layer->default_data);
@@ -2699,7 +2698,7 @@ void CustomData_copy_layout(const struct CustomData *source,
   CustomData_merge_layout(source, dest, mask, alloctype, totelem);
 }
 
-static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
+ATTR_NO_OPT static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
 {
   if (layer->anonymous_id != nullptr) {
     layer->anonymous_id->remove_user_and_delete_if_last();
@@ -2710,14 +2709,14 @@ static void customData_free_layer__internal(CustomDataLayer *layer, const int to
     if (layer->data) {
       free_layer_data(type, layer->data, totelem);
     }
-
-    if (layer->default_data) {
-      MEM_freeN(layer->default_data);
-    }
   }
   else {
     layer->sharing_info->remove_user_and_delete_if_last();
     layer->sharing_info = nullptr;
+  }
+
+  if (layer->default_data) {
+    MEM_freeN(layer->default_data);
   }
 }
 

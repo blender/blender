@@ -108,10 +108,77 @@ template<typename T> struct BMLogElem {
     dead = true;
   }
 #endif
+
+  void free(CustomData *domain)
+  {
+    if (customdata) {
+      CustomData_bmesh_free_block_data(domain, customdata);
+    }
+  }
 };
 
 template<typename T> struct LogElemAlloc {
   BLI_mempool *pool;
+
+  class iterator {
+    LogElemAlloc<T> *alloc;
+    BLI_mempool_iter iter;
+    void *elem = nullptr, *first;
+
+   public:
+    iterator(LogElemAlloc<T> *_alloc) : alloc(_alloc)
+    {
+      BLI_mempool_iternew(_alloc->pool, &iter);
+      elem = first = BLI_mempool_iterstep(&iter);
+    }
+
+    iterator(const iterator &b) : alloc(b.alloc), elem(b.elem), first(b.first)
+    {
+      iter = b.iter;
+    }
+
+    iterator &operator++()
+    {
+      elem = BLI_mempool_iterstep(&iter);
+
+      return *this;
+    }
+
+    T &operator*()
+    {
+      return *reinterpret_cast<T *>(elem);
+    }
+
+    iterator begin()
+    {
+      iterator start(*this);
+      start.elem = first;
+      return start;
+    }
+
+    iterator end()
+    {
+      iterator end = iterator(*this);
+      end.elem = nullptr;
+
+      return end;
+    }
+
+    bool operator==(const iterator &b)
+    {
+      return elem == b.elem;
+    }
+
+    bool operator!=(const iterator &b)
+    {
+      return elem != b.elem;
+    }
+  };
+
+  iterator elements()
+  {
+    return iterator(this);
+  }
 
   LogElemAlloc()
   {
@@ -180,6 +247,17 @@ struct BMLogFace : public BMLogElem<BMFace> {
   Vector<BMID<BMVert>, 5> verts;
   Vector<void *, 5> loop_customdata;
   // int material_index;
+
+  void free(CustomData *domain, CustomData *loop_domain)
+  {
+    BMLogElem<BMFace>::free(domain);
+
+    if (loop_customdata[0]) {
+      for (void *data : loop_customdata) {
+        CustomData_bmesh_free_block_data(loop_domain, data);
+      }
+    }
+  }
 };
 
 struct BMLogEntry;
@@ -293,6 +371,14 @@ struct BMLogSetFull : public BMLogSetBase {
     mesh = BKE_mesh_from_bmesh_nomain(bm, &params, nullptr);
   }
 
+  ~BMLogSetFull()
+  {
+    if (mesh) {
+      BKE_mesh_free_data_for_undo(mesh);
+      MEM_SAFE_FREE(mesh);
+    }
+  }
+
   const char *debug_name() override
   {
     return "Full";
@@ -337,6 +423,7 @@ struct BMLogSetFull : public BMLogSetBase {
     BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
     BKE_mesh_free_data_for_undo(mesh);
+    MEM_SAFE_FREE(mesh);
     mesh = current_mesh;
   }
 
@@ -437,6 +524,16 @@ struct BMLogEntry {
           delete static_cast<BMLogSetFull *>(set);
           break;
       }
+    }
+
+    for (BMLogVert &vert : vpool.elements()) {
+      vert.free(&vdata);
+    }
+    for (BMLogEdge &edge : epool.elements()) {
+      edge.free(&edata);
+    }
+    for (BMLogFace &face : fpool.elements()) {
+      face.free(&pdata, &ldata);
     }
 
     if (vdata.pool) {
@@ -1551,17 +1648,15 @@ bool BM_log_is_dead(BMLog *log)
 
 bool BM_log_free(BMLog *log, bool safe_mode)
 {
-  if (log->dead) {
-    MEM_delete<BMLog>(log);
-    return true;
+  BMLogEntry *entry = log->first_entry;
+
+  while (entry) {
+    entry->log = nullptr;
+    entry = entry->next;
   }
 
-  if (bm_log_free_direct(log, safe_mode)) {
-    MEM_delete<BMLog>(log);
-    return true;
-  }
-
-  return false;
+  MEM_delete<BMLog>(log);
+  return true;
 }
 
 BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
@@ -1720,10 +1815,6 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry)
 bool BM_log_entry_drop(BMLogEntry *entry)
 {
   printf("%s: Freeing log entry %p\n", __func__, entry);
-
-  if (!entry->log) {
-    printf("%s: error, missing bm log!\n", __func__);
-  }
 
   if (entry->prev) {
     entry->prev->next = entry->next;
