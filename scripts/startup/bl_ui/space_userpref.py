@@ -1158,6 +1158,14 @@ class PreferenceThemeSpacePanel:
         },
     }
 
+    @classmethod
+    def poll(cls, context):
+        # Special exception for expeimental asset shelf.
+        if cls.datapath.endswith(".asset_shelf"):
+            prefs = context.preferences
+            return prefs.experimental.use_asset_shelf
+        return True
+
     # TODO theme_area should be deprecated
     @staticmethod
     def _theme_generic(layout, themedata, theme_area):
