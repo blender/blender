@@ -350,8 +350,8 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
        * as these directories are expected to be skipped. */
       BLI_assert(!IS_PARENT_DIR(start));
       const size_t start_len = path_len - (start - path);
-      memmove(path_first_non_slash_part, start, start_len + 1);
       BLI_assert(strlen(start) == start_len);
+      memmove(path_first_non_slash_part, start, start_len + 1);
       path_len -= start - path_first_non_slash_part;
       BLI_assert(strlen(path) == path_len);
     }
