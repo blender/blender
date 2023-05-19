@@ -11238,7 +11238,6 @@ static void def_geo_viewer(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-
 static void def_geo_evaluate_at_index(StructRNA *srna)
 {
   PropertyRNA *prop;

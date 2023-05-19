@@ -996,8 +996,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     for (me = bmain->meshes.first; me; me = me->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(&me->vdata, CD_MVERT, me->totvert);
@@ -1008,8 +1008,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (lt = bmain->lattices.first; lt; lt = lt->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
@@ -1020,8 +1020,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) && key->refkey)
+      {
         data = key->refkey->data;
 
         for (nu = cu->nurb.first; nu; nu = nu->next) {

@@ -928,7 +928,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   /* Handle modal numinput events first, if already activated. */
   if (!is_navigating && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
-      hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event)) {
+      hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event))
+  {
     t->redraw |= TREDRAW_HARD;
     handled = true;
   }

@@ -2432,7 +2432,6 @@ typedef enum GeometryNodeDeleteGeometryMode {
   GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
 } GeometryNodeDeleteGeometryMode;
 
-
 typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
   GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
