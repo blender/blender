@@ -77,6 +77,7 @@ set(SRC
   intern/usd_capi_import.cc
   intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
+  intern/usd_lux_api_wrapper.cc
   intern/usd_light_convert.cc
   intern/usd_skel_convert.cc
 
@@ -119,6 +120,7 @@ set(SRC
   intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
+  intern/usd_lux_api_wrapper.h
   intern/usd_light_convert.h
   intern/usd_skel_convert.h
 

@@ -3,6 +3,7 @@
 #include "usd_writer_light.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_light_convert.h"
+#include "usd_lux_api_wrapper.h"
 
 #include <pxr/usd/usdLux/diskLight.h>
 #include <pxr/usd/usdLux/distantLight.h>
@@ -16,21 +17,9 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_light_types.h"
-#include "DNA_object_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
-namespace usdtokens {
-// Attribute names.
-static const pxr::TfToken angle("angle", pxr::TfToken::Immortal);
-static const pxr::TfToken color("color", pxr::TfToken::Immortal);
-static const pxr::TfToken height("height", pxr::TfToken::Immortal);
-static const pxr::TfToken intensity("intensity", pxr::TfToken::Immortal);
-static const pxr::TfToken radius("radius", pxr::TfToken::Immortal);
-static const pxr::TfToken specular("specular", pxr::TfToken::Immortal);
-static const pxr::TfToken width("width", pxr::TfToken::Immortal);
-}  // namespace usdtokens
 
 namespace blender::io::usd {
 
@@ -55,12 +44,8 @@ void USDLightWriter::do_write(HierarchyContext &context)
                                                                               1.0f;
 
   Light *light = static_cast<Light *>(context.object->data);
-#if PXR_VERSION >= 2111
-  pxr::UsdLuxLightAPI usd_light_api;
-#else
-  pxr::UsdLuxLight usd_light_api;
 
-#endif
+  UsdLuxWrapper usd_light_api;
 
   switch (light->type) {
     case LA_AREA:
@@ -73,20 +58,10 @@ void USDLightWriter::do_write(HierarchyContext &context)
                       usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
                   pxr::UsdLuxDiskLight::Define(usd_export_context_.stage,
                                                usd_export_context_.usd_path);
-          disk_light.CreateRadiusAttr().Set(light->area_size / 2.0f, timecode);
+          usd_light_api = UsdLuxWrapper(disk_light.GetPrim());
+          usd_light_api.CreateRadiusAttr();
+          usd_light_api.SetRadiusAttr(light->area_size / 2.0f, timecode);
 
-          if (usd_export_context_.export_params.backward_compatible) {
-            if (pxr::UsdAttribute attr = disk_light.GetPrim().CreateAttribute(
-                    usdtokens::radius, pxr::SdfValueTypeNames->Float, true)) {
-              attr.Set(light->area_size / 2.0f, timecode);
-            }
-          }
-
-#if PXR_VERSION >= 2111
-          usd_light_api = disk_light.LightAPI();
-#else
-          usd_light_api = disk_light;
-#endif
           break;
         }
         case LA_AREA_RECT: {
@@ -96,27 +71,12 @@ void USDLightWriter::do_write(HierarchyContext &context)
                       usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
                   pxr::UsdLuxRectLight::Define(usd_export_context_.stage,
                                                usd_export_context_.usd_path);
-          rect_light.CreateWidthAttr().Set(light->area_size, timecode);
-          rect_light.CreateHeightAttr().Set(light->area_sizey, timecode);
+          usd_light_api = UsdLuxWrapper(rect_light.GetPrim());
+          usd_light_api.CreateWidthAttr();
+          usd_light_api.SetWidthAttr(light->area_size, timecode);
+          usd_light_api.CreateHeightAttr();
+          usd_light_api.SetHeightAttr(light->area_sizey, timecode);
 
-          if (usd_export_context_.export_params.backward_compatible) {
-            pxr::UsdAttribute attr = rect_light.GetPrim().CreateAttribute(
-                usdtokens::width, pxr::SdfValueTypeNames->Float, true);
-            if (attr) {
-              attr.Set(light->area_size, timecode);
-            }
-            attr = rect_light.GetPrim().CreateAttribute(
-                usdtokens::height, pxr::SdfValueTypeNames->Float, true);
-            if (attr) {
-              attr.Set(light->area_sizey, timecode);
-            }
-          }
-
-#if PXR_VERSION >= 2111
-          usd_light_api = rect_light.LightAPI();
-#else
-          usd_light_api = rect_light;
-#endif
           break;
         }
         case LA_AREA_SQUARE: {
@@ -126,27 +86,12 @@ void USDLightWriter::do_write(HierarchyContext &context)
                       usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
                   pxr::UsdLuxRectLight::Define(usd_export_context_.stage,
                                                usd_export_context_.usd_path);
-          rect_light.CreateWidthAttr().Set(light->area_size, timecode);
-          rect_light.CreateHeightAttr().Set(light->area_size, timecode);
+          usd_light_api = UsdLuxWrapper(rect_light.GetPrim());
+          usd_light_api.CreateWidthAttr();
+          usd_light_api.SetWidthAttr(light->area_size, timecode);
+          usd_light_api.CreateHeightAttr();
+          usd_light_api.SetHeightAttr(light->area_sizey, timecode);
 
-          if (usd_export_context_.export_params.backward_compatible) {
-            pxr::UsdAttribute attr = rect_light.GetPrim().CreateAttribute(
-                usdtokens::width, pxr::SdfValueTypeNames->Float, true);
-            if (attr) {
-              attr.Set(light->area_size, timecode);
-            }
-            attr = rect_light.GetPrim().CreateAttribute(
-                usdtokens::height, pxr::SdfValueTypeNames->Float, true);
-            if (attr) {
-              attr.Set(light->area_size, timecode);
-            }
-          }
-
-#if PXR_VERSION >= 2111
-          usd_light_api = rect_light.LightAPI();
-#else
-          usd_light_api = rect_light;
-#endif
           break;
         }
       }
@@ -159,20 +104,9 @@ void USDLightWriter::do_write(HierarchyContext &context)
                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
               pxr::UsdLuxSphereLight::Define(usd_export_context_.stage,
                                              usd_export_context_.usd_path);
-      sphere_light.CreateRadiusAttr().Set(light->radius * radius_scale, timecode);
-
-      if (usd_export_context_.export_params.backward_compatible) {
-        if (pxr::UsdAttribute attr = sphere_light.GetPrim().CreateAttribute(
-                usdtokens::radius, pxr::SdfValueTypeNames->Float, true)) {
-          attr.Set(light->radius * radius_scale, timecode);
-        }
-      }
-
-#if PXR_VERSION >= 2111
-      usd_light_api = sphere_light.LightAPI();
-#else
-      usd_light_api = sphere_light;
-#endif
+      usd_light_api = UsdLuxWrapper(sphere_light.GetPrim());
+      usd_light_api.CreateRadiusAttr();
+      usd_light_api.SetRadiusAttr(light->radius * radius_scale, timecode);
       break;
     }
     case LA_SPOT: {
@@ -182,27 +116,27 @@ void USDLightWriter::do_write(HierarchyContext &context)
                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
               pxr::UsdLuxSphereLight::Define(usd_export_context_.stage,
                                              usd_export_context_.usd_path);
-      spot_light.CreateRadiusAttr().Set(light->area_size * radius_scale, timecode);
 
-      if (usd_export_context_.export_params.backward_compatible) {
-        if (pxr::UsdAttribute attr = spot_light.GetPrim().CreateAttribute(
-                usdtokens::radius, pxr::SdfValueTypeNames->Float, true)) {
-          attr.Set(light->area_size * radius_scale, timecode);
-        }
+      if (!spot_light.GetPrim().ApplyAPI<pxr::UsdLuxShapingAPI>()) {
+        WM_reportf(RPT_WARNING,
+                   "USD export: Couldn't apply UsdLuxShapingAPI to exported spot light %s",
+                   usd_export_context_.usd_path.GetAsString().c_str());
       }
 
-      pxr::UsdLuxShapingAPI shapingAPI(spot_light);
+      usd_light_api = UsdLuxWrapper(spot_light.GetPrim());
+      usd_light_api.CreateRadiusAttr();
+      usd_light_api.SetRadiusAttr(light->radius * radius_scale, timecode);
+
+      UsdShapingWrapper shapingAPI(spot_light.GetPrim());
       float angle = (light->spotsize * (180.0f / (float)M_PI)) /
                     2.0f;  // Blender angle seems to be half of what USD expectes it to be.
-      shapingAPI.CreateShapingConeAngleAttr(pxr::VtValue(angle), true);
-      shapingAPI.CreateShapingConeSoftnessAttr(pxr::VtValue(light->spotblend), true);
+      shapingAPI.CreateShapingConeAngleAttr();
+      shapingAPI.SetShapingConeAngleAttr(angle);
+      shapingAPI.CreateShapingConeSoftnessAttr();
+      shapingAPI.SetShapingConeSoftnessAttr(light->spotblend);
+
       spot_light.CreateTreatAsPointAttr(pxr::VtValue(true), true);
 
-#if PXR_VERSION >= 2111
-      usd_light_api = spot_light.LightAPI();
-#else
-      usd_light_api = spot_light;
-#endif
       break;
     }
     case LA_SUN: {
@@ -212,20 +146,10 @@ void USDLightWriter::do_write(HierarchyContext &context)
                   usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
               pxr::UsdLuxDistantLight::Define(usd_export_context_.stage,
                                               usd_export_context_.usd_path);
-      sun_light.CreateAngleAttr().Set(light->sun_angle * (180.0f / (float)M_PI), timecode);
+      usd_light_api = UsdLuxWrapper(sun_light.GetPrim());
+      usd_light_api.CreateAngleAttr();
+      usd_light_api.SetAngleAttr(light->sun_angle * (180.0f / (float)M_PI), timecode);
 
-      if (usd_export_context_.export_params.backward_compatible) {
-        if (pxr::UsdAttribute attr = sun_light.GetPrim().CreateAttribute(
-                usdtokens::angle, pxr::SdfValueTypeNames->Float, true)) {
-          attr.Set(light->sun_angle * (180.0f / (float)M_PI), timecode);
-        }
-      }
-
-#if PXR_VERSION >= 2111
-      usd_light_api = sun_light.LightAPI();
-#else
-      usd_light_api = sun_light;
-#endif
       break;
     }
     default:
@@ -238,28 +162,14 @@ void USDLightWriter::do_write(HierarchyContext &context)
     usd_intensity /= nits_to_energy_scale_factor(light, world_scale, radius_scale);
   }
 
-  usd_light_api.CreateIntensityAttr().Set(usd_intensity, timecode);
+  usd_light_api.CreateIntensityAttr();
+  usd_light_api.SetIntensityAttr(usd_intensity, timecode);
 
-  usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
-  usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
+  usd_light_api.CreateColorAttr();
+  usd_light_api.SetColorAttr(pxr::GfVec3f(light->r, light->g, light->b), timecode);
 
-  if (usd_export_context_.export_params.backward_compatible) {
-    pxr::UsdAttribute attr = usd_light_api.GetPrim().CreateAttribute(
-        usdtokens::intensity, pxr::SdfValueTypeNames->Float, true);
-    if (attr) {
-      attr.Set(usd_intensity, timecode);
-    }
-    attr = usd_light_api.GetPrim().CreateAttribute(
-        usdtokens::color, pxr::SdfValueTypeNames->Color3f, true);
-    if (attr) {
-      attr.Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
-    }
-    attr = usd_light_api.GetPrim().CreateAttribute(
-        usdtokens::specular, pxr::SdfValueTypeNames->Float, true);
-    if (attr) {
-      attr.Set(light->spec_fac, timecode);
-    }
-  }
+  usd_light_api.CreateSpecularAttr();
+  usd_light_api.SetSpecularAttr(light->spec_fac, timecode);
 
   if (usd_export_context_.export_params.export_custom_properties && light) {
     auto prim = usd_light_api.GetPrim();

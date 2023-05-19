@@ -17,18 +17,10 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
+#include "usd_lux_api_wrapper.h"
+
 #include <iostream>
 
-namespace usdtokens {
-// Attribute names.
-static const pxr::TfToken angle("angle", pxr::TfToken::Immortal);
-static const pxr::TfToken color("color", pxr::TfToken::Immortal);
-static const pxr::TfToken height("height", pxr::TfToken::Immortal);
-static const pxr::TfToken intensity("intensity", pxr::TfToken::Immortal);
-static const pxr::TfToken radius("radius", pxr::TfToken::Immortal);
-static const pxr::TfToken specular("specular", pxr::TfToken::Immortal);
-static const pxr::TfToken width("width", pxr::TfToken::Immortal);
-}  // namespace usdtokens
 
 namespace {
 
@@ -84,17 +76,13 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (!prim_) {
     return;
   }
-#if PXR_VERSION >= 2111
-  pxr::UsdLuxLightAPI light_api(prim_);
-#else
-  pxr::UsdLuxLight light_api(prim_);
-#endif
+  UsdLuxWrapper light_api(prim_);
 
   if (!light_api) {
     return;
   }
 
-  pxr::UsdLuxShapingAPI shaping_api;
+  UsdShapingWrapper shaping_api(prim_);
 
   /* Set light type. */
 
@@ -110,9 +98,11 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   else if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
     blight->type = LA_LOCAL;
 
-    shaping_api = pxr::UsdLuxShapingAPI(prim_);
-
-    if (shaping_api && shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
+    /* We don't call static_cast<bool>(shaping_api) in the
+     * following conditional because some lights might have
+     * shaping attributes authored without an applied shaping
+     * API schema. */
+    if (shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
       blight->type = LA_SPOT;
     }
   }
@@ -140,14 +130,12 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
 #endif
 
   float specular;
-  if (get_authored_value(light_api.GetSpecularAttr(), motionSampleTime, &specular) ||
-      prim_.GetAttribute(usdtokens::specular).Get(&specular, motionSampleTime)) {
+  if (get_authored_value(light_api.GetSpecularAttr(), motionSampleTime, &specular)) {
     blight->spec_fac = specular;
   }
 
   pxr::GfVec3f color;
-  if (get_authored_value(light_api.GetColorAttr(), motionSampleTime, &color) ||
-      prim_.GetAttribute(usdtokens::color).Get(&color, motionSampleTime)) {
+  if (get_authored_value(light_api.GetColorAttr(), motionSampleTime, &color)) {
     blight->r = color[0];
     blight->g = color[1];
     blight->b = color[2];
@@ -177,14 +165,12 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
 
         float width;
-        if (get_authored_value(rect_light.GetWidthAttr(), motionSampleTime, &width) ||
-            prim_.GetAttribute(usdtokens::width).Get(&width, motionSampleTime)) {
+        if (get_authored_value(light_api.GetWidthAttr(), motionSampleTime, &width)) {
           blight->area_size = width;
         }
 
         float height;
-        if (get_authored_value(rect_light.GetHeightAttr(), motionSampleTime, &height) ||
-            prim_.GetAttribute(usdtokens::height).Get(&height, motionSampleTime)) {
+        if (get_authored_value(light_api.GetHeightAttr(), motionSampleTime, &height)) {
           blight->area_sizey = height;
         }
       }
@@ -197,8 +183,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
 
         float radius;
-        if (get_authored_value(disk_light.GetRadiusAttr(), motionSampleTime, &radius) ||
-            prim_.GetAttribute(usdtokens::radius).Get(&radius, motionSampleTime)) {
+        if (get_authored_value(light_api.GetRadiusAttr(), motionSampleTime, &radius)) {
           blight->area_size = radius * 2.0f;
         }
       }
@@ -213,8 +198,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
 
         float radius;
-        if (get_authored_value(sphere_light.GetRadiusAttr(), motionSampleTime, &radius) ||
-            prim_.GetAttribute(usdtokens::radius).Get(&radius, motionSampleTime)) {
+        if (get_authored_value(light_api.GetRadiusAttr(), motionSampleTime, &radius)) {
           blight->radius = radius;
         }
       }
@@ -228,8 +212,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
 
         float radius;
-        if (get_authored_value(sphere_light.GetRadiusAttr(), motionSampleTime, &radius) ||
-            prim_.GetAttribute(usdtokens::radius).Get(&radius, motionSampleTime)) {
+        if (get_authored_value(light_api.GetRadiusAttr(), motionSampleTime, &radius)) {
           blight->radius = radius;
         }
 
@@ -242,11 +225,11 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
           if (cone_angle_attr.Get(&cone_angle, motionSampleTime)) {
             float spot_size = cone_angle * (float(M_PI) / 180.0f) * 2.0f;
 
-            if (spot_size <= M_PI) {
+            if (spot_size <= 180) {
               blight->spotsize = spot_size;
             }
             else {
-              /* The spot size is greter the 180 degrees, which Blender doesn't support so we
+              /* The spot size is greater the 180 degrees, which Blender doesn't support so we
                * make this a sphere light instead. */
               blight->type = LA_LOCAL;
               break;
@@ -271,8 +254,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         }
 
         float angle;
-        if (get_authored_value(distant_light.GetAngleAttr(), motionSampleTime, &angle) ||
-            prim_.GetAttribute(usdtokens::angle).Get(&angle, motionSampleTime)) {
+        if (get_authored_value(light_api.GetAngleAttr(), motionSampleTime, &angle)) {
           blight->sun_angle = angle * float(M_PI) / 180.0f;
         }
       }
@@ -285,8 +267,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   const float radius_scale = meters_per_unit * usd_world_scale_;
 
   float intensity;
-  if (get_authored_value(light_api.GetIntensityAttr(), motionSampleTime, &intensity) ||
-      prim_.GetAttribute(usdtokens::intensity).Get(&intensity, motionSampleTime)) {
+  if (get_authored_value(light_api.GetIntensityAttr(), motionSampleTime, &intensity)) {
 
     float intensity_scale = this->import_params_.light_intensity_scale;
 
@@ -298,7 +279,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   }
 
   if ((blight->type == LA_SPOT || blight->type == LA_LOCAL) && import_params_.scale_light_radius) {
-    blight->area_size *= radius_scale;
+    blight->radius *= radius_scale;
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
