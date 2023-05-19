@@ -630,7 +630,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
     IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
 
     for (int i = 0; i < grayscale->x * grayscale->y; i++) {
-      const float *pixel = rect_float + ibuf->channels * i;
+      const float *pixel = ibuf->float_buffer.data + ibuf->channels * i;
 
       rect_float[i] = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2];
     }
