@@ -20,7 +20,7 @@ VKPipelineStateManager::VKPipelineStateManager()
   depth_stencil_state = {};
   depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 
-  /* TODO should be extracted from current framebuffer and should not be done here and now. */
+  /* TODO should be extracted from current frame-buffer and should not be done here and now. */
   /* When the attachments differ the state should be forced. */
   VkPipelineColorBlendAttachmentState color_blend_attachment = {};
   color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |

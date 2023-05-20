@@ -103,8 +103,10 @@ static bool prim_path_valid(const char *path)
   return true;
 }
 
-/* Perform validation of export parameter settings. Returns
- * true if the paramters are valid; returns false otherwise. */
+/**
+ * Perform validation of export parameter settings.
+ * \return true if the parameters are valid; returns false otherwise.
+ */
 static bool export_params_valid(const USDExportParams &params)
 {
   bool valid = true;

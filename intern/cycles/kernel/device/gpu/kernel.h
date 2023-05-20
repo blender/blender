@@ -432,7 +432,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
 }
 ccl_gpu_kernel_postfix
 
-/* oneAPI verion needs the local_mem accessor in the arguments. */
+/* oneAPI Verizon needs the local_mem accessor in the arguments. */
 #ifdef __KERNEL_ONEAPI__
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
@@ -489,7 +489,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
 }
 ccl_gpu_kernel_postfix
 
-/* oneAPI verion needs the local_mem accessor in the arguments. */
+/* oneAPI version needs the local_mem accessor in the arguments. */
 #ifdef __KERNEL_ONEAPI__
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_write_pass,

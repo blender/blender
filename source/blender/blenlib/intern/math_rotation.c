@@ -352,7 +352,7 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
 
   BLI_assert(!(q[0] < 0.0f));
 
-  /* Sometimes normalisation is necessary due to round-off errors in the above
+  /* Sometimes normalization is necessary due to round-off errors in the above
    * calculations. The comparison here uses tighter tolerances than
    * BLI_ASSERT_UNIT_QUAT(), so it's likely that even after a few more
    * transformations the quaternion will still be considered unit-ish. */

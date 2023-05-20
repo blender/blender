@@ -1142,7 +1142,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
      * A symmetrizable selection contains selected ebones of the input direction
      * and unique selected bones with an unique flippable name.
      *
-     * Storing temp ptrs to mirrored unselected ebones. */
+     * Storing temp pointers to mirrored unselected ebones. */
     for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
       if (!(EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED))) {
         /* Skipping invisible selected bones. */

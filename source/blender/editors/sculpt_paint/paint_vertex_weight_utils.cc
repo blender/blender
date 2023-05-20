@@ -58,7 +58,7 @@ bool ED_wpaint_ensure_data(bContext *C,
     return false;
   }
 
-  /* if nothing was added yet, we make dverts and a vertex deform group */
+  /* If nothing was added yet, we make deform-verts and a vertex deform group. */
   if (BKE_mesh_deform_verts(me) == nullptr) {
     BKE_object_defgroup_data_create(&me->id);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
@@ -136,8 +136,7 @@ int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
       }
     }
 
-    /* curdef should never be nullptr unless this is
-     * a  light and BKE_object_defgroup_add_name fails */
+    /* `mirrdef` shouldn't be -1 unless the object is a light & #BKE_object_defgroup_new fails. */
     return mirrdef;
   }
 

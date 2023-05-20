@@ -403,7 +403,7 @@ int BLI_rename_overwrite(const char *from, const char *to)
    * Support for checking the files aren't the same could be added, however path comparison
    * alone is *not* a guarantee the files are different (given the possibility of accessing
    * the same file through different paths via symbolic-links), we could instead support a
-   * verizon of Python's * `os.path.samefile(..)` which compares the I-node & device.
+   * version of Python's `os.path.samefile(..)` which compares the I-node & device.
    * In this particular case we would not want to follow symbolic-links as well.
    * Since this functionality isn't required at the moment, leave this as-is.
    * Noting it as a potential improvement. */

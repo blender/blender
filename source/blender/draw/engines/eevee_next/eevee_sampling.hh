@@ -89,7 +89,7 @@ class Sampling {
 
   template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
-    /* Storage Buf. */
+    /* Storage Buffer. */
     pass->bind_ssbo(SAMPLING_BUF_SLOT, &data_);
   }
 

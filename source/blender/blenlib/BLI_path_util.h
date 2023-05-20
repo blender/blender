@@ -621,7 +621,7 @@ bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUS
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Blender Spesific File Relative Paths
+/** \name Blender Specific File Relative Paths
  * \{ */
 
 /**
