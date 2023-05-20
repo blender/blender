@@ -441,7 +441,9 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
   }
 }
 
-static bool sculpt_vertex_ensure_boundary(const SculptSession *ss, const PBVHVertRef vertex)
+static bool sculpt_vertex_ensure_boundary(const SculptSession *ss,
+                                          const PBVHVertRef vertex,
+                                          int mask)
 {
   eSculptBoundary flag = *vertex_attr_ptr<eSculptBoundary>(vertex, ss->attrs.boundary_flags);
   bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
@@ -465,7 +467,9 @@ static bool sculpt_vertex_ensure_boundary(const SculptSession *ss, const PBVHVer
                                       !ss->ignore_uvs,
                                       ss->sharp_angle_limit);
       }
-      else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
+      else if ((mask & (SCULPT_BOUNDARY_SHARP_ANGLE | SCULPT_CORNER_SHARP_ANGLE)) &&
+               flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE)
+      {
         blender::bke::pbvh::update_sharp_boundary_bmesh(
             v, ss->attrs.boundary_flags->bmesh_cd_offset, ss->sharp_angle_limit);
       }
@@ -495,7 +499,7 @@ eSculptCorner SCULPT_vertex_is_corner(const SculptSession *ss,
                                       const PBVHVertRef vertex,
                                       eSculptCorner cornertype)
 {
-  sculpt_vertex_ensure_boundary(ss, vertex);
+  sculpt_vertex_ensure_boundary(ss, vertex, int(cornertype));
   eSculptCorner flag = eSculptCorner(vertex_attr_get<int>(vertex, ss->attrs.boundary_flags));
 
   return flag & cornertype;
@@ -507,7 +511,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
 {
   eSculptBoundary flag = vertex_attr_get<eSculptBoundary>(vertex, ss->attrs.boundary_flags);
 
-  sculpt_vertex_ensure_boundary(ss, vertex);
+  sculpt_vertex_ensure_boundary(ss, vertex, int(boundary_types));
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && boundary_types & SCULPT_BOUNDARY_MESH) {
     /* TODO: BKE_pbvh_update_vert_boundary_grids does not yet support mesh boundaries for

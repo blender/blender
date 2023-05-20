@@ -1248,7 +1248,7 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
       continue;
     }
 
-    sculpt_vertex_neighbor_add(
+    sculpt_vertex_neighbor_add_nocheck(
         iter, BKE_pbvh_make_vref(v), BKE_pbvh_make_eref(vert_map->indices[i]), v);
   }
 
@@ -6915,6 +6915,14 @@ void SCULPT_boundary_info_ensure(Object *object)
   }
 
   MEM_freeN(adjacent_faces_edge_count);
+}
+
+void SCULPT_ensure_vemap(SculptSession *ss)
+{
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->vemap) {
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, ss->edges.data(), ss->totvert, ss->totedges);
+  }
 }
 
 void SCULPT_ensure_epmap(SculptSession *ss)

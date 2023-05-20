@@ -15,6 +15,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_layer.h"
+#include "BKE_sculpt.h"
 
 #include "BLI_math.h"
 

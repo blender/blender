@@ -17,6 +17,7 @@
 #include "BKE_attribute.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.h"
 #include "BKE_sculpt.hh"
 
 #include "BLI_bitmap.h"
@@ -1344,7 +1345,7 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss);
 void SCULPT_face_visibility_all_set(Object *ob, bool visible);
 
 /* Flags all the vertices of face for boundary update. For PBVH_GRIDS
- * this includes all the verts in all the grids belonging to that face. 
+ * this includes all the verts in all the grids belonging to that face.
  */
 void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face);
 
@@ -2379,6 +2380,7 @@ void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);
 
 void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 void SCULPT_ensure_epmap(SculptSession *ss);
+void SCULPT_ensure_vemap(SculptSession *ss);
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
                                      const Brush *br,

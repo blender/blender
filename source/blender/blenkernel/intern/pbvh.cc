@@ -59,6 +59,7 @@
 #include "pbvh_intern.hh"
 
 #include <limits.h>
+#include <utility>
 
 using blender::float3;
 using blender::IndexRange;
