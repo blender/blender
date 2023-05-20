@@ -715,6 +715,10 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
           /* Exclude editmesh when using proportional edit */
           ret |= SCE_SNAP_TARGET_NOT_EDITED;
         }
+        /* UV editing must never snap to the selection as this is what is transformed. */
+        if (t->spacetype == SPACE_IMAGE) {
+          ret |= SCE_SNAP_TARGET_NOT_SELECTED;
+        }
       }
       else if (ELEM(obedit_type, OB_ARMATURE, OB_CURVES_LEGACY, OB_SURF, OB_LATTICE, OB_MBALL)) {
         /* Temporary limited to edit mode armature, curves, surfaces, lattices, and metaballs. */
