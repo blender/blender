@@ -120,13 +120,13 @@ class VelocityModule {
 
   template<typename T> void bind_resources(draw::detail::Pass<T> *pass)
   {
-    /* Storage Buf. */
+    /* Storage Buffer. */
     pass->bind_ssbo(VELOCITY_OBJ_PREV_BUF_SLOT, &(*object_steps[STEP_PREVIOUS]));
     pass->bind_ssbo(VELOCITY_OBJ_NEXT_BUF_SLOT, &(*object_steps[next_step_]));
     pass->bind_ssbo(VELOCITY_GEO_PREV_BUF_SLOT, &(*geometry_steps[STEP_PREVIOUS]));
     pass->bind_ssbo(VELOCITY_GEO_NEXT_BUF_SLOT, &(*geometry_steps[next_step_]));
     pass->bind_ssbo(VELOCITY_INDIRECTION_BUF_SLOT, &indirection_buf);
-    /* Uniform Buf. */
+    /* Uniform Buffer. */
     pass->bind_ubo(VELOCITY_CAMERA_PREV_BUF, &(*camera_steps[STEP_PREVIOUS]));
     pass->bind_ubo(VELOCITY_CAMERA_CURR_BUF, &(*camera_steps[STEP_CURRENT]));
     pass->bind_ubo(VELOCITY_CAMERA_NEXT_BUF, &(*camera_steps[next_step_]));

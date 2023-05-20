@@ -109,7 +109,7 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
   assert(queue);
   (void)kernel_global_size;
   const static size_t preferred_work_group_size_intersect_shading = 32;
-  /* Shader evalutation kernels seems to use some amount of shared memory, so better
+  /* Shader evaluation kernels seems to use some amount of shared memory, so better
    * to avoid usage of maximum work group sizes for them. */
   const static size_t preferred_work_group_size_shader_evaluation = 256;
   const static size_t preferred_work_group_size_default = 1024;
@@ -196,7 +196,7 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
 
 bool oneapi_kernel_is_compatible_with_hardware_raytracing(const std::string &kernel_name)
 {
-  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1.
+  /* MNEE and Ray-trace kernels work correctly with Hardware Ray-tracing starting with Embree 4.1.
    */
 #  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) ==

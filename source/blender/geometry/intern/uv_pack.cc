@@ -102,7 +102,7 @@ static float get_aspect_scaled_extent(const rctf &extent, const UVPackIsland_Par
 }
 
 /**
- * \return true iff `b` is a preferred layout over `a`, given the packing parameters supplied.
+ * \return true if `b` is a preferred layout over `a`, given the packing parameters supplied.
  */
 static bool is_larger(const rctf &a, const rctf &b, const UVPackIsland_Params &params)
 {

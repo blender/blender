@@ -169,7 +169,7 @@ void VKPipeline::finalize(VKContext &context,
   viewport_state.scissorCount = 1;
   pipeline_create_info.pViewportState = &viewport_state;
 
-  /* Multisample state. */
+  /* Multi-sample state. */
   VkPipelineMultisampleStateCreateInfo multisample_state = {};
   multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
   multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;

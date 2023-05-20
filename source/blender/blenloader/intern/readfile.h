@@ -98,7 +98,7 @@ typedef struct FileData {
   /**
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
    * typically from value in `bhead->old` to address in memory where the ID was read.
-   * Used during liblinking process (see #lib_link_all).
+   * Used during library-linking process (see #lib_link_all).
    */
   struct OldNewMap *libmap;
 
@@ -115,7 +115,7 @@ typedef struct FileData {
   /** Used for undo. */
   ListBase *old_mainlist;
   /**
-   * IDMap using uuids as keys of all the old IDs in the old bmain. Used during undo to find a
+   * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
   struct IDNameLib_Map *old_idmap_uuid;
 
