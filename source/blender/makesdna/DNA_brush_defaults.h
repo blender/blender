@@ -25,7 +25,8 @@
   .mode = DYNTOPO_DETAIL_RELATIVE,\
   .inherit = DYNTOPO_INHERIT_BITMASK,\
   .spacing = 35,\
-  .radius_scale = 1.0f\
+  .radius_scale = 1.0f,\
+  .quality = 1.0f,\
 }
 
 #define _DNA_DEFAULT_Brush \

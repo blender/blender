@@ -469,6 +469,7 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
      ICON_NONE,
      "Repeat",
      "How many extra times to run the dyntopo remesher."},
+    {DYNTOPO_INHERIT_QUALITY, "QUALITY", ICON_NONE, "Quality", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1441,6 +1442,14 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "repeat");
   RNA_def_property_range(prop, 0.0f, 15.0f);
   RNA_def_property_ui_text(prop, "Repeat", "How many times to run the dyntopo remesher.");
+  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
+
+  prop = RNA_def_property(srna, "quality", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_float_sdna(prop, NULL, "quality");
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 3);
+  RNA_def_property_ui_text(
+      prop, "Quality", "Lower values are faster but make lower-quality geometry");
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 }
 
@@ -3373,8 +3382,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sharp_angle_limit", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "sharp_angle_limit");
   RNA_def_property_range(prop, 0.0f, M_PI);
-  RNA_def_property_ui_text(
-      prop, "Sharp Limit", "");
+  RNA_def_property_ui_text(prop, "Sharp Limit", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   RNA_def_property_update(prop, 0, "rna_Brush_update");

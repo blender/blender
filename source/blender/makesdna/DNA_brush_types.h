@@ -154,7 +154,8 @@ typedef struct DynTopoSettings {
   int inherit;
   int spacing;
   float radius_scale;
-  int repeat, _pad[1];
+  int repeat;
+  float quality;
 } DynTopoSettings;
 
 typedef struct BrushCurvesSculptSettings {

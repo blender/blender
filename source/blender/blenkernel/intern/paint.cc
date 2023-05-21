@@ -1122,8 +1122,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     /* Turn on X plane mirror symmetry by default */
     paint->symmetry_flags |= PAINT_SYMM_X;
 
-    /* Make sure at least dyntopo subdivision is enabled */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_ENABLED;
+    data->dyntopo = *DNA_struct_default_get(DynTopoSettings);
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_cnew<GpPaint>(__func__);

@@ -37,6 +37,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "PIL_time.h"
+
 #include <cmath>
 #include <cstdlib>
 
@@ -79,13 +81,8 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Detail Flood Fill
  * \{ */
-
-static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
+static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wmOperator *op)
 {
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = CTX_data_active_object(C);
-  Brush *brush = BKE_paint_brush(&sd->paint);
-
   SculptSession *ss = ob->sculpt;
   float size;
   float bb_min[3], bb_max[3], center[3], dim[3];
@@ -96,15 +93,12 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  for (PBVHNode *node : nodes) {
-    BKE_pbvh_node_mark_topology_update(node);
-  }
   /* Get the bounding box, its center and size. */
   BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
   add_v3_v3v3(center, bb_min, bb_max);
   mul_v3_fl(center, 0.5f);
   sub_v3_v3v3(dim, bb_max, bb_min);
-  size = max_fff(dim[0], dim[1], dim[2]);
+  size = max_fff(dim[0], dim[1], dim[2]) * 1.1f;
 
   SCULPT_apply_dyntopo_settings(ss, sd, brush);
   float detail_range = ss->cached_dyntopo.detail_range;
@@ -115,10 +109,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
   BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
 
-  bool enable_surface_relax = true; /* XXX should be user-configurable. */
-
-  SCULPT_undo_push_begin(ob, op);
-  SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
+  bool enable_surface_relax = true;
 
   DyntopoMaskCB mask_cb;
   void *mask_cb_data;
@@ -132,10 +123,29 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   int i = 0;
   bool modified = true;
 
-  while (modified) {
+  PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
+  if (ss->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
+    mode |= PBVH_Subdivide;
+  }
+  if (ss->cached_dyntopo.flag & DYNTOPO_COLLAPSE) {
+    mode |= PBVH_Collapse;
+  }
+  if (ss->cached_dyntopo.flag & DYNTOPO_CLEANUP) {
+    mode |= PBVH_Cleanup;
+  }
+
+  double time = PIL_check_seconds_timer();
+
+  for (int i = 0; i < 1 + ss->cached_dyntopo.repeat; i++) {
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+
+    for (int j = 0; j < nodes.size(); j++) {
+      BKE_pbvh_node_mark_topology_update(nodes[j]);
+    }
+
     modified = BKE_pbvh_bmesh_update_topology(ss,
                                               ss->pbvh,
-                                              PBVH_Collapse,
+                                              mode,
                                               center,
                                               nullptr,
                                               size,
@@ -146,70 +156,172 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                                               mask_cb,
                                               mask_cb_data,
                                               max_dyntopo_steps_coll,
-                                              enable_surface_relax,
-                                              false);
-
-    for (int j = 0; j < nodes.size(); j++) {
-      BKE_pbvh_node_mark_topology_update(nodes[j]);
-    }
-
-    modified |= BKE_pbvh_bmesh_update_topology(ss,
-                                               ss->pbvh,
-                                               PBVH_Subdivide,
-                                               center,
-                                               nullptr,
-                                               size,
-                                               false,
-                                               false,
-                                               -1,
-                                               false,
-                                               mask_cb,
-                                               mask_cb_data,
-                                               max_dyntopo_steps_subd,
-                                               enable_surface_relax,
-                                               false);
-    for (int j = 0; j < nodes.size(); j++) {
-      BKE_pbvh_node_mark_topology_update(nodes[j]);
-    }
-
-    if (i++ > max_steps) {
-      break;
-    }
+                                              !enable_surface_relax,
+                                              false,
+                                              true,
+                                              10);
   }
 
-  /* one more time, but with cleanup valence 3/4 verts enabled */
-  for (i = 0; i < 2; i++) {
-    for (int j = 0; j < nodes.size(); j++) {
-      BKE_pbvh_node_mark_topology_update(nodes[j]);
-    }
-
-    BKE_pbvh_bmesh_update_topology(ss,
-                                   ss->pbvh,
-                                   PBVH_Cleanup,
-                                   center,
-                                   nullptr,
-                                   size,
-                                   false,
-                                   false,
-                                   -1,
-                                   false,
-                                   mask_cb,
-                                   mask_cb_data,
-                                   max_dyntopo_steps_coll,
-                                   enable_surface_relax,
-                                   false);
-  }
+  time = (PIL_check_seconds_timer() - time) * 1000.0;
+  printf("    Time: %.3fms\n", float(time));
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
-  SCULPT_undo_push_end(ob);
-
-  /* Force rebuild of PBVH for better BB placement. */
-  SCULPT_pbvh_clear(ob);
-  /* Redraw. */
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
   return OPERATOR_FINISHED;
+}
+
+static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+  SCULPT_undo_push_begin(ob, op);
+  SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
+
+  int ret = sculpt_detail_flood_fill_run(
+      CTX_data_active_object(C), sd, BKE_paint_brush(&sd->paint), op);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  SCULPT_undo_push_end(ob);
+
+  return ret;
+}
+
+struct FloodFillJob {
+  wmJob *job;
+  bool *stop;
+  bool *do_update;
+  float *progress;
+  Object *ob;
+  Depsgraph *depsgraph;
+  Scene *scene;
+  wmOperator *op;
+  bContext *C;
+  Brush *brush;
+  Sculpt *sd;
+};
+FloodFillJob flood_fill_job;
+
+ATTR_NO_OPT static void start_fill_job(void *custom_data,
+                                       bool *stop,
+                                       bool *do_update,
+                                       float *progress)
+{
+  flood_fill_job.stop = stop;
+  flood_fill_job.do_update = do_update;
+  flood_fill_job.progress = progress;
+
+  printf("Start fill job.\n");
+
+  *progress = 0.0f;
+
+  while (true) {
+    if (*stop) {
+      break;
+    }
+
+    WM_job_main_thread_lock_acquire(flood_fill_job.job);
+
+    if (sculpt_detail_flood_fill_run(
+            flood_fill_job.ob, flood_fill_job.sd, flood_fill_job.brush, flood_fill_job.op) ==
+        OPERATOR_CANCELLED)
+    {
+      WM_job_main_thread_lock_release(flood_fill_job.job);
+      break;
+    }
+
+    WM_job_main_thread_lock_release(flood_fill_job.job);
+
+    *do_update = true;
+
+    PIL_sleep_ms(50);
+  }
+
+  printf("\nJob finished\n\n");
+}
+
+static void init_fill_job(void *owner)
+{
+  printf("Init fill job\n");
+}
+
+static void update_fill_job(void *owner)
+{
+  printf("Update fill job\n");
+}
+
+static void end_fill_job(void *owner)
+{
+  SCULPT_undo_push_end(flood_fill_job.ob);
+
+  printf("End fill job\n");
+}
+
+static void flood_fill_free(void *customdata)
+{
+  printf("%s: detail flood fill free.\n", __func__);
+}
+
+int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  ED_workspace_status_text(C, TIP_(""));
+
+  if (RNA_boolean_get(op->ptr, "interactive")) {
+    Object *ob = CTX_data_active_object(C);
+
+    BKE_sculpt_update_object_for_edit(
+        CTX_data_ensure_evaluated_depsgraph(C), ob, true, false, false);
+
+    SCULPT_undo_push_begin(ob, op);
+    SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
+
+    flood_fill_job.sd = CTX_data_tool_settings(C)->sculpt;
+    flood_fill_job.brush = BKE_paint_brush(&flood_fill_job.sd->paint);
+    flood_fill_job.ob = CTX_data_active_object(C);
+    flood_fill_job.op = op;
+    flood_fill_job.C = C;
+    flood_fill_job.scene = CTX_data_scene(C);
+    flood_fill_job.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+    flood_fill_job.job = WM_jobs_get(CTX_wm_manager(C),
+                                     CTX_wm_window(C),
+                                     static_cast<void *>(&flood_fill_job),
+                                     "Dyntopo Flood Fill",
+                                     WM_JOB_PROGRESS,
+                                     WM_JOB_TYPE_ANY);
+
+    WM_jobs_callbacks(
+        flood_fill_job.job, start_fill_job, init_fill_job, update_fill_job, end_fill_job);
+    WM_jobs_timer(flood_fill_job.job, 0.5, NC_OBJECT | ND_DRAW, NC_OBJECT | ND_DRAW);
+    WM_jobs_customdata_set(flood_fill_job.job, &flood_fill_job, flood_fill_free);
+
+    WM_jobs_start(CTX_wm_manager(C), flood_fill_job.job);
+
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+  else {
+    sculpt_detail_flood_fill_exec(C, op);
+    return OPERATOR_FINISHED;
+  }
+}
+
+static int sculpt_sample_flood_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  switch (event->type) {
+    case EVT_ESCKEY:
+    case EVT_RETKEY:
+      WM_jobs_kill(CTX_wm_manager(C), &flood_fill_job, start_fill_job);
+      return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
@@ -222,8 +334,14 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sculpt_detail_flood_fill_exec;
   ot->poll = sculpt_and_constant_or_manual_detail_poll;
+  ot->invoke = sculpt_detail_flood_fill_invoke;
+  ot->modal = sculpt_sample_flood_fill_modal;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(
+      ot->srna, "fully_converge", false, "Full Convergence", "Run until fully converged.");
+  RNA_def_boolean(ot->srna, "interactive", true, "Interactive", "Interactive mode");
 }
 
 /** \} */
@@ -584,10 +702,10 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
                                                mat4_to_scale(cd->active_object->object_to_world));
 
   /* The constant detail represents the maximum edge length allowed before subdividing it. If the
-   * triangle grid preview is created with this value it will represent an ideal mesh density where
-   * all edges have the exact maximum length, which never happens in practice. As the minimum edge
-   * length for dyntopo is 0.4 * max_edge_length, this adjust the detail size to the average
-   * between max and min edge length so the preview is more accurate. */
+   * triangle grid preview is created with this value it will represent an ideal mesh density
+   * where all edges have the exact maximum length, which never happens in practice. As the
+   * minimum edge length for dyntopo is 0.4 * max_edge_length, this adjust the detail size to the
+   * average between max and min edge length so the preview is more accurate. */
   object_space_constant_detail *= 1.0f - cd->detail_range * 0.5f;
 
   const float total_len = len_v3v3(cd->preview_tri[0], cd->preview_tri[1]);
@@ -836,8 +954,8 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   SculptSession *ss = active_object->sculpt;
   cd->radius = ss->cursor_radius;
 
-  /* Generates the matrix to position the gizmo in the surface of the mesh using the same location
-   * and orientation as the brush cursor. */
+  /* Generates the matrix to position the gizmo in the surface of the mesh using the same
+   * location and orientation as the brush cursor. */
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];

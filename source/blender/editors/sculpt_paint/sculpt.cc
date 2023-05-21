@@ -3996,6 +3996,8 @@ static void sculpt_topology_update(Sculpt *sd,
     // mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
+  int edge_multiply = 1 + int(ss->cached_dyntopo.quality * 10.0f);
+
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;
   sdata.radius_squared = square_f(ss->cache->radius * radius_scale * 1.25f);
@@ -4042,7 +4044,8 @@ static void sculpt_topology_update(Sculpt *sd,
                                        mask_cb,
                                        mask_cb_data,
                                        false,
-                                       brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK);
+                                       brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK,
+                                       edge_multiply);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 

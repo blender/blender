@@ -4290,6 +4290,20 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!DNA_struct_elem_find(fd->filesdna, "DynTopoSettings", "float", "quality")) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt) {
+        continue;
+      }
+
+      scene->toolsettings->sculpt->dyntopo.quality = 1.0f;
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->dyntopo.quality = 1.0f;
+    }
+  }
+
   if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "DynTopoSettings", "dyntopo")) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings || !scene->toolsettings->sculpt) {
@@ -4375,6 +4389,14 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
 
         brush->dyntopo = dummy.dyntopo;
+      }
+    }
+  }
+
+  if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_DRAW_FACE_SETS)) {
+        brush->dyntopo.flag |= DYNTOPO_DISABLED;
       }
     }
   }

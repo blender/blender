@@ -949,6 +949,10 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         if UnifiedPaintPanel.get_dyntopo_prop(context, brush, "mode") in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
+            col.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "interactive")
+            row = col.row()
+            row.enabled = not WindowManager.operator_properties_last("sculpt.detail_flood_fill").interactive
+            row.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "fully_converge")
 
         UnifiedPaintPanel.prop_unified_dyntopo(
             sub,
@@ -969,6 +973,13 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             context,
             brush,
             "repeat",
+            expand=True
+        )
+        UnifiedPaintPanel.prop_unified_dyntopo(
+            sub,
+            context,
+            brush,
+            "quality",
             expand=True
         )
 

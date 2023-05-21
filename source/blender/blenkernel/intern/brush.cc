@@ -1918,6 +1918,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_GRAB:
       br->alpha = 0.4f;
@@ -1973,6 +1974,9 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SIMPLIFY:
       br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      break;
+    case SCULPT_TOOL_MASK:
+      disable_dyntopo = true;
       break;
     default:
       break;

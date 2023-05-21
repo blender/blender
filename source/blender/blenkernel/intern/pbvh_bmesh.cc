@@ -2660,7 +2660,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(SculptSession *ss,
                                           DyntopoMaskCB mask_cb,
                                           void *mask_cb_data,
                                           bool disable_surface_relax,
-                                          bool is_snake_hook)
+                                          bool is_snake_hook,
+                                          int edge_limit_multiply)
 {
   bool modified = false;
   Vector<PBVHNode *> nodes;
@@ -2698,7 +2699,9 @@ bool BKE_pbvh_bmesh_update_topology_nodes(SculptSession *ss,
                                             mask_cb_data,
                                             4096,  // is_snake_hook ? 4096 : 4096,
                                             disable_surface_relax,
-                                            is_snake_hook);
+                                            is_snake_hook,
+                                            false,
+                                            1);
 
   return modified;
 }
@@ -4045,9 +4048,9 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
 
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
+  pbvh->bm_detail_range = max_ff(detail_range, 0.1f);
   pbvh->bm_max_edge_len = detail_size;
-  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * detail_range;
-  pbvh->bm_detail_range = detail_range;
+  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * pbvh->bm_detail_range;
 }
 
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node)

@@ -581,7 +581,9 @@ bool BKE_pbvh_bmesh_update_topology(
     void *mask_cb_data,
     int custom_max_steps,  // if 0, will use defaul hueristics for max steps
     bool disable_surface_relax,
-    bool is_snake_hook);
+    bool is_snake_hook,
+    bool no_radius_test,
+    int edge_limit_multiply);
 
 bool BKE_pbvh_bmesh_update_topology_nodes(struct SculptSession *ss,
                                           PBVH *pbvh,
@@ -599,7 +601,8 @@ bool BKE_pbvh_bmesh_update_topology_nodes(struct SculptSession *ss,
                                           DyntopoMaskCB mask_cb,
                                           void *mask_cb_data,
                                           bool disable_surface_relax,
-                                          bool is_snake_hook);
+                                          bool is_snake_hook,
+                                          int edge_limit_multiply);
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);

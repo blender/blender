@@ -80,7 +80,8 @@ static void edge_queue_create_local(struct EdgeQueueContext *eq_ctx,
                                     float radius,
                                     const bool use_frontface,
                                     const bool use_projected,
-                                    PBVHTopologyUpdateMode local_mode);
+                                    PBVHTopologyUpdateMode local_mode,
+                                    bool no_radius_test);
 
 ATTR_NO_OPT static void surface_smooth_v_safe(
     SculptSession *ss, PBVH *pbvh, BMVert *v, float fac, bool reproject_cdata)
@@ -133,6 +134,8 @@ ATTR_NO_OPT static void surface_smooth_v_safe(
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
     PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(v2)};
 
+    float w = len_squared_v3v3(e->v1->co, e->v2->co);
+
     /* Note: we can't validate the boundary flags from with a thread
      * so they may not be up to date.
      */
@@ -148,7 +151,7 @@ ATTR_NO_OPT static void surface_smooth_v_safe(
     float d = dot_v3v3(tan, v->no);
 
     madd_v3_v3fl(tan, v->no, -d * 0.95f);
-    add_v3_v3(co, tan);
+    madd_v3_v3fl(co, tan, w);
 
     if (!stroke_id_test_no_update(ss, vertex2, STROKEID_USER_ORIGINAL)) {
       sub_v3_v3v3(
@@ -160,9 +163,9 @@ ATTR_NO_OPT static void surface_smooth_v_safe(
 
     d = dot_v3v3(tan, origno1);
     madd_v3_v3fl(tan, origno1, -d * 0.95f);
-    add_v3_v3(origco, tan);
+    madd_v3_v3fl(origco, tan, w);
 
-    tot += 1.0f;
+    tot += w;
 
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
@@ -405,7 +408,9 @@ static float dist_to_tri_sphere_simple(
   return dis;
 }
 
-static bool edge_queue_tri_in_sphere(const EdgeQueueContext *q, BMVert *vs[3], float no[3])
+ATTR_NO_OPT static bool edge_queue_tri_in_sphere(const EdgeQueueContext *q,
+                                                 BMVert *vs[3],
+                                                 float no[3])
 {
 #if 0
   float cent[3];
@@ -617,9 +622,9 @@ BLI_INLINE int dyntopo_thread_rand(int seed)
   return (seed * multiplier + addend) & mask;
 }
 
-static void unified_edge_queue_task_cb(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict /*tls*/)
+ATTR_NO_OPT static void unified_edge_queue_task_cb(void *__restrict userdata,
+                                                   const int n,
+                                                   const TaskParallelTLS *__restrict /*tls*/)
 {
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVH *pbvh = tdata->pbvh;
@@ -1142,14 +1147,31 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
   return false;
 }
 
+static bool edge_queue_tri_null_test(const EdgeQueueContext * /*eq_ctx*/,
+                                     BMVert * /*v_tri*/[3],
+                                     float /*no*/[3])
+{
+  return true;
+}
+
+static bool edge_queue_vert_null_test(const EdgeQueueContext * /*eq_ctx*/, BMVert * /*v*/)
+{
+  return true;
+}
+
 static void edge_queue_init(EdgeQueueContext *eq_ctx,
                             bool use_projected,
                             bool use_frontface,
                             const float center[3],
                             const float view_normal[3],
-                            const float radius)
+                            const float radius,
+                            bool no_radius_test)
 {
-  if (use_projected) {
+  if (no_radius_test) {
+    eq_ctx->edge_queue_tri_in_range = edge_queue_tri_null_test;
+    eq_ctx->edge_queue_vert_in_range = edge_queue_vert_null_test;
+  }
+  else if (use_projected) {
     eq_ctx->edge_queue_tri_in_range = edge_queue_tri_in_circle;
     eq_ctx->edge_queue_vert_in_range = edge_queue_vert_in_circle;
     project_plane_normalized_v3_v3v3(eq_ctx->center_proj, center, view_normal);
@@ -1172,7 +1194,7 @@ static void edge_queue_init(EdgeQueueContext *eq_ctx,
 #endif
 }
 
-static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH * /*pbvh*/, BMEdge *e)
+ATTR_NO_OPT static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH * /*pbvh*/, BMEdge *e)
 {
   float len = len_squared_v3v3(e->v1->co, e->v2->co);
   float min = eq_ctx->limit_len_min_sqr;
@@ -1207,11 +1229,19 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
                                       float radius,
                                       const bool use_frontface,
                                       const bool use_projected,
-                                      PBVHTopologyUpdateMode local_mode)
+                                      PBVHTopologyUpdateMode local_mode,
+                                      bool no_radius_test)
 {
   if (local_mode) {
-    edge_queue_create_local(
-        eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected, local_mode);
+    edge_queue_create_local(eq_ctx,
+                            pbvh,
+                            center,
+                            view_normal,
+                            radius,
+                            use_frontface,
+                            use_projected,
+                            local_mode,
+                            no_radius_test);
     return;
   }
 
@@ -1220,7 +1250,8 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   eq_ctx->limit_len_min = pbvh->bm_min_edge_len;
   eq_ctx->limit_len_max = pbvh->bm_max_edge_len;
 
-  edge_queue_init(eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius);
+  edge_queue_init(
+      eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius, no_radius_test);
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
   pbvh_bmesh_edge_tag_verify(pbvh);
@@ -1395,13 +1426,15 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     float radius,
                                     const bool use_frontface,
                                     const bool use_projected,
-                                    PBVHTopologyUpdateMode local_mode)
+                                    PBVHTopologyUpdateMode local_mode,
+                                    bool no_radius_test)
 {
   eq_ctx->limit_len_min = pbvh->bm_min_edge_len;
   eq_ctx->limit_len_max = pbvh->bm_max_edge_len;
   eq_ctx->local_mode = true;
 
-  edge_queue_init(eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius);
+  edge_queue_init(
+      eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius, no_radius_test);
 
   Vector<EdgeQueueThreadData> tdata;
 
@@ -1630,13 +1663,13 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   }
 }
 
-static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
-                                PBVH *pbvh,
-                                const float center[3],
-                                const float /*view_normal*/[3],
-                                float radius,
-                                const bool /*use_frontface*/,
-                                const bool /*use_projected*/)
+ATTR_NO_OPT static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
+                                            PBVH *pbvh,
+                                            const float center[3],
+                                            const float /*view_normal*/[3],
+                                            float radius,
+                                            const bool /*use_frontface*/,
+                                            const bool /*use_projected*/)
 {
   bool modified = false;
 
@@ -1703,6 +1736,22 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx,
 
     bool bad = false;
     int ls_i = 0;
+
+    /* Don't dissolve verts if attached to long edges, to avoid
+     * preventing subdivision convergence.
+     */
+    BMEdge *e = v->e;
+    do {
+      float len = calc_weighted_length(ectx, e->v1, e->v2, 1);
+      if (sqrtf(len) > ectx->limit_len_max * 1.2f) {
+        bad = true;
+        break;
+      }
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+    if (bad) {
+      continue;
+    }
 
     for (int j = 0; j < val; j++) {
       ls[ls_i++] = l->v == v ? l->next : l;
@@ -2009,7 +2058,9 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
                                                void *mask_cb_data,
                                                int custom_max_steps,
                                                bool disable_surface_relax,
-                                               bool /*is_snake_hook*/)
+                                               bool /*is_snake_hook*/,
+                                               bool no_radius_test,
+                                               int edge_limit_multiply)
 {
   /* Push a subentry. */
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
@@ -2123,10 +2174,12 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
                               radius,
                               use_frontface,
                               use_projected,
-                              mode & (PBVH_LocalSubdivide | PBVH_LocalCollapse));
+                              mode & (PBVH_LocalSubdivide | PBVH_LocalCollapse),
+                              no_radius_test);
   }
   else {
-    edge_queue_init(&eq_ctx, use_projected, use_frontface, center, eq_ctx.view_normal, radius);
+    edge_queue_init(
+        &eq_ctx, use_projected, use_frontface, center, eq_ctx.view_normal, radius, no_radius_test);
   }
 
 #ifdef SKINNY_EDGE_FIX
@@ -2181,7 +2234,11 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
     steps[0] = DYNTOPO_MAX_ITER;
   }
 
-  int max_steps = max_ii(custom_max_steps, DYNTOPO_MAX_ITER) << (totop - 1);
+  steps[0] *= edge_limit_multiply;
+  steps[1] *= edge_limit_multiply;
+
+  int max_steps = (max_ii(custom_max_steps, DYNTOPO_MAX_ITER) * edge_limit_multiply)
+                  << (totop - 1);
   int max_subd = max_steps >> (totop - 1);
 
   int edges_size = steps[0];
@@ -2204,7 +2261,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
     BMEdge *e = nullptr;
 
     if (count >= steps[curop]) {
-      BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+      // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 
       if (ops[curop] == PBVH_Subdivide && count_subd < max_subd) {
         modified = true;
@@ -2338,7 +2395,7 @@ extern "C" bool BKE_pbvh_bmesh_update_topology(SculptSession *ss,
   if (etot > 0) {
     modified = true;
     BLI_smallhash_clear(&subd_edges, 0);
-    BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
+    // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
     pbvh_split_edges(&eq_ctx, pbvh, pbvh->header.bm, edges, etot, false);
     VALIDATE_LOG(pbvh->bm_log);
     etot = 0;
@@ -3216,8 +3273,8 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
   }
 
   ds->pbvh->bm_max_edge_len = params->edge_size;
-  ds->pbvh->bm_min_edge_len = params->edge_size * params->detail_range;
-  ds->pbvh->bm_detail_range = params->detail_range;
+  ds->pbvh->bm_detail_range = max_ff(params->detail_range, 0.1f);
+  ds->pbvh->bm_min_edge_len = params->edge_size * ds->pbvh->bm_detail_range;
 
   /* subdivide once */
   if (mode & PBVH_Subdivide) {
@@ -3235,7 +3292,9 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                                    nullptr,
                                    ds->pbvh->header.bm->totedge,
                                    false,
-                                   false);
+                                   false,
+                                   false,
+                                   1);
   }
 
   for (int i = 0; i < steps; i++) {
@@ -3261,7 +3320,9 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                                    nullptr,
                                    ds->pbvh->header.bm->totedge * 5,
                                    false,
-                                   false);
+                                   false,
+                                   false,
+                                   1);
 
     BKE_pbvh_update_normals(ds->pbvh, nullptr);
 

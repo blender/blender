@@ -30,12 +30,11 @@
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_BOUNDARY, \
-        SCULPT_TOOL_POSE, \
-        SCULPT_TOOL_DRAW_FACE_SETS, \
+        SCULPT_TOOL_POSE /*SCULPT_TOOL_DRAW_FACE_SETS,*/ \
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
-        SCULPT_TOOL_MASK) == 0)
+        /*SCULPT_TOOL_MASK*/) == 0)
 
 #define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support topology rake. */ \

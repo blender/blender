@@ -97,7 +97,7 @@ struct _SculptNeighborRef {
   PBVHEdgeRef edge;
 };
 
-#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 12
+#define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 16
 
 struct SculptVertexNeighborIter {
   /* Storage */

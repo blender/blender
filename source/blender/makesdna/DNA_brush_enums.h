@@ -642,10 +642,11 @@ typedef enum eDynTopoInheritFlags {
   DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16,
   DYNTOPO_INHERIT_RADIUS_SCALE = 1 << 17,
   DYNTOPO_INHERIT_REPEAT = 1 << 18,
-  DYNTOPO_INHERIT_MAX_FLAGS = 19,
+  DYNTOPO_INHERIT_QUALITY = 1 << 19,
+  DYNTOPO_INHERIT_MAX_FLAGS = 20,
   // make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
 } eDynTopoInheritFlags;
-ENUM_OPERATORS(eDynTopoInheritFlags, DYNTOPO_INHERIT_REPEAT);
+ENUM_OPERATORS(eDynTopoInheritFlags, DYNTOPO_INHERIT_QUALITY);
 
 // represents all possible inherit flags
 #define DYNTOPO_INHERIT_BITMASK ((1 << DYNTOPO_INHERIT_MAX_FLAGS) - 1)

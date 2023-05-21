@@ -641,6 +641,7 @@ void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *bru
                                                                               ds1->radius_scale;
   ds_final->spacing = ds_final->inherit & DYNTOPO_INHERIT_SPACING ? ds2->spacing : ds1->spacing;
   ds_final->repeat = ds_final->inherit & DYNTOPO_INHERIT_REPEAT ? ds2->repeat : ds1->repeat;
+  ds_final->quality = ds_final->inherit & DYNTOPO_INHERIT_QUALITY ? ds2->quality : ds1->quality;
 }
 
 bool SCULPT_face_is_hidden(const SculptSession *ss, PBVHFaceRef face)
