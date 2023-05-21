@@ -519,7 +519,7 @@ static void view3d_ob_drop_draw_activate(struct wmDropBox *drop, wmDrag *drag)
     return;
   }
 
-  state = static_cast<V3DSnapCursorState *>(ED_view3d_cursor_snap_active());
+  state = static_cast<V3DSnapCursorState *>(ED_view3d_cursor_snap_state_create());
   drop->draw_data = state;
   state->draw_plane = true;
 
@@ -547,7 +547,7 @@ static void view3d_ob_drop_draw_deactivate(struct wmDropBox *drop, wmDrag * /*dr
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
-    ED_view3d_cursor_snap_deactive(state);
+    ED_view3d_cursor_snap_state_free(state);
     drop->draw_data = nullptr;
   }
 }
@@ -781,7 +781,7 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
   /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
   BLI_assert(drag->type != WM_DRAG_ASSET);
 
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   float obmat_final[4][4];
 
   view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
@@ -2086,14 +2086,14 @@ static void view3d_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, S
 {
   View3D *v3d = (View3D *)sl;
 
-  BLO_read_id_address(reader, parent_id->lib, &v3d->camera);
-  BLO_read_id_address(reader, parent_id->lib, &v3d->ob_center);
+  BLO_read_id_address(reader, parent_id, &v3d->camera);
+  BLO_read_id_address(reader, parent_id, &v3d->ob_center);
 
   if (v3d->localvd) {
-    BLO_read_id_address(reader, parent_id->lib, &v3d->localvd->camera);
+    BLO_read_id_address(reader, parent_id, &v3d->localvd->camera);
   }
 
-  BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &v3d->viewer_path);
+  BKE_viewer_path_blend_read_lib(reader, parent_id, &v3d->viewer_path);
 }
 
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)

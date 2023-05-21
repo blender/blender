@@ -1,5 +1,5 @@
 /**
- * 2D Quadratic Bezier thick line drawing
+ * 2D Cubic Bezier thick line drawing
  */
 
 #define MID_VERTEX 65
@@ -84,8 +84,9 @@ void main(void)
 
   vec2 tangent = ((P1 - P0) * one_minus_t2_3 + (P2 - P1) * 6.0 * (t - t2) + (P3 - P2) * t2_3);
 
-  /* tangent space at t */
-  tangent = normalize(tangent);
+  /* Tangent space at t. If the inner and outer control points overlap, the tangent is invalid.
+   * Use the vector between the sockets instead. */
+  tangent = is_zero(tangent) ? normalize(P3 - P0) : normalize(tangent);
   vec2 normal = tangent.yx * vec2(-1.0, 1.0);
 
   /* Position vertex on the curve tangent space */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -5583,10 +5583,6 @@ msgid "Animate Path"
 msgstr "पथ अनुप्राणित करें"
 
 
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "ब्लेंडर २.६ पाइथन प्रतिबंधी का अभी तक समर्थन नहीं करता।"
-
-
 msgid "Layers:"
 msgstr "परत:"
 
@@ -6324,10 +6320,6 @@ msgstr " प्रतिपादन ऊंचाई DV NTSC के लिए �
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr " प्रतिपादन ऊंचाई ५७६ पिक्सल DV-पाल लिए होना चाहिए!"
-
-
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG केवल ४८ khz समर्थन करता है / स्टीरियो श्रव्य डीवी के लिए!"
 
 
 msgid "Error initializing video stream"

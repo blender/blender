@@ -68,11 +68,11 @@ char *BLI_strdupcat(const char *__restrict str1,
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param maxncpy: Maximum number of characters to copy (generally
+ * \param dst_maxncpy: Maximum number of characters to copy (generally
  * the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -82,13 +82,13 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t maxnc
  * \param dst: Destination for copy
  * \param src: Source string to copy
  * \param pad: the char to use for padding
- * \param maxncpy: Maximum number of characters to copy (generally the size of dst)
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst)
  * \retval Returns dst
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              const char *__restrict src,
                              char pad,
-                             size_t maxncpy) ATTR_NONNULL(1, 2);
+                             size_t dst_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
  * Like strncpy but ensures dst is always
@@ -99,18 +99,18 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param maxncpy: Maximum number of characters to copy (generally
+ * \param dst_maxncpy: Maximum number of characters to copy (generally
  * the size of dst)
  * \retval The number of bytes copied (The only difference from BLI_strncpy).
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
-                        size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
+                        size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 
-char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t maxncpy)
+char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -142,7 +142,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
  * \param str: is the entire string to chop.
  * \param prefix: is the part of the string to step over.
  * \param result: The buffer to fill.
- * \param result_maxlen: The maximum size of the buffer (including nil terminator).
+ * \param result_maxncpy: The maximum size of the buffer (including nil terminator).
  * \return True if the prefix was found and the entire quoted string was copied into result.
  *
  * Assume that the strings returned must be freed afterwards,
@@ -151,7 +151,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str,
 bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
-                           size_t result_maxlen);
+                           size_t result_maxncpy);
 /**
  * string with all instances of substr_old replaced with substr_new,
  * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
@@ -192,28 +192,39 @@ bool BLI_str_replace_table_exact(char *string,
                                  int replace_table_len);
 
 /**
+ * Write `dst` into the range between `src_beg` & `src_end`,
+ * resize within `string_maxncpy` limits, ensure null terminated.
+ *
+ * \return the length of `string`.
+ */
+size_t BLI_str_replace_range(
+    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
+
+/**
  * Portable replacement for #snprintf
  */
-size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
+size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 /**
  * A version of #BLI_snprintf that returns `strlen(dst)`
  */
-size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
-    ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
+size_t BLI_snprintf_rlen(char *__restrict dst,
+                         size_t dst_maxncpy,
+                         const char *__restrict format,
+                         ...) ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 
 /**
  * Portable replacement for `vsnprintf`.
  */
-size_t BLI_vsnprintf(char *__restrict buffer,
-                     size_t maxncpy,
+size_t BLI_vsnprintf(char *__restrict dst,
+                     size_t dst_maxncpy,
                      const char *__restrict format,
                      va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 /**
- * A version of #BLI_vsnprintf that returns `strlen(buffer)`
+ * A version of #BLI_vsnprintf that returns `strlen(dst)`
  */
-size_t BLI_vsnprintf_rlen(char *__restrict buffer,
-                          size_t maxncpy,
+size_t BLI_vsnprintf_rlen(char *__restrict dst,
+                          size_t dst_maxncpy,
                           const char *__restrict format,
                           va_list arg) ATTR_PRINTF_FORMAT(3, 0);
 
@@ -522,14 +533,14 @@ bool BLI_string_all_words_matched(const char *name,
  * Find the ranges needed to split \a str into its individual words.
  *
  * \param str: The string to search for words.
- * \param len: Size of the string to search.
+ * \param str_maxlen: Size of the string to search (ignored when larger than `strlen(str)`).
  * \param delim: Character to use as a delimiter.
  * \param r_words: Info about the words found. Set to [index, len] pairs.
  * \param words_max: Max number of words to find
  * \return The number of words found in \a str
  */
 int BLI_string_find_split_words(const char *str,
-                                size_t len,
+                                size_t str_maxlen,
                                 char delim,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 4);
@@ -545,6 +556,8 @@ int BLI_string_find_split_words(const char *str,
 #define SNPRINTF(dst, format, ...) BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
 #define SNPRINTF_RLEN(dst, format, ...) \
   BLI_snprintf_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define VSNPRINTF(dst, format, args) BLI_vsnprintf(dst, ARRAY_SIZE(dst), format, args)
+#define VSNPRINTF_RLEN(dst, format, args) BLI_vsnprintf_rlen(dst, ARRAY_SIZE(dst), format, args)
 #define STR_CONCAT(dst, len, suffix) \
   len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
 #define STR_CONCATF(dst, len, format, ...) \
@@ -603,7 +616,7 @@ int BLI_string_find_split_words(const char *str,
 /* -------------------------------------------------------------------- */
 /** \name String Debugging
  * \{ */
-#ifdef DEBUG_STRSIZE
+#ifdef WITH_STRSIZE_DEBUG
 #  define BLI_string_debug_size(str, str_maxncpy) memset(str, 0xff, sizeof(*(str)) * str_maxncpy)
 /**
  * Fill `str` with a non-nil value after the trailing nil character,
@@ -611,9 +624,13 @@ int BLI_string_find_split_words(const char *str,
  */
 void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
-#  define BLI_string_debug_size(str, str_maxncpy) (void)(0 ? ((str) + (str_maxncpy)) : 0)
+#  define BLI_string_debug_size(str, str_maxncpy) \
+    if (0) { \
+      (void)str, (void)str_maxncpy; \
+    } \
+    ((void)0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
-#endif /* !DEBUG_STRSIZE */
+#endif /* !WITH_STRSIZE_DEBUG */
 
 /** \} */
 #ifdef __cplusplus

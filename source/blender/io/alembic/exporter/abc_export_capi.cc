@@ -207,7 +207,7 @@ bool ABC_export(Scene *scene,
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
   job->export_ok = false;
-  BLI_strncpy(job->filename, filepath, sizeof(job->filename));
+  STRNCPY(job->filename, filepath);
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;

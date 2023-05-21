@@ -257,68 +257,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     mesh->poly_offset_indices = nullptr;
   }
   else {
-    Set<std::string> names_to_skip;
-    if (!BLO_write_is_undo(writer)) {
-      /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({"position",
-                                      ".edge_verts",
-                                      ".corner_vert",
-                                      ".corner_edge",
-                                      ".hide_vert",
-                                      ".hide_edge",
-                                      ".hide_poly",
-                                      ".uv_seam",
-                                      ".select_vert",
-                                      ".select_edge",
-                                      ".select_poly",
-                                      "material_index",
-                                      "sharp_face",
-                                      "sharp_edge"});
-
-      mesh->mvert = BKE_mesh_legacy_convert_positions_to_verts(
-          mesh, temp_arrays_for_legacy_format, vert_layers);
-      mesh->mloop = BKE_mesh_legacy_convert_corners_to_loops(
-          mesh, temp_arrays_for_legacy_format, loop_layers);
-      mesh->medge = BKE_mesh_legacy_convert_edges_to_medge(
-          mesh, temp_arrays_for_legacy_format, edge_layers);
-
-      MutableSpan<MPoly> legacy_polys = BKE_mesh_legacy_convert_offsets_to_polys(
-          mesh, temp_arrays_for_legacy_format, poly_layers);
-
-      BKE_mesh_legacy_convert_hide_layers_to_flags(mesh, legacy_polys);
-      BKE_mesh_legacy_convert_selection_layers_to_flags(mesh, legacy_polys);
-      BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh, legacy_polys);
-      BKE_mesh_legacy_sharp_faces_to_flags(mesh, legacy_polys);
-      BKE_mesh_legacy_bevel_weight_from_layers(mesh);
-      BKE_mesh_legacy_edge_crease_from_layers(mesh);
-      BKE_mesh_legacy_sharp_edges_to_flags(mesh);
-      BKE_mesh_legacy_uv_seam_to_flags(mesh);
-      BKE_mesh_legacy_attribute_strings_to_flags(mesh);
-      mesh->active_color_attribute = nullptr;
-      mesh->default_color_attribute = nullptr;
-      BKE_mesh_legacy_convert_loose_edges_to_flag(mesh);
-      mesh->poly_offset_indices = nullptr;
-
-      /* Set deprecated mesh data pointers for forward compatibility. */
-      mesh->mpoly = legacy_polys.data();
-      mesh->dvert = const_cast<MDeformVert *>(mesh->deform_verts().data());
-    }
-
-    CustomData_blend_write_prepare(mesh->vdata, vert_layers, names_to_skip);
-    CustomData_blend_write_prepare(mesh->edata, edge_layers, names_to_skip);
-    CustomData_blend_write_prepare(mesh->ldata, loop_layers, names_to_skip);
-    CustomData_blend_write_prepare(mesh->pdata, poly_layers, names_to_skip);
-
-    if (!BLO_write_is_undo(writer)) {
-      /* #CustomData expects the layers to be sorted in increasing order based on type. */
-      std::stable_sort(
-          poly_layers.begin(),
-          poly_layers.end(),
-          [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
-
-      BKE_mesh_legacy_convert_uvs_to_struct(mesh, temp_arrays_for_legacy_format, loop_layers);
-      BKE_mesh_legacy_face_set_from_generic(poly_layers);
-    }
+    CustomData_blend_write_prepare(mesh->vdata, vert_layers, {});
+    CustomData_blend_write_prepare(mesh->edata, edge_layers, {});
+    CustomData_blend_write_prepare(mesh->ldata, loop_layers, {});
+    CustomData_blend_write_prepare(mesh->pdata, poly_layers, {});
   }
 
   mesh->runtime = nullptr;
@@ -420,16 +362,16 @@ static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
   /* this check added for python created meshes */
   if (me->mat) {
     for (int i = 0; i < me->totcol; i++) {
-      BLO_read_id_address(reader, me->id.lib, &me->mat[i]);
+      BLO_read_id_address(reader, id, &me->mat[i]);
     }
   }
   else {
     me->totcol = 0;
   }
 
-  BLO_read_id_address(reader, me->id.lib, &me->ipo);  // XXX: deprecated: old anim sys
-  BLO_read_id_address(reader, me->id.lib, &me->key);
-  BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
+  BLO_read_id_address(reader, id, &me->ipo);  // XXX: deprecated: old anim sys
+  BLO_read_id_address(reader, id, &me->key);
+  BLO_read_id_address(reader, id, &me->texcomesh);
 }
 
 static void mesh_read_expand(BlendExpander *expander, ID *id)
@@ -1020,22 +962,14 @@ int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
 {
-  if (!CustomData_get_layer_named(&mesh.vdata, CD_PROP_FLOAT3, "position")) {
-    CustomData_add_layer_named(
-        &mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
-  }
-  if (!CustomData_get_layer_named(&mesh.edata, CD_PROP_INT32_2D, ".edge_verts")) {
-    CustomData_add_layer_named(
-        &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
-  }
-  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_vert")) {
-    CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_vert");
-  }
-  if (!CustomData_get_layer_named(&mesh.ldata, CD_PROP_INT32, ".corner_edge")) {
-    CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh.totloop, ".corner_edge");
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  blender::bke::AttributeInitConstruct attribute_init;
+
+  /* Try to create attributes if they do not exist. */
+  attributes.add("position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, attribute_init);
+  attributes.add(".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, attribute_init);
+  attributes.add(".corner_vert", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
+  attributes.add(".corner_edge", ATTR_DOMAIN_CORNER, CD_PROP_INT32, attribute_init);
 }
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,

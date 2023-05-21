@@ -11,8 +11,8 @@ namespace blender::nodes {
 
 static void cmp_node_scene_time_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Seconds"));
-  b.add_output<decl::Float>(N_("Frame"));
+  b.add_output<decl::Float>("Seconds");
+  b.add_output<decl::Float>("Frame");
 }
 
 using namespace blender::realtime_compositor;

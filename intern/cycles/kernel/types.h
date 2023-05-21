@@ -1441,8 +1441,8 @@ typedef struct KernelLightTreeEmitter {
 
   MeshLight mesh_light;
 
-  /* Parent. */
-  int parent_index;
+  /* Bit trail from root node to leaf node containing emitter. */
+  int bit_trail;
 } KernelLightTreeEmitter;
 static_assert_align(KernelLightTreeEmitter, 16);
 

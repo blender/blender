@@ -390,7 +390,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     CustomData *ldata = &result->ldata;
     blender::short2 *clnors = static_cast<blender::short2 *>(
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, result->totloop));
-    MLoopNorSpaceArray lnors_spacearr = {nullptr};
+    blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
     /* The transform matrix of a normal must be
      * the transpose of inverse of transform matrix of the geometry... */
@@ -432,12 +432,14 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         }
         copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);
         mul_m4_v3(mtx_nor, loop_normals[mirrorj]);
-        BKE_lnor_space_custom_normal_to_data(
-            lnors_spacearr.lspacearr[mirrorj], loop_normals[mirrorj], clnors[mirrorj]);
+
+        const int space_index = lnors_spacearr.corner_space_indices[mirrorj];
+        blender::bke::mesh::lnor_space_custom_normal_to_data(&lnors_spacearr.spaces[space_index],
+                                                             loop_normals[mirrorj],
+                                                             loop_normals[mirrorj],
+                                                             clnors[mirrorj]);
       }
     }
-
-    BKE_lnor_spacearr_free(&lnors_spacearr);
   }
 
   /* handle vgroup stuff */

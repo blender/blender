@@ -354,7 +354,7 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
       invert_m4_m4(gpl->inverse, tmp_mat);
       gpl->parent = par;
       gpl->partype |= PARBONE;
-      BLI_strncpy(gpl->parsubstr, substr, sizeof(gpl->parsubstr));
+      STRNCPY(gpl->parsubstr, substr);
     }
     else {
       invert_m4_m4(gpl->inverse, par->object_to_world);
@@ -600,10 +600,10 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
   bGPDlayer *gpl = ptr->data;
 
   char oldname[128] = "";
-  BLI_strncpy(oldname, gpl->info, sizeof(oldname));
+  STRNCPY(oldname, gpl->info);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(gpl->info, value, sizeof(gpl->info));
+  STRNCPY_UTF8(gpl->info, value);
 
   BLI_uniquename(
       &gpd->layers, gpl, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
@@ -615,7 +615,7 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
   LISTBASE_FOREACH (bGPDlayer *, gpl_, &gpd->layers) {
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_->mask_layers) {
       if (STREQ(mask->name, oldname)) {
-        BLI_strncpy(mask->name, gpl->info, sizeof(mask->name));
+        STRNCPY(mask->name, gpl->info);
       }
     }
   }
@@ -626,13 +626,13 @@ static void rna_GPencilLayer_mask_info_set(PointerRNA *ptr, const char *value)
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
   bGPDlayer_Mask *mask = ptr->data;
   char oldname[128] = "";
-  BLI_strncpy(oldname, mask->name, sizeof(oldname));
+  STRNCPY(oldname, mask->name);
 
   /* Really is changing the layer name. */
   bGPDlayer *gpl = BKE_gpencil_layer_named_get(gpd, oldname);
   if (gpl) {
     /* copy the new name into the name slot */
-    BLI_strncpy_utf8(gpl->info, value, sizeof(gpl->info));
+    STRNCPY_UTF8(gpl->info, value);
 
     BLI_uniquename(
         &gpd->layers, gpl, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
@@ -644,7 +644,7 @@ static void rna_GPencilLayer_mask_info_set(PointerRNA *ptr, const char *value)
     LISTBASE_FOREACH (bGPDlayer *, gpl_, &gpd->layers) {
       LISTBASE_FOREACH (bGPDlayer_Mask *, mask_, &gpl_->mask_layers) {
         if (STREQ(mask_->name, oldname)) {
-          BLI_strncpy(mask_->name, gpl->info, sizeof(mask_->name));
+          STRNCPY(mask_->name, gpl->info);
         }
       }
     }
@@ -2163,7 +2163,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
   RNA_def_property_float_sdna(prop, NULL, "rotation");
   RNA_def_property_ui_text(prop, "Rotation", "Values for changes in rotation");
-  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, 0, "rna_GpencilLayerMatrix_update");
 
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);

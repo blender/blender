@@ -595,20 +595,16 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
   char status_str[UI_MAX_DRAW_STR];
   char msg_str[UI_MAX_DRAW_STR];
 
-  BLI_strncpy(msg_str, TIP_("GPencil Interpolation: "), UI_MAX_DRAW_STR);
+  STRNCPY(msg_str, TIP_("GPencil Interpolation: "));
 
   if (hasNumInput(&p->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
     outputNumInput(&p->num, str_ofs, &scene->unit);
-    BLI_snprintf(status_str, sizeof(status_str), "%s%s", msg_str, str_ofs);
+    SNPRINTF(status_str, "%s%s", msg_str, str_ofs);
   }
   else {
-    BLI_snprintf(status_str,
-                 sizeof(status_str),
-                 "%s%d %%",
-                 msg_str,
-                 (int)((p->init_factor + p->shift) * 100.0f));
+    SNPRINTF(status_str, "%s%d %%", msg_str, (int)((p->init_factor + p->shift) * 100.0f));
   }
 
   ED_area_status_text(p->area, status_str);

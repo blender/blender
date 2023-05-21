@@ -24,10 +24,17 @@ namespace blender::gpu {
 VKTexture::~VKTexture()
 {
   VK_ALLOCATION_CALLBACKS
+  if (is_allocated()) {
+    const VKDevice &device = VKBackend::get().device_get();
+    vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
+    vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
+  }
+}
 
-  const VKDevice &device = VKBackend::get().device_get();
-  vmaDestroyImage(device.mem_allocator_get(), vk_image_, allocation_);
-  vkDestroyImageView(device.device_get(), vk_image_view_, vk_allocation_callbacks);
+void VKTexture::init(VkImage vk_image, VkImageLayout layout)
+{
+  vk_image_ = vk_image;
+  current_layout_ = layout;
 }
 
 void VKTexture::generate_mipmap() {}
@@ -222,6 +229,16 @@ static VkImageUsageFlagBits to_vk_image_usage(const eGPUTextureUsage usage,
     result = static_cast<VkImageUsageFlagBits>(result | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
   }
 
+  /* Disable some usages based on the given format flag to support more devices. */
+  if (format_flag & GPU_FORMAT_SRGB) {
+    /* NVIDIA devices don't create SRGB textures when it storage bit is set. */
+    result = static_cast<VkImageUsageFlagBits>(result & ~VK_IMAGE_USAGE_STORAGE_BIT);
+  }
+  if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+    /* NVIDIA devices don't create depth textures when it storage bit is set. */
+    result = static_cast<VkImageUsageFlagBits>(result & ~VK_IMAGE_USAGE_STORAGE_BIT);
+  }
+
   return result;
 }
 
@@ -304,6 +321,24 @@ bool VKTexture::allocate()
   return result == VK_SUCCESS;
 }
 
+// TODO: move texture/image bindings to shader.
+void VKTexture::bind(int unit, VKSampler &sampler)
+{
+  if (!is_allocated()) {
+    allocate();
+  }
+  VKContext &context = *VKContext::get();
+  VKShader *shader = static_cast<VKShader *>(context.shader);
+  const VKShaderInterface &shader_interface = shader->interface_get();
+  const std::optional<VKDescriptorSet::Location> location =
+      shader_interface.descriptor_set_location(
+          shader::ShaderCreateInfo::Resource::BindType::SAMPLER, unit);
+  if (location) {
+    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+    descriptor_set.bind(*this, *location, sampler);
+  }
+}
+
 void VKTexture::image_bind(int binding)
 {
   if (!is_allocated()) {
@@ -312,9 +347,13 @@ void VKTexture::image_bind(int binding)
   VKContext &context = *VKContext::get();
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
-  const VKDescriptorSet::Location location = shader_interface.descriptor_set_location(
-      shader::ShaderCreateInfo::Resource::BindType::IMAGE, binding);
-  shader->pipeline_get().descriptor_set_get().image_bind(*this, location);
+  const std::optional<VKDescriptorSet::Location> location =
+      shader_interface.descriptor_set_location(shader::ShaderCreateInfo::Resource::BindType::IMAGE,
+                                               binding);
+  if (location) {
+    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
+    descriptor_set.image_bind(*this, *location);
+  }
 }
 
 /* -------------------------------------------------------------------- */

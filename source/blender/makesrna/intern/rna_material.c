@@ -267,7 +267,7 @@ static void rna_TexPaintSlot_uv_layer_get(PointerRNA *ptr, char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->uvname != NULL) {
-    BLI_strncpy_utf8(value, data->uvname, 64);
+    strcpy(value, data->uvname);
   }
   else {
     value[0] = '\0';
@@ -667,6 +667,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "stroke_style");
   RNA_def_property_enum_items(prop, stroke_style_items);
   RNA_def_property_ui_text(prop, "Stroke Style", "Select style used to draw strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* stroke image texture */
@@ -683,6 +684,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "fill_style");
   RNA_def_property_enum_items(prop, fill_style_items);
   RNA_def_property_ui_text(prop, "Fill Style", "Select style used to fill strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* gradient type */
@@ -828,6 +830,7 @@ void RNA_def_material(BlenderRNA *brna)
   prop = RNA_def_property(srna, "blend_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_blend_items);
   RNA_def_property_ui_text(prop, "Blend Mode", "Blend Mode for Transparent Faces");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MATERIAL);
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);

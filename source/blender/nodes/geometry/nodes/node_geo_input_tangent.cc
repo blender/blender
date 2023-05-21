@@ -10,7 +10,7 @@ namespace blender::nodes::node_geo_input_tangent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Tangent")).field_source();
+  b.add_output<decl::Vector>("Tangent").field_source();
 }
 
 static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curves)

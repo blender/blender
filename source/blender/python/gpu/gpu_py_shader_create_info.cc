@@ -794,9 +794,7 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
 #define VULKAN_LIMIT 128
   int size = constants_calc_size(info);
   if (size > VULKAN_LIMIT) {
-    printf("Push constants have a minimum supported size of "
-    STRINGIFY(VULKAN_LIMIT)
-    " bytes, however the constants added so far already reach %d bytes. Consider using UBO.\n", size);
+    printf("Push constants have a minimum supported size of " STRINGIFY(VULKAN_LIMIT) " bytes, however the constants added so far already reach %d bytes. Consider using UBO.\n", size);
   }
 #undef VULKAN_LIMIT
 

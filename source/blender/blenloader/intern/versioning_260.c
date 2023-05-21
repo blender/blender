@@ -274,11 +274,11 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         BLI_path_split_dir_file(
             old_data->name, basepath, sizeof(basepath), filename, sizeof(filename));
 
-        BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
+        STRNCPY(nimf->base_path, basepath);
         nimf->format = old_data->im_format;
       }
       else {
-        BLI_strncpy(filename, old_image->name, sizeof(filename));
+        STRNCPY(filename, old_image->name);
       }
 
       /* If Z buffer is saved, change the image type to multi-layer EXR.
@@ -289,19 +289,19 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 
         nimf->format.imtype = R_IMF_IMTYPE_MULTILAYER;
 
-        BLI_snprintf(sockpath, sizeof(sockpath), "%s_Image", filename);
+        SNPRINTF(sockpath, "%s_Image", filename);
         sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
+        STRNCPY(sock->name, sockpath);
         if (old_image->link) {
           old_image->link->tosock = sock;
           sock->link = old_image->link;
         }
 
-        BLI_snprintf(sockpath, sizeof(sockpath), "%s_Z", filename);
+        SNPRINTF(sockpath, "%s_Z", filename);
         sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
+        STRNCPY(sock->name, sockpath);
         if (old_z->link) {
           old_z->link->tosock = sock;
           sock->link = old_z->link;
@@ -310,7 +310,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
       else {
         sock = ntreeCompositOutputFileAddSocket(ntree, node, filename, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        BLI_strncpy(sock->name, filename, sizeof(sock->name));
+        STRNCPY(sock->name, filename);
         if (old_image->link) {
           old_image->link->tosock = sock;
           sock->link = old_image->link;
@@ -377,7 +377,7 @@ static void do_versions_nodetree_multi_file_output_path_2_63_1(bNodeTree *ntree)
       for (sock = node->inputs.first; sock; sock = sock->next) {
         NodeImageMultiFileSocket *input = sock->storage;
         /* input file path is stored in dedicated struct now instead socket name */
-        BLI_strncpy(input->path, sock->name, sizeof(input->path));
+        STRNCPY(input->path, sock->name);
       }
     }
   }
@@ -395,7 +395,7 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
 
         /* Multi-layer names are stored as separate strings now,
          * used the path string before, so copy it over. */
-        BLI_strncpy(input->layer, input->path, sizeof(input->layer));
+        STRNCPY(input->layer, input->path);
 
         /* paths/layer names also have to be unique now, initial check */
         ntreeCompositOutputFileUniquePath(&node->inputs, sock, input->path, '_');
@@ -569,18 +569,18 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 
       /* sockets idname */
       for (sock = node->inputs.first; sock; sock = sock->next) {
-        BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
       }
       for (sock = node->outputs.first; sock; sock = sock->next) {
-        BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
       }
     }
     /* tree sockets idname */
     for (sock = ntree->inputs.first; sock; sock = sock->next) {
-      BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
     }
     for (sock = ntree->outputs.first; sock; sock = sock->next) {
-      BLI_strncpy(sock->idname, node_socket_get_static_idname(sock), sizeof(sock->idname));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
     }
   }
 
@@ -612,7 +612,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
 
     for (node = ntree->nodes.first; node; node = node->next) {
       for (sock = node->inputs.first; sock; sock = sock->next) {
-        BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+        STRNCPY(sock->identifier, sock->name);
         BLI_uniquename(&node->inputs,
                        sock,
                        "socket",
@@ -621,7 +621,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
                        sizeof(sock->identifier));
       }
       for (sock = node->outputs.first; sock; sock = sock->next) {
-        BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+        STRNCPY(sock->identifier, sock->name);
         BLI_uniquename(&node->outputs,
                        sock,
                        "socket",
@@ -631,7 +631,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
       }
     }
     for (sock = ntree->inputs.first; sock; sock = sock->next) {
-      BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+      STRNCPY(sock->identifier, sock->name);
       BLI_uniquename(&ntree->inputs,
                      sock,
                      "socket",
@@ -640,7 +640,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
                      sizeof(sock->identifier));
     }
     for (sock = ntree->outputs.first; sock; sock = sock->next) {
-      BLI_strncpy(sock->identifier, sock->name, sizeof(sock->identifier));
+      STRNCPY(sock->identifier, sock->name);
       BLI_uniquename(&ntree->outputs,
                      sock,
                      "socket",
@@ -1142,7 +1142,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
       KeyingSet *ks;
       for (ks = scene->keyingsets.first; ks; ks = ks->next) {
         if (!ks->idname[0]) {
-          BLI_strncpy(ks->idname, ks->name, sizeof(ks->idname));
+          STRNCPY(ks->idname, ks->name);
         }
       }
     }
@@ -1565,7 +1565,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
          * crazy anyway and think it's fair enough to break compatibility in that cases.
          */
 
-        BLI_strncpy(ima->colorspace_settings.name, "Raw", sizeof(ima->colorspace_settings.name));
+        STRNCPY(ima->colorspace_settings.name, "Raw");
       }
     }
   }
@@ -1813,7 +1813,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (tex = bmain->textures.first; tex; tex = tex->id.next) {
       if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
-        Image *image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
+        Image *image = blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima);
 
         if (image && (image->flag & IMA_DO_PREMUL) == 0) {
           enum { IMA_IGNORE_ALPHA = (1 << 12) };
@@ -1827,7 +1827,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         bNode *node;
         for (node = ntree->nodes.first; node; node = node->next) {
           if (node->type == CMP_NODE_IMAGE) {
-            Image *image = blo_do_versions_newlibadr(fd, ntree->id.lib, node->id);
+            Image *image = blo_do_versions_newlibadr(
+                fd, &ntree->id, ID_IS_LINKED(ntree), node->id);
 
             if (image) {
               if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {

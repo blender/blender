@@ -183,7 +183,7 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void lib_link_mask_parent(BlendLibReader *reader, Mask *mask, MaskParent *parent)
 {
-  BLO_read_id_address(reader, mask->id.lib, &parent->id);
+  BLO_read_id_address(reader, &mask->id, &parent->id);
 }
 
 static void mask_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -336,7 +336,7 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
   MaskLayer *masklay = MEM_cnew<MaskLayer>(__func__);
 
   if (name && name[0]) {
-    BLI_strncpy(masklay->name, name, sizeof(masklay->name));
+    STRNCPY(masklay->name, name);
   }
   else {
     strcpy(masklay->name, DATA_("MaskLayer"));
@@ -389,7 +389,7 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
 
 void BKE_mask_layer_rename(Mask *mask, MaskLayer *masklay, char *oldname, char *newname)
 {
-  BLI_strncpy(masklay->name, newname, sizeof(masklay->name));
+  STRNCPY(masklay->name, newname);
 
   BKE_mask_layer_unique_name(mask, masklay);
 
@@ -401,7 +401,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
 {
   MaskLayer *masklay_new = MEM_cnew<MaskLayer>("new mask layer");
 
-  BLI_strncpy(masklay_new->name, masklay->name, sizeof(masklay_new->name));
+  STRNCPY(masklay_new->name, masklay->name);
 
   masklay_new->alpha = masklay->alpha;
   masklay_new->blend = masklay->blend;
@@ -595,8 +595,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v1) > proj_eps_sq) {
           ang1 = angle_v2v2(v1, n1);
-          if (ang1 > (float)M_PI_2) {
-            ang1 = (float)M_PI - ang1;
+          if (ang1 > float(M_PI_2)) {
+            ang1 = float(M_PI) - ang1;
           }
 
           if (ang < 0.0f || ang1 < ang) {
@@ -622,8 +622,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v2) > proj_eps_sq) {
           ang2 = angle_v2v2(v2, n2);
-          if (ang2 > (float)M_PI_2) {
-            ang2 = (float)M_PI - ang2;
+          if (ang2 > float(M_PI_2)) {
+            ang2 = float(M_PI) - ang2;
           }
 
           if (ang2 < ang) {
@@ -1011,7 +1011,7 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
   char mask_name[MAX_ID_NAME - 2];
 
   if (name && name[0]) {
-    BLI_strncpy(mask_name, name, sizeof(mask_name));
+    STRNCPY(mask_name, name);
   }
   else {
     strcpy(mask_name, "Mask");
@@ -1468,8 +1468,8 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline,
   }
 
   if (length_tot) {
-    length_average /= (float)length_tot;
-    weight_average /= (float)length_tot;
+    length_average /= float(length_tot);
+    weight_average /= float(length_tot);
 
     dist_ensure_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
     dist_ensure_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);

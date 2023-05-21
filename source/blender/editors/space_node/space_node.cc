@@ -18,7 +18,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
@@ -64,7 +64,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
     copy_v2_v2(path->view_center, ntree->view_center);
 
     if (id) {
-      BLI_strncpy(path->display_name, id->name + 2, sizeof(path->display_name));
+      STRNCPY(path->display_name, id->name + 2);
     }
 
     BLI_addtail(&snode->treepath, path);
@@ -100,8 +100,8 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
       path->parent_key = NODE_INSTANCE_KEY_BASE;
     }
 
-    BLI_strncpy(path->node_name, gnode->name, sizeof(path->node_name));
-    BLI_strncpy(path->display_name, gnode->name, sizeof(path->display_name));
+    STRNCPY(path->node_name, gnode->name);
+    STRNCPY(path->display_name, gnode->name);
   }
   else {
     path->parent_key = NODE_INSTANCE_KEY_BASE;
@@ -1057,15 +1057,15 @@ static void node_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, Spa
   SpaceNode *snode = (SpaceNode *)sl;
 
   /* node tree can be stored locally in id too, link this first */
-  BLO_read_id_address(reader, parent_id->lib, &snode->id);
-  BLO_read_id_address(reader, parent_id->lib, &snode->from);
+  BLO_read_id_address(reader, parent_id, &snode->id);
+  BLO_read_id_address(reader, parent_id, &snode->from);
 
   bNodeTree *ntree = snode->id ? ntreeFromID(snode->id) : nullptr;
   if (ntree) {
     snode->nodetree = ntree;
   }
   else {
-    BLO_read_id_address(reader, parent_id->lib, &snode->nodetree);
+    BLO_read_id_address(reader, parent_id, &snode->nodetree);
   }
 
   bNodeTreePath *path;
@@ -1075,7 +1075,7 @@ static void node_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, Spa
       path->nodetree = snode->nodetree;
     }
     else {
-      BLO_read_id_address(reader, parent_id->lib, &path->nodetree);
+      BLO_read_id_address(reader, parent_id, &path->nodetree);
     }
 
     if (!path->nodetree) {

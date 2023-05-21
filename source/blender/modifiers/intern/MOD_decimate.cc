@@ -58,7 +58,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (dmd->defgrp_name[0] != '\0' && (dmd->defgrp_factor > 0.0f)) {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }

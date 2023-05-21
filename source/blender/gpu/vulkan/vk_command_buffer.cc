@@ -38,6 +38,13 @@ void VKCommandBuffer::init(const VkDevice vk_device,
   submission_id_.reset();
   state.stage = Stage::Initial;
 
+  /* When a the last GHOST context is destroyed the device is deallocate. A moment later the GPU
+   * context is destroyed. The first step is to activate it. Activating would retrieve the device
+   * from GHOST which in that case is a VK_NULL_HANDLE.*/
+  if (vk_device == VK_NULL_HANDLE) {
+    return;
+  }
+
   if (vk_fence_ == VK_NULL_HANDLE) {
     VK_ALLOCATION_CALLBACKS;
     VkFenceCreateInfo fenceInfo{};
@@ -95,6 +102,11 @@ void VKCommandBuffer::bind(const uint32_t binding,
   bind(binding, vertex_buffer.vk_handle(), offset);
 }
 
+void VKCommandBuffer::bind(const uint32_t binding, const VKBufferWithOffset &vertex_buffer)
+{
+  bind(binding, vertex_buffer.buffer.vk_handle(), vertex_buffer.offset);
+}
+
 void VKCommandBuffer::bind(const uint32_t binding,
                            const VkBuffer &vk_vertex_buffer,
                            const VkDeviceSize offset)
@@ -104,12 +116,12 @@ void VKCommandBuffer::bind(const uint32_t binding,
   vkCmdBindVertexBuffers(vk_command_buffer_, binding, 1, &vk_vertex_buffer, &offset);
 }
 
-void VKCommandBuffer::bind(const VKIndexBuffer &index_buffer, VkIndexType index_type)
+void VKCommandBuffer::bind(const VKBufferWithOffset &index_buffer, VkIndexType index_type)
 {
   validate_framebuffer_exists();
   ensure_active_framebuffer();
-  VkBuffer vk_buffer = index_buffer.vk_handle();
-  vkCmdBindIndexBuffer(vk_command_buffer_, vk_buffer, 0, index_type);
+  vkCmdBindIndexBuffer(
+      vk_command_buffer_, index_buffer.buffer.vk_handle(), index_buffer.offset, index_type);
 }
 
 void VKCommandBuffer::begin_render_pass(const VKFrameBuffer &framebuffer)

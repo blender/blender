@@ -30,7 +30,7 @@ namespace blender::gpu {
 FrameBuffer::FrameBuffer(const char *name)
 {
   if (name) {
-    BLI_strncpy(name_, name, sizeof(name_));
+    STRNCPY(name_, name);
   }
   else {
     name_[0] = '\0';
@@ -679,10 +679,10 @@ GPUOffScreen *GPU_offscreen_create(int width,
   if ((depth && !ofs->depth) || !ofs->color) {
     const char error[] = "GPUTexture: Texture allocation failed.";
     if (err_out) {
-      BLI_snprintf(err_out, 256, error);
+      BLI_strncpy(err_out, error, 256);
     }
     else {
-      fprintf(stderr, error);
+      fprintf(stderr, "%s", error);
     }
     GPU_offscreen_free(ofs);
     return nullptr;

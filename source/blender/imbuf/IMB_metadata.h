@@ -38,11 +38,14 @@ void IMB_metadata_free(struct IDProperty *metadata);
  * \param metadata: the #IDProperty that contains the metadata
  * \param key: the key of the field
  * \param value: the data in the field, first one found with key is returned,
- *                 memory has to be allocated by user.
+ * memory has to be allocated by user.
  * \param len: length of value buffer allocated by user.
  * \return 1 (true) if metadata is present and value for the key found, 0 (false) otherwise.
  */
-bool IMB_metadata_get_field(struct IDProperty *metadata, const char *key, char *value, size_t len);
+bool IMB_metadata_get_field(struct IDProperty *metadata,
+                            const char *key,
+                            char *value,
+                            size_t value_maxncpy);
 
 /**
  * Set user data in the metadata.

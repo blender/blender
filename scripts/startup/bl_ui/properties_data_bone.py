@@ -148,7 +148,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_rollin", text="Roll In")
-        col.prop(bbone, "bbone_rollout", text="Out")
+        col.prop(bbone, "bbone_rollout", text="Out", text_ctxt=i18n_contexts.id_armature)
         col.prop(bone, "use_endroll_as_inroll")
 
         col = topcol.column(align=True)

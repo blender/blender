@@ -444,7 +444,7 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
   layer->datatype = CDF_DATA_FLOAT;
   layer->datasize = datasize;
   layer->type = type;
-  BLI_strncpy(layer->name, name, CDF_LAYER_NAME_MAX);
+  STRNCPY(layer->name, name);
 
   return layer;
 }

@@ -63,7 +63,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
     ibuf->ftype = IMB_FTYPE_WEBP;
     imb_addrectImBuf(ibuf);
     /* Flip the image during decoding to match Blender. */
-    uchar *last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
+    uchar *last_row = ibuf->byte_buffer.data + 4 * (ibuf->y - 1) * ibuf->x;
     if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
         nullptr)
     {
@@ -136,7 +136,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   config.options.flip = 1;
   config.output.is_external_memory = 1;
   config.output.colorspace = MODE_RGBA;
-  config.output.u.RGBA.rgba = (uint8_t *)ibuf->rect;
+  config.output.u.RGBA.rgba = ibuf->byte_buffer.data;
   config.output.u.RGBA.stride = 4 * ibuf->x;
   config.output.u.RGBA.size = size_t(config.output.u.RGBA.stride * ibuf->y);
 
@@ -167,7 +167,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int /*flags*/)
   if (bytesperpixel == 3) {
     /* We must convert the ImBuf RGBA buffer to RGB as WebP expects a RGB buffer. */
     const size_t num_pixels = ibuf->x * ibuf->y;
-    const uint8_t *rgba_rect = (uint8_t *)ibuf->rect;
+    const uint8_t *rgba_rect = ibuf->byte_buffer.data;
     uint8_t *rgb_rect = static_cast<uint8_t *>(
         MEM_mallocN(sizeof(uint8_t) * num_pixels * 3, "webp rgb_rect"));
     for (int i = 0; i < num_pixels; i++) {
@@ -189,7 +189,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int /*flags*/)
     MEM_freeN(rgb_rect);
   }
   else if (bytesperpixel == 4) {
-    last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
+    last_row = ibuf->byte_buffer.data + 4 * (ibuf->y - 1) * ibuf->x;
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGBA(

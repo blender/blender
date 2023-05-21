@@ -13,7 +13,11 @@ extern "C" {
 
 bool imb_is_a_png(const uchar *mem, size_t size)
 {
-  return imb_oiio_check(mem, size, "png");
+  const char signature[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+  if (size < sizeof(signature)) {
+    return false;
+  }
+  return memcmp(signature, mem, sizeof(signature)) == 0;
 }
 
 ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])

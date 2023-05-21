@@ -1425,7 +1425,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
       attrs[attrs_num].type = eCustomDataType(layer->type);
       attrs[attrs_num].domain = domain;
 
-      BLI_strncpy(attrs[attrs_num].name, layer->name, sizeof(attrs[attrs_num].name));
+      STRNCPY(attrs[attrs_num].name, layer->name);
       attrs_num++;
     }
   }
@@ -1437,7 +1437,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 
       attrs[attrs_num].type = CD_PROP_FLOAT2;
       attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-      BLI_strncpy(attrs[attrs_num].name, layer->name, sizeof(attrs[attrs_num].name));
+      STRNCPY(attrs[attrs_num].name, layer->name);
 
       attrs_num++;
     }
@@ -1483,7 +1483,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
     attrs[attrs_i].type = req->cd_type;
     attrs[attrs_i].domain = req->domain;
-    BLI_strncpy(attrs[attrs_i].name, req->attribute_name, sizeof(PBVHAttrReq::name));
+    STRNCPY(attrs[attrs_i].name, req->attribute_name);
     attrs_i++;
   }
 
@@ -1498,7 +1498,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
       if (layer) {
         attrs[attrs_i].type = CD_PROP_FLOAT2;
         attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
-        BLI_strncpy(attrs[attrs_i].name, layer->name, sizeof(PBVHAttrReq::name));
+        STRNCPY(attrs[attrs_i].name, layer->name);
         attrs_i++;
       }
     }
@@ -2414,7 +2414,7 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
   DRWPass *pass = static_cast<DRWPass *>(BLI_memblock_alloc(DST.vmempool->passes));
   pass->state = state | DRW_STATE_PROGRAM_POINT_SIZE;
   if (G.debug & G_DEBUG_GPU) {
-    BLI_strncpy(pass->name, name, MAX_PASS_NAME);
+    STRNCPY(pass->name, name);
   }
 
   pass->shgroups.first = nullptr;

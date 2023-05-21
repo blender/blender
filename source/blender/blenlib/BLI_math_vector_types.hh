@@ -645,6 +645,7 @@ template<typename T> struct AssertUnitEpsilon {
 
 using char2 = blender::VecBase<int8_t, 2>;
 using char3 = blender::VecBase<int8_t, 3>;
+using char4 = blender::VecBase<int8_t, 4>;
 
 using uchar3 = blender::VecBase<uint8_t, 3>;
 using uchar4 = blender::VecBase<uint8_t, 4>;
@@ -659,6 +660,7 @@ using uint4 = VecBase<uint32_t, 4>;
 
 using short2 = blender::VecBase<int16_t, 2>;
 using short3 = blender::VecBase<int16_t, 3>;
+using short4 = blender::VecBase<int16_t, 4>;
 
 using ushort2 = VecBase<uint16_t, 2>;
 using ushort3 = blender::VecBase<uint16_t, 3>;

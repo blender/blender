@@ -131,7 +131,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                           &spline_orig->points[(cur_point_eval - spline_eval->points_deform)] :
                           &spline_orig->points[(cur_point_eval - spline_eval->points)];
               dist_best_sq = dist_sq;
-              u = (float)j / tot_point;
+              u = float(j) / tot_point;
             }
           }
 
@@ -621,8 +621,8 @@ bool ED_mask_selected_minmax(const bContext *C,
   }
 
   /* Use evaluated mask to take animation into account.
-   * The animation of splies is not "flushed" back to original, so need to explicitly
-   * use evaluated datablock here. */
+   * The animation of splines is not "flushed" back to original, so need to explicitly
+   * use evaluated data-block here. */
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
 
   INIT_MINMAX2(min, max);

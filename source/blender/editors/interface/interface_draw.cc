@@ -25,7 +25,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_colormanagement.h"
@@ -301,7 +301,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
                         ibuf->y,
                         GPU_RGBA8,
                         false,
-                        ibuf->rect,
+                        ibuf->byte_buffer.data,
                         1.0f,
                         1.0f,
                         col);
@@ -610,7 +610,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
     char str[4];
-    BLI_snprintf(str, sizeof(str), "%-3d", i * 20);
+    SNPRINTF(str, "%-3d", i * 20);
     str[3] = '\0';
     BLF_color4f(BLF_default(), 1.0f, 1.0f, 1.0f, 0.08f);
     BLF_draw_default(rect.xmin + 1, yofs - 5 + (i * 0.2f) * h, 0, str, sizeof(str) - 1);
@@ -2053,11 +2053,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                                                  height,
                                                  scopes->track_pos);
     if (tmpibuf) {
-      if (tmpibuf->rect_float) {
+      if (tmpibuf->float_buffer.data) {
         IMB_rect_from_float(tmpibuf);
       }
 
-      if (tmpibuf->rect) {
+      if (tmpibuf->byte_buffer.data) {
         scopes->track_preview = tmpibuf;
       }
       else {
@@ -2095,7 +2095,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                             drawibuf->y,
                             GPU_RGBA8,
                             true,
-                            drawibuf->rect,
+                            drawibuf->byte_buffer.data,
                             1.0f,
                             1.0f,
                             nullptr);

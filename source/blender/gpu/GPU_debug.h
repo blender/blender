@@ -87,7 +87,7 @@ void *GPU_debug_capture_scope_create(const char *name);
 /**
  * Used to declare the region within which GPU calls are captured when the scope is triggered.
  *
- * \param scope Pointer to capture scope object created with GPU_debug_capture_scope_create.
+ * \param scope: Pointer to capture scope object created with GPU_debug_capture_scope_create.
  * \return True if the capture tool is actively capturing this scope when function is executed.
  * Otherwise, False.
  */

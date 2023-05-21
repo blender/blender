@@ -13,7 +13,6 @@ void register_node_type_sh_background();
 void register_node_type_sh_bevel();
 void register_node_type_sh_blackbody();
 void register_node_type_sh_brightcontrast();
-void register_node_type_sh_bsdf_anisotropic();
 void register_node_type_sh_bsdf_diffuse();
 void register_node_type_sh_bsdf_glass();
 void register_node_type_sh_bsdf_glossy();

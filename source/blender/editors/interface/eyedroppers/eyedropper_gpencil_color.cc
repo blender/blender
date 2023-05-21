@@ -66,8 +66,7 @@ struct EyedropperGPencil {
 static void eyedropper_gpencil_status_indicators(bContext *C)
 {
   char msg_str[UI_MAX_DRAW_STR];
-  BLI_strncpy(
-      msg_str, TIP_("LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"), UI_MAX_DRAW_STR);
+  STRNCPY(msg_str, TIP_("LMB: Stroke - Shift: Fill - Shift+Ctrl: Stroke + Fill"));
 
   ED_workspace_status_text(C, msg_str);
 }

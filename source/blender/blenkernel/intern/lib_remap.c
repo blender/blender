@@ -177,8 +177,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  ID *id_owner = cb_data->id_owner;
-  ID *id_self = cb_data->id_self;
+  ID *id_owner = cb_data->owner_id;
+  ID *id_self = cb_data->self_id;
   ID **id_p = cb_data->id_pointer;
   IDRemap *id_remap_data = cb_data->user_data;
 
@@ -482,13 +482,14 @@ static void libblock_remap_data(Main *bmain,
                                 const int remap_flags)
 {
   IDRemap id_remap_data = {0};
-  const int foreach_id_flags =
-      (((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
-            IDWALK_DO_INTERNAL_RUNTIME_POINTERS :
-            IDWALK_NOP) |
-       ((remap_flags & ID_REMAP_FORCE_UI_POINTERS) != 0 ? IDWALK_INCLUDE_UI : IDWALK_NOP) |
-       ((remap_flags & ID_REMAP_NO_ORIG_POINTERS_ACCESS) != 0 ? IDWALK_NO_ORIG_POINTERS_ACCESS :
-                                                                IDWALK_NOP));
+  const bool include_ui = (remap_flags & ID_REMAP_FORCE_UI_POINTERS) != 0;
+  const int foreach_id_flags = (((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
+                                     IDWALK_DO_INTERNAL_RUNTIME_POINTERS :
+                                     IDWALK_NOP) |
+                                (include_ui ? IDWALK_INCLUDE_UI : IDWALK_NOP) |
+                                ((remap_flags & ID_REMAP_NO_ORIG_POINTERS_ACCESS) != 0 ?
+                                     IDWALK_NO_ORIG_POINTERS_ACCESS :
+                                     IDWALK_NOP));
 
   id_remap_data.id_remapper = id_remapper;
   id_remap_data.type = remap_type;
@@ -514,7 +515,7 @@ static void libblock_remap_data(Main *bmain,
     ID *id_curr;
 
     FOREACH_MAIN_ID_BEGIN (bmain, id_curr) {
-      const uint64_t can_use_filter_id = BKE_library_id_can_use_filter_id(id_curr);
+      const uint64_t can_use_filter_id = BKE_library_id_can_use_filter_id(id_curr, include_ui);
       const bool has_mapping = BKE_id_remapper_has_mapping_for(id_remapper, can_use_filter_id);
 
       /* Continue when id_remapper doesn't have any mappings that can be used by id_curr. */

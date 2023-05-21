@@ -63,7 +63,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -103,7 +104,7 @@
 
 //#include "bmesh_tools.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr);
 
@@ -760,7 +761,7 @@ static bool project_paint_PickColor(
     float x, y;
     uvco_to_wrapped_pxco(uv, ibuf->x, ibuf->y, &x, &y);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (rgba_fp) {
         bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_fp, x, y);
       }
@@ -791,21 +792,21 @@ static bool project_paint_PickColor(
     yi = mod_i(int(uv[1] * ibuf->y), ibuf->y);
 
     if (rgba) {
-      if (ibuf->rect_float) {
-        const float *rgba_tmp_fp = ibuf->rect_float + (xi + yi * ibuf->x * 4);
+      if (ibuf->float_buffer.data) {
+        const float *rgba_tmp_fp = ibuf->float_buffer.data + (xi + yi * ibuf->x * 4);
         premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
       }
       else {
-        *((uint *)rgba) = *(uint *)(((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4));
+        *((uint *)rgba) = *(uint *)(((char *)ibuf->byte_buffer.data) + ((xi + yi * ibuf->x) * 4));
       }
     }
 
     if (rgba_fp) {
-      if (ibuf->rect_float) {
-        copy_v4_v4(rgba_fp, (ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
+      if (ibuf->float_buffer.data) {
+        copy_v4_v4(rgba_fp, (ibuf->float_buffer.data + ((xi + yi * ibuf->x) * 4)));
       }
       else {
-        uchar *tmp_ch = ((uchar *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
+        uchar *tmp_ch = ibuf->byte_buffer.data + ((xi + yi * ibuf->x) * 4);
         straight_uchar_to_premul_float(rgba_fp, tmp_ch);
       }
     }
@@ -1652,7 +1653,7 @@ static void project_face_pixel(const float *lt_tri_uv[3],
   /* use */
   uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
 
-  if (ibuf_other->rect_float) { /* from float to float */
+  if (ibuf_other->float_buffer.data) { /* from float to float */
     bilinear_interpolation_color_wrap(ibuf_other, nullptr, rgba_f, x, y);
   }
   else { /* from char to float */
@@ -1685,7 +1686,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
 
       project_face_pixel(lt_other_tri_uv, ibuf_other, w, rgba_ub, rgba_f);
 
-      if (ibuf_other->rect_float) { /* from float to float */
+      if (ibuf_other->float_buffer.data) { /* from float to float */
         mask = ((rgba_f[0] + rgba_f[1] + rgba_f[2]) * (1.0f / 3.0f)) * rgba_f[3];
       }
       else { /* from char to float */
@@ -1927,13 +1928,13 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
   projPixel->valid = projima->valid[tile_index];
 
-  if (ibuf->rect_float) {
-    projPixel->pixel.f_pt = ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
+  if (ibuf->float_buffer.data) {
+    projPixel->pixel.f_pt = ibuf->float_buffer.data + ((x_px + y_px * ibuf->x) * 4);
     projPixel->origColor.f_pt = (float *)projima->undoRect[tile_index] + 4 * tile_offset;
     zero_v4(projPixel->newColor.f);
   }
   else {
-    projPixel->pixel.ch_pt = (uchar *)(ibuf->rect + (x_px + y_px * ibuf->x));
+    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x);
     projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
     projPixel->newColor.uint_ = 0;
   }
@@ -1975,8 +1976,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
         /* #BKE_image_acquire_ibuf - TODO: this may be slow. */
 
-        if (ibuf->rect_float) {
-          if (ibuf_other->rect_float) { /* from float to float */
+        if (ibuf->float_buffer.data) {
+          if (ibuf_other->float_buffer.data) { /* from float to float */
             project_face_pixel(
                 lt_other_tri_uv, ibuf_other, w, nullptr, ((ProjPixelClone *)projPixel)->clonepx.f);
           }
@@ -1994,7 +1995,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
           }
         }
         else {
-          if (ibuf_other->rect_float) { /* float to char */
+          if (ibuf_other->float_buffer.data) { /* float to char */
             float rgba[4];
             project_face_pixel(lt_other_tri_uv, ibuf_other, w, nullptr, rgba);
             premul_to_straight_v4(rgba);
@@ -2018,7 +2019,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
         BKE_image_release_ibuf(other_tpage, ibuf_other, nullptr);
       }
       else {
-        if (ibuf->rect_float) {
+        if (ibuf->float_buffer.data) {
           ((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
         }
         else {
@@ -2032,7 +2033,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
       /* no need to initialize the bucket, we're only checking buckets faces and for this
        * the faces are already initialized in project_paint_delayed_face_init(...) */
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         if (!project_paint_PickColor(
                 ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, nullptr, true)) {
           /* zero alpha - ignore */
@@ -2050,7 +2051,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   }
 
 #ifdef PROJ_DEBUG_PAINT
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     projPixel->pixel.f_pt[0] = 0;
   }
   else {
@@ -5301,7 +5302,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
           last_projIma = projImages + last_index;
 
           last_projIma->touch = true;
-          is_floatbuf = (last_projIma->ibuf->rect_float != nullptr);
+          is_floatbuf = (last_projIma->ibuf->float_buffer.data != nullptr);
         }
         /* end copy */
 
@@ -5394,7 +5395,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
         }
         else {
           if (is_floatbuf) {
-            BLI_assert(ps->reproject_ibuf->rect_float != nullptr);
+            BLI_assert(ps->reproject_ibuf->float_buffer.data != nullptr);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         nullptr,
@@ -5411,7 +5412,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
             }
           }
           else {
-            BLI_assert(ps->reproject_ibuf->rect != nullptr);
+            BLI_assert(ps->reproject_ibuf->byte_buffer.data != nullptr);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         projPixel->newColor.ch,
@@ -5528,7 +5529,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
                 last_projIma = projImages + last_index;
 
                 last_projIma->touch = true;
-                is_floatbuf = (last_projIma->ibuf->rect_float != nullptr);
+                is_floatbuf = (last_projIma->ibuf->float_buffer.data != nullptr);
               }
               /* end copy */
 
@@ -5668,20 +5669,20 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
     bool uchar_dest = false;
     /* Check if the destination images are float or uchar. */
     for (i = 0; i < ps->image_tot; i++) {
-      if (ps->projImages[i].ibuf->rect != nullptr) {
+      if (ps->projImages[i].ibuf->byte_buffer.data != nullptr) {
         uchar_dest = true;
       }
-      if (ps->projImages[i].ibuf->rect_float != nullptr) {
+      if (ps->projImages[i].ibuf->float_buffer.data != nullptr) {
         float_dest = true;
       }
     }
 
     /* Generate missing data if needed. */
-    if (float_dest && ps->reproject_ibuf->rect_float == nullptr) {
+    if (float_dest && ps->reproject_ibuf->float_buffer.data == nullptr) {
       IMB_float_from_rect(ps->reproject_ibuf);
       ps->reproject_ibuf_free_float = true;
     }
-    if (uchar_dest && ps->reproject_ibuf->rect == nullptr) {
+    if (uchar_dest && ps->reproject_ibuf->byte_buffer.data == nullptr) {
       IMB_rect_from_float(ps->reproject_ibuf);
       ps->reproject_ibuf_free_uchar = true;
     }
@@ -6162,7 +6163,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   ps.reproject_ibuf = BKE_image_acquire_ibuf(image, nullptr, nullptr);
 
   if ((ps.reproject_ibuf == nullptr) ||
-      ((ps.reproject_ibuf->rect || ps.reproject_ibuf->rect_float) == false))
+      ((ps.reproject_ibuf->byte_buffer.data || ps.reproject_ibuf->float_buffer.data) == false))
   {
     BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
     return OPERATOR_CANCELLED;
@@ -6636,7 +6637,9 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
     case LAYER_ROUGHNESS:
     case LAYER_METALLIC: {
       bNodeTree *ntree = nullptr;
-      bNode *in_node = ma ? ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED) : nullptr;
+      ma->nodetree->ensure_topology_cache();
+      const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type("ShaderNodeBsdfPrincipled");
+      bNode *in_node = nodes.is_empty() ? nullptr : nodes.first();
       if (!in_node) {
         /* An existing material or Principled BSDF node could not be found.
          * Copy default color values from a default Principled BSDF instead. */
@@ -6667,7 +6670,7 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
       }
       /* Cleanup */
       if (ntree) {
-        ntreeFreeTree(ntree);
+        blender::bke::ntreeFreeTree(ntree);
         MEM_freeN(ntree);
       }
       return;
@@ -6729,7 +6732,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
         if (const char *name = proj_paint_color_attribute_create(op, ob)) {
-          BLI_strncpy_utf8(((NodeShaderAttribute *)new_node->storage)->name, name, MAX_NAME);
+          STRNCPY_UTF8(((NodeShaderAttribute *)new_node->storage)->name, name);
         }
         break;
       }
@@ -6740,7 +6743,9 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     nodeSetActive(ntree, new_node);
 
     /* Connect to first available principled BSDF node. */
-    bNode *in_node = ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
+    ntree->ensure_topology_cache();
+    const blender::Span<bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeBsdfPrincipled");
+    bNode *in_node = bsdf_nodes.is_empty() ? nullptr : bsdf_nodes.first();
     bNode *out_node = new_node;
 
     if (in_node != nullptr) {
@@ -6776,7 +6781,9 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       else if (type == LAYER_DISPLACEMENT) {
         /* Connect to the displacement output socket */
-        in_node = ntreeFindType(ntree, SH_NODE_OUTPUT_MATERIAL);
+        const blender::Span<bNode *> output_nodes = ntree->nodes_by_type(
+            "ShaderNodeOutputMaterial");
+        in_node = output_nodes.is_empty() ? nullptr : output_nodes.first();
 
         if (in_node != nullptr) {
           in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
@@ -6791,13 +6798,13 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       if (in_sock != nullptr && link == nullptr) {
         nodeAddLink(ntree, out_node, out_sock, in_node, in_sock);
 
-        nodePositionRelative(out_node, in_node, out_sock, in_sock);
+        blender::bke::nodePositionRelative(out_node, in_node, out_sock, in_sock);
       }
     }
 
     ED_node_tree_propagate_change(C, bmain, ntree);
     /* In case we added more than one node, position them too. */
-    nodePositionPropagate(out_node);
+    blender::bke::nodePositionPropagate(out_node);
 
     if (ima) {
       BKE_texpaint_slot_refresh_cache(scene, ma, ob);

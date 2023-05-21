@@ -38,7 +38,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
@@ -312,7 +312,7 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
 float2 node_to_view(const bNode &node, const float2 &co)
 {
   float2 result;
-  nodeToView(&node, co.x, co.y, &result.x, &result.y);
+  bke::nodeToView(&node, co.x, co.y, &result.x, &result.y);
   return result * UI_SCALE_FAC;
 }
 
@@ -332,7 +332,7 @@ float2 node_from_view(const bNode &node, const float2 &co)
   const float x = co.x / UI_SCALE_FAC;
   const float y = co.y / UI_SCALE_FAC;
   float2 result;
-  nodeFromView(&node, x, y, &result.x, &result.y);
+  bke::nodeFromView(&node, x, y, &result.x, &result.y);
   return result;
 }
 
@@ -402,7 +402,7 @@ static void node_update_basis(const bContext &C,
     uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
 
-    const char *socket_label = nodeSocketLabel(socket);
+    const char *socket_label = bke::nodeSocketLabel(socket);
     const char *socket_translation_context = node_socket_get_translation_context(*socket);
     socket->typeinfo->draw((bContext *)&C,
                            row,
@@ -539,7 +539,7 @@ static void node_update_basis(const bContext &C,
 
     uiLayout *row = uiLayoutRow(layout, true);
 
-    const char *socket_label = nodeSocketLabel(socket);
+    const char *socket_label = bke::nodeSocketLabel(socket);
     const char *socket_translation_context = node_socket_get_translation_context(*socket);
     socket->typeinfo->draw((bContext *)&C,
                            row,
@@ -956,12 +956,11 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
       case GEO_COMPONENT_TYPE_MESH: {
         const geo_log::GeometryInfoLog::MeshInfo &mesh_info = *value_log.mesh_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
-                     to_string(mesh_info.verts_num).c_str(),
-                     to_string(mesh_info.edges_num).c_str(),
-                     to_string(mesh_info.faces_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
+                 to_string(mesh_info.verts_num).c_str(),
+                 to_string(mesh_info.edges_num).c_str(),
+                 to_string(mesh_info.faces_num).c_str());
         ss << line;
         break;
       }
@@ -969,31 +968,27 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         const geo_log::GeometryInfoLog::PointCloudInfo &pointcloud_info =
             *value_log.pointcloud_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Point Cloud: %s points"),
-                     to_string(pointcloud_info.points_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Point Cloud: %s points"),
+                 to_string(pointcloud_info.points_num).c_str());
         ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
         const geo_log::GeometryInfoLog::CurveInfo &curve_info = *value_log.curve_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Curve: %s points, %s splines"),
-                     to_string(curve_info.points_num).c_str(),
-                     to_string(curve_info.splines_num).c_str());
+        SNPRINTF(line,
+                 TIP_("\u2022 Curve: %s points, %s splines"),
+                 to_string(curve_info.points_num).c_str(),
+                 to_string(curve_info.splines_num).c_str());
         ss << line;
         break;
       }
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const geo_log::GeometryInfoLog::InstancesInfo &instances_info = *value_log.instances_info;
         char line[256];
-        BLI_snprintf(line,
-                     sizeof(line),
-                     TIP_("\u2022 Instances: %s"),
-                     to_string(instances_info.instances_num).c_str());
+        SNPRINTF(
+            line, TIP_("\u2022 Instances: %s"), to_string(instances_info.instances_num).c_str());
         ss << line;
         break;
       }
@@ -1005,11 +1000,10 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         if (value_log.edit_data_info.has_value()) {
           const geo_log::GeometryInfoLog::EditDataInfo &edit_info = *value_log.edit_data_info;
           char line[256];
-          BLI_snprintf(line,
-                       sizeof(line),
-                       TIP_("\u2022 Edit Curves: %s, %s"),
-                       edit_info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
-                       edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"));
+          SNPRINTF(line,
+                   TIP_("\u2022 Edit Curves: %s, %s"),
+                   edit_info.has_deformed_positions ? TIP_("positions") : TIP_("no positions"),
+                   edit_info.has_deform_matrices ? TIP_("matrices") : TIP_("no matrices"));
           ss << line;
         }
         break;
@@ -1168,7 +1162,7 @@ static char *node_socket_get_tooltip(const SpaceNode *snode,
   }
 
   if (output.str().empty()) {
-    output << nodeSocketLabel(&socket);
+    output << bke::nodeSocketLabel(&socket);
   }
 
   return BLI_strdup(output.str().c_str());
@@ -2328,7 +2322,7 @@ static void node_draw_basis(const bContext &C,
   }
 
   char showname[128];
-  nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -2357,7 +2351,7 @@ static void node_draw_basis(const bContext &C,
   const float outline_width = 1.0f;
   {
     /* Use warning color to indicate undefined types. */
-    if (nodeTypeUndefined(&node)) {
+    if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
@@ -2430,7 +2424,7 @@ static void node_draw_basis(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (nodeTypeUndefined(&node)) {
+    else if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
@@ -2499,7 +2493,7 @@ static void node_draw_hidden(const bContext &C,
   /* Body. */
   float color[4];
   {
-    if (nodeTypeUndefined(&node)) {
+    if (bke::node_type_is_undefined(&node)) {
       /* Use warning color to indicate undefined types. */
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
@@ -2563,7 +2557,7 @@ static void node_draw_hidden(const bContext &C,
   }
 
   char showname[128];
-  nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -2596,7 +2590,7 @@ static void node_draw_hidden(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (nodeTypeUndefined(&node)) {
+    else if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else {
@@ -2861,7 +2855,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
-  nodeLabel(&ntree, &node, label, sizeof(label));
+  bke::nodeLabel(&ntree, &node, label, sizeof(label));
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -2993,7 +2987,7 @@ static void reroute_node_draw(
   if (node.label[0] != '\0') {
     /* Draw title (node label). */
     char showname[128]; /* 128 used below */
-    BLI_strncpy(showname, node.label, sizeof(showname));
+    STRNCPY(showname, node.label);
     const short width = 512;
     const int x = BLI_rctf_cent_x(&node.runtime->totr) - (width / 2);
     const int y = node.runtime->totr.ymax;
@@ -3253,14 +3247,14 @@ static void node_draw_nodetree(const bContext &C,
   nodelink_batch_start(snode);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link) && !nodeLinkIsSelected(link)) {
+    if (!nodeLinkIsHidden(link) && !bke::nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
 
   /* Draw selected node links after the unselected ones, so they are shown on top. */
   LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link) && nodeLinkIsSelected(link)) {
+    if (!nodeLinkIsHidden(link) && bke::nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, true);
     }
   }
@@ -3459,7 +3453,7 @@ void node_draw_space(const bContext &C, ARegion &region)
                                                                          snode.id;
 
     if (name_id && UNLIKELY(!STREQ(path->display_name, name_id->name + 2))) {
-      BLI_strncpy(path->display_name, name_id->name + 2, sizeof(path->display_name));
+      STRNCPY(path->display_name, name_id->name + 2);
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */

@@ -17,13 +17,13 @@ namespace blender::nodes::node_composite_separate_yuva_cc {
 
 static void cmp_node_sepyuva_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Y"));
-  b.add_output<decl::Float>(N_("U"));
-  b.add_output<decl::Float>(N_("V"));
-  b.add_output<decl::Float>(N_("A"));
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Float>("U");
+  b.add_output<decl::Float>("V");
+  b.add_output<decl::Float>("A");
 }
 
 using namespace blender::realtime_compositor;
@@ -70,15 +70,12 @@ namespace blender::nodes::node_composite_combine_yuva_cc {
 
 static void cmp_node_combyuva_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Y")).min(0.0f).max(1.0f).compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("U")).min(0.0f).max(1.0f).compositor_domain_priority(1);
-  b.add_input<decl::Float>(N_("V")).min(0.0f).max(1.0f).compositor_domain_priority(2);
-  b.add_input<decl::Float>(N_("A"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(3);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_input<decl::Float>("Y").min(0.0f).max(1.0f).compositor_domain_priority(0);
+  b.add_input<decl::Float>("U").min(0.0f).max(1.0f).compositor_domain_priority(1);
+  b.add_input<decl::Float>("V").min(0.0f).max(1.0f).compositor_domain_priority(2);
+  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f).compositor_domain_priority(
+      3);
+  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::realtime_compositor;

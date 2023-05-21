@@ -18,8 +18,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.01f)
       .subtype(PROP_DISTANCE)
       .supports_field()
-      .description(N_("The distance a point can be from the surface before the face is no longer "
-                      "considered planar"))
+      .description(
+          "The distance a point can be from the surface before the face is no longer "
+          "considered planar")
       .min(0.0f);
   b.add_output<decl::Bool>("Planar").field_source();
 }
@@ -115,7 +116,7 @@ void register_node_type_geo_input_mesh_face_is_planar()
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Face is Planar", NODE_CLASS_INPUT);
+      &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Is Face Planar", NODE_CLASS_INPUT);
   ntype.geometry_node_execute = file_ns::geo_node_exec;
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);

@@ -6,6 +6,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -50,7 +52,7 @@ static XrComponentPath *rna_XrComponentPath_new(XrActionMapBinding *amb, const c
 {
 #  ifdef WITH_XR_OPENXR
   XrComponentPath *component_path = MEM_callocN(sizeof(XrComponentPath), __func__);
-  BLI_strncpy(component_path->path, path_str, sizeof(component_path->path));
+  STRNCPY(component_path->path, path_str);
   BLI_addtail(&amb->component_paths, component_path);
   return component_path;
 #  else
@@ -237,7 +239,7 @@ static XrUserPath *rna_XrUserPath_new(XrActionMapItem *ami, const char *path_str
 {
 #  ifdef WITH_XR_OPENXR
   XrUserPath *user_path = MEM_callocN(sizeof(XrUserPath), __func__);
-  BLI_strncpy(user_path->path, path_str, sizeof(user_path->path));
+  STRNCPY(user_path->path, path_str);
   BLI_addtail(&ami->user_paths, user_path);
   return user_path;
 #  else
@@ -2018,6 +2020,7 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, controller_draw_styles);
   RNA_def_property_ui_text(
       prop, "Controller Draw Style", "Style to use when drawing VR controllers");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
   prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);

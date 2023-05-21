@@ -110,6 +110,10 @@ ARegion *do_versions_add_region(int regiontype, const char *name);
 
 void sequencer_init_preview_region(ARegion *region);
 
+void add_realize_instances_before_socket(bNodeTree *ntree,
+                                         bNode *node,
+                                         bNodeSocket *geometry_socket);
+
 #ifdef __cplusplus
 }
 #endif

@@ -4863,7 +4863,9 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
     ED_screen_animation_timer(C, 0, 0, 0);
     BKE_sound_stop_scene(scene_eval);
 
-    WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+    /* Triggers redraw of sequencer preview so that it does not show to fps anymore after stopping
+     * playback. */
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, scene);
   }
   else {
     /* these settings are currently only available from a menu in the TimeLine */

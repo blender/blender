@@ -74,6 +74,8 @@ const char *viewops_operator_idname_get(eV3D_OpMode nav_type)
     case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
       return "VIEW3D_OT_ndof_orbit_zoom";
 #endif
+    case V3D_OP_MODE_NONE:
+      break;
   }
   BLI_assert(false);
   return nullptr;
@@ -1939,6 +1941,145 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
   /* Properties */
   ot->prop = RNA_def_enum(
       ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Navigation Utilities
+ * \{ */
+
+/* Detect the navigation operation, by the name of the navigation operator (obtained by
+ * `wmKeyMapItem::idname`) */
+static eV3D_OpMode view3d_navigation_type_from_idname(const char *idname)
+{
+  const char *op_name = idname + sizeof("VIEW3D_OT_");
+  for (int i = 0; i < V3D_OP_MODE_LEN; i++) {
+    if (STREQ(op_name, viewops_operator_idname_get((eV3D_OpMode)i) + sizeof("VIEW3D_OT_"))) {
+      return (eV3D_OpMode)i;
+    }
+  }
+  return V3D_OP_MODE_NONE;
+}
+
+/* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
+ * with an array of `wmKeyMapItem`s used for navigation. */
+ViewOpsData *ED_view3d_navigation_init(bContext *C)
+{
+  if (!CTX_wm_region_view3d(C)) {
+    return NULL;
+  }
+
+  ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
+  viewops_data_init_context(C, vod);
+
+  vod->keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+  return vod;
+}
+
+/* Checks and initializes the navigation modal operation. */
+static int view3d_navigation_invoke(bContext *C,
+                                    ViewOpsData *vod,
+                                    const wmEvent *event,
+                                    struct wmKeyMapItem *kmi,
+                                    eV3D_OpMode nav_type)
+{
+  switch (nav_type) {
+    case V3D_OP_MODE_ZOOM:
+      if (!view3d_zoom_or_dolly_poll(C)) {
+        return OPERATOR_CANCELLED;
+      }
+      break;
+    case V3D_OP_MODE_MOVE:
+    case V3D_OP_MODE_VIEW_PAN:
+      if (!view3d_location_poll(C)) {
+        return OPERATOR_CANCELLED;
+      }
+      break;
+    case V3D_OP_MODE_ROTATE:
+      if (!view3d_rotation_poll(C)) {
+        return OPERATOR_CANCELLED;
+      }
+      break;
+    case V3D_OP_MODE_VIEW_ROLL:
+    case V3D_OP_MODE_DOLLY:
+#ifdef WITH_INPUT_NDOF
+    case V3D_OP_MODE_NDOF_ORBIT:
+    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
+#endif
+    case V3D_OP_MODE_NONE:
+      break;
+  }
+
+  return view3d_navigation_invoke_generic(C, vod, event, kmi->ptr, nav_type);
+}
+
+bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event)
+{
+  if (!vod) {
+    return false;
+  }
+
+  wmEvent event_tmp;
+  if (event->type == EVT_MODAL_MAP) {
+    /* Workaround to use the original event values. */
+    event_tmp = *event;
+    event_tmp.type = event->prev_type;
+    event_tmp.val = event->prev_val;
+    event = &event_tmp;
+  }
+
+  int op_return = OPERATOR_CANCELLED;
+
+  if (vod->is_modal_event) {
+    const eV3D_OpEvent event_code = view3d_navigate_event(vod, event);
+    op_return = view3d_navigation_modal(C, vod, event_code, event->xy);
+    if (op_return != OPERATOR_RUNNING_MODAL) {
+      viewops_data_end_navigation(C, vod);
+      vod->is_modal_event = false;
+    }
+  }
+  else {
+    eV3D_OpMode nav_type;
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod->keymap->items) {
+      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
+        continue;
+      }
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+      if ((nav_type = view3d_navigation_type_from_idname(kmi->idname)) == V3D_OP_MODE_NONE) {
+        continue;
+      }
+      if (!WM_event_match(event, kmi)) {
+        continue;
+      }
+
+      op_return = view3d_navigation_invoke(C, vod, event, kmi, nav_type);
+      if (op_return == OPERATOR_RUNNING_MODAL) {
+        vod->is_modal_event = true;
+      }
+      else {
+        viewops_data_end_navigation(C, vod);
+      }
+      break;
+    }
+  }
+
+  if (op_return != OPERATOR_CANCELLED) {
+    /* Although #ED_view3d_update_viewmat is already called when redrawing the 3D View, do it here
+     * as well, so the updated matrix values can be accessed by the operator. */
+    ED_view3d_update_viewmat(
+        vod->depsgraph, vod->scene, vod->v3d, vod->region, NULL, NULL, NULL, false);
+
+    return true;
+  }
+  return false;
+}
+
+void ED_view3d_navigation_free(bContext *C, ViewOpsData *vod)
+{
+  viewops_data_free(C, vod);
 }
 
 /** \} */

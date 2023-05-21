@@ -7,7 +7,7 @@
  */
 
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_world.h"
 #include "DEG_depsgraph_query.h"
 #include "NOD_shader.h"
@@ -57,6 +57,25 @@ bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
  *
  * \{ */
 
+World::~World()
+{
+  if (default_world_ != nullptr) {
+    BKE_id_free(nullptr, default_world_);
+  }
+}
+
+::World *World::default_world_get()
+{
+  if (default_world_ == nullptr) {
+    default_world_ = static_cast<::World *>(BKE_id_new_nomain(ID_WO, "EEVEEE default world"));
+    copy_v3_fl(&default_world_->horr, 0.0f);
+    default_world_->use_nodes = 0;
+    default_world_->nodetree = nullptr;
+    BLI_listbase_clear(&default_world_->gpumaterial);
+  }
+  return default_world_;
+}
+
 void World::sync()
 {
   // if (inst_.lookdev.sync_world()) {
@@ -65,8 +84,7 @@ void World::sync()
 
   ::World *bl_world = inst_.scene->world;
   if (bl_world == nullptr) {
-    // bl_world = BKE_world_default();
-    return;
+    bl_world = default_world_get();
   }
 
   WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);

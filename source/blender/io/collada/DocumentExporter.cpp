@@ -228,15 +228,14 @@ int DocumentExporter::exportCurrentScene()
   asset.getContributor().mAuthor = "Blender User";
   char version_buf[128];
 #ifdef WITH_BUILDINFO
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "Blender %s commit date:%s, commit time:%s, hash:%s",
-               BKE_blender_version_string(),
-               build_commit_date,
-               build_commit_time,
-               build_hash);
+  SNPRINTF(version_buf,
+           "Blender %s commit date:%s, commit time:%s, hash:%s",
+           BKE_blender_version_string(),
+           build_commit_date,
+           build_commit_time,
+           build_hash);
 #else
-  BLI_snprintf(version_buf, sizeof(version_buf), "Blender %s", BKE_blender_version_string());
+  SNPRINTF(version_buf, "Blender %s", BKE_blender_version_string());
 #endif
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();
@@ -303,7 +302,7 @@ int DocumentExporter::exportCurrentScene()
 
   /* Finally move the created document into place */
   fprintf(stdout, "Collada export to: %s\n", this->export_settings.get_filepath());
-  int status = BLI_rename(native_filename.c_str(), this->export_settings.get_filepath());
+  int status = BLI_rename_overwrite(native_filename.c_str(), this->export_settings.get_filepath());
   if (status != 0) {
     status = BLI_copy(native_filename.c_str(), this->export_settings.get_filepath());
     BLI_delete(native_filename.c_str(), false, false);

@@ -61,6 +61,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_pointcache_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_pointcloud_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_rigidbody_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_screen_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sdna_types.h

@@ -100,6 +100,10 @@ struct LightTreeMeasure {
   /* Taken from Eq. 2 in the paper. */
   __forceinline float calculate()
   {
+    if (is_zero()) {
+      return 0.0f;
+    }
+
     float area = bbox.area();
     float area_measure = area == 0 ? len(bbox.size()) : area;
     return energy * area_measure * bcone.calculate_measure();
@@ -231,12 +235,27 @@ struct LightTreeNode {
     return std::get<Leaf>(variant_type);
   }
 
+  __forceinline const Leaf &get_leaf() const
+  {
+    return std::get<Leaf>(variant_type);
+  }
+
   __forceinline Inner &get_inner()
   {
     return std::get<Inner>(variant_type);
   }
 
+  __forceinline const Inner &get_inner() const
+  {
+    return std::get<Inner>(variant_type);
+  }
+
   __forceinline Instance &get_instance()
+  {
+    return std::get<Instance>(variant_type);
+  }
+
+  __forceinline const Instance &get_instance() const
   {
     return std::get<Instance>(variant_type);
   }
@@ -349,9 +368,9 @@ class LightTree {
     return emitters_.size();
   }
 
-  const LightTreeEmitter &get_emitter(int index) const
+  const LightTreeEmitter *get_emitters() const
   {
-    return emitters_.at(index);
+    return emitters_.data();
   }
 
  private:

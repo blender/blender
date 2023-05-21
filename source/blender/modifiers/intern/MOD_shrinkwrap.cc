@@ -52,7 +52,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (smd->vgroup_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }

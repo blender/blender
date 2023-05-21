@@ -235,12 +235,12 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
 
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     if (seq->strip) {
-      BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
+      BLI_strncpy(ed->act_imagedir, seq->strip->dirpath, FILE_MAXDIR);
     }
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
     if (seq->strip) {
-      BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
+      BLI_strncpy(ed->act_sounddir, seq->strip->dirpath, FILE_MAXDIR);
     }
   }
   seq->flag |= SELECT;
@@ -570,12 +570,12 @@ static void sequencer_select_set_active(Scene *scene, Sequence *seq)
 
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     if (seq->strip) {
-      BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
+      BLI_strncpy(ed->act_imagedir, seq->strip->dirpath, FILE_MAXDIR);
     }
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
     if (seq->strip) {
-      BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
+      BLI_strncpy(ed->act_sounddir, seq->strip->dirpath, FILE_MAXDIR);
     }
   }
   recurs_sel_seq(seq);
@@ -1893,7 +1893,7 @@ static bool select_grouped_data(SeqCollection *strips,
                                 const int channel)
 {
   bool changed = false;
-  const char *dir = actseq->strip ? actseq->strip->dir : NULL;
+  const char *dirpath = actseq->strip ? actseq->strip->dirpath : NULL;
 
   if (!SEQ_USE_DATA(actseq)) {
     return changed;
@@ -1901,10 +1901,10 @@ static bool select_grouped_data(SeqCollection *strips,
 
   Sequence *seq;
 
-  if (SEQ_HAS_PATH(actseq) && dir) {
+  if (SEQ_HAS_PATH(actseq) && dirpath) {
     SEQ_ITERATOR_FOREACH (seq, strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip &&
-          STREQ(seq->strip->dir, dir))
+          STREQ(seq->strip->dirpath, dirpath))
       {
         seq->flag |= SELECT;
         changed = true;

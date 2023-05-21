@@ -617,7 +617,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     BLI_string_flip_side_name(name, chan->name, false, sizeof(name));
   }
   else {
-    BLI_strncpy(name, chan->name, sizeof(name));
+    STRNCPY(name, chan->name);
   }
 
   /* only copy when:
@@ -1360,7 +1360,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       /* execute animation step for current frame using a dummy copy of the pose */
       BKE_pose_copy_data(&dummyPose, ob->pose, 0);
 
-      BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
+      STRNCPY(workob.id.name, "OB<ClearTfmWorkOb>");
       workob.type = OB_ARMATURE;
       workob.data = ob->data;
       workob.adt = ob->adt;

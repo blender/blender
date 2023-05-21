@@ -73,6 +73,7 @@ set(SRC
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_texture.cc
   cached_resources/intern/morphological_distance_feather_weights.cc
+  cached_resources/intern/ocio_color_space_conversion_shader.cc
   cached_resources/intern/smaa_precomputed_textures.cc
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
@@ -81,6 +82,7 @@ set(SRC
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_texture.hh
   cached_resources/COM_morphological_distance_feather_weights.hh
+  cached_resources/COM_ocio_color_space_conversion_shader.hh
   cached_resources/COM_smaa_precomputed_textures.hh
   cached_resources/COM_symmetric_blur_weights.hh
   cached_resources/COM_symmetric_separable_blur_weights.hh
@@ -132,6 +134,7 @@ set(GLSL_SRC
   shaders/compositor_normalize.glsl
   shaders/compositor_parallel_reduction.glsl
   shaders/compositor_plane_deform.glsl
+  shaders/compositor_plane_deform_motion_blur.glsl
   shaders/compositor_projector_lens_distortion.glsl
   shaders/compositor_read_pass.glsl
   shaders/compositor_realize_on_domain.glsl
@@ -172,6 +175,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_main.glsl
   shaders/library/gpu_shader_compositor_map_value.glsl
   shaders/library/gpu_shader_compositor_normal.glsl
+  shaders/library/gpu_shader_compositor_ocio_processor.glsl
   shaders/library/gpu_shader_compositor_posterize.glsl
   shaders/library/gpu_shader_compositor_separate_combine.glsl
   shaders/library/gpu_shader_compositor_set_alpha.glsl
@@ -231,6 +235,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_normalize_info.hh
   shaders/infos/compositor_parallel_reduction_info.hh
   shaders/infos/compositor_plane_deform_info.hh
+  shaders/infos/compositor_plane_deform_motion_blur_info.hh
   shaders/infos/compositor_projector_lens_distortion_info.hh
   shaders/infos/compositor_read_pass_info.hh
   shaders/infos/compositor_realize_on_domain_info.hh
@@ -264,6 +269,20 @@ if(WITH_TBB)
     # that will collide with the stl versions.
     add_definitions(-DNOMINMAX)
   endif()
+endif()
+
+if(WITH_OPENCOLORIO)
+  add_definitions(
+    -DWITH_OCIO
+  )
+
+  list(APPEND INC_SYS
+    ${OPENCOLORIO_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${OPENCOLORIO_LIBRARIES}
+  )
 endif()
 
 blender_add_lib(bf_realtime_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

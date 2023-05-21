@@ -56,10 +56,14 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
    *   or dot(sd->Ng, ray_D)  is small. Detect such cases and skip test?
    * - Instead of ray offset, can we tweak P to lie within the triangle?
    */
-  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x),
-                      tri_b = kernel_data_fetch(tri_verts, tri_vindex.y),
-                      tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+  float3 verts[3];
+  if (sd->type == PRIMITIVE_TRIANGLE) {
+    triangle_vertices(kg, sd->prim, verts);
+  }
+  else {
+    kernel_assert(sd->type == PRIMITIVE_MOTION_TRIANGLE);
+    motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, verts);
+  }
 
   float3 local_ray_P = ray_P;
   float3 local_ray_D = ray_D;
@@ -70,7 +74,7 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
     local_ray_D = transform_direction(&itfm, local_ray_D);
   }
 
-  if (ray_triangle_intersect_self(local_ray_P, local_ray_D, tri_a, tri_b, tri_c)) {
+  if (ray_triangle_intersect_self(local_ray_P, local_ray_D, verts)) {
     return ray_P;
   }
   else {

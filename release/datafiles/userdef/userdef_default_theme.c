@@ -567,6 +567,7 @@ const bTheme U_theme_default = {
     .handle_vertex_size = 4,
     .anim_active = RGBA(0x4d272766),
     .anim_preview_range = RGBA(0xa14d0066),
+    .simulated_frames = RGBA(0x721e65ff),
   },
   .space_nla = {
     .back = RGBA(0x30303000),

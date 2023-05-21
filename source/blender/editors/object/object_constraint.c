@@ -182,7 +182,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
+  STRNCPY(buf, "Scripts: %t|[None]%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */
@@ -201,7 +201,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
     if (BPY_is_pyconstraint(text)) {
       BLI_dynstr_append(pupds, text->id.name + 2);
 
-      BLI_snprintf(buf, sizeof(buf), "%%x%d", i);
+      SNPRINTF(buf, "%%x%d", i);
       BLI_dynstr_append(pupds, buf);
 
       if (text->id.next) {
@@ -269,7 +269,7 @@ static void set_constraint_nth_target(bConstraint *con,
     for (ct = targets.first, i = 0; ct; ct = ct->next, i++) {
       if (i == index) {
         ct->tar = target;
-        BLI_strncpy(ct->subtarget, subtarget, sizeof(ct->subtarget));
+        STRNCPY(ct->subtarget, subtarget);
         break;
       }
     }
@@ -779,6 +779,9 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 
   if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
     list = ED_object_pose_constraint_list(C);
+    if (!list) {
+      return NULL;
+    }
   }
   else {
     list = &ob->constraints;

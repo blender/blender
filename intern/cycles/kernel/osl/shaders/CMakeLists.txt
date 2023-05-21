@@ -6,7 +6,6 @@
 set(SRC_OSL
   node_add_closure.osl
   node_ambient_occlusion.osl
-  node_anisotropic_bsdf.osl
   node_attribute.osl
   node_background.osl
   node_bevel.osl

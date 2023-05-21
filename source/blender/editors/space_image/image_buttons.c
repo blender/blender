@@ -75,10 +75,10 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
   LISTBASE_FOREACH_INDEX (RenderSlot *, slot, &image->renderslots, slot_id) {
     char str[64];
     if (slot->name[0] != '\0') {
-      BLI_strncpy(str, slot->name, sizeof(str));
+      STRNCPY(str, slot->name);
     }
     else {
-      BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), slot_id + 1);
+      SNPRINTF(str, IFACE_("Slot %d"), slot_id + 1);
     }
     uiDefButS(block,
               UI_BTYPE_BUT_MENU,
@@ -587,10 +587,10 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
     char str[64];
     RenderSlot *slot = BKE_image_get_renderslot(image, *render_slot);
     if (slot && slot->name[0] != '\0') {
-      BLI_strncpy(str, slot->name, sizeof(str));
+      STRNCPY(str, slot->name);
     }
     else {
-      BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), *render_slot + 1);
+      SNPRINTF(str, IFACE_("Slot %d"), *render_slot + 1);
     }
 
     rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
@@ -946,7 +946,7 @@ void uiTemplateImage(uiLayout *layout,
           void *lock;
           ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
-          if (ibuf && ibuf->rect_float && (ibuf->flags & IB_halffloat) == 0) {
+          if (ibuf && ibuf->float_buffer.data && (ibuf->flags & IB_halffloat) == 0) {
             uiItemR(col, &imaptr, "use_half_precision", 0, NULL, ICON_NONE);
           }
           BKE_image_release_ibuf(ima, ibuf, lock);
@@ -1200,7 +1200,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_("%d x %d, "), ibuf->x, ibuf->y);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (ibuf->channels != 4) {
         ofs += BLI_snprintf_rlen(
             str + ofs, len - ofs, TIP_("%d float channel(s)"), ibuf->channels);
@@ -1220,7 +1220,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
         ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGB byte"), len - ofs);
       }
     }
-    if (ibuf->zbuf || ibuf->zbuf_float) {
+    if (ibuf->z_buffer.data || ibuf->float_z_buffer.data) {
       ofs += BLI_strncpy_rlen(str + ofs, TIP_(" + Z"), len - ofs);
     }
 
@@ -1249,17 +1249,17 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
     if (duration > 0) {
       /* Movie duration */
-      BLI_snprintf(str, MAX_IMAGE_INFO_LEN, TIP_("Frame %d / %d"), framenr, duration);
+      SNPRINTF(str, TIP_("Frame %d / %d"), framenr, duration);
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
       const char *filename = BLI_path_slash_rfind(ibuf->filepath);
       filename = (filename == NULL) ? ibuf->filepath : filename + 1;
-      BLI_snprintf(str, MAX_IMAGE_INFO_LEN, TIP_("Frame %d: %s"), framenr, filename);
+      SNPRINTF(str, TIP_("Frame %d: %s"), framenr, filename);
     }
     else {
       /* Frame number */
-      BLI_snprintf(str, MAX_IMAGE_INFO_LEN, TIP_("Frame %d"), framenr);
+      SNPRINTF(str, TIP_("Frame %d"), framenr);
     }
 
     uiItemL(col, str, ICON_NONE);

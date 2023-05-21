@@ -147,6 +147,9 @@ class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer_eevee, "use_pass_bloom", text="Bloom")
         col.active = scene_eevee.use_bloom
 
+        col = layout.column()
+        col.prop(view_layer_eevee, "use_pass_transparent")
+
 
 class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
     bl_label = "Shader AOV"

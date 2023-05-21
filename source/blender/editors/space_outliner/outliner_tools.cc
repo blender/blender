@@ -730,7 +730,7 @@ static void merged_element_search_fn_recursive(
 
     if (tree_element_id_type_to_index(te) == type && tselem_type == tselem->type) {
       if (BLI_strcasestr(te->name, str)) {
-        BLI_strncpy(name, te->name, 64);
+        STRNCPY(name, te->name);
 
         iconid = tree_element_get_icon(tselem, te).icon;
 

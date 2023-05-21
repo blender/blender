@@ -1185,6 +1185,9 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     return NULL;
   }
 
+  /* If the given idname is an alias, translate it to the proper idname. */
+  type = nodeTypeFindAlias(type);
+
   ntype = nodeTypeFind(type);
   if (!ntype) {
     BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type);
@@ -1863,7 +1866,10 @@ static void rna_Node_draw_buttons_ext(struct uiLayout *layout, bContext *C, Poin
   RNA_parameter_list_free(&list);
 }
 
-static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen)
+static void rna_Node_draw_label(const bNodeTree *ntree,
+                                const bNode *node,
+                                char *label,
+                                int label_maxncpy)
 {
   extern FunctionRNA rna_Node_draw_label_func;
 
@@ -1881,7 +1887,7 @@ static void rna_Node_draw_label(const bNodeTree *ntree, const bNode *node, char 
 
   RNA_parameter_get_lookup(&list, "label", &ret);
   rlabel = (char *)ret;
-  BLI_strncpy(label, rlabel != NULL ? rlabel : "", maxlen);
+  BLI_strncpy(label, rlabel != NULL ? rlabel : "", label_maxncpy);
 
   RNA_parameter_list_free(&list);
 }
@@ -2472,9 +2478,9 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(node->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, node->name, sizeof(node->name));
+  STRNCPY(oldname, node->name);
   /* set new name */
-  BLI_strncpy_utf8(node->name, value, sizeof(node->name));
+  STRNCPY_UTF8(node->name, value);
 
   nodeUniqueName(ntree, node);
 
@@ -2682,13 +2688,6 @@ static void rna_Node_width_range(
   bNode *node = ptr->data;
   *min = *softmin = node->typeinfo->minwidth;
   *max = *softmax = node->typeinfo->maxwidth;
-}
-
-static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value)) {}
-
-static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
-{
-  return 0.0f;
 }
 
 static void rna_Node_height_range(
@@ -4350,7 +4349,7 @@ static void rna_ShaderNodeTexIES_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_IES_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4375,7 +4374,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
       Text *text = (Text *)node->id;
 
       if (value == NODE_SCRIPT_EXTERNAL && text->filepath) {
-        BLI_strncpy(nss->filepath, text->filepath, sizeof(nss->filepath));
+        STRNCPY(nss->filepath, text->filepath);
         BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
       }
 
@@ -4592,9 +4591,7 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self, Depsgraph *depsgraph)
     pd->source = TEX_PD_OBJECT;
     pd->ob_cache_space = TEX_PD_OBJECTSPACE;
     pd->ob_color_source = point_density_vertex_color_source_from_shader(shader_point_density);
-    BLI_strncpy(pd->vertex_attribute_name,
-                shader_point_density->vertex_attribute_name,
-                sizeof(pd->vertex_attribute_name));
+    STRNCPY(pd->vertex_attribute_name, shader_point_density->vertex_attribute_name);
   }
 
   /* Store resolution, so it can be changed in the UI. */
@@ -4672,7 +4669,7 @@ static void rna_NodeConvertColorSpace_from_color_space_set(struct PointerRNA *pt
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->from_color_space, name, sizeof(node_storage->from_color_space));
+    STRNCPY(node_storage->from_color_space, name);
   }
 }
 static int rna_NodeConvertColorSpace_to_color_space_get(struct PointerRNA *ptr)
@@ -4689,7 +4686,7 @@ static void rna_NodeConvertColorSpace_to_color_space_set(struct PointerRNA *ptr,
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(node_storage->to_color_space, name, sizeof(node_storage->to_color_space));
+    STRNCPY(node_storage->to_color_space, name);
   }
 }
 
@@ -4746,11 +4743,6 @@ static const EnumPropertyItem node_ycc_items[] = {
 };
 
 static const EnumPropertyItem node_glossy_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
@@ -4760,28 +4752,10 @@ static const EnumPropertyItem node_glossy_items[] = {
      "Multiscatter GGX",
      "Slower than GGX but gives a more energy conserving results, which would otherwise be "
      "visible as excessive darkening"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem node_anisotropic_items[] = {
-    {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
-    {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
-    {SHD_GLOSSY_MULTI_GGX,
-     "MULTI_GGX",
-     0,
-     "Multiscatter GGX",
-     "Slower than GGX but gives a more energy conserving results, which would otherwise be "
-     "visible as excessive darkening"},
-    {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_glass_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_MULTI_GGX,
@@ -4794,11 +4768,6 @@ static const EnumPropertyItem node_glass_items[] = {
 };
 
 static const EnumPropertyItem node_refraction_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {0, NULL, 0, NULL, NULL},
@@ -6092,6 +6061,7 @@ static void def_sh_tex_wireframe(StructRNA *srna)
   prop = RNA_def_property(srna, "use_pixel_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
   RNA_def_property_ui_text(prop, "Pixel Size", "Use screen pixel size instead of world units");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -6302,17 +6272,6 @@ static void def_refraction(StructRNA *srna)
   prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, node_refraction_items);
-  RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_anisotropic(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
-  RNA_def_property_enum_items(prop, node_anisotropic_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -9212,12 +9171,12 @@ static void def_cmp_planetrackdeform(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CMP_NODEFLAG_PLANETRACKDEFORM_MOTION_BLUR);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR);
   RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 1, CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX);
+  RNA_def_property_range(prop, 1, CMP_NODE_PLANE_TRACK_DEFORM_MOTION_BLUR_SAMPLES_MAX);
   RNA_def_property_ui_text(prop, "Samples", "Number of motion blur samples");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -9957,7 +9916,7 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Attribute Domain",
-      "Attribute domain where the attribute domain is stored in the simulation state");
+      "Attribute domain where the attribute is stored in the simulation state");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_SimulationStateItem_update");
 
@@ -10998,6 +10957,44 @@ static void def_geo_attribute_capture(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_sample_volume(StructRNA *srna)
+{
+  static const EnumPropertyItem interpolation_mode_items[] = {
+      {GEO_NODE_SAMPLE_VOLUME_INTERPOLATION_MODE_NEAREST, "NEAREST", 0, "Nearest Neighbor", ""},
+      {GEO_NODE_SAMPLE_VOLUME_INTERPOLATION_MODE_TRILINEAR, "TRILINEAR", 0, "Trilinear", ""},
+      {GEO_NODE_SAMPLE_VOLUME_INTERPOLATION_MODE_TRIQUADRATIC,
+       "TRIQUADRATIC",
+       0,
+       "Triquadratic",
+       ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem grid_type_items[] = {
+      {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
+      {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
+      {CD_PROP_INT32, "INT", 0, "Integer", "32-bit integer"},
+      {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometrySampleVolume", "storage");
+
+  prop = RNA_def_property(srna, "interpolation_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, interpolation_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Interpolation Mode", "How to interpolate the values from neighboring voxels");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "grid_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, grid_type_items);
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Grid Type", "Type of grid to sample data from");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+}
+
 static void def_geo_image(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -11239,17 +11236,6 @@ static void def_geo_viewer(StructRNA *srna)
   RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
   RNA_def_property_ui_text(prop, "Domain", "Domain to evaluate the field on");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_geo_realize_instances(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "legacy_behavior", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom1", GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR);
-  RNA_def_property_ui_text(
-      prop, "Legacy Behavior", "Behave like before instance attributes existed");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
 static void def_geo_evaluate_at_index(StructRNA *srna)
@@ -12577,13 +12563,6 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
   RNA_def_property_ui_text(prop, "Width", "Width of the node");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
-
-  prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_funcs(
-      prop, "rna_Node_width_hidden_get", "rna_Node_width_hidden_set", "rna_Node_width_range");
-  RNA_def_property_ui_text(
-      prop, "Width Hidden", "Deprecated width of the node when it is collapsed");
-  RNA_def_property_update(prop, 0, NULL);
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "height");

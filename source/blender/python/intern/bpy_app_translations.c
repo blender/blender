@@ -267,7 +267,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
   if (!STREQ(tmp, locale) || !_translations_cache) {
     PyGILState_STATE _py_state;
 
-    BLI_strncpy(locale, tmp, STATIC_LOCALE_SIZE);
+    STRNCPY(locale, tmp);
 
     /* Locale changed or cache does not exist, refresh the whole cache! */
     /* This func may be called from C (i.e. outside of python interpreter 'context'). */

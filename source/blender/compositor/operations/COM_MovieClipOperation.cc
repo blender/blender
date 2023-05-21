@@ -36,7 +36,7 @@ void MovieClipBaseOperation::init_execution()
 
     if (ibuf) {
       movie_clip_buffer_ = ibuf;
-      if (ibuf->rect_float == nullptr || ibuf->userflags & IB_RECT_INVALID) {
+      if (ibuf->float_buffer.data == nullptr || ibuf->userflags & IB_RECT_INVALID) {
         IMB_float_from_rect(ibuf);
         ibuf->userflags &= ~IB_RECT_INVALID;
       }
@@ -73,7 +73,7 @@ void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
   if (ibuf == nullptr) {
     zero_v4(output);
   }
-  else if (ibuf->rect == nullptr && ibuf->rect_float == nullptr) {
+  else if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) {
     /* Happens for multi-layer EXR, i.e. */
     zero_v4(output);
   }

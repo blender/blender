@@ -169,6 +169,32 @@ TEST(math_rotation, quat_split_swing_and_twist_negative)
   EXPECT_V4_NEAR(twist, expected_twist, FLT_EPSILON);
 }
 
+TEST(math_rotation, mat3_normalized_to_quat_fast_degenerate)
+{
+  /* This input will cause floating point issues, which would produce a non-unit
+   * quaternion if the call to `normalize_qt` were to be removed. This
+   * particular matrix was taken from a production file of Pet Projects that
+   * caused problems. */
+  const float input[3][3] = {
+      {1.0000000000, -0.0000006315, -0.0000000027},
+      {0.0000009365, 1.0000000000, -0.0000000307},
+      {0.0000001964, 0.2103530765, 0.9776254892},
+  };
+  const float expect_quat[4] = {
+      0.99860459566116333,
+      -0.052810292690992355,
+      4.9985139582986449e-08,
+      -3.93654971730939e-07,
+  };
+  ASSERT_FLOAT_EQ(1.0f, dot_qtqt(expect_quat, expect_quat))
+      << "expected quaternion should be normal";
+
+  float actual_quat[4];
+  mat3_normalized_to_quat_fast(actual_quat, input);
+  EXPECT_FLOAT_EQ(1.0f, dot_qtqt(actual_quat, actual_quat));
+  EXPECT_V4_NEAR(expect_quat, actual_quat, FLT_EPSILON);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Test `sin_cos_from_fraction` Accuracy & Exact Symmetry
  * \{ */

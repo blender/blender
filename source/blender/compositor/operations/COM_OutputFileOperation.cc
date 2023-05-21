@@ -225,7 +225,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
     format_.linear_colorspace_settings.name[0] = '\0';
   }
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
 
   view_name_ = view_name;
   save_as_render_ = save_as_render;
@@ -257,9 +257,9 @@ void OutputSingleLayerOperation::deinit_execution()
     const char *suffix;
 
     ibuf->channels = size;
-    ibuf->rect_float = output_buffer_;
-    ibuf->mall |= IB_rectfloat;
     ibuf->dither = rd_->dither_intensity;
+
+    IMB_assign_float_buffer(ibuf, output_buffer_, IB_TAKE_OWNERSHIP);
 
     IMB_colormanagement_imbuf_for_write(ibuf, save_as_render_, false, &format_);
 
@@ -307,7 +307,7 @@ void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*o
 
 OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
 {
-  BLI_strncpy(this->name, name_, sizeof(this->name));
+  STRNCPY(this->name, name_);
   this->datatype = datatype_;
   this->use_layer = use_layer_;
 
@@ -328,7 +328,7 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *
   rd_ = rd;
   tree_ = tree;
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
   exr_codec_ = exr_codec;
   exr_half_float_ = exr_half_float;
   view_name_ = view_name;
@@ -453,15 +453,14 @@ void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer
                                                                     const rcti &area,
                                                                     Span<MemoryBuffer *> inputs)
 {
-  const MemoryBuffer *input_image = inputs[0];
   for (int i = 0; i < layers_.size(); i++) {
     OutputOpenExrLayer &layer = layers_[i];
+    int layer_num_channels = COM_data_type_num_channels(layer.datatype);
     if (layer.output_buffer) {
-      MemoryBuffer output_buf(layer.output_buffer,
-                              COM_data_type_num_channels(layer.datatype),
-                              this->get_width(),
-                              this->get_height());
-      output_buf.copy_from(input_image, area);
+      MemoryBuffer output_buf(
+          layer.output_buffer, layer_num_channels, this->get_width(), this->get_height());
+      /* Input node always has 4 channels. Not all are needed depending on datatype. */
+      output_buf.copy_from(inputs[i], area, 0, layer_num_channels, 0);
     }
   }
 }

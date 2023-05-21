@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -2627,10 +2627,6 @@ msgid "Vertex group for fine control over bending stiffness"
 msgstr "ءﺎﻨﺤﻧﻹ﻿ﺍ ﺔﺑﻼ﻿ﺼﺑ ﻖﻴﻗﺪﻟﺍ ﻢﻜﺤﺘﻠﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "Mass Vertex Group"
-msgstr "ﺔﻠﺘﻜﻟﺍ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻣ"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
@@ -4798,10 +4794,6 @@ msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ"
 
 msgid "Map To"
 msgstr "ﻰﻟﺍ ﻂﻄﺧ"
-
-
-msgid "The transformation type to affect of the constrained object"
-msgstr " ﺪﻴﻘﻤﻟﺍ ﻦﺋﺎﻜﻟﺍ ﻲﻓ ﺮﻴﺛﺄﺘﻠﻟ ﻞﻳﻮﺤﺘﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Map To X From"
@@ -7069,16 +7061,8 @@ msgid "Maximum distance for the field to work"
 msgstr "ﻞﻘﺤﻟﺍ ﻞﻤﻌﻴﻟ ﻯﻮﺼﻘﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺝﺭﺪﺘﻟ ﺎﻴﻧﺪﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgid "Falloff Power"
 msgstr "ﺝﺭﺪﺘﻟﺍ ﺓﻮﻗ"
-
-
-msgid "Fall-Off"
-msgstr "ﺝﺭﺪﺗ"
 
 
 msgid "Cone"
@@ -7233,10 +7217,6 @@ msgid "Minimum Radial Distance"
 msgstr "ﺎﻴﻧﺪﻟﺍ ﺔﻴﻋﺎﻌﺸﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
 
 
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺝﺭﺪﺘﻟ ﺎﻴﻧﺪﻟﺍ ﺔﻴﻋﺎﻌﺸﻟﺍ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgid "Rest Length"
 msgstr "ﺔﻴﻘﺒﻟﺍ ﺩﺍﺪﺘﻣﺍ"
 
@@ -7389,16 +7369,8 @@ msgid "Use Min"
 msgstr "ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻰﺷﻼ﻿ﺘﻳ ﺔﻓﺎﺴﻣ ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
 msgid "Multiple Springs"
 msgstr "ﺓﺩﺪﻌﺘﻣ ﺭﺩﺎﺼﻣ"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "ﺭﺩﺎﺼﻣ ﺓﺪﻋ ﺎﻬﻴﻠﻋ ﺮﺛﺆﻳ ﺔﻄﻘﻧ ﻞﻛ"
 
 
 msgid "Use Coordinates"
@@ -7411,10 +7383,6 @@ msgstr "ﺞﻴﺴﻨﻠﻟ ﺔﻴﻤﻟﺎﻋ/ﻦﺋﺎﻛ ﺕﺎﻴﺛﺍﺪﺣ
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻞﻐﺘﺸﻳ ﺔﻴﻋﺎﻌﺷ ﺔﻓﺎﺴﻣ ﻰﺼﻗﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "ﻞﻘﺤﻟﺍ ﺎﻬﻴﻓ ﻰﺷﻼ﻿ﺘﻳ ﺔﻴﻋﺎﻌﺷ ﺔﻓﺎﺴﻣ ﻰﻧﺩﺃ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Root Texture Coordinates"
@@ -9211,14 +9179,6 @@ msgid "Armature layer visibility"
 msgstr "ﻞﻜﻴﻬﻟﺍ ﺔﻘﻃ ﺔﻳﺮﻫﺎﻇ"
 
 
-msgid "Layer Proxy Protection"
-msgstr "ﻞﻴﻛﻮﻟﺍ ﻦﻣ ﺔﻴﻤﺤﻣ ﺔﻘﻃ"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "ﻊﺟﺍﺮﺘﻟﺍ ﺪﻨﻋ ﻭ ﻒﻠﻤﻟﺍ ﻞﻴﻤﺤﺗ ﺓﺩﺎﻋﺍ ﺪﻨﻋ ﺏﻭﺪﻨﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻻ﻿ ﺏﻭﺪﻨﻤﻟﺍ ﺝﺫﺎﻤﻧ ﻲﻓ ﺏﻭﺪﻨﻤﻟﺍ ﺕﺎﻘﺒﻃ ﻊﺟﺮﺘﺴﺗ"
-
-
 msgid "Pose Position"
 msgstr "ﺔﻔﻗﻮﻟﺍ ﻊﻗﻮﻣ"
 
@@ -9851,10 +9811,6 @@ msgid "Use Plane Trim"
 msgstr "ﺢﻄﺴﻟﺍ ﻢﻴﻠﻘﺗ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Enable Plane Trim"
-msgstr "ﻂﻴﺴﺒﻟﺍ ﺺﻗ ﻞﻌﻓ"
-
-
 msgid "Jitter Pressure"
 msgstr "ﻦﻳﺎﺒﺘﻣ ﻂﻐﺿ"
 
@@ -10377,18 +10333,6 @@ msgstr "ﺔﻛﺮﺤﻠﻟ ﺭﺎﺴﻣ ﺢﺒﺼﻴﻟ ﻰﻨﺤﻨﻤﻟﺍ �
 
 msgid "Follow"
 msgstr "ﻊﺒﺗﺇ"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "ﺭﺎﺴﻤﻟﺍ ﻝﻮﻃ ﻰﻠﻋ ﺭﺎﺴﻤﻟﺍ ﻰﻨﺤﻨﻣ ﻉﻭﺮﻓ ﺭﻭّﺩ"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "ﻊﻳﻮﻄﺘﻟﺍ ﻭ ﻪﺑ ﺭﺎﺴﻤﻟﺍ ﻕﺎﺤﻟﺍ ﻊﻣ ﻰﻨﺤﻨﻤﻟﺍ ﺮﻄﻗ ﻒﺼﻧ ﻖﺒّﻃ :ﻊﻳﻮﻄﺘﻟﺍ ﻰﻨﺤﻨﻣ ﻭ ﺕﺍﺭﺎﺴﻤﻠﻟ ﺭﺎﻴﺧ"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "ﻼ﻿ﻣﺎﻛ ﺭﺎﺴﻤﻟﺍ ﻝﻮﻃ ﻰﻠﻋ ﺩﺪﻤﺘﻳ ﻉﻮّﻄﻤﻟﺍ ﻉﺮﻔﻟﺍ ﻞﻌﺟﺍ :ﻰﻨﺤﻨﻤﻟﺎﺑ ﻊﻳﻮﻄﺘﻠﻟ ﺭﺎﻴﺧ"
 
 
 msgid "Surface Curve"
@@ -21863,10 +21807,6 @@ msgid "Filter folders"
 msgstr "ﺕﺍﺪﻠﺠﻤﻟﺍ ﻲﻔﺻ"
 
 
-msgid "Filter python"
-msgstr "ﻥﻮﺜﻳﺎﺒﻟﺍ ﺕﺎﻔﻠﻣ ﻲﻔﺻ"
-
-
 msgid "Filter text"
 msgstr "ﺺﻨﻟﺍ ﻲﻔﺻ"
 
@@ -22948,10 +22888,6 @@ msgid "Console Execute"
 msgstr "ﺮﻣﺍﻭﻷ﻿ﺍ ﺔﺣﻮﻟ ﺢﺘﻓﺃ"
 
 
-msgid "Execute the current console line as a python expression"
-msgstr "ﻥﻮﺜﻳﺎﺑ ﺮﻴﺒﻌﺘﻛ ﺮﻣﺍﻭﻻ﻿ﺍ ﺔﺣﻮﻟ ﻲﻓ ﻲﻟﺎﺤﻟﺍ ﺮﻄﺴﻟﺍ ﺬﻔّﻧ"
-
-
 msgctxt "Operator"
 msgid "History Append"
 msgstr "ﻞﺠﺴﻟﺍ ﻦﻣ ﻒﺿﺍ"
@@ -23663,11 +23599,6 @@ msgstr "ﻲﻟﺎﺘﻟﺍ ﺪﻠﺠﻤﻟﺍ"
 
 msgid "Move to next folder"
 msgstr "ﻲﻟﺎﺘﻟﺍ ﺪﻠﺠﻤﻟﺍ ﻰﻟﺍ ﻞﻘﻧﺍ"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "ﻞﺻﻻ﻿ﺍ ﻒﻠﻣ"
 
 
 msgctxt "Operator"
@@ -28435,11 +28366,6 @@ msgid "Deinterlace Movies"
 msgstr "ﻡﻼ﻿ﻓﻷ﻿ﺍ ﻲﻓ ﻚﺑﺎﺸﺘﻟﺍ ﻞﻴﻠﻘﺗ"
 
 
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "ﺔﻃﺮﺷﻻ﻿ﺍ ﻑﺬﺣﺍ"
-
-
 msgid "Slide a sequence strip in time"
 msgstr "ﺖﻗﻮﻟﺍ ﻲﻓ ﻞﺴﻠﺴﺗ ﻂﻳﺮﺷ ﻖﻟﺯﺍ"
 
@@ -30629,10 +30555,6 @@ msgstr "ﺮﻴﻔﺸﺗ"
 
 msgid "Audio"
 msgstr "ﺕﻮﺻ"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG ﻝ ﺔﻘﺒﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻹ﻿ﺍ"
 
 
 msgid "Views"
@@ -34470,6 +34392,10 @@ msgid "Stiff Quads"
 msgstr "ﺔﺒﻠﺼﺘﻣ ﺕﺎﻴﻋﺎﺑﺭ"
 
 
+msgid "Mass Vertex Group"
+msgstr "ﺔﻠﺘﻜﻟﺍ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻣ"
+
+
 msgid "Space data type"
 msgstr "ءﺎﻀﻔﻟﺍ ﺕﺎﻧﺎﻴﺑ ﻉﻮﻧ"
 
@@ -35925,10 +35851,6 @@ msgid "Proportional editing object mode"
 msgstr "ﺕﺎﻨﺋﺎﻜﻠﻟ ﻲﺒﺳﺎﻨﺘﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ"
 
 
-msgid "Proportional Editing FCurves"
-msgstr "ﻲﺒﺳﺎﻨﺘﻟﺍ ﺮﻳﺮﺤﺘﻠﻟ ﻞﻤﻋ ﺕﺎﻴﻨﺤﻨﻣ"
-
-
 msgid "Layered"
 msgstr "ﺕﺎﻘﺒﻄﺑ"
 
@@ -36887,10 +36809,6 @@ msgstr "ﻢﺠﺣ ﻞﻗﺃ"
 
 msgid "Extrapolate"
 msgstr "ﻂﺒﻨﺘﺳﺍ"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "ﺎﻴﻟﺎﺣ ﻥﻮﺜﻳﺎﺑ ﺩﻮﻴﻗ 2.6 ﺭﺪﻨﻠﺑ ﻢﻋﺪﻳ ﻻ﻿"
 
 
 msgid "Pivot Offset"
@@ -40092,10 +40010,6 @@ msgstr "ﻲﻠﺧﺍﺩ ﺺﻨﻟﺍ ﻞﻌﺟﺍ"
 
 
 msgid "unknown error writing file"
-msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
-
-
-msgid "unknown error stating file"
 msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
 
 

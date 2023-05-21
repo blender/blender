@@ -141,7 +141,7 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     rv = MEM_cnew<RenderView>("new render view");
     BLI_addtail(&dst->views, rv);
 
-    BLI_strncpy(rv->name, rview->name, sizeof(rv->name));
+    STRNCPY(rv->name, rview->name);
     rv->rectf = rview->rectf;
     rv->rectz = rview->rectz;
     rv->rect32 = rview->rect32;
@@ -203,9 +203,9 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
   rpass->recty = rl->recty;
   rpass->view_id = view_id;
 
-  BLI_strncpy(rpass->name, name, sizeof(rpass->name));
-  BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
-  BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
+  STRNCPY(rpass->name, name);
+  STRNCPY(rpass->chan_id, chan_id);
+  STRNCPY(rpass->view, viewname);
   RE_render_result_full_channel_name(
       rpass->fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, -1);
 
@@ -273,7 +273,7 @@ RenderResult *render_result_new(Render *re,
     rl = MEM_cnew<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
-    BLI_strncpy(rl->name, view_layer->name, sizeof(rl->name));
+    STRNCPY(rl->name, view_layer->name);
     rl->layflag = view_layer->layflag;
 
     rl->passflag = view_layer->passflag;
@@ -513,11 +513,11 @@ static void ml_addpass_cb(void *base,
   rl->passflag |= passtype_from_name(name);
 
   /* channel id chars */
-  BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
+  STRNCPY(rpass->chan_id, chan_id);
 
   rpass->rect = rect;
-  BLI_strncpy(rpass->name, name, EXR_PASS_MAXNAME);
-  BLI_strncpy(rpass->view, view, sizeof(rpass->view));
+  STRNCPY(rpass->name, name);
+  STRNCPY(rpass->view, view);
   RE_render_result_full_channel_name(rpass->fullname, nullptr, name, view, rpass->chan_id, -1);
 
   if (view[0] != '\0') {
@@ -533,7 +533,7 @@ static void *ml_addview_cb(void *base, const char *str)
   RenderResult *rr = static_cast<RenderResult *>(base);
 
   RenderView *rv = MEM_cnew<RenderView>("new render view");
-  BLI_strncpy(rv->name, str, EXR_VIEW_MAXNAME);
+  STRNCPY(rv->name, str);
 
   /* For stereo drawing we need to ensure:
    * STEREO_LEFT_NAME  == STEREO_LEFT_ID and
@@ -656,7 +656,7 @@ void render_result_view_new(RenderResult *rr, const char *viewname)
 {
   RenderView *rv = MEM_cnew<RenderView>("new render view");
   BLI_addtail(&rr->views, rv);
-  BLI_strncpy(rv->name, viewname, sizeof(rv->name));
+  STRNCPY(rv->name, viewname);
 }
 
 void render_result_views_new(RenderResult *rr, const RenderData *rd)
@@ -857,8 +857,8 @@ static void render_result_exr_file_cache_path(Scene *sce,
     BLI_hash_md5_buffer(blendfile_path, strlen(blendfile_path), path_digest);
   }
   else {
-    BLI_strncpy(dirname, BKE_tempdir_base(), sizeof(dirname));
-    BLI_strncpy(filename, "UNSAVED", sizeof(filename));
+    STRNCPY(dirname, BKE_tempdir_base());
+    STRNCPY(filename, "UNSAVED");
   }
   BLI_hash_md5_to_hexdigest(path_digest, path_hexdigest);
 
@@ -867,12 +867,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
     root = BKE_tempdir_base();
   }
 
-  BLI_snprintf(filename_full,
-               sizeof(filename_full),
-               "cached_RR_%s_%s_%s.exr",
-               filename,
-               sce->id.name + 2,
-               path_hexdigest);
+  SNPRINTF(filename_full, "cached_RR_%s_%s_%s.exr", filename, sce->id.name + 2, path_hexdigest);
 
   BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
   if (BLI_path_is_rel(r_path)) {
@@ -936,9 +931,9 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
-  ibuf->rect = (uint *)rv->rect32;
-  ibuf->rect_float = rv->rectf;
-  ibuf->zbuf_float = rv->rectz;
+  IMB_assign_byte_buffer(ibuf, reinterpret_cast<uint8_t *>(rv->rect32), IB_DO_NOT_TAKE_OWNERSHIP);
+  IMB_assign_float_buffer(ibuf, rv->rectf, IB_DO_NOT_TAKE_OWNERSHIP);
+  IMB_assign_float_z_buffer(ibuf, rv->rectz, IB_DO_NOT_TAKE_OWNERSHIP);
 
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;
@@ -946,13 +941,13 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   /* prepare to gamma correct to sRGB color space
    * note that sequence editor can generate 8bpc render buffers
    */
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     if (BKE_imtype_valid_depths(imf->imtype) &
         (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32))
     {
       if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
-        ibuf->rect_float = nullptr;
+        IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
       }
       else {
         IMB_float_from_rect(ibuf);
@@ -960,7 +955,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
     }
     else {
       /* ensure no float buffer remained from previous frame */
-      ibuf->rect_float = nullptr;
+      IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
     }
   }
 
@@ -980,27 +975,27 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     rr->have_combined = true;
 
     if (!rv->rectf) {
       rv->rectf = MEM_cnew_array<float>(4 * rr->rectx * rr->recty, "render_seq rectf");
     }
 
-    memcpy(rv->rectf, ibuf->rect_float, sizeof(float[4]) * rr->rectx * rr->recty);
+    memcpy(rv->rectf, ibuf->float_buffer.data, sizeof(float[4]) * rr->rectx * rr->recty);
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
     MEM_SAFE_FREE(rv->rect32);
   }
-  else if (ibuf->rect) {
+  else if (ibuf->byte_buffer.data) {
     rr->have_combined = true;
 
     if (!rv->rect32) {
       rv->rect32 = MEM_cnew_array<int>(rr->rectx * rr->recty, "render_seq rect");
     }
 
-    memcpy(rv->rect32, ibuf->rect, sizeof(int) * rr->rectx * rr->recty);
+    memcpy(rv->rect32, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
 
     /* Same things as above, old rectf can hang around from previous render. */
     MEM_SAFE_FREE(rv->rectf);

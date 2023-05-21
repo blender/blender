@@ -249,8 +249,7 @@ struct uiBut {
 
   ListBase extra_op_icons = {nullptr, nullptr}; /** #uiButExtraOpIcon */
 
-  /* Drag-able data, type is WM_DRAG_... */
-  char dragtype = WM_DRAG_ID;
+  eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
   ImBuf *imb = nullptr;
@@ -666,11 +665,11 @@ void ui_hsvcube_pos_from_vals(
  */
 void ui_but_string_get_ex(uiBut *but,
                           char *str,
-                          size_t maxlen,
+                          size_t str_maxncpy,
                           int float_precision,
                           bool use_exp_float,
                           bool *r_use_exp_float) ATTR_NONNULL(1, 2);
-void ui_but_string_get(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
+void ui_but_string_get(uiBut *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
 /**
  * A version of #ui_but_string_get_ex for dynamic buffer sizes
  * (where #ui_but_string_get_max_length returns 0).
@@ -681,7 +680,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size);
 /**
  * \param str: will be overwritten.
  */
-void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen) ATTR_NONNULL();
+void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
 bool ui_but_string_eval_number(bContext *C, const uiBut *but, const char *str, double *value)
     ATTR_NONNULL();
@@ -1280,7 +1279,7 @@ void ui_but_anim_paste_driver(bContext *C);
  * \a str can be NULL to only perform check if \a but has an expression at all.
  * \return if button has an expression.
  */
-bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
+bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy);
 bool ui_but_anim_expression_set(uiBut *but, const char *str);
 /**
  * Create new expression for button (i.e. a "scripted driver"), if it can be created.
@@ -1348,7 +1347,7 @@ uiBut *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
 
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
-size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxlen)
+size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxncpy)
     ATTR_NONNULL(1, 2);
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but);
 size_t ui_but_tip_len_only_first_line(const uiBut *but);

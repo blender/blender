@@ -41,17 +41,17 @@ class ImBufMemWriter : public Filesystem::IOProxy {
   {
     /* If buffer is too small increase it. */
     size_t end = offset + size;
-    while (end > ibuf_->encodedbuffersize) {
+    while (end > ibuf_->encoded_buffer_size) {
       if (!imb_enlargeencodedbufferImBuf(ibuf_)) {
         /* Out of memory. */
         return 0;
       }
     }
 
-    memcpy(ibuf_->encodedbuffer + offset, buf, size);
+    memcpy(ibuf_->encoded_buffer.data + offset, buf, size);
 
-    if (end > ibuf_->encodedsize) {
-      ibuf_->encodedsize = end;
+    if (end > ibuf_->encoded_size) {
+      ibuf_->encoded_size = end;
     }
 
     return size;
@@ -59,7 +59,7 @@ class ImBufMemWriter : public Filesystem::IOProxy {
 
   size_t size() const override
   {
-    return ibuf_->encodedsize;
+    return ibuf_->encoded_size;
   }
 
  private:
@@ -116,8 +116,8 @@ static ImBuf *load_pixels(
   const stride_t ibuf_xstride = sizeof(T) * 4;
   const stride_t ibuf_ystride = ibuf_xstride * width;
   const TypeDesc format = is_float ? TypeDesc::FLOAT : TypeDesc::UINT8;
-  uchar *rect = is_float ? reinterpret_cast<uchar *>(ibuf->rect_float) :
-                           reinterpret_cast<uchar *>(ibuf->rect);
+  uchar *rect = is_float ? reinterpret_cast<uchar *>(ibuf->float_buffer.data) :
+                           reinterpret_cast<uchar *>(ibuf->byte_buffer.data);
   void *ibuf_data = rect + ((stride_t(height) - 1) * ibuf_ystride);
 
   bool ok = in->read_image(
@@ -161,7 +161,7 @@ static void set_colorspace_name(char colorspace[IM_MAX_SPACE],
   if (ctx.use_embedded_colorspace) {
     string ics = spec.get_string_attribute("oiio:ColorSpace");
     char file_colorspace[IM_MAX_SPACE];
-    BLI_strncpy(file_colorspace, ics.c_str(), IM_MAX_SPACE);
+    STRNCPY(file_colorspace, ics.c_str());
 
     /* Only use color-spaces that exist. */
     if (colormanage_colorspace_get_named(file_colorspace)) {
@@ -191,7 +191,6 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   ImBuf *ibuf = nullptr;
   if (is_float) {
     ibuf = load_pixels<float>(in, width, height, channels, ctx.flags, use_all_planes);
-    ibuf->channels = 4;
   }
   else {
     ibuf = load_pixels<uchar>(in, width, height, channels, ctx.flags, use_all_planes);
@@ -225,6 +224,9 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
       ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
+        if (attrib.name().find("ICCProfile") != string::npos) {
+          continue;
+        }
         IMB_metadata_set_field(ibuf->metadata, attrib.name().c_str(), attrib.get_string().c_str());
       }
     }
@@ -338,19 +340,19 @@ WriteContext imb_create_write_context(const char *file_format,
 
   const int width = ibuf->x;
   const int height = ibuf->y;
-  const bool use_float = prefer_float && (ibuf->rect_float != nullptr);
+  const bool use_float = prefer_float && (ibuf->float_buffer.data != nullptr);
   if (use_float) {
     const int mem_channels = ibuf->channels ? ibuf->channels : 4;
     ctx.mem_xstride = sizeof(float) * mem_channels;
     ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_start = reinterpret_cast<uchar *>(ibuf->rect_float);
+    ctx.mem_start = reinterpret_cast<uchar *>(ibuf->float_buffer.data);
     ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::FLOAT);
   }
   else {
     const int mem_channels = 4;
     ctx.mem_xstride = sizeof(uchar) * mem_channels;
     ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_start = reinterpret_cast<uchar *>(ibuf->rect);
+    ctx.mem_start = ibuf->byte_buffer.data;
     ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::UINT8);
   }
 

@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -74,7 +75,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_nla.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
@@ -2021,7 +2022,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
 
     /* Auto-name the strip, and give the track an interesting name. */
-    BLI_strncpy(nlt->name, DATA_("SoundTrack"), sizeof(nlt->name));
+    STRNCPY_UTF8(nlt->name, DATA_("SoundTrack"));
     BKE_nlastrip_validate_name(adt, strip);
 
     WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, nullptr);
@@ -2643,7 +2644,7 @@ static void make_object_duplilist_real(bContext *C,
       if (ob_dst_par) {
         /* allow for all possible parent types */
         ob_dst->partype = ob_src->partype;
-        BLI_strncpy(ob_dst->parsubstr, ob_src->parsubstr, sizeof(ob_dst->parsubstr));
+        STRNCPY(ob_dst->parsubstr, ob_src->parsubstr);
         ob_dst->par1 = ob_src->par1;
         ob_dst->par2 = ob_src->par2;
         ob_dst->par3 = ob_src->par3;

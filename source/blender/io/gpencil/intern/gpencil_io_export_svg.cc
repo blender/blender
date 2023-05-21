@@ -90,8 +90,7 @@ void GpencilExporterSVG::create_document_header()
 
   pugi::xml_node comment = main_doc_.append_child(pugi::node_comment);
   char txt[128];
-  BLI_snprintf(
-      txt, sizeof(txt), " Generator: Blender, %s - %s ", SVG_EXPORTER_NAME, SVG_EXPORTER_VERSION);
+  SNPRINTF(txt, " Generator: Blender, %s - %s ", SVG_EXPORTER_NAME, SVG_EXPORTER_VERSION);
   comment.set_value(txt);
 
   pugi::xml_node doctype = main_doc_.append_child(pugi::node_doctype);
@@ -148,7 +147,7 @@ void GpencilExporterSVG::export_gpencil_layers()
     pugi::xml_node ob_node = frame_node_.append_child("g");
 
     char obtxt[96];
-    BLI_snprintf(obtxt, sizeof(obtxt), "blender_object_%s", ob->id.name + 2);
+    SNPRINTF(obtxt, "blender_object_%s", ob->id.name + 2);
     ob_node.append_attribute("id").set_value(obtxt);
 
     /* Use evaluated version to get strokes with modifiers. */
@@ -309,9 +308,11 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
   color_string_set(gpl, gps, node_gps, do_fill);
 
   if (is_stroke && !do_fill) {
-    const float width = MAX2(
-        MAX2(gps->thickness + gpl->line_change, (radius * 2.0f) + gpl->line_change), 1.0f);
-    node_gps.append_attribute("stroke-width").set_value(width);
+    const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
+    const float estimated_width = (radius * 2.0f) + gpl->line_change;
+    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+                                                       estimated_width;
+    node_gps.append_attribute("stroke-width").set_value(MAX2(final_width, 1.0f));
   }
 
   std::string txt;
@@ -406,7 +407,7 @@ std::string GpencilExporterSVG::rgb_to_hexstr(const float color[3])
   uint8_t g = color[1] * 255.0f;
   uint8_t b = color[2] * 255.0f;
   char hex_string[20];
-  BLI_snprintf(hex_string, sizeof(hex_string), "#%02X%02X%02X", r, g, b);
+  SNPRINTF(hex_string, "#%02X%02X%02X", r, g, b);
 
   std::string hexstr = hex_string;
 

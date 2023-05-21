@@ -37,8 +37,8 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curves")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
+  b.add_input<decl::Geometry>("Curves").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_output<decl::Geometry>("Curves").propagate_all();
 }
 
 static void deform_curves(const CurvesGeometry &curves,
@@ -416,6 +416,6 @@ void register_node_type_geo_deform_curves_on_surface()
       &ntype, GEO_NODE_DEFORM_CURVES_ON_SURFACE, "Deform Curves on Surface", NODE_CLASS_GEOMETRY);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 170, 120, 700);
+  blender::bke::node_type_size(&ntype, 170, 120, 700);
   nodeRegisterType(&ntype);
 }

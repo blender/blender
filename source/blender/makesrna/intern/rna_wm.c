@@ -1216,7 +1216,10 @@ static StructRNA *rna_wmKeyConfigPref_refine(PointerRNA *ptr)
 static void rna_wmKeyMapItem_idname_get(PointerRNA *ptr, char *value)
 {
   wmKeyMapItem *kmi = ptr->data;
-  WM_operator_py_idname(value, kmi->idname);
+  /* Pass in a fixed size buffer as the value may be allocated based on the callbacks length. */
+  char value_buf[OP_MAX_TYPENAME];
+  int len = WM_operator_py_idname(value_buf, kmi->idname);
+  memcpy(value, value_buf, len + 1);
 }
 
 static int rna_wmKeyMapItem_idname_length(PointerRNA *ptr)
@@ -1234,7 +1237,7 @@ static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
   WM_operator_bl_idname(idname, value);
 
   if (!STREQ(idname, kmi->idname)) {
-    BLI_strncpy(kmi->idname, idname, sizeof(kmi->idname));
+    STRNCPY(kmi->idname, idname);
 
     WM_keymap_item_properties_reset(kmi, NULL);
   }
@@ -1809,13 +1812,13 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
  * so the internal value may be NULL, without allowing Python to assign `None` which doesn't
  * make any sense in this case.
  */
-#  define OPERATOR_STR_MAYBE_NULL_GETSET(attr, len) \
+#  define OPERATOR_STR_MAYBE_NULL_GETSET(attr, attr_maxncpy) \
     static void rna_Operator_bl_##attr##_set(PointerRNA *ptr, const char *value) \
     { \
       wmOperator *data = (wmOperator *)(ptr->data); \
       char *str = (char *)data->type->attr; \
       if (str && !str[0]) { \
-        BLI_strncpy(str, value, len); /* utf8 already ensured */ \
+        BLI_strncpy(str, value, attr_maxncpy); /* utf8 already ensured */ \
       } \
       else { \
         BLI_assert( \
@@ -1826,13 +1829,13 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
     { \
       const wmOperator *data = (wmOperator *)(ptr->data); \
       const char *str = data->type->attr; \
-      BLI_strncpy(value, str ? str : "", len); \
+      strcpy(value, str ? str : ""); \
     } \
     static int rna_Operator_bl_##attr##_length(PointerRNA *ptr) \
     { \
       const wmOperator *data = (wmOperator *)(ptr->data); \
       const char *str = data->type->attr; \
-      return BLI_strnlen(str ? str : "", len); \
+      return str ? strlen(str) : 0; \
     }
 
 OPERATOR_STR_MAYBE_NULL_GETSET(translation_context, BKE_ST_MAXNAME)

@@ -161,7 +161,7 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
 {
   /* Copy new Modifier name. */
-  BLI_strncpy(fcm->name, name, sizeof(fcm->name));
+  STRNCPY(fcm->name, name);
 
   /* Set default modifier name when name parameter is an empty string.
    * Ensure the name is unique. */
@@ -1305,7 +1305,7 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
     if (a == 1) {
       next = cycle_offset_triple(cycle, &tmp, &fcu->bezt[1], first, last);
     }
-    else {
+    else if (next != NULL) {
       next++;
     }
 
@@ -2540,7 +2540,7 @@ void BKE_fmodifiers_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fmo
     switch (fcm->type) {
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *data = (FMod_Python *)fcm->data;
-        BLO_read_id_address(reader, id->lib, &data->script);
+        BLO_read_id_address(reader, id, &data->script);
         break;
       }
     }
@@ -2670,7 +2670,7 @@ void BKE_fcurve_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fcurves
         DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
           /* only relink if still used */
           if (tarIndex < dvar->num_targets) {
-            BLO_read_id_address(reader, id->lib, &dtar->id);
+            BLO_read_id_address(reader, id, &dtar->id);
           }
           else {
             dtar->id = NULL;

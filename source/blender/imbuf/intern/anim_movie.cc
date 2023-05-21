@@ -285,14 +285,14 @@ struct anim *IMB_open_anim(const char *filepath,
   if (anim != nullptr) {
     if (colorspace) {
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
-      BLI_strncpy(anim->colorspace, colorspace, sizeof(anim->colorspace));
+      STRNCPY(anim->colorspace, colorspace);
     }
     else {
       colorspace_set_default_role(
           anim->colorspace, sizeof(anim->colorspace), COLOR_ROLE_DEFAULT_BYTE);
     }
 
-    BLI_strncpy(anim->filepath, filepath, sizeof(anim->filepath));
+    STRNCPY(anim->filepath, filepath);
     anim->ib_flags = ib_flags;
     anim->streamindex = streamindex;
   }
@@ -320,7 +320,7 @@ bool IMB_anim_can_produce_frames(const struct anim *anim)
 
 void IMB_suffix_anim(struct anim *anim, const char *suffix)
 {
-  BLI_strncpy(anim->suffix, suffix, sizeof(anim->suffix));
+  STRNCPY(anim->suffix, suffix);
 }
 
 #ifdef WITH_AVI
@@ -482,7 +482,9 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
     }
 
     for (y = 0; y < anim->y; y++) {
-      memcpy(&(ibuf->rect)[((anim->y - y) - 1) * anim->x], &tmp[y * anim->x], anim->x * 4);
+      memcpy(&(ibuf->byte_buffer.data)[((anim->y - y) - 1) * anim->x],
+             &tmp[y * anim->x],
+             anim->x * 4);
     }
 
     MEM_freeN(tmp);
@@ -850,12 +852,11 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(struct anim *anim)
   return nullptr;
 }
 
-/* postprocess the image in anim->pFrame and do color conversion
- * and deinterlacing stuff.
+/**
+ * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
- * Output is anim->cur_frame_final
+ * Output is `anim->cur_frame_final`.
  */
-
 static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
 {
   ImBuf *ibuf = anim->cur_frame_final;
@@ -910,8 +911,14 @@ static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
   const int src_linesize[4] = {-anim->pFrameRGB->linesize[0], 0, 0, 0};
   int dst_size = av_image_get_buffer_size(
       AVPixelFormat(anim->pFrameRGB->format), anim->pFrameRGB->width, anim->pFrameRGB->height, 1);
-  av_image_copy_to_buffer(
-      (uint8_t *)ibuf->rect, dst_size, src, src_linesize, AV_PIX_FMT_RGBA, anim->x, anim->y, 1);
+  av_image_copy_to_buffer((uint8_t *)ibuf->byte_buffer.data,
+                          dst_size,
+                          src,
+                          src_linesize,
+                          AV_PIX_FMT_RGBA,
+                          anim->x,
+                          anim->y,
+                          1);
   if (filter_y) {
     IMB_filtery(ibuf);
   }
@@ -1460,9 +1467,11 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   }
 
   anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
-  anim->cur_frame_final->rect = static_cast<uint *>(
+
+  /* Allocate the storage explicitly to ensure the memory is aligned. */
+  uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
-  anim->cur_frame_final->mall |= IB_rect;
+  IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
   anim->cur_frame_final->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
@@ -1538,7 +1547,7 @@ static bool anim_getnew(struct anim *anim)
     case ANIM_SEQUENCE: {
       ImBuf *ibuf = IMB_loadiffname(anim->filepath, anim->ib_flags, anim->colorspace);
       if (ibuf) {
-        BLI_strncpy(anim->filepath_first, anim->filepath, sizeof(anim->filepath_first));
+        STRNCPY(anim->filepath_first, anim->filepath);
         anim->duration_in_frames = 1;
         IMB_freeImBuf(ibuf);
       }
@@ -1665,8 +1674,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     if (filter_y) {
       IMB_filtery(ibuf);
     }
-    BLI_snprintf(
-        ibuf->filepath, sizeof(ibuf->filepath), "%s.%04d", anim->filepath, anim->cur_position + 1);
+    SNPRINTF(ibuf->filepath, "%s.%04d", anim->filepath, anim->cur_position + 1);
   }
   return ibuf;
 }

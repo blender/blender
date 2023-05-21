@@ -316,7 +316,7 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name)
       fsentry->name[0] = '\0';
     }
     else {
-      BLI_strncpy(fsentry->name, name, sizeof(fsentry->name));
+      STRNCPY(fsentry->name, name);
     }
 
     BLI_path_join(tmp_name,
@@ -457,7 +457,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
   }
 
   if (name && name[0]) {
-    BLI_strncpy(fsm_iter->name, name, sizeof(fsm_iter->name));
+    STRNCPY(fsm_iter->name, name);
   }
   else {
     fsm_iter->name[0] = '\0';
@@ -590,7 +590,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filepath)
         if (line[len - 1] == '\n') {
           line[len - 1] = '\0';
         }
-        BLI_strncpy(name, line + 1, sizeof(name));
+        STRNCPY(name, line + 1);
       }
     }
     else {
@@ -791,7 +791,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     const char *home = BLI_getenv("HOME");
     if (home) {
 #  define FS_MACOS_PATH(path, name, icon) \
-    BLI_snprintf(line, sizeof(line), path, home); \
+    SNPRINTF(line, path, home); \
     fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, line, name, icon, FS_INSERT_LAST);
 
       FS_MACOS_PATH("%s/", NULL, ICON_HOME)
@@ -1007,7 +1007,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                 const char *label_test = label + 6;
                 label = *label_test ? label_test : dirname;
               }
-              BLI_snprintf(line, sizeof(line), "%s%s", filepath, dirname);
+              SNPRINTF(line, "%s%s", filepath, dirname);
               fsmenu_insert_entry(
                   fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
               found = 1;

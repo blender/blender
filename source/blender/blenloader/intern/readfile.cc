@@ -78,7 +78,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_node.h" /* for tree type defines */
+#include "BKE_node.hh" /* for tree type defines */
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -239,7 +239,8 @@ static const char *library_parent_filepath(Library *lib)
 
 struct NewAddress {
   void *newp;
-  /* `nr` is "user count" for data, and ID code for libdata. */
+
+  /** `nr` is "user count" for data, and ID code for libdata. */
   int nr;
 };
 
@@ -261,9 +262,9 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
   onm->map.add_overwrite(oldaddr, NewAddress{newaddr, nr});
 }
 
-static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
+static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int id_code)
 {
-  oldnewmap_insert(fd->libmap, oldaddr, newaddr, nr);
+  oldnewmap_insert(fd->libmap, oldaddr, newaddr, id_code);
 }
 
 void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
@@ -284,7 +285,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool inc
 }
 
 /* for libdata, NewAddress.nr has ID code, no increment */
-static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
+static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const bool is_linked_only)
 {
   if (addr == nullptr) {
     return nullptr;
@@ -294,7 +295,7 @@ static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *l
   if (id == nullptr) {
     return nullptr;
   }
-  if (!lib || id->lib) {
+  if (!is_linked_only || ID_IS_LINKED(id)) {
     return id;
   }
   return nullptr;
@@ -517,7 +518,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   Library *lib;
   char filepath_abs[FILE_MAX];
 
-  BLI_strncpy(filepath_abs, filepath, sizeof(filepath_abs));
+  STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, relabase);
   BLI_path_normalize(filepath_abs);
 
@@ -550,8 +551,8 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   /* Matches direct_link_library(). */
   id_us_ensure_real(&lib->id);
 
-  BLI_strncpy(lib->filepath, filepath, sizeof(lib->filepath));
-  BLI_strncpy(lib->filepath_abs, filepath_abs, sizeof(lib->filepath_abs));
+  STRNCPY(lib->filepath, filepath);
+  STRNCPY(lib->filepath_abs, filepath_abs);
 
   m->curlib = lib;
 
@@ -1185,7 +1186,7 @@ FileData *blo_filedata_from_file(const char *filepath, BlendFileReadReport *repo
   FileData *fd = blo_filedata_from_file_open(filepath, reports);
   if (fd != nullptr) {
     /* needed for library_append and read_libraries */
-    BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, filepath);
 
     return blo_decode_and_check(fd, reports->reports);
   }
@@ -1297,8 +1298,8 @@ void blo_filedata_free(FileData *fd)
     if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
       oldnewmap_free(fd->libmap);
     }
-    if (fd->old_idmap != nullptr) {
-      BKE_main_idmap_destroy(fd->old_idmap);
+    if (fd->old_idmap_uuid != nullptr) {
+      BKE_main_idmap_destroy(fd->old_idmap_uuid);
     }
     blo_cache_storage_end(fd);
     if (fd->bheadmap) {
@@ -1385,14 +1386,20 @@ static void *newpackedadr(FileData *fd, const void *adr)
 }
 
 /* only lib data */
-static void *newlibadr(FileData *fd, const void *lib, const void *adr)
+static void *newlibadr(FileData *fd,
+                       ID * /* self_id */,
+                       const bool is_linked_only,
+                       const void *adr)
 {
-  return oldnewmap_liblookup(fd->libmap, adr, lib);
+  return oldnewmap_liblookup(fd->libmap, adr, is_linked_only);
 }
 
-void *blo_do_versions_newlibadr(FileData *fd, const void *lib, const void *adr)
+void *blo_do_versions_newlibadr(FileData *fd,
+                                ID *self_id,
+                                const bool is_linked_only,
+                                const void *adr)
 {
-  return newlibadr(fd, lib, adr);
+  return newlibadr(fd, self_id, is_linked_only, adr);
 }
 
 /* increases user number */
@@ -1533,10 +1540,10 @@ void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd)
 
 void blo_make_old_idmap_from_main(FileData *fd, Main *bmain)
 {
-  if (fd->old_idmap != nullptr) {
-    BKE_main_idmap_destroy(fd->old_idmap);
+  if (fd->old_idmap_uuid != nullptr) {
+    BKE_main_idmap_destroy(fd->old_idmap_uuid);
   }
-  fd->old_idmap = BKE_main_idmap_create(bmain, false, nullptr, MAIN_IDMAP_TYPE_UUID);
+  fd->old_idmap_uuid = BKE_main_idmap_create(bmain, false, nullptr, MAIN_IDMAP_TYPE_UUID);
 }
 
 struct BLOCacheStorage {
@@ -1843,7 +1850,7 @@ static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != nullptr) {
     lib_link_id(reader, &nodetree->id);
-    ntreeBlendReadLib(reader, nodetree);
+    blender::bke::ntreeBlendReadLib(reader, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -1859,7 +1866,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* NOTE: WM IDProperties are never written to file, hence they should always be nullptr here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == nullptr);
-  IDP_BlendReadLib(reader, id->lib, id->properties);
+  IDP_BlendReadLib(reader, id, id->properties);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != nullptr) {
@@ -1867,9 +1874,9 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
   }
 
   if (id->override_library) {
-    BLO_read_id_address(reader, id->lib, &id->override_library->reference);
-    BLO_read_id_address(reader, id->lib, &id->override_library->storage);
-    BLO_read_id_address(reader, id->lib, &id->override_library->hierarchy_root);
+    BLO_read_id_address(reader, id, &id->override_library->reference);
+    BLO_read_id_address(reader, id, &id->override_library->storage);
+    BLO_read_id_address(reader, id, &id->override_library->hierarchy_root);
   }
 
   lib_link_id_embedded_id(reader, id);
@@ -1898,7 +1905,7 @@ static void direct_link_id_override_property_cb(BlendDataReader *reader, void *d
 }
 
 static void direct_link_id_common(
-    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag);
+    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int id_tag);
 
 static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        Library *current_library,
@@ -1914,7 +1921,7 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                           (ID *)*nodetree,
                           id_old != nullptr ? (ID *)ntreeFromID(id_old) : nullptr,
                           0);
-    ntreeBlendReadData(reader, id, *nodetree);
+    blender::bke::ntreeBlendReadData(reader, id, *nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -1990,7 +1997,7 @@ static int direct_link_id_restore_recalc(const FileData *fd,
 }
 
 static void direct_link_id_common(
-    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag)
+    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int id_tag)
 {
   if (!BLO_read_data_is_undo(reader)) {
     /* When actually reading a file, we do want to reset/re-generate session UUIDS.
@@ -1998,7 +2005,7 @@ static void direct_link_id_common(
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
   }
 
-  if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
+  if ((id_tag & LIB_TAG_TEMP_MAIN) == 0) {
     BKE_lib_libblock_session_uuid_ensure(id);
   }
 
@@ -2011,10 +2018,10 @@ static void direct_link_id_common(
 
   /* Initialize with provided tag. */
   if (BLO_read_data_is_undo(reader)) {
-    id->tag = tag | (id->tag & LIB_TAG_KEEP_ON_UNDO);
+    id->tag = (id_tag & ~LIB_TAG_KEEP_ON_UNDO) | (id->tag & LIB_TAG_KEEP_ON_UNDO);
   }
   else {
-    id->tag = tag;
+    id->tag = id_tag;
   }
 
   if (ID_IS_LINKED(id)) {
@@ -2024,7 +2031,7 @@ static void direct_link_id_common(
     BLO_read_data_address(reader, &id->library_weak_reference);
   }
 
-  if (tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
+  if (id_tag & LIB_TAG_ID_LINK_PLACEHOLDER) {
     /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
      * no further data to read. */
     return;
@@ -2698,7 +2705,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   }
 
   /* Make sure we have full path in lib->filepath_abs */
-  BLI_strncpy(lib->filepath_abs, lib->filepath, sizeof(lib->filepath));
+  STRNCPY(lib->filepath_abs, lib->filepath);
   BLI_path_abs(lib->filepath_abs, fd->relabase);
   BLI_path_normalize(lib->filepath_abs);
 
@@ -2733,7 +2740,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
-        BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
+        STRNCPY(lib->filepath, lib->filepath_abs);
       }
     }
   }
@@ -2743,7 +2750,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
-        BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
+        STRNCPY(lib->filepath, lib->filepath_abs);
         BLI_path_rel(lib->filepath, basepath);
       }
     }
@@ -2756,7 +2763,11 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 /** \name Read Library Data Block
  * \{ */
 
-static ID *create_placeholder(Main *mainvar, const short idcode, const char *idname, const int tag)
+static ID *create_placeholder(Main *mainvar,
+                              const short idcode,
+                              const char *idname,
+                              const int tag,
+                              const bool was_liboverride)
 {
   ListBase *lb = which_libbase(mainvar, idcode);
   ID *ph_id = static_cast<ID *>(BKE_libblock_alloc_notest(idcode));
@@ -2768,6 +2779,14 @@ static ID *create_placeholder(Main *mainvar, const short idcode, const char *idn
   ph_id->tag = tag | LIB_TAG_MISSING;
   ph_id->us = ID_FAKE_USERS(ph_id);
   ph_id->icon_id = 0;
+
+  if (was_liboverride) {
+    /* 'Abuse' `LIB_TAG_LIBOVERRIDE_NEED_RESYNC` to mark that placeholder missing linked ID as
+     * being a liboverride.
+     *
+     * This will be used by the liboverride resync process, see #lib_override_library_resync. */
+    ph_id->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+  }
 
   BLI_addtail(lb, ph_id);
   id_sort_by_name(lb, ph_id, nullptr);
@@ -3059,13 +3078,13 @@ static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID
 
 /* For undo, restore unchanged datablock from old main. */
 static void read_libblock_undo_restore_identical(
-    FileData *fd, Main *main, const ID * /*id*/, ID *id_old, const int tag)
+    FileData *fd, Main *main, const ID * /*id*/, ID *id_old, const int id_tag)
 {
   BLI_assert((fd->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0);
   BLI_assert(id_old != nullptr);
 
   /* Some tags need to be preserved here. */
-  id_old->tag = tag | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
+  id_old->tag = (id_tag & ~LIB_TAG_KEEP_ON_UNDO) | (id_old->tag & LIB_TAG_KEEP_ON_UNDO);
   id_old->lib = main->curlib;
   id_old->us = ID_FAKE_USERS(id_old);
   /* Do not reset id->icon_id here, memory allocated for it remains valid. */
@@ -3134,7 +3153,7 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 }
 
 static bool read_libblock_undo_restore(
-    FileData *fd, Main *main, BHead *bhead, const int tag, ID **r_id_old)
+    FileData *fd, Main *main, BHead *bhead, int id_tag, ID **r_id_old)
 {
   /* Get pointer to memory of new ID that we will be reading. */
   const ID *id = static_cast<const ID *>(peek_struct_undo(fd, bhead));
@@ -3169,8 +3188,8 @@ static bool read_libblock_undo_restore(
 
     /* Find the 'current' existing ID we want to reuse instead of the one we
      * would read from the undo memfile. */
-    BLI_assert(fd->old_idmap != nullptr);
-    id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap, id->session_uuid);
+    BLI_assert(fd->old_idmap_uuid != nullptr);
+    id_old = BKE_main_idmap_lookup_uuid(fd->old_idmap_uuid, id->session_uuid);
   }
 
   if (id_old != nullptr && read_libblock_is_identical(fd, bhead)) {
@@ -3186,7 +3205,7 @@ static bool read_libblock_undo_restore(
      * it will tell us which ID is re-used from old Main, and which one is actually new. */
     /* Also do not add LIB_TAG_NEED_LINK, those IDs will never be re-liblinked, hence that tag will
      * never be cleared, leading to critical issue in link/append code. */
-    const int id_tag = tag | LIB_TAG_UNDO_OLD_ID_REUSED;
+    id_tag |= LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED;
     read_libblock_undo_restore_identical(fd, main, id, id_old, id_tag);
 
     /* Insert into library map for lookup by newly read datablocks (with pointer value bhead->old).
@@ -3224,7 +3243,7 @@ static bool read_libblock_undo_restore(
 static BHead *read_libblock(FileData *fd,
                             Main *main,
                             BHead *bhead,
-                            const int tag,
+                            int id_tag,
                             const bool placeholder_set_indirect_extern,
                             ID **r_id)
 {
@@ -3245,7 +3264,7 @@ static BHead *read_libblock(FileData *fd,
      * So undo case does not seem to be affected by this. A future cleanup should try to remove
      * most of this related code in the future, and instead assert that both `r_id` and
      * `main->id_map` are `nullptr`. */
-    if (read_libblock_undo_restore(fd, main, bhead, tag, &id_old)) {
+    if (read_libblock_undo_restore(fd, main, bhead, id_tag, &id_old)) {
       if (r_id) {
         *r_id = id_old;
       }
@@ -3295,7 +3314,7 @@ static BHead *read_libblock(FileData *fd,
 
   /* Set tag for new datablock to indicate lib linking and versioning needs
    * to be done still. */
-  int id_tag = tag | LIB_TAG_NEED_LINK | LIB_TAG_NEW;
+  id_tag |= (LIB_TAG_NEED_LINK | LIB_TAG_NEW);
 
   if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Read placeholder for linked datablock. */
@@ -3389,7 +3408,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   bfd->main->minversionfile = fg->minversion;
   bfd->main->minsubversionfile = fg->minsubversion;
   bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
-  BLI_strncpy(bfd->main->build_hash, fg->build_hash, sizeof(bfd->main->build_hash));
+  STRNCPY(bfd->main->build_hash, fg->build_hash);
 
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
@@ -3411,7 +3430,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
   }
 
   if (G.fileflags & G_FILE_RECOVER_READ) {
-    BLI_strncpy(fd->relabase, fg->filepath, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, fg->filepath);
   }
 
   bfd->curscreen = fg->curscreen;
@@ -3431,8 +3450,8 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 {
   bfd->cur_view_layer = static_cast<ViewLayer *>(
       blo_read_get_new_globaldata_address(fd, bfd->cur_view_layer));
-  bfd->curscreen = static_cast<bScreen *>(newlibadr(fd, nullptr, bfd->curscreen));
-  bfd->curscene = static_cast<Scene *>(newlibadr(fd, nullptr, bfd->curscene));
+  bfd->curscreen = static_cast<bScreen *>(newlibadr(fd, nullptr, false, bfd->curscreen));
+  bfd->curscene = static_cast<Scene *>(newlibadr(fd, nullptr, false, bfd->curscene));
   /* this happens in files older than 2.35 */
   if (bfd->curscene == nullptr) {
     if (bfd->curscreen) {
@@ -3473,7 +3492,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
       strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
     }
     else {
-      BLI_strncpy(build_commit_datetime, "unknown", sizeof(build_commit_datetime));
+      STRNCPY(build_commit_datetime, "unknown");
     }
 
     CLOG_INFO(&LOG, 0, "Read file %s", fd->relabase);
@@ -3554,6 +3573,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
     do_versions_after_linking_300(fd, main);
   }
   if (!main->is_read_invalid) {
+    do_versions_after_linking_400(fd, main);
+  }
+  if (!main->is_read_invalid) {
     do_versions_after_linking_cycles(main);
   }
 
@@ -3586,7 +3608,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) && do_partial_undo &&
-        (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED) != 0)
+        (id->tag & LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) != 0)
     {
       /* This ID has been re-used from 'old' bmain. Since it was therefore unchanged across
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
@@ -3937,7 +3959,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     /* After all data has been read and versioned, uses LIB_TAG_NEW. Theoretically this should
      * not be calculated in the undo case, but it is currently needed even on undo to recalculate
      * a cache. */
-    ntreeUpdateAllNew(bfd->main);
+    blender::bke::ntreeUpdateAllNew(bfd->main);
 
     placeholders_ensure_valid(bfd->main);
 
@@ -4274,7 +4296,7 @@ static void expand_id_embedded_id(BlendExpander *expander, ID *id)
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != nullptr) {
     expand_id(expander, &nodetree->id);
-    ntreeBlendReadExpand(expander, nodetree);
+    blender::bke::ntreeBlendReadExpand(expander, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -4388,7 +4410,7 @@ static ID *link_named_part(
   else if (use_placeholders) {
     /* XXX flag part is weak! */
     id = create_placeholder(
-        mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN);
+        mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN, false);
   }
   else {
     id = nullptr;
@@ -4536,7 +4558,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* make the lib path relative if required */
   if (flag & FILE_RELPATH) {
     /* use the full path, this could have been read by other library even */
-    BLI_strncpy(curlib->filepath, curlib->filepath_abs, sizeof(curlib->filepath));
+    STRNCPY(curlib->filepath, curlib->filepath_abs);
 
     /* uses current .blend file as reference */
     BLI_path_rel(curlib->filepath, BKE_main_blendfile_path_from_global());
@@ -4555,7 +4577,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
 
   /* Some versioning code does expect some proper userrefcounting, e.g. in conversion from
    * groups to collections... We could optimize out that first call when we are reading a
-   * current version file, but again this is really not a bottle neck currently. so not worth
+   * current version file, but again this is really not a bottle neck currently. So not worth
    * it. */
   BKE_main_id_refcount_recompute(mainvar, false);
 
@@ -4593,7 +4615,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   BKE_main_id_refcount_recompute(mainvar, false);
 
   /* After all data has been read and versioned, uses LIB_TAG_NEW. */
-  ntreeUpdateAllNew(mainvar);
+  blender::bke::ntreeUpdateAllNew(mainvar);
 
   placeholders_ensure_valid(mainvar);
 
@@ -4705,7 +4727,11 @@ static void read_library_linked_id(
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
     if (r_id) {
-      *r_id = is_valid ? create_placeholder(mainvar, GS(id->name), id->name + 2, id->tag) :
+      *r_id = is_valid ? create_placeholder(mainvar,
+                                            GS(id->name),
+                                            id->name + 2,
+                                            id->tag,
+                                            id->override_library != nullptr) :
                          nullptr;
     }
   }
@@ -4812,7 +4838,7 @@ static FileData *read_library_file_data(FileData *basefd,
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    BLI_strncpy(fd->relabase, mainptr->curlib->filepath_abs, sizeof(fd->relabase));
+    STRNCPY(fd->relabase, mainptr->curlib->filepath_abs);
   }
   else {
     /* Read file on disk. */
@@ -4979,9 +5005,12 @@ void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_a
   return newpackedadr(reader->fd, old_address);
 }
 
-ID *BLO_read_get_new_id_address(BlendLibReader *reader, Library *lib, ID *id)
+ID *BLO_read_get_new_id_address(BlendLibReader *reader,
+                                ID *self_id,
+                                const bool is_linked_only,
+                                ID *id)
 {
-  return static_cast<ID *>(newlibadr(reader->fd, lib, id));
+  return static_cast<ID *>(newlibadr(reader->fd, self_id, is_linked_only, id));
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader)

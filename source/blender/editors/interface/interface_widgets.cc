@@ -4114,7 +4114,9 @@ static void widget_preview_tile(uiBut *but,
                                 int roundboxalign,
                                 const float zoom)
 {
-  widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+  if (!ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) {
+    widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
+  }
 
   ui_draw_preview_item_stateless(
       &UI_style_get()->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
@@ -4684,6 +4686,9 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         if (!(but->flag & UI_HAS_ICON)) {
           but->drawflag |= UI_BUT_NO_TEXT_PADDING;
         }
+        break;
+      case UI_BTYPE_PREVIEW_TILE:
+        wt = widget_type(UI_WTYPE_PREVIEW_TILE);
         break;
       default:
         wt = widget_type(UI_WTYPE_ICON);
@@ -5400,7 +5405,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_ICON_SIZE);
 
-    BLI_strncpy(drawstr, name, sizeof(drawstr));
+    STRNCPY(drawstr, name);
     if (drawstr[0]) {
       UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
     }
@@ -5449,7 +5454,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         const size_t max_len = sizeof(hint_drawstr);
         const float minwidth = float(UI_ICON_SIZE);
 
-        BLI_strncpy(hint_drawstr, cpoin + 1, sizeof(hint_drawstr));
+        STRNCPY(hint_drawstr, cpoin + 1);
         if (hint_drawstr[0] && (max_hint_width < INT_MAX)) {
           UI_text_clip_middle_ex(fstyle, hint_drawstr, max_hint_width, minwidth, max_len, '\0');
         }
@@ -5473,7 +5478,6 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
-  float font_dims[2] = {0.0f, 0.0f};
   const bool has_text = name && name[0];
 
   if (has_text) {
@@ -5488,15 +5492,11 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     return;
   }
 
-  BLF_width_and_height(
-      fstyle->uifont_id, name, BLF_DRAW_STR_DUMMY_MAX, &font_dims[0], &font_dims[1]);
-
   /* text rect */
-  trect.ymin += U.widget_unit / 2;
-  trect.ymax = trect.ymin + font_dims[1];
-  if (trect.xmax > rect->xmax - PREVIEW_PAD) {
-    trect.xmax = rect->xmax - PREVIEW_PAD;
-  }
+  trect.ymax = trect.ymin + text_size;
+  trect.ymin += PREVIEW_PAD;
+  trect.xmin += PREVIEW_PAD;
+  trect.xmax -= PREVIEW_PAD;
 
   {
     char drawstr[UI_MAX_DRAW_STR];
@@ -5504,7 +5504,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_ICON_SIZE);
 
-    BLI_strncpy(drawstr, name, sizeof(drawstr));
+    STRNCPY(drawstr, name);
     UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
     uiFontStyleDraw_Params params{};

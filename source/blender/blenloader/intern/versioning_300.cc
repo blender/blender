@@ -65,7 +65,7 @@
 #include "BKE_main_namemap.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -497,44 +497,6 @@ static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void * /*user
   return true;
 }
 
-static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
-{
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->tosock == in_socket) {
-      return link;
-    }
-  }
-  return nullptr;
-}
-
-static void add_realize_instances_before_socket(bNodeTree *ntree,
-                                                bNode *node,
-                                                bNodeSocket *geometry_socket)
-{
-  BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
-  bNodeLink *link = find_connected_link(ntree, geometry_socket);
-  if (link == nullptr) {
-    return;
-  }
-
-  /* If the realize instances node is already before this socket, no need to continue. */
-  if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
-    return;
-  }
-
-  bNode *realize_node = nodeAddStaticNode(nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
-  realize_node->parent = node->parent;
-  realize_node->locx = node->locx - 100;
-  realize_node->locy = node->locy;
-  nodeAddLink(ntree,
-              link->fromnode,
-              link->fromsock,
-              realize_node,
-              static_cast<bNodeSocket *>(realize_node->inputs.first));
-  link->fromnode = realize_node;
-  link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
-}
-
 /**
  * If a node used to realize instances implicitly and will no longer do so in 3.0, add a "Realize
  * Instances" node in front of it to avoid changing behavior. Don't do this if the node will be
@@ -704,7 +666,7 @@ static bool do_versions_sequencer_init_retiming_tool_data(Sequence *seq, void *u
 
   SeqRetimingHandle *handle = &seq->retiming_handles[seq->retiming_handle_num - 1];
   handle->strip_frame_index = round_fl_to_int(content_length / seq->speed_factor);
-  seq->speed_factor = 0.0f;
+  seq->speed_factor = 1.0f;
 
   return true;
 }
@@ -923,7 +885,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
         store_attribute_name_input->default_value);
     const char *uv_map_name = node->type == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
                                                                                  "uv_map";
-    BLI_strncpy(name_value->value, uv_map_name, sizeof(name_value->value));
+    STRNCPY(name_value->value, uv_map_name);
 
     nodeAddLink(&ntree,
                 node,
@@ -940,7 +902,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
     BLI_addhead(&ntree.nodes, node);
   }
   if (!new_nodes.is_empty()) {
-    nodeRebuildIDVector(&ntree);
+    blender::bke::nodeRebuildIDVector(&ntree);
   }
 }
 
@@ -1074,7 +1036,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     BLI_addhead(&ntree.nodes, node);
   }
   if (!new_nodes.is_empty()) {
-    nodeRebuildIDVector(&ntree);
+    blender::bke::nodeRebuildIDVector(&ntree);
   }
 }
 
@@ -1397,7 +1359,7 @@ static void version_switch_node_input_prefix(Main *bmain)
 
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
-            BLI_strncpy(number_suffix, socket->identifier + 1, sizeof(number_suffix));
+            STRNCPY(number_suffix, socket->identifier + 1);
             BLI_string_join(
                 socket->identifier, sizeof(socket->identifier), socket->name, number_suffix);
           }
@@ -1576,22 +1538,14 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
     }
 
     char use_attribute_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(use_attribute_prop_name,
-                 sizeof(use_attribute_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_use_attribute");
+    SNPRINTF(use_attribute_prop_name, "%s%s", property->name, "_use_attribute");
 
     IDPropertyTemplate idprop = {0};
     IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
     IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
 
     char attribute_name_prop_name[MAX_IDPROP_NAME];
-    BLI_snprintf(attribute_name_prop_name,
-                 sizeof(attribute_name_prop_name),
-                 "%s%s",
-                 property->name,
-                 "_attribute_name");
+    SNPRINTF(attribute_name_prop_name, "%s%s", property->name, "_attribute_name");
 
     IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
     IDP_AddToGroup(nmd->settings.properties, attribute_prop);
@@ -1791,6 +1745,18 @@ static bool version_set_seq_single_frame_content(Sequence *seq, void * /*user_da
   {
     seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
+  return true;
+}
+
+static bool version_seq_fix_broken_sound_strips(Sequence *seq, void * /*user_data*/)
+{
+  if (seq->type != SEQ_TYPE_SOUND_RAM || seq->speed_factor != 0.0f) {
+    return true;
+  }
+
+  seq->speed_factor = 1.0f;
+  SEQ_retiming_data_clear(seq);
+  seq->startofs = 0.0f;
   return true;
 }
 
@@ -2206,6 +2172,46 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
       data->data_type = SOCK_RGBA;
       data->factor_mode = NODE_MIX_MODE_UNIFORM;
       node->storage = data;
+    }
+  }
+}
+
+static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_BSDF_GLOSSY_LEGACY) {
+      strcpy(node->idname, "ShaderNodeBsdfAnisotropic");
+      node->type = SH_NODE_BSDF_GLOSSY;
+    }
+  }
+}
+
+static void versioning_remove_microfacet_sharp_distribution(bNodeTree *ntree)
+{
+  /* Find all glossy, glass and refraction BSDF nodes that have their distribution
+   * set to SHARP and set them to GGX, disconnect any link to the Roughness input
+   * and set its value to zero. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (!ELEM(node->type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION)) {
+      continue;
+    }
+    if (node->custom1 != SHD_GLOSSY_SHARP_DEPRECATED) {
+      continue;
+    }
+
+    node->custom1 = SHD_GLOSSY_GGX;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      if (!STREQ(socket->identifier, "Roughness")) {
+        continue;
+      }
+
+      if (socket->link != nullptr) {
+        nodeRemLink(ntree, socket->link);
+      }
+      bNodeSocketValueFloat *socket_value = (bNodeSocketValueFloat *)socket->default_value;
+      socket_value->value = 0.0f;
+
+      break;
     }
   }
 }
@@ -3241,20 +3247,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             snode->overlay.flag |= SN_OVERLAY_SHOW_PATH;
           }
         }
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_REALIZE_INSTANCES) {
-          continue;
-        }
-        node->custom1 |= GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR;
       }
     }
   }
@@ -4329,83 +4321,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Rename Grease Pencil weight draw brush. */
     do_versions_rename_id(bmain, ID_BR, "Draw Weight", "Weight Draw");
-
-    /* Identifier generation for simulation node sockets changed.
-     * Update identifiers so links are not removed during validation.
-     * This only affects files that have been created using simulation nodes before they were first
-     * officially released. */
-    if (!DNA_struct_elem_find(fd->filesdna, "NodeSimulationItem", "int", "identifier")) {
-      static auto set_socket_identifiers =
-          [](bNode *node, const bNode *output_node, int extra_outputs) {
-            const NodeGeometrySimulationOutput *output_data =
-                static_cast<const NodeGeometrySimulationOutput *>(output_node->storage);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->inputs) == output_data->items_num + 1);
-            /* Includes extension socket. */
-            BLI_assert(BLI_listbase_count(&node->outputs) ==
-                       output_data->items_num + 1 + extra_outputs);
-
-            int i;
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, i) {
-              /* Skip extension socket. */
-              if (i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i].identifier);
-            }
-            LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
-              const int item_i = i - extra_outputs;
-              /* Skip extra outputs. */
-              if (i < extra_outputs) {
-                continue;
-              }
-              /* Skip extension socket. */
-              if (item_i >= output_data->items_num) {
-                break;
-              }
-              BLI_snprintf(sock->identifier,
-                           sizeof(sock->identifier),
-                           "Item_%d",
-                           output_data->items[i - extra_outputs].identifier);
-            }
-          };
-
-      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-        if (ntree->type == NTREE_GEOMETRY) {
-          /* Initialize item identifiers. */
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-              NodeGeometrySimulationOutput *data = static_cast<NodeGeometrySimulationOutput *>(
-                  node->storage);
-              for (int i = 0; i < data->items_num; ++i) {
-                data->items[i].identifier = i;
-              }
-              data->next_identifier = data->items_num;
-            }
-          }
-
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == GEO_NODE_SIMULATION_INPUT) {
-              const NodeGeometrySimulationInput *input_data =
-                  static_cast<const NodeGeometrySimulationInput *>(node->storage);
-              LISTBASE_FOREACH (bNode *, output_node, &ntree->nodes) {
-                if (output_node->identifier == input_data->output_node_id) {
-                  /* 'Delta Time' socket in input nodes */
-                  set_socket_identifiers(node, output_node, 1);
-                  break;
-                }
-              }
-            }
-            if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
-              set_socket_identifiers(node, node, 0);
-            }
-          }
-        }
-      }
-    }
   }
 
   /* fcm->name was never used to store modifier name so it has always been an empty string. Now
@@ -4421,6 +4336,56 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 8)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      ob->flag |= OB_FLAG_USE_SIMULATION_CACHE;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 9)) {
+    /* Fix sound strips with speed factor set to 0. See #107289. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_ACTION) {
+            SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+            saction->cache_display |= TIME_CACHE_SIMULATION_NODES;
+          }
+        }
+      }
+    }
+
+    /* Enable the iTaSC ITASC_TRANSLATE_ROOT_BONES flag for backward compatibility.
+     * See #104606. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_ARMATURE || ob->pose == nullptr) {
+        continue;
+      }
+      bPose *pose = ob->pose;
+      if (pose->iksolver != IKSOLVER_ITASC || pose->ikparam == nullptr) {
+        continue;
+      }
+      bItasc *ikparam = (bItasc *)pose->ikparam;
+      ikparam->flag |= ITASC_TRANSLATE_ROOT_BONES;
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 10)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      /* Set default values for new members. */
+      scene->toolsettings->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      scene->toolsettings->plane_axis = 2;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -4432,5 +4397,12 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Convert anisotropic BSDF node to glossy BSDF. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_replace_legacy_glossy_node(ntree);
+      versioning_remove_microfacet_sharp_distribution(ntree);
+    }
+    FOREACH_NODETREE_END;
   }
 }

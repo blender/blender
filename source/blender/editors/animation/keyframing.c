@@ -139,7 +139,7 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id)
   if (adt->action == NULL) {
     /* init action name from name of ID block */
     char actname[sizeof(id->name) - 2];
-    BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
+    SNPRINTF(actname, "%sAction", id->name + 2);
 
     /* create action */
     adt->action = BKE_action_add(bmain, actname);
@@ -277,7 +277,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   int old_flag = fcu->flag;
 
   if ((ptr->owner_id == NULL) && (ptr->data == NULL)) {
-    BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this fcurve");
+    BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for this F-curve");
     return;
   }
 
@@ -288,7 +288,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Could not update flags for this fcurve, as RNA path is invalid for the given ID "
+                "Could not update flags for this F-curve, as RNA path is invalid for the given ID "
                 "(ID = %s, path = %s)",
                 idname,
                 fcu->rna_path);
@@ -2360,13 +2360,14 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
   ot->idname = "ANIM_OT_keyframe_clear_v3d";
 
   /* callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = clear_anim_v3d_exec;
 
   ot->poll = ED_operator_areaactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
@@ -2501,13 +2502,14 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
   ot->idname = "ANIM_OT_keyframe_delete_v3d";
 
   /* callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_key_v3d_exec;
 
   ot->poll = ED_operator_areaactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /* Insert Key Button Operator ------------------------ */

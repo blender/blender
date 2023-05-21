@@ -117,10 +117,6 @@ struct USDExportParams {
   bool visible_objects_only;
   bool use_instancing;
   enum eEvaluationMode evaluation_mode;
-  char *default_prim_path;   // USD Stage Default Primitive Path
-  char *root_prim_path;      // Root path to encapsulate blender stage under. e.g. /shot
-  char *material_prim_path;  // Prim path to store all generated USDShade, shaders under e.g.
-                             // /materials
   bool generate_preview_surface;
   bool convert_uv_to_st;
   bool convert_orientation;
@@ -164,6 +160,9 @@ struct USDExportParams {
   bool export_usd_kind;
   eUSDDefaultPrimKind default_prim_kind;
   char *default_prim_custom_kind;
+  char root_prim_path[1024]; /* FILE_MAX */
+  char default_prim_path[1024];  /* FILE_MAX */
+  char material_prim_path[1024];  /* FILE_MAX */
 };
 
 struct USDImportParams {

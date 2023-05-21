@@ -324,6 +324,6 @@ def main():
 if __name__ == '__main__':
     import sys
     if sys.version_info.major < 3:
-        print("Incorrect python version, use Python 3 or newer!")
+        print("Incorrect Python version, use Python 3 or newer!")
     else:
         main()

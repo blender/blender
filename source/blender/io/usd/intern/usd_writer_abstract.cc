@@ -193,35 +193,40 @@ const pxr::SdfPath &USDAbstractWriter::usd_path() const
   return usd_export_context_.usd_path;
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
-                                                             Material *material)
+pxr::SdfPath USDAbstractWriter::get_material_library_path(const HierarchyContext &context) const
 {
-  std::string material_prim_path_str;
+  std::string material_library_path;
 
   /* For instance prototypes, create the material beneath the prototyp prim. */
   if (usd_export_context_.export_params.use_instancing && !context.is_instance() &&
-      usd_export_context_.hierarchy_iterator->is_prototype(context.object)) {
+      usd_export_context_.hierarchy_iterator->is_prototype(context.object))
+  {
 
-    material_prim_path_str += std::string(usd_export_context_.export_params.root_prim_path);
+    material_library_path += std::string(usd_export_context_.export_params.root_prim_path);
     if (context.object->data) {
-      material_prim_path_str += context.higher_up_export_path;
+      material_library_path += context.higher_up_export_path;
     }
     else {
-      material_prim_path_str += context.export_path;
+      material_library_path += context.export_path;
     }
-    material_prim_path_str += "/Looks";
+    material_library_path += "/Looks";
   }
 
-  if (material_prim_path_str.empty()) {
-    material_prim_path_str = this->usd_export_context_.export_params.material_prim_path;
+  if (material_library_path.empty()) {
+    material_library_path = this->usd_export_context_.export_params.material_prim_path;
   }
 
-  pxr::SdfPath material_library_path(material_prim_path_str);
+  return pxr::SdfPath(material_library_path);
+}
+
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
+                                                             Material *material)
+{
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
   pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
-  pxr::SdfPath usd_path = material_library_path.AppendChild(material_name);
+  pxr::SdfPath usd_path = get_material_library_path(context).AppendChild(material_name);
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
     return usd_material;

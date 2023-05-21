@@ -60,7 +60,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* Tangent layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "t%s", attr_safe_name);
+      SNPRINTF(attr_name, "t%s", attr_safe_name);
       GPU_vertformat_attr_add(format, attr_name, comp_type, 4, fetch_mode);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
@@ -71,7 +71,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
         GPU_vertformat_alias_add(format, "at");
       }
 
-      BLI_strncpy(r_tangent_names[tan_len++], layer_name, MAX_CUSTOMDATA_LAYER_NAME);
+      STRNCPY(r_tangent_names[tan_len++], layer_name);
     }
   }
   if (use_orco_tan && orco == nullptr) {
@@ -139,7 +139,7 @@ static void extract_tan_init_common(const MeshRenderData *mr,
     char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
     const char *layer_name = CustomData_get_layer_name(r_loop_data, CD_TANGENT, 0);
     GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
-    BLI_snprintf(attr_name, sizeof(*attr_name), "t%s", attr_safe_name);
+    SNPRINTF(attr_name, "t%s", attr_safe_name);
     GPU_vertformat_attr_add(format, attr_name, comp_type, 4, fetch_mode);
     GPU_vertformat_alias_add(format, "t");
     GPU_vertformat_alias_add(format, "at");

@@ -37,9 +37,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "curves_sculpt_intern.h"
 #include "curves_sculpt_intern.hh"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

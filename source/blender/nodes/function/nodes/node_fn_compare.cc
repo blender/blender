@@ -5,6 +5,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -22,26 +23,26 @@ NODE_STORAGE_FUNCS(NodeFunctionCompare)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("A")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("B")).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f);
 
-  b.add_input<decl::Int>(N_("A"), "A_INT");
-  b.add_input<decl::Int>(N_("B"), "B_INT");
+  b.add_input<decl::Int>("A", "A_INT");
+  b.add_input<decl::Int>("B", "B_INT");
 
-  b.add_input<decl::Vector>(N_("A"), "A_VEC3");
-  b.add_input<decl::Vector>(N_("B"), "B_VEC3");
+  b.add_input<decl::Vector>("A", "A_VEC3");
+  b.add_input<decl::Vector>("B", "B_VEC3");
 
-  b.add_input<decl::Color>(N_("A"), "A_COL");
-  b.add_input<decl::Color>(N_("B"), "B_COL");
+  b.add_input<decl::Color>("A", "A_COL");
+  b.add_input<decl::Color>("B", "B_COL");
 
-  b.add_input<decl::String>(N_("A"), "A_STR");
-  b.add_input<decl::String>(N_("B"), "B_STR");
+  b.add_input<decl::String>("A", "A_STR");
+  b.add_input<decl::String>("B", "B_STR");
 
-  b.add_input<decl::Float>(N_("C")).default_value(0.9f);
-  b.add_input<decl::Float>(N_("Angle")).default_value(0.0872665f).subtype(PROP_ANGLE);
-  b.add_input<decl::Float>(N_("Epsilon")).default_value(0.001).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("C").default_value(0.9f);
+  b.add_input<decl::Float>("Angle").default_value(0.0872665f).subtype(PROP_ANGLE);
+  b.add_input<decl::Float>("Epsilon").default_value(0.001).min(-10000.0f).max(10000.0f);
 
-  b.add_output<decl::Bool>(N_("Result"));
+  b.add_output<decl::Bool>("Result");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -63,23 +64,25 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_epsilon = (bNodeSocket *)BLI_findlink(&node->inputs, 12);
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == (eNodeSocketDatatype)data->data_type);
+    bke::nodeSetSocketAvailability(
+        ntree, socket, socket->type == (eNodeSocketDatatype)data->data_type);
   }
 
-  nodeSetSocketAvailability(ntree,
-                            sock_epsilon,
-                            ELEM(data->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL) &&
-                                !ELEM(data->data_type, SOCK_INT, SOCK_STRING));
+  bke::nodeSetSocketAvailability(
+      ntree,
+      sock_epsilon,
+      ELEM(data->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL) &&
+          !ELEM(data->data_type, SOCK_INT, SOCK_STRING));
 
-  nodeSetSocketAvailability(ntree,
-                            sock_comp,
-                            ELEM(data->mode, NODE_COMPARE_MODE_DOT_PRODUCT) &&
-                                data->data_type == SOCK_VECTOR);
+  bke::nodeSetSocketAvailability(ntree,
+                                 sock_comp,
+                                 ELEM(data->mode, NODE_COMPARE_MODE_DOT_PRODUCT) &&
+                                     data->data_type == SOCK_VECTOR);
 
-  nodeSetSocketAvailability(ntree,
-                            sock_angle,
-                            ELEM(data->mode, NODE_COMPARE_MODE_DIRECTION) &&
-                                data->data_type == SOCK_VECTOR);
+  bke::nodeSetSocketAvailability(ntree,
+                                 sock_angle,
+                                 ELEM(data->mode, NODE_COMPARE_MODE_DIRECTION) &&
+                                     data->data_type == SOCK_VECTOR);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -173,7 +176,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *label, int maxlen)
+static void node_label(const bNodeTree * /*tree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node->storage;
   const char *name;
@@ -181,7 +187,7 @@ static void node_label(const bNodeTree * /*tree*/, const bNode *node, char *labe
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
 static float component_average(float3 a)

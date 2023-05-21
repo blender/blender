@@ -251,7 +251,7 @@ void MTLStorageBuf::read(void *data)
     id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
     [blit_encoder synchronizeResource:metal_buffer_->get_metal_buffer()];
 
-    /* Ensure sync has occured. */
+    /* Ensure sync has occurred. */
     GPU_finish();
   }
 

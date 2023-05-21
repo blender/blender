@@ -15,7 +15,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_runtime.hh"
 
@@ -48,6 +48,7 @@ namespace usdtokens {
 static const pxr::TfToken clearcoat("clearcoat", pxr::TfToken::Immortal);
 static const pxr::TfToken clearcoatRoughness("clearcoatRoughness", pxr::TfToken::Immortal);
 static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
+static const pxr::TfToken emissive_color("emissiveColor", pxr::TfToken::Immortal);
 static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
 static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
 static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
@@ -297,6 +298,8 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
   shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
   shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
       .Set(pxr::GfVec3f(material->r, material->g, material->b));
+  shader.CreateInput(usdtokens::emissive_color, pxr::SdfValueTypeNames->Color3f)
+      .Set(pxr::GfVec3f(material->r, material->g, material->b));
   shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
   shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
 
@@ -309,6 +312,7 @@ static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
       {"Base Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
+      {"Emission", {usdtokens::emissive_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, true}},
@@ -433,7 +437,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
     strcpy(file_name, ima->id.name + 2);
   }
 
-  BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
+  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   return file_name;
 }
@@ -467,7 +471,7 @@ static void export_in_memory_texture(Image *ima,
    * So we have to export it. The export will keep the image state intact,
    * so the exported file will not be associated with the image. */
 
-  BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
+  BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   char export_path[FILE_MAX];
   BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
@@ -543,8 +547,8 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
     node_next = node->next;
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      nodeInternalRelink(localtree, node);
-      ntreeFreeLocalNode(localtree, node);
+      blender::bke::nodeInternalRelink(localtree, node);
+      blender::bke::ntreeFreeLocalNode(localtree, node);
     }
   }
 }
@@ -769,7 +773,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
 
   while (group_interface_nodes) {
     node = (bNode *)BLI_linklist_pop(&group_interface_nodes);
-    ntreeFreeLocalNode(ntree, node);
+    blender::bke::ntreeFreeLocalNode(ntree, node);
   }
 
   BKE_ntree_update_tag_all(ntree);
@@ -787,8 +791,8 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
       node_next = node->next;
       /* delete the group instance and its localtree. */
       bNodeTree *ngroup = (bNodeTree *)node->id;
-      ntreeFreeLocalNode(localtree, node);
-      ntreeFreeTree(ngroup);
+      blender::bke::ntreeFreeLocalNode(localtree, node);
+      blender::bke::ntreeFreeTree(ngroup);
       MEM_freeN(ngroup);
     }
     else {
@@ -1128,7 +1132,7 @@ static const std::map<int, std::string> node_gradient_tex_type_conversion = {
     {SHD_BLEND_SPHERICAL, "spherical"},
 };
 static const std::map<int, std::string> node_glossy_distribution_conversion = {
-    {SHD_GLOSSY_SHARP, "sharp"},
+    {SHD_GLOSSY_SHARP_DEPRECATED, "sharp"},
     {SHD_GLOSSY_BECKMANN, "beckmann"},
     {SHD_GLOSSY_GGX, "GGX"},
     {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ashikhmin_shirley"},
@@ -1141,13 +1145,13 @@ static const std::map<int, std::string> node_anisotropic_distribution_conversion
     {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ashikhmin_shirley"},
 };
 static const std::map<int, std::string> node_glass_distribution_conversion = {
-    {SHD_GLOSSY_SHARP, "sharp"},
+    {SHD_GLOSSY_SHARP_DEPRECATED, "sharp"},
     {SHD_GLOSSY_BECKMANN, "beckmann"},
     {SHD_GLOSSY_GGX, "GGX"},
     {SHD_GLOSSY_MULTI_GGX, "Multiscatter GGX"},
 };
 static const std::map<int, std::string> node_refraction_distribution_conversion = {
-    {SHD_GLOSSY_SHARP, "sharp"},
+    {SHD_GLOSSY_SHARP_DEPRECATED, "sharp"},
     {SHD_GLOSSY_BECKMANN, "beckmann"},
     {SHD_GLOSSY_GGX, "GGX"},
 };
@@ -1420,14 +1424,6 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
           .Set((bool)node->custom2);
       shader.CreateInput(pxr::TfToken("Only_Local"), pxr::SdfValueTypeNames->Bool)
           .Set((bool)node->custom3);
-    } break;
-    case SH_NODE_BSDF_ANISOTROPIC: {
-      // Cycles Standalone uses a different enum for distribution and subsurface, we encode strings
-      // instead
-      usd_handle_shader_enum(pxr::TfToken("Distribution"),
-                             node_anisotropic_distribution_conversion,
-                             shader,
-                             (int)node->custom1);
     } break;
     case SH_NODE_BSDF_GLASS: {
       // Cycles Standalone uses a different enum for distribution and subsurface, we encode strings

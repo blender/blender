@@ -270,7 +270,7 @@ static void simple_helper(void *__restrict userdata,
     }
     copy_v3_v3_unmap(co, co_remap, axis_map);
 
-    /* Use vertex weight has coef of linear interpolation */
+    /* Use vertex weight coefficient of the linear interpolation. */
     interp_v3_v3v3(
         curr_deform_data->vertexCos[iter], curr_deform_data->vertexCos[iter], co, weight);
 
@@ -416,7 +416,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (smd->vgroup_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }

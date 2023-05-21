@@ -23,36 +23,34 @@ NODE_STORAGE_FUNCS(NodeGeometryRaycast)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Target Geometry"))
+  b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Attribute").hide_value().field_on_all();
+  b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().field_on_all();
 
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Vector>(N_("Ray Direction"))
-      .default_value({0.0f, 0.0f, -1.0f})
-      .supports_field();
-  b.add_input<decl::Float>(N_("Ray Length"))
+  b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
+  b.add_input<decl::Float>("Ray Length")
       .default_value(100.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>(N_("Is Hit")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Position")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Normal")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Hit Distance")).dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Is Hit").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Position").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Normal").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Hit Distance").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -80,11 +78,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 4));
   bNodeSocket *out_socket_float = out_socket_vector->next;
@@ -92,11 +90,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -368,7 +366,7 @@ void register_node_type_geo_raycast()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   node_type_storage(

@@ -1617,7 +1617,7 @@ BoidRule *boid_new_rule(int type)
 
   rule->type = type;
   rule->flag |= BOIDRULE_IN_AIR | BOIDRULE_ON_LAND;
-  BLI_strncpy(rule->name, DATA_(rna_enum_boidrule_type_items[type - 1].name), sizeof(rule->name));
+  STRNCPY_UTF8(rule->name, DATA_(rna_enum_boidrule_type_items[type - 1].name));
 
   return rule;
 }
@@ -1653,7 +1653,7 @@ BoidState *boid_new_state(BoidSettings *boids)
 
   state->id = boids->last_state_id++;
   if (state->id) {
-    BLI_snprintf(state->name, sizeof(state->name), "State %i", state->id);
+    SNPRINTF(state->name, "State %i", state->id);
   }
   else {
     strcpy(state->name, "State");

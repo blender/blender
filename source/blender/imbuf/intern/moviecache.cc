@@ -273,7 +273,7 @@ MovieCache *IMB_moviecache_create(const char *name,
 
   cache = (MovieCache *)MEM_callocN(sizeof(MovieCache), "MovieCache");
 
-  BLI_strncpy(cache->name, name, sizeof(cache->name));
+  STRNCPY(cache->name, name);
 
   cache->keys_pool = BLI_mempool_create(sizeof(MovieCacheKey), 0, 64, BLI_MEMPOOL_NOP);
   cache->items_pool = BLI_mempool_create(sizeof(MovieCacheItem), 0, 64, BLI_MEMPOOL_NOP);

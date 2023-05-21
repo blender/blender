@@ -35,11 +35,14 @@ void node_sock_label_clear(bNodeSocket *sock);
 void node_math_update(bNodeTree *ntree, bNode *node);
 
 /**** Labels ****/
-void node_blend_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
-void node_image_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
-void node_math_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
-void node_vector_math_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
-void node_filter_label(const bNodeTree *ntree, const bNode *node, char *label, int maxlen);
+void node_blend_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
+void node_image_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
+void node_math_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
+void node_vector_math_label(const bNodeTree *ntree,
+                            const bNode *node,
+                            char *label,
+                            int label_maxncpy);
+void node_filter_label(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
 void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode);
 
 /*** Link Handling */

@@ -323,7 +323,7 @@ int ED_buttons_search_string_length(struct SpaceProperties *sbuts)
 
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
 {
-  BLI_strncpy(sbuts->runtime->search_string, value, sizeof(sbuts->runtime->search_string));
+  STRNCPY(sbuts->runtime->search_string, value);
 }
 
 bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)
@@ -922,7 +922,7 @@ static void buttons_space_blend_read_data(BlendDataReader *UNUSED(reader), Space
 static void buttons_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;
-  BLO_read_id_address(reader, parent_id->lib, &sbuts->pinid);
+  BLO_read_id_address(reader, parent_id, &sbuts->pinid);
   if (sbuts->pinid == NULL) {
     sbuts->flag &= ~SB_PIN_CONTEXT;
   }

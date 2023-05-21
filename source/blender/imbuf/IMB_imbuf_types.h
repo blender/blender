@@ -5,6 +5,8 @@
 
 #include "DNA_vec_types.h" /* for rcti */
 
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,9 +81,10 @@ enum eImbFileType {
 /* Only for readability. */
 #define IMB_FTYPE_NONE 0
 
-/* ibuf->foptions flag, type specific options.
- * Some formats include compression rations on some bits */
-
+/**
+ * #ImBuf::foptions.flag, type specific options.
+ * Some formats include compression rations on some bits.
+ */
 #define OPENEXR_HALF (1 << 8)
 /* careful changing this, it's used in DNA as well */
 #define OPENEXR_COMPRESS (15)
@@ -151,6 +154,42 @@ typedef enum eImBufFlags {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Imbuf buffer storage
+ * \{ */
+
+/* Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
+ * assignment API. */
+typedef enum ImBufOwnership {
+  /* The ImBuf simply shares pointer with data owned by someone else, and will not perform any
+   * memory management when the ImBuf frees the buffer. */
+  IB_DO_NOT_TAKE_OWNERSHIP = 0,
+
+  /* The ImBuf takes ownership of the buffer data, and will use MEM_freeN() to free this memory
+   * when the ImBuf needs to free the data. */
+  IB_TAKE_OWNERSHIP = 1,
+} ImBufOwnership;
+
+/* Different storage specialization. */
+/* TODO(sergey): Once everything is C++ replace with a template. */
+
+typedef struct ImBufIntBuffer {
+  int *data;
+  ImBufOwnership ownership;
+} ImBufIntBuffer;
+
+typedef struct ImBufByteBuffer {
+  uint8_t *data;
+  ImBufOwnership ownership;
+} ImBufByteBuffer;
+
+typedef struct ImBufFloatBuffer {
+  float *data;
+  ImBufOwnership ownership;
+} ImBufFloatBuffer;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Image Buffer
  * \{ */
 
@@ -170,8 +209,6 @@ typedef struct ImBuf {
   /* flags */
   /** Controls which components should exist. */
   int flags;
-  /** what is malloced internal, and can be freed */
-  int mall;
 
   /* pixels */
 
@@ -179,23 +216,24 @@ typedef struct ImBuf {
    * - color space defaults to `sRGB`.
    * - alpha defaults to 'straight'.
    */
-  unsigned int *rect;
+  ImBufByteBuffer byte_buffer;
+
   /** Image pixel buffer (float representation):
    * - color space defaults to 'linear' (`rec709`).
    * - alpha defaults to 'premul'.
    * \note May need gamma correction to `sRGB` when generating 8bit representations.
    * \note Formats that support higher more than 8 but channels load as floats.
    */
-  float *rect_float;
+  ImBufFloatBuffer float_buffer;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];
 
   /* zbuffer */
   /** z buffer data, original zbuffer */
-  int *zbuf;
+  ImBufIntBuffer z_buffer;
   /** z buffer data, camera coordinates */
-  float *zbuf_float;
+  ImBufFloatBuffer float_z_buffer;
 
   /* parameters used by conversion between byte and float */
   /** random dither value, for conversion from float -> byte rect */
@@ -230,11 +268,11 @@ typedef struct ImBuf {
 
   /* some parameters to pass along for packing images */
   /** Compressed image only used with PNG and EXR currently. */
-  unsigned char *encodedbuffer;
-  /** Size of data written to `encodedbuffer`. */
-  unsigned int encodedsize;
-  /** Size of `encodedbuffer` */
-  unsigned int encodedbuffersize;
+  ImBufByteBuffer encoded_buffer;
+  /** Size of data written to `encoded_buffer`. */
+  unsigned int encoded_size;
+  /** Size of `encoded_buffer` */
+  unsigned int encoded_buffer_size;
 
   /* color management */
   /** color space of byte buffer */

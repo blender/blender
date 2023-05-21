@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -1050,11 +1050,6 @@ msgstr "Hurrengo karpeta"
 
 msgid "Move to next folder"
 msgstr "Hurrengo karpetara mugitu"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Erro Fitxategia"
 
 
 msgid "Move to parent directory"

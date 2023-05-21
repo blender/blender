@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -3980,11 +3980,6 @@ msgstr "Markeer Bestand"
 msgctxt "Operator"
 msgid "Next Folder"
 msgstr "Volgende Map"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Ouder Bestand"
 
 
 msgctxt "Operator"
@@ -9497,10 +9492,6 @@ msgstr "kan afbeelding niet opslaan tijdens renderen"
 
 msgid "Now"
 msgstr "Nu"
-
-
-msgid " (Vector)"
-msgstr " (Punt)"
 
 
 msgctxt "Action"

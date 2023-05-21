@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1717,10 +1717,6 @@ msgstr "Крутост савијања групе темена"
 
 msgid "Vertex group for fine control over bending stiffness"
 msgstr "Користи групу темена за прецизну контролу крутости савијања"
-
-
-msgid "Mass Vertex Group"
-msgstr "Маса групе темена"
 
 
 msgid "Vertex Group for pinning of vertices"
@@ -4123,10 +4119,6 @@ msgstr "Максимална удаљеност"
 
 msgid "Falloff Power"
 msgstr "Снага опадања"
-
-
-msgid "Fall-Off"
-msgstr "Опадање"
 
 
 msgid "Cone"
@@ -12635,16 +12627,8 @@ msgid "Add Empty Keying Set"
 msgstr "Додај празну збирку кључева"
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Извези збирку кључева у python скрипту"
-
-
 msgid "Filter folders"
 msgstr "Филтрирај директоријуме"
-
-
-msgid "Filter python"
-msgstr "Филтрирај python"
 
 
 msgid "Filter text"
@@ -12984,10 +12968,6 @@ msgstr "Филтрирај слике"
 
 msgid "Filter movie files"
 msgstr "Филтрирај филмове"
-
-
-msgid "Filter python files"
-msgstr "Филтрирај python датотеке"
 
 
 msgid "Filter sound files"
@@ -14521,11 +14501,6 @@ msgstr "Следећи директоријум"
 
 msgid "Move to next folder"
 msgstr "Премести на следећи директоријум"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Родитељска датотека"
 
 
 msgid "Move to parent directory"
@@ -18148,10 +18123,6 @@ msgid "Clear Pose Constraints"
 msgstr "Избриши ограничења позе"
 
 
-msgid "Clear all the constraints for the selected bones"
-msgstr "Брише сва ограничења изабраних костију"
-
-
 msgid "Copy constraints to other selected bones"
 msgstr "Копирај ограничења на друге изабране кости"
 
@@ -18985,15 +18956,6 @@ msgstr "Расплети филмове"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Расплати све изабране филмове"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "Избриши траке"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Избриши изабране траке из секвенцера"
 
 
 msgid "Duplicate the selected strips"
@@ -21086,10 +21048,6 @@ msgstr "Кодирање"
 
 msgid "Audio"
 msgstr "Аудио"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG поставке"
 
 
 msgid "Note"
@@ -23225,6 +23183,10 @@ msgid "Goal Vertex Group"
 msgstr "Циљна група темена"
 
 
+msgid "Mass Vertex Group"
+msgstr "Маса групе темена"
+
+
 msgctxt "MovieClip"
 msgid "Track"
 msgstr "Стаза"
@@ -23357,10 +23319,6 @@ msgstr "Утишај видео"
 msgctxt "MovieClip"
 msgid "Graph"
 msgstr "Графикон"
-
-
-msgid "Interactive python console"
-msgstr "Интерактивна python конзола"
 
 
 msgid "Command history"
@@ -27553,10 +27511,6 @@ msgstr "Без активне секвенце!"
 
 msgid "unknown error writing file"
 msgstr "Непозната грешака приликом уписа датотеке"
-
-
-msgid "unknown error stating file"
-msgstr "Непозната грешака приликом читања информација о датотеци"
 
 
 msgid "No Recent Files"

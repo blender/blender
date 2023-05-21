@@ -45,9 +45,27 @@ void BKE_image_path_from_imtype(char *filepath,
                                 bool use_ext,
                                 bool use_frames,
                                 const char *suffix);
-int BKE_image_path_ensure_ext_from_imformat(char *filepath,
+
+/**
+ * The number of extensions an image may have (`.jpg`, `.jpeg` for example).
+ * Add 1 as the array is nil terminated.
+ */
+#define BKE_IMAGE_PATH_EXT_MAX 3
+/**
+ * Fill in an array of acceptable image extensions for the image format.
+ *
+ * \note In the case a file has no valid extension,
+ * the first extension should be used (`r_ext[0]`).
+ * \return the number of extensions assigned to `r_ext`, 0 for unsupported formats.
+ */
+int BKE_image_path_ext_from_imformat(const struct ImageFormatData *im_format,
+                                     const char *r_ext[BKE_IMAGE_PATH_EXT_MAX]);
+int BKE_image_path_ext_from_imtype(const char imtype, const char *r_ext[BKE_IMAGE_PATH_EXT_MAX]);
+
+int BKE_image_path_ext_from_imformat_ensure(char *filepath,
+                                            size_t filepath_maxncpy,
                                             const struct ImageFormatData *im_format);
-int BKE_image_path_ensure_ext_from_imtype(char *filepath, char imtype);
+int BKE_image_path_ext_from_imtype_ensure(char *filepath, size_t filepath_maxncpy, char imtype);
 
 /* File Types */
 

@@ -345,7 +345,7 @@ bool ED_object_jump_to_bone(bContext *C,
 
       /* Select it. */
       ED_pose_deselect_all(ob, SEL_DESELECT, true);
-      ED_pose_bone_select(ob, pchan, true);
+      ED_pose_bone_select(ob, pchan, true, true);
 
       arm->act_bone = pchan->bone;
 

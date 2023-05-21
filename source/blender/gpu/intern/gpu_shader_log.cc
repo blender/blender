@@ -240,8 +240,7 @@ void Shader::print_log(Span<const char *> sources,
   CLG_Severity severity = error ? CLG_SEVERITY_ERROR : CLG_SEVERITY_WARN;
 
   if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= 0)) ||
-      (severity >= CLG_SEVERITY_WARN))
-  {
+      (severity >= CLG_SEVERITY_WARN)) {
     const char *_str = BLI_dynstr_get_cstring(dynstr);
     CLG_log_str(LOG.type, severity, this->name, stage, _str);
     MEM_freeN((void *)_str);

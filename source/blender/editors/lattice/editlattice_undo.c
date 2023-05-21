@@ -18,10 +18,12 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -53,6 +55,7 @@ typedef struct UndoLattice {
   char typeu, typev, typew;
   float fu, fv, fw;
   float du, dv, dw;
+  MDeformVert *dvert;
   size_t undo_size;
 } UndoLattice;
 
@@ -66,6 +69,14 @@ static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
   }
   else {
     memcpy(editlatt->latt->def, ult->def, sizeof(BPoint) * len_src);
+  }
+
+  /* Even for the same amount of points we don't just copy memory for MDeformVert,
+   * relations to #MDeformWeight might have changed. */
+  if (editlatt->latt->dvert && ult->dvert) {
+    BKE_defvert_array_free(editlatt->latt->dvert, len_dst);
+    editlatt->latt->dvert = MEM_mallocN(sizeof(MDeformVert) * len_src, "Lattice MDeformVert");
+    BKE_defvert_array_copy(editlatt->latt->dvert, ult->dvert, len_src);
   }
 
   editlatt->latt->pntsu = ult->pntsu;
@@ -106,6 +117,13 @@ static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
   ult->dv = editlatt->latt->dv;
   ult->dw = editlatt->latt->dw;
 
+  if (editlatt->latt->dvert) {
+    const int tot = ult->pntsu * ult->pntsv * ult->pntsw;
+    ult->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Undo Lattice MDeformVert");
+    BKE_defvert_array_copy(ult->dvert, editlatt->latt->dvert, tot);
+    ult->undo_size += sizeof(*ult->dvert) * tot;
+  }
+
   ult->undo_size += sizeof(*ult->def) * ult->pntsu * ult->pntsv * ult->pntsw;
 
   return ult;
@@ -115,6 +133,10 @@ static void undolatt_free_data(UndoLattice *ult)
 {
   if (ult->def) {
     MEM_freeN(ult->def);
+  }
+  if (ult->dvert) {
+    BKE_defvert_array_free(ult->dvert, ult->pntsu * ult->pntsv * ult->pntsw);
+    ult->dvert = NULL;
   }
 }
 

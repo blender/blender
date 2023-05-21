@@ -537,7 +537,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 {
   wmOperatorTypeMacro *otmacro = MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
 
-  BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
+  STRNCPY(otmacro->idname, idname);
 
   /* do this on first use, since operatordefinitions might have been not done yet */
   WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);

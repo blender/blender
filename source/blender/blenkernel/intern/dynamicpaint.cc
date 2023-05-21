@@ -295,7 +295,7 @@ static Mesh *dynamicPaint_brush_mesh_get(DynamicPaintBrushSettings *brush)
 static bool setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
   /* Add error to canvas ui info label */
-  BLI_strncpy(canvas->error, string, sizeof(canvas->error));
+  STRNCPY(canvas->error, string);
   CLOG_STR_ERROR(&LOG, string);
   return false;
 }
@@ -369,7 +369,7 @@ static bool surface_duplicateOutputExists(void *arg, const char *name)
 static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
   char name[64];
-  BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
+  STRNCPY(name, basename); /* in case basename is surface->name use a copy */
   if (output == 0) {
     BLI_uniquename_cb(surface_duplicateOutputExists,
                       surface,
@@ -405,7 +405,7 @@ static bool surface_duplicateNameExists(void *arg, const char *name)
 void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char *basename)
 {
   char name[64];
-  BLI_strncpy(name, basename, sizeof(name)); /* in case basename is surface->name use a copy */
+  STRNCPY_UTF8(name, basename); /* in case basename is surface->name use a copy */
   BLI_uniquename_cb(
       surface_duplicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
 }
@@ -420,7 +420,7 @@ void dynamicPaintSurface_updateType(DynamicPaintSurface *surface)
   }
   else {
     strcpy(surface->output_name, "dp_");
-    BLI_strncpy(surface->output_name2, surface->output_name, sizeof(surface->output_name2));
+    STRNCPY(surface->output_name2, surface->output_name);
     surface->flags &= ~MOD_DPAINT_ANTIALIAS;
     surface->depth_clamp = 0.0f;
   }
@@ -1233,7 +1233,7 @@ void dynamicPaint_Modifier_copy(const DynamicPaintModifierData *pmd,
       t_surface->effector_weights = static_cast<EffectorWeights *>(
           MEM_dupallocN(surface->effector_weights));
 
-      BLI_strncpy(t_surface->name, surface->name, sizeof(t_surface->name));
+      STRNCPY(t_surface->name, surface->name);
       t_surface->format = surface->format;
       t_surface->type = surface->type;
       t_surface->disp_type = surface->disp_type;
@@ -1250,8 +1250,7 @@ void dynamicPaint_Modifier_copy(const DynamicPaintModifierData *pmd,
 
       copy_v4_v4(t_surface->init_color, surface->init_color);
       t_surface->init_texture = surface->init_texture;
-      BLI_strncpy(
-          t_surface->init_layername, surface->init_layername, sizeof(t_surface->init_layername));
+      STRNCPY(t_surface->init_layername, surface->init_layername);
 
       t_surface->dry_speed = surface->dry_speed;
       t_surface->diss_speed = surface->diss_speed;
@@ -1274,12 +1273,10 @@ void dynamicPaint_Modifier_copy(const DynamicPaintModifierData *pmd,
       t_surface->wave_spring = surface->wave_spring;
       t_surface->wave_smoothness = surface->wave_smoothness;
 
-      BLI_strncpy(t_surface->uvlayer_name, surface->uvlayer_name, sizeof(t_surface->uvlayer_name));
-      BLI_strncpy(t_surface->image_output_path,
-                  surface->image_output_path,
-                  sizeof(t_surface->image_output_path));
-      BLI_strncpy(t_surface->output_name, surface->output_name, sizeof(t_surface->output_name));
-      BLI_strncpy(t_surface->output_name2, surface->output_name2, sizeof(t_surface->output_name2));
+      STRNCPY(t_surface->uvlayer_name, surface->uvlayer_name);
+      STRNCPY(t_surface->image_output_path, surface->image_output_path);
+      STRNCPY(t_surface->output_name, surface->output_name);
+      STRNCPY(t_surface->output_name2, surface->output_name2);
     }
   }
   if (tpmd->brush) {
@@ -3213,12 +3210,15 @@ static void dynamic_paint_output_surface_image_paint_cb(void *__restrict userdat
   const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
 
   /* blend wet and dry layers */
-  blendColors(
-      point->color, point->color[3], point->e_color, point->e_color[3], &ibuf->rect_float[pos]);
+  blendColors(point->color,
+              point->color[3],
+              point->e_color,
+              point->e_color[3],
+              &ibuf->float_buffer.data[pos]);
 
   /* Multiply color by alpha if enabled */
   if (surface->flags & MOD_DPAINT_MULALPHA) {
-    mul_v3_fl(&ibuf->rect_float[pos], ibuf->rect_float[pos + 3]);
+    mul_v3_fl(&ibuf->float_buffer.data[pos], ibuf->float_buffer.data[pos + 3]);
   }
 }
 
@@ -3245,8 +3245,8 @@ static void dynamic_paint_output_surface_image_displace_cb(
 
   CLAMP(depth, 0.0f, 1.0f);
 
-  copy_v3_fl(&ibuf->rect_float[pos], depth);
-  ibuf->rect_float[pos + 3] = 1.0f;
+  copy_v3_fl(&ibuf->float_buffer.data[pos], depth);
+  ibuf->float_buffer.data[pos + 3] = 1.0f;
 }
 
 static void dynamic_paint_output_surface_image_wave_cb(void *__restrict userdata,
@@ -3271,8 +3271,8 @@ static void dynamic_paint_output_surface_image_wave_cb(void *__restrict userdata
   depth = (0.5f + depth / 2.0f);
   CLAMP(depth, 0.0f, 1.0f);
 
-  copy_v3_fl(&ibuf->rect_float[pos], depth);
-  ibuf->rect_float[pos + 3] = 1.0f;
+  copy_v3_fl(&ibuf->float_buffer.data[pos], depth);
+  ibuf->float_buffer.data[pos + 3] = 1.0f;
 }
 
 static void dynamic_paint_output_surface_image_wetmap_cb(void *__restrict userdata,
@@ -3289,8 +3289,8 @@ static void dynamic_paint_output_surface_image_wetmap_cb(void *__restrict userda
   /* image buffer position */
   const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
 
-  copy_v3_fl(&ibuf->rect_float[pos], (point->wetness > 1.0f) ? 1.0f : point->wetness);
-  ibuf->rect_float[pos + 3] = 1.0f;
+  copy_v3_fl(&ibuf->float_buffer.data[pos], (point->wetness > 1.0f) ? 1.0f : point->wetness);
+  ibuf->float_buffer.data[pos + 3] = 1.0f;
 }
 
 void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
@@ -3314,8 +3314,8 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
     format = R_IMF_IMTYPE_PNG;
   }
 #endif
-  BLI_strncpy(output_file, filepath, sizeof(output_file));
-  BKE_image_path_ensure_ext_from_imtype(output_file, format);
+  STRNCPY(output_file, filepath);
+  BKE_image_path_ext_from_imtype_ensure(output_file, sizeof(output_file), format);
 
   /* Validate output file path */
   BLI_path_abs(output_file, BKE_main_blendfile_path_from_global());

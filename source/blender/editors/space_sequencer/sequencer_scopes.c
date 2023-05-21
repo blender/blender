@@ -126,8 +126,8 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const uchar *src = (uchar *)ibuf->rect;
-  uchar *tgt = (uchar *)rval->rect;
+  const uchar *src = ibuf->byte_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
   int h = 515;
   float waveform_gamma = 0.2;
@@ -167,8 +167,8 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const float *src = ibuf->rect_float;
-  uchar *tgt = (uchar *)rval->rect;
+  const float *src = ibuf->float_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
   int h = 515;
   float waveform_gamma = 0.2;
@@ -210,7 +210,7 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
 ImBuf *make_waveform_view_from_ibuf(ImBuf *ibuf)
 {
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     return make_waveform_view_from_ibuf_float(ibuf);
   }
   return make_waveform_view_from_ibuf_byte(ibuf);
@@ -220,8 +220,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const uchar *src = (const uchar *)ibuf->rect;
-  uchar *tgt = (uchar *)rval->rect;
+  const uchar *src = ibuf->byte_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
   int sw = ibuf->x / 3;
   int h = 515;
@@ -265,8 +265,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
   int x, y;
-  const float *src = ibuf->rect_float;
-  uchar *tgt = (uchar *)rval->rect;
+  const float *src = ibuf->float_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   int w = ibuf->x + 3;
   int sw = ibuf->x / 3;
   int h = 515;
@@ -312,7 +312,7 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
 ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
 {
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     return make_sep_waveform_view_from_ibuf_float(ibuf);
   }
   return make_sep_waveform_view_from_ibuf_byte(ibuf);
@@ -321,8 +321,8 @@ ImBuf *make_sep_waveform_view_from_ibuf(ImBuf *ibuf)
 static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
 {
   uint limit = 255.0f * perc / 100.0f;
-  uchar *p = (uchar *)src->rect;
-  uchar *o = (uchar *)ibuf->rect;
+  uchar *p = src->byte_buffer.data;
+  uchar *o = ibuf->byte_buffer.data;
   int x;
   int y;
 
@@ -351,8 +351,8 @@ static void draw_zebra_byte(ImBuf *src, ImBuf *ibuf, float perc)
 static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 {
   float limit = perc / 100.0f;
-  const float *p = src->rect_float;
-  uchar *o = (uchar *)ibuf->rect;
+  const float *p = src->float_buffer.data;
+  uchar *o = ibuf->byte_buffer.data;
   int x;
   int y;
 
@@ -383,7 +383,7 @@ ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc)
 {
   ImBuf *new_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     draw_zebra_float(ibuf, new_ibuf, perc);
   }
   else {
@@ -394,7 +394,7 @@ ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc)
 
 static void draw_histogram_marker(ImBuf *ibuf, int x)
 {
-  uchar *p = (uchar *)ibuf->rect;
+  uchar *p = ibuf->byte_buffer.data;
   int barh = ibuf->y * 0.1;
 
   p += 4 * (x + ibuf->x * (ibuf->y - barh + 1));
@@ -407,7 +407,7 @@ static void draw_histogram_marker(ImBuf *ibuf, int x)
 
 static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 {
-  uchar *p = (uchar *)ibuf->rect;
+  uchar *p = ibuf->byte_buffer.data;
   int barh = ibuf->y * val * 0.9f;
 
   p += 4 * (x + ibuf->x);
@@ -430,7 +430,7 @@ static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
 {
   MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
-  const uchar *src = (uchar *)ibuf->rect;
+  const uchar *src = ibuf->byte_buffer.data;
 
   uint32_t(*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
 
@@ -506,7 +506,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
     }
   }
 
-  wform_put_border((uchar *)rval->rect, rval->x, rval->y);
+  wform_put_border(rval->byte_buffer.data, rval->x, rval->y);
 
   return rval;
 }
@@ -529,7 +529,7 @@ static void make_histogram_view_from_ibuf_float_fn(void *__restrict userdata,
 {
   const MakeHistogramViewData *data = userdata;
   const ImBuf *ibuf = data->ibuf;
-  const float *src = ibuf->rect_float;
+  const float *src = ibuf->float_buffer.data;
 
   uint32_t(*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
 
@@ -590,7 +590,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   draw_histogram_marker(rval, get_bin_float(0.0));
   draw_histogram_marker(rval, get_bin_float(1.0));
-  wform_put_border((uchar *)rval->rect, rval->x, rval->y);
+  wform_put_border(rval->byte_buffer.data, rval->x, rval->y);
 
   return rval;
 }
@@ -599,16 +599,16 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
 ImBuf *make_histogram_view_from_ibuf(ImBuf *ibuf)
 {
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     return make_histogram_view_from_ibuf_float(ibuf);
   }
   return make_histogram_view_from_ibuf_byte(ibuf);
 }
 
-static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, int h, int size)
+static void vectorscope_put_cross(uchar r, uchar g, uchar b, uchar *tgt, int w, int h, int size)
 {
   float rgb[3], yuv[3];
-  char *p;
+  uchar *p;
 
   rgb[0] = (float)r / 255.0f;
   rgb[1] = (float)g / 255.0f;
@@ -623,7 +623,7 @@ static void vectorscope_put_cross(uchar r, uchar g, uchar b, char *tgt, int w, i
 
   for (int y = -size; y <= size; y++) {
     for (int x = -size; x <= size; x++) {
-      char *q = p + 4 * (y * w + x);
+      uchar *q = p + 4 * (y * w + x);
       q[0] = r;
       q[1] = g;
       q[2] = b;
@@ -636,8 +636,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
   int x, y;
-  const char *src = (const char *)ibuf->rect;
-  char *tgt = (char *)rval->rect;
+  const uchar *src = ibuf->byte_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   float rgb[3], yuv[3];
   int w = 515;
   int h = 515;
@@ -659,8 +659,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 
   for (y = 0; y < ibuf->y; y++) {
     for (x = 0; x < ibuf->x; x++) {
-      const char *src1 = src + 4 * (ibuf->x * y + x);
-      char *p;
+      const uchar *src1 = src + 4 * (ibuf->x * y + x);
+      uchar *p;
 
       rgb[0] = (float)src1[0] / 255.0f;
       rgb[1] = (float)src1[1] / 255.0f;
@@ -681,8 +681,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 {
   ImBuf *rval = IMB_allocImBuf(515, 515, 32, IB_rect);
   int x, y;
-  const float *src = ibuf->rect_float;
-  char *tgt = (char *)rval->rect;
+  const float *src = ibuf->float_buffer.data;
+  uchar *tgt = rval->byte_buffer.data;
   float rgb[3], yuv[3];
   int w = 515;
   int h = 515;
@@ -705,7 +705,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
   for (y = 0; y < ibuf->y; y++) {
     for (x = 0; x < ibuf->x; x++) {
       const float *src1 = src + 4 * (ibuf->x * y + x);
-      const char *p;
+      const uchar *p;
 
       memcpy(rgb, src1, sizeof(float[3]));
 
@@ -725,7 +725,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 
 ImBuf *make_vectorscope_view_from_ibuf(ImBuf *ibuf)
 {
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     return make_vectorscope_view_from_ibuf_float(ibuf);
   }
   return make_vectorscope_view_from_ibuf_byte(ibuf);

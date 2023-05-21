@@ -45,6 +45,7 @@ void Cryptomatte::begin_sync()
   if (!(enabled_passes &
         (EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET)))
   {
+    /* Ensure dummy buffer for API validation. */
     cryptomatte_object_buf.resize(16);
   }
 }

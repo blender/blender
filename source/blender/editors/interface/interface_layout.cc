@@ -3569,8 +3569,8 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
   }
 
   MenuItemLevel *lvl = MEM_cnew<MenuItemLevel>("MenuItemLevel");
-  BLI_strncpy(lvl->opname, ot->idname, sizeof(lvl->opname));
-  BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
+  STRNCPY(lvl->opname, ot->idname);
+  STRNCPY(lvl->propname, propname);
   lvl->opcontext = layout->root->opcontext;
 
   uiBut *but = ui_item_menu(
@@ -3648,7 +3648,7 @@ void uiItemMenuEnumR_prop(
 
   MenuItemLevel *lvl = MEM_cnew<MenuItemLevel>("MenuItemLevel");
   lvl->rnapoin = *ptr;
-  BLI_strncpy(lvl->propname, RNA_property_identifier(prop), sizeof(lvl->propname));
+  STRNCPY(lvl->propname, RNA_property_identifier(prop));
   lvl->opcontext = layout->root->opcontext;
 
   ui_item_menu(layout,

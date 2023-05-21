@@ -25,8 +25,8 @@ namespace blender::nodes::node_composite_split_viewer_cc {
 
 static void cmp_node_split_viewer_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"));
-  b.add_input<decl::Color>(N_("Image"), "Image_001");
+  b.add_input<decl::Color>("Image");
+  b.add_input<decl::Color>("Image", "Image_001");
 }
 
 static void node_composit_init_splitviewer(bNodeTree * /*ntree*/, bNode *node)

@@ -8,7 +8,7 @@
 void main()
 {
   uint resource_id = gl_GlobalInvocationID.x;
-  if (resource_id >= resource_len) {
+  if (resource_id >= uint(resource_len)) {
     return;
   }
 

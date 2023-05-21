@@ -17,7 +17,7 @@
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"

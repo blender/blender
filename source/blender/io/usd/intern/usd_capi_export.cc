@@ -20,6 +20,7 @@
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/tokens.h>
+#include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdUtils/dependencies.h>
 
@@ -87,11 +88,53 @@ struct ExportJobData {
   }
 };
 
+/* Returns true if the given prim path is valid, per
+ * the requirements of the prim path manipulation logic
+ * of the exporter. Also returns true if the path is
+ * the empty string. Returns false otherwise. */
+static bool prim_path_valid(const char *path)
+{
+  BLI_assert(path);
+
+  if (path[0] == '\0') {
+    /* Empty paths are ignored in the code,
+     * so they can be passed through. */
+    return true;
+  }
+
+  /* Check path syntax. */
+  std::string errMsg;
+  if (!pxr::SdfPath::IsValidPathString(path, &errMsg)) {
+    WM_reportf(RPT_ERROR, "USD Export: invalid path string '%s': %s", path, errMsg.c_str());
+    return false;
+  }
+
+  /* Verify that an absolute prim path can be constructed
+   * from this path string. */
+
+  pxr::SdfPath sdf_path(path);
+  if (!sdf_path.IsAbsolutePath()) {
+    WM_reportf(RPT_ERROR, "USD Export: path '%s' is not an absolute path", path);
+    return false;
+  }
+
+  if (!sdf_path.IsPrimPath()) {
+    WM_reportf(RPT_ERROR, "USD Export: path string '%s' is not a prim path", path);
+    return false;
+  }
+
+  return true;
+}
+
 /* Perform validation of export parameter settings. Returns
- * true if the paramters are valid.  Returns false otherwise. */
-static bool validate_params(const USDExportParams &params)
+ * true if the paramters are valid; returns false otherwise. */
+static bool export_params_valid(const USDExportParams &params)
 {
   bool valid = true;
+
+  if (!prim_path_valid(params.root_prim_path)) {
+    valid = false;
+  }
 
   if (params.export_materials && !pxr::SdfPath::IsValidPathString(params.material_prim_path)) {
     WM_reportf(RPT_ERROR,
@@ -100,22 +143,18 @@ static bool validate_params(const USDExportParams &params)
     valid = false;
   }
 
-  if (strlen(params.root_prim_path) != 0 &&
-      !pxr::SdfPath::IsValidPathString(params.root_prim_path)) {
-    WM_reportf(
-        RPT_ERROR, "USD Export: invalid root prim path parameter '%s'", params.root_prim_path);
-    valid = false;
-  }
-
   if (strlen(params.default_prim_path) != 0 &&
-      !pxr::SdfPath::IsValidPathString(params.default_prim_path)) {
+      !pxr::SdfPath::IsValidPathString(params.default_prim_path))
+  {
     WM_reportf(RPT_ERROR,
                "USD Export: invalid default prim path parameter '%s'",
                params.default_prim_path);
     valid = false;
   }
 
-  if (params.export_usd_kind && params.default_prim_kind == USD_KIND_CUSTOM && strlen(params.default_prim_custom_kind) == 0) {
+  if (params.export_usd_kind && params.default_prim_kind == USD_KIND_CUSTOM &&
+      strlen(params.default_prim_custom_kind) == 0)
+  {
     WM_reportf(RPT_ERROR,
                "USD Export: Default Prim Kind is set to Custom, but the value is empty.");
     valid = false;
@@ -177,25 +216,26 @@ static void validate_unique_root_prim_path(USDExportParams &params, Depsgraph *d
   }
 }
 
-/* Create root prim if defined. */
+/* Create the root Xform primitive, if the Root Prim path has been set
+ * in the export options. Also author transforms and model Kind data
+ * on the root prim.  */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
-  if (strlen(params.root_prim_path) == 0) {
+  if (params.root_prim_path[0] == '\0') {
     return;
   }
 
-  pxr::UsdPrim root_prim = stage->DefinePrim(pxr::SdfPath(params.root_prim_path),
-                                             pxr::TfToken("Xform"));
+  pxr::UsdGeomXform root_xf = pxr::UsdGeomXform::Define(stage, pxr::SdfPath(params.root_prim_path));
 
   if (!(params.convert_orientation || params.convert_to_cm)) {
     return;
   }
 
-  if (!root_prim) {
+  if (!root_xf) {
     return;
   }
 
-  pxr::UsdGeomXformCommonAPI xf_api(root_prim);
+  pxr::UsdGeomXformCommonAPI xf_api(root_xf.GetPrim());
 
   if (!xf_api) {
     return;
@@ -222,7 +262,7 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
 
   /* Handle root prim USD Kind. */
   if (params.export_usd_kind && params.default_prim_kind) {
-    pxr::UsdModelAPI api(root_prim);
+    pxr::UsdModelAPI api(root_xf.GetPrim());
     switch (params.default_prim_kind) {
       case USD_KIND_COMPONENT:
         api.SetKind(pxr::KindTokens->component);
@@ -396,11 +436,6 @@ static void export_startjob(void *customdata,
     WM_set_locked_interface(data->wm, true);
   }
   G.is_break = false;
-
-  if (!validate_params(data->params)) {
-    data->export_ok = false;
-    return;
-  }
 
   /* Construct the depsgraph for exporting. */
   Scene *scene = DEG_get_input_scene(data->depsgraph);
@@ -621,9 +656,6 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
-  MEM_freeN(data->params.default_prim_path);
-  MEM_freeN(data->params.root_prim_path);
-  MEM_freeN(data->params.material_prim_path);
   MEM_freeN(data->params.default_prim_custom_kind);
 
   if (data->targets_usdz()) {
@@ -678,6 +710,10 @@ bool USD_export(bContext *C,
                 const USDExportParams *params,
                 bool as_background_job)
 {
+  if (!blender::io::usd::export_params_valid(*params)) {
+    return false;
+  }
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
 

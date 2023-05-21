@@ -619,7 +619,7 @@ char *RNA_path_append(const char *path,
     }
     else {
       char appendstr[128];
-      BLI_snprintf(appendstr, sizeof(appendstr), "%d", intkey);
+      SNPRINTF(appendstr, "%d", intkey);
       BLI_dynstr_append(dynstr, appendstr);
     }
 

@@ -953,23 +953,20 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
       while (a--) {
         keyIndex = getCVKeyIndex(editnurb, bezt);
         if (keyIndex) {
-          BLI_snprintf(
-              rna_path, sizeof(rna_path), "splines[%d].bezier_points[%d]", nu_index, pt_index);
-          BLI_snprintf(orig_rna_path,
-                       sizeof(orig_rna_path),
-                       "splines[%d].bezier_points[%d]",
-                       keyIndex->nu_index,
-                       keyIndex->pt_index);
+          SNPRINTF(rna_path, "splines[%d].bezier_points[%d]", nu_index, pt_index);
+          SNPRINTF(orig_rna_path,
+                   "splines[%d].bezier_points[%d]",
+                   keyIndex->nu_index,
+                   keyIndex->pt_index);
 
           if (keyIndex->switched) {
             char handle_path[64], orig_handle_path[64];
-            BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_left", orig_rna_path);
-            BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_right", rna_path);
+            SNPRINTF(orig_handle_path, "%s.handle_left", orig_rna_path);
+            SNPRINTF(handle_path, "%s.handle_right", rna_path);
             fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
 
-            BLI_snprintf(
-                orig_handle_path, sizeof(orig_rna_path), "%s.handle_right", orig_rna_path);
-            BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_left", rna_path);
+            SNPRINTF(orig_handle_path, "%s.handle_right", orig_rna_path);
+            SNPRINTF(handle_path, "%s.handle_left", rna_path);
             fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
           }
 
@@ -991,12 +988,9 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
       while (a--) {
         keyIndex = getCVKeyIndex(editnurb, bp);
         if (keyIndex) {
-          BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d].points[%d]", nu_index, pt_index);
-          BLI_snprintf(orig_rna_path,
-                       sizeof(orig_rna_path),
-                       "splines[%d].points[%d]",
-                       keyIndex->nu_index,
-                       keyIndex->pt_index);
+          SNPRINTF(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
+          SNPRINTF(
+              orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
           fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 
           keyIndex->nu_index = nu_index;
@@ -1035,8 +1029,8 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
     }
 
     if (keyIndex) {
-      BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d]", nu_index);
-      BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d]", keyIndex->nu_index);
+      SNPRINTF(rna_path, "splines[%d]", nu_index);
+      SNPRINTF(orig_rna_path, "splines[%d]", keyIndex->nu_index);
       fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
     }
   }
@@ -1452,12 +1446,13 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->description = "Separate selected points from connected unselected points into a new object";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = separate_exec;
   ot->poll = ED_operator_editsurfcurve;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */

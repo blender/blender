@@ -380,7 +380,7 @@ void RNA_property_string_search(const struct bContext *C,
  * \return the length without `\0` terminator.
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_string_get_default(PropertyRNA *prop, char *value, int max_len);
+void RNA_property_string_get_default(PropertyRNA *prop, char *value, int value_maxncpy);
 char *RNA_property_string_get_default_alloc(
     PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
 /**

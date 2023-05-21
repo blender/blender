@@ -75,7 +75,7 @@ void importer_main(Main *bmain,
 
   /* Name used for both mesh and object. */
   char ob_name[FILE_MAX];
-  BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
+  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
   BLI_path_extension_strip(ob_name);
 
   Mesh *mesh = is_ascii_stl ?

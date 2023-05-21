@@ -770,7 +770,7 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
       nullptr, &mesh->id, nullptr, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
   /* NOTE: Materials should already be copied. */
   /* Copy original mesh name. This is because edit meshes might not have one properly set name. */
-  BLI_strncpy(mesh_result->id.name, ((ID *)object->data)->name, sizeof(mesh_result->id.name));
+  STRNCPY(mesh_result->id.name, ((ID *)object->data)->name);
   return mesh_result;
 }
 

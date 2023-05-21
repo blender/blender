@@ -22,21 +22,21 @@ NODE_STORAGE_FUNCS(NodeGeometrySubdivisionSurface)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
-  b.add_input<decl::Float>(N_("Edge Crease"))
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_input<decl::Float>("Edge Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Vertex Crease"))
+  b.add_input<decl::Float>("Vertex Crease")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .field_on_all()
       .subtype(PROP_FACTOR);
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -202,7 +202,7 @@ void register_node_type_geo_subdivision_surface()
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.initfunc = file_ns::node_init;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",
                     node_free_standard_storage,

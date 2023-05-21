@@ -107,7 +107,7 @@ TEST(listbase, FindLinkOrIndex)
 TEST(listbase, FindLinkFromStringOrPointer)
 {
   struct TestLink {
-    struct TestLink *prev, *next;
+    struct TestLink *next, *prev;
     char name[64];
     const void *ptr;
   };
@@ -122,10 +122,10 @@ TEST(listbase, FindLinkFromStringOrPointer)
 
   ListBase lb;
   struct TestLink *link1 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link1");
-  BLI_strncpy(link1->name, link1_name, sizeof(link1->name));
+  STRNCPY(link1->name, link1_name);
   link1->ptr = link1_ptr;
   struct TestLink *link2 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link2");
-  BLI_strncpy(link2->name, link2_name, sizeof(link2->name));
+  STRNCPY(link2->name, link2_name);
   link2->ptr = link2_ptr;
 
   /* Empty list */

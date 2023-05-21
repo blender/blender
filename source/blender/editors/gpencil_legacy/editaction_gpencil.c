@@ -366,7 +366,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       BLI_assert(copied_frames.first == NULL);
 
       /* make a copy of the layer's name - for name-based matching later... */
-      BLI_strncpy(new_layer->info, gpl->info, sizeof(new_layer->info));
+      STRNCPY(new_layer->info, gpl->info);
     }
   }
 

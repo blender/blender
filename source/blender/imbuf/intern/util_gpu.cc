@@ -45,7 +45,7 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
                                eGPUDataFormat *r_data_format,
                                eGPUTextureFormat *r_texture_format)
 {
-  const bool float_rect = (ibuf->rect_float != nullptr);
+  const bool float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = use_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
 
   if (float_rect) {
@@ -114,9 +114,10 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool store_premultiplied,
                               bool *r_freedata)
 {
-  bool is_float_rect = (ibuf->rect_float != nullptr);
+  bool is_float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = imb_is_grayscale_texture_format_compatible(ibuf);
-  void *data_rect = (is_float_rect) ? (void *)ibuf->rect_float : (void *)ibuf->rect;
+  void *data_rect = (is_float_rect) ? (void *)ibuf->float_buffer.data :
+                                      (void *)ibuf->byte_buffer.data;
   bool freedata = false;
 
   if (is_float_rect) {
@@ -192,7 +193,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   }
 
   if (do_rescale) {
-    uint *rect = (is_float_rect) ? nullptr : (uint *)data_rect;
+    uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
     float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
@@ -202,11 +203,12 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       MEM_freeN(data_rect);
     }
 
-    data_rect = (is_float_rect) ? (void *)scale_ibuf->rect_float : (void *)scale_ibuf->rect;
+    data_rect = (is_float_rect) ? (void *)scale_ibuf->float_buffer.data :
+                                  (void *)scale_ibuf->byte_buffer.data;
     *r_freedata = freedata = true;
     /* Steal the rescaled buffer to avoid double free. */
-    scale_ibuf->rect_float = nullptr;
-    scale_ibuf->rect = nullptr;
+    (void)IMB_steal_byte_buffer(scale_ibuf);
+    (void)IMB_steal_float_buffer(scale_ibuf);
     IMB_freeImBuf(scale_ibuf);
   }
 
@@ -411,14 +413,16 @@ void IMB_gpu_clamp_half_float(ImBuf *image_buffer)
 {
   const float half_min = -65504;
   const float half_max = 65504;
-  if (!image_buffer->rect_float) {
+  if (!image_buffer->float_buffer.data) {
     return;
   }
+
+  float *rect_float = image_buffer->float_buffer.data;
 
   int rect_float_len = image_buffer->x * image_buffer->y *
                        (image_buffer->channels == 0 ? 4 : image_buffer->channels);
 
   for (int i = 0; i < rect_float_len; i++) {
-    image_buffer->rect_float[i] = clamp_f(image_buffer->rect_float[i], half_min, half_max);
+    rect_float[i] = clamp_f(rect_float[i], half_min, half_max);
   }
 }

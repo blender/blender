@@ -8,7 +8,7 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 
 #include "BLT_translation.h"
@@ -91,19 +91,19 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
 static bool geometry_node_tree_socket_type_valid(bNodeTreeType * /*treetype*/,
                                                  bNodeSocketType *socket_type)
 {
-  return nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
-                                                     SOCK_FLOAT,
-                                                     SOCK_VECTOR,
-                                                     SOCK_RGBA,
-                                                     SOCK_BOOLEAN,
-                                                     SOCK_INT,
-                                                     SOCK_STRING,
-                                                     SOCK_OBJECT,
-                                                     SOCK_GEOMETRY,
-                                                     SOCK_COLLECTION,
-                                                     SOCK_TEXTURE,
-                                                     SOCK_IMAGE,
-                                                     SOCK_MATERIAL);
+  return blender::bke::nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
+                                                                   SOCK_FLOAT,
+                                                                   SOCK_VECTOR,
+                                                                   SOCK_RGBA,
+                                                                   SOCK_BOOLEAN,
+                                                                   SOCK_INT,
+                                                                   SOCK_STRING,
+                                                                   SOCK_OBJECT,
+                                                                   SOCK_GEOMETRY,
+                                                                   SOCK_COLLECTION,
+                                                                   SOCK_TEXTURE,
+                                                                   SOCK_IMAGE,
+                                                                   SOCK_MATERIAL);
 }
 
 void register_node_tree_type_geo()

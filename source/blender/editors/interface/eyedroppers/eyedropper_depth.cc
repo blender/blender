@@ -194,7 +194,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    false);
         }
         else {
-          BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));
+          STRNCPY(ddr->name, "Nothing under cursor");
         }
       }
     }

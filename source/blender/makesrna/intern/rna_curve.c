@@ -564,7 +564,7 @@ static int rna_Curve_body_length(PointerRNA *ptr);
 static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
   Curve *cu = (Curve *)ptr->owner_id;
-  BLI_strncpy(value, cu->str, rna_Curve_body_length(ptr) + 1);
+  memcpy(value, cu->str, rna_Curve_body_length(ptr) + 1);
 }
 
 static int rna_Curve_body_length(PointerRNA *ptr)
@@ -595,7 +595,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
   cu->str = MEM_mallocN(len_bytes + sizeof(char32_t), "str");
   cu->strinfo = MEM_callocN((len_chars + 4) * sizeof(CharInfo), "strinfo");
 
-  BLI_strncpy(cu->str, value, len_bytes + 1);
+  memcpy(cu->str, value, len_bytes + 1);
 }
 
 static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1018,7 +1018,7 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_path_follow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FOLLOW);
-  RNA_def_property_ui_text(prop, "Follow", "Make curve path children to rotate along the path");
+  RNA_def_property_ui_text(prop, "Follow", "Make curve path children rotate along the path");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "use_path_clamp", PROP_BOOLEAN, PROP_NONE);
@@ -1034,7 +1034,7 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_ui_text(prop,
                            "Stretch",
                            "Option for curve-deform: "
-                           "make deformed child to stretch along entire path");
+                           "make deformed child stretch along entire path");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "use_deform_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -1050,7 +1050,8 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_ui_text(prop,
                            "Radius",
                            "Option for paths and curve-deform: "
-                           "apply the curve radius with path following it and deforming");
+                           "apply the curve radius to objects following it "
+                           "and to deformed objects");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 

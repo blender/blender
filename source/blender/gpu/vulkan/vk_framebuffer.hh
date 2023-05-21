@@ -25,10 +25,20 @@ class VKFrameBuffer : public FrameBuffer {
   VkDevice vk_device_ = VK_NULL_HANDLE;
   /* Base render pass used for framebuffer creation. */
   VkRenderPass vk_render_pass_ = VK_NULL_HANDLE;
+  VkImage vk_image_ = VK_NULL_HANDLE;
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
   /** Internal frame-buffers are immutable. */
   bool immutable_;
+
+  /**
+   * Should we flip the viewport to match Blenders coordinate system. We flip the viewport for
+   * off-screen frame-buffers.
+   *
+   * When two frame-buffers are blitted we also check if the coordinate system should be flipped
+   * during blitting.
+   */
+  bool flip_viewport_ = false;
 
  public:
   /**
@@ -41,6 +51,7 @@ class VKFrameBuffer : public FrameBuffer {
    * This just act as a wrapper, the actual allocations are done by GHOST_ContextVK.
    **/
   VKFrameBuffer(const char *name,
+                VkImage vk_image,
                 VkFramebuffer vk_framebuffer,
                 VkRenderPass vk_render_pass,
                 VkExtent2D vk_extent);
@@ -76,6 +87,11 @@ class VKFrameBuffer : public FrameBuffer {
                int dst_offset_x,
                int dst_offset_y) override;
 
+  bool is_valid() const
+  {
+    return vk_framebuffer_ != VK_NULL_HANDLE;
+  }
+
   VkFramebuffer vk_framebuffer_get() const
   {
     BLI_assert(vk_framebuffer_ != VK_NULL_HANDLE);
@@ -87,7 +103,13 @@ class VKFrameBuffer : public FrameBuffer {
     BLI_assert(vk_render_pass_ != VK_NULL_HANDLE);
     return vk_render_pass_;
   }
+  VkViewport vk_viewport_get() const;
   VkRect2D vk_render_area_get() const;
+  VkImage vk_image_get() const
+  {
+    BLI_assert(vk_image_ != VK_NULL_HANDLE);
+    return vk_image_;
+  }
 
  private:
   void update_attachments();

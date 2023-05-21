@@ -6,7 +6,7 @@ namespace blender::nodes::node_geo_input_shade_smooth_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>(N_("Smooth")).field_source();
+  b.add_output<decl::Bool>("Smooth").field_source();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

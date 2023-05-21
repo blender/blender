@@ -32,7 +32,7 @@ void getPathName(const string &path, const string &base, vector<string> &pathnam
 
     dir = path.substr(pos, sep - pos);
 
-    BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
+    STRNCPY(cleaned, dir.c_str());
     BLI_path_normalize(cleaned);
     res = string(cleaned);
 

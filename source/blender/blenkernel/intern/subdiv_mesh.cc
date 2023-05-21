@@ -1208,7 +1208,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
     result->tag_loose_verts_none();
   }
   if (coarse_mesh->loose_edges().count == 0) {
-    result->loose_edges_tag_none();
+    result->tag_loose_edges_none();
   }
 
   if (subdiv->settings.is_simple) {

@@ -20,7 +20,152 @@ using std::string;
 using std::vector;
 
 /* -------------------------------------------------------------------- */
-/* tests */
+/** \name String Copy (UTF8)
+ * \{ */
+
+TEST(string, StrCopyUTF8_ASCII)
+{
+#define STRNCPY_UTF8_ASCII(...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII('a');
+  STRNCPY_UTF8_ASCII('a', 'b', 'c');
+
+#undef STRNCPY_UTF8_ASCII
+}
+
+TEST(string, StrCopyUTF8_ASCII_Truncate)
+{
+#define STRNCPY_UTF8_ASCII_TRUNCATE(maxncpy, ...) \
+  { \
+    char src[] = {__VA_ARGS__}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    BLI_strncpy_utf8(dst, src, maxncpy); \
+    int len_expect = MIN2(sizeof(src), maxncpy) - 1; \
+    src[len_expect] = '\0'; /* To be able to use `EXPECT_STREQ`. */ \
+    EXPECT_EQ(strlen(dst), len_expect); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  STRNCPY_UTF8_ASCII_TRUNCATE(1, '\0');
+  STRNCPY_UTF8_ASCII_TRUNCATE(3, 'A', 'A', 'A', 'A');
+
+#undef STRNCPY_UTF8_ASCII_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TruncateEncoding)
+{
+  /* Ensure copying one byte less than the code-point results in it being ignored entirely. */
+#define STRNCPY_UTF8_TRUNCATE(byte_size, ...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    BLI_strncpy_utf8(dst, src, sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, ""); \
+  }
+
+  STRNCPY_UTF8_TRUNCATE(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(3, 224, 1, 1);
+  STRNCPY_UTF8_TRUNCATE(2, 192, 1);
+  STRNCPY_UTF8_TRUNCATE(1, 96);
+
+#undef STRNCPY_UTF8_TRUNCATE
+}
+
+TEST(string, StrCopyUTF8_TerminateEncodingEarly)
+{
+  /* A UTF8 sequence that has a null byte before the sequence ends.
+   * Ensure the the UTF8 sequence does not step over the null byte. */
+#define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
+  { \
+    char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    for (int i = sizeof(dst) - 1; i > 1; i--) { \
+      src[i] = '\0'; \
+      memset(dst, 0xff, sizeof(dst)); \
+      const int dst_copied = STRNCPY_UTF8_RLEN(dst, src); \
+      EXPECT_STREQ(dst, src); \
+      EXPECT_EQ(strlen(dst), i); \
+      EXPECT_EQ(dst_copied, i); \
+    } \
+  }
+
+  STRNCPY_UTF8_TERMINATE_EARLY(6, 252, 1, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(5, 248, 1, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(4, 240, 1, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(3, 224, 1, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(2, 192, 1);
+  STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
+
+#undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Replace
+ * \{ */
+
+TEST(string, StrReplaceRange)
+{
+#define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
+  { \
+    char string[size] = src; \
+    BLI_str_replace_range(string, sizeof(string), beg, end, dst); \
+    EXPECT_STREQ(string, result_expect); \
+  }
+
+  STR_REPLACE_RANGE("a ", 5, 2, 2, "b!", "a b!");
+  STR_REPLACE_RANGE("a ", 4, 2, 2, "b!", "a b");
+  STR_REPLACE_RANGE("a ", 5, 1, 2, "b!", "ab!");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "A", "XAYZ");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "AB", "XABY");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "ABC", "XABC");
+
+  /* Add at the end when there is no room (no-op). */
+  STR_REPLACE_RANGE("XYZA", 5, 4, 4, "?", "XYZA");
+  /* Add at the start, replace all contents. */
+  STR_REPLACE_RANGE("XYZ", 4, 0, 0, "ABC", "ABC");
+  STR_REPLACE_RANGE("XYZ", 7, 0, 0, "ABC", "ABCXYZ");
+  /* Only remove. */
+  STR_REPLACE_RANGE("XYZ", 4, 1, 3, "", "X");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 2, "", "Z");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 3, "", "");
+  /* Only Add. */
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ", "XYZ");
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ?", "XYZ");
+  /* Do nothing. */
+  STR_REPLACE_RANGE("", 1, 0, 0, "?", "");
+  STR_REPLACE_RANGE("", 1, 0, 0, "", "");
+
+#undef STR_REPLACE_RANGE
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Partition
+ * \{ */
 
 /* BLI_str_partition */
 TEST(string, StrPartition)
@@ -321,6 +466,12 @@ TEST(string, StrPartitionExUtf8)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Integer (Grouped)
+ * \{ */
+
 /* BLI_str_format_int_grouped */
 TEST(string, StrFormatIntGrouped)
 {
@@ -380,6 +531,12 @@ TEST(string, StrFormatUint64Grouped)
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(number_str), strlen(number_str) + 1);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Byte Units
+ * \{ */
 
 /* BLI_str_format_byte_unit */
 TEST(string, StrFormatByteUnits)
@@ -447,6 +604,12 @@ TEST(string, StrFormatByteUnits)
   /* Ensure the limit is correct. */
   EXPECT_EQ(sizeof(size_str), strlen(size_str) + 1);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Format Decimal Units
+ * \{ */
 
 /* BLI_str_format_decimal_unit */
 TEST(string, StrFormatDecimalUnits)
@@ -640,6 +803,12 @@ TEST(string, StrFormatIntegerUnits)
   EXPECT_STREQ("-2B", size_str);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Length (Clamped)
+ * \{ */
+
 TEST(string, StringNLen)
 {
   EXPECT_EQ(0, BLI_strnlen("", 0));
@@ -658,6 +827,12 @@ TEST(string, StringNLen)
   EXPECT_EQ(5, BLI_strnlen("this is a longer string", 5));
   EXPECT_EQ(47, BLI_strnlen("This string writes about an agent without name.", 100));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Find Split Words
+ * \{ */
 
 struct WordInfo {
   WordInfo() = default;
@@ -778,6 +953,12 @@ TEST_F(StringFindSplitWords, LimitChars)
   testStringFindSplitWords(words, 0, {{-1, -1}});
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Search (Case Insensitive)
+ * \{ */
+
 /* BLI_strncasestr */
 TEST(string, StringStrncasestr)
 {
@@ -803,6 +984,12 @@ TEST(string, StringStrncasestr)
   EXPECT_EQ(res, (void *)nullptr);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Maximum Word Count
+ * \{ */
+
 /* BLI_string_max_possible_word_count */
 TEST(string, StringMaxPossibleWordCount)
 {
@@ -812,6 +999,12 @@ TEST(string, StringMaxPossibleWordCount)
   EXPECT_EQ(BLI_string_max_possible_word_count(3), 2);
   EXPECT_EQ(BLI_string_max_possible_word_count(10), 6);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String is Decimal
+ * \{ */
 
 /* BLI_string_is_decimal */
 TEST(string, StrIsDecimal)
@@ -831,6 +1024,12 @@ TEST(string, StrIsDecimal)
   EXPECT_TRUE(BLI_string_is_decimal("001"));
   EXPECT_TRUE(BLI_string_is_decimal("11342908713948713498745980171334059871345098713405981734"));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Natural Case Insensitive Comparison
+ * \{ */
 
 /* BLI_strcasecmp_natural */
 class StringCasecmpNatural : public testing::Test {
@@ -875,6 +1074,12 @@ class StringCasecmpNatural : public testing::Test {
     return ret_array;
   }
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Case Insensitive Comparison
+ * \{ */
 
 TEST_F(StringCasecmpNatural, Empty)
 {
@@ -1036,7 +1241,13 @@ TEST_F(StringCasecmpNatural, TextAndNumbers)
   testReturnsMoreThanZeroForAll(positive);
 }
 
-/* BLI_str_escape, BLI_str_unescape */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Escape/Un-Escape
+ *
+ * #BLI_str_escape, #BLI_str_unescape.
+ * \{ */
 
 class StringEscape : public testing::Test {
  protected:
@@ -1119,3 +1330,5 @@ TEST_F(StringEscape, Control)
 
   testEscapeWords(escaped);
 }
+
+/** \} */

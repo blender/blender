@@ -1445,7 +1445,7 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   bScreen *oldscreen = WM_window_get_active_screen(win);
 
   oldscreen->state = state;
-  BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");
+  SNPRINTF(newname, "%s-%s", oldscreen->id.name + 2, "nonnormal");
 
   layout_new = ED_workspace_layout_add(bmain, workspace, win, newname);
 
@@ -1740,10 +1740,10 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
     sad->from_anim_edit = ELEM(spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA);
 
     screen->animtimer->customdata = sad;
-  }
 
-  /* Seek audio to ensure playback in preview range with AV sync. */
-  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
+    /* Seek audio to ensure playback in preview range with AV sync. */
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
+  }
 
   /* Notifier caught by top header, for button. */
   WM_event_add_notifier(C, NC_SCREEN | ND_ANIMPLAY, NULL);

@@ -4,7 +4,7 @@
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "BLI_math_vector.h"
@@ -60,7 +60,7 @@ static bool basic_types_can_connect(const SocketDeclaration & /*socket_decl*/,
 static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subtype)
 {
   const char *idname = nodeStaticSocketType(socket.type, new_subtype);
-  BLI_strncpy(socket.idname, idname, sizeof(socket.idname));
+  STRNCPY(socket.idname, idname);
   bNodeSocketType *socktype = nodeSocketTypeFind(idname);
   socket.typeinfo = socktype;
 }

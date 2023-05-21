@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "node_util.hh"
 

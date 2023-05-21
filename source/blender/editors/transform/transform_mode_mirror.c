@@ -175,7 +175,7 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
       special_axis = bitscan_forward_i(special_axis_bitmap);
     }
 
-    BLI_snprintf(str, sizeof(str), TIP_("Mirror%s"), t->con.text);
+    SNPRINTF(str, TIP_("Mirror%s"), t->con.text);
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;

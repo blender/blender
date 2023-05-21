@@ -50,7 +50,7 @@
 #include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
@@ -288,7 +288,7 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
 
 static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 {
-  BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
   scene->r.cfra = 1.0f;
 

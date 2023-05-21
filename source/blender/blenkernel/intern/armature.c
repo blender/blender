@@ -261,12 +261,12 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_armature_bone_hash_make(arm);
 }
 
-static void lib_link_bones(BlendLibReader *reader, Library *lib, Bone *bone)
+static void lib_link_bones(BlendLibReader *reader, ID *self_id, Bone *bone)
 {
-  IDP_BlendReadLib(reader, lib, bone->prop);
+  IDP_BlendReadLib(reader, self_id, bone->prop);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    lib_link_bones(reader, lib, curbone);
+    lib_link_bones(reader, self_id, curbone);
   }
 }
 
@@ -274,7 +274,7 @@ static void armature_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bArmature *arm = (bArmature *)id;
   LISTBASE_FOREACH (Bone *, curbone, &arm->bonebase) {
-    lib_link_bones(reader, id->lib, curbone);
+    lib_link_bones(reader, id, curbone);
   }
 }
 
@@ -708,7 +708,7 @@ bool bone_autoside_name(
   if (len == 0) {
     return false;
   }
-  BLI_strncpy(basename, name, sizeof(basename));
+  STRNCPY(basename, name);
 
   /* Figure out extension to append:
    * - The extension to append is based upon the axis that we are working on.
@@ -816,8 +816,8 @@ bool bone_autoside_name(
     }
 
     /* Subtract 1 from #MAXBONENAME for the null byte. Add 1 to the extension for the '.' */
-    const int basename_maxlen = (MAXBONENAME - 1) - (1 + strlen(extension));
-    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxlen, basename, extension);
+    const int basename_maxncpy = (MAXBONENAME - 1) - (1 + strlen(extension));
+    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxncpy, basename, extension);
 
     return true;
   }

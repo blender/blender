@@ -309,6 +309,16 @@ void BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
  */
 void BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
 /**
+ * Like BKE_id_delete, but with extra corner-case options.
+ *
+ * \param extra_remapping_flags: Additional `ID_REMAP_` flags to pass to remapping code when
+ * ensuring that deleted IDs are not used by any other ID in given `bmain`. Typical example would
+ * be e.g. `ID_REMAP_FORCE_UI_POINTERS`, required when default UI-handling callbacks of remapping
+ * code won't be working (e.g. from readfile code).
+ */
+void BKE_id_delete_ex(struct Main *bmain, void *idv, const int extra_remapping_flags)
+    ATTR_NONNULL(1, 2);
+/**
  * Properly delete all IDs tagged with \a LIB_TAG_DOIT, in given \a bmain database.
  *
  * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs

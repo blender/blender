@@ -14,6 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -58,7 +59,7 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(TimeGpencilModifierData), modifier);
   TimeGpencilModifierSegment *ds = DNA_struct_default_alloc(TimeGpencilModifierSegment);
   ds->gpmd = gpmd;
-  BLI_strncpy(ds->name, DATA_("Segment"), sizeof(ds->name));
+  STRNCPY_UTF8(ds->name, DATA_("Segment"));
 
   gpmd->segments = ds;
 }

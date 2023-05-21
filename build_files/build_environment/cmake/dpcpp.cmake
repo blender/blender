@@ -122,5 +122,6 @@ if(BUILD_MODE STREQUAL Release AND WIN32)
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/lld.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/lld-link.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/wasm-ld.exe
+      DEPENDEES install
   )
 endif()

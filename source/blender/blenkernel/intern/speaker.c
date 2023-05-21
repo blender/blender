@@ -67,7 +67,7 @@ static void speaker_blend_read_data(BlendDataReader *reader, ID *id)
 static void speaker_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Speaker *spk = (Speaker *)id;
-  BLO_read_id_address(reader, spk->id.lib, &spk->sound);
+  BLO_read_id_address(reader, id, &spk->sound);
 }
 
 static void speaker_blend_read_expand(BlendExpander *expander, ID *id)

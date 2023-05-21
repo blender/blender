@@ -25,7 +25,7 @@ namespace blender::gpu {
 Texture::Texture(const char *name)
 {
   if (name) {
-    BLI_strncpy(name_, name, sizeof(name_));
+    STRNCPY(name_, name);
   }
   else {
     name_[0] = '\0';
@@ -178,6 +178,9 @@ bool Texture::init_view(GPUTexture *src_,
 void Texture::usage_set(eGPUTextureUsage usage_flags)
 {
   gpu_image_usage_flags_ = usage_flags;
+  /* Metal: Texture clearing is done using frame-buffer clear. This has no performance impact. */
+  /* TODO(fclem): Move this to metal backend instead to avoid side effects in other back-ends. */
+  gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
 }
 
 /** \} */

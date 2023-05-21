@@ -565,7 +565,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
   bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 
-  BLI_strncpy(gsock->name, name, sizeof(gsock->name));
+  STRNCPY(gsock->name, name);
   gsock->type = type;
 
   gsock->next = gsock->prev = NULL;
@@ -632,7 +632,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
     char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
+    BLI_path_join(str, sizeof(str), seq->strip->dirpath, seq->strip->stripdata->filename);
     BLI_path_abs(str, BKE_main_blendfile_path(bmain));
     seq->sound = BKE_sound_new_file(bmain, str);
   }
@@ -640,7 +640,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s" SEP_STR "BL_proxy", seq->strip->dir);
+    SNPRINTF(seq->strip->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->strip->dirpath);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
@@ -668,7 +668,7 @@ static bool seq_set_pitch_cb(Sequence *seq, void *UNUSED(user_data))
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
+void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */
 
@@ -727,10 +727,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       /* move to cameras */
       if (sce->r.mode & R_PANORAMA) {
         for (base = sce->base.first; base; base = base->next) {
-          ob = blo_do_versions_newlibadr(fd, lib, base->object);
+          ob = blo_do_versions_newlibadr(fd, &sce->id, ID_IS_LINKED(sce), base->object);
 
           if (ob->type == OB_CAMERA && !ob->id.lib) {
-            cam = blo_do_versions_newlibadr(fd, lib, ob->data);
+            cam = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
             cam->flag |= CAM_PANORAMA;
           }
         }
@@ -996,7 +996,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     for (me = bmain->meshes.first; me; me = me->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(&me->vdata, CD_MVERT, me->totvert);
@@ -1007,7 +1008,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (lt = bmain->lattices.first; lt; lt = lt->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, lt->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
@@ -1018,7 +1020,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, cu->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) && key->refkey)
+      {
         data = key->refkey->data;
 
         for (nu = cu->nurb.first; nu; nu = nu->next) {
@@ -1294,7 +1297,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
        * performing initialization where appropriate
        */
       if (ob->pose && ob->data) {
-        bArmature *arm = blo_do_versions_newlibadr(fd, lib, ob->data);
+        bArmature *arm = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
         if (arm) { /* XXX: why does this fail in some cases? */
           bAnimVizSettings *avs = &ob->pose->avs;
 
@@ -1628,12 +1631,14 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* parent type to modifier */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       if (ob->parent) {
-        Object *parent = (Object *)blo_do_versions_newlibadr(fd, lib, ob->parent);
+        Object *parent = (Object *)blo_do_versions_newlibadr(
+            fd, &ob->id, ID_IS_LINKED(ob), ob->parent);
         if (parent) { /* parent may not be in group */
           enum { PARCURVE = 1 };
           if (parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
             ArmatureModifierData *amd;
-            bArmature *arm = (bArmature *)blo_do_versions_newlibadr(fd, lib, parent->data);
+            bArmature *arm = (bArmature *)blo_do_versions_newlibadr(
+                fd, &parent->id, ID_IS_LINKED(parent), parent->data);
 
             amd = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
             amd->object = ob->parent;

@@ -48,15 +48,15 @@ void weightvg_do_map(
 
   /* Return immediately, if we have nothing to do! */
   /* Also security checks... */
-  if (!do_invert &&
-      (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == nullptr)) || !ELEM(falloff_type,
-                                                                            MOD_WVG_MAPPING_CURVE,
-                                                                            MOD_WVG_MAPPING_SHARP,
-                                                                            MOD_WVG_MAPPING_SMOOTH,
-                                                                            MOD_WVG_MAPPING_ROOT,
-                                                                            MOD_WVG_MAPPING_SPHERE,
-                                                                            MOD_WVG_MAPPING_RANDOM,
-                                                                            MOD_WVG_MAPPING_STEP)))
+  if (!do_invert && (((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == nullptr)) ||
+                     !ELEM(falloff_type,
+                           MOD_WVG_MAPPING_CURVE,
+                           MOD_WVG_MAPPING_SHARP,
+                           MOD_WVG_MAPPING_SMOOTH,
+                           MOD_WVG_MAPPING_ROOT,
+                           MOD_WVG_MAPPING_SPHERE,
+                           MOD_WVG_MAPPING_RANDOM,
+                           MOD_WVG_MAPPING_STEP)))
   {
     return;
   }
@@ -145,8 +145,8 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
      */
     t_map.texture = texture;
     t_map.map_object = tex_map_object;
-    BLI_strncpy(t_map.map_bone, text_map_bone, sizeof(t_map.map_bone));
-    BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
+    STRNCPY(t_map.map_bone, text_map_bone);
+    STRNCPY(t_map.uvlayer_name, tex_uvlayer_name);
     t_map.texmapping = tex_mapping;
 
     tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(*tex_co), __func__));
@@ -212,7 +212,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     /* Get vgroup idx from its name. */
 
     /* Proceed only if vgroup is valid, else use constant factor. */
-    /* Get actual dverts (ie vertex group data). */
+    /* Get actual deform-verts (ie vertex group data). */
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
         CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT));
     /* Proceed only if vgroup is valid, else assume factor = O. */
@@ -283,8 +283,9 @@ void weightvg_update_vg(MDeformVert *dvert,
   for (i = 0; i < num; i++) {
     float w = weights[i];
     MDeformVert *dv = &dvert[indices ? indices[i] : i];
-    MDeformWeight *dw = dws ? dws[i] :
-                              ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : nullptr);
+    MDeformWeight *dw = dws ?
+                            dws[i] :
+                            ((defgrp_idx >= 0) ? BKE_defvert_find_index(dv, defgrp_idx) : nullptr);
 
     if (do_normalize) {
       w = (w - min_w) * norm_fac;
@@ -320,7 +321,8 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
   uiItemR(layout, ptr, "mask_constant", UI_ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
   if (!has_mask_texture) {
-    modifier_vgroup_ui(layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
+    modifier_vgroup_ui(
+        layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
   }
 
   if (!has_mask_vertex_group) {

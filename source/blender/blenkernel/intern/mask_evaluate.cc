@@ -31,7 +31,7 @@ uint BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
   uint i, resol = 1;
 
   if (width != 0 && height != 0) {
-    max_segment = 1.0f / (float)max_ii(width, height);
+    max_segment = 1.0f / float(max_ii(width, height));
   }
 
   for (i = 0; i < spline->tot_point; i++) {
@@ -70,7 +70,7 @@ uint BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int heigh
   uint resol = BKE_mask_spline_resolution(spline, width, height);
   float max_jump = 0.0f;
 
-  /* avoid checking the featrher if we already hit the maximum value */
+  /* Avoid checking the feather if we already hit the maximum value. */
   if (resol >= MASK_RESOL_MAX) {
     return MASK_RESOL_MAX;
   }
@@ -280,8 +280,8 @@ static int feather_bucket_index_from_coord(const float co[2],
                                            const float bucket_scale[2],
                                            const int buckets_per_side)
 {
-  int x = (int)((co[0] - min[0]) * bucket_scale[0]);
-  int y = (int)((co[1] - min[1]) * bucket_scale[1]);
+  int x = int((co[0] - min[0]) * bucket_scale[0]);
+  int y = int((co[1] - min[1]) * bucket_scale[1]);
 
   if (x == buckets_per_side) {
     x--;
@@ -365,7 +365,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
     }
   }
 
-  /* prevent divisionsby zero by ensuring bounding box is not collapsed */
+  /* Prevent divisions by zero by ensuring bounding box is not collapsed. */
   if (max[0] - min[0] < FLT_EPSILON) {
     max[0] += 0.01f;
     min[0] -= 0.01f;
@@ -526,7 +526,7 @@ static float (
     /* bezt_curr = &point_curr->bezt; */
 
     for (j = 0; j < resol; j++, fp++) {
-      float u = (float)j / resol, weight;
+      float u = float(j) / resol, weight;
       float co[2], n[2];
 
       /* TODO: these calls all calculate similar things
@@ -671,7 +671,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
     /* scale by the uw's */
     if (point_prev->tot_uw) {
       for (j = 0; j < resol; j++, fp++) {
-        float u = (float)j / resol;
+        float u = float(j) / resol;
         float weight_uw, weight_scalar;
         float co[2];
 
@@ -777,7 +777,7 @@ float *BKE_mask_point_segment_feather_diff(
   feather = fp = MEM_cnew_array<float>(2 * resol, "mask point spline feather diff points");
 
   for (uint i = 0; i < resol; i++, fp += 2) {
-    float u = (float)(i % resol) / resol, weight;
+    float u = float(i % resol) / resol, weight;
     float co[2], n[2];
 
     BKE_mask_point_segment_co(spline, point, u, co);

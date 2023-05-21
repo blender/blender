@@ -225,6 +225,20 @@ void usd_export_panel_register_rigging(void);
 
 
 /* ====== USD Export ====== */
+/* Ensure that the prim_path is not set to
+ * the absolute root path '/'. */
+static void process_prim_path(char *prim_path)
+{
+  if (prim_path == NULL || prim_path[0] == '\0') {
+    return;
+  }
+
+  /* The absolute root "/" path indicates a no-op,
+   * so clear the string. */
+  if (prim_path[0] == '/' && strlen(prim_path) == 1) {
+    prim_path[0] = '\0';
+  }
+}
 
 static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -239,17 +253,6 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
-}
-
-static char *usd_ensure_prim_path(char *primpath)
-{
-  if (primpath != NULL && primpath[0] != '/' && primpath[0] != '\0') {
-    char *legal_path = BLI_strdupcat("/", primpath);
-    MEM_freeN(primpath);
-    primpath = legal_path;
-    return legal_path;
-  }
-  return primpath;
 }
 
 static int wm_usd_export_exec(bContext *C, wmOperator *op)
@@ -303,22 +306,17 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const double shutter_open = (double)RNA_float_get(op->ptr, "shutter_open");
   const double shutter_close = (double)RNA_float_get(op->ptr, "shutter_close");
 
-  // This default prim path is not sanitized. This happens in usd_capi.cc
-  char *default_prim_path = RNA_string_get_alloc(op->ptr, "default_prim_path", NULL, 0, NULL);
+  char root_prim_path[FILE_MAX];
+  RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
+  process_prim_path(root_prim_path);
 
-  default_prim_path = usd_ensure_prim_path(default_prim_path);
+  char default_prim_path[FILE_MAX];
+  RNA_string_get(op->ptr, "default_prim_path", default_prim_path);
+  process_prim_path(default_prim_path);
 
-  char *root_prim_path = RNA_string_get_alloc(op->ptr, "root_prim_path", NULL, 0, NULL);
-
-  // Do not allow / path
-  if (root_prim_path[0] == '/' && strlen(root_prim_path) == 1)
-    root_prim_path[0] = '\0';
-
-  root_prim_path = usd_ensure_prim_path(root_prim_path);
-
-  char *material_prim_path = RNA_string_get_alloc(op->ptr, "material_prim_path", NULL, 0, NULL);
-
-  material_prim_path = usd_ensure_prim_path(material_prim_path);
+  char material_prim_path[FILE_MAX];
+  RNA_string_get(op->ptr, "material_prim_path", material_prim_path);
+  process_prim_path(material_prim_path);
 
   int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
   int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
@@ -393,9 +391,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    visible_objects_only,
                                    use_instancing,
                                    evaluation_mode,
-                                   default_prim_path,
-                                   root_prim_path,
-                                   material_prim_path,
                                    generate_preview_surface,
                                    convert_uv_to_st,
                                    convert_orientation,
@@ -452,6 +447,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       params.frame_end = scene->r.efra;
     }
   }
+
+  STRNCPY(params.root_prim_path, root_prim_path);
+  STRNCPY(params.default_prim_path, default_prim_path);
+  STRNCPY(params.material_prim_path, material_prim_path);
 
   bool ok = USD_export(C, filename, &params, as_background_job);
 
@@ -689,19 +688,20 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "default_prim_path",
                  "/root",
-                 1024,
+                 FILE_MAX,
                  "Default Prim Path",
                  "If set, this will set the default prim path in the usd document");
   RNA_def_string(ot->srna,
                  "root_prim_path",
                  "/root",
-                 1024,
-                 "Root Prim Path",
-                 "If set, all primitives will live under this path");
+                 FILE_MAX,
+                 "Root Prim",
+                 "If set, add a transform primitive with the given path to the stage "
+                 "as the parent of all exported data");
   RNA_def_string(ot->srna,
                  "material_prim_path",
                  "/Materials",
-                 1024,
+                 FILE_MAX,
                  "Material Prim Path",
                  "This specifies where all generated USD Shade Materials and Shaders get placed");
 

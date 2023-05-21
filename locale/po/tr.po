@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -5966,26 +5966,6 @@ msgstr "İmleç X"
 
 msgid "Value:"
 msgstr "Değer:"
-
-
-msgid " (String)"
-msgstr " (Dizi)"
-
-
-msgid " (Integer)"
-msgstr " (Tamsayı)"
-
-
-msgid " (Float)"
-msgstr " (Kayan Noktalı)"
-
-
-msgid " (Vector)"
-msgstr " (Vektör)"
-
-
-msgid " (Color)"
-msgstr " (Renk)"
 
 
 msgid "Geometry:"

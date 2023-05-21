@@ -68,13 +68,9 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (bmd->defgrp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
-  }
-  if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
-    r_cddata_masks->vmask |= CD_MASK_BWEIGHT;
-    r_cddata_masks->emask |= CD_MASK_BWEIGHT;
   }
 }
 
@@ -125,10 +121,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     MOD_get_vgroup(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
   }
 
+  const int bweight_offset_vert = CustomData_get_offset_named(
+      &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
+  const int bweight_offset_edge = CustomData_get_offset_named(
+      &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+
   if (bmd->affect_type == MOD_BEVEL_AFFECT_VERTICES) {
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
-        weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+        weight = bweight_offset_vert == -1 ? 0.0f : BM_ELEM_CD_GET_FLOAT(v, bweight_offset_vert);
         if (weight == 0.0f) {
           continue;
         }
@@ -165,7 +166,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       if (BM_edge_is_manifold(e)) {
         if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
-          weight = BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT);
+          weight = bweight_offset_edge == -1 ? 0.0f : BM_ELEM_CD_GET_FLOAT(e, bweight_offset_edge);
           if (weight == 0.0f) {
             continue;
           }

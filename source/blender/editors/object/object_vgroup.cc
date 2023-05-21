@@ -1131,14 +1131,14 @@ static void vgroup_duplicate(Object *ob)
   }
 
   if (!strstr(dg->name, "_copy")) {
-    BLI_snprintf(name, sizeof(name), "%s_copy", dg->name);
+    SNPRINTF(name, "%s_copy", dg->name);
   }
   else {
-    BLI_strncpy(name, dg->name, sizeof(name));
+    STRNCPY(name, dg->name);
   }
 
   cdg = BKE_defgroup_duplicate(dg);
-  BLI_strncpy(cdg->name, name, sizeof(cdg->name));
+  STRNCPY(cdg->name, name);
   BKE_object_defgroup_unique_name(cdg, ob);
 
   BLI_addtail(defbase, cdg);
@@ -2796,7 +2796,7 @@ static int vertex_group_copy_exec(bContext *C, wmOperator * /*op*/)
 void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy Vertex Group";
+  ot->name = "Duplicate Vertex Group";
   ot->idname = "OBJECT_OT_vertex_group_copy";
   ot->description = "Make a copy of the active vertex group";
 

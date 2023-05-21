@@ -1158,7 +1158,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   material_indices.finish();
 
   if (all_meshes_info.no_loose_edges_hint) {
-    dst_mesh->loose_edges_tag_none();
+    dst_mesh->tag_loose_edges_none();
   }
   if (all_meshes_info.no_loose_verts_hint) {
     dst_mesh->tag_loose_verts_none();

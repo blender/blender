@@ -1552,10 +1552,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     )
 
     use_oneapirt: BoolProperty(
-        name="Embree on GPU (Experimental)",
-        description="Embree GPU execution will allow to use hardware ray tracing on Intel GPUs, which will provide better performance. "
-                    "However this support is experimental and some scenes may render incorrectly",
-        default=False,
+        name="Embree on GPU",
+        description="Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance",
+        default=True,
     )
 
     kernel_optimization_level: EnumProperty(
@@ -1697,13 +1696,10 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=iface_("and AMD Radeon Pro %s driver or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    if True:
-                        col.label(text="HIP temporarily disabled due to compiler bugs", icon='BLANK1')
-                    else:
-                        driver_version = "22.10"
-                        col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
-                        col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
-                                  translate=False)
+                    driver_version = "22.10"
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
+                    col.label(text=iface_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
+                              translate=False)
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
@@ -1785,7 +1781,6 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()
-            row.use_property_split = True
             row.prop(self, "use_oneapirt")
 
     def draw(self, context):

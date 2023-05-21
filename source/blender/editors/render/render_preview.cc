@@ -55,7 +55,7 @@
 #include "BKE_light.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_pose_backup.h"
 #include "BKE_scene.h"
@@ -475,7 +475,7 @@ static Scene *preview_prepare_scene(
 
     /* This flag tells render to not execute depsgraph or F-Curves etc. */
     sce->r.scemode |= R_BUTS_PREVIEW;
-    BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
+    STRNCPY(sce->r.engine, scene->r.engine);
 
     sce->r.color_mgt_flag = scene->r.color_mgt_flag;
     BKE_color_managed_display_settings_copy(&sce->display_settings, &scene->display_settings);
@@ -498,7 +498,7 @@ static Scene *preview_prepare_scene(
 
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
-      BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
+      STRNCPY(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
     }
 
     if (id_type == ID_MA) {
@@ -631,10 +631,10 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
   bool ok = false;
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", (void *)area);
+    SNPRINTF(name, "Preview %p", (void *)area);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", (void *)area);
+    SNPRINTF(name, "SecondPreview %p", (void *)area);
   }
 
   if (split) {
@@ -1152,10 +1152,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   }
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", sp->owner);
+    SNPRINTF(name, "Preview %p", sp->owner);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", sp->owner);
+    SNPRINTF(name, "SecondPreview %p", sp->owner);
   }
   re = RE_GetRender(name);
 
@@ -1314,7 +1314,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
     /* First use the path directly to try and load the file. */
     char filepath[FILE_MAX];
 
-    BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+    STRNCPY(filepath, brush->icon_filepath);
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
     /* Use default color-spaces for brushes. */
@@ -1352,7 +1352,8 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   short ex, ey, dx, dy;
 
   /* paranoia test */
-  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     return;
   }
 
@@ -1382,11 +1383,11 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   IMB_scalefastImBuf(ima, ex, ey);
 
   /* if needed, convert to 32 bits */
-  if (ima->rect == nullptr) {
+  if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = ima->rect;
+  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
   drect = rect;
 
   drect += dy * w + dx;
@@ -1440,7 +1441,8 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
      * already there. Very expensive for large images. Need to find a way to
      * only get existing `ibuf`. */
     ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
-    if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+    if (ibuf == nullptr ||
+        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr)) {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return;
     }
@@ -1458,7 +1460,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
-    if (!(br->icon_imbuf) || !(br->icon_imbuf->rect)) {
+    if (!(br->icon_imbuf) || !(br->icon_imbuf->byte_buffer.data)) {
       return;
     }
 

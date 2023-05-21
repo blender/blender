@@ -480,7 +480,7 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
 /**
  * Resize the FCurve 'bezt' array to fit the given length.
  *
- * \param new_totvert new number of elements in the FCurve's `bezt` array.
+ * \param new_totvert: new number of elements in the FCurve's `bezt` array.
  * Constraint: `0 <= new_totvert <= fcu->totvert`
  */
 void BKE_fcurve_bezt_shrink(struct FCurve *fcu, int new_totvert);

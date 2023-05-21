@@ -710,10 +710,10 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(md->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, md->name, sizeof(md->name));
+  STRNCPY(oldname, md->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(md->name, value, sizeof(md->name));
+  STRNCPY_UTF8(md->name, value);
 
   /* make sure the name is truly unique */
   if (ptr->owner_id) {
@@ -951,7 +951,7 @@ static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
   Object *owner = (Object *)ptr->owner_id;
   HookModifierData *hmd = ptr->data;
 
-  BLI_strncpy(hmd->subtarget, value, sizeof(hmd->subtarget));
+  STRNCPY(hmd->subtarget, value);
   BKE_object_modifier_hook_reset(owner, hmd);
 }
 
@@ -1093,7 +1093,7 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
   if (external && !STREQ(external->filepath, value)) {
-    BLI_strncpy(external->filepath, value, sizeof(external->filepath));
+    STRNCPY(external->filepath, value);
     multires_force_external_reload(ob);
   }
 }
@@ -3991,6 +3991,7 @@ static void rna_def_modifier_dynamic_paint(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_prop_dynamicpaint_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SIMULATION);
   RNA_def_property_ui_text(prop, "Type", "");
 
   RNA_define_lib_overridable(false);
@@ -4499,6 +4500,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, simple_deform_mode_items);
   RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);

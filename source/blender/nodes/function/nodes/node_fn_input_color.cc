@@ -11,7 +11,7 @@ namespace blender::nodes::node_fn_input_color_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(N_("Color"));
+  b.add_output<decl::Color>("Color");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

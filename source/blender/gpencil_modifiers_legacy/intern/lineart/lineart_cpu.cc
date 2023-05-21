@@ -2066,6 +2066,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   tri_data.ob_info = ob_info;
   tri_data.positions = me->vert_positions();
   tri_data.looptris = looptris;
+  tri_data.looptri_polys = me->looptri_polys();
   tri_data.corner_verts = me->corner_verts();
   tri_data.material_indices = material_indices;
   tri_data.vert_arr = la_v_arr;
@@ -2105,6 +2106,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.corner_verts = me->corner_verts();
   edge_feat_data.corner_edges = me->corner_edges();
   edge_feat_data.looptris = looptris;
+  edge_feat_data.looptri_polys = me->looptri_polys();
   edge_feat_data.sharp_edges = sharp_edges;
   edge_feat_data.sharp_faces = sharp_faces;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);

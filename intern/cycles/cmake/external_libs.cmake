@@ -43,18 +43,12 @@ endif()
 
 if(WITH_CYCLES_DEVICE_HIP)
   if(WITH_CYCLES_HIP_BINARIES)
-    if(UNIX)
-      # Disabled until there is a HIP 5.5 release for Linux.
-      set(WITH_CYCLES_HIP_BINARIES OFF)
-      message(STATUS "HIP temporarily disabled due to compiler bugs")
-    else()
-      # Need at least HIP 5.5 to solve compiler bug affecting the kernel.
-      find_package(HIP 5.5.0)
-      set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
+    # Need at least HIP 5.5 to solve compiler bug affecting the kernel.
+    find_package(HIP 5.5.0)
+    set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
 
-      if(HIP_FOUND)
-        message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
-      endif()
+    if(HIP_FOUND)
+      message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
     endif()
   endif()
 

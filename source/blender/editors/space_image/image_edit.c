@@ -167,7 +167,7 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock, int tile)
         return ibuf;
       }
 
-      if (ibuf->rect || ibuf->rect_float) {
+      if (ibuf->byte_buffer.data || ibuf->float_buffer.data) {
         return ibuf;
       }
       BKE_image_release_ibuf(sima->image, ibuf, *r_lock);
@@ -197,7 +197,7 @@ int ED_space_image_get_display_channel_mask(ImBuf *ibuf)
 
   const bool color = ibuf->channels >= 3;
   const bool alpha = ibuf->channels == 4;
-  const bool zbuf = ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1);
+  const bool zbuf = ibuf->z_buffer.data || ibuf->float_z_buffer.data || (ibuf->channels == 1);
 
   if (!alpha) {
     result &= ~(SI_USE_ALPHA | SI_SHOW_ALPHA);

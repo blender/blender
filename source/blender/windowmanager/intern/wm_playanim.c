@@ -411,8 +411,8 @@ static void *ocio_transform_ibuf(PlayState *ps,
     *r_glsl_used = false;
     display_buffer = NULL;
   }
-  else if (ibuf->rect_float) {
-    display_buffer = ibuf->rect_float;
+  else if (ibuf->float_buffer.data) {
+    display_buffer = ibuf->float_buffer.data;
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
@@ -436,8 +436,8 @@ static void *ocio_transform_ibuf(PlayState *ps,
           &ps->view_settings, &ps->display_settings, ibuf->dither, false);
     }
   }
-  else if (ibuf->rect) {
-    display_buffer = ibuf->rect;
+  else if (ibuf->byte_buffer.data) {
+    display_buffer = ibuf->byte_buffer.data;
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
                                                                   &ps->display_settings,
                                                                   ibuf->rect_colorspace,
@@ -451,7 +451,7 @@ static void *ocio_transform_ibuf(PlayState *ps,
 
   /* There is data to be displayed, but GLSL is not initialized
    * properly, in this case we fallback to CPU-based display transform. */
-  if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
+  if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire(
         ibuf, &ps->view_settings, &ps->display_settings, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;
@@ -580,7 +580,7 @@ static void playanim_toscreen(
     int sizex, sizey;
     float fsizex_inv, fsizey_inv;
     char str[32 + FILE_MAX];
-    BLI_snprintf(str, sizeof(str), "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
+    SNPRINTF(str, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
 
     playanim_window_get_size(&sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
@@ -667,7 +667,7 @@ static void build_pict_list_ex(
     } fp_decoded;
 
     char filepath[FILE_MAX];
-    BLI_strncpy(filepath, filepath_first, sizeof(filepath));
+    STRNCPY(filepath, filepath_first);
     fp_framenr = BLI_path_sequence_decode(filepath,
                                           fp_decoded.head,
                                           sizeof(fp_decoded.head),
@@ -1334,7 +1334,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         int a;
 
         for (a = 0; a < stra->count; a++) {
-          BLI_strncpy(ps->dropped_file, (char *)stra->strings[a], sizeof(ps->dropped_file));
+          STRNCPY(ps->dropped_file, (char *)stra->strings[a]);
           ps->go = false;
           printf("drop file %s\n", stra->strings[a]);
           break; /* only one drop element supported now */
@@ -1514,7 +1514,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
 
   if (argc > 1) {
-    BLI_strncpy(filepath, argv[1], sizeof(filepath));
+    STRNCPY(filepath, argv[1]);
   }
   else {
     printf("%s: no filepath argument given\n", __func__);
@@ -1629,7 +1629,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
   for (i = 2; i < argc; i++) {
-    BLI_strncpy(filepath, argv[i], sizeof(filepath));
+    STRNCPY(filepath, argv[i]);
     build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
   }
 
@@ -1704,7 +1704,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 #endif /* USE_FRAME_CACHE_LIMIT */
 
-        BLI_strncpy(ibuf->filepath, ps.picture->filepath, sizeof(ibuf->filepath));
+        STRNCPY(ibuf->filepath, ps.picture->filepath);
 
         /* why only windows? (from 2.4x) - campbell */
 #ifdef _WIN32
@@ -1849,7 +1849,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* early exit, IMB and BKE should be exited only in end */
   if (ps.dropped_file[0]) {
-    BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
+    STRNCPY(filepath, ps.dropped_file);
     return filepath;
   }
 

@@ -10,15 +10,21 @@
 #include "gpu_batch_private.hh"
 
 namespace blender::gpu {
+class VKVertexBuffer;
+class VKIndexBuffer;
 
 class VKBatch : public Batch {
  public:
-  void draw(int v_first, int v_count, int i_first, int i_count) override;
+  void draw(int vertex_first, int vertex_count, int instance_first, int instance_count) override;
   void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;
   void multi_draw_indirect(GPUStorageBuf *indirect_buf,
                            int count,
                            intptr_t offset,
                            intptr_t stride) override;
+
+  VKVertexBuffer *vertex_buffer_get(int index);
+  VKVertexBuffer *instance_buffer_get(int index);
+  VKIndexBuffer *index_buffer_get();
 };
 
 }  // namespace blender::gpu

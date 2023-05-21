@@ -86,11 +86,10 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   int max_dim = max_ii(final_res[0], final_res[1]);
   if (max_dim > GPU_max_texture_size()) {
     char error_msg[128];
-    BLI_snprintf(error_msg,
-                 sizeof(error_msg),
-                 "Error: Reported texture size limit (%dpx) is lower than output size (%dpx).",
-                 GPU_max_texture_size(),
-                 max_dim);
+    SNPRINTF(error_msg,
+             "Error: Reported texture size limit (%dpx) is lower than output size (%dpx).",
+             GPU_max_texture_size(),
+             max_dim);
     RE_engine_set_error_message(engine, error_msg);
     G.is_break = true;
     return false;
@@ -209,7 +208,7 @@ void EEVEE_render_cache(void *vedata,
    * (see #59649) */
   if (engine && (ob->base_flag & BASE_FROM_DUPLI) == 0) {
     char info[42];
-    BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
+    SNPRINTF(info, "Syncing %s", ob->id.name + 2);
     RE_engine_update_stats(engine, NULL, info);
   }
 
@@ -379,6 +378,19 @@ static void eevee_render_result_bloom(RenderLayer *rl,
     EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_BLOOM, 0);
     eevee_render_color_result(
         rl, viewname, rect, RE_PASSNAME_BLOOM, 3, vedata->fbl->renderpass_fb, vedata);
+  }
+}
+
+static void eevee_render_result_transparent(RenderLayer *rl,
+                                            const char *viewname,
+                                            const rcti *rect,
+                                            EEVEE_Data *vedata,
+                                            EEVEE_ViewLayerData *sldata)
+{
+  if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_TRANSPARENT) != 0) {
+    EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_TRANSPARENT, 0);
+    eevee_render_color_result(
+        rl, viewname, rect, RE_PASSNAME_TRANSPARENT, 4, vedata->fbl->renderpass_fb, vedata);
   }
 }
 
@@ -575,8 +587,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Don't print every samples as it can lead to bad performance. (see #59649) */
     else if ((render_samples % 25) == 0 || (render_samples + 1) == tot_sample) {
       char info[42];
-      BLI_snprintf(
-          info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
+      SNPRINTF(info, "Rendering %u / %u samples", render_samples + 1, tot_sample);
       RE_engine_update_stats(engine, NULL, info);
     }
 
@@ -633,6 +644,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Subsurface output, Occlusion output, Mist output */
     EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
     /* Transparent */
+    EEVEE_material_transparent_output_accumulate(vedata);
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);
     DRW_draw_pass(psl->transparent_pass);
@@ -674,6 +686,7 @@ void EEVEE_render_read_result(EEVEE_Data *vedata,
   eevee_render_result_environment(rl, viewname, rect, vedata, sldata);
   eevee_render_result_bloom(rl, viewname, rect, vedata, sldata);
   eevee_render_result_volume_light(rl, viewname, rect, vedata, sldata);
+  eevee_render_result_transparent(rl, viewname, rect, vedata, sldata);
   eevee_render_result_aovs(rl, viewname, rect, vedata, sldata);
   eevee_render_result_cryptomatte(rl, viewname, rect, vedata, sldata);
 }
@@ -708,6 +721,7 @@ void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *v
   CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(BLOOM, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
 
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     if ((aov->flag & AOV_CONFLICT) != 0) {

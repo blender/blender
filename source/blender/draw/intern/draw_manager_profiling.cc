@@ -97,7 +97,7 @@ static void drw_stats_timer_start_ex(const char *name, const bool is_query)
 {
   if (DTP.is_recording) {
     DRWTimer *timer = drw_stats_timer_get();
-    BLI_strncpy(timer->name, name, MAX_TIMER_NAME);
+    STRNCPY(timer->name, name);
     timer->lvl = DTP.timer_increment - DTP.end_increment - 1;
     timer->is_query = is_query;
 
@@ -228,15 +228,15 @@ void DRW_stats_draw(const rcti *rect)
   /* ------------------------------------------ */
   /* Label row */
   char col_label[32];
-  BLI_snprintf(col_label, sizeof(col_label), "Engine");
+  STRNCPY(col_label, "Engine");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Init");
+  STRNCPY(col_label, "Init");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Background");
+  STRNCPY(col_label, "Background");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Render");
+  STRNCPY(col_label, "Render");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(col_label, sizeof(col_label), "Total (w/o cache)");
+  STRNCPY(col_label, "Total (w/o cache)");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
   v++;
 
@@ -248,45 +248,42 @@ void DRW_stats_draw(const rcti *rect)
     draw_stat_5row(rect, u++, v, engine->idname, sizeof(engine->idname));
 
     init_tot_time += data->init_time;
-    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->init_time);
+    SNPRINTF(time_to_txt, "%.2fms", data->init_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     background_tot_time += data->background_time;
-    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->background_time);
+    SNPRINTF(time_to_txt, "%.2fms", data->background_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     render_tot_time += data->render_time;
-    BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", data->render_time);
+    SNPRINTF(time_to_txt, "%.2fms", data->render_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 
     tot_time += data->init_time + data->background_time + data->render_time;
-    BLI_snprintf(time_to_txt,
-                 sizeof(time_to_txt),
-                 "%.2fms",
-                 data->init_time + data->background_time + data->render_time);
+    SNPRINTF(time_to_txt, "%.2fms", data->init_time + data->background_time + data->render_time);
     draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
     v++;
   }
 
   /* Totals row */
   u = 0;
-  BLI_snprintf(col_label, sizeof(col_label), "Sub Total");
+  STRNCPY(col_label, "Sub Total");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", init_tot_time);
+  SNPRINTF(time_to_txt, "%.2fms", init_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", background_tot_time);
+  SNPRINTF(time_to_txt, "%.2fms", background_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", render_tot_time);
+  SNPRINTF(time_to_txt, "%.2fms", render_tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
-  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", tot_time);
+  SNPRINTF(time_to_txt, "%.2fms", tot_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
   v += 2;
 
   u = 0;
   double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
-  BLI_snprintf(col_label, sizeof(col_label), "Cache Time");
+  STRNCPY(col_label, "Cache Time");
   draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-  BLI_snprintf(time_to_txt, sizeof(time_to_txt), "%.2fms", *cache_time);
+  SNPRINTF(time_to_txt, "%.2fms", *cache_time);
   draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
   v += 2;
 
@@ -298,23 +295,22 @@ void DRW_stats_draw(const rcti *rect)
   uint tex_mem = GPU_texture_memory_usage_get();
   uint vbo_mem = GPU_vertbuf_get_memory_usage();
 
-  BLI_snprintf(stat_string, sizeof(stat_string), "GPU Memory");
+  STRNCPY(stat_string, "GPU Memory");
   draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(
-      stat_string, sizeof(stat_string), "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
+  SNPRINTF(stat_string, "%.2fMB", double(tex_mem + vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "Textures");
+  STRNCPY(stat_string, "Textures");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)tex_mem / 1000000.0);
+  SNPRINTF(stat_string, "%.2fMB", double(tex_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "Meshes");
+  STRNCPY(stat_string, "Meshes");
   draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
-  BLI_snprintf(stat_string, sizeof(stat_string), "%.2fMB", (double)vbo_mem / 1000000.0);
+  SNPRINTF(stat_string, "%.2fMB", double(vbo_mem) / 1000000.0);
   draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
   v += 1;
 
   /* GPU Timings */
-  BLI_strncpy(stat_string, "GPU Render Timings", sizeof(stat_string));
+  STRNCPY(stat_string, "GPU Render Timings");
   draw_stat(rect, 0, v++, stat_string, sizeof(stat_string));
 
   for (int i = 0; i < DTP.timer_increment; i++) {
@@ -333,7 +329,7 @@ void DRW_stats_draw(const rcti *rect)
     time_ms = timer->time_average / 1000000.0;
 
     if (timer_parent != nullptr) {
-      time_percent = ((double)timer->time_average / (double)timer_parent->time_average) * 100.0;
+      time_percent = (double(timer->time_average) / double(timer_parent->time_average)) * 100.0;
     }
     else {
       time_percent = 100.0;
@@ -343,11 +339,11 @@ void DRW_stats_draw(const rcti *rect)
     time_ms = MIN2(time_ms, 999.0);
     time_percent = MIN2(time_percent, 100.0);
 
-    BLI_snprintf(stat_string, sizeof(stat_string), "%s", timer->name);
+    SNPRINTF(stat_string, "%s", timer->name);
     draw_stat(rect, 0 + timer->lvl, v, stat_string, sizeof(stat_string));
-    BLI_snprintf(stat_string, sizeof(stat_string), "%.2fms", time_ms);
+    SNPRINTF(stat_string, "%.2fms", time_ms);
     draw_stat(rect, 12 + timer->lvl, v, stat_string, sizeof(stat_string));
-    BLI_snprintf(stat_string, sizeof(stat_string), "%.0f", time_percent);
+    SNPRINTF(stat_string, "%.0f", time_percent);
     draw_stat(rect, 16 + timer->lvl, v, stat_string, sizeof(stat_string));
     v++;
   }

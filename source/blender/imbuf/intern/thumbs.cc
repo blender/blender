@@ -236,7 +236,7 @@ static bool uri_from_filename(const char *path, char *uri)
   strcat(orig_uri, dirstart);
   BLI_str_replace_char(orig_uri, '\\', '/');
 #else
-  BLI_snprintf(orig_uri, URI_MAX, "file://%s", dirstart);
+  SNPRINTF(orig_uri, "file://%s", dirstart);
 #endif
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
@@ -244,14 +244,18 @@ static bool uri_from_filename(const char *path, char *uri)
   return 1;
 }
 
-static bool thumbpathname_from_uri(
-    const char *uri, char *r_path, const int path_len, char *r_name, int name_len, ThumbSize size)
+static bool thumbpathname_from_uri(const char *uri,
+                                   char *r_path,
+                                   const int path_maxncpy,
+                                   char *r_name,
+                                   int name_maxncpy,
+                                   ThumbSize size)
 {
   char name_buff[40];
 
   if (r_path && !r_name) {
     r_name = name_buff;
-    name_len = sizeof(name_buff);
+    name_maxncpy = sizeof(name_buff);
   }
 
   if (r_name) {
@@ -259,7 +263,7 @@ static bool thumbpathname_from_uri(
     uchar digest[16];
     BLI_hash_md5_buffer(uri, strlen(uri), digest);
     hexdigest[0] = '\0';
-    BLI_snprintf(r_name, name_len, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
+    BLI_snprintf(r_name, name_maxncpy, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));
     //      printf("%s: '%s' --> '%s'\n", __func__, uri, r_name);
   }
 
@@ -267,7 +271,7 @@ static bool thumbpathname_from_uri(
     char tmppath[FILE_MAX];
 
     if (get_thumb_dir(tmppath, size)) {
-      BLI_snprintf(r_path, path_len, "%s%s", tmppath, r_name);
+      BLI_snprintf(r_path, path_maxncpy, "%s%s", tmppath, r_name);
       //          printf("%s: '%s' --> '%s'\n", __func__, uri, r_path);
       return true;
     }
@@ -275,14 +279,14 @@ static bool thumbpathname_from_uri(
   return false;
 }
 
-static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_len)
+static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_maxncpy)
 {
-  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_len, THB_FAIL);
+  thumbpathname_from_uri(uri, nullptr, 0, thumb, thumb_maxncpy, THB_FAIL);
 }
 
-static bool thumbpath_from_uri(const char *uri, char *path, const int path_len, ThumbSize size)
+static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxncpy, ThumbSize size)
 {
-  return thumbpathname_from_uri(uri, path, path_len, nullptr, 0, size);
+  return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
 }
 
 void IMB_thumb_makedirs(void)
@@ -336,9 +340,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
   }
 
   if (get_thumb_dir(tdir, size)) {
-    BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
-    //      thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
-    BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
+    SNPRINTF(tpath, "%s%s", tdir, thumb);
+    // thumb[8] = '\0'; /* shorten for `temp` name, not needed anymore */
+    SNPRINTF(temp, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
     if (BLI_path_ncmp(file_path, tdir, sizeof(tdir)) == 0) {
       return nullptr;
     }
@@ -369,7 +373,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 
         if (img != nullptr) {
           if (BLI_stat(file_path, &info) != -1) {
-            BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+            SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
           }
         }
       }
@@ -388,7 +392,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
           IMB_free_anim(anim);
         }
         if (BLI_stat(file_path, &info) != -1) {
-          BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
+          SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
         }
       }
       if (!img) {
@@ -400,9 +404,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
         /* Scaling down must never assign zero width/height, see: #89868. */
         short ex = MAX2(1, short(img->x * scale));
         short ey = MAX2(1, short(img->y * scale));
-        /* Save some time by only scaling byte buf */
-        if (img->rect_float) {
-          if (img->rect == nullptr) {
+        /* Save some time by only scaling byte buffer. */
+        if (img->float_buffer.data) {
+          if (img->byte_buffer.data == nullptr) {
             IMB_rect_from_float(img);
           }
           imb_freerectfloatImBuf(img);
@@ -410,7 +414,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         IMB_scaleImBuf(img, ex, ey);
       }
     }
-    BLI_snprintf(desc, sizeof(desc), "Thumbnail for %s", uri);
+    SNPRINTF(desc, "Thumbnail for %s", uri);
     IMB_metadata_ensure(&img->metadata);
     IMB_metadata_set_field(img->metadata, "Software", "Blender");
     IMB_metadata_set_field(img->metadata, "Thumb::URI", uri);
@@ -432,7 +436,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 #endif
       // printf("%s saving thumb: '%s'\n", __func__, tpath);
 
-      BLI_rename(temp, tpath);
+      BLI_rename_overwrite(temp, tpath);
     }
   }
   return img;

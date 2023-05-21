@@ -155,6 +155,33 @@ class ImBufLoadTest(ImBufTest):
         self.check("*.webp")
 
 
+class ImBufBrokenTest(AbstractImBufTest):
+    @classmethod
+    def setUpClass(cls):
+        AbstractImBufTest.init(args)
+
+    def _get_image_files(self, file_pattern):
+        return [f for f in (self.test_dir / "broken_images").glob(file_pattern)]
+
+    def check(self, file_pattern):
+        image_files = self._get_image_files(file_pattern)
+        print(image_files)
+        if len(image_files) == 0:
+            self.fail(f"No images found for pattern {file_pattern}")
+
+        for image_path in image_files:
+            print_message(image_path.name, 'SUCCESS', 'RUN')
+
+            bpy.ops.image.open(filepath=str(image_path))
+
+
+class ImBufLoadBrokenTest(ImBufBrokenTest):
+    def test_load_exr(self):
+        self.skip_if_format_missing("OPENEXR")
+
+        self.check("*.exr")
+
+
 def main():
     global args
     import argparse

@@ -8,7 +8,7 @@ namespace blender::nodes::node_geo_is_viewport_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>(N_("Is Viewport"));
+  b.add_output<decl::Bool>("Is Viewport");
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

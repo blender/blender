@@ -57,7 +57,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   SolidifyModifierData *smd = (SolidifyModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (smd->defgrp_name[0] != '\0' || smd->shell_defgrp_name[0] != '\0' ||
       smd->rim_defgrp_name[0] != '\0')
   {

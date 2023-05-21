@@ -494,7 +494,10 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       bsdf->ior = 1.0f;
       bsdf->fresnel = NULL;
 
-      if (data_node.y == SVM_STACK_INVALID) {
+      /* compute roughness */
+      float anisotropy = clamp(param2, -0.99f, 0.99f);
+      if (data_node.y == SVM_STACK_INVALID || fabsf(anisotropy) <= 1e-4f) {
+        /* Isotropic case. */
         bsdf->T = zero_float3();
         bsdf->alpha_x = roughness;
         bsdf->alpha_y = roughness;
@@ -507,8 +510,6 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         if (rotation != 0.0f)
           bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
 
-        /* compute roughness */
-        float anisotropy = clamp(param2, -0.99f, 0.99f);
         if (anisotropy < 0.0f) {
           bsdf->alpha_x = roughness / (1.0f + anisotropy);
           bsdf->alpha_y = roughness * (1.0f + anisotropy);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -5431,10 +5431,6 @@ msgid "Vertex group for fine control over the internal spring stiffness"
 msgstr "用于精细控制内部弹簧刚度的顶点组"
 
 
-msgid "Mass Vertex Group"
-msgstr "质量顶点组"
-
-
 msgid "Vertex Group for pinning of vertices"
 msgstr "用于钉固顶点的顶点组"
 
@@ -8344,10 +8340,6 @@ msgid "Map To"
 msgstr "映射至"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "对被约束物体产生影响的变换类型"
-
-
 msgid "Map To X From"
 msgstr "映射到 X 源"
 
@@ -8736,28 +8728,8 @@ msgid "Plane for projected stroke"
 msgstr "投射笔画的平面"
 
 
-msgid "Normal/View"
-msgstr "垂直于表面"
-
-
-msgid "Display perpendicular to the surface"
-msgstr "显示表面垂直线"
-
-
-msgid "Normal/Surface"
-msgstr "法线/表面"
-
-
-msgid "Display aligned to the surface"
-msgstr "对齐表面显示"
-
-
 msgid "View"
 msgstr "视图"
-
-
-msgid "Display aligned to the viewport"
-msgstr "显示对齐到视图"
 
 
 msgid "Detect Corners"
@@ -9588,10 +9560,6 @@ msgstr "用于脚本表达式"
 
 msgid "Simple Expression"
 msgstr "简单表达式"
-
-
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "没有完整的Python解析器无法运行脚本表达式"
 
 
 msgid "Invalid"
@@ -12011,20 +11979,12 @@ msgid "Maximum distance for the field to work"
 msgstr "场的有效工作最大距离"
 
 
-msgid "Minimum distance for the field's fall-off"
-msgstr "场降低的最小距离"
-
-
 msgid "Falloff Power"
 msgstr "衰减力度"
 
 
 msgid "How quickly strength falls off with distance from the force field"
 msgstr "快速强度衰减的距离值"
-
-
-msgid "Fall-Off"
-msgstr "衰减"
 
 
 msgid "Cone"
@@ -12177,10 +12137,6 @@ msgstr "场的有效工作最大半径距离"
 
 msgid "Minimum Radial Distance"
 msgstr "最小半径距离"
-
-
-msgid "Minimum radial distance for the field's fall-off"
-msgstr "场降低的最小半径"
 
 
 msgid "Rest Length"
@@ -12379,16 +12335,8 @@ msgid "Use Min"
 msgstr "使用最小值"
 
 
-msgid "Use a minimum distance for the field's fall-off"
-msgstr "场衰减的最小半径距离"
-
-
 msgid "Multiple Springs"
 msgstr "多重弹性"
-
-
-msgid "Every point is effected by multiple springs"
-msgstr "每一个点均受多重弹力的作用"
 
 
 msgid "Use Coordinates"
@@ -12401,10 +12349,6 @@ msgstr "为纹理坐标使用物体 / 全局坐标系"
 
 msgid "Use a maximum radial distance for the field to work"
 msgstr "场工作的最大半径距离"
-
-
-msgid "Use a minimum radial distance for the field's fall-off"
-msgstr "为场的衰减使用最小半径距离"
 
 
 msgid "Root Texture Coordinates"
@@ -17059,10 +17003,6 @@ msgid "Create dot-dash effect for strokes"
 msgstr "为笔画创建点划线效果"
 
 
-msgid "Offset into each stroke before the beginning of  the dashed segment generation"
-msgstr "在虚线段生成开始前，偏移到每个笔画中"
-
-
 msgid "Active Dash Segment Index"
 msgstr "活动虚线段编号"
 
@@ -17151,8 +17091,8 @@ msgid "Falloff Curve"
 msgstr "衰减曲线"
 
 
-msgid "Custom light falloff curve"
-msgstr "自定义灯光衰减曲线"
+msgid "Custom falloff curve"
+msgstr "自定义衰减曲线"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17583,10 +17523,6 @@ msgstr "笔画深度偏移"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "稍微向摄像机移动笔画以避免剪切，同时保持视图的深度"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "指定给生成笔画的蜡笔层"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -19096,14 +19032,6 @@ msgstr "可见层"
 
 msgid "Armature layer visibility"
 msgstr "骨架层可见性"
-
-
-msgid "Layer Proxy Protection"
-msgstr "层代理保护"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "代理实例中的受保护层会在文件重新加载或撤销时被还原到代理(初始)设置"
 
 
 msgid "Pose Position"
@@ -20797,10 +20725,6 @@ msgid "Use Plane Trim"
 msgstr "使用平面裁切"
 
 
-msgid "Enable Plane Trim"
-msgstr "启用平面裁剪"
-
-
 msgid "Keep Anchor Point"
 msgstr "保留锚点"
 
@@ -21890,18 +21814,6 @@ msgstr "钳制曲线路径子级，使他们无法通过曲线的起点/终点"
 
 msgid "Follow"
 msgstr "跟随"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "使曲线路径的子物体沿路径旋转"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "路径及曲线形变的选项: 将曲线半径应用到跟随它并进行形变的路径上"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "曲线形变选项:  使发生形变的子物体沿整条路径拉伸"
 
 
 msgid "Surface Curve"
@@ -23865,6 +23777,10 @@ msgstr "能量"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "向四面八方发射至整个区域的光能"
+
+
+msgid "Custom light falloff curve"
+msgstr "自定义灯光衰减曲线"
 
 
 msgid "Falloff Type"
@@ -26055,10 +25971,6 @@ msgid "Shape Key Lock"
 msgstr "形态键锁定"
 
 
-msgid "Always show the current shape for this object"
-msgstr "总是显示此物体的当前形变"
-
-
 msgid "Display Texture Space"
 msgstr "显示纹理空间"
 
@@ -27534,10 +27446,6 @@ msgstr "场景的Eevee设置"
 
 msgid "Current Frame"
 msgstr "当前帧"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "当前帧, 通过 python 脚本的 frame_set() 更新动画数据"
 
 
 msgid "Current Frame Final"
@@ -37295,10 +37203,6 @@ msgstr "钩挂修改器, 用于修改顶点位置"
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "挂钩中心，用于衰减和显示"
-
-
-msgid "Custom falloff curve"
-msgstr "自定义衰减曲线"
 
 
 msgid "Vertex Indices"
@@ -49055,6 +48959,10 @@ msgid "Select Children Only"
 msgstr "只选择子项"
 
 
+msgid "Extend Range"
+msgstr "扩展范围"
+
+
 msgctxt "Operator"
 msgid "Collapse Channels"
 msgstr "收起通道"
@@ -49415,16 +49323,8 @@ msgid "Export Keying Set..."
 msgstr "导出插帧集..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "将插帧集导出为 Python 脚本"
-
-
 msgid "Filter folders"
 msgstr "过滤文件夹"
-
-
-msgid "Filter python"
-msgstr "过滤 Python 文件"
 
 
 msgid "Filter text"
@@ -50148,10 +50048,6 @@ msgstr "过滤视频文件"
 
 msgid "Filter OBJ files"
 msgstr "过滤OBJ文件"
-
-
-msgid "Filter python files"
-msgstr "过滤 Python 文件"
 
 
 msgid "Filter sound files"
@@ -51961,10 +51857,6 @@ msgstr "上一单词"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "控制台执行"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "将当前控制台行作为一则 python 表达式执行"
 
 
 msgctxt "Operator"
@@ -54851,11 +54743,6 @@ msgstr "打包关联库"
 
 msgid "Store all data-blocks linked from other .blend files in the current .blend file. Library references are preserved so the linked data-blocks can be unpacked again"
 msgstr "将从当前.blend文件中关联的所有数据块存储在当前.blend文件中。库引用已保留，因此可以再次解包关联的数据块"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "父级文件"
 
 
 msgid "Move to parent directory"
@@ -58360,10 +58247,6 @@ msgstr "是否与甄选标准作单独的测试"
 
 msgid "Select Curves"
 msgstr "选择曲线"
-
-
-msgid "Allow selecting all the keyframes of a curve by selecting the calculated fcurve"
-msgstr "允许通过选择计算过的函数曲线来选择曲线的所有关键帧"
 
 
 msgid "Allow selecting all the keyframes of a curve by selecting the curve itself"
@@ -64906,10 +64789,6 @@ msgid "Clear Object Constraints"
 msgstr "清除物体约束"
 
 
-msgid "Clear all the constraints for the active object only"
-msgstr "仅清除活动物体的所有约束"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Objects"
 msgstr "将约束复制到当前所选"
@@ -68335,10 +68214,6 @@ msgid "Extend selection for activation"
 msgstr "扩展选择激活"
 
 
-msgid "Extend Range"
-msgstr "扩展范围"
-
-
 msgid "Select a range from active element"
 msgstr "从活动元素中选择一个范围"
 
@@ -69979,10 +69854,6 @@ msgid "Clear Pose Constraints"
 msgstr "清除姿态约束"
 
 
-msgid "Clear all the constraints for the selected bones"
-msgstr "清除选定骨骼的所有约束"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Bones"
 msgstr "将约束复制到当前所选骨骼"
@@ -70547,10 +70418,6 @@ msgid "Export Key Configuration..."
 msgstr "导出键配置..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "将键配置导出为 Python 脚本"
-
-
 msgid "All Keymaps"
 msgstr "全部按键功能映射表"
 
@@ -70562,10 +70429,6 @@ msgstr "写入所有键位映射 (不只是用户修改的)"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "导入键配置..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "从 python 脚本文件导入键配置"
 
 
 msgid "Keep Original"
@@ -72487,10 +72350,6 @@ msgid "Hide Active Face Sets"
 msgstr "隐藏活动面组"
 
 
-msgid "Invert Face Set Visibility"
-msgstr "反转面组可见性"
-
-
 msgctxt "Operator"
 msgid "Edit Face Set"
 msgstr "编辑面组"
@@ -73442,15 +73301,6 @@ msgstr "逐行扫描影片"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "逐行扫描所有片源"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "擦除片段"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "从序列编辑器中擦除选中的片段"
 
 
 msgid "Delete Data"
@@ -79643,10 +79493,6 @@ msgid "Operator Enum Pie"
 msgstr "枚举饼菜单操作"
 
 
-msgid "Operator name (in python as string)"
-msgstr "操作项名称(在Python中作为字符串)"
-
-
 msgid "Property name (as a string)"
 msgstr "属性名称(字符串)"
 
@@ -79715,10 +79561,6 @@ msgstr "清除场景预览"
 
 msgid "Trusted Blend Files"
 msgstr "信任的Blend文件"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "为选中文件启用执行Python"
 
 
 msgctxt "Operator"
@@ -79908,10 +79750,6 @@ msgstr "真值或假值的数列"
 
 msgid "A string value"
 msgstr "字符串值"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "直接编辑Python值，用于不受支持的属性类型"
 
 
 msgid "Soft Max"
@@ -82560,10 +82398,6 @@ msgstr "音频"
 
 msgid "Video"
 msgstr "视频"
-
-
-msgid "FFMPEG Presets"
-msgstr "FFMPEG 编码预设"
 
 
 msgid "Format Presets"
@@ -85344,10 +85178,6 @@ msgstr "在 UI 中启用新体积节点的可见性"
 
 msgid "Override Templates"
 msgstr "覆写模板"
-
-
-msgid "Enable library override template in the python API"
-msgstr "启用python API 中的库重写模板"
 
 
 msgid "Sculpt Texture Paint"
@@ -94048,6 +93878,10 @@ msgid "Control point weight values"
 msgstr "控制点权重值"
 
 
+msgid "Mass Vertex Group"
+msgstr "质量顶点组"
+
+
 msgid "Control point mass values"
 msgstr "控制点重量的值"
 
@@ -94443,10 +94277,6 @@ msgstr "用于追踪数据的动画摄影表视图"
 
 msgid "Space Console"
 msgstr "空间控制台"
-
-
-msgid "Interactive python console"
-msgstr "Python 控制台交互模式"
 
 
 msgid "Font size to use for displaying the text"
@@ -96062,10 +95892,6 @@ msgstr "到达文件尾猴从头再找"
 
 msgid "Live Edit"
 msgstr "实时编辑"
-
-
-msgid "Run python while editing"
-msgstr "编辑并运行Python"
 
 
 msgid "Match Case"
@@ -98809,10 +98635,6 @@ msgid "Text Cursor"
 msgstr "文本光标"
 
 
-msgid "Color of the interface widgets text insertion cursor (caret)"
-msgstr "文本插入光标界面小部件的颜色"
-
-
 msgid "Theme 3D Viewport"
 msgstr "3D 视图主题"
 
@@ -99258,13 +99080,13 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "用于复制，相加和相乘的法向矢量"
 
 
+msgid "Display size for proportional editing circle"
+msgstr "显示衰减编辑区大小"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "衰减编辑的衰减方式"
-
-
-msgid "Display size for proportional editing circle"
-msgstr "显示衰减编辑区大小"
 
 
 msgid "UV Local View"
@@ -99517,14 +99339,6 @@ msgstr "衰减编辑遮罩模式"
 
 msgid "Proportional editing object mode"
 msgstr "衰减编辑物体模式"
-
-
-msgid "Proportional Editing FCurves"
-msgstr "衰减编辑FCurve曲线"
-
-
-msgid "Proportional editing in FCurve editor"
-msgstr "衰减编辑动作"
 
 
 msgid "Projected from View"
@@ -101181,10 +100995,6 @@ msgid "Active AOV Index"
 msgstr "活动AOV编号"
 
 
-msgid "Index of active aov"
-msgstr "活动AOV的编号"
-
-
 msgid "Active Layer Collection"
 msgstr "活动层集合"
 
@@ -101664,10 +101474,6 @@ msgstr "工具模式"
 
 msgid "Use Paint Canvas"
 msgstr "使用画布"
-
-
-msgid "Does this tool use an painting canvas"
-msgstr "此工具是否使用绘制画布"
 
 
 msgid "Widget"
@@ -104838,6 +104644,10 @@ msgid "and AMD Radeon Pro %s driver or newer"
 msgstr "以及AMD Radeon Pro %s 驱动器或更新"
 
 
+msgid "and AMD driver version %s or newer"
+msgstr "以及AMD驱动程序 %s 版本或更新"
+
+
 msgid "and Windows driver version %s or newer"
 msgstr "以及Windows驱动版本 %s 或更新"
 
@@ -104848,10 +104658,6 @@ msgstr "需要Apple Silicon 和 macOS %s 或更新版本"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "或者AMD搭配 macOS %s 或更新版本"
-
-
-msgid "and AMD driver version %s or newer"
-msgstr "以及AMD驱动程序 %s 版本或更新"
 
 
 msgid "  - intel-level-zero-gpu version %s or newer"
@@ -105894,16 +105700,16 @@ msgid "Could not make new image"
 msgstr "无法创建新图像"
 
 
+msgid "Could not find image '%s'"
+msgstr "找不到图像 '%s'"
+
+
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "无法启动图像编辑器，请确保 用户偏好设置 > 文件 中的路径有效，并且 Blender 有权限启动它"
 
 
 msgid "Context incorrect, image not found"
 msgstr "上下文不正确，找不到图像"
-
-
-msgid "Could not find image '%s'"
-msgstr "找不到图像 '%s'"
 
 
 msgid "%d mesh(es) with no active UV layer, %d duplicates found in %d mesh(es), mirror may be incomplete"
@@ -106603,10 +106409,6 @@ msgstr "延伸"
 
 msgid "Rotation Range"
 msgstr "旋转范围"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 尚未支持 Python 约束"
 
 
 msgctxt "Operator"
@@ -109066,6 +108868,11 @@ msgstr "框选(包括控制柄)"
 
 
 msgctxt "Operator"
+msgid "Ease"
+msgstr "缓动"
+
+
+msgctxt "Operator"
 msgid "Easing Type"
 msgstr "缓动类型"
 
@@ -109078,11 +108885,6 @@ msgstr "游标 -> 选中项"
 msgctxt "Operator"
 msgid "Cursor Value to Selection"
 msgstr "游标值 -> 选中项"
-
-
-msgctxt "Operator"
-msgid "Ease"
-msgstr "缓动"
 
 
 msgctxt "Operator"
@@ -112563,16 +112365,6 @@ msgstr "重新计算内侧"
 
 
 msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "复制矢量"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "粘贴矢量"
-
-
-msgctxt "Operator"
 msgid "Reset Vectors"
 msgstr "重置矢量"
 
@@ -114245,10 +114037,6 @@ msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "对于 DV-PAL 的渲染高度需要设置为 576 像素!"
 
 
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG 对 DV 只支持 48khz/立体声!"
-
-
 msgid "Error initializing video stream"
 msgstr "初始化视频流时出错"
 
@@ -114757,10 +114545,6 @@ msgid "<Missing ID block>"
 msgstr "<缺失的 ID 块>"
 
 
-msgid "No RNA pointer available to retrieve values for this fcurve"
-msgstr "对该F曲线没有有效的 RNA 指针返回值"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "无可供插入关键帧的函数曲线"
 
@@ -114795,10 +114579,6 @@ msgstr "解析属性的路径失败, 请尝试使用插帧集手动指定"
 
 msgid "No active Keying Set"
 msgstr "无激活的插帧集"
-
-
-msgid "Could not update flags for this fcurve, as RNA path is invalid for the given ID (ID = %s, path = %s)"
-msgstr "无法对该曲线更新标记，因为对于指定的ID无法找到有效的RNA路径(ID = %s, 路径 = %s)"
 
 
 msgid "Could not insert %i keyframe(s) due to zero NLA influence, base value, or value remapping failed: %s.%s for indices [%s]"
@@ -120149,64 +119929,12 @@ msgid "Adding node groups isn't supported for custom (Python defined) node trees
 msgstr "自定义(Python 定义)节点树不支持添加节点组"
 
 
-msgid " (String)"
-msgstr " (字符串)"
-
-
-msgid " (Integer)"
-msgstr " (整数)"
-
-
-msgid " (Float)"
-msgstr " (浮点)"
-
-
-msgid " (Vector)"
-msgstr " (矢量)"
-
-
-msgid " (Color)"
-msgstr " (颜色)"
-
-
 msgid "True"
 msgstr "真"
 
 
 msgid "False"
 msgstr "假"
-
-
-msgid " (Boolean)"
-msgstr " (布尔)"
-
-
-msgid "Integer field"
-msgstr "整型场"
-
-
-msgid "Float field"
-msgstr "浮点场"
-
-
-msgid "Vector field"
-msgstr "矢量场"
-
-
-msgid "Boolean field"
-msgstr "布尔场"
-
-
-msgid "String field"
-msgstr "字符串场"
-
-
-msgid "Color field"
-msgstr "颜色场"
-
-
-msgid " based on:"
-msgstr " 基于:"
 
 
 msgid "Empty Geometry"
@@ -121044,10 +120772,6 @@ msgstr "重建文件"
 
 msgid "unknown error writing file"
 msgstr "未知的文件写入错误"
-
-
-msgid "unknown error stating file"
-msgstr "未知的文件统计错误"
 
 
 msgid "This text has not been saved"
@@ -122541,22 +122265,6 @@ msgstr "未在函数曲线中找到函数曲线修改器 '%s'"
 
 msgid "Already a control point at frame %.6f"
 msgstr "在帧 %.6f 处已有一个控制点"
-
-
-msgid "FCurve has already sample points"
-msgstr "函数曲线已有采样点"
-
-
-msgid "FCurve has no keyframes"
-msgstr "函数曲线无关键帧"
-
-
-msgid "FCurve has already keyframes"
-msgstr "函数曲线已有关键帧"
-
-
-msgid "FCurve has no sample points"
-msgstr "函数曲线没有采样点"
 
 
 msgid "Invalid frame range (%d - %d)"
@@ -124074,10 +123782,6 @@ msgid "Midtones"
 msgstr "中间调"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "节点在视图合成器中不受支持"
-
-
 msgid "Upper Left"
 msgstr "左上"
 
@@ -124100,6 +123804,10 @@ msgstr "节点树必须是文件中任意场景的合成节点树"
 
 msgid "Pick"
 msgstr "选取"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "节点在视图合成器中不受支持"
 
 
 msgid "Bokeh Type:"
@@ -125404,14 +125112,6 @@ msgstr "命中距离"
 
 msgid "This node uses legacy behavior with regards to attributes on instances. The behavior can be changed in the node properties in the side bar. In most cases the new behavior is the same for files created in Blender 3.0"
 msgstr "此节点使用与实例上的属性相关的旧版行为。可以在侧栏的节点属性中更改行为。在大多数情况下，新行为与在Blender 3.0中创建的文件是相同的"
-
-
-msgid "Attribute does not exist: \""
-msgstr "属性不存在: \""
-
-
-msgid "Cannot delete built-in attribute with name \""
-msgstr "无法删除具有名称的内置属性“"
 
 
 msgid "Which element to retrieve a value from on the geometry"

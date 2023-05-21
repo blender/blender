@@ -252,25 +252,15 @@ void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
 /* C11 const correctness for casts */
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define IDP_Float(prop) \
-    _Generic((prop), \
-  struct IDProperty *:             (*(float *)&(prop)->data.val), \
-  const struct IDProperty *: (*(const float *)&(prop)->data.val))
+    _Generic((prop), struct IDProperty * : (*(float *)&(prop)->data.val), const struct IDProperty * : (*(const float *)&(prop)->data.val))
 #  define IDP_Double(prop) \
-    _Generic((prop), \
-  struct IDProperty *:             (*(double *)&(prop)->data.val), \
-  const struct IDProperty *: (*(const double *)&(prop)->data.val))
+    _Generic((prop), struct IDProperty * : (*(double *)&(prop)->data.val), const struct IDProperty * : (*(const double *)&(prop)->data.val))
 #  define IDP_String(prop) \
-    _Generic((prop), \
-  struct IDProperty *:             ((char *) (prop)->data.pointer), \
-  const struct IDProperty *: ((const char *) (prop)->data.pointer))
+    _Generic((prop), struct IDProperty * : ((char *)(prop)->data.pointer), const struct IDProperty * : ((const char *)(prop)->data.pointer))
 #  define IDP_IDPArray(prop) \
-    _Generic((prop), \
-  struct IDProperty *:             ((struct IDProperty *) (prop)->data.pointer), \
-  const struct IDProperty *: ((const struct IDProperty *) (prop)->data.pointer))
+    _Generic((prop), struct IDProperty * : ((struct IDProperty *)(prop)->data.pointer), const struct IDProperty * : ((const struct IDProperty *)(prop)->data.pointer))
 #  define IDP_Id(prop) \
-    _Generic((prop), \
-  struct IDProperty *:             ((ID *) (prop)->data.pointer), \
-  const struct IDProperty *: ((const ID *) (prop)->data.pointer))
+    _Generic((prop), struct IDProperty * : ((ID *)(prop)->data.pointer), const struct IDProperty * : ((const ID *)(prop)->data.pointer))
 #else
 #  define IDP_Float(prop) (*(float *)&(prop)->data.val)
 #  define IDP_Double(prop) (*(double *)&(prop)->data.val)
@@ -325,7 +315,7 @@ void IDP_BlendReadData_impl(struct BlendDataReader *reader,
                             struct IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
-void IDP_BlendReadLib(struct BlendLibReader *reader, struct Library *lib, struct IDProperty *prop);
+void IDP_BlendReadLib(struct BlendLibReader *reader, struct ID *self_id, struct IDProperty *prop);
 void IDP_BlendReadExpand(struct BlendExpander *expander, struct IDProperty *prop);
 
 typedef enum eIDPropertyUIDataType {

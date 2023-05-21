@@ -299,7 +299,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
       BKE_workspace_active_set(win->workspace_hook, workspace);
       win->scene = CTX_data_scene(C);
 
-      /* all windows get active screen from file */
+      /* All windows get active screen from file. */
       if (screen->winid == 0) {
         WM_window_set_active_screen(win, workspace, screen);
       }
@@ -817,6 +817,33 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
   }
 }
 
+static void wm_read_callback_pre_wrapper(bContext *C, const char *filepath)
+{
+  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+   * Runs at the end of this function, don't return beforehand. */
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+}
+
+static void wm_read_callback_post_wrapper(bContext *C, const char *filepath, const bool success)
+{
+  Main *bmain = CTX_data_main(C);
+  /* Temporarily set the window context as this was once supported, see: #107759.
+   * If the window is already set, don't change it. */
+  bool has_window = CTX_wm_window(C) != nullptr;
+  if (!has_window) {
+    wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+    wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
+    CTX_wm_window_set(C, win);
+  }
+  BKE_callback_exec_string(
+      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  /* This function should leave the window null when the function entered. */
+  if (!has_window) {
+    CTX_wm_window_set(C, nullptr);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -961,9 +988,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   const bool use_data = true;
   const bool use_userdef = false;
 
-  /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
-   * Runs at the end of this function, don't return beforehand. */
-  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, filepath);
+  /* NOTE: a matching #wm_read_callback_post_wrapper must be called. */
+  wm_read_callback_pre_wrapper(C, filepath);
 
   /* so we can get the error message */
   errno = 0;
@@ -1071,11 +1097,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(false);
 
-  Main *bmain = CTX_data_main(C);
-  BKE_callback_exec_string(
-      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+  wm_read_callback_post_wrapper(C, filepath, success);
 
-  BLI_assert(BKE_main_namemap_validate(bmain));
+  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
 
   return success;
 }
@@ -1206,9 +1230,9 @@ void wm_homefile_read_ex(bContext *C,
   }
 
   if (use_data) {
-    /* NOTE: either #BKE_CB_EVT_LOAD_POST or #BKE_CB_EVT_LOAD_POST_FAIL must run.
+    /* NOTE: a matching #wm_read_callback_post_wrapper must be called.
      * This runs from #wm_homefile_read_post. */
-    BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_LOAD_PRE, "");
+    wm_read_callback_pre_wrapper(C, "");
   }
 
   /* For regular file loading this only runs after the file is successfully read.
@@ -1240,7 +1264,7 @@ void wm_homefile_read_ex(bContext *C,
     }
 
     if (filepath_startup_override) {
-      BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
+      STRNCPY(filepath_startup, filepath_startup_override);
       filepath_startup_is_factory = false;
     }
   }
@@ -1387,7 +1411,7 @@ void wm_homefile_read_ex(bContext *C,
   }
 
   if (app_template_override) {
-    BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
+    STRNCPY(U.app_template, app_template_override);
   }
 
   Main *bmain = CTX_data_main(C);
@@ -1457,10 +1481,7 @@ void wm_homefile_read_post(struct bContext *C,
   wm_file_read_post(C, params_file_read_post);
 
   if (params_file_read_post->use_data) {
-    BKE_callback_exec_string(CTX_data_main(C),
-                             params_file_read_post->success ? BKE_CB_EVT_LOAD_POST :
-                                                              BKE_CB_EVT_LOAD_POST_FAIL,
-                             "");
+    wm_read_callback_post_wrapper(C, "", params_file_read_post->success);
   }
 
   if (params_file_read_post->is_alloc) {
@@ -1648,7 +1669,7 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
   int win_size[2];
   /* NOTE: always read from front-buffer as drawing a window can cause problems while saving,
    * even if this means the thumbnail from the screen-shot fails to be created, see: #98462. */
-  uint *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
+  uint8_t *buffer = WM_window_pixels_read_from_frontbuffer(wm, win, win_size);
   ImBuf *ibuf = IMB_allocFromBufferOwn(buffer, nullptr, win_size[0], win_size[1], 24);
 
   if (ibuf) {
@@ -1801,7 +1822,7 @@ bool write_crash_blend(void)
 {
   char filepath[FILE_MAX];
 
-  BLI_strncpy(filepath, BKE_main_blendfile_path_from_global(), sizeof(filepath));
+  STRNCPY(filepath, BKE_main_blendfile_path_from_global());
   BLI_path_extension_replace(filepath, sizeof(filepath), "_crash.blend");
   BlendFileWriteParams params{};
   const bool success = BLO_write_file(G_MAIN, filepath, G.fileflags, &params, nullptr);
@@ -2005,10 +2026,10 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   if (blendfile_path && (blendfile_path[0] != '\0')) {
     const char *basename = BLI_path_basename(blendfile_path);
     int len = strlen(basename) - 6;
-    BLI_snprintf(filename, sizeof(filename), "%.*s_%d_autosave.blend", len, basename, pid);
+    SNPRINTF(filename, "%.*s_%d_autosave.blend", len, basename, pid);
   }
   else {
-    BLI_snprintf(filename, sizeof(filename), "%d_autosave.blend", pid);
+    SNPRINTF(filename, "%d_autosave.blend", pid);
   }
 
   const char *tempdir_base = BKE_tempdir_base();
@@ -2123,7 +2144,7 @@ void wm_autosave_delete(void)
       BLI_delete(filepath, false, false);
     }
     else {
-      BLI_rename(filepath, str);
+      BLI_rename_overwrite(filepath, str);
     }
   }
 }
@@ -2776,6 +2797,7 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
   bool success;
 
   RNA_string_get(op->ptr, "filepath", filepath);
+  BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   /* re-use last loaded setting so we can reload a file without changing */
   wm_open_init_load_ui(op, false);
@@ -2843,7 +2865,7 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
   BLI_filelist_entry_datetime_to_string(
       nullptr, int64_t(stats.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
-    BLI_strncpy(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"), sizeof(date_st));
+    STRNCPY(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"));
   }
 
   /* Size. */
@@ -2976,7 +2998,7 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
-  BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
+  STRNCPY(filepath, BKE_main_blendfile_path(bmain));
   success = wm_file_read_opwrap(C, filepath, op->reports);
 
   if (success) {
@@ -3080,6 +3102,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   bool success;
 
   RNA_string_get(op->ptr, "filepath", filepath);
+  BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
@@ -3221,6 +3244,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   const bool is_filepath_set = RNA_struct_property_is_set(op->ptr, "filepath");
   if (is_filepath_set) {
     RNA_string_get(op->ptr, "filepath", filepath);
+    BLI_path_canonicalize_native(filepath, sizeof(filepath));
   }
   else {
     STRNCPY(filepath, BKE_main_blendfile_path(bmain));
@@ -3230,19 +3254,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports,
                RPT_ERROR,
                "Unable to save an unsaved file with an empty or unset \"filepath\" property");
-    return OPERATOR_CANCELLED;
-  }
-
-  /* NOTE(@ideasman42): only check this for file-path properties so saving an already
-   * saved file never fails with an error.
-   * Even though this should never happen, there may be some corner case where a malformed
-   * path is stored in `G.main->filepath`: when the file path is initialized from recovering
-   * a blend file - for example, so in this case failing to save isn't ideal. */
-  if (is_filepath_set && !BLI_path_is_abs_from_cwd(filepath)) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "The \"filepath\" property was not an absolute path: \"%s\"",
-                filepath);
     return OPERATOR_CANCELLED;
   }
 
@@ -3811,7 +3822,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
-    BLI_snprintf(message, sizeof(message), "Save %u modified image(s)", modified_images_count);
+    SNPRINTF(message, "Save %u modified image(s)", modified_images_count);
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
       uiItemS(layout);

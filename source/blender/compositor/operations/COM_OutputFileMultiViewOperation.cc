@@ -253,7 +253,7 @@ OutputStereoOperation::OutputStereoOperation(const Scene *scene,
     : OutputSingleLayerOperation(
           scene, rd, tree, datatype, format, path, view_name, save_as_render)
 {
-  BLI_strncpy(pass_name_, pass_name, sizeof(pass_name_));
+  STRNCPY(pass_name_, pass_name);
   channels_ = get_datatype_size(datatype);
 }
 
@@ -321,9 +321,9 @@ void OutputStereoOperation::deinit_execution()
         ibuf[i] = IMB_allocImBuf(width, height, format_.planes, 0);
 
         ibuf[i]->channels = channels_;
-        ibuf[i]->rect_float = rectf;
-        ibuf[i]->mall |= IB_rectfloat;
         ibuf[i]->dither = rd_->dither_intensity;
+
+        IMB_assign_float_buffer(ibuf[i], rectf, IB_TAKE_OWNERSHIP);
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
         IMB_colormanagement_imbuf_for_write(ibuf[i], true, false, &format_);

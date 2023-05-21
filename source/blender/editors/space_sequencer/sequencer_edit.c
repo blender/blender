@@ -687,10 +687,10 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *
     if (hasNumInput(&data->num_input)) {
       char num_str[NUM_STR_REP_LEN];
       outputNumInput(&data->num_input, num_str, &scene->unit);
-      BLI_snprintf(msg, sizeof(msg), TIP_("Slip offset: %s"), num_str);
+      SNPRINTF(msg, TIP_("Slip offset: %s"), num_str);
     }
     else {
-      BLI_snprintf(msg, sizeof(msg), TIP_("Slip offset: %d"), offset);
+      SNPRINTF(msg, TIP_("Slip offset: %d"), offset);
     }
   }
 
@@ -1879,7 +1879,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         /* Note this assume all elements (images) have the same dimension,
          * since we only copy the name here. */
         se_new = MEM_reallocN(strip_new->stripdata, sizeof(*se_new));
-        BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
+        STRNCPY(se_new->filename, se->filename);
         strip_new->stripdata = se_new;
 
         if (step > 1) {
@@ -2920,7 +2920,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
        * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
-    BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));
+    STRNCPY(seq->strip->dirpath, directory);
 
     if (seq->strip->stripdata) {
       MEM_freeN(seq->strip->stripdata);
@@ -2933,7 +2933,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
-        BLI_strncpy(se->name, filename, sizeof(se->name));
+        STRNCPY(se->filename, filename);
         MEM_freeN(filename);
         se++;
       }
@@ -2961,7 +2961,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     }
     char filepath[FILE_MAX];
     RNA_string_get(op->ptr, "filepath", filepath);
-    BLI_strncpy(sound->filepath, filepath, sizeof(sound->filepath));
+    STRNCPY(sound->filepath, filepath);
     BKE_sound_load(bmain, sound);
   }
   else {
@@ -2991,9 +2991,9 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   Sequence *seq = SEQ_select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
 
-  RNA_string_set(op->ptr, "directory", seq->strip->dir);
+  RNA_string_set(op->ptr, "directory", seq->strip->dirpath);
   RNA_string_set(op->ptr, "filepath", filepath);
 
   /* Set default display depending on seq type. */

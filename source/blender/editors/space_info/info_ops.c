@@ -249,10 +249,10 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
   }
 
   if (count == 1) {
-    BLI_strncpy(title, IFACE_("Unpack 1 File"), sizeof(title));
+    STRNCPY_UTF8(title, IFACE_("Unpack 1 File"));
   }
   else {
-    BLI_snprintf(title, sizeof(title), IFACE_("Unpack %d Files"), count);
+    SNPRINTF(title, IFACE_("Unpack %d Files"), count);
   }
 
   pup = UI_popup_menu_begin(C, title, ICON_NONE);

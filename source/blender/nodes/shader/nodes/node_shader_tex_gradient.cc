@@ -11,11 +11,9 @@ namespace blender::nodes::node_shader_tex_gradient_cc {
 static void sh_node_tex_gradient_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .hide_value()
-      .implicit_field(implicit_field_inputs::position);
-  b.add_output<decl::Color>(N_("Color")).no_muted_links();
-  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
+  b.add_input<decl::Vector>("Vector").hide_value().implicit_field(implicit_field_inputs::position);
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Float>("Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_gradient(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

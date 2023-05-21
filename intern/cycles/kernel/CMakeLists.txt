@@ -540,12 +540,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
     elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
     elseif(${arch} MATCHES ".*_8.")
-      if(DEFINED CUDA11_NVCC_EXECUTABLE)
-        set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
-        set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
-      elseif("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
+      if("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+      elseif(DEFINED CUDA11_NVCC_EXECUTABLE)
+        set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
+        set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 11.1+, skipped.")
       endif()
@@ -847,6 +847,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -DWITH_ONEAPI
     -ffast-math
     -O2
+    -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
     ${SYCL_CPP_FLAGS}

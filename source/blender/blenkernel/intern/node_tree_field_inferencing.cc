@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "NOD_node_declaration.hh"
@@ -41,7 +41,7 @@ static InputSocketFieldType get_interface_input_field_type(const bNode &node,
     /* Outputs always support fields when the data type is correct. */
     return InputSocketFieldType::IsSupported;
   }
-  if (node.typeinfo == &NodeTypeUndefined) {
+  if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return InputSocketFieldType::None;
   }
   if (node.type == NODE_CUSTOM) {
@@ -75,7 +75,7 @@ static OutputFieldDependency get_interface_output_field_dependency(const bNode &
     /* Input nodes get special treatment in #determine_group_input_states. */
     return OutputFieldDependency::ForDependentField();
   }
-  if (node.typeinfo == &NodeTypeUndefined) {
+  if (node.typeinfo == &blender::bke::NodeTypeUndefined) {
     return OutputFieldDependency::ForDataSource();
   }
   if (node.type == NODE_CUSTOM) {
@@ -363,7 +363,7 @@ static void propagate_data_requirements_from_right_to_left(
   const Span<const bNode *> toposort_result = tree.toposort_right_to_left();
 
   while (true) {
-    /* Node updates may require sevaral passes due to cyclic dependencies caused by simulation
+    /* Node updates may require several passes due to cyclic dependencies caused by simulation
      * input/output nodes. */
     bool need_update = false;
 
@@ -497,7 +497,7 @@ static void propagate_field_status_from_left_to_right(
   const Span<const bNode *> toposort_result = tree.toposort_left_to_right();
 
   while (true) {
-    /* Node updates may require sevaral passes due to cyclic dependencies. */
+    /* Node updates may require several passes due to cyclic dependencies. */
     bool need_update = false;
 
     for (const bNode *node : toposort_result) {

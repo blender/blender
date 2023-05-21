@@ -74,6 +74,11 @@ void main()
   finalColor = EDIT_MESH_face_color(m_data.x);
   bool occluded = true;
 
+#  ifdef GPU_METAL
+  /* Apply depth bias to overlay in order to prevent z-fighting on Apple Silicon GPUs. */
+  gl_Position.z -= 5e-5;
+#  endif
+
 #elif defined(FACEDOT)
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 

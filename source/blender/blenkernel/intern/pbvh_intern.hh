@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_vector.hh"
 
 /** \file
@@ -155,6 +157,7 @@ struct PBVH {
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
+  blender::MutableSpan<blender::float3> poly_normals;
   bool *hide_vert;
   float (*vert_positions)[3];
   blender::OffsetIndices<int> polys;

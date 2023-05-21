@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'd1219b727c7c')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-28 17:39:28\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -5115,10 +5115,6 @@ msgid "Map To"
 msgstr "Stejné typy"
 
 
-msgid "The transformation type to affect of the constrained object"
-msgstr "Přidat objekt(y) do aktivní vrstvy"
-
-
 msgid "To Maximum X"
 msgstr "Maximalní X limitace"
 
@@ -6801,10 +6797,6 @@ msgstr "Maximální vzdálenost"
 
 msgid "Falloff Power"
 msgstr "Síla poklesu"
-
-
-msgid "Fall-Off"
-msgstr "Pokles"
 
 
 msgid "Cone"
@@ -8519,10 +8511,6 @@ msgid "Armature layer visibility"
 msgstr "Přepíná viditelnost vrstev"
 
 
-msgid "Layer Proxy Protection"
-msgstr "Vytvořit proxy objekt"
-
-
 msgid "Pose Position"
 msgstr "Poloha"
 
@@ -9057,10 +9045,6 @@ msgstr "Nastavit váhu"
 
 msgid "Use this brush in weight paint mode"
 msgstr "Nastavit váhu vertexů"
-
-
-msgid "Enable Plane Trim"
-msgstr "Přejmenovat značku"
 
 
 msgid "Jitter Pressure"
@@ -19648,10 +19632,6 @@ msgid "Filter folders"
 msgstr "Filtry"
 
 
-msgid "Filter python"
-msgstr "Typ filtru"
-
-
 msgid "Filter text"
 msgstr "Filter Y"
 
@@ -20072,10 +20052,6 @@ msgstr "Filtrovat obrazkové soubory"
 
 msgid "Filter movie files"
 msgstr "Filtr video souborů"
-
-
-msgid "Filter python files"
-msgstr "Filtr python souborů"
 
 
 msgid "Filter sound files"
@@ -22314,11 +22290,6 @@ msgstr "Další Složka"
 
 msgid "Move to next folder"
 msgstr "Přejít na další složku"
-
-
-msgctxt "Operator"
-msgid "Parent File"
-msgstr "Nadřazená Složka"
 
 
 msgid "Move to parent directory"
@@ -28457,10 +28428,6 @@ msgid "Clear Pose Constraints"
 msgstr "Zrušit vazbu"
 
 
-msgid "Clear all the constraints for the selected bones"
-msgstr "Vyčistit všechny vazby pro vybrané kosti"
-
-
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Bones"
 msgstr "Kopírovat vazby pro vybrané"
@@ -29684,15 +29651,6 @@ msgstr "Skrýt skryté soubory"
 
 msgid "Deinterlace all selected movie sources"
 msgstr "Odstranit označené Objekt(y)"
-
-
-msgctxt "Operator"
-msgid "Erase Strips"
-msgstr "NLA Proužky"
-
-
-msgid "Erase selected strips from the sequencer"
-msgstr "Přidat vazbu aktivní kosti"
 
 
 msgid "Duplicate the selected strips"
@@ -33436,10 +33394,6 @@ msgstr "Kódování"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "FFMPEG Presets"
-msgstr "Přednastavení FFMPEG"
 
 
 msgid "Views"
@@ -37959,10 +37913,6 @@ msgid "Space Console"
 msgstr "Zobrazit kontrolery"
 
 
-msgid "Interactive python console"
-msgstr "Interaktivně stahuje vertexy k sobě v dané oblasti"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Velikost písma použitého pro zobrazení textu"
 
@@ -38602,10 +38552,6 @@ msgstr "Najít: "
 
 msgid "Live Edit"
 msgstr "NLA editor"
-
-
-msgid "Run python while editing"
-msgstr "Typ filtru"
 
 
 msgid "3D View Space"
@@ -44491,16 +44437,6 @@ msgstr "Přepočítat vnější"
 msgctxt "Operator"
 msgid "Recalculate Inside"
 msgstr "Přepočítat vnitřní"
-
-
-msgctxt "Operator"
-msgid "Copy Vectors"
-msgstr "Kopírovat vektory"
-
-
-msgctxt "Operator"
-msgid "Paste Vectors"
-msgstr "Vložit vektory"
 
 
 msgctxt "Operator"

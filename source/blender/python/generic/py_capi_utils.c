@@ -571,12 +571,12 @@ void PyC_ObSpit(const char *name, PyObject *var)
   }
 }
 
-void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var)
+void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var)
 {
   /* No name, creator of string can manage that. */
   const char *null_str = "<null>";
   if (var == NULL) {
-    BLI_snprintf(result, result_len, "%s", null_str);
+    BLI_snprintf(result, result_maxncpy, "%s", null_str);
   }
   else {
     const PyTypeObject *type = Py_TYPE(var);
@@ -587,7 +587,7 @@ void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var)
       PyErr_Clear();
     }
     BLI_snprintf(result,
-                 result_len,
+                 result_maxncpy,
                  " ref=%d, ptr=%p, type=%s, value=%.200s",
                  (int)var->ob_refcnt,
                  (void *)var,
@@ -607,7 +607,7 @@ void PyC_LineSpit(void)
 
   /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
-    fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+    fprintf(stderr, "Python line lookup failed, interpreter inactive\n");
     return;
   }
 
@@ -621,7 +621,7 @@ void PyC_StackSpit(void)
 {
   /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
-    fprintf(stderr, "python line lookup failed, interpreter inactive\n");
+    fprintf(stderr, "Python line lookup failed, interpreter inactive\n");
     return;
   }
 

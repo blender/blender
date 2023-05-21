@@ -222,7 +222,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 static void blend_read_lib_constraint_channels(BlendLibReader *reader, ID *id, ListBase *chanbase)
 {
   LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
-    BLO_read_id_address(reader, id->lib, &chan->ipo);
+    BLO_read_id_address(reader, id, &chan->ipo);
   }
 }
 
@@ -232,16 +232,16 @@ static void action_blend_read_lib(BlendLibReader *reader, ID *id)
 
   /* XXX deprecated - old animation system <<< */
   LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_read_id_address(reader, act->id.lib, &chan->ipo);
+    BLO_read_id_address(reader, id, &chan->ipo);
     blend_read_lib_constraint_channels(reader, &act->id, &chan->constraintChannels);
   }
   /* >>> XXX deprecated - old animation system */
 
-  BKE_fcurve_blend_read_lib(reader, &act->id, &act->curves);
+  BKE_fcurve_blend_read_lib(reader, id, &act->curves);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     if (marker->camera) {
-      BLO_read_id_address(reader, act->id.lib, &marker->camera);
+      BLO_read_id_address(reader, id, &marker->camera);
     }
   }
 }
@@ -422,7 +422,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 
   /* make it selected, with default name */
   agrp->flag = AGRP_SELECTED;
-  BLI_strncpy(agrp->name, name[0] ? name : DATA_("Group"), sizeof(agrp->name));
+  STRNCPY_UTF8(agrp->name, name[0] ? name : DATA_("Group"));
 
   /* add to action, and validate */
   BLI_addtail(&act->groups, agrp);
@@ -645,7 +645,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
 
   BKE_pose_channel_session_uuid_generate(chan);
 
-  BLI_strncpy(chan->name, name, sizeof(chan->name));
+  STRNCPY(chan->name, name);
 
   copy_v3_fl(chan->custom_scale_xyz, 1.0f);
   zero_v3(chan->custom_translation);
@@ -1273,7 +1273,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
   }
 
   grp = MEM_callocN(sizeof(bActionGroup), "PoseGroup");
-  BLI_strncpy(grp->name, name, sizeof(grp->name));
+  STRNCPY(grp->name, name);
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 
@@ -1772,10 +1772,10 @@ void what_does_obaction(Object *ob,
     }
   }
 
-  BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
+  STRNCPY(workob->parsubstr, ob->parsubstr);
 
   /* we don't use real object name, otherwise RNA screws with the real thing */
-  BLI_strncpy(workob->id.name, "OB<ConstrWorkOb>", sizeof(workob->id.name));
+  STRNCPY(workob->id.name, "OB<ConstrWorkOb>");
 
   /* If we're given a group to use, it's likely to be more efficient
    * (though a bit more dangerous). */
@@ -1952,9 +1952,9 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_BlendReadLib(reader, ob->id.lib, pchan->prop);
+    IDP_BlendReadLib(reader, &ob->id, pchan->prop);
 
-    BLO_read_id_address(reader, ob->id.lib, &pchan->custom);
+    BLO_read_id_address(reader, &ob->id, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
       rebuild = true;
     }

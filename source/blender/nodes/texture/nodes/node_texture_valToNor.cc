@@ -65,7 +65,7 @@ void register_node_type_tex_valtonor(void)
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_VALTONOR, "Value to Normal", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, inputs, outputs);
+  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);

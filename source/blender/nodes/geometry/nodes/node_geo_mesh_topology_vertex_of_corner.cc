@@ -10,13 +10,12 @@ namespace blender::nodes::node_geo_mesh_topology_vertex_of_corner_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Corner Index"))
+  b.add_input<decl::Int>("Corner Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(
-          N_("The corner to retrieve data from. Defaults to the corner from the context"));
-  b.add_output<decl::Int>(N_("Vertex Index"))
+      .description("The corner to retrieve data from. Defaults to the corner from the context");
+  b.add_output<decl::Int>("Vertex Index")
       .field_source_reference_all()
-      .description(N_("The vertex the corner is attached to"));
+      .description("The vertex the corner is attached to");
 }
 
 class CornerVertFieldInput final : public bke::MeshFieldInput {

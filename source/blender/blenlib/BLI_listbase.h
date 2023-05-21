@@ -285,6 +285,11 @@ BLI_INLINE void BLI_listbase_clear(struct ListBase *lb)
   lb->first = lb->last = (void *)0;
 }
 
+/** Validate the integrity of a given ListBase, returns `true` if everything is OK, false
+ * otherwise.
+ */
+bool BLI_listbase_validate(struct ListBase *lb);
+
 /**
  * Equality check for ListBase.
  *

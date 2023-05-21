@@ -4,6 +4,7 @@
 
 #include "BLI_listbase.h"
 
+#include "BKE_global.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
@@ -417,6 +418,10 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
+  if (G.is_rendering) {
+    return;
+  }
+
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context(C);
@@ -513,6 +518,9 @@ static void spreadsheet_header_region_init(wmWindowManager * /*wm*/, ARegion *re
 
 static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
 {
+  if (G.is_rendering) {
+    return;
+  }
   spreadsheet_update_context(C);
   ED_region_header(C, region);
 }
@@ -566,6 +574,9 @@ static void spreadsheet_footer_region_init(wmWindowManager * /*wm*/, ARegion *re
 
 static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
 {
+  if (G.is_rendering) {
+    return;
+  }
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
   std::stringstream ss;
@@ -630,6 +641,9 @@ static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *pa
 
 static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
 {
+  if (G.is_rendering) {
+    return;
+  }
   spreadsheet_update_context(C);
   ED_region_panels(C, region);
 }
@@ -673,7 +687,7 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 static void spreadsheet_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-  BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &sspreadsheet->viewer_path);
+  BKE_viewer_path_blend_read_lib(reader, parent_id, &sspreadsheet->viewer_path);
 }
 
 static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)

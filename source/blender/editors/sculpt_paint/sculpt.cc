@@ -68,7 +68,7 @@
 #include "ED_sculpt.h"
 #include "ED_view3d.h"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
 #include "RNA_access.h"
@@ -3029,7 +3029,10 @@ static void calc_brush_local_mat(const float rotation,
 
   /* Square tips should scale by square root of 2. */
   if (BKE_brush_has_cube_tip(cache->brush, PAINT_MODE_SCULPT)) {
-    radius += (radius * M_SQRT2 - radius) * (1.0f - cache->brush->tip_roundness);
+    radius += (radius / M_SQRT2 - radius) * cache->brush->tip_roundness;
+  }
+  else {
+    radius /= M_SQRT2;
   }
 
   normalize_m4(mat);
@@ -3670,7 +3673,10 @@ static void do_brush_action(Sculpt *sd,
         sd, ob, nodes, ss->cache->cloth_sim, ss->cache->location, FLT_MAX);
   }
 
-  bool invert = ss->cache->pen_flip || ss->cache->invert || brush->flag & BRUSH_DIR_IN;
+  bool invert = ss->cache->pen_flip || ss->cache->invert;
+  if (brush->flag & BRUSH_DIR_IN) {
+    invert = !invert;
+  }
 
   /* Apply one type of brush action. */
   switch (brush->sculpt_tool) {
@@ -4399,9 +4405,7 @@ static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache 
   else {
     int cur_brush_size = BKE_brush_size_get(scene, brush);
 
-    BLI_strncpy(cache->saved_active_brush_name,
-                brush->id.name + 2,
-                sizeof(cache->saved_active_brush_name));
+    STRNCPY(cache->saved_active_brush_name, brush->id.name + 2);
 
     /* Switch to the smooth brush. */
     brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);

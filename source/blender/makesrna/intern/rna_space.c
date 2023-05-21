@@ -448,6 +448,7 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_ENVIRONMENT, "ENVIRONMENT", 0, "Environment", ""},
     {EEVEE_RENDER_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
     {EEVEE_RENDER_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
+    {EEVEE_RENDER_PASS_TRANSPARENT, "TRANSPARENT", 0, "Transparent", ""},
 
     RNA_ENUM_ITEM_HEADING(N_("Light"), NULL),
     {EEVEE_RENDER_PASS_DIFFUSE_LIGHT, "DIFFUSE_LIGHT", 0, "Diffuse Light", ""},
@@ -1538,7 +1539,7 @@ static void rna_3DViewShading_render_pass_set(PointerRNA *ptr, int value)
     }
 
     shading->render_pass = EEVEE_RENDER_PASS_AOV;
-    BLI_strncpy(shading->aov_name, aov->name, sizeof(aov->name));
+    STRNCPY(shading->aov_name, aov->name);
   }
   else if (value == EEVEE_RENDER_PASS_BLOOM &&
            ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
@@ -2754,7 +2755,7 @@ static void rna_FileSelectPrams_filter_glob_set(PointerRNA *ptr, const char *val
 {
   FileSelectParams *params = ptr->data;
 
-  BLI_strncpy(params->filter_glob, value, sizeof(params->filter_glob));
+  STRNCPY(params->filter_glob, value);
 
   /* Remove stupid things like last group being a wildcard-only one. */
   BLI_path_extension_glob_validate(params->filter_glob);
@@ -2828,7 +2829,7 @@ static int rna_FileBrowser_FileSelectEntry_name_editable(PointerRNA *ptr, const 
 static void rna_FileBrowser_FileSelectEntry_name_get(PointerRNA *ptr, char *value)
 {
   const FileDirEntry *entry = ptr->data;
-  BLI_strncpy_utf8(value, entry->name, strlen(entry->name) + 1);
+  strcpy(value, entry->name);
 }
 
 static int rna_FileBrowser_FileSelectEntry_name_length(PointerRNA *ptr)
@@ -2840,7 +2841,7 @@ static int rna_FileBrowser_FileSelectEntry_name_length(PointerRNA *ptr)
 static void rna_FileBrowser_FileSelectEntry_relative_path_get(PointerRNA *ptr, char *value)
 {
   const FileDirEntry *entry = ptr->data;
-  BLI_strncpy_utf8(value, entry->relpath, strlen(entry->relpath) + 1);
+  strcpy(value, entry->relpath);
 }
 
 static int rna_FileBrowser_FileSelectEntry_relative_path_length(PointerRNA *ptr)
@@ -3130,7 +3131,7 @@ static void rna_FileBrowser_FSMenu_active_set(PointerRNA *ptr,
         break;
     }
 
-    BLI_strncpy(sf->params->dir, fsm->path, sizeof(sf->params->dir));
+    STRNCPY(sf->params->dir, fsm->path);
   }
 }
 
@@ -6112,7 +6113,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_live_edit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "live_edit", 1);
-  RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing");
+  RNA_def_property_ui_text(prop, "Live Edit", "Run Python while editing");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
   /* find */
@@ -6284,6 +6285,12 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cache_smoke", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_SMOKE);
   RNA_def_property_ui_text(prop, "Smoke", "Show the active object's smoke cache");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
+
+  prop = RNA_def_property(srna, "cache_simulation_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_SIMULATION_NODES);
+  RNA_def_property_ui_text(
+      prop, "Simulation Nodes", "Show the active object's simulation nodes cache and bake data");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
 
   prop = RNA_def_property(srna, "cache_dynamicpaint", PROP_BOOLEAN, PROP_NONE);
@@ -6552,7 +6559,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceConsole", "Space");
   RNA_def_struct_sdna(srna, "SpaceConsole");
-  RNA_def_struct_ui_text(srna, "Space Console", "Interactive python console");
+  RNA_def_struct_ui_text(srna, "Space Console", "Interactive Python console");
 
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */
@@ -7014,7 +7021,8 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
                                 "rna_FileBrowser_FSMenuEntry_path_set");
   RNA_def_property_ui_text(prop, "Path", "");
 
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  /* Use #PROP_FILENAME sub-type so the UI can manipulate non-UTF8 names. */
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_FILENAME);
   RNA_def_property_string_funcs(prop,
                                 "rna_FileBrowser_FSMenuEntry_name_get",
                                 "rna_FileBrowser_FSMenuEntry_name_length",
@@ -7157,7 +7165,7 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
                                     NULL,
                                     NULL,
                                     NULL);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_int(srna,
                      "bookmarks_active",
@@ -7188,7 +7196,7 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
                                     NULL,
                                     NULL,
                                     NULL);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_int(srna,
                      "recent_folders_active",

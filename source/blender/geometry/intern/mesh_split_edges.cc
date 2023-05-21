@@ -18,18 +18,9 @@ static inline bool naive_edges_equal(const int2 &edge1, const int2 &edge2)
   return edge1 == edge2;
 }
 
-template<typename T>
-static void copy_to_new_verts(MutableSpan<T> data, const Span<int> new_to_old_verts_map)
-{
-  const Span<T> old_data = data.drop_back(new_to_old_verts_map.size());
-  MutableSpan<T> new_data = data.take_back(new_to_old_verts_map.size());
-  array_utils::gather(old_data, new_to_old_verts_map, new_data);
-}
-
 static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   /* These types aren't supported for interpolation below. */
-  CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
   CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
@@ -46,22 +37,26 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
       continue;
     }
 
-    bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      copy_to_new_verts(attribute.span.typed<T>(), new_to_old_verts_map);
-    });
+    bke::attribute_math::gather(attribute.span,
+                                new_to_old_verts_map,
+                                attribute.span.take_back(new_to_old_verts_map.size()));
 
     attribute.finish();
   }
   if (float3 *orco = static_cast<float3 *>(
           CustomData_get_layer_for_write(&mesh.vdata, CD_ORCO, mesh.totvert)))
   {
-    copy_to_new_verts<float3>({orco, mesh.totvert}, new_to_old_verts_map);
+    array_utils::gather(Span(orco, mesh.totvert),
+                        new_to_old_verts_map,
+                        MutableSpan(orco, mesh.totvert).take_back(new_to_old_verts_map.size()));
   }
   if (int *orig_indices = static_cast<int *>(
           CustomData_get_layer_for_write(&mesh.vdata, CD_ORIGINDEX, mesh.totvert)))
   {
-    copy_to_new_verts<int>({orig_indices, mesh.totvert}, new_to_old_verts_map);
+    array_utils::gather(
+        Span(orig_indices, mesh.totvert),
+        new_to_old_verts_map,
+        MutableSpan(orig_indices, mesh.totvert).take_back(new_to_old_verts_map.size()));
   }
 }
 
@@ -119,12 +114,8 @@ static void add_new_edges(Mesh &mesh,
     const CPPType &type = attribute.varray.type();
     void *new_data = MEM_malloc_arrayN(new_edges.size(), type.size(), __func__);
 
-    bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-      using T = decltype(dummy);
-      const VArray<T> src = attribute.varray.typed<T>();
-      MutableSpan<T> dst(static_cast<T *>(new_data), new_edges.size());
-      array_utils::gather(src, new_to_old_edges_map, dst);
-    });
+    bke::attribute_math::gather(
+        attribute.varray, new_to_old_edges_map, GMutableSpan(type, new_data, new_edges.size()));
 
     /* Free the original attribute as soon as possible to lower peak memory usage. */
     attributes.remove(local_id);

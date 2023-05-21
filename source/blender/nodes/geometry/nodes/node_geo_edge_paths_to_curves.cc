@@ -12,10 +12,10 @@ namespace blender::nodes::node_geo_edge_paths_to_curves_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Start Vertices")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Next Vertex Index")).default_value(-1).hide_value().field_on_all();
-  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Start Vertices").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Int>("Next Vertex Index").default_value(-1).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Curves").propagate_all();
 }
 
 static Curves *edge_paths_to_curves_convert(

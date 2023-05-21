@@ -147,7 +147,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   WeldModifierData *wmd = (WeldModifierData *)md;
 
-  /* Ask for vertexgroups if we need them. */
+  /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }

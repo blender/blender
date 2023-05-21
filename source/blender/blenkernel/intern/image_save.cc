@@ -42,7 +42,7 @@ static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 {
   const char depth_ok = BKE_imtype_valid_depths(imtype);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     if (depth_ok & R_IMF_CHAN_DEPTH_32) {
       return R_IMF_CHAN_DEPTH_32;
     }
@@ -167,7 +167,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       const bool is_prev_save = !STREQ(G.ima, "//");
       if (opts->save_as_render) {
         if (is_prev_save) {
-          BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
+          STRNCPY(opts->filepath, G.ima);
         }
         else {
           BLI_path_join(opts->filepath, sizeof(opts->filepath), "//", DATA_("untitled"));
@@ -252,7 +252,7 @@ static void image_save_update_filepath(Image *ima,
                                        const ImageSaveOptions *opts)
 {
   if (opts->do_newpath) {
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+    STRNCPY(ima->filepath, filepath);
 
     /* only image path, never ibuf */
     if (opts->relative) {
@@ -281,7 +281,7 @@ static void image_save_post(ReportList *reports,
   }
 
   if (opts->do_newpath) {
-    BLI_strncpy(ibuf->filepath, filepath, sizeof(ibuf->filepath));
+    STRNCPY(ibuf->filepath, filepath);
   }
 
   /* The tiled image code-path must call this on its own. */
@@ -298,18 +298,10 @@ static void image_save_post(ReportList *reports,
     /* workaround to ensure the render result buffer is no longer used
      * by this image, otherwise can crash when a new render result is
      * created. */
-    if (ibuf->rect && !(ibuf->mall & IB_rect)) {
-      imb_freerectImBuf(ibuf);
-    }
-    if (ibuf->rect_float && !(ibuf->mall & IB_rectfloat)) {
-      imb_freerectfloatImBuf(ibuf);
-    }
-    if (ibuf->zbuf && !(ibuf->mall & IB_zbuf)) {
-      IMB_freezbufImBuf(ibuf);
-    }
-    if (ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat)) {
-      IMB_freezbuffloatImBuf(ibuf);
-    }
+    imb_freerectImBuf(ibuf);
+    imb_freerectfloatImBuf(ibuf);
+    IMB_freezbufImBuf(ibuf);
+    IMB_freezbuffloatImBuf(ibuf);
   }
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
@@ -365,7 +357,8 @@ static bool image_save_single(ReportList *reports,
   RenderResult *rr = nullptr;
   bool ok = false;
 
-  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     BKE_image_release_ibuf(ima, ibuf, lock);
     return ok;
   }
@@ -776,7 +769,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
         if (multi_layer) {
           RE_render_result_full_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
-          BLI_strncpy(layname, "Composite", sizeof(layname));
+          STRNCPY(layname, "Composite");
         }
         else {
           passname[0] = chan_id[a];
@@ -842,7 +835,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
         if (multi_layer) {
           RE_render_result_full_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
-          BLI_strncpy(layname, rl->name, sizeof(layname));
+          STRNCPY(layname, rl->name);
         }
         else {
           passname[0] = rp->chan_id[a];
@@ -978,7 +971,7 @@ bool BKE_image_render_write(ReportList *reports,
           if (BLI_path_extension_check(filepath, ".exr")) {
             filepath[strlen(filepath) - 4] = 0;
           }
-          BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
+          BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
 
           ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
           ibuf->planes = 24;
@@ -1037,7 +1030,7 @@ bool BKE_image_render_write(ReportList *reports,
           filepath[strlen(filepath) - 4] = 0;
         }
 
-        BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
+        BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), &image_format);
         ibuf_arr[2]->planes = 24;
 
         ok = image_render_write_stamp_test(

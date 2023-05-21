@@ -325,7 +325,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                                   false);
           }
           else {
-            numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
+            numstr_len = SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
           }
 
           DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
@@ -397,11 +397,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             angle = angle_normalized_v3v3(no_a, no_b);
 
-            numstr_len = BLI_snprintf_rlen(numstr,
-                                           sizeof(numstr),
-                                           "%.3f%s",
-                                           (is_rad) ? angle : RAD2DEGF(angle),
-                                           (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(
+                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
 
             DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
           }
@@ -469,7 +466,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
               false);
         }
         else {
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, area);
+          numstr_len = SNPRINTF_RLEN(numstr, conv_float, area);
         }
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
@@ -534,11 +531,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             float angle = angle_v3v3v3(v1, v2, v3);
 
-            numstr_len = BLI_snprintf_rlen(numstr,
-                                           sizeof(numstr),
-                                           "%.3f%s",
-                                           (is_rad) ? angle : RAD2DEGF(angle),
-                                           (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(
+                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
             interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
             mul_m4_v3(ob->object_to_world, fvec);
             DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);
@@ -573,7 +567,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
           mul_m4_v3(ob->object_to_world, v1);
 
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }
@@ -602,7 +596,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
             mul_m4_v3(ob->object_to_world, vmid);
 
-            numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+            numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
             DRW_text_cache_add(
                 dt,
                 vmid,
@@ -636,7 +630,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
           mul_m4_v3(ob->object_to_world, v1);
 
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }

@@ -268,13 +268,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
   }
 
   if (clip) {
-    BLI_strncpy(path, clip->filepath, sizeof(path));
+    STRNCPY(path, clip->filepath);
 
     BLI_path_abs(path, CTX_data_main(C)->filepath);
     BLI_path_parent_dir(path);
   }
   else {
-    BLI_strncpy(path, U.textudir, sizeof(path));
+    STRNCPY(path, U.textudir);
   }
 
   if (RNA_struct_property_is_set(op->ptr, "files")) {

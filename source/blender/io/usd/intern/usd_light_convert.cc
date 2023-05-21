@@ -37,7 +37,8 @@
 #include "BKE_image.h"
 #include "BKE_light.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 #include "BLI_fileops.h"
@@ -46,6 +47,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "DNA_light_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "ED_node.h"
@@ -238,7 +240,10 @@ void world_material_to_dome_light(const USDExportParams &params,
   }
 
   /* Find the world output. */
-  bNode *output = ntreeFindType(scene->world->nodetree, SH_NODE_OUTPUT_WORLD);
+  const bNodeTree *ntree = scene->world->nodetree;
+  ntree->ensure_topology_cache();
+  const blender::Span<const bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeOutputWorld");
+  const bNode *output = bsdf_nodes.is_empty() ? nullptr : bsdf_nodes.first();
 
   if (!output) {
     /* No output, no valid network to convert. */
@@ -251,7 +256,7 @@ void world_material_to_dome_light(const USDExportParams &params,
 
   WorldNtreeSearchResults res(params, stage);
 
-  nodeChainIter(scene->world->nodetree, output, node_search, &res, true);
+  blender::bke::nodeChainIter(scene->world->nodetree, output, node_search, &res, true);
 
   if (!(res.background_found || res.env_tex_found)) {
     /* No nodes to convert */

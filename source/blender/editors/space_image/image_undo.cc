@@ -117,7 +117,7 @@ struct PaintTile {
   ImageUser iuser;
   union {
     float *fp;
-    uint32_t *uint;
+    uint8_t *byte_ptr;
     void *pt;
   } rect;
   uint16_t *mask;
@@ -189,6 +189,21 @@ void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
   return ptile->rect.pt;
 }
 
+/* Set the given buffer data as an owning data of the imbuf's buffer.
+ * Returns the data pointer which was stolen from the imbuf before assignment. */
+static uint8_t *image_undo_steal_and_assign_byte_buffer(ImBuf *ibuf, uint8_t *new_buffer_data)
+{
+  uint8_t *old_buffer_data = IMB_steal_byte_buffer(ibuf);
+  IMB_assign_byte_buffer(ibuf, new_buffer_data, IB_TAKE_OWNERSHIP);
+  return old_buffer_data;
+}
+static float *image_undo_steal_and_assign_float_buffer(ImBuf *ibuf, float *new_buffer_data)
+{
+  float *old_buffer_data = IMB_steal_float_buffer(ibuf);
+  IMB_assign_float_buffer(ibuf, new_buffer_data, IB_TAKE_OWNERSHIP);
+  return old_buffer_data;
+}
+
 void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                                Image *image,
                                ImBuf *ibuf,
@@ -204,7 +219,7 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
   if (use_thread_lock) {
     BLI_spin_lock(&paint_tiles_lock);
   }
-  const bool has_float = (ibuf->rect_float != nullptr);
+  const bool has_float = (ibuf->float_buffer.data != nullptr);
 
   /* check if tile is already pushed */
 
@@ -240,7 +255,7 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
         MEM_callocN(sizeof(uint16_t) * square_i(ED_IMAGE_UNDO_TILE_SIZE), "PaintTile.mask"));
   }
 
-  ptile->rect.pt = MEM_callocN((ibuf->rect_float ? sizeof(float[4]) : sizeof(char[4])) *
+  ptile->rect.pt = MEM_callocN((ibuf->float_buffer.data ? sizeof(float[4]) : sizeof(char[4])) *
                                    square_i(ED_IMAGE_UNDO_TILE_SIZE),
                                "PaintTile.rect");
 
@@ -261,10 +276,10 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
               ED_IMAGE_UNDO_TILE_SIZE);
 
   if (has_float) {
-    std::swap(ptile->rect.fp, (*tmpibuf)->rect_float);
+    ptile->rect.fp = image_undo_steal_and_assign_float_buffer(*tmpibuf, ptile->rect.fp);
   }
   else {
-    std::swap(ptile->rect.uint, (*tmpibuf)->rect);
+    ptile->rect.byte_ptr = image_undo_steal_and_assign_byte_buffer(*tmpibuf, ptile->rect.byte_ptr);
   }
 
   PaintTileKey key = {};
@@ -296,15 +311,18 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
   for (PaintTile *ptile : paint_tile_map->map.values()) {
     Image *image = ptile->image;
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &ptile->iuser, nullptr);
-    const bool has_float = (ibuf->rect_float != nullptr);
+    const bool has_float = (ibuf->float_buffer.data != nullptr);
 
     if (has_float) {
-      std::swap(ptile->rect.fp, tmpibuf->rect_float);
+      ptile->rect.fp = image_undo_steal_and_assign_float_buffer(tmpibuf, ptile->rect.fp);
     }
     else {
-      std::swap(ptile->rect.uint, tmpibuf->rect);
+      ptile->rect.byte_ptr = image_undo_steal_and_assign_byte_buffer(tmpibuf,
+                                                                     ptile->rect.byte_ptr);
     }
 
+    /* TODO(sergey): Look into implementing API which does not require such temporary buffer
+     * assignment. */
     IMB_rectcpy(ibuf,
                 tmpibuf,
                 ptile->x_tile * ED_IMAGE_UNDO_TILE_SIZE,
@@ -315,16 +333,17 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
                 ED_IMAGE_UNDO_TILE_SIZE);
 
     if (has_float) {
-      std::swap(ptile->rect.fp, tmpibuf->rect_float);
+      ptile->rect.fp = image_undo_steal_and_assign_float_buffer(tmpibuf, ptile->rect.fp);
     }
     else {
-      std::swap(ptile->rect.uint, tmpibuf->rect);
+      ptile->rect.byte_ptr = image_undo_steal_and_assign_byte_buffer(tmpibuf,
+                                                                     ptile->rect.byte_ptr);
     }
 
     /* Force OpenGL reload (maybe partial update will operate better?) */
     BKE_image_free_gputextures(image);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
     if (ibuf->mipmap[0]) {
@@ -353,7 +372,7 @@ static uint32_t index_from_xy(uint32_t tile_x, uint32_t tile_y, const uint32_t t
 struct UndoImageTile {
   union {
     float *fp;
-    uint32_t *uint_ptr;
+    uint8_t *byte_ptr;
     void *pt;
   } rect;
   int users;
@@ -368,7 +387,7 @@ static UndoImageTile *utile_alloc(bool has_float)
         MEM_mallocN(sizeof(float[4]) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__));
   }
   else {
-    utile->rect.uint_ptr = static_cast<uint32_t *>(
+    utile->rect.byte_ptr = static_cast<uint8_t *>(
         MEM_mallocN(sizeof(uint32_t) * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__));
   }
   return utile;
@@ -377,43 +396,47 @@ static UndoImageTile *utile_alloc(bool has_float)
 static void utile_init_from_imbuf(
     UndoImageTile *utile, const uint32_t x, const uint32_t y, const ImBuf *ibuf, ImBuf *tmpibuf)
 {
-  const bool has_float = ibuf->rect_float;
+  const bool has_float = ibuf->float_buffer.data;
 
   if (has_float) {
-    std::swap(utile->rect.fp, tmpibuf->rect_float);
+    utile->rect.fp = image_undo_steal_and_assign_float_buffer(tmpibuf, utile->rect.fp);
   }
   else {
-    std::swap(utile->rect.uint_ptr, tmpibuf->rect);
+    utile->rect.byte_ptr = image_undo_steal_and_assign_byte_buffer(tmpibuf, utile->rect.byte_ptr);
   }
 
+  /* TODO(sergey): Look into implementing API which does not require such temporary buffer
+   * assignment. */
   IMB_rectcpy(tmpibuf, ibuf, 0, 0, x, y, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
 
   if (has_float) {
-    std::swap(utile->rect.fp, tmpibuf->rect_float);
+    utile->rect.fp = image_undo_steal_and_assign_float_buffer(tmpibuf, utile->rect.fp);
   }
   else {
-    std::swap(utile->rect.uint_ptr, tmpibuf->rect);
+    utile->rect.byte_ptr = image_undo_steal_and_assign_byte_buffer(tmpibuf, utile->rect.byte_ptr);
   }
 }
 
 static void utile_restore(
     const UndoImageTile *utile, const uint x, const uint y, ImBuf *ibuf, ImBuf *tmpibuf)
 {
-  const bool has_float = ibuf->rect_float;
-  float *prev_rect_float = tmpibuf->rect_float;
-  uint32_t *prev_rect = tmpibuf->rect;
+  const bool has_float = ibuf->float_buffer.data;
+  float *prev_rect_float = tmpibuf->float_buffer.data;
+  uint8_t *prev_rect = tmpibuf->byte_buffer.data;
 
   if (has_float) {
-    tmpibuf->rect_float = utile->rect.fp;
+    tmpibuf->float_buffer.data = utile->rect.fp;
   }
   else {
-    tmpibuf->rect = utile->rect.uint_ptr;
+    tmpibuf->byte_buffer.data = utile->rect.byte_ptr;
   }
 
+  /* TODO(sergey): Look into implementing API which does not require such temporary buffer
+   * assignment. */
   IMB_rectcpy(ibuf, tmpibuf, x, y, 0, 0, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE);
 
-  tmpibuf->rect_float = prev_rect_float;
-  tmpibuf->rect = prev_rect;
+  tmpibuf->float_buffer.data = prev_rect_float;
+  tmpibuf->byte_buffer.data = prev_rect;
 }
 
 static void utile_decref(UndoImageTile *utile)
@@ -471,9 +494,9 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
   ubuf->tiles = static_cast<UndoImageTile **>(
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
-  BLI_strncpy(ubuf->ibuf_filepath, ibuf->filepath, sizeof(ubuf->ibuf_filepath));
+  STRNCPY(ubuf->ibuf_filepath, ibuf->filepath);
   ubuf->image_state.source = image->source;
-  ubuf->image_state.use_float = ibuf->rect_float != nullptr;
+  ubuf->image_state.use_float = ibuf->float_buffer.data != nullptr;
 
   return ubuf;
 }
@@ -482,7 +505,7 @@ static void ubuf_from_image_all_tiles(UndoImageBuf *ubuf, const ImBuf *ibuf)
 {
   ImBuf *tmpibuf = imbuf_alloc_temp_tile();
 
-  const bool has_float = ibuf->rect_float;
+  const bool has_float = ibuf->float_buffer.data;
   int i = 0;
   for (uint y_tile = 0; y_tile < ubuf->tiles_dims[1]; y_tile += 1) {
     uint y = y_tile << ED_IMAGE_UNDO_TILE_BITS;
@@ -509,12 +532,13 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
 {
   /* We could have both float and rect buffers,
    * in this case free the float buffer if it's unused. */
-  if ((ibuf->rect_float != nullptr) && (ubuf->image_state.use_float == false)) {
+  if ((ibuf->float_buffer.data != nullptr) && (ubuf->image_state.use_float == false)) {
     imb_freerectfloatImBuf(ibuf);
   }
 
   if (ibuf->x == ubuf->image_dims[0] && ibuf->y == ubuf->image_dims[1] &&
-      (ubuf->image_state.use_float ? (void *)ibuf->rect_float : (void *)ibuf->rect))
+      (ubuf->image_state.use_float ? (void *)ibuf->float_buffer.data :
+                                     (void *)ibuf->byte_buffer.data))
   {
     return;
   }
@@ -602,7 +626,7 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
       /* TODO(@jbakker): only mark areas that are actually updated to improve performance. */
       BKE_image_partial_update_mark_full_update(image);
 
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         ibuf->userflags |= IB_RECT_INVALID; /* Force recreate of char `rect` */
       }
       if (ibuf->mipmap[0]) {
@@ -832,7 +856,7 @@ static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*
 
         ImBuf *ibuf = BKE_image_acquire_ibuf(uh->image_ref.ptr, &uh->iuser, nullptr);
 
-        const bool has_float = ibuf->rect_float;
+        const bool has_float = ibuf->float_buffer.data;
 
         BLI_assert(ubuf_pre->post == nullptr);
         ubuf_pre->post = ubuf_from_image_no_tiles(uh->image_ref.ptr, ibuf);

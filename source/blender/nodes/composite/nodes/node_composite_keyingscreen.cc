@@ -33,8 +33,7 @@ namespace blender::nodes::node_composite_keyingscreen_cc {
 
 static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(CTX_N_(BLT_I18NCONTEXT_ID_SCREEN, "Screen"))
-      .translation_context(BLT_I18NCONTEXT_ID_SCREEN);
+  b.add_output<decl::Color>("Screen").translation_context(BLT_I18NCONTEXT_ID_SCREEN);
 }
 
 static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
@@ -52,7 +51,7 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+    STRNCPY(data->tracking_object, tracking_object->name);
   }
 }
 

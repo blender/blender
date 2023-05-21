@@ -13,20 +13,19 @@ namespace blender::nodes::node_geo_curve_endpoint_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Start Size"))
+  b.add_input<decl::Int>("Start Size")
       .min(0)
       .default_value(1)
       .supports_field()
-      .description(N_("The amount of points to select from the start of each spline"));
-  b.add_input<decl::Int>(N_("End Size"))
+      .description("The amount of points to select from the start of each spline");
+  b.add_input<decl::Int>("End Size")
       .min(0)
       .default_value(1)
       .supports_field()
-      .description(N_("The amount of points to select from the end of each spline"));
-  b.add_output<decl::Bool>(N_("Selection"))
+      .description("The amount of points to select from the end of each spline");
+  b.add_output<decl::Bool>("Selection")
       .field_source_reference_all()
-      .description(
-          N_("The selection from the start and end of the splines based on the input sizes"));
+      .description("The selection from the start and end of the splines based on the input sizes");
 }
 
 class EndpointFieldInput final : public bke::CurvesFieldInput {

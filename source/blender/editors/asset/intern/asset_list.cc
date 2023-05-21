@@ -155,7 +155,7 @@ void AssetList::setup()
 
   char path[FILE_MAXDIR] = "";
   if (!asset_lib_path.empty()) {
-    BLI_strncpy(path, asset_lib_path.c_str(), sizeof(path));
+    STRNCPY(path, asset_lib_path.c_str());
   }
   filelist_setdir(files, path);
 }
@@ -218,9 +218,10 @@ void AssetList::ensurePreviewsJob(const bContext *C)
   int numfiles = filelist_files_ensure(files);
 
   filelist_cache_previews_set(files, true);
-  filelist_file_cache_slidingwindow_set(files, 256);
   /* TODO fetch all previews for now. */
-  filelist_file_cache_block(files, numfiles / 2);
+  /* Add one extra entry to ensure nothing is lost because of integer division. */
+  filelist_file_cache_slidingwindow_set(files, numfiles / 2 + 1);
+  filelist_file_cache_block(files, 0);
   filelist_cache_previews_update(files);
 
   {

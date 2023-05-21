@@ -275,12 +275,12 @@ static void greasepencil_blend_read_lib(BlendLibReader *reader, ID *id)
   /* Layers */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* Layer -> Parent References */
-    BLO_read_id_address(reader, gpd->id.lib, &gpl->parent);
+    BLO_read_id_address(reader, id, &gpl->parent);
   }
 
   /* materials */
   for (int a = 0; a < gpd->totcol; a++) {
-    BLO_read_id_address(reader, gpd->id.lib, &gpd->mat[a]);
+    BLO_read_id_address(reader, id, &gpd->mat[a]);
   }
 }
 
@@ -675,7 +675,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   }
 
   /* auto-name */
-  BLI_strncpy(gpl->info, DATA_(name), sizeof(gpl->info));
+  STRNCPY_UTF8(gpl->info, DATA_(name));
   BLI_uniquename(&gpd->layers,
                  gpl,
                  (gpd->flag & GP_DATA_ANNOTATIONS) ? DATA_("Note") : DATA_("GP_Layer"),
@@ -1018,9 +1018,9 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   gpl_dst->pass_index = gpl_src->pass_index;
   gpl_dst->parent = gpl_src->parent;
   copy_m4_m4(gpl_dst->inverse, gpl_src->inverse);
-  BLI_strncpy(gpl_dst->parsubstr, gpl_src->parsubstr, 64);
+  STRNCPY(gpl_dst->parsubstr, gpl_src->parsubstr);
   gpl_dst->partype = gpl_src->partype;
-  BLI_strncpy(gpl_dst->viewlayername, gpl_src->viewlayername, 64);
+  STRNCPY(gpl_dst->viewlayername, gpl_src->viewlayername);
   copy_v3_v3(gpl_dst->location, gpl_src->location);
   copy_v3_v3(gpl_dst->rotation, gpl_src->rotation);
   copy_v3_v3(gpl_dst->scale, gpl_src->scale);
@@ -1436,7 +1436,7 @@ bGPDlayer_Mask *BKE_gpencil_layer_mask_add(bGPDlayer *gpl, const char *name)
 
   bGPDlayer_Mask *mask = MEM_callocN(sizeof(bGPDlayer_Mask), "bGPDlayer_Mask");
   BLI_addtail(&gpl->mask_layers, mask);
-  BLI_strncpy(mask->name, name, sizeof(mask->name));
+  STRNCPY(mask->name, name);
   gpl->act_mask++;
 
   return mask;
@@ -2221,8 +2221,7 @@ int BKE_gpencil_object_material_index_get_by_name(Object *ob, const char *name)
   Material *read_ma = NULL;
   for (short i = 0; i < *totcol; i++) {
     read_ma = BKE_object_material_get(ob, i + 1);
-    /* Material names are like "MAMaterial.001" */
-    if (STREQ(name, &read_ma->id.name[2])) {
+    if (STREQ(name, read_ma->id.name + 2)) {
       return i;
     }
   }
@@ -2308,7 +2307,7 @@ bool BKE_gpencil_from_image(
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf && ibuf->rect) {
+  if (ibuf && ibuf->byte_buffer.data) {
     int img_x = ibuf->x;
     int img_y = ibuf->y;
 

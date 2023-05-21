@@ -343,7 +343,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
 MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const MetalDevice *device)
 {
-  while (running) {
+  while (running && !device->has_error) {
     /* Search all loaded pipelines with matching kernels_md5 checksums. */
     MetalKernelPipeline *best_match = nullptr;
     {

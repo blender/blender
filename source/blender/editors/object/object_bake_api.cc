@@ -35,7 +35,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -169,6 +169,35 @@ static void bake_update_image(ScrArea *area, Image *image)
   }
 }
 
+/* Bias almost-flat normals in tangent space to be flat to avoid artifacts in byte textures.
+ * For some types of normal baking, especially bevels, you can end up with a small amount
+ * of noise in the result. Since the border between pixel value 127 and 128 is exactly 0.5,
+ * the tiniest amount of deviation will flip between those two, and increasing samples won't
+ * help - you always end up with visible "dents" in the resulting normal map.
+ * Therefore, this function snaps values that are less than half a quantization level away
+ * from 0.5 to 0.5, so that they consistently become pixel value 128.
+ * This only makes sense for byte textures of course, and is not used when baking to float
+ * textures (which includes 16-bit formats). Also, it's only applied to the first two channels,
+ * since on flat surfaces the Z channel will be close enough to 1.0 to reliably end up on 255.
+ */
+static void bias_tangent_normal_pixels(
+    float *rect, int channels, int width, int height, int stride)
+{
+  BLI_assert(channels >= 3);
+
+  for (int y = 0; y < height; y++) {
+    float *pixels = rect + size_t(stride) * y * channels;
+    for (int x = 0; x < width; x++, pixels += channels) {
+      if (fabsf(pixels[0] - 0.5f) < 1.0f / 255.0f) {
+        pixels[0] = 0.5f + 1e-5f;
+      }
+      if (fabsf(pixels[1] - 0.5f) < 1.0f / 255.0f) {
+        pixels[1] = 0.5f + 1e-5f;
+      }
+    }
+  }
+}
+
 static bool write_internal_bake_pixels(Image *image,
                                        const int image_tile_number,
                                        BakePixel pixel_array[],
@@ -179,6 +208,7 @@ static bool write_internal_bake_pixels(Image *image,
                                        const char margin_type,
                                        const bool is_clear,
                                        const bool is_noncolor,
+                                       const bool is_tangent_normal,
                                        Mesh const *mesh_eval,
                                        char const *uv_layer,
                                        const float uv_offset[2])
@@ -203,7 +233,7 @@ static bool write_internal_bake_pixels(Image *image,
     RE_bake_mask_fill(pixel_array, pixels_num, mask_buffer);
   }
 
-  is_float = (ibuf->rect_float != nullptr);
+  is_float = (ibuf->float_buffer.data != nullptr);
 
   /* colormanagement conversions */
   if (!is_noncolor) {
@@ -224,11 +254,15 @@ static bool write_internal_bake_pixels(Image *image,
           buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, false);
     }
   }
+  else if (!is_float && is_tangent_normal) {
+    /* bias neutral values when converting tangent-space normal maps to byte textures */
+    bias_tangent_normal_pixels(buffer, ibuf->channels, ibuf->x, ibuf->y, ibuf->x);
+  }
 
   /* populates the ImBuf */
   if (is_clear) {
     if (is_float) {
-      IMB_buffer_float_from_float(ibuf->rect_float,
+      IMB_buffer_float_from_float(ibuf->float_buffer.data,
                                   buffer,
                                   ibuf->channels,
                                   IB_PROFILE_LINEAR_RGB,
@@ -240,7 +274,7 @@ static bool write_internal_bake_pixels(Image *image,
                                   ibuf->x);
     }
     else {
-      IMB_buffer_byte_from_float((uchar *)ibuf->rect,
+      IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
                                  buffer,
                                  ibuf->channels,
                                  ibuf->dither,
@@ -255,7 +289,7 @@ static bool write_internal_bake_pixels(Image *image,
   }
   else {
     if (is_float) {
-      IMB_buffer_float_from_float_mask(ibuf->rect_float,
+      IMB_buffer_float_from_float_mask(ibuf->float_buffer.data,
                                        buffer,
                                        ibuf->channels,
                                        ibuf->x,
@@ -265,7 +299,7 @@ static bool write_internal_bake_pixels(Image *image,
                                        mask_buffer);
     }
     else {
-      IMB_buffer_byte_from_float_mask((uchar *)ibuf->rect,
+      IMB_buffer_byte_from_float_mask(ibuf->byte_buffer.data,
                                       buffer,
                                       ibuf->channels,
                                       ibuf->dither,
@@ -286,7 +320,7 @@ static bool write_internal_bake_pixels(Image *image,
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(image, ibuf);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     ibuf->userflags |= IB_RECT_INVALID;
   }
 
@@ -328,6 +362,7 @@ static bool write_external_bake_pixels(const char *filepath,
                                        const int margin_type,
                                        ImageFormatData const *im_format,
                                        const bool is_noncolor,
+                                       const bool is_tangent_normal,
                                        Mesh const *mesh_eval,
                                        char const *uv_layer,
                                        const float uv_offset[2])
@@ -347,7 +382,7 @@ static bool write_external_bake_pixels(const char *filepath,
 
   /* populates the ImBuf */
   if (is_float) {
-    IMB_buffer_float_from_float(ibuf->rect_float,
+    IMB_buffer_float_from_float(ibuf->float_buffer.data,
                                 buffer,
                                 ibuf->channels,
                                 IB_PROFILE_LINEAR_RGB,
@@ -366,8 +401,12 @@ static bool write_external_bake_pixels(const char *filepath,
       IMB_colormanagement_transform(
           buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, false);
     }
+    else if (is_tangent_normal) {
+      /* bias neutral values when converting tangent-space normal maps to byte textures */
+      bias_tangent_normal_pixels(buffer, ibuf->channels, ibuf->x, ibuf->y, ibuf->x);
+    }
 
-    IMB_buffer_byte_from_float((uchar *)ibuf->rect,
+    IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
                                buffer,
                                ibuf->channels,
                                ibuf->dither,
@@ -477,7 +516,7 @@ static bool bake_object_check(const Scene *scene,
       if (image) {
 
         if (node) {
-          if (BKE_node_is_connected_to_output(ntree, node)) {
+          if (blender::bke::node_is_connected_to_output(ntree, node)) {
             /* we don't return false since this may be a false positive
              * this can't be RPT_ERROR though, otherwise it prevents
              * multiple highpoly objects to be baked at once */
@@ -789,6 +828,8 @@ static bool bake_targets_output_internal(const BakeAPIRender *bkr,
                                          Mesh *mesh_eval)
 {
   bool all_ok = true;
+  const bool is_tangent_normal = (bkr->pass_type == SCE_PASS_NORMAL) &&
+                                 (bkr->normal_space == R_BAKE_SPACE_TANGENT);
 
   for (int i = 0; i < targets->images_num; i++) {
     BakeImage *bk_image = &targets->images[i];
@@ -803,6 +844,7 @@ static bool bake_targets_output_internal(const BakeAPIRender *bkr,
                                                bkr->margin_type,
                                                bkr->is_clear,
                                                targets->is_noncolor,
+                                               is_tangent_normal,
                                                mesh_eval,
                                                bkr->uv_layer,
                                                bk_image->uv_offset);
@@ -869,6 +911,8 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                          ReportList *reports)
 {
   bool all_ok = true;
+  const bool is_tangent_normal = (bkr->pass_type == SCE_PASS_NORMAL) &&
+                                 (bkr->normal_space == R_BAKE_SPACE_TANGENT);
 
   for (int i = 0; i < targets->images_num; i++) {
     BakeImage *bk_image = &targets->images[i];
@@ -900,7 +944,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
-        BLI_snprintf(tmp, sizeof(tmp), "%d", i % 1000);
+        SNPRINTF(tmp, "%d", i % 1000);
         BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
       }
     }
@@ -922,6 +966,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                                bkr->margin_type,
                                                &bake->im_format,
                                                targets->is_noncolor,
+                                               is_tangent_normal,
                                                mesh_eval,
                                                bkr->uv_layer,
                                                bk_image->uv_offset);

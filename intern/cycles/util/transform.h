@@ -379,7 +379,7 @@ ccl_device_inline Transform transform_empty()
 
 ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
-  /* Optix and MetalRT are using lerp to interpolate motion transformations. */
+  /* Optix and MetalRT are using linear interpolation to interpolate motion transformations. */
 #if defined(__KERNEL_GPU_RAYTRACING__)
   return normalize((1.0f - t) * q1 + t * q2);
 #else  /* defined(__KERNEL_GPU_RAYTRACING__) */

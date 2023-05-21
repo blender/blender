@@ -35,7 +35,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -234,7 +234,7 @@ static void image_buffer_rect_update(RenderJob *rj,
     linear_offset_y = offset_y;
   }
   else {
-    rectf = ibuf->rect_float;
+    rectf = ibuf->float_buffer.data;
     linear_stride = ibuf->x;
     linear_offset_x = 0;
     linear_offset_y = 0;

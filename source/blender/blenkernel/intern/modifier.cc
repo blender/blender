@@ -37,6 +37,7 @@
 #include "BLI_path_util.h"
 #include "BLI_session_uuid.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -137,7 +138,7 @@ static ModifierData *modifier_allocate_and_init(ModifierType type)
   ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->structSize, mti->structName));
 
   /* NOTE: this name must be made unique later. */
-  BLI_strncpy(md->name, DATA_(mti->name), sizeof(md->name));
+  STRNCPY_UTF8(md->name, DATA_(mti->name));
 
   md->type = type;
   md->mode = eModifierMode_Realtime | eModifierMode_Render;
@@ -329,7 +330,7 @@ ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
 {
   ModifierData *md_dst = modifier_allocate_and_init(ModifierType(md->type));
 
-  BLI_strncpy(md_dst->name, md->name, sizeof(md_dst->name));
+  STRNCPY(md_dst->name, md->name);
   BKE_modifier_copydata_ex(md, md_dst, flag);
 
   return md_dst;
@@ -954,10 +955,10 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
   return BKE_modifier_path_relbase(G_MAIN, ob);
 }
 
-void BKE_modifier_path_init(char *path, int path_maxlen, const char *name)
+void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
-  BLI_path_join(path, path_maxlen, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
+  BLI_path_join(path, path_maxncpy, blendfile_path[0] ? "//" : BKE_tempdir_session(), name);
 }
 
 /**

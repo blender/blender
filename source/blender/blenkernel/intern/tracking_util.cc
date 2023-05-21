@@ -52,7 +52,7 @@ TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
   TracksMap *map = MEM_cnew<TracksMap>("TrackingsMap");
 
-  BLI_strncpy(map->object_name, object_name, sizeof(map->object_name));
+  STRNCPY(map->object_name, object_name);
 
   map->num_tracks = num_tracks;
 
@@ -625,16 +625,14 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    */
   const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
-  if ((grayscale->rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image")) !=
-      nullptr)
-  {
-    grayscale->mall |= IB_rectfloat;
-    grayscale->flags |= IB_rectfloat;
+  float *rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image");
+  if (rect_float != nullptr) {
+    IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
 
     for (int i = 0; i < grayscale->x * grayscale->y; i++) {
-      const float *pixel = ibuf->rect_float + ibuf->channels * i;
+      const float *pixel = ibuf->float_buffer.data + ibuf->channels * i;
 
-      grayscale->rect_float[i] = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2];
+      rect_float[i] = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2];
     }
   }
 
@@ -643,8 +641,8 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
 
 static void ibuf_to_float_image(const ImBuf *ibuf, libmv_FloatImage *float_image)
 {
-  BLI_assert(ibuf->rect_float != nullptr);
-  float_image->buffer = ibuf->rect_float;
+  BLI_assert(ibuf->float_buffer.data != nullptr);
+  float_image->buffer = ibuf->float_buffer.data;
   float_image->width = ibuf->x;
   float_image->height = ibuf->y;
   float_image->channels = ibuf->channels;
@@ -655,13 +653,11 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
   size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
-  if ((ibuf->rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image")) !=
-      nullptr)
-  {
-    ibuf->mall |= IB_rectfloat;
-    ibuf->flags |= IB_rectfloat;
+  float *rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image");
+  if (rect_float != nullptr) {
+    IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
 
-    memcpy(ibuf->rect_float, float_image->buffer, num_total_channels * sizeof(float));
+    memcpy(rect_float, float_image->buffer, num_total_channels * sizeof(float));
   }
   return ibuf;
 }
@@ -700,7 +696,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 
     final_ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat);
 
-    if (orig_ibuf->rect_float != nullptr) {
+    if (orig_ibuf->float_buffer.data != nullptr) {
       IMB_rectcpy(final_ibuf,
                   orig_ibuf,
                   dst_offset_x,
@@ -721,8 +717,8 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
           int dst_x = x + dst_offset_x, dst_y = y + dst_offset_y;
           int dst_index = (dst_y * width + dst_x) * 4,
               src_index = (src_y * orig_ibuf->x + src_x) * 4;
-          rgba_uchar_to_float(final_ibuf->rect_float + dst_index,
-                              (uchar *)orig_ibuf->rect + src_index);
+          rgba_uchar_to_float(final_ibuf->float_buffer.data + dst_index,
+                              orig_ibuf->byte_buffer.data + src_index);
         }
       }
     }
@@ -804,7 +800,7 @@ static libmv_CacheKey accessor_get_image_callback(struct libmv_FrameAccessorUser
   ibuf = accessor_get_ibuf(accessor, clip_index, frame, input_mode, downscale, region, transform);
 
   if (ibuf) {
-    *destination = ibuf->rect_float;
+    *destination = ibuf->float_buffer.data;
     *width = ibuf->x;
     *height = ibuf->y;
     *channels = ibuf->channels;

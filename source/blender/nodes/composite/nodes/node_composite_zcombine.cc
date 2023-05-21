@@ -28,24 +28,24 @@ namespace blender::nodes::node_composite_zcombine_cc {
 
 static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Z"))
+  b.add_input<decl::Float>("Z")
       .default_value(1.0f)
       .min(0.0f)
       .max(10000.0f)
       .compositor_domain_priority(2);
-  b.add_input<decl::Color>(N_("Image"), "Image_001")
+  b.add_input<decl::Color>("Image", "Image_001")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(1);
-  b.add_input<decl::Float>(N_("Z"), "Z_001")
+  b.add_input<decl::Float>("Z", "Z_001")
       .default_value(1.0f)
       .min(0.0f)
       .max(10000.0f)
       .compositor_domain_priority(3);
-  b.add_output<decl::Color>(N_("Image"));
-  b.add_output<decl::Float>(N_("Z"));
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Z");
 }
 
 static void node_composit_buts_zcombine(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

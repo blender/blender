@@ -15,9 +15,9 @@ using blender::Array;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 /* One improvement would be to move the attribute arrays directly to the mesh when possible. */
@@ -80,7 +80,7 @@ static void geometry_set_points_to_vertices(
     }
   }
 
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
 
   geometry_set.replace_mesh(mesh);
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});

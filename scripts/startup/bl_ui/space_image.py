@@ -435,7 +435,9 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("uv.pack_islands")
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("uv.average_islands_scale")
 
         layout.separator()

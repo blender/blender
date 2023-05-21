@@ -20,40 +20,40 @@ static void node_declare(NodeDeclarationBuilder &b)
     node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS;
   };
 
-  b.add_input<decl::Int>(N_("Resolution"))
+  b.add_input<decl::Int>("Resolution")
       .default_value(32)
       .min(3)
       .max(512)
-      .description(N_("Number of points on the circle"));
-  b.add_input<decl::Vector>(N_("Point 1"))
+      .description("Number of points on the circle");
+  b.add_input<decl::Vector>("Point 1")
       .default_value({-1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
       .description(
-          N_("One of the three points on the circle. The point order determines the circle's "
-             "direction"))
+          "One of the three points on the circle. The point order determines the circle's "
+          "direction")
       .make_available(endable_points);
-  b.add_input<decl::Vector>(N_("Point 2"))
+  b.add_input<decl::Vector>("Point 2")
       .default_value({0.0f, 1.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
       .description(
-          N_("One of the three points on the circle. The point order determines the circle's "
-             "direction"))
+          "One of the three points on the circle. The point order determines the circle's "
+          "direction")
       .make_available(endable_points);
-  b.add_input<decl::Vector>(N_("Point 3"))
+  b.add_input<decl::Vector>("Point 3")
       .default_value({1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
       .description(
-          N_("One of the three points on the circle. The point order determines the circle's "
-             "direction"))
+          "One of the three points on the circle. The point order determines the circle's "
+          "direction")
       .make_available(endable_points);
-  b.add_input<decl::Float>(N_("Radius"))
+  b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Distance of the points from the origin"))
+      .description("Distance of the points from the origin")
       .make_available(enable_radius);
-  b.add_output<decl::Geometry>(N_("Curve"));
-  b.add_output<decl::Vector>(N_("Center")).make_available(endable_points);
+  b.add_output<decl::Geometry>("Curve");
+  b.add_output<decl::Vector>("Center").make_available(endable_points);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -82,15 +82,15 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *center_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
 
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, middle_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, end_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, center_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, radius_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS);
 }
 

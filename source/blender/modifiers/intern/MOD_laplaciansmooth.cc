@@ -495,7 +495,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 {
   LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (smd->defgrp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }

@@ -52,7 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
@@ -504,7 +504,7 @@ Render *RE_NewRender(const char *name)
     /* new render data struct */
     re = MEM_cnew<Render>("new render");
     BLI_addtail(&RenderGlobal.renderlist, re);
-    BLI_strncpy(re->name, name, RE_MAXNAME);
+    STRNCPY(re->name, name);
     BLI_rw_mutex_init(&re->resultmutex);
     BLI_mutex_init(&re->engine_draw_mutex);
     BLI_mutex_init(&re->highlighted_tiles_mutex);
@@ -1598,7 +1598,7 @@ static void update_physics_cache(Render *re,
 
 void RE_SetActiveRenderView(Render *re, const char *viewname)
 {
-  BLI_strncpy(re->viewname, viewname, sizeof(re->viewname));
+  STRNCPY(re->viewname, viewname);
 }
 
 const char *RE_GetActiveRenderView(Render *re)
@@ -1822,7 +1822,7 @@ static void change_renderdata_engine(Render *re, const char *new_engine)
       RE_engine_free(re->engine);
       re->engine = nullptr;
     }
-    BLI_strncpy(re->r.engine, new_engine, sizeof(re->r.engine));
+    STRNCPY(re->r.engine, new_engine);
   }
 }
 
@@ -1838,7 +1838,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, const bool
   if (render_init_from_main(re, &scene->r, bmain, scene, nullptr, nullptr, false, false)) {
     if (render) {
       char scene_engine[32];
-      BLI_strncpy(scene_engine, re->r.engine, sizeof(scene_engine));
+      STRNCPY(scene_engine, re->r.engine);
       if (use_eevee_for_freestyle_render(re)) {
         change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE);
       }
@@ -1918,7 +1918,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                             rd,
                             preview ? scene->r.psfra : scene->r.sfra,
                             scene->r.cfra,
-                            (int *)ibuf->rect,
+                            (int *)ibuf->byte_buffer.data,
                             ibuf->x,
                             ibuf->y,
                             suffix,
@@ -1952,7 +1952,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                           rd,
                           preview ? scene->r.psfra : scene->r.sfra,
                           scene->r.cfra,
-                          (int *)ibuf_arr[2]->rect,
+                          (int *)ibuf_arr[2]->byte_buffer.data,
                           ibuf_arr[2]->x,
                           ibuf_arr[2]->y,
                           "",
@@ -1999,7 +1999,7 @@ static bool do_write_image_or_movie(Render *re,
     }
     else {
       if (filepath_override) {
-        BLI_strncpy(filepath, filepath_override, sizeof(filepath));
+        STRNCPY(filepath, filepath_override);
       }
       else {
         BKE_image_path_from_imformat(filepath,
@@ -2458,19 +2458,19 @@ void RE_layer_load_from_file(
                 filepath);
   }
 
-  if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+  if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
     if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
-      if (ibuf->rect_float == nullptr) {
+      if (ibuf->float_buffer.data == nullptr) {
         IMB_float_from_rect(ibuf);
       }
 
-      memcpy(rpass->rect, ibuf->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
+      memcpy(rpass->rect, ibuf->float_buffer.data, sizeof(float[4]) * layer->rectx * layer->recty);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
         ImBuf *ibuf_clip;
 
-        if (ibuf->rect_float == nullptr) {
+        if (ibuf->float_buffer.data == nullptr) {
           IMB_float_from_rect(ibuf);
         }
 
@@ -2478,8 +2478,9 @@ void RE_layer_load_from_file(
         if (ibuf_clip) {
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
-          memcpy(
-              rpass->rect, ibuf_clip->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
+          memcpy(rpass->rect,
+                 ibuf_clip->float_buffer.data,
+                 sizeof(float[4]) * layer->rectx * layer->recty);
           IMB_freeImBuf(ibuf_clip);
         }
         else {
@@ -2594,7 +2595,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   if (!rl) {
     rl = MEM_cnew<RenderLayer>(layername);
     BLI_addtail(&rr->layers, rl);
-    BLI_strncpy(rl->name, layername, sizeof(rl->name));
+    STRNCPY(rl->name, layername);
     rl->layflag = SCE_LAY_SOLID;
     rl->passflag = SCE_PASS_COMBINED;
     rl->rectx = rr->rectx;

@@ -234,7 +234,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
     slot_dst->data.buf = NULL;
     slot_dst->len = slot_src->len;
     if (slot_dst->len) {
-      /* check dest has all flags enabled that the source has */
+      /* Check destination has all flags enabled that the source has. */
       const eBMOpSlotSubType_Elem src_elem_flag = (slot_src->slot_subtype.elem & BM_ALL_NOLOOP);
       const eBMOpSlotSubType_Elem dst_elem_flag = (slot_dst->slot_subtype.elem & BM_ALL_NOLOOP);
 
@@ -1659,7 +1659,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
         GOTO_ERROR("name to slot code check failed");
       }
 
-      BLI_strncpy(slot_name, fmt, sizeof(slot_name));
+      STRNCPY(slot_name, fmt);
 
       state = false;
       fmt += i;

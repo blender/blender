@@ -58,7 +58,7 @@ static void cache_file_init_data(ID *id)
 
   cache_file->scale = 1.0f;
   cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
-  BLI_strncpy(cache_file->velocity_name, ".velocities", sizeof(cache_file->velocity_name));
+  STRNCPY(cache_file->velocity_name, ".velocities");
 }
 
 static void cache_file_copy_data(Main *UNUSED(bmain),
@@ -362,7 +362,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
     cache_file->type = CACHEFILE_TYPE_ALEMBIC;
     cache_file->handle = ABC_create_handle(
         bmain, filepath, cache_file->layers.first, &cache_file->object_paths);
-    BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
+    STRNCPY(cache_file->handle_filepath, filepath);
   }
 #endif
 #ifdef WITH_USD
@@ -451,7 +451,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
   CacheFileLayer *layer = MEM_callocN(sizeof(CacheFileLayer), "CacheFileLayer");
-  BLI_strncpy(layer->filepath, filepath, sizeof(layer->filepath));
+  STRNCPY(layer->filepath, filepath);
 
   BLI_addtail(&cache_file->layers, layer);
 

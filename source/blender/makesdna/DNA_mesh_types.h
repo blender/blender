@@ -324,12 +324,12 @@ typedef struct Mesh {
    * \note To allow setting this status on meshes without changing them, this does not tag the
    * cache dirty. If the mesh was changed first, the relevant dirty tags should be called first.
    */
-  void loose_edges_tag_none() const;
+  void tag_loose_edges_none() const;
   /**
-   * Set the number of vertices not connected to edges to zero. Similar to #loose_edges_tag_none().
+   * Set the number of vertices not connected to edges to zero. Similar to #tag_loose_edges_none().
    * There may still be vertices only used by loose edges though.
    *
-   * \note If both #loose_edges_tag_none() and #tag_loose_verts_none() are called,
+   * \note If both #tag_loose_edges_none() and #tag_loose_verts_none() are called,
    * all vertices are used by faces, so #verts_no_faces() will be tagged empty as well.
    */
   void tag_loose_verts_none() const;
