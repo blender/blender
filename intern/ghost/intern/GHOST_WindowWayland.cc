@@ -73,6 +73,17 @@ struct WGL_XDG_Decor_Window {
   struct zxdg_toplevel_decoration_v1 *toplevel_decor = nullptr;
   struct xdg_toplevel *toplevel = nullptr;
   enum zxdg_toplevel_decoration_v1_mode mode = (enum zxdg_toplevel_decoration_v1_mode)0;
+
+  /**
+   * Defer calling #xdg_surface_ack_configure.
+   * \note Accessing the members must lock on `win->frame_pending_mutex`.
+   */
+  struct {
+    /** When set, ACK configure is expected. */
+    bool ack_configure = false;
+    /** The serial to pass to ACK configure. */
+    uint32_t ack_configure_serial = 0;
+  } pending;
 };
 
 static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
@@ -745,6 +756,18 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
     wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
   }
 
+  if (win->xdg_decor) {
+    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
+    if (decor.pending.ack_configure) {
+      xdg_surface_ack_configure(decor.surface, decor.pending.ack_configure_serial);
+      /* The XDG spec states a commit event is required after ACK configure. */
+      surface_needs_commit = true;
+
+      decor.pending.ack_configure = false;
+      decor.pending.ack_configure_serial = 0;
+    }
+  }
+
   if (surface_needs_commit) {
 #ifdef USE_EVENT_BACKGROUND_THREAD
     /* Postponing the commit avoids flickering when moving between monitors of different scale. */
@@ -1180,6 +1203,12 @@ static void xdg_surface_handle_configure(void *data,
   CLOG_INFO(LOG, 2, "configure");
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
+#endif
+  win->xdg_decor->pending.ack_configure = true;
+  win->xdg_decor->pending.ack_configure_serial = serial;
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
   GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
@@ -1190,10 +1219,8 @@ static void xdg_surface_handle_configure(void *data,
   else
 #endif
   {
-    gwl_window_frame_update_from_pending(win);
+    gwl_window_frame_update_from_pending_no_lock(win);
   }
-
-  xdg_surface_ack_configure(xdg_surface, serial);
 }
 
 static const xdg_surface_listener xdg_surface_listener = {
