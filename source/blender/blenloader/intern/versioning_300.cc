@@ -1141,8 +1141,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
                      SOCK_OBJECT,
                      SOCK_COLLECTION,
                      SOCK_TEXTURE,
-                     SOCK_MATERIAL))
-            {
+                     SOCK_MATERIAL)) {
               link->tosock = link->tosock->next;
             }
           }
@@ -2323,6 +2322,73 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
   }
 }
 
+/**
+ * Change override RNA path from `frame_{start,end}` to `frame_{start,end}_raw`.
+ * See #102662.
+ */
+static void version_liboverride_nla_strip_frame_start_end(IDOverrideLibrary *liboverride,
+                                                          const char *parent_rna_path,
+                                                          NlaStrip *strip)
+{
+  if (!strip) {
+    return;
+  }
+
+  /* Escape the strip name for inclusion in the RNA path. */
+  char name_esc_strip[sizeof(strip->name) * 2];
+  BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+
+  const std::string rna_path_strip = std::string(parent_rna_path) + ".strips[\"" + name_esc_strip +
+                                     "\"]";
+
+  { /* Rename .frame_start -> .frame_start_raw: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_start";
+    BKE_lib_override_library_property_rna_path_change(
+        liboverride, rna_path_prop.c_str(), (rna_path_prop + "_raw").c_str());
+  }
+
+  { /* Rename .frame_end -> .frame_end_raw: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_end";
+    BKE_lib_override_library_property_rna_path_change(
+        liboverride, rna_path_prop.c_str(), (rna_path_prop + "_raw").c_str());
+  }
+
+  { /* Remove .frame_start_ui: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_start_ui";
+    BKE_lib_override_library_property_search_and_delete(liboverride, rna_path_prop.c_str());
+  }
+
+  { /* Remove .frame_end_ui: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_end_ui";
+    BKE_lib_override_library_property_search_and_delete(liboverride, rna_path_prop.c_str());
+  }
+
+  /* Handle meta-strip contents. */
+  LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
+    version_liboverride_nla_strip_frame_start_end(liboverride, rna_path_strip.c_str(), substrip);
+  }
+}
+
+/** Fix the `frame_start` and `frame_end` overrides on NLA strips. See #102662. */
+static void version_liboverride_nla_frame_start_end(ID *id, AnimData *adt, void * /*user_data*/)
+{
+  IDOverrideLibrary *liboverride = id->override_library;
+  if (!liboverride) {
+    return;
+  }
+
+  int track_index;
+  LISTBASE_FOREACH_INDEX (NlaTrack *, track, &adt->nla_tracks, track_index) {
+    char *rna_path_track = BLI_sprintfN("animation_data.nla_tracks[%d]", track_index);
+
+    LISTBASE_FOREACH (NlaStrip *, strip, &track->strips) {
+      version_liboverride_nla_strip_frame_start_end(liboverride, rna_path_track, strip);
+    }
+
+    MEM_freeN(rna_path_track);
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 {
@@ -2653,8 +2719,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 17)) {
     if (!DNA_struct_elem_find(
-            fd->filesdna, "View3DOverlay", "float", "normals_constant_screen_size"))
-    {
+            fd->filesdna, "View3DOverlay", "float", "normals_constant_screen_size")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -2682,8 +2747,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 18)) {
     if (!DNA_struct_elem_find(
-            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref"))
-    {
+            fd->filesdna, "WorkSpace", "AssetLibraryReference", "asset_library_ref")) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         BKE_asset_library_reference_init_default(&workspace->asset_library_ref);
       }
@@ -4412,5 +4476,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       versioning_remove_microfacet_sharp_distribution(ntree);
     }
     FOREACH_NODETREE_END;
+
+    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
   }
 }
