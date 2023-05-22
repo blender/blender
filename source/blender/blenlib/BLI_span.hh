@@ -532,6 +532,14 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Returns the number of bytes referenced by this Span.
+   */
+  constexpr int64_t size_in_bytes() const
+  {
+    return sizeof(T) * size_;
+  }
+
+  /**
    * Returns true if the size is zero.
    */
   constexpr bool is_empty() const
