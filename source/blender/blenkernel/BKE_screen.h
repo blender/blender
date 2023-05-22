@@ -128,8 +128,8 @@ typedef struct SpaceType {
   /* region type definitions */
   ListBase regiontypes;
 
-  /* Asset shelf type definitions */
-  ListBase asset_shelf_types; /* AssetShelfType */
+  /** Asset shelf type definitions. */
+  ListBase asset_shelf_types; /* #AssetShelfType */
 
   /* read and write... */
 
@@ -417,7 +417,7 @@ typedef struct Menu {
 
 /* asset shelf types */
 
-/* #PanelType.flag */
+/* #AssetShelfType.flag */
 typedef enum AssetShelfTypeFlag {
   /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
      keymap items then. */

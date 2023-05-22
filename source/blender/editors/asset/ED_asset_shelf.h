@@ -23,7 +23,7 @@ struct RegionPollParams;
 /* -------------------------------------------------------------------- */
 /* Asset Shelf Regions */
 
-bool ED_asset_shelf_poll(const struct RegionPollParams *params);
+bool ED_asset_shelf_regions_poll(const struct RegionPollParams *params);
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_FOOTER). */
 void ED_asset_shelf_region_init(struct wmWindowManager *wm, struct ARegion *region);
@@ -31,7 +31,7 @@ int ED_asset_shelf_region_snap(const struct ARegion *region, int size, int axis)
 void ED_asset_shelf_region_listen(const struct wmRegionListenerParams *params);
 void ED_asset_shelf_region_layout(const bContext *C,
                                   struct ARegion *region,
-                                  struct AssetShelfSettings *shelf_settings);
+                                  struct AssetShelfHook *shelf_hook);
 void ED_asset_shelf_region_draw(const bContext *C, struct ARegion *region);
 int ED_asset_shelf_default_tile_width(void);
 int ED_asset_shelf_default_tile_height(void);
@@ -44,32 +44,32 @@ int ED_asset_shelf_footer_size(void);
 void ED_asset_shelf_footer_register(struct ARegionType *region_type, const int space_type);
 
 /* -------------------------------------------------------------------- */
-/* Asset Shelf Settings */
+/* Asset Shelf Hook */
 
 /**
- * Deep-copies \a shelf_settings into newly allocated memory. Must be freed using #MEM_freeN() or
- * #MEM_delete().
+ * Deep-copies \a hook into newly allocated memory. Must be freed using
+ * #ED_asset_shelf_hook_free().
  */
-AssetShelfSettings *ED_asset_shelf_settings_duplicate(const AssetShelfSettings *shelf_settings);
+struct AssetShelfHook *ED_asset_shelf_hook_duplicate(const AssetShelfHook *hook);
 /**
- * Frees the contained data, not \a shelf_settings itself.
+ * Frees the contained data and \a hook itself.
  */
-void ED_asset_shelf_settings_free(AssetShelfSettings *shelf_settings);
+void ED_asset_shelf_hook_free(AssetShelfHook **hook);
 
-void ED_asset_shelf_settings_blend_write(struct BlendWriter *writer,
-                                         const struct AssetShelfSettings *storage);
-void ED_asset_shelf_settings_blend_read_data(struct BlendDataReader *reader,
-                                             struct AssetShelfSettings **storage);
+void ED_asset_shelf_hook_blend_write(struct BlendWriter *writer,
+                                     const struct AssetShelfHook *hook);
+void ED_asset_shelf_hook_blend_read_data(struct BlendDataReader *reader,
+                                         struct AssetShelfHook **hook);
 
 /* -------------------------------------------------------------------- */
 
 /**
- * Creates an `"asset_shelf_settings"` context member, pointing to \a shelf_settings.
+ * Creates an `"asset_shelf"` context member, pointing to the active shelf in \a #shelf_hook.
  */
 int ED_asset_shelf_context(const struct bContext *C,
                            const char *member,
                            struct bContextDataResult *result,
-                           struct AssetShelfSettings *shelf_settings);
+                           struct AssetShelfHook *shelf_hook);
 
 #ifdef __cplusplus
 }

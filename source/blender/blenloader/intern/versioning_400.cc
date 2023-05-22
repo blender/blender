@@ -6,8 +6,11 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include "BLI_sys_types.h"
+
 #include "CLG_log.h"
 
+#include "DNA_genfile.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_workspace_types.h"
 
@@ -101,7 +104,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
   }
 }
 
-void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 1)) {
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
@@ -113,67 +116,6 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 2)) {
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
       BKE_mesh_legacy_bevel_weight_to_generic(mesh);
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 400, 3)) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_VIEW3D) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
-
-            /* TODO for old files saved with the branch only. */
-            {
-              SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
-
-              if (ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(regionbase,
-                                                                             RGN_TYPE_ASSET_SHELF))
-              {
-                BLI_remlink(regionbase, asset_shelf);
-                BKE_area_region_free(space_type, asset_shelf);
-                MEM_freeN(asset_shelf);
-              }
-
-              if (ARegion *asset_shelf_footer = BKE_region_find_in_listbase_by_type(
-                      regionbase, RGN_TYPE_ASSET_SHELF_FOOTER))
-              {
-                BLI_remlink(regionbase, asset_shelf_footer);
-                BKE_area_region_free(space_type, asset_shelf_footer);
-                MEM_freeN(asset_shelf_footer);
-              }
-            }
-
-            {
-              ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF_FOOTER,
-                  "asset shelf footer for view3d (versioning)",
-                  RGN_TYPE_UI);
-              if (new_asset_shelf_footer != nullptr) {
-                new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
-              }
-            }
-            {
-              /* TODO for old files saved with the branch only. */
-              ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF,
-                  "asset shelf for view3d (versioning)",
-                  RGN_TYPE_ASSET_SHELF_FOOTER);
-              new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
-            }
-          }
-        }
-      }
-    }
-
-    /* Should we really use the "All" library by default? Consider loading time and memory usage.
-     */
-    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
-      workspace->asset_library_ref.type = ASSET_LIBRARY_ALL;
-      workspace->asset_library_ref.custom_library_index = -1;
     }
   }
 
@@ -193,6 +135,71 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_add_realize_instance_nodes(ntree);
       }
+    }
+  }
+
+  if (!DNA_struct_find(fd->filesdna, "AssetShelfHook")) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_VIEW3D) {
+            continue;
+          }
+          View3D *v3d = reinterpret_cast<View3D *>(sl);
+
+          v3d->asset_shelf_hook = MEM_cnew<AssetShelfHook>("Versioning AssetShelfHook");
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+
+          /* TODO for old files saved with the branch only. */
+          {
+            SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
+
+            if (ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                           RGN_TYPE_ASSET_SHELF)) {
+              BLI_remlink(regionbase, asset_shelf);
+              BKE_area_region_free(space_type, asset_shelf);
+              MEM_freeN(asset_shelf);
+            }
+
+            if (ARegion *asset_shelf_footer = BKE_region_find_in_listbase_by_type(
+                    regionbase, RGN_TYPE_ASSET_SHELF_FOOTER))
+            {
+              BLI_remlink(regionbase, asset_shelf_footer);
+              BKE_area_region_free(space_type, asset_shelf_footer);
+              MEM_freeN(asset_shelf_footer);
+            }
+          }
+
+          {
+            ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
+                regionbase,
+                RGN_TYPE_ASSET_SHELF_FOOTER,
+                "asset shelf footer for view3d (versioning)",
+                RGN_TYPE_UI);
+            if (new_asset_shelf_footer != nullptr) {
+              new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
+            }
+          }
+          {
+            /* TODO for old files saved with the branch only. */
+            ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+                regionbase,
+                RGN_TYPE_ASSET_SHELF,
+                "asset shelf for view3d (versioning)",
+                RGN_TYPE_ASSET_SHELF_FOOTER);
+            new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
+          }
+        }
+      }
+    }
+
+    /* Should we really use the "All" library by default? Consider loading time and memory usage.
+     */
+    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+      workspace->asset_library_ref.type = ASSET_LIBRARY_ALL;
+      workspace->asset_library_ref.custom_library_index = -1;
     }
   }
 }

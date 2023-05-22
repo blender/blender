@@ -1172,16 +1172,16 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 {
   AssetShelfType dummy_shelf_type = {NULL};
   AssetShelf dummy_shelf = {NULL};
-  PointerRNA dummy_shelf_type_ptr;
+  PointerRNA dummy_shelf_ptr;
 
   /* setup dummy shelf & shelf type to store static properties in */
   dummy_shelf.type = &dummy_shelf_type;
-  RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_type_ptr);
+  RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_ptr);
 
   bool have_function[3];
 
   /* validate the python class */
-  if (validate(&dummy_shelf_type_ptr, data, have_function) != 0) {
+  if (validate(&dummy_shelf_ptr, data, have_function) != 0) {
     return NULL;
   }
 
@@ -2135,17 +2135,9 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-}
-
-static void rna_def_asset_shelf_settings(BlenderRNA *brna)
-{
-  StructRNA *srna = RNA_def_struct(brna, "AssetShelfSettings", NULL);
-  RNA_def_struct_ui_text(srna, "Asset Shelf Settings", "");
-
-  PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "display_flag", ASSETSHELF_SHOW_NAMES);
+  RNA_def_property_boolean_sdna(prop, NULL, "settings.display_flag", ASSETSHELF_SHOW_NAMES);
   RNA_def_property_ui_text(
       prop,
       "Show Names",
@@ -2161,7 +2153,6 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_header(brna);
   rna_def_menu(brna);
   rna_def_asset_shelf(brna);
-  rna_def_asset_shelf_settings(brna);
 }
 
 #endif /* RNA_RUNTIME */

@@ -46,10 +46,133 @@ void send_redraw_notifier(const bContext &C)
 }  // namespace blender::ed::asset::shelf
 
 /* -------------------------------------------------------------------- */
+/** \name Shelf Type
+ * \{ */
+
+static bool asset_shelf_type_poll(const bContext &C, AssetShelfType *shelf_type)
+{
+  if (!shelf_type) {
+    return false;
+  }
+  return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
+}
+
+static AssetShelfType *asset_shelf_type_ensure(const SpaceType &space_type, AssetShelf &shelf)
+{
+  if (shelf.type) {
+    return shelf.type;
+  }
+
+  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
+    if (STREQ(shelf.idname, shelf_type->idname)) {
+      shelf.type = shelf_type;
+      return shelf_type;
+    }
+  }
+
+  return nullptr;
+}
+
+static AssetShelf *create_shelf_from_type(AssetShelfType &type)
+{
+  AssetShelf *shelf = MEM_new<AssetShelf>(__func__);
+  *shelf = dna::shallow_zero_initialize();
+  shelf->type = &type;
+  STRNCPY(shelf->idname, type.idname);
+  return shelf;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Active Shelf Management
+ * \{ */
+
+/**
+ * Activating a shelf means assigning it to #AssetShelfHook.active_shelf and (re-)inserting it at
+ * the beginning of the #AssetShelfHook.shelves list. This implies that after calling this, \a
+ * shelf is guaranteed to be owned by the shelves list.
+ */
+static void activate_shelf(AssetShelfHook &hook, AssetShelf &shelf)
+{
+  hook.active_shelf = &shelf;
+  BLI_remlink_safe(&hook.shelves, &shelf);
+  BLI_addhead(&hook.shelves, &shelf);
+}
+
+/**
+ * Determine and set the currently active asset shelf, creating a new shelf if needed.
+ *
+ * The heuristic works as follows:
+ * 1) If the currently active shelf is still valid (poll succeeds), keep it active.
+ * 2) Otherwise, check for previously activated shelves in \a hook and activate the first valid one
+ *    (first with a succeeding poll).
+ * 3) If none is valid, check all shelf-types available for \a space_type, create a new shelf for
+ *    the first type that is valid (poll succeeds), and activate it.
+ * 4) If no shelf-type is valid, #AssetShelfHook.active_shelf is set to null.
+ *
+ * When activating a shelf, it is moved to the beginning of the #AssetShelfHook.shelves list, so
+ * that recently activated shelves are also the first ones to be reactivated.
+ *
+ * The returned shelf is guaranteed to have its #AssetShelf.type pointer set.
+ *
+ * \return A non-owning pointer to the now active shelf. Might be null if no shelf is valid in
+ *         current context (all polls failed).
+ */
+static AssetShelf *update_active_shelf(const bContext &C,
+                                       const SpaceType &space_type,
+                                       AssetShelfHook &hook)
+{
+  /* Note: Don't access #AssetShelf.type directly, use #asset_shelf_type_ensure(). */
+
+  /* Case 1: */
+  if (hook.active_shelf &&
+      asset_shelf_type_poll(C, asset_shelf_type_ensure(space_type, *hook.active_shelf)))
+  {
+    /* Not a strong precondition, but if this is wrong something weird might be going on. */
+    BLI_assert(hook.active_shelf == hook.shelves.first);
+    return hook.active_shelf;
+  }
+
+  /* Case 2 (no active shelf or the poll of it isn't succeeding anymore. Poll all shelf types to
+   * determine a new active one): */
+  LISTBASE_FOREACH (AssetShelf *, shelf, &hook.shelves) {
+    if (shelf == hook.active_shelf) {
+      continue;
+    }
+
+    if (asset_shelf_type_poll(C, asset_shelf_type_ensure(space_type, *shelf))) {
+      /* Found a valid previously activated shelf, reactivate it. */
+      activate_shelf(hook, *shelf);
+      return shelf;
+    }
+  }
+
+  /* Case 3: */
+  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
+    if (asset_shelf_type_poll(C, shelf_type)) {
+      AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
+      /* Moves ownership to the hook. */
+      activate_shelf(hook, *new_shelf);
+      return new_shelf;
+    }
+  }
+
+  hook.active_shelf = nullptr;
+  return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Asset Shelf Regions
  * \{ */
 
-static bool asset_shelf_poll(const bContext *C, const SpaceLink *space_link)
+/**
+ * Check if there is any asset shelf type in this space returning true in its poll. If not, no
+ * asset shelf region should be displayed.
+ */
+static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_link)
 {
   if (!U.experimental.use_asset_shelf) {
     return false;
@@ -59,7 +182,7 @@ static bool asset_shelf_poll(const bContext *C, const SpaceLink *space_link)
 
   /* Is there any asset shelf type registered that returns true for it's poll? */
   LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
-    if (shelf_type->poll && shelf_type->poll(C, shelf_type)) {
+    if (asset_shelf_type_poll(*C, shelf_type)) {
       return true;
     }
   }
@@ -67,10 +190,10 @@ static bool asset_shelf_poll(const bContext *C, const SpaceLink *space_link)
   return false;
 }
 
-bool ED_asset_shelf_poll(const RegionPollParams *params)
+bool ED_asset_shelf_regions_poll(const RegionPollParams *params)
 {
-  return asset_shelf_poll(params->context,
-                          static_cast<SpaceLink *>(params->area->spacedata.first));
+  return asset_shelf_space_poll(params->context,
+                                static_cast<SpaceLink *>(params->area->spacedata.first));
 }
 
 static void asset_shelf_region_listen(const wmRegionListenerParams *params)
@@ -176,15 +299,6 @@ int ED_asset_shelf_region_prefsizey()
 }
 
 /**
- * Check if there is any asset shelf type returning true in it's poll. If not, no asset shelf
- * region should be displayed.
- */
-static bool asset_shelf_region_header_type_poll(const bContext *C, HeaderType * /*header_type*/)
-{
-  return asset_shelf_poll(C, CTX_wm_space_data(C));
-}
-
-/**
  * Ensure the region height is snapped to the closest multiple of the row height.
  */
 static void asset_shelf_region_snap_height_to_closest(ScrArea *area, ARegion *region)
@@ -201,10 +315,16 @@ static void asset_shelf_region_snap_height_to_closest(ScrArea *area, ARegion *re
   }
 }
 
-void ED_asset_shelf_region_layout(const bContext *C,
-                                  ARegion *region,
-                                  AssetShelfSettings *shelf_settings)
+void ED_asset_shelf_region_layout(const bContext *C, ARegion *region, AssetShelfHook *shelf_hook)
 {
+  const SpaceLink *space = CTX_wm_space_data(C);
+  const SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
+
+  AssetShelf *active_shelf = update_active_shelf(*C, *space_type, *shelf_hook);
+  if (!active_shelf) {
+    return;
+  }
+
   AssetLibraryReference all_library_ref = {};
   all_library_ref.type = ASSET_LIBRARY_ALL;
   all_library_ref.custom_library_index = -1;
@@ -224,7 +344,7 @@ void ED_asset_shelf_region_layout(const bContext *C,
                                      0,
                                      style);
 
-  shelf::build_asset_view(*layout, all_library_ref, shelf_settings, *C, *region);
+  shelf::build_asset_view(*layout, all_library_ref, *active_shelf, *C, *region);
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);
@@ -285,10 +405,10 @@ int ED_asset_shelf_footer_size()
 int ED_asset_shelf_context(const bContext *C,
                            const char *member,
                            bContextDataResult *result,
-                           AssetShelfSettings *shelf_settings)
+                           AssetShelfHook *shelf_hook)
 {
   static const char *context_dir[] = {
-      "asset_shelf_settings",
+      "asset_shelf",
       "active_file", /* XXX yuk... */
       nullptr,
   };
@@ -300,8 +420,8 @@ int ED_asset_shelf_context(const bContext *C,
 
   bScreen *screen = CTX_wm_screen(C);
 
-  if (CTX_data_equals(member, "asset_shelf_settings")) {
-    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelfSettings, shelf_settings);
+  if (CTX_data_equals(member, "asset_shelf")) {
+    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, shelf_hook->active_shelf);
 
     return CTX_RESULT_OK;
   }
@@ -334,11 +454,10 @@ int ED_asset_shelf_context(const bContext *C,
 
 namespace blender::ed::asset::shelf {
 
-AssetShelfSettings *settings_from_context(const bContext *C)
+AssetShelf *active_shelf_from_context(const bContext *C)
 {
-  PointerRNA shelf_settings_ptr = CTX_data_pointer_get_type(
-      C, "asset_shelf_settings", &RNA_AssetShelfSettings);
-  return static_cast<AssetShelfSettings *>(shelf_settings_ptr.data);
+  PointerRNA shelf_settings_ptr = CTX_data_pointer_get_type(C, "asset_shelf", &RNA_AssetShelf);
+  return static_cast<AssetShelf *>(shelf_settings_ptr.data);
 }
 
 }  // namespace blender::ed::asset::shelf
@@ -432,9 +551,9 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
 
   uiItemS(layout);
 
-  AssetShelfSettings *shelf_settings = shelf::settings_from_context(C);
-  if (shelf_settings) {
-    add_catalog_toggle_buttons(*shelf_settings, *layout);
+  AssetShelf *shelf = shelf::active_shelf_from_context(C);
+  if (shelf) {
+    add_catalog_toggle_buttons(shelf->settings, *layout);
   }
 
   uiItemSpacer(layout);
@@ -449,7 +568,10 @@ void ED_asset_shelf_footer_register(ARegionType *region_type, const int space_ty
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
   ht->draw = asset_shelf_footer_draw;
-  ht->poll = asset_shelf_region_header_type_poll;
+  ht->poll = [](const bContext *C, HeaderType *) {
+    return asset_shelf_space_poll(C, CTX_wm_space_data(C));
+  };
+
   BLI_addtail(&region_type->headertypes, ht);
 
   shelf::catalog_selector_panel_register(region_type);

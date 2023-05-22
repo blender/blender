@@ -147,21 +147,21 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
 {
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
   asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(*library_ref);
-  AssetShelfSettings *shelf_settings = settings_from_context(C);
+  AssetShelf *shelf = active_shelf_from_context(C);
 
   uiLayout *layout = panel->layout;
   uiBlock *block = uiLayoutGetBlock(layout);
 
   uiItemL(layout, IFACE_("Catalogs"), ICON_NONE);
 
-  if (!library || !shelf_settings) {
+  if (!library || !shelf) {
     return;
   }
 
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",
-      std::make_unique<AssetCatalogSelectorTree>(*library, *shelf_settings));
+      std::make_unique<AssetCatalogSelectorTree>(*library, shelf->settings));
 
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

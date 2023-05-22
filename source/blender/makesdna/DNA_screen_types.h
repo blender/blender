@@ -314,13 +314,6 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   uiListDyn *dyn_data;
 } uiList;
 
-typedef struct AssetShelf {
-  struct AssetShelf *next, *prev;
-
-  /** Runtime. */
-  struct AssetShelfType *type;
-} AssetShelf;
-
 typedef struct TransformOrientation {
   struct TransformOrientation *next, *prev;
   /** MAX_NAME. */
@@ -763,14 +756,52 @@ enum {
 };
 
 typedef struct AssetShelfSettings {
-  /* TODO make this per mode? (or use a custom identifier?) */
+  struct AssetShelfSettings *next, *prev;
+
   ListBase enabled_catalog_paths; /* #LinkData */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
   const char *active_catalog_path;
 
   short display_flag; /* #AssetShelfSettings_DisplayFlag */
   char _pad1[6];
+
+#ifdef __cplusplus
+  /* Zero initializes. */
+  AssetShelfSettings();
+  /* Proper deep copy. */
+  AssetShelfSettings(const AssetShelfSettings &other);
+  ~AssetShelfSettings();
+#endif
 } AssetShelfSettings;
+
+typedef struct AssetShelf {
+  DNA_DEFINE_CXX_METHODS(AssetShelf)
+
+  struct AssetShelf *next, *prev;
+
+  /** Identifier that matches the #AssetShelfType.idname this shelf was created with. Used to
+   * restore the #AssetShelf.type pointer below on file read. */
+  char idname[64]; /* MAX_NAME */
+  /** Runtime. */
+  struct AssetShelfType *type;
+
+  AssetShelfSettings settings;
+} AssetShelf;
+
+/**
+ * Helper for asset shelf integration into spaces. See #ED_asset_shelf.h for a corresponding API.
+ *
+ * A space can keep multiple shelf instances in storage, only one is active at a time.
+ *
+ * Allocate with #MEM_cnew().
+ */
+typedef struct AssetShelfHook {
+  /** Owning list of previously activated asset shelves. */
+  ListBase shelves;
+  /** The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
+   */
+  AssetShelf *active_shelf; /* Non-owning. */
+} AssetShelfHook;
 
 /* #AssetShelfSettings.display_flag */
 typedef enum AssetShelfSettings_DisplayFlag {

@@ -13,13 +13,13 @@ class ASSETSHELF_PT_display(Panel):
     def draw(self, context):
         layout = self.layout
 
-        shelf_settings = context.asset_shelf_settings
+        shelf = context.asset_shelf
 
-        layout.prop(shelf_settings, "show_names", text="Names")
+        layout.prop(shelf, "show_names", text="Names")
 
     @classmethod
     def poll(cls, context):
-        return context.asset_shelf_settings is not None
+        return context.asset_shelf is not None
 
 
 classes = (

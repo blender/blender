@@ -343,9 +343,8 @@ static void view3d_free(SpaceLink *sl)
 
   BKE_viewer_path_clear(&vd->viewer_path);
 
-  if (vd->asset_shelf) {
-    ED_asset_shelf_settings_free(vd->asset_shelf);
-    MEM_SAFE_FREE(vd->asset_shelf);
+  if (vd->asset_shelf_hook) {
+    ED_asset_shelf_hook_free(&vd->asset_shelf_hook);
   }
 }
 
@@ -354,8 +353,8 @@ static void view3d_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   BLI_assert(area->spacetype == SPACE_VIEW3D);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  if (!v3d->asset_shelf) {
-    v3d->asset_shelf = MEM_cnew<AssetShelfSettings>("AssetShelfSettings");
+  if (!v3d->asset_shelf_hook) {
+    v3d->asset_shelf_hook = MEM_cnew<AssetShelfHook>("AssetShelfHook");
   }
 }
 
@@ -392,7 +391,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 
   BKE_viewer_path_copy(&v3dn->viewer_path, &v3do->viewer_path);
 
-  v3dn->asset_shelf = ED_asset_shelf_settings_duplicate(v3do->asset_shelf);
+  v3dn->asset_shelf_hook = ED_asset_shelf_hook_duplicate(v3do->asset_shelf_hook);
 
   /* copy or clear inside new stuff */
 
@@ -1918,7 +1917,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 static void view3d_asset_shelf_region_layout(const bContext *C, ARegion *region)
 {
   View3D *v3d = CTX_wm_view3d(C);
-  ED_asset_shelf_region_layout(C, region, v3d->asset_shelf);
+  ED_asset_shelf_region_layout(C, region, v3d->asset_shelf_hook);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -2050,7 +2049,7 @@ static int view3d_asset_shelf_context(const bContext *C,
                                       bContextDataResult *result)
 {
   View3D *v3d = CTX_wm_view3d(C);
-  return ED_asset_shelf_context(C, member, result, v3d->asset_shelf);
+  return ED_asset_shelf_context(C, member, result, v3d->asset_shelf_hook);
 }
 
 static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const struct IDRemapper *mappings)
@@ -2132,7 +2131,7 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 
   BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
 
-  ED_asset_shelf_settings_blend_read_data(reader, &v3d->asset_shelf);
+  ED_asset_shelf_hook_blend_read_data(reader, &v3d->asset_shelf_hook);
 }
 
 static void view3d_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
@@ -2162,7 +2161,7 @@ static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
   BKE_viewer_path_blend_write(writer, &v3d->viewer_path);
 
-  ED_asset_shelf_settings_blend_write(writer, v3d->asset_shelf);
+  ED_asset_shelf_hook_blend_write(writer, v3d->asset_shelf_hook);
 }
 
 void ED_spacetype_view3d()
@@ -2259,7 +2258,7 @@ void ED_spacetype_view3d()
   art->regionid = RGN_TYPE_ASSET_SHELF;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->listener = ED_asset_shelf_region_listen;
-  art->poll = ED_asset_shelf_poll;
+  art->poll = ED_asset_shelf_regions_poll;
   art->snap_size = ED_asset_shelf_region_snap;
   art->context = view3d_asset_shelf_context;
   art->init = view3d_asset_shelf_region_init;
@@ -2272,7 +2271,7 @@ void ED_spacetype_view3d()
   art->regionid = RGN_TYPE_ASSET_SHELF_FOOTER;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = ED_asset_shelf_footer_region_init;
-  art->poll = ED_asset_shelf_poll;
+  art->poll = ED_asset_shelf_regions_poll;
   art->draw = ED_asset_shelf_footer_region;
   art->listener = ED_asset_shelf_footer_region_listen;
   art->context = view3d_asset_shelf_context;
