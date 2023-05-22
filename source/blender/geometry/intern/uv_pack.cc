@@ -102,7 +102,7 @@ static float get_aspect_scaled_extent(const rctf &extent, const UVPackIsland_Par
 }
 
 /**
- * \return true if `b` is a preferred layout over `a`, given the packing parameters supplied.
+ * \return true iff `b` is a preferred layout over `a`, given the packing parameters supplied.
  */
 static bool is_larger(const rctf &a, const rctf &b, const UVPackIsland_Params &params)
 {
@@ -1831,8 +1831,24 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
 
   finalize_geometry(islands, params);
 
+  /* Count the number of islands which can scale and which can translate. */
+  int64_t can_scale_count = 0;
+  int64_t can_translate_count = 0;
+  for (const int64_t i : islands.index_range()) {
+    if (islands[i]->can_scale_(params)) {
+      can_scale_count++;
+    }
+    if (islands[i]->can_translate_(params)) {
+      can_translate_count++;
+    }
+  }
+
+  if (can_translate_count == 0) {
+    return 1.0f; /* Nothing to do, all islands are locked. */
+  }
+
   if (params.margin_method == ED_UVPACK_MARGIN_FRACTION && params.margin > 0.0f &&
-      params.scale_to_fit)
+      can_scale_count > 0)
   {
     /* Uses a line search on scale. ~10x slower than other method. */
     return pack_islands_margin_fraction(islands, params.margin, false, params);
@@ -1845,28 +1861,24 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
     case ED_UVPACK_MARGIN_SCALED: /* Default for Blender 3.3 and later. */
       margin = calc_margin_from_aabb_length_sum(islands, params);
       break;
-    case ED_UVPACK_MARGIN_FRACTION:      /* Added as an option in Blender 3.4. */
-      BLI_assert(params.margin == 0.0f); /* Other (slower) cases are handled above. */
+    case ED_UVPACK_MARGIN_FRACTION: /* Added as an option in Blender 3.4. */
+      /* Most other cases are handled above, unless pinning is involved. */
       break;
     default:
       BLI_assert_unreachable();
   }
 
-  /* TODO: Only line-search if *some* islands can scale and *some* are locked. */
-  switch (params.pin_method) {
-    case ED_UVPACK_PIN_LOCK_ALL:
-    case ED_UVPACK_PIN_LOCK_SCALE:
-    case ED_UVPACK_PIN_LOCK_ROTATION_SCALE:
-      return pack_islands_margin_fraction(islands, margin, true, params);
-    default:
-      break;
+  if (can_scale_count > 0 && can_scale_count != islands.size()) {
+    /* Search for the best scale parameter. (slow) */
+    return pack_islands_margin_fraction(islands, margin, true, params);
   }
 
+  /* Either all of the islands can scale, or none of them can.
+   * In either case, we pack them all tight to the origin. */
   blender::Array<uv_phi> phis(islands.size());
-
   const float scale = 1.0f;
   const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
-  const float result = params.scale_to_fit ? 1.0f / max_uv : 1.0f;
+  const float result = can_scale_count > 0 ? 1.0f / max_uv : 1.0f;
   for (const int64_t i : islands.index_range()) {
     BLI_assert(result == 1.0f || islands[i]->can_scale_(params));
     islands[i]->place_(scale, phis[i]);
