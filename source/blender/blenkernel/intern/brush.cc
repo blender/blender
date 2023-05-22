@@ -1791,6 +1791,8 @@ void BKE_brush_sculpt_reset(Brush *br)
   brush_defaults(br);
   BKE_brush_curve_preset(br, CURVE_PRESET_SMOOTH);
 
+  br->dyntopo = *DNA_struct_default_get(DynTopoSettings);
+
   /* Use the curve presets by default */
   br->curve_preset = BRUSH_CURVE_SMOOTH;
 
@@ -1974,8 +1976,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
     case SCULPT_TOOL_SIMPLIFY:
-      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE);
-      br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE | DYNTOPO_INHERIT_CLEANUP);
+      br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
       break;
     case SCULPT_TOOL_MASK:
       disable_dyntopo = true;
@@ -2067,7 +2069,6 @@ void BKE_brush_sculpt_reset(Brush *br)
   }
 
   if (disable_dyntopo) {
-    // disabled flag is never inherited
     br->dyntopo.flag |= DYNTOPO_DISABLED;
   }
 }
