@@ -2792,6 +2792,9 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
           /* Only background (non-edit) objects are used for occlusion. */
           continue;
         }
+        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
+          continue;
+        }
         drw_engines_cache_populate(ob);
       }
       DEG_OBJECT_ITER_END;
