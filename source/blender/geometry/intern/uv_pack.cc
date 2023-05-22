@@ -1777,17 +1777,25 @@ class OverlapMerger {
     sub_params.merge_overlap = false;
     const float result = pack_islands(sub_islands, sub_params);
 
-    /* Must loop backwards! */
+    /* Must loop backwards, or we will miss sub-sub-islands. */
     for (int64_t i = merge_trace.size() - 3; i >= 0; i -= 3) {
       PackIsland *sub_a = merge_trace[i];
       PackIsland *sub_b = merge_trace[i + 1];
       PackIsland *merge = merge_trace[i + 2];
+
+      /* Copy `angle`, `pre_translate` and `pre_rotate` from merged island to sub islands. */
       sub_a->angle = merge->angle;
       sub_b->angle = merge->angle;
       sub_a->pre_translate = merge->pre_translate;
       sub_b->pre_translate = merge->pre_translate;
       sub_a->pre_rotate_ = merge->pre_rotate_;
       sub_b->pre_rotate_ = merge->pre_rotate_;
+
+      /* If the merged island is pinned, the sub-islands are also pinned to correct scaling. */
+      if (merge->pinned) {
+        sub_a->pinned = true;
+        sub_b->pinned = true;
+      }
       delete merge;
     }
 
