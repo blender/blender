@@ -28,6 +28,9 @@ AssetShelfHook *ED_asset_shelf_hook_duplicate(const AssetShelfHook *hook)
     AssetShelf *new_shelf = MEM_new<AssetShelf>("duplicate asset shelf",
                                                 blender::dna::shallow_copy(*shelf));
     BLI_addtail(&new_hook->shelves, new_shelf);
+    if (hook->active_shelf == shelf) {
+      new_hook->active_shelf = new_shelf;
+    }
   }
 
   return new_hook;
