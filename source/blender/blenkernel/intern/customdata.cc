@@ -2698,7 +2698,7 @@ void CustomData_copy_layout(const struct CustomData *source,
   CustomData_merge_layout(source, dest, mask, alloctype, totelem);
 }
 
-ATTR_NO_OPT static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
+static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
 {
   if (layer->anonymous_id != nullptr) {
     layer->anonymous_id->remove_user_and_delete_if_last();

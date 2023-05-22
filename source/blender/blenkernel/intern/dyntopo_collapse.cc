@@ -24,7 +24,7 @@
 #include "atomic_ops.h"
 
 #include "BKE_customdata.h"
-#include "BKE_dyntopo.h"
+#include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -45,7 +45,7 @@ using blender::Map;
 using blender::Set;
 using blender::Vector;
 
-namespace blender::dyntopo {
+namespace blender::bke::dyntopo {
 
 typedef struct TraceData {
   PBVH *pbvh;
@@ -702,7 +702,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   if (!v_conn->e) {
     /* Delete isolated vertex. */
     if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-      blender::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
+      blender::bke::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
     }
 
     BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v_conn);
@@ -727,4 +727,4 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   return v_conn;
 }
-}  // namespace blender::dyntopo
+}  // namespace blender::bke::dyntopo

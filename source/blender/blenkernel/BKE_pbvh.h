@@ -549,60 +549,7 @@ BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
-/**
- * Only valid for type == #PBVH_BMESH.
- */
-void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range);
 
-typedef enum {
-  PBVH_Subdivide = 1 << 0,
-  PBVH_Collapse = 1 << 1,
-  PBVH_Cleanup = 1 << 2,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
-  PBVH_LocalSubdivide = 1 << 3,
-  PBVH_LocalCollapse = 1 << 4
-} PBVHTopologyUpdateMode;
-
-ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_LocalCollapse);
-
-typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
-
-bool BKE_pbvh_bmesh_update_topology(
-    struct SculptSession *ss,
-    PBVH *pbvh,
-    PBVHTopologyUpdateMode mode,
-    const float center[3],
-    const float view_normal[3],
-    float radius,
-    const bool use_frontface,
-    const bool use_projected,
-    int symaxis,
-    bool updatePBVH,
-    DyntopoMaskCB mask_cb,
-    void *mask_cb_data,
-    int custom_max_steps,  // if 0, will use defaul hueristics for max steps
-    bool disable_surface_relax,
-    bool is_snake_hook,
-    bool no_radius_test,
-    int edge_limit_multiply);
-
-bool BKE_pbvh_bmesh_update_topology_nodes(struct SculptSession *ss,
-                                          PBVH *pbvh,
-                                          bool (*searchcb)(PBVHNode *node, void *data),
-                                          void (*undopush)(PBVHNode *node, void *data),
-                                          void *searchdata,
-                                          PBVHTopologyUpdateMode mode,
-                                          const float center[3],
-                                          const float view_normal[3],
-                                          float radius,
-                                          const bool use_frontface,
-                                          const bool use_projected,
-                                          int sym_axis,
-                                          bool updatePBVH,
-                                          DyntopoMaskCB mask_cb,
-                                          void *mask_cb_data,
-                                          bool disable_surface_relax,
-                                          bool is_snake_hook,
-                                          int edge_limit_multiply);
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
@@ -684,8 +631,6 @@ struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 
 void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh, bool report);
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
-
-void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance);
 
 /* Update Bounding Box/Redraw and clear flags. */
 
@@ -1012,8 +957,6 @@ int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value);
 
-#define DYNTOPO_CD_INTERP
-
 void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
 
 void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state);
@@ -1074,8 +1017,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    const int totuv,
                                    const bool do_uvs,
                                    float sharp_angle_limit);
-
-#define DYNTOPO_DYNAMIC_TESS
 
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 
@@ -1228,33 +1169,8 @@ BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *f
 #  define PBVH_CHECK_NAN(co)
 #endif
 
-typedef struct DynTopoState DynTopoState;
-
-typedef struct DynRemeshParams {
-  float edge_size;
-  float detail_range;
-  float relax_strength;
-} DynRemeshParams;
-
 /*
-Simple wrapper api to use the dyntopo remesher in
-non-sculpt contexts.
-
-existing_pbvh can be NULL.
-
-Note that all the sculpt customdata layers will be created
-if they don't exist, so cd_vert/face_node_offset, cd_mask_offset,
-etc*/
-DynTopoState *BKE_dyntopo_init(struct BMesh *bm, PBVH *existing_pbvh);
-void BKE_dyntopo_free(DynTopoState *ds);
-void BKE_dyntopo_default_params(DynRemeshParams *params, float edge_size);
-void BKE_dyntopo_remesh(DynTopoState *ds,
-                        DynRemeshParams *params,
-                        int steps,
-                        PBVHTopologyUpdateMode mode);
-/*
-
-use pmap to build an array of edge indices surrounding vertex
+Uses pmap to build an array of edge indices surrounding vertex
 r_edges, r_edges_size, heap_alloc define an existing array to put data in.
 
 final array is similarly put in these pointers.  note that calling code

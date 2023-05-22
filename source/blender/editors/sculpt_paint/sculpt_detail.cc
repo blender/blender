@@ -15,6 +15,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.h"
+#include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_screen.h"
@@ -43,6 +44,8 @@
 #include <cstdlib>
 
 #include <string>
+
+using blender::float3;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -81,11 +84,11 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Detail Flood Fill
  * \{ */
-static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wmOperator *op)
+static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wmOperator * /*op*/)
 {
+  using namespace blender::bke::dyntopo;
+
   SculptSession *ss = ob->sculpt;
-  float size;
-  float bb_min[3], bb_max[3], center[3], dim[3];
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
@@ -93,35 +96,19 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
     return OPERATOR_CANCELLED;
   }
 
-  /* Get the bounding box, its center and size. */
-  BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
-  add_v3_v3v3(center, bb_min, bb_max);
-  mul_v3_fl(center, 0.5f);
-  sub_v3_v3v3(dim, bb_max, bb_min);
-  size = max_fff(dim[0], dim[1], dim[2]) * 1.1f;
-
   SCULPT_apply_dyntopo_settings(ss, sd, brush);
   float detail_range = ss->cached_dyntopo.detail_range;
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                mat4_to_scale(ob->object_to_world));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
+  blender::bke::dyntopo::detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
   BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
-
-  bool enable_surface_relax = true;
 
   DyntopoMaskCB mask_cb;
   void *mask_cb_data;
 
   SCULPT_dyntopo_automasking_init(ss, sd, nullptr, ob, &mask_cb, &mask_cb_data);
-
-  const int max_steps = 2;
-  const int max_dyntopo_steps_coll = 1 << 13;
-  const int max_dyntopo_steps_subd = 1 << 15;
-
-  int i = 0;
-  bool modified = true;
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
   if (ss->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
@@ -135,6 +122,7 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
   }
 
   double time = PIL_check_seconds_timer();
+  int edge_step_mul = 1 + int(ss->cached_dyntopo.quality * 100.0f);
 
   for (int i = 0; i < 1 + ss->cached_dyntopo.repeat; i++) {
     nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
@@ -143,23 +131,17 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
-    modified = BKE_pbvh_bmesh_update_topology(ss,
-                                              ss->pbvh,
-                                              mode,
-                                              center,
-                                              nullptr,
-                                              size,
-                                              false,
-                                              false,
-                                              -1,
-                                              false,
-                                              mask_cb,
-                                              mask_cb_data,
-                                              max_dyntopo_steps_coll,
-                                              !enable_surface_relax,
-                                              false,
-                                              true,
-                                              10);
+    blender::bke::dyntopo::BrushNoRadius brush_tester;
+    remesh_topology(&brush_tester,
+                    ss,
+                    ss->pbvh,
+                    mode,
+                    false,
+                    float3(0.0f, 0.0f, 1.0f),
+                    false,
+                    mask_cb,
+                    mask_cb_data,
+                    edge_step_mul);
   }
 
   time = (PIL_check_seconds_timer() - time) * 1000.0;
@@ -167,7 +149,7 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
-  BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
+  after_stroke(ss->pbvh, true);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
   return OPERATOR_FINISHED;
@@ -195,9 +177,6 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 
 struct FloodFillJob {
   wmJob *job;
-  bool *stop;
-  bool *do_update;
-  float *progress;
   Object *ob;
   Depsgraph *depsgraph;
   Scene *scene;
@@ -206,20 +185,15 @@ struct FloodFillJob {
   Brush *brush;
   Sculpt *sd;
 };
-FloodFillJob flood_fill_job;
 
-ATTR_NO_OPT static void start_fill_job(void *custom_data,
-                                       bool *stop,
-                                       bool *do_update,
-                                       float *progress)
+static FloodFillJob flood_fill_job;
+
+static void start_fill_job(void * /*custom_data*/,
+                           bool *stop,
+                           bool *do_update,
+                           float * /*progress*/)
 {
-  flood_fill_job.stop = stop;
-  flood_fill_job.do_update = do_update;
-  flood_fill_job.progress = progress;
-
-  printf("Start fill job.\n");
-
-  *progress = 0.0f;
+  printf("Start detail fill job.\n");
 
   while (true) {
     if (*stop) {
@@ -246,17 +220,7 @@ ATTR_NO_OPT static void start_fill_job(void *custom_data,
   printf("\nJob finished\n\n");
 }
 
-static void init_fill_job(void *owner)
-{
-  printf("Init fill job\n");
-}
-
-static void update_fill_job(void *owner)
-{
-  printf("Update fill job\n");
-}
-
-static void end_fill_job(void *owner)
+static void end_fill_job(void *)
 {
   SCULPT_undo_push_end(flood_fill_job.ob);
 
@@ -296,8 +260,7 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
                                      WM_JOB_PROGRESS,
                                      WM_JOB_TYPE_ANY);
 
-    WM_jobs_callbacks(
-        flood_fill_job.job, start_fill_job, init_fill_job, update_fill_job, end_fill_job);
+    WM_jobs_callbacks(flood_fill_job.job, start_fill_job, nullptr, nullptr, end_fill_job);
     WM_jobs_timer(flood_fill_job.job, 0.5, NC_OBJECT | ND_DRAW, NC_OBJECT | ND_DRAW);
     WM_jobs_customdata_set(flood_fill_job.job, &flood_fill_job, flood_fill_free);
 
@@ -312,7 +275,7 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
 }
 
-static int sculpt_sample_flood_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static int sculpt_sample_flood_fill_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   switch (event->type) {
     case EVT_ESCKEY:

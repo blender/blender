@@ -15,6 +15,7 @@
 #include "DNA_vec_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_sculpt.h"
@@ -2385,7 +2386,7 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
                                      const Brush *br,
                                      Object *ob,
-                                     DyntopoMaskCB *r_mask_cb,
+                                     blender::bke::dyntopo::DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data);
 void SCULPT_dyntopo_automasking_end(void *mask_data);
 

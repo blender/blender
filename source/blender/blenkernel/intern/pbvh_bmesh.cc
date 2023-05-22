@@ -253,7 +253,7 @@ extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH * /*pbvh*/) {}
 /** \} */
 
 /****************************** Vertex/Face APIs ******************************/
-namespace blender::dyntopo {
+namespace blender::bke::dyntopo {
 
 void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
 {
@@ -730,7 +730,7 @@ void pbvh_bmesh_face_remove(
 
   bm_logstack_pop();
 }
-}  // namespace blender::dyntopo
+}  // namespace blender::bke::dyntopo
 
 /****************************** Building ******************************/
 
@@ -2481,7 +2481,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->header.bm = bm;
 
-  BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75f, 0.4f);
+  blender::bke::dyntopo::detail_size_set(pbvh, 0.75f, 0.4f);
 
   pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
@@ -2644,24 +2644,20 @@ void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log)
   BM_log_set_idmap(log, pbvh->bm_idmap);
 }
 
-bool BKE_pbvh_bmesh_update_topology_nodes(SculptSession *ss,
-                                          PBVH *pbvh,
-                                          bool (*searchcb)(PBVHNode *node, void *data),
-                                          void (*undopush)(PBVHNode *node, void *data),
-                                          void *searchdata,
-                                          PBVHTopologyUpdateMode mode,
-                                          const float center[3],
-                                          const float view_normal[3],
-                                          float radius,
-                                          const bool use_frontface,
-                                          const bool use_projected,
-                                          int sym_axis,
-                                          bool updatePBVH,
-                                          DyntopoMaskCB mask_cb,
-                                          void *mask_cb_data,
-                                          bool disable_surface_relax,
-                                          bool is_snake_hook,
-                                          int edge_limit_multiply)
+namespace blender::bke::dyntopo {
+bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
+                           SculptSession *ss,
+                           PBVH *pbvh,
+                           bool (*searchcb)(PBVHNode *node, void *data),
+                           void (*undopush)(PBVHNode *node, void *data),
+                           void *searchdata,
+                           PBVHTopologyUpdateMode mode,
+                           const bool use_frontface,
+                           float3 view_normal,
+                           bool updatePBVH,
+                           DyntopoMaskCB mask_cb,
+                           void *mask_cb_data,
+                           int edge_limit_multiply)
 {
   bool modified = false;
   Vector<PBVHNode *> nodes;
@@ -2685,26 +2681,20 @@ bool BKE_pbvh_bmesh_update_topology_nodes(SculptSession *ss,
     BKE_pbvh_node_mark_topology_update(node);
   }
 
-  modified = BKE_pbvh_bmesh_update_topology(ss,
-                                            pbvh,
-                                            mode,
-                                            center,
-                                            view_normal,
-                                            radius,
-                                            use_frontface,
-                                            use_projected,
-                                            sym_axis,
-                                            updatePBVH,
-                                            mask_cb,
-                                            mask_cb_data,
-                                            4096,  // is_snake_hook ? 4096 : 4096,
-                                            disable_surface_relax,
-                                            is_snake_hook,
-                                            false,
-                                            1);
+  modified = remesh_topology(brush_tester,
+                             ss,
+                             pbvh,
+                             mode,
+                             use_frontface,
+                             view_normal,
+                             updatePBVH,
+                             mask_cb,
+                             mask_cb_data,
+                             edge_limit_multiply);
 
   return modified;
 }
+}  // namespace blender::bke::dyntopo
 
 static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
 {
@@ -4007,7 +3997,8 @@ static void pbvh_bmesh_join_nodes(PBVH *pbvh)
   MEM_freeN(map);
 }
 
-void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
+namespace blender::bke::dyntopo {
+void after_stroke(PBVH *pbvh, bool force_balance)
 {
   int totnode = pbvh->totnode;
 
@@ -4045,13 +4036,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh, bool force_balance)
 
   pbvh_print_mem_size(pbvh);
 }
-
-void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
-{
-  pbvh->bm_detail_range = max_ff(detail_range, 0.1f);
-  pbvh->bm_max_edge_len = detail_size;
-  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * pbvh->bm_detail_range;
-}
+}  // namespace blender::bke::dyntopo
 
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node)
 {

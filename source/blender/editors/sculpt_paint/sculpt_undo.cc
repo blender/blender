@@ -1026,7 +1026,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (data.balance_pbvh) {
-      BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
+      blender::bke::dyntopo::after_stroke(ss->pbvh, true);
     }
 
     // pbvh_bmesh_check_nodes(ss->pbvh);

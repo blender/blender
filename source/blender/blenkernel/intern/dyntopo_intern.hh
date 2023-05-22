@@ -1,11 +1,17 @@
 //#define DYNTOPO_VALIDATE_LOG
 
+#include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+
 #include "BLI_asan.h"
 #include "BLI_heap_minmax.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "bmesh.h"
 #include "pbvh_intern.hh"
+
+using blender::float3;
 
 struct GHash;
 struct BLI_Buffer;
@@ -38,7 +44,7 @@ static inline void dyntopo_add_flag(PBVH *pbvh, BMVert *v, uint8_t flag)
   *BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag) |= flag;
 }
 
-namespace blender::dyntopo {
+namespace blender::bke::dyntopo {
 
 static int elem_sizes[] = {-1,
                            (int)sizeof(BMVert),
@@ -93,8 +99,8 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
   (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_SEAM | \
    SCULPT_CORNER_UV | SCULPT_CORNER_SHARP_ANGLE)
 
-#define DYNTOPO_MAX_ITER 4096
-#define DYNTOPO_MAX_ITER_SUBD 4096
+#define DYNTOPO_MAX_ITER 256
+#define DYNTOPO_MAX_ITER_SUBD 256
 
 #define DYNTOPO_USE_HEAP
 #define DYNTOPO_USE_MINMAX_HEAP
@@ -210,6 +216,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 struct EdgeQueue;
 
 struct EdgeQueueContext {
+  blender::bke::dyntopo::BrushTester *brush_tester;
   SculptSession *ss;
   BLI_mempool *pool = nullptr;
   BMesh *bm = nullptr;
@@ -231,20 +238,15 @@ struct EdgeQueueContext {
   // TableGSet *used_verts;
   blender::Vector<BMVert *> used_verts;
 
-  float view_normal[3];
+  float3 view_normal;
   bool use_view_normal;
-  float limit_min, limit_max, limit_mid;
 
-  const float *center = nullptr;
-  float center_proj[3]; /* for when we use projected coords. */
   float radius_squared;
   float limit_len_min;
+  float limit_mid;
   float limit_len_max;
   float limit_len_min_sqr;
   float limit_len_max_sqr;
-
-  bool (*edge_queue_tri_in_range)(const struct EdgeQueueContext *q, BMVert *vs[3], float no[3]);
-  bool (*edge_queue_vert_in_range)(const struct EdgeQueueContext *q, BMVert *v);
 
   PBVHTopologyUpdateMode mode;
   bool reproject_cdata;
@@ -321,7 +323,7 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
                                const BMFace *f_example,
                                bool ensure_verts,
                                bool log_face);
-}  // namespace blender::dyntopo
+}  // namespace blender::bke::dyntopo
 
 extern "C" {
 void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face);

@@ -19,6 +19,7 @@
 #include "BLI_gsqueue.h"
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -40,6 +41,7 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_dyntopo.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -56,7 +58,6 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
-#include "BLI_math_vector.hh"
 
 #include "NOD_texture.h"
 
@@ -3871,7 +3872,7 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
                                      const Brush *br,
                                      Object *ob,
-                                     DyntopoMaskCB *r_mask_cb,
+                                     blender::bke::dyntopo::DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data)
 {
   if (!SCULPT_is_automasking_enabled(sd, ss, br)) {
@@ -3937,6 +3938,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                    UnifiedPaintSettings * /* ups */,
                                    PaintModeSettings * /*paint_mode_settings*/)
 {
+  using namespace blender::bke::dyntopo;
   SculptSession *ss = ob->sculpt;
 
   /* build brush radius scale */
@@ -3996,7 +3998,7 @@ static void sculpt_topology_update(Sculpt *sd,
     // mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
-  int edge_multiply = 1 + int(ss->cached_dyntopo.quality * 10.0f);
+  int edge_multiply = 1 + int(ss->cached_dyntopo.quality * 50.0f);
 
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;
@@ -4006,10 +4008,8 @@ static void sculpt_topology_update(Sculpt *sd,
   sdata.center = nullptr;
   sdata.brush = brush;
 
-  int symidx = SCULPT_get_symmetry_pass(ss);
-
   void *mask_cb_data;
-  DyntopoMaskCB mask_cb;
+  blender::bke::dyntopo::DyntopoMaskCB mask_cb;
 
   BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
 
@@ -4027,25 +4027,25 @@ static void sculpt_topology_update(Sculpt *sd,
     actf = BM_idmap_get_id(ss->bm_idmap, (BMElem *)ss->active_face.i);
   }
 
+  blender::bke::dyntopo::BrushSphere sphere_tester(ss->cache->location, ss->cache->radius);
+  blender::bke::dyntopo::BrushTube tube_tester(
+      ss->cache->location, ss->cache->view_normal, ss->cache->radius);
+
   /* do nodes under the brush cursor */
-  BKE_pbvh_bmesh_update_topology_nodes(ss,
-                                       ss->pbvh,
-                                       SCULPT_search_sphere_cb,
-                                       topology_undopush_cb,
-                                       &sdata,
-                                       mode,
-                                       ss->cache->location,
-                                       ss->cache->view_normal,
-                                       ss->cache->radius * radius_scale,
-                                       (brush->flag & BRUSH_FRONTFACE) != 0,
-                                       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
-                                       symidx,
-                                       true,
-                                       mask_cb,
-                                       mask_cb_data,
-                                       false,
-                                       brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK,
-                                       edge_multiply);
+  blender::bke::dyntopo::remesh_topology_nodes(
+      brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE ? &sphere_tester : &tube_tester,
+      ss,
+      ss->pbvh,
+      SCULPT_search_sphere_cb,
+      topology_undopush_cb,
+      &sdata,
+      mode,
+      (brush->flag & BRUSH_FRONTFACE) != 0,
+      ss->cache->view_normal,
+      true,
+      mask_cb,
+      mask_cb_data,
+      edge_multiply);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
@@ -6275,7 +6275,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BKE_pbvh_bmesh_after_stroke(ss->pbvh, false);
+    blender::bke::dyntopo::after_stroke(ss->pbvh, false);
   }
 
   BKE_sculpt_attributes_destroy_temporary_stroke(ob);
@@ -6431,17 +6431,18 @@ static void sculpt_stroke_update_step(bContext *C,
   if (ELEM(ss->cached_dyntopo.mode, DYNTOPO_DETAIL_CONSTANT, DYNTOPO_DETAIL_MANUAL)) {
     float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                  mat4_to_scale(ob->object_to_world));
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, 0.4f);
+    blender::bke::dyntopo::detail_size_set(ss->pbvh, object_space_constant_detail, 0.4f);
   }
   else if (ss->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
-    BKE_pbvh_bmesh_detail_size_set(
+    blender::bke::dyntopo::detail_size_set(
         ss->pbvh, ss->cache->radius * ss->cached_dyntopo.detail_percent / 100.0f, 0.4f);
   }
   else { /* Relative mode. */
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-                                   (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (ss->cached_dyntopo.detail_size * U.pixelsize) / 0.4f,
-                                   0.4f);
+    blender::bke::dyntopo::detail_size_set(ss->pbvh,
+                                           (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
+                                               (ss->cached_dyntopo.detail_size * U.pixelsize) /
+                                               0.4f,
+                                           0.4f);
   }
 
   float dyntopo_spacing = float(ss->cached_dyntopo.spacing) / 50.0f;

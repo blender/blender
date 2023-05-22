@@ -1342,7 +1342,7 @@ static void sculpt_face_set_delete_geometry_bmesh(Object *ob, BMesh *bm)
   ss->totfaces = bm->totface;
   ss->totvert = bm->totvert;
 
-  BKE_pbvh_bmesh_after_stroke(ss->pbvh, true);
+  blender::bke::dyntopo::after_stroke(ss->pbvh, true);
   BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB);
 }
 
