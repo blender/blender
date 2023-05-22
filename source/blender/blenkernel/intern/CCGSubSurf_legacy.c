@@ -334,7 +334,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
         0, numEffectedF, &data, ccgSubSurf__calcVertNormals_faces_accumulate_cb, &settings);
   }
 
-  /* XXX can I reduce the number of normalisations here? */
+  /* XXX can I reduce the number of normalization calls here? */
   for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
     CCGVert *v = (CCGVert *)effectedV[ptrIdx];
     float *no = VERT_getNo(v, lvl);

@@ -302,6 +302,7 @@ dict_custom = {
     "subdirectories",
     "subdirectory",
     "suboptimally",
+    "subrange",
     "subtractive",
     "superset",
     "symmetrize",

@@ -198,8 +198,9 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
     BKE_lib_override_library_init(dst_id, nullptr);
   }
 
-  /* If source is already overriding data, we copy it but reuse its reference for dest ID.
-   * Otherwise, source is only an override template, it then becomes reference of dest ID. */
+  /* If source is already overriding data, we copy it but reuse its reference for destination ID.
+   * Otherwise, source is only an override template, it then becomes reference of destination ID.
+   */
   dst_id->override_library->reference = src_id->override_library->reference ?
                                             src_id->override_library->reference :
                                             const_cast<ID *>(src_id);
@@ -1776,7 +1777,7 @@ static void lib_override_library_remap(Main *bmain,
  *
  * In case linked data keep being modified, these conditions may fail and the mapping may start to
  * return 'wrong' results. However, this is considered as an acceptable limitation here, since this
- * is mainly a 'best effort' to recover from situations that should not be hapenning in the first
+ * is mainly a 'best effort' to recover from situations that should not be happening in the first
  * place.
  */
 
@@ -2061,7 +2062,7 @@ static bool lib_override_library_resync(Main *bmain,
   }
 
   /* Get a mapping of all missing linked IDs that were liboverrides, to search for 'old
-   * liboverrides' for newly created ones that do not alredy have one, in next step. */
+   * liboverrides' for newly created ones that do not already have one, in next step. */
   LibOverrideMissingIDsData missing_ids_data = lib_override_library_resync_build_missing_ids_data(
       bmain);
 
@@ -2638,7 +2639,8 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
   return false;
 }
 
-/* Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
+/**
+ * Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
  * (typical case: Mesh object which only relationship to the rest of the liboverride hierarchy is
  * though its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
  * object). Sadge.
@@ -2646,7 +2648,8 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
  * Logic and rational of this function are very similar to these of
  * #lib_override_hierarchy_dependencies_recursive_tag_from, but withing specific resync context.
  *
- * \returns True if it finds a non-isolated 'parent' ID, false otherwise. */
+ * \returns True if it finds a non-isolated 'parent' ID, false otherwise.
+ */
 static bool lib_override_resync_tagging_finalize_recursive_check_from(
     Main *bmain, ID *id, const int library_indirect_level)
 {
@@ -3525,6 +3528,41 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
     lib_override_library_property_operation_clear(opop);
   }
   BLI_freelistN(&op->operations);
+}
+
+bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *override,
+                                                         const char *rna_path)
+{
+  IDOverrideLibraryProperty *override_property = BKE_lib_override_library_property_find(override,
+                                                                                        rna_path);
+  if (override_property == nullptr) {
+    return false;
+  }
+  BKE_lib_override_library_property_delete(override, override_property);
+  return true;
+}
+
+bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *override,
+                                                       const char *old_rna_path,
+                                                       const char *new_rna_path)
+{
+  /* Find the override property by its old RNA path. */
+  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
+  IDOverrideLibraryProperty *override_property = static_cast<IDOverrideLibraryProperty *>(
+      BLI_ghash_popkey(override_runtime, old_rna_path, nullptr));
+
+  if (override_property == nullptr) {
+    return false;
+  }
+
+  /* Switch over the RNA path. */
+  MEM_SAFE_FREE(override_property->rna_path);
+  override_property->rna_path = BLI_strdup(new_rna_path);
+
+  /* Put property back into the lookup mapping, using the new RNA path. */
+  BLI_ghash_insert(override_runtime, override_property->rna_path, override_property);
+
+  return true;
 }
 
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,

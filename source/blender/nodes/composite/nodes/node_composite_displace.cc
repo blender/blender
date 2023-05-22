@@ -10,8 +10,6 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "BLT_translation.h"
-
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 

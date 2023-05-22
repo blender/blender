@@ -2796,7 +2796,7 @@ static int vertex_group_copy_exec(bContext *C, wmOperator * /*op*/)
 void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy Vertex Group";
+  ot->name = "Duplicate Vertex Group";
   ot->idname = "OBJECT_OT_vertex_group_copy";
   ot->description = "Make a copy of the active vertex group";
 

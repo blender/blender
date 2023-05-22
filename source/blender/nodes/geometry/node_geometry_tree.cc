@@ -11,8 +11,6 @@
 #include "BKE_node.hh"
 #include "BKE_object.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"

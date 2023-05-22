@@ -257,6 +257,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         col.prop(screen, "use_play_clip_editors", text="Movie Clip Editor")
         col.prop(screen, "use_play_node_editors", text="Node Editors")
         col.prop(screen, "use_play_sequence_editors", text="Video Sequencer")
+        col.prop(screen, "use_play_spreadsheet_editors")
 
         col = layout.column(heading="Show")
         col.prop(scene, "show_subframe", text="Subframes")

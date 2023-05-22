@@ -43,6 +43,7 @@ struct SnapObjectContext;
 struct View3D;
 struct ViewContext;
 struct ViewLayer;
+struct ViewOpsData;
 struct bContext;
 struct bPoseChannel;
 struct bScreen;
@@ -209,6 +210,19 @@ bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
                                   const int mval[2],
                                   double depth,
                                   float r_location_world[3]);
+
+/**
+ * Utilities to perform navigation.
+ * Call `ED_view3d_navigation_init` to create a context and `ED_view3d_navigation_do` to perform
+ * navigation in modal operators.
+ *
+ * \note modal map events can also be used in `ED_view3d_navigation_do`.
+ */
+struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C);
+bool ED_view3d_navigation_do(struct bContext *C,
+                             struct ViewOpsData *vod,
+                             const struct wmEvent *event);
+void ED_view3d_navigation_free(struct bContext *C, struct ViewOpsData *vod);
 
 /* Projection */
 #define IS_CLIPPED 12000

@@ -611,7 +611,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
   bool *data_dst_to_delete = nullptr;
 
   if (!use_layers_src) {
-    /* No source at all, we can only delete all dest if requested... */
+    /* No source at all, we can only delete all destination if requested. */
     if (use_delete) {
       idx_dst = tot_dst;
       while (idx_dst--) {
@@ -1421,7 +1421,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   }
 
   /* Check all possible data types.
-   * Note item mappings and dest mix weights are cached. */
+   * Note item mappings and destination mix weights are cached. */
   for (int i = 0; i < DT_TYPE_MAX; i++) {
     const int dtdata_type = 1 << i;
     int cddata_type;

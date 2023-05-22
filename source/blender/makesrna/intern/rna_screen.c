@@ -668,6 +668,11 @@ static void rna_def_screen(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "redraws_flag", TIME_CLIPS);
   RNA_def_property_ui_text(prop, "Clip Editors", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Screen_redraw_update");
+
+  prop = RNA_def_property(srna, "use_play_spreadsheet_editors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "redraws_flag", TIME_SPREADSHEETS);
+  RNA_def_property_ui_text(prop, "Spreadsheet Editors", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Screen_redraw_update");
 }
 
 void RNA_def_screen(BlenderRNA *brna)

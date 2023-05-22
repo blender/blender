@@ -212,7 +212,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     /* Get vgroup idx from its name. */
 
     /* Proceed only if vgroup is valid, else use constant factor. */
-    /* Get actual dverts (ie vertex group data). */
+    /* Get actual deform-verts (ie vertex group data). */
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
         CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT));
     /* Proceed only if vgroup is valid, else assume factor = O. */

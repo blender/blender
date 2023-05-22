@@ -130,4 +130,23 @@ TEST(function_ref, InitializeWithNull)
   EXPECT_FALSE(f);
 }
 
+static int overload_test(const FunctionRef<void(std::string)> /*fn*/)
+{
+  return 1;
+}
+
+static int overload_test(const FunctionRef<void(int)> /*fn*/)
+{
+  return 2;
+}
+
+TEST(function_ref, OverloadSelection)
+{
+  const auto fn_1 = [](std::string /*x*/) {};
+  const auto fn_2 = [](int /*x*/) {};
+
+  EXPECT_EQ(overload_test(fn_1), 1);
+  EXPECT_EQ(overload_test(fn_2), 2);
+}
+
 }  // namespace blender::tests

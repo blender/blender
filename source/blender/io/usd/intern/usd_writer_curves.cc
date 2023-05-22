@@ -296,7 +296,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
     Array<float> temp_knots(knots_num);
     bke::curves::nurbs::calculate_knots(tot_points, mode, order, is_cyclic, temp_knots);
 
-    /* Knots should be the concatentation of all batched curves.
+    /* Knots should be the concatenation of all batched curves.
      * https://graphics.pixar.com/usd/dev/api/class_usd_geom_nurbs_curves.html#details */
     for (int i_knot = 0; i_knot < knots_num; i_knot++) {
       knots.push_back(double(temp_knots[i_knot]));

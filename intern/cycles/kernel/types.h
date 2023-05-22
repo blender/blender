@@ -163,6 +163,11 @@ enum PathTraceDimension {
   PRNG_SURFACE_AO = 4,
   PRNG_SURFACE_BEVEL = 5,
   PRNG_SURFACE_BSDF_GUIDING = 6,
+
+  /* Guiding RIS */
+  PRNG_SURFACE_RIS_GUIDING_0 = 10,
+  PRNG_SURFACE_RIS_GUIDING_1 = 11,
+
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
   PRNG_VOLUME_PHASE_CHANNEL = 4,
@@ -505,6 +510,16 @@ typedef enum GuidingDistributionType {
 
   GUIDING_NUM_TYPES,
 } GuidingDistributionType;
+
+/* Guiding Directional Sampling Type */
+
+typedef enum GuidingDirectionalSamplingType {
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS = 0,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS = 1,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_ROUGHNESS = 2,
+
+  GUIDING_DIRECTIONAL_SAMPLING_NUM_TYPES,
+} GuidingDirectionalSamplingType;
 
 /* Camera Type */
 
@@ -1172,11 +1187,16 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_HIPRT = (1 << 8),
   BVH_LAYOUT_MULTI_HIPRT = (1 << 9),
   BVH_LAYOUT_MULTI_HIPRT_EMBREE = (1 << 10),
+  BVH_LAYOUT_EMBREEGPU = (1 << 11),
+  BVH_LAYOUT_MULTI_EMBREEGPU = (1 << 12),
+  BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE = (1 << 13),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
   BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL |
-                   BVH_LAYOUT_HIPRT | BVH_LAYOUT_MULTI_HIPRT | BVH_LAYOUT_MULTI_HIPRT_EMBREE,
+                   BVH_LAYOUT_HIPRT | BVH_LAYOUT_MULTI_HIPRT | BVH_LAYOUT_MULTI_HIPRT_EMBREE |
+                   BVH_LAYOUT_EMBREEGPU | BVH_LAYOUT_MULTI_EMBREEGPU |
+                   BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE,
 } KernelBVHLayout;
 
 /* Specialized struct that can become constants in dynamic compilation. */

@@ -1934,7 +1934,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
     zero_v4(projPixel->newColor.f);
   }
   else {
-    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x);
+    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x) * 4;
     projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
     projPixel->newColor.uint_ = 0;
   }

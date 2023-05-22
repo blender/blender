@@ -122,7 +122,8 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
 
 bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
 {
-  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1. */
+  /* MNEE and Ray-trace kernels work correctly with Hardware Ray-tracing starting with Embree 4.1.
+   */
 #  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return !(requested_features & (KERNEL_FEATURE_MNEE | KERNEL_FEATURE_NODE_RAYTRACE));
 #  else
@@ -135,14 +136,14 @@ BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint requested_features) const
 {
   return (use_hardware_raytracing &&
           can_use_hardware_raytracing_for_features(requested_features)) ?
-             BVH_LAYOUT_EMBREE :
+             BVH_LAYOUT_EMBREEGPU :
              BVH_LAYOUT_BVH2;
 }
 
 #  ifdef WITH_EMBREE_GPU
 void OneapiDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
-  if (embree_device && bvh->params.bvh_layout == BVH_LAYOUT_EMBREE) {
+  if (embree_device && bvh->params.bvh_layout == BVH_LAYOUT_EMBREEGPU) {
     BVHEmbree *const bvh_embree = static_cast<BVHEmbree *>(bvh);
     if (refit) {
       bvh_embree->refit(progress);
@@ -435,7 +436,7 @@ void OneapiDevice::const_copy_to(const char *name, void *host, size_t size)
              << string_human_readable_size(size) << ")";
 
 #  ifdef WITH_EMBREE_GPU
-  if (strcmp(name, "data") == 0) {
+  if (embree_scene != nullptr && strcmp(name, "data") == 0) {
     assert(size <= sizeof(KernelData));
 
     /* Update scene handle(since it is different for each device on multi devices) */

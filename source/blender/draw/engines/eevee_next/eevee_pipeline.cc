@@ -293,7 +293,7 @@ void DeferredLayer::begin_sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buf. */
+      /* Uniform Buffer. */
       prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.velocity.bind_resources(&prepass_ps_);
@@ -338,11 +338,11 @@ void DeferredLayer::begin_sync()
       gbuffer_ps_.bind_image(RBUFS_AOV_VALUE_SLOT, &inst_.render_buffers.aov_value_tx);
       /* Cryptomatte. */
       gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-      /* Storage Buf. */
+      /* Storage Buffer. */
       gbuffer_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
       /* Textures. */
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buf. */
+      /* Uniform Buffer. */
       gbuffer_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.sampling.bind_resources(&gbuffer_ps_);
