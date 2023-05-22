@@ -99,8 +99,9 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
   (SCULPT_CORNER_MESH | SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SHARP_MARK | SCULPT_CORNER_SEAM | \
    SCULPT_CORNER_UV | SCULPT_CORNER_SHARP_ANGLE)
 
-#define DYNTOPO_MAX_ITER 256
-#define DYNTOPO_MAX_ITER_SUBD 256
+#define DYNTOPO_MAX_ITER 512
+#define DYNTOPO_MAX_ITER_COLLAPSE 512
+#define DYNTOPO_MAX_ITER_SUBD 512
 
 #define DYNTOPO_USE_HEAP
 #define DYNTOPO_USE_MINMAX_HEAP
@@ -118,10 +119,10 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 #define EVEN_EDGELEN_THRESHOLD 1.2f
 /* How much the limit increases per recursion
  * (avoids performing subdivisions too far away). */
-#define EVEN_GENERATION_SCALE 1.25f
+#define EVEN_GENERATION_SCALE 1.05f
 
 /* recursion depth to start applying front face test */
-#define DEPTH_START_LIMIT 5
+#define DEPTH_START_LIMIT 4
 
 //#define FANCY_EDGE_WEIGHTS <= too slow
 //#define SKINNY_EDGE_FIX

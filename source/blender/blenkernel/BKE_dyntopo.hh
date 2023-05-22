@@ -122,6 +122,7 @@ struct BrushNoRadius : public BrushTester {
 typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
 
 enum PBVHTopologyUpdateMode {
+  PBVH_None = 0,
   PBVH_Subdivide = 1 << 0,
   PBVH_Collapse = 1 << 1,
   PBVH_Cleanup = 1 << 2,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate

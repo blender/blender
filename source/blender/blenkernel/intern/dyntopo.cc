@@ -74,7 +74,6 @@ void bm_kill_only_loop(BMesh *bm, BMLoop *l);
 void bm_kill_only_face(BMesh *bm, BMFace *f);
 }
 
-static bool edge_queue_test(struct EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *e);
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     PBVHTopologyUpdateMode local_mode);
@@ -229,27 +228,57 @@ static float maskcb_get(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
   return 1.0f;
 }
 
-BLI_INLINE float calc_edge_length(EdgeQueueContext * /*eq_ctx*/, BMVert *v1, BMVert *v2)
-{
-  return len_squared_v3v3(v1->co, v2->co);
-}
+enum WeightMode {
+  SPLIT = -1,
+  COLLAPSE = 1,
+};
 
-BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2, float sign)
+BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
+                                      BMVert *v1,
+                                      BMVert *v2,
+                                      WeightMode mode)
 {
   float w = 1.0 - maskcb_get(eq_ctx, v1, v2);
   float len = len_squared_v3v3(v1->co, v2->co);
 
-  w = 1.0 + w * sign;
+  w = 1.0 + w * float(mode);
 
   return len * w;
 }
 
-static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
+static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
+                                              PBVH * /*pbvh*/,
+                                              BMEdge *e,
+                                              float *r_w)
+{
+  float len1 = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
+  float max = eq_ctx->limit_len_max_sqr;
+
+  if ((eq_ctx->mode & PBVH_Subdivide) && len1 > max) {
+    if (r_w) {
+      *r_w = len1;
+    }
+    return PBVH_Subdivide;
+  }
+
+  float len2 = calc_weighted_length(eq_ctx, e->v1, e->v2, COLLAPSE);
+  float min = eq_ctx->limit_len_min_sqr;
+
+  if ((eq_ctx->mode & PBVH_Collapse) && len2 < min) {
+    if (r_w) {
+      *r_w = len2;
+    }
+    return PBVH_Collapse;
+  }
+
+  return PBVH_None;
+}
+
+static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e, float w)
 {
   if (/*BLI_mm_heap_len(eq_ctx->heap_mm) < eq_ctx->max_heap_mm &&*/ !(e->head.hflag & BM_ELEM_TAG))
   {
     float lensqr = len_squared_v3v3(e->v1->co, e->v2->co);
-
     float len = sqrtf(lensqr);
 
     eq_ctx->avg_elen += len;
@@ -259,7 +288,7 @@ static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e)
 
     // lensqr += (BLI_thread_frand(0) - 0.5f) * 0.1 * eq_ctx->limit_mid;
 
-    eq_ctx->edge_heap.insert(lensqr, e);
+    eq_ctx->edge_heap.insert(w, e);
     e->head.hflag |= BM_ELEM_TAG;
   }
 }
@@ -445,7 +474,7 @@ static void long_edge_queue_edge_add_recursive(
     }
   }
 
-  edge_queue_insert_unified(eq_ctx, l_edge->e);
+  edge_queue_insert_unified(eq_ctx, l_edge->e, len_sq);
 
   if ((l_edge->radial_next != l_edge)) {
     const float len_sq_cmp = len_sq * EVEN_EDGELEN_THRESHOLD;
@@ -462,7 +491,7 @@ static void long_edge_queue_edge_add_recursive(
         }
 
         float len_sq_other = calc_weighted_length(
-            eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2, -1.0f);
+            eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2, SPLIT);
 
         bool insert_ok = len_sq_other > max_ff(len_sq_cmp, limit_len_sq);
         if (!insert_ok) {
@@ -524,8 +553,8 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
-        float len_sq_other = calc_edge_length(
-            tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
+        float len_sq_other = calc_weighted_length(
+            tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2, SPLIT);
 
         bool insert_ok = len_sq_other > max_ff(len_sq_cmp, limit_len_sq);
 #ifdef EVEN_NO_TEST_DEPTH_LIMIT
@@ -662,15 +691,15 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
                                 reproject_cdata);
         }
 
-        float len_sq = calc_edge_length(eq_ctx, l_iter->e->v1, l_iter->e->v2);
+        float w = 0.0f;
+        PBVHTopologyUpdateMode mode = edge_queue_test(eq_ctx, pbvh, l_iter->e, &w);
 
         /* Subdivide walks the mesh a bit for better transitions in the topology. */
-        if ((eq_ctx->mode & PBVH_Subdivide) && (len_sq > eq_ctx->limit_len_max_sqr)) {
+        if (mode == PBVH_Subdivide) {
           long_edge_queue_edge_add_recursive_2(
-              tdata, l_iter->radial_next, l_iter, len_sq, eq_ctx->limit_len_max, 0, true);
+              tdata, l_iter->radial_next, l_iter, w, eq_ctx->limit_len_max, 0, true);
         }
-
-        if (edge_queue_test(eq_ctx, pbvh, l_iter->e)) {
+        else if (mode == PBVH_Collapse) {
           edge_thread_data_insert(tdata, l_iter->e);
         }
       } while ((l_iter = l_iter->next) != l_first);
@@ -1085,25 +1114,6 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
   return false;
 }
 
-static bool edge_queue_test(EdgeQueueContext *eq_ctx, PBVH * /*pbvh*/, BMEdge *e)
-{
-  float len = len_squared_v3v3(e->v1->co, e->v2->co);
-  float min = eq_ctx->limit_len_min_sqr;
-  float max = eq_ctx->limit_len_max_sqr;
-
-  bool ret = false;
-
-  if (eq_ctx->mode & PBVH_Subdivide) {
-    ret |= len > max;
-  }
-
-  if (eq_ctx->mode & PBVH_Collapse) {
-    ret |= len < min;
-  }
-
-  return ret;
-}
-
 /* Create a priority queue containing vertex pairs connected by a long
  * edge as defined by PBVH.bm_max_edge_len.
  *
@@ -1231,11 +1241,10 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       e->v1->head.hflag |= BM_ELEM_TAG;
       e->v2->head.hflag |= BM_ELEM_TAG;
 
-      if (edge_queue_test(eq_ctx, pbvh, e)) {
-        edge_queue_insert_unified(eq_ctx, e);
+      float w;
+      if (edge_queue_test(eq_ctx, pbvh, e, &w)) {
+        edge_queue_insert_unified(eq_ctx, e, w);
       }
-
-      // edge_queue_insert(eq_ctx, e, w, eq_ctx->limit_len);
     }
 
     MEM_SAFE_FREE(td->edges);
@@ -1500,24 +1509,29 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     bool a = eq_ctx->mode & (PBVH_Subdivide | PBVH_LocalSubdivide);
     bool b = eq_ctx->mode & (PBVH_Collapse | PBVH_LocalCollapse);
 
-    float len = len_squared_v3v3(e->v1->co, e->v2->co);
+    float len1 = calc_weighted_length(eq_ctx, e->v1, e->v2, COLLAPSE);
+    float len2 = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
+    float w = 0.0f;
 
     if (a && b) {
-      ok = len < eq_ctx->limit_len_min_sqr || len > eq_ctx->limit_len_max_sqr;
-      ok = ok || (len < pbvh->bm_min_edge_len || len > pbvh->bm_max_edge_len);
+      ok = len1 < eq_ctx->limit_len_min_sqr || len1 > eq_ctx->limit_len_max_sqr;
+      ok = ok || (len2 < pbvh->bm_min_edge_len || len2 > pbvh->bm_max_edge_len);
+      w = (len1 + len2) * 0.5;
     }
     else if (a) {
-      ok = len > eq_ctx->limit_len_max || len > pbvh->bm_max_edge_len;
+      ok = len1 > eq_ctx->limit_len_max || len1 > pbvh->bm_max_edge_len;
+      w = len1;
     }
     else if (b) {
-      ok = len < eq_ctx->limit_len_min || len < pbvh->bm_min_edge_len;
+      ok = len2 < eq_ctx->limit_len_min || len2 < pbvh->bm_min_edge_len;
+      w = len2;
     }
 
     if (!ok) {
       continue;
     }
 
-    edge_queue_insert_unified(eq_ctx, e);
+    edge_queue_insert_unified(eq_ctx, e, w);
   }
 }
 
@@ -1590,7 +1604,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
      */
     BMEdge *e = v->e;
     do {
-      float len = calc_weighted_length(ectx, e->v1, e->v2, 1);
+      float len = calc_weighted_length(ectx, e->v1, e->v2, COLLAPSE);
       if (sqrtf(len) > ectx->limit_len_max * 1.2f) {
         bad = true;
         break;
@@ -2036,9 +2050,8 @@ bool remesh_topology(BrushTester *brush_tester,
     ops[1] = PBVH_Collapse;
     totop = 2;
 
-    steps[1] = DYNTOPO_MAX_ITER / 3.0;
-    steps[0] = DYNTOPO_MAX_ITER_SUBD;  // DYNTOPO_MAX_ITER <= steps[1] ? DYNTOPO_MAX_ITER :
-                                       // DYNTOPO_MAX_ITER - steps[1];
+    steps[1] = DYNTOPO_MAX_ITER_COLLAPSE;
+    steps[0] = DYNTOPO_MAX_ITER_SUBD;
   }
   else if (mode & PBVH_Subdivide) {
     ops[0] = PBVH_Subdivide;
@@ -2050,13 +2063,8 @@ bool remesh_topology(BrushTester *brush_tester,
     ops[0] = PBVH_Collapse;
     totop = 1;
 
-    steps[0] = DYNTOPO_MAX_ITER;
+    steps[0] = DYNTOPO_MAX_ITER_COLLAPSE;
   }
-
-  printf("%s: edge_limit_multiply: %d\n", __func__, edge_limit_multiply);
-
-  steps[0] *= edge_limit_multiply;
-  steps[1] *= edge_limit_multiply;
 
   int max_steps = (DYNTOPO_MAX_ITER * edge_limit_multiply) << (totop - 1);
   int max_subd = max_steps >> (totop - 1);
@@ -2064,7 +2072,7 @@ bool remesh_topology(BrushTester *brush_tester,
   int edges_size = steps[0];
   BMEdge **edges = (BMEdge **)MEM_malloc_arrayN(edges_size, sizeof(void *), __func__);
   int etot = 0;
-  int count = 0, count_subd = 0;  //, count_cold = 0;
+  int count = 0, count_subd = 0;
   int i = 0;
 
   int curop = 0;
@@ -2074,6 +2082,19 @@ bool remesh_topology(BrushTester *brush_tester,
   SmallHash subd_edges;
   BLI_smallhash_init(&subd_edges);
 
+  auto flush_subdivision = [&]() {
+    if (etot == 0) {
+      return;
+    }
+
+    modified = true;
+    BLI_smallhash_clear(&subd_edges, 0);
+    pbvh_split_edges(&eq_ctx, pbvh, pbvh->header.bm, edges, etot, false);
+    count_subd += etot;
+    VALIDATE_LOG(pbvh->bm_log);
+    etot = 0;
+  };
+
   while (totop > 0 && !eq_ctx.edge_heap.empty() && i < max_steps) {
     BMEdge *e = nullptr;
 
@@ -2081,12 +2102,7 @@ bool remesh_topology(BrushTester *brush_tester,
       // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
 
       if (ops[curop] == PBVH_Subdivide && count_subd < max_subd) {
-        modified = true;
-        BLI_smallhash_clear(&subd_edges, 0);
-        pbvh_split_edges(&eq_ctx, pbvh, pbvh->header.bm, edges, etot, false);
-        count_subd += etot;
-        VALIDATE_LOG(pbvh->bm_log);
-        etot = 0;
+        flush_subdivision();
       }
 
       curop = (curop + 1) % totop;
@@ -2108,7 +2124,7 @@ bool remesh_topology(BrushTester *brush_tester,
         e = eq_ctx.edge_heap.pop_max();
         while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-                calc_weighted_length(&eq_ctx, e->v1, e->v2, -1.0) < limit_len_subd))
+                calc_weighted_length(&eq_ctx, e->v1, e->v2, SPLIT) < limit_len_subd))
         {
           e = eq_ctx.edge_heap.pop_max();
         }
@@ -2148,7 +2164,7 @@ bool remesh_topology(BrushTester *brush_tester,
         e = eq_ctx.edge_heap.pop_min();
         while (!eq_ctx.edge_heap.empty() && e &&
                (bm_elem_is_free((BMElem *)e, BM_EDGE) ||
-                calc_weighted_length(&eq_ctx, e->v1, e->v2, 1.0) > limit_len_cold))
+                calc_weighted_length(&eq_ctx, e->v1, e->v2, COLLAPSE) > limit_len_cold))
         {
           e = eq_ctx.edge_heap.pop_min();
         }
@@ -2170,8 +2186,6 @@ bool remesh_topology(BrushTester *brush_tester,
         modified = true;
         pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, nullptr, nullptr, &eq_ctx);
         VALIDATE_LOG(pbvh->bm_log);
-
-        // count_cold++;
         break;
       }
       case PBVH_LocalSubdivide:
@@ -2181,41 +2195,17 @@ bool remesh_topology(BrushTester *brush_tester,
         break;
     }
 
+    if (eq_ctx.edge_heap.empty() && etot > 0) {
+      /* Flush subdivision, it may add more to queue.*/
+      flush_subdivision();
+    }
+
     count++;
     i++;
   }
 
-#if 0
-  {
-    printf("cd_faceset_offset: %d\n", pbvh->cd_faceset_offset);
-    CustomData *data = &pbvh->header.bm->pdata;
-    for (int i = 0; i < data->totlayer; i++) {
-      CustomDataLayer *layer = &data->layers[i];
-      printf("  %s \"%s\" offset=%d flag=%d\n",
-             CustomData_layertype_name(eCustomDataType(layer->type)),
-             layer->name,
-             layer->offset,
-             layer->flag);
-    }
-    printf("\n");
-  }
-#endif
-
-#if 0
-  printf("%s: subd: %d, cold: %d, ratio: %.3f\n",
-         __func__,
-         count_subd,
-         count_cold,
-         count_cold > 0 ? float(count_subd) / float(count_cold) : 0.0f);
-#endif
-
   if (etot > 0) {
-    modified = true;
-    BLI_smallhash_clear(&subd_edges, 0);
-    // BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
-    pbvh_split_edges(&eq_ctx, pbvh, pbvh->header.bm, edges, etot, false);
-    VALIDATE_LOG(pbvh->bm_log);
-    etot = 0;
+    flush_subdivision();
   }
 
   MEM_SAFE_FREE(edges);
@@ -2433,8 +2423,38 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
   bm_logstack_push();
   bm_log_message("  == split edges == ");
 
+  /* Try to improve quality by inserting new edge into queue.
+   * This is a bit tricky since we don't want to expand outside
+   * the brush radius too much, but we can't stay strictly inside
+   * either.
+   */
+
+  auto test_near_brush = [&](BMEdge *e, float *co, float *r_w = nullptr) {
+    float w = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
+    if (r_w) {
+      *r_w = w;
+    }
+
+    if (eq_ctx->brush_tester->is_sphere_or_tube) {
+      BrushSphere *sphere_test = static_cast<BrushSphere *>(eq_ctx->brush_tester);
+
+      float len = len_v3v3(co, sphere_test->center());
+      float fac = 1.0f + powf((len / sphere_test->radius()), 5.0);
+
+      if (len < sphere_test->radius() && w > eq_ctx->limit_len_max_sqr) {
+        return true;
+      }
+
+      return (w * 2.0) / fac > eq_ctx->limit_len_max_sqr;
+    }
+
+    return true;
+  };
+
   BMEdge **edges = edges1;
   Vector<BMFace *> faces;
+
+#define SUBD_ADD_TO_QUEUE
 
   const int node_updateflag = PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateNormals |
                               PBVH_UpdateOtherVerts | PBVH_UpdateCurvatureDir |
@@ -2595,7 +2615,6 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
 
-    // BMVert *newv = BM_log_edge_split_do(pbvh->bm_log, e, e->v1, &newe, 0.5f);
     BMVert *newv = BM_edge_split(pbvh->header.bm, e, e->v1, &newe, 0.5f);
     newe->head.hflag &= ~SPLIT_TAG;
 
@@ -2605,20 +2624,36 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
     edge_queue_insert_val34_vert(eq_ctx, newv);
 
-#if 0
-    const float elimit = eq_ctx->limit_len_max;
+#ifdef SUBD_ADD_TO_QUEUE
+    if (e->l) {
+      float w1 = 0.0f, w2 = 0.0f;
+      PBVHTopologyUpdateMode mode;
 
-    if (0 && e->l) {
-      e->head.hflag &= ~BM_ELEM_TAG;
-      newe->head.hflag &= ~BM_ELEM_TAG;
+      bool ok = false;
+#  if 0
+      ok = eq_ctx->brush_tester->vert_in_range(e->v1) ||
+           eq_ctx->brush_tester->vert_in_range(e->v2) ||
+           eq_ctx->brush_tester->vert_in_range(newe->v1) ||
+           eq_ctx->brush_tester->vert_in_range(newe->v2);
+#  else
+      ok = test_near_brush(e, v1->co);
+      ok |= test_near_brush(e, v2->co);
+      ok |= test_near_brush(newe, newv->co);
+#  endif
 
-      long_edge_queue_edge_add_recursive(
-          eq_ctx, e->l->radial_next, len_squared_v3v3(e->v1->co, e->v2->co), elimit, 0);
-      long_edge_queue_edge_add_recursive(eq_ctx,
-                                         newe->l->radial_next,
-                                         len_squared_v3v3(newe->v1->co, newe->v2->co),
-                                         elimit,
-                                         0);
+      if (ok) {
+        float w1 = 0.0f, w2 = 0.0f;
+
+        if ((mode = edge_queue_test(eq_ctx, pbvh, e, &w1)) != PBVH_None) {
+          e->head.hflag &= ~BM_ELEM_TAG;
+          edge_queue_insert_unified(eq_ctx, e, w1);
+        }
+
+        if ((mode = edge_queue_test(eq_ctx, pbvh, newe, &w2)) != PBVH_None) {
+          newe->head.hflag &= ~BM_ELEM_TAG;
+          edge_queue_insert_unified(eq_ctx, newe, w2);
+        }
+      }
     }
 #endif
 
@@ -2840,29 +2875,12 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 
       if (newf) {
         rl->e->head.hflag &= ~BM_ELEM_TAG;
-#if 1
-        /* Try to improve quality by inserting new edge into queue.
-         * This is a bit tricky since we don't want to expand outside
-         * the brush radius too much, but we can't stay strictly inside
-         * either.
-         */
-
+#ifdef SUBD_ADD_TO_QUEUE
         float3 co = rl->v->co;
         co = (co + rl->next->v->co) * 0.5f;
 
-        float w = calc_weighted_length(eq_ctx, rl->e->v1, rl->e->v2, -1.0f);
-        if (eq_ctx->brush_tester->is_sphere_or_tube) {
-          BrushSphere *sphere_test = static_cast<BrushSphere *>(eq_ctx->brush_tester);
-
-          float len = len_v3v3(co, sphere_test->center());
-          float fac = 1.0f + 2.0 * (len / sphere_test->radius());
-
-          if (w / fac > eq_ctx->limit_len_max) {
-
-            long_edge_queue_edge_add_recursive(eq_ctx, rl, w, eq_ctx->limit_len_max, 0);
-          }
-        }
-        else {
+        float w = 0.0f;
+        if (test_near_brush(rl->e, co, &w)) {
           long_edge_queue_edge_add_recursive(eq_ctx, rl, w, eq_ctx->limit_len_max, 0);
         }
 #endif

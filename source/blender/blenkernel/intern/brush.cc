@@ -1883,8 +1883,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->rake_factor = 1.0f;
       br->dyntopo.inherit = ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE |
                               DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_DETAIL_RANGE |
-                              DYNTOPO_INHERIT_RADIUS_SCALE | DYNTOPO_INHERIT_REPEAT);
-      br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE;
+                              DYNTOPO_INHERIT_RADIUS_SCALE | DYNTOPO_INHERIT_REPEAT |
+                              DYNTOPO_INHERIT_CLEANUP);
+      br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP;
       br->dyntopo.detail_range = 0.4f;
       br->dyntopo.spacing = 0;
       br->dyntopo.radius_scale = 1.25;
@@ -1976,7 +1977,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
     case SCULPT_TOOL_SIMPLIFY:
-      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE | DYNTOPO_INHERIT_CLEANUP);
+      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE |
+                              DYNTOPO_INHERIT_CLEANUP);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
       break;
     case SCULPT_TOOL_MASK:
