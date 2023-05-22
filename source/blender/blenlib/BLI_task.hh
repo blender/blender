@@ -38,7 +38,7 @@
 namespace blender::threading {
 
 template<typename Range, typename Function>
-void parallel_for_each(Range &&range, const Function &function)
+inline void parallel_for_each(Range &&range, const Function &function)
 {
 #ifdef WITH_TBB
   tbb::parallel_for_each(range, function);
@@ -98,10 +98,10 @@ inline IndexRange align_sub_range(const IndexRange unaligned_range,
  * larger, which means that work is distributed less evenly.
  */
 template<typename Function>
-void parallel_for_aligned(const IndexRange range,
-                          const int64_t grain_size,
-                          const int64_t alignment,
-                          const Function &function)
+inline void parallel_for_aligned(const IndexRange range,
+                                 const int64_t grain_size,
+                                 const int64_t alignment,
+                                 const Function &function)
 {
   parallel_for(range, grain_size, [&](const IndexRange unaligned_range) {
     const IndexRange aligned_range = align_sub_range(unaligned_range, alignment, range);
@@ -110,11 +110,11 @@ void parallel_for_aligned(const IndexRange range,
 }
 
 template<typename Value, typename Function, typename Reduction>
-Value parallel_reduce(IndexRange range,
-                      int64_t grain_size,
-                      const Value &identity,
-                      const Function &function,
-                      const Reduction &reduction)
+inline Value parallel_reduce(IndexRange range,
+                             int64_t grain_size,
+                             const Value &identity,
+                             const Function &function,
+                             const Reduction &reduction)
 {
 #ifdef WITH_TBB
   if (range.size() >= grain_size) {
@@ -134,12 +134,12 @@ Value parallel_reduce(IndexRange range,
 }
 
 template<typename Value, typename Function, typename Reduction>
-Value parallel_reduce_aligned(const IndexRange range,
-                              const int64_t grain_size,
-                              const int64_t alignment,
-                              const Value &identity,
-                              const Function &function,
-                              const Reduction &reduction)
+inline Value parallel_reduce_aligned(const IndexRange range,
+                                     const int64_t grain_size,
+                                     const int64_t alignment,
+                                     const Value &identity,
+                                     const Function &function,
+                                     const Reduction &reduction)
 {
   parallel_reduce(
       range,
@@ -156,7 +156,7 @@ Value parallel_reduce_aligned(const IndexRange range,
  * Execute all of the provided functions. The functions might be executed in parallel or in serial
  * or some combination of both.
  */
-template<typename... Functions> void parallel_invoke(Functions &&...functions)
+template<typename... Functions> inline void parallel_invoke(Functions &&...functions)
 {
 #ifdef WITH_TBB
   tbb::parallel_invoke(std::forward<Functions>(functions)...);
@@ -171,7 +171,7 @@ template<typename... Functions> void parallel_invoke(Functions &&...functions)
  * tasks.
  */
 template<typename... Functions>
-void parallel_invoke(const bool use_threading, Functions &&...functions)
+inline void parallel_invoke(const bool use_threading, Functions &&...functions)
 {
   if (use_threading) {
     lazy_threading::send_hint();
@@ -183,7 +183,7 @@ void parallel_invoke(const bool use_threading, Functions &&...functions)
 }
 
 /** See #BLI_task_isolate for a description of what isolating a task means. */
-template<typename Function> void isolate_task(const Function &function)
+template<typename Function> inline void isolate_task(const Function &function)
 {
 #ifdef WITH_TBB
   lazy_threading::ReceiverIsolation isolation;
