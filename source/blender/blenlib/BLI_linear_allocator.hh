@@ -211,6 +211,25 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     this->provide_buffer(aligned_buffer.ptr(), Size);
   }
 
+  /**
+   * This allocator takes ownership of the buffers owned by `other`. Therefor, when `other` is
+   * destructed, memory allocated using it is not freed.
+   *
+   * Note that the caller is responsible for making sure that buffers passed into #provide_buffer
+   * of `other` live at least as long as this allocator.
+   */
+  void transfer_ownership_from(LinearAllocator<> &other)
+  {
+    owned_buffers_.extend(other.owned_buffers_);
+#ifdef BLI_DEBUG_LINEAR_ALLOCATOR_SIZE
+    user_requested_size_ += other.user_requested_size_;
+    owned_allocation_size_ += other.owned_allocation_size_;
+#endif
+    other.owned_buffers_.clear();
+    std::destroy_at(&other);
+    new (&other) LinearAllocator<>();
+  }
+
  private:
   void allocate_new_buffer(int64_t min_allocation_size, int64_t min_alignment)
   {
