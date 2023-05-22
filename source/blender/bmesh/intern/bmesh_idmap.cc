@@ -207,7 +207,7 @@ void BM_idmap_check_ids(BMIdMap *idmap)
 
   idmap->freelist.clear();
   if (idmap->free_idx_map) {
-    MEM_delete<BMIdMap::FreeIdxMap>(idmap->free_idx_map);
+    MEM_delete(idmap->free_idx_map);
     idmap->free_idx_map = nullptr;
   }
 
@@ -362,8 +362,12 @@ void BM_idmap_destroy(BMIdMap *idmap)
   delete idmap->id2elem;
 #endif
 
+  if (idmap->free_idx_map) {
+    MEM_delete(idmap->free_idx_map);
+  }
+
   MEM_SAFE_FREE(idmap->map);
-  MEM_delete<BMIdMap>(idmap);
+  MEM_delete(idmap);
 }
 
 static void check_idx_map(BMIdMap *idmap)
@@ -371,7 +375,7 @@ static void check_idx_map(BMIdMap *idmap)
   if (idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_LOW) {
     // idmap_log_message("%s: Deleting free_idx_map\n", __func__);
 
-    MEM_delete<BMIdMap::FreeIdxMap>(idmap->free_idx_map);
+    MEM_delete(idmap->free_idx_map);
     idmap->free_idx_map = nullptr;
   }
   else if (!idmap->free_idx_map && idmap->freelist.size() < FREELIST_HASHMAP_THRESHOLD_HIGH) {
