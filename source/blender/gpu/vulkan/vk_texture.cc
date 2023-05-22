@@ -62,8 +62,6 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 
 void VKTexture::swizzle_set(const char /*swizzle_mask*/[4]) {}
 
-void VKTexture::stencil_texture_mode_set(bool /*use_stencil*/) {}
-
 void VKTexture::mip_range_set(int /*min*/, int /*max*/) {}
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
@@ -181,7 +179,10 @@ bool VKTexture::init_internal(GPUVertBuf * /*vbo*/)
   return false;
 }
 
-bool VKTexture::init_internal(GPUTexture * /*src*/, int /*mip_offset*/, int /*layer_offset*/)
+bool VKTexture::init_internal(GPUTexture * /*src*/,
+                              int /*mip_offset*/,
+                              int /*layer_offset*/,
+                              bool /*use_stencil*/)
 {
   return false;
 }

@@ -139,13 +139,13 @@ class Texture {
                  int mip_len,
                  int layer_start,
                  int layer_len,
-                 bool cube_as_array);
+                 bool cube_as_array,
+                 bool use_stencil);
 
   virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;
   virtual void clear(eGPUDataFormat format, const void *data) = 0;
   virtual void swizzle_set(const char swizzle_mask[4]) = 0;
-  virtual void stencil_texture_mode_set(bool use_stencil) = 0;
   virtual void mip_range_set(int min, int max) = 0;
   virtual void *read(int mip, eGPUDataFormat format) = 0;
 
@@ -313,7 +313,10 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
-  virtual bool init_internal(GPUTexture *src, int mip_offset, int layer_offset) = 0;
+  virtual bool init_internal(GPUTexture *src,
+                             int mip_offset,
+                             int layer_offset,
+                             bool use_stencil) = 0;
 };
 
 /* Syntactic sugar. */

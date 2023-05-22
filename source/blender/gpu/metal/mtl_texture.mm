@@ -159,14 +159,35 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
         break;
     }
 
+    /* Determine texture view format. If texture view is used as a stencil view, we instead provide
+     * the equivalent format for performing stencil reads/samples. */
+    MTLPixelFormat texture_view_pixel_format = texture_.pixelFormat;
+    if (texture_view_stencil_) {
+      switch (texture_view_pixel_format) {
+        case MTLPixelFormatDepth24Unorm_Stencil8:
+          texture_view_pixel_format = MTLPixelFormatX24_Stencil8;
+          break;
+        case MTLPixelFormatDepth32Float_Stencil8:
+          texture_view_pixel_format = MTLPixelFormatX32_Stencil8;
+          break;
+        default:
+          BLI_assert_msg(false, "Texture format does not support stencil views.");
+          break;
+      }
+    }
+
+    /* Note: Texture type for cube maps can be overriden as a 2D array. This is done
+     * via modifying this textures type flags. */
+    MTLTextureType texture_view_texture_type = to_metal_type(type_);
+
     int range_len = min_ii((mip_texture_max_level_ - mip_texture_base_level_) + 1,
                            texture_.mipmapLevelCount - mip_texture_base_level_);
     BLI_assert(range_len > 0);
     BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
     BLI_assert(mip_texture_base_layer_ < num_slices);
     mip_swizzle_view_ = [texture_
-        newTextureViewWithPixelFormat:texture_.pixelFormat
-                          textureType:texture_.textureType
+        newTextureViewWithPixelFormat:texture_view_pixel_format
+                          textureType:texture_view_texture_type
                                levels:NSMakeRange(mip_texture_base_level_, range_len)
                                slices:NSMakeRange(mip_texture_base_layer_, num_slices)
                               swizzle:mtl_swizzle_mask_];
@@ -1810,7 +1831,10 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset)
+bool gpu::MTLTexture::init_internal(GPUTexture *src,
+                                    int mip_offset,
+                                    int layer_offset,
+                                    bool use_stencil)
 {
   BLI_assert(src);
 
@@ -1840,6 +1864,13 @@ bool gpu::MTLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_o
   /* Flag texture as baked -- we do not need explicit initialization. */
   is_baked_ = true;
   is_dirty_ = false;
+
+  /* Stencil view support. */
+  texture_view_stencil_ = false;
+  if (use_stencil) {
+    BLI_assert(ELEM(format_, GPU_DEPTH24_STENCIL8, GPU_DEPTH32F_STENCIL8));
+    texture_view_stencil_ = true;
+  }
 
   /* Bake mip swizzle view. */
   bake_mip_swizzle_view();
