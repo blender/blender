@@ -854,7 +854,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure(KernelGlobals kg,
                                                          ccl_private float *eta,
                                                          ccl_private const RNGState *rng_state)
 {
-  int label;
+  int label = LABEL_NONE;
   if (kernel_data.integrator.guiding_directional_sampling_type ==
           GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS ||
       kernel_data.integrator.guiding_directional_sampling_type ==
