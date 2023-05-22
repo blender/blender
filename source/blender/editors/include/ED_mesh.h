@@ -142,8 +142,15 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_seams,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
+
+/**
+ * Return the #UvElement associated with a given #BMLoop, or NULL if no association exists.
+ *
+ * \param element_map: The #UvElementMap to look in.
+ * \param l: The loop to search for.
+ * \return The #UvElement associated with #l, or NULL if not found. (e.g. the vertex is hidden.)
+ */
 struct UvElement *BM_uv_element_get(const struct UvElementMap *element_map,
-                                    const struct BMFace *efa,
                                     const struct BMLoop *l);
 struct UvElement *BM_uv_element_get_head(struct UvElementMap *element_map,
                                          struct UvElement *child);
