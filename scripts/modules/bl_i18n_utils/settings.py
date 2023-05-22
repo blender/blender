@@ -206,7 +206,7 @@ _str_base = (
             r"(?:(?!<\\)(?:\\\\)*\\(?=(?P={_}2)))|"
             # The most common case.
             ".(?!(?P={_}2))"
-        ")+.)"  # Don't forget the last char!
+        ")*.)"  # Don't forget the last char!
     "(?P={_}2)"  # And closing quote.
 )
 str_clean_re = _str_base.format(_="g", capt="P<clean>")
@@ -257,7 +257,8 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
     # Node socket declarations: contextless names
-    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)").format(it)
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
+           r"(?![^;]*\.translation_context\()").format(it)
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: names with contexts
