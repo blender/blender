@@ -3530,6 +3530,41 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
   BLI_freelistN(&op->operations);
 }
 
+bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *override,
+                                                         const char *rna_path)
+{
+  IDOverrideLibraryProperty *override_property = BKE_lib_override_library_property_find(override,
+                                                                                        rna_path);
+  if (override_property == nullptr) {
+    return false;
+  }
+  BKE_lib_override_library_property_delete(override, override_property);
+  return true;
+}
+
+bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *override,
+                                                       const char *old_rna_path,
+                                                       const char *new_rna_path)
+{
+  /* Find the override property by its old RNA path. */
+  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
+  IDOverrideLibraryProperty *override_property = static_cast<IDOverrideLibraryProperty *>(
+      BLI_ghash_popkey(override_runtime, old_rna_path, nullptr));
+
+  if (override_property == nullptr) {
+    return false;
+  }
+
+  /* Switch over the RNA path. */
+  MEM_SAFE_FREE(override_property->rna_path);
+  override_property->rna_path = BLI_strdup(new_rna_path);
+
+  /* Put property back into the lookup mapping, using the new RNA path. */
+  BLI_ghash_insert(override_runtime, override_property->rna_path, override_property);
+
+  return true;
+}
+
 void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
                                               IDOverrideLibraryProperty *override_property)
 {
