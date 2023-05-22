@@ -254,7 +254,6 @@ typedef enum eBrushPoseDeformType {
   BRUSH_POSE_DEFORM_ROTATE_TWIST = 0,
   BRUSH_POSE_DEFORM_SCALE_TRASLATE = 1,
   BRUSH_POSE_DEFORM_SQUASH_STRETCH = 2,
-  BRUSH_POSE_DEFORM_BEND = 3,
 } eBrushPoseDeformType;
 
 typedef enum eBrushPoseOriginType {

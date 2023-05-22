@@ -2663,7 +2663,6 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_POSE_DEFORM_ROTATE_TWIST, "ROTATE_TWIST", 0, "Rotate/Twist", ""},
       {BRUSH_POSE_DEFORM_SCALE_TRASLATE, "SCALE_TRANSLATE", 0, "Scale/Translate", ""},
       {BRUSH_POSE_DEFORM_SQUASH_STRETCH, "SQUASH_STRETCH", 0, "Squash & Stretch", ""},
-      {BRUSH_POSE_DEFORM_BEND, "BEND", 0, "Bend", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
