@@ -4498,6 +4498,11 @@ static bool match_region_with_redraws(const ScrArea *area,
           return true;
         }
         break;
+      case SPACE_SPREADSHEET:
+        if ((redraws & TIME_SPREADSHEETS)) {
+          return true;
+        }
+        break;
       default:
         break;
     }
