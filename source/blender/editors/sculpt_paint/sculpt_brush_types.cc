@@ -2836,7 +2836,7 @@ static void update_curvatures_task_cb_ex(void *__restrict userdata,
   }
 
   if (brush->flag2 & BRUSH_CURVATURE_RAKE) {
-    SCULPT_curvature_begin(ss, data->nodes[n], false);
+    SCULPT_curvature_begin(ss, data->nodes[n], true);
   }
 }
 
@@ -2886,7 +2886,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     float direction2[3];
 
     if (use_curvature) {
-      SCULPT_curvature_dir_get(ss, vd.vertex, direction2, false);
+      SCULPT_curvature_dir_get(ss, vd.vertex, direction2, true);
     }
     else {
       copy_v3_v3(direction2, direction);

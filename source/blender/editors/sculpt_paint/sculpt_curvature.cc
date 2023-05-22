@@ -141,10 +141,10 @@ BLI_INLINE void normal_covariance(float mat[3][3], float no[3])
   mat[2][2] = no[2] * no[2];
 }
 
-bool SCULPT_calc_principle_curvatures(SculptSession *ss,
-                                      PBVHVertRef vertex,
-                                      SculptCurvatureData *out,
-                                      bool useAccurateSolver)
+ATTR_NO_OPT bool SCULPT_calc_principle_curvatures(SculptSession *ss,
+                                                  PBVHVertRef vertex,
+                                                  SculptCurvatureData *out,
+                                                  bool useAccurateSolver)
 {
   SculptVertexNeighborIter ni;
   float nmat[3][3], nmat2[3][3];
@@ -155,7 +155,7 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   SCULPT_vertex_normal_get(ss, vertex, no);
   normal_covariance(nmat, no);
 
-  if (useAccurateSolver) {
+#if 0
     int val = SCULPT_vertex_valence_get(ss, vertex);
     float *ws = (float *)BLI_array_alloca(ws, val);
     float *cot1 = (float *)BLI_array_alloca(cot1, val);
@@ -173,17 +173,30 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
       madd_m3_m3m3fl(nmat, nmat, nmat2, ws[ni.i]);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-  }
-  else {
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
-      sub_v3_v3(no2, no);
+#else
+  /* TODO: review the math here. We're deriving the curvature
+   * via an eigen decomposition of the weighted summed
+   * normal covariance matrices of the surrounding topology.
+   */
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+    sub_v3_v3(no2, no);
 
-      normal_covariance(nmat2, no2);
-      add_m3_m3m3(nmat, nmat, nmat2);
+    SculptVertexNeighborIter ni2;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni2) {
+      float no3[3];
+      SCULPT_vertex_normal_get(ss, ni2.vertex, no3);
+
+      normal_covariance(nmat2, no3);
+      madd_m3_m3m3fl(nmat, nmat, nmat2, 1.0f / ni2.size);
     }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
+
+    normal_covariance(nmat2, no2);
+    madd_m3_m3m3fl(nmat, nmat, nmat2, 1.0f / ni.size);
   }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+#endif
 
   if (!useAccurateSolver || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
     /* Do simple power solve in one direction. */
@@ -194,11 +207,11 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
     SCULPT_vertex_normal_get(ss, vertex, no);
     copy_v3_v3(t, no);
 
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 25; i++) {
       if (i > 0) {
         normalize_v3(t);
 
-        if (i > 1 && len_squared_v3v3(t, t2) < 0.0001) {
+        if (i > 5 && len_squared_v3v3(t, t2) < 0.000001f) {
           break;
         }
 
