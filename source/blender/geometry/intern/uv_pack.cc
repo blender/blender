@@ -1150,12 +1150,12 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
     return false; /* Nothing to do. */
   }
 
-  /* Transform phis. */
+  /* Transform phis, rotate by best_angle, then translate back to the origin. No scale. */
   for (const int64_t j : island_indices.index_range()) {
     const int64_t i = island_indices[j]->index;
     const PackIsland *island = islands[i];
-    const float island_scale = island->can_scale_(params) ? scale : 1.0f;
-    island->build_transformation(island_scale, square_finder.best_angle, matrix);
+    const float identity_scale = 1.0f; /* Don't rescale the placement, just rotate. */
+    island->build_transformation(identity_scale, square_finder.best_angle, matrix);
     r_phis[i].rotation += square_finder.best_angle;
     mul_m2_v2(matrix, r_phis[i].translation);
     r_phis[i].translation.x -= square_finder.best_bounds.xmin;
