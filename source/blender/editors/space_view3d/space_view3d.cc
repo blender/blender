@@ -2086,14 +2086,14 @@ static void view3d_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, S
 {
   View3D *v3d = (View3D *)sl;
 
-  BLO_read_id_address(reader, parent_id->lib, &v3d->camera);
-  BLO_read_id_address(reader, parent_id->lib, &v3d->ob_center);
+  BLO_read_id_address(reader, parent_id, &v3d->camera);
+  BLO_read_id_address(reader, parent_id, &v3d->ob_center);
 
   if (v3d->localvd) {
-    BLO_read_id_address(reader, parent_id->lib, &v3d->localvd->camera);
+    BLO_read_id_address(reader, parent_id, &v3d->localvd->camera);
   }
 
-  BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &v3d->viewer_path);
+  BKE_viewer_path_blend_read_lib(reader, parent_id, &v3d->viewer_path);
 }
 
 static void view3d_space_blend_write(BlendWriter *writer, SpaceLink *sl)

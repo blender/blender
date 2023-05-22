@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -11844,14 +11844,6 @@ msgid "Armature layer visibility"
 msgstr "Visibilidade de camada de armação."
 
 
-msgid "Layer Proxy Protection"
-msgstr "Proteção para camadas de aproximações"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "As camadas protegidas em instâncias das aproximações são restauradas para as definições originais presentes no arquivo durante operações de recarregamento e desfazer."
-
-
 msgid "Pose Position"
 msgstr "Posição de pose"
 
@@ -12584,10 +12576,6 @@ msgid "Use Plane Trim"
 msgstr "Usar aparamento de planos"
 
 
-msgid "Enable Plane Trim"
-msgstr "Habilitar aparamento de planos"
-
-
 msgid "Jitter Pressure"
 msgstr "Pressão da tremulação"
 
@@ -13230,18 +13218,6 @@ msgstr "Habilita a curva para se tornar um caminho de movimentação (translaç�
 
 msgid "Follow"
 msgstr "Propagar"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Propaga as inclinações da direção das normais das curvas aos objetos crianças para que estes inclinem-se ao longo do caminho."
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Opções para caminhos e deformação por curvas: Aplica o valor dos raios dos pontos de controle presentes na trajetória das curvas para a deformação dos objetos."
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Opções para deformação por curvas: Faz com que as crianças deformadas se estiquem ao longo do caminho todo."
 
 
 msgid "Surface Curve"
@@ -31562,16 +31538,8 @@ msgid "Export Keying Set..."
 msgstr "Exportar conjunto de inserção de chaves..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Exporta o conjunto de inserção de chaves para um script Python."
-
-
 msgid "Filter folders"
 msgstr "Filtra por pastas"
-
-
-msgid "Filter python"
-msgstr "Filtra por arquivos Python."
 
 
 msgid "Filter text"
@@ -32195,10 +32163,6 @@ msgstr "Filtra por arquivos de imagem"
 
 msgid "Filter movie files"
 msgstr "Filtra por arquivos de filme"
-
-
-msgid "Filter python files"
-msgstr "Filtra por arquivos Python"
 
 
 msgid "Filter sound files"
@@ -33705,10 +33669,6 @@ msgstr "Palavra anterior"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Execução no console"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Executa a linha do console atual como uma expressão Python."
 
 
 msgctxt "Operator"
@@ -46208,10 +46168,6 @@ msgid "Export Key Configuration..."
 msgstr "Exportar configuração de teclas..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Exporta as configurações de teclas para um script Python."
-
-
 msgid "All Keymaps"
 msgstr "Todos os mapas de teclas"
 
@@ -46219,10 +46175,6 @@ msgstr "Todos os mapas de teclas"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Importar configuração de teclas..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Importa as configurações de teclas a partir de um script Python."
 
 
 msgid "Keep Original"
@@ -51742,10 +51694,6 @@ msgid "Operator Enum Pie"
 msgstr "Operador de enumeração de setorização"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Nome do operador em Python, especificado como variável de texto."
-
-
 msgid "Property name (as a string)"
 msgstr "Nome da propriedade, especificado como uma variável de texto."
 
@@ -51794,10 +51742,6 @@ msgstr "Limpa as previsões de cenas."
 
 msgid "Trusted Blend Files"
 msgstr "Arquivos Blender confiáveis"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Habilita a avaliação python para os arquivos selecionados."
 
 
 msgctxt "Operator"
@@ -61060,10 +61004,6 @@ msgid "Space Console"
 msgstr "Espaço do console"
 
 
-msgid "Interactive python console"
-msgstr "Console interativo Python."
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Tamanho da fonte para usar enquanto mostra o texto."
 
@@ -62067,10 +62007,6 @@ msgstr "Pesquisa novamente a partir do início do arquivo quando atingir o final
 
 msgid "Live Edit"
 msgstr "Executar durante a edição"
-
-
-msgid "Run python while editing"
-msgstr "Execução de script Python durante a edição."
 
 
 msgid "Search string is sensitive to uppercase and lowercase letters"
@@ -66319,10 +66255,6 @@ msgstr "Volume mínimo"
 
 msgid "Extrapolate"
 msgstr "Extrapolar"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 ainda não suporta restrições Python."
 
 
 msgctxt "Operator"

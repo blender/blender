@@ -151,7 +151,7 @@ static void script_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, S
   SpaceScript *scpt = (SpaceScript *)sl;
   /*scpt->script = NULL; - 2.45 set to null, better re-run the script */
   if (scpt->script) {
-    BLO_read_id_address(reader, parent_id->lib, &scpt->script);
+    BLO_read_id_address(reader, parent_id, &scpt->script);
     if (scpt->script) {
       SCRIPT_SET_NULL(scpt->script);
     }

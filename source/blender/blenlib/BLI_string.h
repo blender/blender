@@ -192,6 +192,15 @@ bool BLI_str_replace_table_exact(char *string,
                                  int replace_table_len);
 
 /**
+ * Write `dst` into the range between `src_beg` & `src_end`,
+ * resize within `string_maxncpy` limits, ensure null terminated.
+ *
+ * \return the length of `string`.
+ */
+size_t BLI_str_replace_range(
+    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
+
+/**
  * Portable replacement for #snprintf
  */
 size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
@@ -615,7 +624,11 @@ int BLI_string_find_split_words(const char *str,
  */
 void BLI_string_debug_size_after_nil(char *str, size_t str_maxncpy);
 #else
-#  define BLI_string_debug_size(str, str_maxncpy) (void)(0 ? ((str) + (str_maxncpy)) : 0)
+#  define BLI_string_debug_size(str, str_maxncpy) \
+    if (0) { \
+      (void)str, (void)str_maxncpy; \
+    } \
+    ((void)0)
 #  define BLI_string_debug_size_after_nil(str, str_maxncpy) BLI_string_debug_size(str, str_maxncpy)
 #endif /* !WITH_STRSIZE_DEBUG */
 

@@ -12,7 +12,7 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "UI_interface.h"
 #include "UI_interface.hh"

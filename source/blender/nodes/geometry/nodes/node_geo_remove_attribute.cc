@@ -8,9 +8,9 @@ namespace blender::nodes::node_geo_remove_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"));
-  b.add_input<decl::String>(N_("Name")).is_attribute_name();
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::String>("Name").is_attribute_name();
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -85,7 +85,7 @@ void register_node_type_geo_remove_attribute()
   geo_node_type_base(
       &ntype, GEO_NODE_REMOVE_ATTRIBUTE, "Remove Named Attribute", NODE_CLASS_ATTRIBUTE);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 170, 100, 700);
+  blender::bke::node_type_size(&ntype, 170, 100, 700);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

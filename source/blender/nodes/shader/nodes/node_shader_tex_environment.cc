@@ -9,8 +9,8 @@ namespace blender::nodes::node_shader_tex_environment_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector")).hide_value();
-  b.add_output<decl::Color>(N_("Color")).no_muted_links();
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_output<decl::Color>("Color").no_muted_links();
 }
 
 static void node_shader_init_tex_environment(bNodeTree * /*ntree*/, bNode *node)
@@ -137,7 +137,7 @@ void register_node_type_sh_tex_environment()
       &ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_environment;
   ntype.labelfunc = node_image_label;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
 
   nodeRegisterType(&ntype);
 }

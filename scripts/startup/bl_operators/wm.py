@@ -1049,8 +1049,7 @@ class WM_OT_url_open(Operator):
     @staticmethod
     def _get_utm_source():
         version = bpy.app.version_string
-        formatted_version = version.replace(' ', '-').lower()
-        return f"blender-{formatted_version}"
+        return "blender-" + version.replace(" ", "-").lower()
 
     def execute(self, _context):
         import webbrowser
@@ -2799,7 +2798,7 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     iface_("Material(s)"),
                 )
-            elif data_type == "ACTION_CLIP":
+            elif data_type == 'ACTION_CLIP':
                 data = (
                     (
                         # Outliner.

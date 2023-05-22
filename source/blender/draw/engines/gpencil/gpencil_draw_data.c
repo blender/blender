@@ -46,7 +46,7 @@ static struct GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf != NULL && ibuf->rect != NULL) {
+  if (ibuf != NULL && ibuf->byte_buffer.data != NULL) {
     gpu_tex = BKE_image_get_gpu_texture(image, &iuser, ibuf);
     *r_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
   }

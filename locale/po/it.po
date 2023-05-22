@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -10423,10 +10423,6 @@ msgstr "Livelli Visibili"
 
 msgid "Armature layer visibility"
 msgstr "Visibilità livello armatura"
-
-
-msgid "Layer Proxy Protection"
-msgstr "Protezione Livello Proxy"
 
 
 msgid "Pose Position"
@@ -25694,16 +25690,8 @@ msgid "Export Keying Set..."
 msgstr "Esporta Gruppo Chiavi..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Esporta il Gruppo Chiavi come script python"
-
-
 msgid "Filter folders"
 msgstr "Filtra cartelle"
-
-
-msgid "Filter python"
-msgstr "Filtra python"
 
 
 msgid "Filter text"
@@ -26283,10 +26271,6 @@ msgstr "Filtra i file di immagini"
 
 msgid "Filter movie files"
 msgstr "Filtra i file di filmati"
-
-
-msgid "Filter python files"
-msgstr "Filtra i file python"
 
 
 msgid "Filter sound files"
@@ -27391,10 +27375,6 @@ msgstr "Parola Precedente"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Esecuzione da Console"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Esegui la linea corrente della console come un'espressione python"
 
 
 msgctxt "Operator"
@@ -37016,10 +36996,6 @@ msgid "Export Key Configuration..."
 msgstr "Esporta configurazione tasti..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Esporta la configurazione dei tasti in uno script phyton"
-
-
 msgid "All Keymaps"
 msgstr "Tutte le mappe dei tasti"
 
@@ -37027,10 +37003,6 @@ msgstr "Tutte le mappe dei tasti"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Importa configurazione tasti..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Importa la configurazione dei tasti da uno script python"
 
 
 msgid "Keep Original"
@@ -48270,10 +48242,6 @@ msgid "Space Console"
 msgstr "Spazio Console"
 
 
-msgid "Interactive python console"
-msgstr "Console python interattiva"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Dimensione del carattere da usare per mostrare il testo"
 
@@ -49060,10 +49028,6 @@ msgstr "Cerca di nuovo dall'inizio del file quando raggiungi la fine"
 
 msgid "Live Edit"
 msgstr "Modifica in Tempo Reale"
-
-
-msgid "Run python while editing"
-msgstr "Esegui python durante la modifica"
 
 
 msgid "Search string is sensitive to uppercase and lowercase letters"
@@ -52466,10 +52430,6 @@ msgstr "Volume Min"
 
 msgid "Extrapolate"
 msgstr "Estrapola"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender non supporta ancora vincoli python"
 
 
 msgid "Pivot Offset"

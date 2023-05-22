@@ -3,7 +3,7 @@
 #include "NOD_register.hh"
 #include "NOD_socket.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "ED_node.hh"
 
@@ -26,22 +26,22 @@ static void register_undefined_types()
    * they are just used as placeholders in case the actual types are not registered.
    */
 
-  NodeTreeTypeUndefined.type = NTREE_UNDEFINED;
-  strcpy(NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
-  strcpy(NodeTreeTypeUndefined.ui_name, N_("Undefined"));
-  strcpy(NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
+  blender::bke::NodeTreeTypeUndefined.type = NTREE_UNDEFINED;
+  strcpy(blender::bke::NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
+  strcpy(blender::bke::NodeTreeTypeUndefined.ui_name, N_("Undefined"));
+  strcpy(blender::bke::NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
 
-  node_type_base_custom(&NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
-  NodeTypeUndefined.poll = node_undefined_poll;
+  node_type_base_custom(&blender::bke::NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
+  blender::bke::NodeTypeUndefined.poll = node_undefined_poll;
 
-  STRNCPY(NodeSocketTypeUndefined.idname, "NodeSocketUndefined");
+  STRNCPY(blender::bke::NodeSocketTypeUndefined.idname, "NodeSocketUndefined");
   /* extra type info for standard socket types */
-  NodeSocketTypeUndefined.type = SOCK_CUSTOM;
-  NodeSocketTypeUndefined.subtype = PROP_NONE;
+  blender::bke::NodeSocketTypeUndefined.type = SOCK_CUSTOM;
+  blender::bke::NodeSocketTypeUndefined.subtype = PROP_NONE;
 
-  NodeSocketTypeUndefined.use_link_limits_of_type = true;
-  NodeSocketTypeUndefined.input_link_limit = 0xFFF;
-  NodeSocketTypeUndefined.output_link_limit = 0xFFF;
+  blender::bke::NodeSocketTypeUndefined.use_link_limits_of_type = true;
+  blender::bke::NodeSocketTypeUndefined.input_link_limit = 0xFFF;
+  blender::bke::NodeSocketTypeUndefined.output_link_limit = 0xFFF;
 }
 
 void register_nodes()

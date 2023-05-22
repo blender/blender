@@ -1227,8 +1227,11 @@ static IK_Scene *convert_tree(
       if (pchan->parent) {
         sub_v3_v3v3(start, pchan->pose_head, pchan->parent->pose_tail);
       }
-      else {
+      else if (ikparam->flag & ITASC_TRANSLATE_ROOT_BONES) {
         start[0] = start[1] = start[2] = 0.0f;
+      }
+      else {
+        copy_v3_v3(start, pchan->pose_head);
       }
       invert_m3_m3(iR_parmat, R_parmat);
       normalize_m3(iR_parmat);

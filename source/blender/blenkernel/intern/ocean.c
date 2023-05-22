@@ -1286,23 +1286,23 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
   j = j % res_y;
 
   if (och->ibufs_disp[f]) {
-    copy_v3_v3(ocr->disp, &och->ibufs_disp[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->disp, &och->ibufs_disp[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_foam[f]) {
-    ocr->foam = och->ibufs_foam[f]->rect_float[4 * (res_x * j + i)];
+    ocr->foam = och->ibufs_foam[f]->float_buffer.data[4 * (res_x * j + i)];
   }
 
   if (och->ibufs_spray[f]) {
-    copy_v3_v3(ocr->Eplus, &och->ibufs_spray[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->Eplus, &och->ibufs_spray[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_spray_inverse[f]) {
-    copy_v3_v3(ocr->Eminus, &och->ibufs_spray_inverse[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->Eminus, &och->ibufs_spray_inverse[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_norm[f]) {
-    copy_v3_v3(ocr->normal, &och->ibufs_norm[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->normal, &och->ibufs_norm[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 }
 
@@ -1435,7 +1435,7 @@ void BKE_ocean_bake(struct Ocean *o,
         BKE_ocean_eval_ij(o, &ocr, x, y);
 
         /* add to the image */
-        rgb_to_rgba_unit_alpha(&ibuf_disp->rect_float[4 * (res_x * y + x)], ocr.disp);
+        rgb_to_rgba_unit_alpha(&ibuf_disp->float_buffer.data[4 * (res_x * y + x)], ocr.disp);
 
         if (o->_do_jacobian) {
           /* TODO(@ideasman42): cleanup unused code. */
@@ -1478,18 +1478,19 @@ void BKE_ocean_bake(struct Ocean *o,
 
           // foam_result = min_ff(foam_result, 1.0f);
 
-          value_to_rgba_unit_alpha(&ibuf_foam->rect_float[4 * (res_x * y + x)], foam_result);
+          value_to_rgba_unit_alpha(&ibuf_foam->float_buffer.data[4 * (res_x * y + x)],
+                                   foam_result);
 
           /* spray map baking */
           if (o->_do_spray) {
-            rgb_to_rgba_unit_alpha(&ibuf_spray->rect_float[4 * (res_x * y + x)], ocr.Eplus);
-            rgb_to_rgba_unit_alpha(&ibuf_spray_inverse->rect_float[4 * (res_x * y + x)],
+            rgb_to_rgba_unit_alpha(&ibuf_spray->float_buffer.data[4 * (res_x * y + x)], ocr.Eplus);
+            rgb_to_rgba_unit_alpha(&ibuf_spray_inverse->float_buffer.data[4 * (res_x * y + x)],
                                    ocr.Eminus);
           }
         }
 
         if (o->_do_normals) {
-          rgb_to_rgba_unit_alpha(&ibuf_normal->rect_float[4 * (res_x * y + x)], ocr.normal);
+          rgb_to_rgba_unit_alpha(&ibuf_normal->float_buffer.data[4 * (res_x * y + x)], ocr.normal);
         }
       }
     }

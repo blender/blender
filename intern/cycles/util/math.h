@@ -567,29 +567,15 @@ ccl_device_inline float triangle_area(ccl_private const float3 &v1,
 /* Orthonormal vectors */
 
 ccl_device_inline void make_orthonormals(const float3 N,
-                                         ccl_private float3 *a,
-                                         ccl_private float3 *b)
+                                         ccl_private float3 *T,
+                                         ccl_private float3 *B)
 {
-#if 0
-  if (fabsf(N.y) >= 0.999f) {
-    *a = make_float3(1, 0, 0);
-    *b = make_float3(0, 0, 1);
-    return;
-  }
-  if (fabsf(N.z) >= 0.999f) {
-    *a = make_float3(1, 0, 0);
-    *b = make_float3(0, 1, 0);
-    return;
-  }
-#endif
-
-  if (N.x != N.y || N.x != N.z)
-    *a = make_float3(N.z - N.y, N.x - N.z, N.y - N.x);  //(1,1,1)x N
-  else
-    *a = make_float3(N.z - N.y, N.x + N.z, -N.y - N.x);  //(-1,1,1)x N
-
-  *a = normalize(*a);
-  *b = cross(N, *a);
+  /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
+  float sign = signf(N.z);
+  float a = -1.0f / (sign + N.z);
+  float b = N.x * N.y * a;
+  *T = make_float3(1.0f + sign * N.x * N.x * a, sign * b, -sign * N.x);
+  *B = make_float3(b, sign + N.y * N.y * a, -N.y);
 }
 
 /* Color division */

@@ -322,7 +322,7 @@ void BKE_collection_blend_read_expand(struct BlendExpander *expander,
 void BKE_collection_compat_blend_read_data(struct BlendDataReader *reader,
                                            struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_lib(struct BlendLibReader *reader,
-                                          struct Library *lib,
+                                          struct ID *self_id,
                                           struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
                                              struct SceneCollection *sc);

@@ -2387,7 +2387,7 @@ static void blend_lib_read_nla_strips(BlendLibReader *reader, ID *id, ListBase *
     BKE_fcurve_blend_read_lib(reader, id, &strip->fcurves);
 
     /* reassign the counted-reference to action */
-    BLO_read_id_address(reader, id->lib, &strip->act);
+    BLO_read_id_address(reader, id, &strip->act);
   }
 }
 

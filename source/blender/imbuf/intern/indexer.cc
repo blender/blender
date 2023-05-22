@@ -1392,10 +1392,9 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 
         IMB_convert_rgba_to_abgr(s_ibuf);
 
-        AVI_write_frame(context->proxy_ctx[i], pos, AVI_FORMAT_RGB32, s_ibuf->rect, x * y * 4);
-
         /* note that libavi free's the buffer... */
-        s_ibuf->rect = nullptr;
+        uint8_t *rect = IMB_steal_byte_buffer(s_ibuf);
+        AVI_write_frame(context->proxy_ctx[i], pos, AVI_FORMAT_RGB32, rect, x * y * 4);
 
         IMB_freeImBuf(s_ibuf);
       }

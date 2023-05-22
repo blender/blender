@@ -24,15 +24,15 @@ NODE_STORAGE_FUNCS(NodeColorCorrection)
 
 static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Mask"))
+  b.add_input<decl::Float>("Mask")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(1);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_colorcorrection(bNodeTree * /*ntree*/, bNode *node)
@@ -352,7 +352,7 @@ void register_node_type_cmp_colorcorrection()
   ntype.declare = file_ns::cmp_node_colorcorrection_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_colorcorrection;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorcorrection_ex;
-  node_type_size(&ntype, 400, 200, 600);
+  blender::bke::node_type_size(&ntype, 400, 200, 600);
   ntype.initfunc = file_ns::node_composit_init_colorcorrection;
   node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);

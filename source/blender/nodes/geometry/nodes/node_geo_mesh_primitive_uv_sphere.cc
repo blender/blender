@@ -17,23 +17,20 @@ namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Segments"))
+  b.add_input<decl::Int>("Segments")
       .default_value(32)
       .min(3)
       .max(1024)
-      .description(N_("Horizontal resolution of the sphere"));
-  b.add_input<decl::Int>(N_("Rings"))
-      .default_value(16)
-      .min(2)
-      .max(1024)
-      .description(N_("The number of horizontal rings"));
-  b.add_input<decl::Float>(N_("Radius"))
+      .description("Horizontal resolution of the sphere");
+  b.add_input<decl::Int>("Rings").default_value(16).min(2).max(1024).description(
+      "The number of horizontal rings");
+  b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Distance from the generated points to the origin"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
+      .description("Distance from the generated points to the origin");
+  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
 static int sphere_vert_total(const int segments, const int rings)
@@ -334,7 +331,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
       });
 
   mesh->tag_loose_verts_none();
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
   mesh->bounds_set_eager(calculate_bounds_uv_sphere(radius, segments, rings));
 
   BLI_assert(BKE_mesh_is_valid(mesh));

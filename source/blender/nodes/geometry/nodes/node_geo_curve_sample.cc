@@ -18,40 +18,39 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curves"))
-      .only_realized_data()
-      .supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curves").only_realized_data().supported_type(
+      GEO_COMPONENT_TYPE_CURVE);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
 
-  b.add_input<decl::Float>(N_("Factor"))
+  b.add_input<decl::Float>("Factor")
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR; });
-  b.add_input<decl::Float>(N_("Length"))
+  b.add_input<decl::Float>("Length")
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .field_on_all()
       .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH; });
-  b.add_input<decl::Int>(N_("Curve Index")).field_on_all().make_available([](bNode &node) {
+  b.add_input<decl::Int>("Curve Index").field_on_all().make_available([](bNode &node) {
     node_storage(node).use_all_curves = false;
   });
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Position")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Tangent")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Normal")).dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Position").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Tangent").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Normal").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -86,15 +85,15 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *length = factor->next;
   bNodeSocket *curve_index = length->next;
 
-  nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
-  nodeSetSocketAvailability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
-  nodeSetSocketAvailability(ntree, curve_index, !storage.use_all_curves);
+  bke::nodeSetSocketAvailability(ntree, factor, mode == GEO_NODE_CURVE_SAMPLE_FACTOR);
+  bke::nodeSetSocketAvailability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
+  bke::nodeSetSocketAvailability(ntree, curve_index, !storage.use_all_curves);
 
-  nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
@@ -102,11 +101,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

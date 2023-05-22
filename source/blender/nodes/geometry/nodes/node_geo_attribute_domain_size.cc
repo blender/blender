@@ -12,22 +12,22 @@ namespace blender::nodes::node_geo_attribute_domain_size_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
-  b.add_output<decl::Int>(N_("Point Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Point Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_MESH;
   });
-  b.add_output<decl::Int>(N_("Edge Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Edge Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_MESH;
   });
-  b.add_output<decl::Int>(N_("Face Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Face Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_MESH;
   });
-  b.add_output<decl::Int>(N_("Face Corner Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Face Corner Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_MESH;
   });
-  b.add_output<decl::Int>(N_("Spline Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Spline Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_CURVE;
   });
-  b.add_output<decl::Int>(N_("Instance Count")).make_available([](bNode &node) {
+  b.add_output<decl::Int>("Instance Count").make_available([](bNode &node) {
     node.custom1 = GEO_COMPONENT_TYPE_INSTANCES;
   });
 }
@@ -51,17 +51,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *spline_socket = face_corner_socket->next;
   bNodeSocket *instances_socket = spline_socket->next;
 
-  nodeSetSocketAvailability(ntree,
-                            point_socket,
-                            ELEM(node->custom1,
-                                 GEO_COMPONENT_TYPE_MESH,
-                                 GEO_COMPONENT_TYPE_CURVE,
-                                 GEO_COMPONENT_TYPE_POINT_CLOUD));
-  nodeSetSocketAvailability(ntree, edge_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, face_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, face_corner_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, spline_socket, node->custom1 == GEO_COMPONENT_TYPE_CURVE);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(ntree,
+                                 point_socket,
+                                 ELEM(node->custom1,
+                                      GEO_COMPONENT_TYPE_MESH,
+                                      GEO_COMPONENT_TYPE_CURVE,
+                                      GEO_COMPONENT_TYPE_POINT_CLOUD));
+  bke::nodeSetSocketAvailability(ntree, edge_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(ntree, face_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(
+      ntree, face_corner_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(ntree, spline_socket, node->custom1 == GEO_COMPONENT_TYPE_CURVE);
+  bke::nodeSetSocketAvailability(
       ntree, instances_socket, node->custom1 == GEO_COMPONENT_TYPE_INSTANCES);
 }
 

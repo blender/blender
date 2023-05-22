@@ -23,20 +23,20 @@ NODE_STORAGE_FUNCS(NodeMapRange)
 static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("Value")).min(-10000.0f).max(10000.0f).default_value(1.0f);
-  b.add_input<decl::Float>(N_("From Min")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("From Max")).min(-10000.0f).max(10000.0f).default_value(1.0f);
-  b.add_input<decl::Float>(N_("To Min")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("To Max")).min(-10000.0f).max(10000.0f).default_value(1.0f);
-  b.add_input<decl::Float>(N_("Steps")).min(-10000.0f).max(10000.0f).default_value(4.0f);
-  b.add_input<decl::Vector>(N_("Vector")).min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::Vector>(N_("From Min"), "From_Min_FLOAT3");
-  b.add_input<decl::Vector>(N_("From Max"), "From_Max_FLOAT3").default_value(float3(1.0f));
-  b.add_input<decl::Vector>(N_("To Min"), "To_Min_FLOAT3");
-  b.add_input<decl::Vector>(N_("To Max"), "To_Max_FLOAT3").default_value(float3(1.0f));
-  b.add_input<decl::Vector>(N_("Steps"), "Steps_FLOAT3").default_value(float3(4.0f));
-  b.add_output<decl::Float>(N_("Result"));
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_input<decl::Float>("Value").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("From Min").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("From Max").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("To Min").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("To Max").min(-10000.0f).max(10000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("Steps").min(-10000.0f).max(10000.0f).default_value(4.0f);
+  b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::Vector>("From Min", "From_Min_FLOAT3");
+  b.add_input<decl::Vector>("From Max", "From_Max_FLOAT3").default_value(float3(1.0f));
+  b.add_input<decl::Vector>("To Min", "To_Min_FLOAT3");
+  b.add_input<decl::Vector>("To Max", "To_Max_FLOAT3").default_value(float3(1.0f));
+  b.add_input<decl::Vector>("Steps", "Steps_FLOAT3").default_value(float3(4.0f));
+  b.add_output<decl::Float>("Result");
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_buts_map_range(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -88,10 +88,10 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   }
 
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
-    nodeSetSocketAvailability(ntree, socket, new_input_availability[index]);
+    bke::nodeSetSocketAvailability(ntree, socket, new_input_availability[index]);
   }
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
-    nodeSetSocketAvailability(ntree, socket, new_output_availability[index]);
+    bke::nodeSetSocketAvailability(ntree, socket, new_output_availability[index]);
   }
 }
 

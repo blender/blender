@@ -221,11 +221,12 @@ class PixelPointer {
                           NumChannels;
 
     if constexpr (std::is_same_v<StorageType, float>) {
-      pointer = image_buffer->rect_float + offset;
+      pointer = image_buffer->float_buffer.data + offset;
     }
     else if constexpr (std::is_same_v<StorageType, uchar>) {
       pointer = const_cast<uchar *>(
-          static_cast<const uchar *>(static_cast<const void *>(image_buffer->rect)) + offset);
+          static_cast<const uchar *>(static_cast<const void *>(image_buffer->byte_buffer.data)) +
+          offset);
     }
     else {
       pointer = nullptr;
@@ -401,7 +402,7 @@ class Sampler {
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
       if constexpr (std::is_same_v<UVWrapping, WrapRepeatUV>) {
-        BLI_bilinear_interpolation_wrap_fl(source->rect_float,
+        BLI_bilinear_interpolation_wrap_fl(source->float_buffer.data,
                                            r_sample.data(),
                                            source->x,
                                            source->y,
@@ -412,7 +413,7 @@ class Sampler {
       }
       else {
         const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
-        BLI_bilinear_interpolation_fl(source->rect_float,
+        BLI_bilinear_interpolation_fl(source->float_buffer.data,
                                       r_sample.data(),
                                       source->x,
                                       source->y,
@@ -448,7 +449,7 @@ class Sampler {
     }
 
     const size_t offset = (size_t(source->x) * y1 + x1) * NumChannels;
-    const float *dataF = source->rect_float + offset;
+    const float *dataF = source->float_buffer.data + offset;
     for (int i = 0; i < NumChannels; i++) {
       r_sample[i] = dataF[i];
     }
@@ -701,10 +702,10 @@ static void transform_threaded(TransformUserData *user_data, const eIMBTransform
 {
   ScanlineThreadFunc scanline_func = nullptr;
 
-  if (user_data->dst->rect_float && user_data->src->rect_float) {
+  if (user_data->dst->float_buffer.data && user_data->src->float_buffer.data) {
     scanline_func = get_scanline_function<Filter>(user_data, mode);
   }
-  else if (user_data->dst->rect && user_data->src->rect) {
+  else if (user_data->dst->byte_buffer.data && user_data->src->byte_buffer.data) {
     /* Number of channels is always 4 when using uchar buffers (sRGB + straight alpha). */
     scanline_func = get_scanline_function<Filter, uchar, 4, 4>(mode);
   }

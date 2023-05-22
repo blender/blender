@@ -15,9 +15,9 @@ namespace blender::nodes::node_geo_edge_paths_to_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>(N_("Start Vertices")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Int>(N_("Next Vertex Index")).default_value(-1).hide_value().supports_field();
-  b.add_output<decl::Bool>(N_("Selection")).field_source_reference_all();
+  b.add_input<decl::Bool>("Start Vertices").default_value(true).hide_value().supports_field();
+  b.add_input<decl::Int>("Next Vertex Index").default_value(-1).hide_value().supports_field();
+  b.add_output<decl::Bool>("Selection").field_source_reference_all();
 }
 
 static void edge_paths_to_selection(const Mesh &src_mesh,
@@ -141,7 +141,7 @@ void register_node_type_geo_edge_paths_to_selection()
   geo_node_type_base(
       &ntype, GEO_NODE_EDGE_PATHS_TO_SELECTION, "Edge Paths to Selection", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
-  node_type_size(&ntype, 150, 100, 300);
+  blender::bke::node_type_size(&ntype, 150, 100, 300);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

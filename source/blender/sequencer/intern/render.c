@@ -93,7 +93,7 @@ void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
     IMB_colormanagement_assign_rect_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
   }
 #endif
-  if (ibuf->rect_float != NULL) {
+  if (ibuf->float_buffer.data != NULL) {
     IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
   }
 }
@@ -101,13 +101,13 @@ void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
 {
   /* Early output check: if both buffers are NULL we have nothing to convert. */
-  if (ibuf->rect_float == NULL && ibuf->rect == NULL) {
+  if (ibuf->float_buffer.data == NULL && ibuf->byte_buffer.data == NULL) {
     return;
   }
   /* Get common conversion settings. */
   const char *to_colorspace = scene->sequencer_colorspace_settings.name;
   /* Perform actual conversion logic. */
-  if (ibuf->rect_float == NULL) {
+  if (ibuf->float_buffer.data == NULL) {
     /* We are not requested to give float buffer and byte buffer is already
      * in thee required colorspace. Can skip doing anything here.
      */
@@ -123,16 +123,20 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
        * However, this might also have negative effect by adding weird
        * artifacts which will then not happen in final render.
        */
-      IMB_colormanagement_transform_byte_threaded(
-          (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace);
+      IMB_colormanagement_transform_byte_threaded(ibuf->byte_buffer.data,
+                                                  ibuf->x,
+                                                  ibuf->y,
+                                                  ibuf->channels,
+                                                  from_colorspace,
+                                                  to_colorspace);
     }
     else {
       /* We perform conversion to a float buffer so we don't worry about
        * precision loss.
        */
       imb_addrectfloatImBuf(ibuf, 4);
-      IMB_colormanagement_transform_from_byte_threaded(ibuf->rect_float,
-                                                       (uchar *)ibuf->rect,
+      IMB_colormanagement_transform_from_byte_threaded(ibuf->float_buffer.data,
+                                                       ibuf->byte_buffer.data,
                                                        ibuf->x,
                                                        ibuf->y,
                                                        ibuf->channels,
@@ -151,11 +155,16 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
     /* We don't want both byte and float buffers around: they'll either run
      * out of sync or conversion of byte buffer will lose precision in there.
      */
-    if (ibuf->rect != NULL) {
+    if (ibuf->byte_buffer.data != NULL) {
       imb_freerectImBuf(ibuf);
     }
-    IMB_colormanagement_transform_threaded(
-        ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, true);
+    IMB_colormanagement_transform_threaded(ibuf->float_buffer.data,
+                                           ibuf->x,
+                                           ibuf->y,
+                                           ibuf->channels,
+                                           from_colorspace,
+                                           to_colorspace,
+                                           true);
   }
   seq_imbuf_assign_spaces(scene, ibuf);
 }
@@ -166,13 +175,18 @@ void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
 
-  if (!ibuf->rect_float) {
+  if (!ibuf->float_buffer.data) {
     return;
   }
 
   if (to_colorspace && to_colorspace[0] != '\0') {
-    IMB_colormanagement_transform_threaded(
-        ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, true);
+    IMB_colormanagement_transform_threaded(ibuf->float_buffer.data,
+                                           ibuf->x,
+                                           ibuf->y,
+                                           ibuf->channels,
+                                           from_colorspace,
+                                           to_colorspace,
+                                           true);
     IMB_colormanagement_assign_float_colorspace(ibuf, to_colorspace);
   }
 }
@@ -554,13 +568,13 @@ static void sequencer_preprocess_transform_crop(
 
 static void multibuf(ImBuf *ibuf, const float fmul)
 {
-  char *rt;
+  uchar *rt;
   float *rt_float;
 
   int a;
 
-  rt = (char *)ibuf->rect;
-  rt_float = ibuf->rect_float;
+  rt = ibuf->byte_buffer.data;
+  rt_float = ibuf->float_buffer.data;
 
   if (rt) {
     const int imul = (int)(256.0f * fmul);
@@ -614,7 +628,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   {
     const int x = context->rectx;
     const int y = context->recty;
-    preprocessed_ibuf = IMB_allocImBuf(x, y, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
+    preprocessed_ibuf = IMB_allocImBuf(x, y, 32, ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
 
     sequencer_preprocess_transform_crop(ibuf, preprocessed_ibuf, context, seq, is_proxy_image);
 
@@ -641,11 +655,11 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
   }
 
   if (seq->flag & SEQ_MAKE_FLOAT) {
-    if (!preprocessed_ibuf->rect_float) {
+    if (!preprocessed_ibuf->float_buffer.data) {
       seq_imbuf_to_sequencer_space(scene, preprocessed_ibuf, true);
     }
 
-    if (preprocessed_ibuf->rect) {
+    if (preprocessed_ibuf->byte_buffer.data) {
       imb_freerectImBuf(preprocessed_ibuf);
     }
   }
@@ -921,7 +935,7 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   }
 
   /* We don't need both (speed reasons)! */
-  if (ibuf->rect_float != NULL && ibuf->rect != NULL) {
+  if (ibuf->float_buffer.data != NULL && ibuf->byte_buffer.data != NULL) {
     imb_freerectImBuf(ibuf);
   }
 
@@ -1108,7 +1122,7 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
   seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
 
   /* We don't need both (speed reasons)! */
-  if (ibuf->rect_float != NULL && ibuf->rect != NULL) {
+  if (ibuf->float_buffer.data != NULL && ibuf->byte_buffer.data != NULL) {
     imb_freerectImBuf(ibuf);
   }
 
@@ -1317,7 +1331,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rectfloat);
 
     fp_src = maskbuf;
-    fp_dst = ibuf->rect_float;
+    fp_dst = ibuf->float_buffer.data;
     i = context->rectx * context->recty;
     while (--i) {
       fp_dst[0] = fp_dst[1] = fp_dst[2] = *fp_src;
@@ -1335,7 +1349,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
 
     fp_src = maskbuf;
-    ub_dst = (uchar *)ibuf->rect;
+    ub_dst = ibuf->byte_buffer.data;
     i = context->rectx * context->recty;
     while (--i) {
       ub_dst[0] = ub_dst[1] = ub_dst[2] = (uchar)(*fp_src * 255.0f); /* already clamped */
@@ -1563,14 +1577,15 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
       if (rres.rectf) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
-        memcpy(ibufs_arr[view_id]->rect_float,
+        memcpy(ibufs_arr[view_id]->float_buffer.data,
                rres.rectf,
                sizeof(float[4]) * rres.rectx * rres.recty);
 
         if (rres.rectz) {
           addzbuffloatImBuf(ibufs_arr[view_id]);
-          memcpy(
-              ibufs_arr[view_id]->zbuf_float, rres.rectz, sizeof(float) * rres.rectx * rres.recty);
+          memcpy(ibufs_arr[view_id]->float_z_buffer.data,
+                 rres.rectz,
+                 sizeof(float) * rres.rectx * rres.recty);
         }
 
         /* float buffers in the sequencer are not linear */
@@ -1578,7 +1593,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       }
       else if (rres.rect32) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
-        memcpy(ibufs_arr[view_id]->rect, rres.rect32, 4 * rres.rectx * rres.recty);
+        memcpy(ibufs_arr[view_id]->byte_buffer.data, rres.rect32, 4 * rres.rectx * rres.recty);
       }
 
       if (view_id != context->view_id) {
@@ -1730,7 +1745,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
         IMB_freeImBuf(ibuf);
         ibuf = i;
 
-        if (ibuf->rect_float) {
+        if (ibuf->float_buffer.data) {
           seq_imbuf_to_sequencer_space(context->scene, ibuf, false);
         }
       }
@@ -2093,7 +2108,8 @@ static ImBuf *seq_get_uncached_thumbnail(const SeqRenderData *context,
   }
 
   /* Scale ibuf to thumbnail size. */
-  ImBuf *scaled_ibuf = IMB_allocImBuf(rectx, recty, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
+  ImBuf *scaled_ibuf = IMB_allocImBuf(
+      rectx, recty, 32, ibuf->float_buffer.data ? IB_rectfloat : IB_rect);
   sequencer_thumbnail_transform(ibuf, scaled_ibuf);
   seq_imbuf_assign_spaces(context->scene, scaled_ibuf);
   IMB_freeImBuf(ibuf);

@@ -102,7 +102,7 @@ static float get_aspect_scaled_extent(const rctf &extent, const UVPackIsland_Par
 }
 
 /**
- * \return true iff `b` is a preferred layout over `a`, given the packing parameters supplied.
+ * \return true if `b` is a preferred layout over `a`, given the packing parameters supplied.
  */
 static bool is_larger(const rctf &a, const rctf &b, const UVPackIsland_Params &params)
 {
@@ -364,22 +364,23 @@ class UVAABBIsland {
  * Technically, the algorithm here is only `O(n)`, In practice, to get reasonable results,
  * the input must be pre-sorted, which costs an additional `O(nlogn)` time complexity.
  */
-static void pack_islands_alpaca_turbo(const int64_t start_index,
+static void pack_islands_alpaca_turbo(const int64_t exclude_index,
+                                      const rctf &exclude,
                                       const Span<UVAABBIsland *> islands,
                                       const float target_aspect_y,
                                       MutableSpan<uv_phi> r_phis,
                                       rctf *r_extent)
 {
   /* Exclude an initial AABB near the origin. */
-  float next_u1 = r_extent->xmax;
-  float next_v1 = r_extent->ymax;
+  float next_u1 = exclude.xmax;
+  float next_v1 = exclude.ymax;
   bool zigzag = next_u1 < next_v1 * target_aspect_y; /* Horizontal or Vertical strip? */
 
   float u0 = zigzag ? next_u1 : 0.0f;
   float v0 = zigzag ? 0.0f : next_v1;
 
-  /* Visit every island in order. */
-  for (int64_t index = start_index; index < islands.size(); index++) {
+  /* Visit every island in order, except the excluded islands at the start. */
+  for (int64_t index = exclude_index; index < islands.size(); index++) {
     UVAABBIsland *island = islands[index];
     const float dsm_u = island->uv_diagonal.x;
     const float dsm_v = island->uv_diagonal.y;
@@ -474,15 +475,16 @@ static void update_hole_rotate(float2 &hole,
  * Also adds the concept of a "Hole", which is unused space that can be filled.
  * Tracking the "Hole" has a slight performance cost, while improving packing efficiency.
  */
-static void pack_islands_alpaca_rotate(const int64_t start_index,
+static void pack_islands_alpaca_rotate(const int64_t exclude_index,
+                                       const rctf &exclude,
                                        const Span<UVAABBIsland *> islands,
                                        const float target_aspect_y,
                                        MutableSpan<uv_phi> r_phis,
                                        rctf *r_extent)
 {
   /* Exclude an initial AABB near the origin. */
-  float next_u1 = r_extent->xmax;
-  float next_v1 = r_extent->ymax;
+  float next_u1 = exclude.xmax;
+  float next_v1 = exclude.ymax;
   bool zigzag = next_u1 / target_aspect_y < next_v1; /* Horizontal or Vertical strip? */
 
   /* Track an AABB "hole" which may be filled at any time. */
@@ -493,8 +495,8 @@ static void pack_islands_alpaca_rotate(const int64_t start_index,
   float u0 = zigzag ? next_u1 : 0.0f;
   float v0 = zigzag ? 0.0f : next_v1;
 
-  /* Visit every island in order. */
-  for (int64_t index = start_index; index < islands.size(); index++) {
+  /* Visit every island in order, except the excluded islands at the start. */
+  for (int64_t index = exclude_index; index < islands.size(); index++) {
     UVAABBIsland *island = islands[index];
     uv_phi &phi = r_phis[island->index];
     const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
@@ -579,7 +581,8 @@ static void pack_islands_alpaca_rotate(const int64_t start_index,
 /**
  * Use a fast algorithm to pack the supplied `aabbs`.
  */
-static void pack_islands_fast(const int64_t start_index,
+static void pack_islands_fast(const int64_t exclude_index,
+                              const rctf &exclude,
                               const Span<UVAABBIsland *> aabbs,
                               const bool rotate,
                               const float target_aspect_y,
@@ -587,10 +590,10 @@ static void pack_islands_fast(const int64_t start_index,
                               rctf *r_extent)
 {
   if (rotate) {
-    pack_islands_alpaca_rotate(start_index, aabbs, target_aspect_y, r_phis, r_extent);
+    pack_islands_alpaca_rotate(exclude_index, exclude, aabbs, target_aspect_y, r_phis, r_extent);
   }
   else {
-    pack_islands_alpaca_turbo(start_index, aabbs, target_aspect_y, r_phis, r_extent);
+    pack_islands_alpaca_turbo(exclude_index, exclude, aabbs, target_aspect_y, r_phis, r_extent);
   }
 }
 
@@ -1078,8 +1081,8 @@ class UVMinimumEnclosingSquareFinder {
 
 /**
  * Find the minimum bounding square that encloses the UVs as specified in `r_phis`.
- * If that square is smaller than `r_max_u` and `r_max_v`, then update `r_phis` accordingly.
- * \return True if `r_phis`, `r_max_u` and `r_max_v` are modified.
+ * If that square is smaller than `r_extent`, then update `r_phis` accordingly.
+ * \return True if `r_phis` and `r_extent` are modified.
  */
 static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
                                  const Span<PackIsland *> islands,
@@ -1131,13 +1134,15 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
     }
   }
 
+  /* Now we have all the points in the correct space, compute the 2D convex hull. */
   const float(*source)[2] = reinterpret_cast<const float(*)[2]>(square_finder.points.data());
 
-  square_finder.indices.resize(square_finder.points.size());
+  square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case.*/
   int convex_size = BLI_convexhull_2d(
       source, int(square_finder.points.size()), square_finder.indices.data());
-  square_finder.indices.resize(convex_size);
+  square_finder.indices.resize(convex_size); /* Resize to actual size.*/
 
+  /* Run the computation to find the best angle. (Slow!) */
   const float quad_180 = square_finder.update(DEG2RADF(-180.0f));
   square_finder.update_recursive(DEG2RADF(-180.0f), quad_180, DEG2RADF(180.0f), quad_180);
 
@@ -1156,6 +1161,10 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
     r_phis[i].translation.x -= square_finder.best_bounds.xmin;
     r_phis[i].translation.y -= square_finder.best_bounds.ymin;
   }
+
+  /* Write back new extent, translated to the origin. */
+  r_extent->xmin = 0.0f;
+  r_extent->ymin = 0.0f;
   r_extent->xmax = BLI_rctf_size_x(&square_finder.best_bounds);
   r_extent->ymax = BLI_rctf_size_y(&square_finder.best_bounds);
   return true; /* `r_phis` and `r_extent` were modified. */
@@ -1380,7 +1389,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
    */
 
   const bool all_can_rotate = can_rotate(islands, params);
-  bool all_can_translate = true;
 
   /* First, copy information from our input into the AABB structure. */
   Array<UVAABBIsland *> aabbs(islands.size());
@@ -1389,7 +1397,6 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     float island_scale = scale;
     if (!pack_island->can_scale_(params)) {
       island_scale = 1.0f;
-      all_can_translate = false;
     }
     UVAABBIsland *aabb = new UVAABBIsland();
     aabb->index = i;
@@ -1449,6 +1456,26 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                      });
   }
 
+  /* If some of the islands are locked, we build a summary about them here. */
+  rctf locked_bounds;              /* AABB of islands which can't translate. */
+  int64_t locked_island_count = 0; /* Index of first non-locked island. */
+  for (int64_t i = 0; i < islands.size(); i++) {
+    PackIsland *pack_island = islands[i];
+    if (pack_island->can_translate_(params)) {
+      break;
+    }
+    if (i == 0) {
+      float2 bottom_left = pack_island->pivot_ - pack_island->half_diagonal_;
+      locked_bounds.xmin = bottom_left.x;
+      locked_bounds.xmax = bottom_left.x;
+      locked_bounds.ymin = bottom_left.y;
+      locked_bounds.ymax = bottom_left.y;
+    }
+    float2 top_right = pack_island->pivot_ + pack_island->half_diagonal_;
+    BLI_rctf_do_minmax_v(&locked_bounds, top_right);
+    locked_island_count = i + 1;
+  }
+
   /* Partition `islands`, largest islands will go to a slow packer, the rest the fast packer.
    * See discussion above for details. */
   int64_t alpaca_cutoff = 1024; /* Regular situation, pack `32 * 32` islands with slow packer. */
@@ -1462,16 +1489,22 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       std::min(alpaca_cutoff, islands.size()));
   rctf extent = {0.0f, 1e30f, 0.0f, 1e30f};
 
-  if (all_can_translate) {
-    pack_islands_fast(0, slow_aabbs, all_can_rotate, params.target_aspect_y, r_phis, &extent);
-  }
+  /* Call the "fast" packer, which can sometimes give optimal results. */
+  pack_islands_fast(locked_island_count,
+                    locked_bounds,
+                    slow_aabbs,
+                    all_can_rotate,
+                    params.target_aspect_y,
+                    r_phis,
+                    &extent);
 
-  if (all_can_translate) {
+  /* Call the "optimal" packer. */
+  if (locked_island_count == 0) {
     pack_islands_optimal_pack(slow_aabbs, params, r_phis, &extent);
   }
 
   /* Call box_pack_2d (slow for large N.) */
-  if (all_can_translate) {
+  if (locked_island_count == 0) { /* box_pack_2d doesn't yet support locked islands. */
     pack_island_box_pack_2d(slow_aabbs, params, r_phis, &extent);
   }
 
@@ -1485,14 +1518,21 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   /* At this stage, `extent` contains the optimal/box_pack/xatlas UVs. */
 
   if (all_can_rotate) {
+    /* Attempt to improve the layout even further by finding the minimal-bounding-square. */
     rotate_inside_square(slow_aabbs, islands, params, scale, margin, r_phis, &extent);
   }
 
-  /* Call fast packer for remaining islands. */
-  pack_islands_fast(
-      slow_aabbs.size(), aabbs, all_can_rotate, params.target_aspect_y, r_phis, &extent);
+  /* Call fast packer for remaining islands, excluding everything already placed. */
+  rctf final_extent = {0.0f, 1e30f, 0.0f, 1e30f};
+  pack_islands_fast(slow_aabbs.size(),
+                    extent,
+                    aabbs,
+                    all_can_rotate,
+                    params.target_aspect_y,
+                    r_phis,
+                    &final_extent);
 
-  return get_aspect_scaled_extent(extent, params);
+  return get_aspect_scaled_extent(final_extent, params);
 }
 
 /** Find the optimal scale to pack islands into the unit square.
@@ -1500,6 +1540,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
  */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
                                           const float margin_fraction,
+                                          const bool rescale_margin,
                                           const UVPackIsland_Params &params)
 {
 
@@ -1576,8 +1617,8 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
 
     /* Evaluate our `f`. */
     blender::Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
-    const float max_uv = pack_islands_scale_margin(
-        islands, scale, margin_fraction, params, *phis_target);
+    const float margin = rescale_margin ? margin_fraction * scale : margin_fraction;
+    const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, *phis_target);
     const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
@@ -1786,7 +1827,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
       params.scale_to_fit)
   {
     /* Uses a line search on scale. ~10x slower than other method. */
-    return pack_islands_margin_fraction(islands, params.margin, params);
+    return pack_islands_margin_fraction(islands, params.margin, false, params);
   }
 
   float margin = params.margin;
@@ -1808,7 +1849,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
     case ED_UVPACK_PIN_LOCK_ALL:
     case ED_UVPACK_PIN_LOCK_SCALE:
     case ED_UVPACK_PIN_LOCK_ROTATION_SCALE:
-      return pack_islands_margin_fraction(islands, margin, params);
+      return pack_islands_margin_fraction(islands, margin, true, params);
     default:
       break;
   }

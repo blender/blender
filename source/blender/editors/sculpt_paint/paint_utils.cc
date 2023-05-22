@@ -244,8 +244,8 @@ static void imapaint_tri_weights(float matrix[4][4],
   h[1] = (co[1] - view[1]) * 2.0f / view[3] - 1.0f;
   h[2] = 1.0f;
 
-  /* solve for (w1,w2,w3)/perspdiv in:
-   * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
+  /* Solve for `(w1,w2,w3)/perspdiv` in:
+   * `h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3)`. */
 
   wmat[0][0] = pv1[0];
   wmat[1][0] = pv2[0];
@@ -262,7 +262,7 @@ static void imapaint_tri_weights(float matrix[4][4],
 
   copy_v3_v3(w, h);
 
-  /* w is still divided by perspdiv, make it sum to one */
+  /* w is still divided by `perspdiv`, make it sum to one */
   divw = w[0] + w[1] + w[2];
   if (divw != 0.0f) {
     mul_v3_fl(w, 1.0f / divw);
@@ -367,7 +367,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   ED_view3d_select_id_validate(vc);
   *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
-  if ((*r_index) == 0 || (*r_index) > (uint)totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(totpoly)) {
     return 0;
   }
 
@@ -481,11 +481,11 @@ void paint_sample_color(
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
-            if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+            if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
               u = u * ibuf->x;
               v = v * ibuf->y;
 
-              if (ibuf->rect_float) {
+              if (ibuf->float_buffer.data) {
                 float rgba_f[4];
                 if (interp == SHD_INTERP_CLOSEST) {
                   nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);

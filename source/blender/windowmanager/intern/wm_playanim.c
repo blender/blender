@@ -411,8 +411,8 @@ static void *ocio_transform_ibuf(PlayState *ps,
     *r_glsl_used = false;
     display_buffer = NULL;
   }
-  else if (ibuf->rect_float) {
-    display_buffer = ibuf->rect_float;
+  else if (ibuf->float_buffer.data) {
+    display_buffer = ibuf->float_buffer.data;
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
@@ -436,8 +436,8 @@ static void *ocio_transform_ibuf(PlayState *ps,
           &ps->view_settings, &ps->display_settings, ibuf->dither, false);
     }
   }
-  else if (ibuf->rect) {
-    display_buffer = ibuf->rect;
+  else if (ibuf->byte_buffer.data) {
+    display_buffer = ibuf->byte_buffer.data;
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
                                                                   &ps->display_settings,
                                                                   ibuf->rect_colorspace,
@@ -451,7 +451,7 @@ static void *ocio_transform_ibuf(PlayState *ps,
 
   /* There is data to be displayed, but GLSL is not initialized
    * properly, in this case we fallback to CPU-based display transform. */
-  if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
+  if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire(
         ibuf, &ps->view_settings, &ps->display_settings, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;

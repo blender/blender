@@ -6,7 +6,7 @@ namespace blender::nodes::node_geo_input_position_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Position")).field_source();
+  b.add_output<decl::Vector>("Position").field_source();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

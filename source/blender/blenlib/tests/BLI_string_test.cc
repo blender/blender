@@ -30,7 +30,7 @@ TEST(string, StrCopyUTF8_ASCII)
     const char src[] = {__VA_ARGS__, 0}; \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
   }
@@ -70,7 +70,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
     EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
     BLI_strncpy_utf8(dst, src, sizeof(dst) - 1); \
@@ -97,13 +97,13 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
     EXPECT_EQ(BLI_str_utf8_size(src), byte_size); \
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
-    BLI_strncpy_utf8(dst, src, sizeof(dst)); \
+    STRNCPY_UTF8(dst, src); \
     EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
     EXPECT_STREQ(dst, src); \
     for (int i = sizeof(dst) - 1; i > 1; i--) { \
       src[i] = '\0'; \
       memset(dst, 0xff, sizeof(dst)); \
-      const int dst_copied = BLI_strncpy_utf8_rlen(dst, src, sizeof(dst)); \
+      const int dst_copied = STRNCPY_UTF8_RLEN(dst, src); \
       EXPECT_STREQ(dst, src); \
       EXPECT_EQ(strlen(dst), i); \
       EXPECT_EQ(dst_copied, i); \
@@ -118,6 +118,47 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
   STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
 
 #undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Replace
+ * \{ */
+
+TEST(string, StrReplaceRange)
+{
+#define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
+  { \
+    char string[size] = src; \
+    BLI_str_replace_range(string, sizeof(string), beg, end, dst); \
+    EXPECT_STREQ(string, result_expect); \
+  }
+
+  STR_REPLACE_RANGE("a ", 5, 2, 2, "b!", "a b!");
+  STR_REPLACE_RANGE("a ", 4, 2, 2, "b!", "a b");
+  STR_REPLACE_RANGE("a ", 5, 1, 2, "b!", "ab!");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "A", "XAYZ");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "AB", "XABY");
+  STR_REPLACE_RANGE("XYZ", 5, 1, 1, "ABC", "XABC");
+
+  /* Add at the end when there is no room (no-op). */
+  STR_REPLACE_RANGE("XYZA", 5, 4, 4, "?", "XYZA");
+  /* Add at the start, replace all contents. */
+  STR_REPLACE_RANGE("XYZ", 4, 0, 0, "ABC", "ABC");
+  STR_REPLACE_RANGE("XYZ", 7, 0, 0, "ABC", "ABCXYZ");
+  /* Only remove. */
+  STR_REPLACE_RANGE("XYZ", 4, 1, 3, "", "X");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 2, "", "Z");
+  STR_REPLACE_RANGE("XYZ", 4, 0, 3, "", "");
+  /* Only Add. */
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ", "XYZ");
+  STR_REPLACE_RANGE("", 4, 0, 0, "XYZ?", "XYZ");
+  /* Do nothing. */
+  STR_REPLACE_RANGE("", 1, 0, 0, "?", "");
+  STR_REPLACE_RANGE("", 1, 0, 0, "", "");
+
+#undef STR_REPLACE_RANGE
 }
 
 /** \} */

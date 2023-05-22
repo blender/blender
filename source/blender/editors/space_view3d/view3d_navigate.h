@@ -33,6 +33,7 @@ struct wmEvent;
 struct wmOperator;
 
 typedef enum eV3D_OpMode {
+  V3D_OP_MODE_NONE = -1,
   V3D_OP_MODE_ZOOM = 0,
   V3D_OP_MODE_ROTATE,
   V3D_OP_MODE_MOVE,
@@ -44,6 +45,11 @@ typedef enum eV3D_OpMode {
   V3D_OP_MODE_NDOF_ORBIT_ZOOM,
 #endif
 } eV3D_OpMode;
+#ifndef WITH_INPUT_NDOF
+#  define V3D_OP_MODE_LEN V3D_OP_MODE_DOLLY + 1
+#else
+#  define V3D_OP_MODE_LEN V3D_OP_MODE_NDOF_ORBIT_ZOOM + 1
+#endif
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -179,6 +185,10 @@ typedef struct ViewOpsData {
    * See #view3d_orbit_apply_dyn_ofs code-comments for an example, also see: #104385.
    */
   bool use_dyn_ofs_ortho_correction;
+
+  /** Used for navigation on non view3d operators. */
+  wmKeyMap *keymap;
+  bool is_modal_event;
 } ViewOpsData;
 
 /* view3d_navigate.cc */

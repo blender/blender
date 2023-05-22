@@ -280,9 +280,9 @@ class OMemStream : public OStream {
   void write(const char c[], int n) override
   {
     ensure_size(offset + n);
-    memcpy(ibuf->encodedbuffer + offset, c, n);
+    memcpy(ibuf->encoded_buffer.data + offset, c, n);
     offset += n;
-    ibuf->encodedsize += n;
+    ibuf->encoded_size += n;
   }
 
   exr_file_offset_t tellp() override
@@ -300,7 +300,7 @@ class OMemStream : public OStream {
   void ensure_size(exr_file_offset_t size)
   {
     /* if buffer is too small increase it. */
-    while (size > ibuf->encodedbuffersize) {
+    while (size > ibuf->encoded_buffer_size) {
       if (!imb_enlargeencodedbufferImBuf(ibuf)) {
         throw Iex::ErrnoExc("Out of memory.");
       }
@@ -462,7 +462,8 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
 {
   const int channels = ibuf->channels;
   const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
-  const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != nullptr; /* summarize */
+  const bool is_zbuf = (flags & IB_zbuffloat) &&
+                       ibuf->float_z_buffer.data != nullptr; /* summarize */
   const int width = ibuf->x;
   const int height = ibuf->y;
   OStream *file_stream = nullptr;
@@ -512,15 +513,15 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
     if (is_zbuf) {
       frameBuffer.insert("Z",
                          Slice(Imf::FLOAT,
-                               (char *)(ibuf->zbuf_float + (height - 1) * width),
+                               (char *)(ibuf->float_z_buffer.data + (height - 1) * width),
                                sizeof(float),
                                sizeof(float) * -width));
     }
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       float *from;
 
       for (int i = ibuf->y - 1; i >= 0; i--) {
-        from = ibuf->rect_float + channels * i * width;
+        from = ibuf->float_buffer.data + channels * i * width;
 
         for (int j = ibuf->x; j > 0; j--) {
           to->r = float_to_half_safe(from[0]);
@@ -536,7 +537,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
       uchar *from;
 
       for (int i = ibuf->y - 1; i >= 0; i--) {
-        from = (uchar *)ibuf->rect + 4 * i * width;
+        from = ibuf->byte_buffer.data + 4 * i * width;
 
         for (int j = ibuf->x; j > 0; j--) {
           to->r = srgb_to_linearrgb(float(from[0]) / 255.0f);
@@ -575,7 +576,8 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
 {
   const int channels = ibuf->channels;
   const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
-  const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != nullptr; /* summarize */
+  const bool is_zbuf = (flags & IB_zbuffloat) &&
+                       ibuf->float_z_buffer.data != nullptr; /* summarize */
   const int width = ibuf->x;
   const int height = ibuf->y;
   OStream *file_stream = nullptr;
@@ -613,7 +615,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
 
     /* Last scan-line, stride negative. */
     float *rect[4] = {nullptr, nullptr, nullptr, nullptr};
-    rect[0] = ibuf->rect_float + channels * (height - 1) * width;
+    rect[0] = ibuf->float_buffer.data + channels * (height - 1) * width;
     rect[1] = (channels >= 2) ? rect[0] + 1 : rect[0];
     rect[2] = (channels >= 3) ? rect[0] + 2 : rect[0];
     rect[3] = (channels >= 4) ?
@@ -629,7 +631,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
     if (is_zbuf) {
       frameBuffer.insert("Z",
                          Slice(Imf::FLOAT,
-                               (char *)(ibuf->zbuf_float + (height - 1) * width),
+                               (char *)(ibuf->float_z_buffer.data + (height - 1) * width),
                                sizeof(float),
                                sizeof(float) * -width));
     }
@@ -656,7 +658,7 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   if (flags & IB_mem) {
     imb_addencodedbufferImBuf(ibuf);
-    ibuf->encodedsize = 0;
+    ibuf->encoded_size = 0;
   }
 
   if (ibuf->foptions.flag & OPENEXR_HALF) {
@@ -664,7 +666,7 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags)
   }
 
   /* when no float rect, we save as half (16 bits is sufficient) */
-  if (ibuf->rect_float == nullptr) {
+  if (ibuf->float_buffer.data == nullptr) {
     return imb_save_openexr_half(ibuf, filepath, flags);
   }
 
@@ -2081,7 +2083,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
 
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */
-          first = ibuf->rect_float - 4 * (dw.min.x - dw.min.y * width);
+          first = ibuf->float_buffer.data - 4 * (dw.min.x - dw.min.y * width);
           /* But, since we read y-flipped (negative y stride) we move to last scan-line. */
           first += 4 * (height - 1) * width;
 
@@ -2110,7 +2112,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
             float *firstz;
 
             addzbuffloatImBuf(ibuf);
-            firstz = ibuf->zbuf_float - (dw.min.x - dw.min.y * width);
+            firstz = ibuf->float_z_buffer.data - (dw.min.x - dw.min.y * width);
             firstz += (height - 1) * width;
             frameBuffer.insert(
                 "Z", Slice(Imf::FLOAT, (char *)firstz, sizeof(float), -width * sizeof(float)));
@@ -2135,7 +2137,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
 
           if (num_rgb_channels == 0 && has_luma && exr_has_chroma(*file)) {
             for (size_t a = 0; a < size_t(ibuf->x) * ibuf->y; a++) {
-              float *color = ibuf->rect_float + a * 4;
+              float *color = ibuf->float_buffer.data + a * 4;
               ycc_to_rgb(color[0] * 255.0f,
                          color[1] * 255.0f,
                          color[2] * 255.0f,
@@ -2148,7 +2150,7 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
           else if (num_rgb_channels <= 1) {
             /* Convert 1 to 3 channels. */
             for (size_t a = 0; a < size_t(ibuf->x) * ibuf->y; a++) {
-              float *color = ibuf->rect_float + a * 4;
+              float *color = ibuf->float_buffer.data + a * 4;
               if (num_rgb_channels <= 1) {
                 color[1] = color[0];
               }
@@ -2238,7 +2240,7 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     if (file->header().hasPreviewImage()) {
       const Imf::PreviewImage &preview = file->header().previewImage();
       ImBuf *ibuf = IMB_allocFromBuffer(
-          (uint *)preview.pixels(), nullptr, preview.width(), preview.height(), 4);
+          (uint8_t *)preview.pixels(), nullptr, preview.width(), preview.height(), 4);
       delete file;
       delete stream;
       IMB_flipy(ibuf);
@@ -2272,7 +2274,7 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
       for (int w = 0; w < dest_w; w++) {
         /* For each destination pixel find single corresponding source pixel. */
         int source_x = int(MIN2((w / scale_factor), dw.max.x - 1));
-        float *dest_px = &ibuf->rect_float[(h * dest_w + w) * 4];
+        float *dest_px = &ibuf->float_buffer.data[(h * dest_w + w) * 4];
         dest_px[0] = pixels[source_x].r;
         dest_px[1] = pixels[source_x].g;
         dest_px[2] = pixels[source_x].b;

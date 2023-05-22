@@ -155,6 +155,17 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 12
 
+    def draw(self, _context):
+        # layout = self.layout
+        pass
+
+
+class VIEW3D_PT_tools_meshedit_options_transform(View3DPanel, Panel):
+    bl_category = "Tool"
+    bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
+    bl_label = "Transform"
+    bl_parent_id = "VIEW3D_PT_tools_meshedit_options"
+
     @classmethod
     def poll(cls, context):
         return context.active_object
@@ -169,56 +180,47 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         ob = context.active_object
         mesh = ob.data
 
-        row = layout.row(align=True, heading="Transform")
-        row.prop(tool_settings, "use_transform_correct_face_attributes")
+        col = layout.column(align=True)
+        col.prop(tool_settings, "use_transform_correct_face_attributes")
+        sub = col.column(align=True)
+        sub.active = tool_settings.use_transform_correct_face_attributes
+        sub.prop(tool_settings, "use_transform_correct_keep_connected")
+        col.separator()
 
-        row = layout.row(align=True)
-        row.active = tool_settings.use_transform_correct_face_attributes
-        row.prop(tool_settings, "use_transform_correct_keep_connected")
-
-        row = layout.row(align=True, heading="UVs")
-        row.prop(tool_settings, "use_edge_path_live_unwrap")
-
-        row = layout.row(heading="Mirror")
-        sub = row.row(align=True)
+        col = layout.column(heading="Mirror")
+        sub = col.row(align=True)
         sub.prop(mesh, "use_mirror_x", text="X", toggle=True)
         sub.prop(mesh, "use_mirror_y", text="Y", toggle=True)
         sub.prop(mesh, "use_mirror_z", text="Z", toggle=True)
 
-        row = layout.row(align=True)
-        row.active = ob.data.use_mirror_x or ob.data.use_mirror_y or ob.data.use_mirror_z
-        row.prop(mesh, "use_mirror_topology")
+        col = layout.column(align=True)
+        col.active = mesh.use_mirror_x or mesh.use_mirror_y or mesh.use_mirror_z
+        col.prop(mesh, "use_mirror_topology")
+        col.separator()
+
+        col = layout.column(align=True)
+        col.prop(tool_settings, "use_mesh_automerge", text="Auto Merge", toggle=False)
+        sub = col.column(align=True)
+        sub.active = tool_settings.use_mesh_automerge
+        sub.prop(tool_settings, "use_mesh_automerge_and_split", toggle=False)
+        sub.prop(tool_settings, "double_threshold", text="Threshold")
 
 
-class VIEW3D_PT_tools_meshedit_options_automerge(View3DPanel, Panel):
+class VIEW3D_PT_tools_meshedit_options_uvs(View3DPanel, Panel):
     bl_category = "Tool"
     bl_context = ".mesh_edit"  # dot on purpose (access from topbar)
-    bl_label = "Auto Merge"
+    bl_label = "UVs"
     bl_parent_id = "VIEW3D_PT_tools_meshedit_options"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def draw_header(self, context):
-        tool_settings = context.tool_settings
-        self.layout.use_property_split = False
-        self.layout.prop(tool_settings, "use_mesh_automerge",
-                         text=self.bl_label if self.is_popover else "", toggle=False)
 
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_decorate = False
+        layout.use_property_split = True
+
         tool_settings = context.tool_settings
 
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        col = layout.column(align=True)
-        col.active = tool_settings.use_mesh_automerge
-        col.prop(tool_settings, "use_mesh_automerge_and_split", toggle=False)
-        col.prop(tool_settings, "double_threshold", text="Threshold")
+        layout.prop(tool_settings, "use_edge_path_live_unwrap")
 
 
 # ********** default tools for editmode_armature ****************
@@ -950,9 +952,6 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if UnifiedPaintPanel.get_dyntopo_prop(context, brush, "mode") in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
             col.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "interactive")
-            row = col.row()
-            row.enabled = not WindowManager.operator_properties_last("sculpt.detail_flood_fill").interactive
-            row.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "fully_converge")
 
         UnifiedPaintPanel.prop_unified_dyntopo(
             sub,
@@ -2498,7 +2497,8 @@ classes = (
     VIEW3D_PT_tools_object_options,
     VIEW3D_PT_tools_object_options_transform,
     VIEW3D_PT_tools_meshedit_options,
-    VIEW3D_PT_tools_meshedit_options_automerge,
+    VIEW3D_PT_tools_meshedit_options_transform,
+    VIEW3D_PT_tools_meshedit_options_uvs,
     VIEW3D_PT_tools_armatureedit_options,
     VIEW3D_PT_tools_posemode_options,
 

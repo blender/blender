@@ -20,32 +20,32 @@ namespace blender::nodes::node_composite_map_range_cc {
 
 static void cmp_node_map_range_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Value"))
+  b.add_input<decl::Float>("Value")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("From Min"))
+  b.add_input<decl::Float>("From Min")
       .default_value(0.0f)
       .min(-10000.0f)
       .max(10000.0f)
       .compositor_domain_priority(1);
-  b.add_input<decl::Float>(N_("From Max"))
+  b.add_input<decl::Float>("From Max")
       .default_value(1.0f)
       .min(-10000.0f)
       .max(10000.0f)
       .compositor_domain_priority(2);
-  b.add_input<decl::Float>(N_("To Min"))
+  b.add_input<decl::Float>("To Min")
       .default_value(0.0f)
       .min(-10000.0f)
       .max(10000.0f)
       .compositor_domain_priority(3);
-  b.add_input<decl::Float>(N_("To Max"))
+  b.add_input<decl::Float>("To Max")
       .default_value(1.0f)
       .min(-10000.0f)
       .max(10000.0f)
       .compositor_domain_priority(4);
-  b.add_output<decl::Float>(N_("Value"));
+  b.add_output<decl::Float>("Value");
 }
 
 static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

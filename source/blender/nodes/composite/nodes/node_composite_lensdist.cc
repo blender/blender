@@ -36,20 +36,20 @@ NODE_STORAGE_FUNCS(NodeLensDist)
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Distort"))
+  b.add_input<decl::Float>("Distort")
       .default_value(0.0f)
       .min(MINIMUM_DISTORTION)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_input<decl::Float>(N_("Dispersion"))
+  b.add_input<decl::Float>("Dispersion")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)

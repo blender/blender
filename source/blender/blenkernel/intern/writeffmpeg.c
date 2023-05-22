@@ -1406,7 +1406,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
     if (*fe == NULL) {
       BLI_strncat(string, autosplit, FILE_MAX);
 
-      BLI_path_frame_range(string, sfra, efra, 4);
+      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
       BLI_strncat(string, *exts, FILE_MAX);
     }
     else {
@@ -1417,7 +1417,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   }
   else {
     if (BLI_path_frame_check_chars(string)) {
-      BLI_path_frame_range(string, sfra, efra, 4);
+      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
     }
 
     BLI_strncat(string, autosplit, FILE_MAX);

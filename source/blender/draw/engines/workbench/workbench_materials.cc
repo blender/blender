@@ -10,7 +10,7 @@
 #include "BLI_memblock.h"
 
 #include "BKE_image.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"

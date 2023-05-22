@@ -6,7 +6,7 @@
 #include "DNA_defaults.h"
 
 #include "BKE_movieclip.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 namespace blender::compositor {

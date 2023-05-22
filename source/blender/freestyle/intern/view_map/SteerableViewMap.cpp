@@ -244,7 +244,7 @@ void SteerableViewMap::saveSteerableViewMap() const
       // soc QImage qtmp(ow, oh, QImage::Format_RGB32);
       ImBuf *ibuf = IMB_allocImBuf(ow, oh, 32, IB_rect);
       int rowbytes = ow * 4;
-      char *pix;
+      uchar *pix;
 
       for (int y = 0; y < oh; ++y) {    // soc
         for (int x = 0; x < ow; ++x) {  // soc
@@ -255,7 +255,7 @@ void SteerableViewMap::saveSteerableViewMap() const
           // int c = (int)(_imagesPyramids[i]->pixel(x, y, j));
 
           // soc qtmp.setPixel(x, y, qRgb(c, c, c));
-          pix = (char *)ibuf->rect + y * rowbytes + x * 4;
+          pix = ibuf->byte_buffer.data + y * rowbytes + x * 4;
           pix[0] = pix[1] = pix[2] = c;
         }
       }

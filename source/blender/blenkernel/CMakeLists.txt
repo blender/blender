@@ -448,6 +448,7 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
+  BKE_node.hh
   BKE_node_runtime.hh
   BKE_node_tree_update.h
   BKE_node_tree_zones.hh

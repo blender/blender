@@ -18,9 +18,9 @@ namespace blender::nodes::node_fn_boolean_math_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Bool>(N_("Boolean"), "Boolean");
-  b.add_input<decl::Bool>(N_("Boolean"), "Boolean_001");
-  b.add_output<decl::Bool>(N_("Boolean"));
+  b.add_input<decl::Bool>("Boolean", "Boolean");
+  b.add_input<decl::Bool>("Boolean", "Boolean_001");
+  b.add_output<decl::Bool>("Boolean");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -32,7 +32,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
 
-  nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
+  bke::nodeSetSocketAvailability(ntree, sockB, !ELEM(node->custom1, NODE_BOOLEAN_MATH_NOT));
 }
 
 static void node_label(const bNodeTree * /*tree*/,

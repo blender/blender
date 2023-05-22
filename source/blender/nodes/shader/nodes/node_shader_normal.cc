@@ -11,17 +11,17 @@ namespace blender::nodes::node_shader_normal_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Normal"))
+  b.add_input<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_DIRECTION);
-  b.add_output<decl::Vector>(N_("Normal"))
+  b.add_output<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_DIRECTION);
-  b.add_output<decl::Float>(N_("Dot"));
+  b.add_output<decl::Float>("Dot");
 }
 
 static int gpu_shader_normal(GPUMaterial *mat,

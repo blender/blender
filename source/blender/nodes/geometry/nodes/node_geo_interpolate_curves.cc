@@ -15,39 +15,40 @@ namespace blender::nodes::node_geo_interpolate_curves_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Guide Curves"))
-      .description(N_("Base curves that new curves are interpolated between"));
-  b.add_input<decl::Vector>(N_("Guide Up"))
+  b.add_input<decl::Geometry>("Guide Curves")
+      .description("Base curves that new curves are interpolated between");
+  b.add_input<decl::Vector>("Guide Up")
       .field_on({0})
       .hide_value()
-      .description(N_("Optional up vector that is typically a surface normal"));
-  b.add_input<decl::Int>(N_("Guide Group ID"))
+      .description("Optional up vector that is typically a surface normal");
+  b.add_input<decl::Int>("Guide Group ID")
       .field_on({0})
       .hide_value()
-      .description(N_("Splits guides into separate groups. New curves interpolate existing curves "
-                      "from a single group"));
-  b.add_input<decl::Geometry>(N_("Points"))
-      .description(N_("First control point positions for new interpolated curves"));
-  b.add_input<decl::Vector>(N_("Point Up"))
+      .description(
+          "Splits guides into separate groups. New curves interpolate existing curves "
+          "from a single group");
+  b.add_input<decl::Geometry>("Points").description(
+      "First control point positions for new interpolated curves");
+  b.add_input<decl::Vector>("Point Up")
       .field_on({3})
       .hide_value()
-      .description(N_("Optional up vector that is typically a surface normal"));
-  b.add_input<decl::Int>(N_("Point Group ID"))
+      .description("Optional up vector that is typically a surface normal");
+  b.add_input<decl::Int>("Point Group ID")
       .field_on({3})
       .hide_value()
-      .description(N_("The curve group to interpolate in"));
-  b.add_input<decl::Int>(N_("Max Neighbors"))
+      .description("The curve group to interpolate in");
+  b.add_input<decl::Int>("Max Neighbors")
       .default_value(4)
       .min(1)
-      .description(N_(
-          "Maximum amount of close guide curves that are taken into account for interpolation"));
-  b.add_output<decl::Geometry>(N_("Curves")).propagate_all();
-  b.add_output<decl::Int>(N_("Closest Index"))
+      .description(
+          "Maximum amount of close guide curves that are taken into account for interpolation");
+  b.add_output<decl::Geometry>("Curves").propagate_all();
+  b.add_output<decl::Int>("Closest Index")
       .field_on_all()
-      .description(N_("Index of the closest guide curve for each generated curve"));
-  b.add_output<decl::Float>(N_("Closest Weight"))
+      .description("Index of the closest guide curve for each generated curve");
+  b.add_output<decl::Float>("Closest Weight")
       .field_on_all()
-      .description(N_("Weight of the closest guide curve for each generated curve"));
+      .description("Weight of the closest guide curve for each generated curve");
 }
 
 /**

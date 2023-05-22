@@ -291,8 +291,9 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_poly_offset[mi] = f;
     /* Get matrix that transforms a coordinate in meshes[mi]'s local space
      * to the target space. */
-    const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
-                                                        clean_transform(*obmats[mi]);
+    const float4x4 objn_mat = (obmats.is_empty() || obmats[mi] == nullptr) ?
+                                  float4x4::identity() :
+                                  clean_transform(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
     r_info->has_negative_transform[mi] = math::is_negative(objn_mat);
 
@@ -311,7 +312,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * Skip the matrix multiplication for each point when there is no transform for a mesh,
      * for example when the first mesh is already in the target space. (Note the logic
      * directly above, which uses an identity matrix with a null input transform). */
-    if (obmats[mi] == nullptr) {
+    if (obmats.is_empty() || obmats[mi] == nullptr) {
       threading::parallel_for(vert_positions.index_range(), 2048, [&](IndexRange range) {
         for (int i : range) {
           float3 co = vert_positions[i];
@@ -798,7 +799,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                           Vector<int> *r_intersecting_edges)
 {
 #ifdef WITH_GMP
-  BLI_assert(meshes.size() == transforms.size());
+  BLI_assert(transforms.is_empty() || meshes.size() == transforms.size());
   BLI_assert(material_remaps.size() == 0 || material_remaps.size() == meshes.size());
   if (meshes.size() <= 0) {
     return nullptr;

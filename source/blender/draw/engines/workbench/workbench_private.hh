@@ -324,6 +324,54 @@ class ShadowPass {
             bool force_fail_method);
 };
 
+class VolumePass {
+  bool active_ = true;
+
+  PassMain ps_ = {"Volume"};
+  Framebuffer fb_ = {"Volume"};
+
+  Texture dummy_shadow_tx_ = {"Volume.Dummy Shadow Tx"};
+  Texture dummy_volume_tx_ = {"Volume.Dummy Volume Tx"};
+  Texture dummy_coba_tx_ = {"Volume.Dummy Coba Tx"};
+
+  GPUTexture *stencil_tx_ = nullptr;
+
+  GPUShader *shaders_[2 /*slice*/][2 /*coba*/][3 /*interpolation*/][2 /*smoke*/];
+
+ public:
+  void sync(SceneResources &resources);
+
+  void object_sync_volume(Manager &manager,
+                          SceneResources &resources,
+                          const SceneState &scene_state,
+                          ObjectRef &ob_ref,
+                          float3 color);
+
+  void object_sync_modifier(Manager &manager,
+                            SceneResources &resources,
+                            const SceneState &scene_state,
+                            ObjectRef &ob_ref,
+                            ModifierData *md);
+
+  void draw(Manager &manager, View &view, SceneResources &resources);
+
+ private:
+  GPUShader *get_shader(bool slice, bool coba, int interpolation, bool smoke);
+
+  void draw_slice_ps(Manager &manager,
+                     PassMain::Sub &ps,
+                     ObjectRef &ob_ref,
+                     int slice_axis_enum,
+                     float slice_depth);
+
+  void draw_volume_ps(Manager &manager,
+                      PassMain::Sub &ps,
+                      ObjectRef &ob_ref,
+                      int taa_sample,
+                      float3 slice_count,
+                      float3 world_size);
+};
+
 class OutlinePass {
  private:
   bool enabled_ = false;

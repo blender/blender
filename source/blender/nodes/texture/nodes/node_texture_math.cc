@@ -320,7 +320,7 @@ void register_node_type_tex_math()
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, inputs, outputs);
+  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_math_label;
   ntype.exec_fn = exec;
   ntype.updatefunc = node_math_update;

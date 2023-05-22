@@ -142,7 +142,7 @@ VKStateManager &VKContext::state_manager_get()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Framebuffer
+/** \name Frame-buffer
  * \{ */
 
 void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)

@@ -1097,6 +1097,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
   RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
@@ -1356,6 +1357,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "custom_rotation_euler");
   RNA_def_property_ui_text(
       prop, "Custom Shape Rotation", "Adjust the rotation of the custom shape");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);
@@ -1510,6 +1512,12 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "numstep");
   RNA_def_property_range(prop, 1.0f, 50.0f);
   RNA_def_property_ui_text(prop, "Num Steps", "Divide the frame interval into this many steps");
+  RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
+
+  prop = RNA_def_property(srna, "translate_root_bones", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_TRANSLATE_ROOT_BONES);
+  RNA_def_property_ui_text(
+      prop, "Translate Roots", "Translate root (i.e. parentless) bones to the armature origin");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

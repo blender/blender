@@ -15,18 +15,18 @@ namespace blender::nodes::node_shader_vector_rotate_cc {
 static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::Vector>(N_("Center"));
-  b.add_input<decl::Vector>(N_("Axis"))
+  b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
+  b.add_input<decl::Vector>("Center");
+  b.add_input<decl::Vector>("Axis")
       .min(-1.0f)
       .max(1.0f)
       .default_value({0.0f, 0.0f, 1.0f})
       .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS; });
-  b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
-  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).make_available([](bNode &node) {
+  b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE);
+  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).make_available([](bNode &node) {
     node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ;
   });
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -192,12 +192,13 @@ static void sh_node_vector_rotate_build_multi_function(NodeMultiFunctionBuilder 
 static void node_shader_update_vector_rotate(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *sock_rotation = nodeFindSocket(node, SOCK_IN, "Rotation");
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sock_rotation, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
   bNodeSocket *sock_axis = nodeFindSocket(node, SOCK_IN, "Axis");
-  nodeSetSocketAvailability(ntree, sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
+  bke::nodeSetSocketAvailability(
+      ntree, sock_axis, ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_AXIS));
   bNodeSocket *sock_angle = nodeFindSocket(node, SOCK_IN, "Angle");
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(
       ntree, sock_angle, !ELEM(node->custom1, NODE_VECTOR_ROTATE_TYPE_EULER_XYZ));
 }
 

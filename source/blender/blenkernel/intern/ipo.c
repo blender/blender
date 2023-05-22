@@ -144,7 +144,7 @@ static void ipo_blend_read_lib(BlendLibReader *reader, ID *id)
 
   LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
     if (icu->driver) {
-      BLO_read_id_address(reader, ipo->id.lib, &icu->driver->ob);
+      BLO_read_id_address(reader, id, &icu->driver->ob);
     }
   }
 }

@@ -183,7 +183,7 @@ static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bSound *sound = (bSound *)id;
   /* XXX: deprecated - old animation system. */
-  BLO_read_id_address(reader, sound->id.lib, &sound->ipo);
+  BLO_read_id_address(reader, id, &sound->ipo);
 }
 
 static void sound_blend_read_expand(BlendExpander *expander, ID *id)
@@ -819,6 +819,11 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, sound_cfra, &pitch, animated);
 }
 
+void BKE_sound_set_scene_sound_pitch_at_frame(void *handle, int frame, float pitch, char animated)
+{
+  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, frame, &pitch, animated);
+}
+
 void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
                                                     int frame_start,
                                                     int frame_end,
@@ -1377,6 +1382,12 @@ void BKE_sound_set_scene_volume(Scene *UNUSED(scene), float UNUSED(volume)) {}
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
                                      float UNUSED(pitch),
                                      char UNUSED(animated))
+{
+}
+void BKE_sound_set_scene_sound_pitch_at_frame(void *UNUSED(handle),
+                                              int UNUSED(frame),
+                                              float UNUSED(pitch),
+                                              char UNUSED(animated))
 {
 }
 void BKE_sound_set_scene_sound_pitch_constant_range(void *UNUSED(handle),

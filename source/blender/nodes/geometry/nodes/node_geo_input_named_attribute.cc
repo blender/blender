@@ -13,15 +13,15 @@ NODE_STORAGE_FUNCS(NodeGeometryInputNamedAttribute)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>(N_("Name")).is_attribute_name();
+  b.add_input<decl::String>("Name").is_attribute_name();
 
-  b.add_output<decl::Vector>(N_("Attribute"), "Attribute_Vector").field_source();
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_Float").field_source();
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_Color").field_source();
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_Bool").field_source();
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_Int").field_source();
+  b.add_output<decl::Vector>("Attribute", "Attribute_Vector").field_source();
+  b.add_output<decl::Float>("Attribute", "Attribute_Float").field_source();
+  b.add_output<decl::Color>("Attribute", "Attribute_Color").field_source();
+  b.add_output<decl::Bool>("Attribute", "Attribute_Bool").field_source();
+  b.add_output<decl::Int>("Attribute", "Attribute_Int").field_source();
 
-  b.add_output<decl::Bool>(N_("Exists")).field_source();
+  b.add_output<decl::Bool>("Exists").field_source();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -47,11 +47,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)

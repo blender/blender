@@ -1264,13 +1264,13 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
 {
   if (p) {
-    BLO_read_id_address(reader, sce->id.lib, &p->brush);
+    BLO_read_id_address(reader, &sce->id, &p->brush);
     for (int i = 0; i < p->tool_slots_len; i++) {
       if (p->tool_slots[i].brush != nullptr) {
-        BLO_read_id_address(reader, sce->id.lib, &p->tool_slots[i].brush);
+        BLO_read_id_address(reader, &sce->id, &p->tool_slots[i].brush);
       }
     }
-    BLO_read_id_address(reader, sce->id.lib, &p->palette);
+    BLO_read_id_address(reader, &sce->id, &p->palette);
     p->paint_cursor = nullptr;
 
     BKE_paint_runtime_init(sce->toolsettings, p);

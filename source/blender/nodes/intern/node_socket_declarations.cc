@@ -4,7 +4,7 @@
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "BLI_math_vector.h"

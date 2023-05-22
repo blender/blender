@@ -34,10 +34,10 @@ namespace blender::nodes::node_composite_stabilize2d_cc {
 
 static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void init(const bContext *C, PointerRNA *ptr)

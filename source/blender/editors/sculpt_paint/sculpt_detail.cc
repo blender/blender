@@ -302,8 +302,6 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(
-      ot->srna, "fully_converge", false, "Full Convergence", "Run until fully converged.");
   RNA_def_boolean(ot->srna, "interactive", true, "Interactive", "Interactive mode");
 }
 

@@ -2135,12 +2135,13 @@ void NLA_OT_make_single_user(wmOperatorType *ot)
   ot->description = "Ensure that each action is only used once in the set of strips selected";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = nlaedit_make_single_user_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */

@@ -30,6 +30,7 @@
 #  endif
 #endif
 
+#include "BLI_function_ref.hh"
 #include "BLI_index_range.hh"
 #include "BLI_lazy_threading.hh"
 #include "BLI_utildefines.h"
@@ -48,27 +49,23 @@ void parallel_for_each(Range &&range, const Function &function)
 #endif
 }
 
+namespace detail {
+void parallel_for_impl(IndexRange range,
+                       int64_t grain_size,
+                       FunctionRef<void(IndexRange)> function);
+}  // namespace detail
+
 template<typename Function>
-void parallel_for(IndexRange range, int64_t grain_size, const Function &function)
+inline void parallel_for(IndexRange range, int64_t grain_size, const Function &function)
 {
-  if (range.size() == 0) {
+  if (range.is_empty()) {
     return;
   }
-#ifdef WITH_TBB
-  /* Invoking tbb for small workloads has a large overhead. */
-  if (range.size() >= grain_size) {
-    lazy_threading::send_hint();
-    tbb::parallel_for(
-        tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
-        [&](const tbb::blocked_range<int64_t> &subrange) {
-          function(IndexRange(subrange.begin(), subrange.size()));
-        });
+  if (range.size() <= grain_size) {
+    function(range);
     return;
   }
-#else
-  UNUSED_VARS(grain_size);
-#endif
-  function(range);
+  detail::parallel_for_impl(range, grain_size, function);
 }
 
 /**

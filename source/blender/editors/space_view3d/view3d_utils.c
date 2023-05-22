@@ -891,7 +891,7 @@ static void view3d_boxview_sync_axis(RegionView3D *rv3d_dst, RegionView3D *rv3d_
   mul_qt_v3(viewinv, view_dst_x);
   mul_qt_v3(viewinv, view_dst_y);
 
-  /* check source and dest have a matching axis */
+  /* Check source and destination have a matching axis. */
   for (i = 0; i < 3; i++) {
     if (((fabsf(view_src_x[i]) > axis_eps) || (fabsf(view_src_y[i]) > axis_eps)) &&
         ((fabsf(view_dst_x[i]) > axis_eps) || (fabsf(view_dst_y[i]) > axis_eps)))

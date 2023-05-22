@@ -329,7 +329,7 @@ void BKE_keyingsets_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *lis
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_read_id_address(reader, id->lib, &ksp->id);
+      BLO_read_id_address(reader, id, &ksp->id);
     }
   }
 }
@@ -641,8 +641,8 @@ static int animsys_quaternion_evaluate_fcurves(PathResolvedRNA quat_rna,
   }
 
   if (fcurve_offset < 4) {
-    /* This quaternion was incompletely keyed, so the result is a mixture of the unit quaterion and
-     * values from FCurves. This means that it's almost certainly no longer of unit length. */
+    /* This quaternion was incompletely keyed, so the result is a mixture of the unit quaternion
+     * and values from FCurves. This means that it's almost certainly no longer of unit length. */
     normalize_qt(r_quaternion);
   }
 

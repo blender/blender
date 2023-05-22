@@ -78,7 +78,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -462,7 +462,7 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
   }
 
   DepsgraphNodeBuilder *builder = static_cast<DepsgraphNodeBuilder *>(cb_data->user_data);
-  ID *id_cow_self = cb_data->id_self;
+  ID *id_cow_self = cb_data->self_id;
 
   return builder->foreach_id_cow_detect_need_for_update_callback(id_cow_self, id);
 }

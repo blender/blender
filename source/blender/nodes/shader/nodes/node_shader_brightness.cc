@@ -7,10 +7,10 @@ namespace blender::nodes::node_shader_brightness_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Bright")).default_value(0.0f).min(-100.0f).max(100.0f);
-  b.add_input<decl::Float>(N_("Contrast")).default_value(0.0f).min(-100.0f).max(100.0f);
-  b.add_output<decl::Color>(N_("Color"));
+  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Bright").default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_input<decl::Float>("Contrast").default_value(0.0f).min(-100.0f).max(100.0f);
+  b.add_output<decl::Color>("Color");
 }
 
 static int gpu_shader_brightcontrast(GPUMaterial *mat,

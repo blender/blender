@@ -11,56 +11,48 @@ namespace blender::nodes::node_shader_bsdf_hair_principled_cc {
 /* Color, melanin and absorption coefficient default to approximately same brownish hair. */
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.017513f, 0.005763f, 0.002059f, 1.0f});
-  b.add_input<decl::Float>(N_("Melanin"))
-      .default_value(0.8f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Melanin Redness"))
+  b.add_input<decl::Color>("Color").default_value({0.017513f, 0.005763f, 0.002059f, 1.0f});
+  b.add_input<decl::Float>("Melanin").default_value(0.8f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Melanin Redness")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Color>(N_("Tint")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>(N_("Absorption Coefficient"))
+  b.add_input<decl::Color>("Tint").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("Absorption Coefficient")
       .default_value({0.245531f, 0.52f, 1.365f})
       .min(0.0f)
       .max(1000.0f);
-  b.add_input<decl::Float>(N_("Roughness"))
+  b.add_input<decl::Float>("Roughness")
       .default_value(0.3f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Radial Roughness"))
+  b.add_input<decl::Float>("Radial Roughness")
       .default_value(0.3f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Coat"))
-      .default_value(0.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("IOR")).default_value(1.55f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Offset"))
+  b.add_input<decl::Float>("Coat").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("IOR").default_value(1.55f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Offset")
       .default_value(2.0f * float(M_PI) / 180.0f)
       .min(-M_PI_2)
       .max(M_PI_2)
       .subtype(PROP_ANGLE);
-  b.add_input<decl::Float>(N_("Random Color"))
+  b.add_input<decl::Float>("Random Color")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Random Roughness"))
+  b.add_input<decl::Float>("Random Roughness")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Random")).hide_value();
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("BSDF"));
+  b.add_input<decl::Float>("Random").hide_value();
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("BSDF");
 }
 
 static void node_shader_buts_principled_hair(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -81,26 +73,27 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STREQ(sock->name, "Color")) {
-      nodeSetSocketAvailability(ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
+      bke::nodeSetSocketAvailability(
+          ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_REFLECTANCE);
     }
     else if (STREQ(sock->name, "Melanin")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Melanin Redness")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Tint")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
     else if (STREQ(sock->name, "Absorption Coefficient")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
     }
     else if (STREQ(sock->name, "Random Color")) {
-      nodeSetSocketAvailability(
+      bke::nodeSetSocketAvailability(
           ntree, sock, parametrization == SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
     }
   }
@@ -129,7 +122,7 @@ void register_node_type_sh_bsdf_hair_principled()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_principled_hair;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   ntype.initfunc = file_ns::node_shader_init_hair_principled;
   ntype.updatefunc = file_ns::node_shader_update_hair_principled;
   ntype.gpu_fn = file_ns::node_shader_gpu_hair_principled;

@@ -15,7 +15,7 @@
 #include "BKE_main.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_scene.h"
 #include "BKE_vfont.h"
 

@@ -2,6 +2,8 @@
  #include "config_mac.h"
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
  #include "config_freebsd.h"
+#elif defined(__OpenBSD__)
+ #include "config_openbsd.h"
 #elif defined(__MINGW32__)
  #include "windows/config.h"
 #elif defined(__linux__)

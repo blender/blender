@@ -21,16 +21,16 @@ namespace blender::nodes::node_composite_rotate_cc {
 
 static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Degr"))
+  b.add_input<decl::Float>("Degr")
       .default_value(0.0f)
       .min(-10000.0f)
       .max(10000.0f)
       .subtype(PROP_ANGLE)
       .compositor_expects_single_value();
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)

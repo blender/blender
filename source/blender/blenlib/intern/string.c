@@ -552,6 +552,55 @@ bool BLI_str_replace_table_exact(char *string,
   return false;
 }
 
+size_t BLI_str_replace_range(
+    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst)
+{
+  int string_len = strlen(string);
+  BLI_assert(src_beg <= src_end);
+  BLI_assert(src_end <= string_len);
+  const int src_len = src_end - src_beg;
+  int dst_len = strlen(dst);
+
+  if (src_len < dst_len) {
+    /* Grow, first handle special cases. */
+
+    /* Special case, the src_end is entirely clipped. */
+    if (UNLIKELY(string_maxncpy <= src_beg + dst_len)) {
+      /* There is only room for the destination. */
+      dst_len = ((int)string_maxncpy - src_beg) - 1;
+      string_len = src_end;
+      string[string_len] = '\0';
+    }
+
+    const int ofs = dst_len - src_len;
+    /* Clip the string when inserting the destination string exceeds `string_maxncpy`. */
+    if (string_len + ofs >= string_maxncpy) {
+      string_len = ((int)string_maxncpy - ofs) - 1;
+      string[string_len] = '\0';
+      BLI_assert(src_end <= string_len);
+    }
+
+    /* Grow. */
+    memmove(string + (src_end + ofs), string + src_end, (size_t)(string_len - src_end) + 1);
+    string_len += ofs;
+  }
+  else if (src_len > dst_len) {
+    /* Shrink. */
+    const int ofs = src_len - dst_len;
+    memmove(string + (src_end - ofs), string + src_end, (size_t)(string_len - src_end) + 1);
+    string_len -= ofs;
+  }
+  else { /* Simple case, no resizing. */
+    BLI_assert(src_len == dst_len);
+  }
+
+  if (dst_len > 0) {
+    memcpy(string + src_beg, dst, (size_t)dst_len);
+  }
+  BLI_assert(string[string_len] == '\0');
+  return (size_t)string_len;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

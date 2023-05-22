@@ -104,7 +104,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
@@ -1165,17 +1165,17 @@ static void id_buffer_init_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const 
  * linked data is tagged accordingly. */
 static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *id_self = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID *id = *cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
 
   if (id == nullptr || !ID_IS_LINKED(id)) {
     return IDWALK_RET_NOP;
   }
-  BLI_assert(!ID_IS_LINKED(id_self));
+  BLI_assert(!ID_IS_LINKED(self_id));
   BLI_assert((cb_flag & IDWALK_CB_INDIRECT_USAGE) == 0);
 
-  if (id_self->tag & LIB_TAG_RUNTIME) {
+  if (self_id->tag & LIB_TAG_RUNTIME) {
     return IDWALK_RET_NOP;
   }
 
@@ -1383,7 +1383,7 @@ static bool do_history(const char *name, ReportList *reports)
     if (BLI_exists(tempname1)) {
       SNPRINTF(tempname2, "%s%d", name, hisnr);
 
-      if (BLI_rename(tempname1, tempname2)) {
+      if (BLI_rename_overwrite(tempname1, tempname2)) {
         BKE_report(reports, RPT_ERROR, "Unable to make version backup");
         return true;
       }
@@ -1395,7 +1395,7 @@ static bool do_history(const char *name, ReportList *reports)
   if (BLI_exists(name)) {
     SNPRINTF(tempname1, "%s%d", name, hisnr);
 
-    if (BLI_rename(name, tempname1)) {
+    if (BLI_rename_overwrite(name, tempname1)) {
       BKE_report(reports, RPT_ERROR, "Unable to make version backup");
       return true;
     }
@@ -1562,7 +1562,7 @@ bool BLO_write_file(Main *mainvar,
     }
   }
 
-  if (BLI_rename(tempname, filepath) != 0) {
+  if (BLI_rename_overwrite(tempname, filepath) != 0) {
     BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
     return false;
   }

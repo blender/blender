@@ -37,6 +37,14 @@ bool ghost_wl_output_own(const struct wl_output *wl_output);
 void ghost_wl_output_tag(struct wl_output *wl_output);
 struct GWL_Output *ghost_wl_output_user_data(struct wl_output *wl_output);
 
+/**
+ * Enter/exit handlers may be called with a null window surface (when the window just closed),
+ * so add a version of the function that checks this.
+ *
+ * All of the functions could in fact however paranoid null checks make the expected
+ * state difficult to reason about, so only use this in cases the surface may be null.
+ */
+bool ghost_wl_surface_own_with_null_check(const struct wl_surface *wl_surface);
 bool ghost_wl_surface_own(const struct wl_surface *wl_surface);
 void ghost_wl_surface_tag(struct wl_surface *wl_surface);
 GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *wl_surface);

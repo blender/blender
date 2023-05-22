@@ -177,7 +177,8 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
   }
 }
 
-wmDrag *WM_drag_data_create(bContext *C, int icon, int type, void *poin, double value, uint flags)
+wmDrag *WM_drag_data_create(
+    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
 {
   wmDrag *drag = MEM_cnew<wmDrag>(__func__);
 
@@ -232,7 +233,8 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
   wm_dropbox_invoke(C, drag);
 }
 
-void WM_event_start_drag(bContext *C, int icon, int type, void *poin, double value, uint flags)
+void WM_event_start_drag(
+    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
 {
   wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
   WM_event_start_prepared_drag(C, drag);
@@ -288,7 +290,7 @@ void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale)
   drag->imbuf_scale = scale;
 }
 
-void WM_drag_data_free(int dragtype, void *poin)
+void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
 {
   /* Don't require all the callers to have a nullptr-check, just allow passing nullptr. */
   if (!poin) {
@@ -849,6 +851,8 @@ const char *WM_drag_get_item_name(wmDrag *drag)
     }
     case WM_DRAG_NAME:
       return static_cast<const char *>(drag->poin);
+    default:
+      break;
   }
   return "";
 }
@@ -885,7 +889,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   drag->imb->y,
                                   GPU_RGBA8,
                                   false,
-                                  drag->imb->rect,
+                                  drag->imb->byte_buffer.data,
                                   drag->imbuf_scale,
                                   drag->imbuf_scale,
                                   1.0f,

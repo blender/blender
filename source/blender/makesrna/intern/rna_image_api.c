@@ -169,7 +169,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
     return;
   }
 
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     IMB_rect_from_float(ibuf);
   }
 

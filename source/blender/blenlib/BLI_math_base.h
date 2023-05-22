@@ -243,6 +243,15 @@ MINLINE uint64_t ceil_to_multiple_ul(uint64_t a, uint64_t b);
 MINLINE int mod_i(int i, int n);
 
 /**
+ * Modulo that returns a positive result, regardless of the sign of \a f.
+ *
+ * For example, mod_f_positive(-0.1, 1.0) => 0.9.
+ *
+ * \returns a float in the interval [0, n).
+ */
+MINLINE float mod_f_positive(float f, float n);
+
+/**
  * Round to closest even number, halfway cases are rounded away from zero.
  */
 MINLINE float round_to_even(float f);

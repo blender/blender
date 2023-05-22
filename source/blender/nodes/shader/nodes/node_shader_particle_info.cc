@@ -9,17 +9,17 @@ namespace blender::nodes::node_shader_particle_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Index"));
-  b.add_output<decl::Float>(N_("Random"));
-  b.add_output<decl::Float>(N_("Age"));
-  b.add_output<decl::Float>(N_("Lifetime"));
-  b.add_output<decl::Vector>(N_("Location"));
+  b.add_output<decl::Float>("Index");
+  b.add_output<decl::Float>("Random");
+  b.add_output<decl::Float>("Age");
+  b.add_output<decl::Float>("Lifetime");
+  b.add_output<decl::Vector>("Location");
 #if 0 /* quaternion sockets not yet supported */
-  b.add_output<decl::Quaternion>(N_("Rotation"));
+  b.add_output<decl::Quaternion>("Rotation");
 #endif
-  b.add_output<decl::Float>(N_("Size"));
-  b.add_output<decl::Vector>(N_("Velocity"));
-  b.add_output<decl::Vector>(N_("Angular Velocity"));
+  b.add_output<decl::Float>("Size");
+  b.add_output<decl::Vector>("Velocity");
+  b.add_output<decl::Vector>("Angular Velocity");
 }
 
 static int gpu_shader_particle_info(GPUMaterial *mat,

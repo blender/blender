@@ -302,7 +302,7 @@ int DocumentExporter::exportCurrentScene()
 
   /* Finally move the created document into place */
   fprintf(stdout, "Collada export to: %s\n", this->export_settings.get_filepath());
-  int status = BLI_rename(native_filename.c_str(), this->export_settings.get_filepath());
+  int status = BLI_rename_overwrite(native_filename.c_str(), this->export_settings.get_filepath());
   if (status != 0) {
     status = BLI_copy(native_filename.c_str(), this->export_settings.get_filepath());
     BLI_delete(native_filename.c_str(), false, false);

@@ -165,7 +165,12 @@ static int sequencer_retiming_handle_move_invoke(bContext *C, wmOperator *op, co
     return OPERATOR_CANCELLED;
   }
 
-  op->customdata = handle;
+  RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
+
+  if ((event->modifier & KM_SHIFT) != 0) {
+    op->customdata = (void *)1;
+  }
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -178,18 +183,63 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
   const Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = ed->act_seq;
 
+  int handle_index = RNA_int_get(op->ptr, "handle_index");
+  SeqRetimingHandle *handle = &SEQ_retiming_handles_get(seq)[handle_index];
+
   switch (event->type) {
     case MOUSEMOVE: {
       float mouse_x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
       int offset = 0;
 
-      SeqRetimingHandle *handle = (SeqRetimingHandle *)op->customdata;
-      SeqRetimingHandle *handle_prev = handle - 1;
-
-      /* Limit retiming handle movement. */
-      int xmin = SEQ_retiming_handle_timeline_frame_get(scene, seq, handle_prev) + 1;
-      mouse_x = max_ff(xmin, mouse_x);
       offset = mouse_x - SEQ_retiming_handle_timeline_frame_get(scene, seq, handle);
+
+      if (offset == 0) {
+        return OPERATOR_RUNNING_MODAL;
+      }
+
+      /* Add retiming gradient and move handle. */
+      if (op->customdata) {
+        SeqRetimingHandle *transition_handle = SEQ_retiming_add_transition(
+            scene, seq, handle, abs(offset));
+        /* New gradient handle was created - update operator properties. */
+        if (transition_handle != nullptr) {
+          if (offset < 0) {
+            handle = transition_handle;
+          }
+          else {
+            handle = transition_handle + 1;
+          }
+          RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
+        }
+      }
+
+      const bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
+      const bool prev_handle_is_transition = SEQ_retiming_handle_is_transition_type(handle - 1);
+
+      /* When working with transition, change handles when moving past pivot point. */
+      if (handle_is_transition || prev_handle_is_transition) {
+        SeqRetimingHandle *transition_start, *transition_end;
+        if (handle_is_transition) {
+          transition_start = handle;
+          transition_end = handle + 1;
+        }
+        else {
+          transition_start = handle - 1;
+          transition_end = handle;
+        }
+        const int offset_l = mouse_x -
+                             SEQ_retiming_handle_timeline_frame_get(scene, seq, transition_start);
+        const int offset_r = mouse_x -
+                             SEQ_retiming_handle_timeline_frame_get(scene, seq, transition_end);
+
+        if (prev_handle_is_transition && offset_l < 0) {
+          RNA_int_set(
+              op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, transition_start));
+        }
+        if (handle_is_transition && offset_r > 0) {
+          RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, transition_end));
+        }
+      }
 
       SEQ_retiming_offset_handle(scene, seq, handle, offset);
 
@@ -264,6 +314,14 @@ static int sequesequencer_retiming_handle_add_exec(bContext *C, wmOperator *op)
     timeline_frame = BKE_scene_frame_get(scene);
   }
 
+  const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
+  const SeqRetimingHandle *handle = SEQ_retiming_find_segment_start_handle(seq, frame_index);
+
+  if (SEQ_retiming_handle_is_transition_type(handle)) {
+    BKE_report(op->reports, RPT_ERROR, "Can not create handle inside of speed transition");
+    return OPERATOR_CANCELLED;
+  }
+
   bool inserted = false;
   const float end_frame = seq->start + SEQ_time_strip_length_get(scene, seq);
   if (seq->start < timeline_frame && end_frame > timeline_frame) {
@@ -314,7 +372,7 @@ static int sequencer_retiming_handle_remove_exec(bContext *C, wmOperator *op)
   Sequence *seq = ed->act_seq;
 
   SeqRetimingHandle *handle = (SeqRetimingHandle *)op->customdata;
-  SEQ_retiming_remove_handle(seq, handle);
+  SEQ_retiming_remove_handle(scene, seq, handle);
   SEQ_relations_invalidate_cache_raw(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;

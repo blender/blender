@@ -361,16 +361,16 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
   Brush *brush = (Brush *)id;
 
   /* brush->(mask_)mtex.obj is ignored on purpose? */
-  BLO_read_id_address(reader, brush->id.lib, &brush->mtex.tex);
-  BLO_read_id_address(reader, brush->id.lib, &brush->mask_mtex.tex);
-  BLO_read_id_address(reader, brush->id.lib, &brush->clone.image);
-  BLO_read_id_address(reader, brush->id.lib, &brush->toggle_brush);
-  BLO_read_id_address(reader, brush->id.lib, &brush->paint_curve);
+  BLO_read_id_address(reader, id, &brush->mtex.tex);
+  BLO_read_id_address(reader, id, &brush->mask_mtex.tex);
+  BLO_read_id_address(reader, id, &brush->clone.image);
+  BLO_read_id_address(reader, id, &brush->toggle_brush);
+  BLO_read_id_address(reader, id, &brush->paint_curve);
 
   /* link default grease pencil palette */
   if (brush->gpencil_settings != nullptr) {
     if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-      BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material);
+      BLO_read_id_address(reader, id, &brush->gpencil_settings->material);
 
       if (!brush->gpencil_settings->material) {
         brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
@@ -379,7 +379,7 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
     else {
       brush->gpencil_settings->material = nullptr;
     }
-    BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material_alt);
+    BLO_read_id_address(reader, id, &brush->gpencil_settings->material_alt);
   }
 }
 
@@ -399,10 +399,12 @@ static void brush_blend_read_expand(BlendExpander *expander, ID *id)
 static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 {
   BlendLibReader *reader = (BlendLibReader *)cb_data->user_data;
+  ID *self_id = cb_data->self_id;
   ID *id_old = *cb_data->id_pointer;
   /* Old data has not been remapped to new values of the pointers, if we want to keep the old
    * pointer here we need its new address. */
-  ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address(reader, id_old->lib, id_old) :
+  ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address(
+                                           reader, self_id, ID_IS_LINKED(self_id), id_old) :
                                        nullptr;
   BLI_assert(id_old_new == nullptr || ELEM(id_old, id_old_new, id_old_new->orig_id));
   if (cb_data->cb_flag & IDWALK_CB_USER) {
@@ -2653,18 +2655,22 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   int half = side / 2;
 
   BKE_curvemapping_init(br->curve);
-  im->rect_float = (float *)MEM_callocN(sizeof(float) * side * side, "radial control rect");
+
+  float *rect_float = (float *)MEM_callocN(sizeof(float) * side * side, "radial control rect");
+  IMB_assign_float_buffer(im, rect_float, IB_DO_NOT_TAKE_OWNERSHIP);
+
   im->x = im->y = side;
 
-  const bool have_texture = brush_gen_texture(br, side, secondary, im->rect_float);
+  const bool have_texture = brush_gen_texture(br, side, secondary, im->float_buffer.data);
 
   if (display_gradient || have_texture) {
     for (int i = 0; i < side; i++) {
       for (int j = 0; j < side; j++) {
         const float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
         const float strength = BKE_brush_curve_strength_clamped(br, magn, half);
-        im->rect_float[i * side + j] = (have_texture) ? im->rect_float[i * side + j] * strength :
-                                                        strength;
+        im->float_buffer.data[i * side + j] = (have_texture) ?
+                                                  im->float_buffer.data[i * side + j] * strength :
+                                                  strength;
       }
     }
   }

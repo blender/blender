@@ -35,7 +35,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
                              char effective_colorspace[IM_MAX_SPACE])
 {
   if (colorspace) {
-    if (ibuf->rect != nullptr && ibuf->rect_float == nullptr) {
+    if (ibuf->byte_buffer.data != nullptr && ibuf->float_buffer.data == nullptr) {
       /* byte buffer is never internally converted to some standard space,
        * store pointer to its color space descriptor instead
        */
@@ -59,7 +59,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
   }
   else {
     if (alpha_flags & IB_alphamode_premul) {
-      if (ibuf->rect) {
+      if (ibuf->byte_buffer.data) {
         IMB_unpremultiply_alpha(ibuf);
       }
       else {
@@ -67,7 +67,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
       }
     }
     else {
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         IMB_premultiply_alpha(ibuf);
       }
       else {

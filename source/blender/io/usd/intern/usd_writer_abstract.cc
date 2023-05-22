@@ -87,15 +87,27 @@ const pxr::SdfPath &USDAbstractWriter::usd_path() const
   return usd_export_context_.usd_path;
 }
 
+pxr::SdfPath USDAbstractWriter::get_material_library_path() const
+{
+  static std::string material_library_path("/_materials");
+
+  const char *root_prim_path = usd_export_context_.export_params.root_prim_path;
+
+  if (root_prim_path[0] != '\0') {
+    return pxr::SdfPath(root_prim_path + material_library_path);
+  }
+
+  return pxr::SdfPath(material_library_path);
+}
+
 pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
                                                              Material *material)
 {
-  static pxr::SdfPath material_library_path("/_materials");
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
   pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
-  pxr::SdfPath usd_path = material_library_path.AppendChild(material_name);
+  pxr::SdfPath usd_path = get_material_library_path().AppendChild(material_name);
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
     return usd_material;

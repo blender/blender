@@ -75,7 +75,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_nla.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"

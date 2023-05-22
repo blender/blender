@@ -182,9 +182,9 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area
  * \warning Drawing (swap-buffers) immediately before calling this function causes
  * the front-buffer state to be invalid under some EGL configurations.
  */
-uint *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
-                                             const struct wmWindow *win,
-                                             int r_size[2]);
+uint8_t *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
+                                                const struct wmWindow *win,
+                                                int r_size[2]);
 /** A version of #WM_window_pixels_read_from_frontbuffer that samples a pixel at `pos`. */
 void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
                                                    const struct wmWindow *win,
@@ -198,9 +198,9 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
  * \note This is needed because the state of the front-buffer may be damaged
  * (see in-line code comments for details).
  */
-uint *WM_window_pixels_read_from_offscreen(struct bContext *C,
-                                           struct wmWindow *win,
-                                           int r_size[2]);
+uint8_t *WM_window_pixels_read_from_offscreen(struct bContext *C,
+                                              struct wmWindow *win,
+                                              int r_size[2]);
 /** A version of #WM_window_pixels_read_from_offscreen that samples a pixel at `pos`. */
 bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
                                                  struct wmWindow *win,
@@ -212,7 +212,7 @@ bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
  *
  * \note Use off-screen drawing when front-buffer reading is not supported.
  */
-uint *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
+uint8_t *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
 /**
  * Read a single pixel from the screen.
  *
@@ -489,6 +489,8 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(struct bContext *C,
                                                        struct wmWindow *win,
                                                        struct ListBase *handlers,
                                                        const struct wmEvent *event);
+
+bool WM_event_match(const struct wmEvent *winevent, const struct wmKeyMapItem *kmi);
 
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
@@ -1361,8 +1363,12 @@ int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent
  * Start dragging immediately with the given data.
  * Note that \a poin should be valid allocated and not on stack.
  */
-void WM_event_start_drag(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
+void WM_event_start_drag(struct bContext *C,
+                         int icon,
+                         eWM_DragDataType type,
+                         void *poin,
+                         double value,
+                         unsigned int flags);
 /**
  * Create and fill the dragging data, but don't start dragging just yet (unlike
  * #WM_event_start_drag()). Must be followed up by #WM_event_start_prepared_drag(), otherwise the
@@ -1370,15 +1376,19 @@ void WM_event_start_drag(
  *
  * Note that \a poin should be valid allocated and not on stack.
  */
-wmDrag *WM_drag_data_create(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags);
+wmDrag *WM_drag_data_create(struct bContext *C,
+                            int icon,
+                            eWM_DragDataType type,
+                            void *poin,
+                            double value,
+                            unsigned int flags);
 /**
  * Invoke dragging using the given \a drag data.
  */
 void WM_event_start_prepared_drag(struct bContext *C, wmDrag *drag);
 void WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale);
 void WM_drag_free(struct wmDrag *drag);
-void WM_drag_data_free(int dragtype, void *poin);
+void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(struct ListBase *lb);
 struct wmDropBox *WM_dropbox_add(
     ListBase *lb,
@@ -1617,14 +1627,15 @@ void WM_job_main_thread_lock_release(struct wmJob *job);
 
 /**
  * Return text from the clipboard.
- *
- * \note Caller needs to check for valid utf8 if this is a requirement.
+ * \param selection: Use the "primary" clipboard, see: #WM_CAPABILITY_PRIMARY_CLIPBOARD.
+ * \param ensure_utf8: Ensure the resulting string does not contain invalid UTF8 encoding.
  */
-char *WM_clipboard_text_get(bool selection, int *r_len);
+char *WM_clipboard_text_get(bool selection, bool ensure_utf8, int *r_len);
 /**
  * Convenience function for pasting to areas of Blender which don't support newlines.
  */
-char *WM_clipboard_text_get_firstline(bool selection, int *r_len);
+char *WM_clipboard_text_get_firstline(bool selection, bool ensure_utf8, int *r_len);
+
 void WM_clipboard_text_set(const char *buf, bool selection);
 
 /**

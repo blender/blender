@@ -387,6 +387,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   RNA_def_property_float(prop, NULL, "rot");
   RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
   RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 #  endif
 

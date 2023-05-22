@@ -25,31 +25,31 @@ namespace blender::nodes::node_composite_cornerpin_cc {
 
 static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Vector>(N_("Upper Left"))
+  b.add_input<decl::Vector>("Upper Left")
       .default_value({0.0f, 1.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_input<decl::Vector>(N_("Upper Right"))
+  b.add_input<decl::Vector>("Upper Right")
       .default_value({1.0f, 1.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_input<decl::Vector>(N_("Lower Left"))
+  b.add_input<decl::Vector>("Lower Left")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_input<decl::Vector>(N_("Lower Right"))
+  b.add_input<decl::Vector>("Lower Right")
       .default_value({1.0f, 0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_output<decl::Color>(N_("Image"));
-  b.add_output<decl::Float>(N_("Plane"));
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Plane");
 }
 
 using namespace blender::realtime_compositor;

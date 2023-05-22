@@ -10,8 +10,8 @@ namespace blender::nodes::node_fn_string_length_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>(N_("String"));
-  b.add_output<decl::Int>(N_("Length"));
+  b.add_input<decl::String>("String");
+  b.add_output<decl::Int>("Length");
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)

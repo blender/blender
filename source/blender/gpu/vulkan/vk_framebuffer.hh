@@ -33,9 +33,9 @@ class VKFrameBuffer : public FrameBuffer {
 
   /**
    * Should we flip the viewport to match Blenders coordinate system. We flip the viewport for
-   * offscreen framebuffers.
+   * off-screen frame-buffers.
    *
-   * When two framebuffers are blitted we also check if the coordinate system should be flipped
+   * When two frame-buffers are blitted we also check if the coordinate system should be flipped
    * during blitting.
    */
   bool flip_viewport_ = false;

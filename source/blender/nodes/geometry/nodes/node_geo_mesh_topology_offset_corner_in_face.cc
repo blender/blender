@@ -11,17 +11,15 @@ namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Corner Index"))
+  b.add_input<decl::Int>("Corner Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(
-          N_("The corner to retrieve data from. Defaults to the corner from the context"));
-  b.add_input<decl::Int>(N_("Offset"))
-      .supports_field()
-      .description(N_("The number of corners to move around the face before finding the result, "
-                      "circling around the start of the face if necessary"));
-  b.add_output<decl::Int>(N_("Corner Index"))
+      .description("The corner to retrieve data from. Defaults to the corner from the context");
+  b.add_input<decl::Int>("Offset").supports_field().description(
+      "The number of corners to move around the face before finding the result, "
+      "circling around the start of the face if necessary");
+  b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
-      .description(N_("The index of the offset corner"));
+      .description("The index of the offset corner");
 }
 
 class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {

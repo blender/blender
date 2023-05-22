@@ -2335,68 +2335,6 @@ void BsdfNode::compile(OSLCompiler & /*compiler*/)
   assert(0);
 }
 
-/* Anisotropic BSDF Closure */
-
-NODE_DEFINE(AnisotropicBsdfNode)
-{
-  NodeType *type = NodeType::add("anisotropic_bsdf", create, NodeType::SHADER);
-
-  SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
-  SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
-  SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
-
-  static NodeEnum distribution_enum;
-  distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
-  distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
-  distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
-  SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
-
-  SOCKET_IN_VECTOR(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
-
-  SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
-  SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.5f);
-  SOCKET_IN_FLOAT(rotation, "Rotation", 0.0f);
-
-  SOCKET_OUT_CLOSURE(BSDF, "BSDF");
-
-  return type;
-}
-
-AnisotropicBsdfNode::AnisotropicBsdfNode() : BsdfNode(get_node_type())
-{
-  closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
-}
-
-void AnisotropicBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
-{
-  if (shader->has_surface_link()) {
-    ShaderInput *tangent_in = input("Tangent");
-
-    if (!tangent_in->link)
-      attributes->add(ATTR_STD_GENERATED);
-  }
-
-  ShaderNode::attributes(shader, attributes);
-}
-
-void AnisotropicBsdfNode::compile(SVMCompiler &compiler)
-{
-  closure = distribution;
-
-  if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
-    BsdfNode::compile(
-        compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
-  else
-    BsdfNode::compile(compiler, input("Roughness"), input("Anisotropy"), input("Rotation"));
-}
-
-void AnisotropicBsdfNode::compile(OSLCompiler &compiler)
-{
-  compiler.parameter(this, "distribution");
-  compiler.add(this, "node_anisotropic_bsdf");
-}
-
 /* Glossy BSDF Closure */
 
 NODE_DEFINE(GlossyBsdfNode)
@@ -2414,7 +2352,12 @@ NODE_DEFINE(GlossyBsdfNode)
   distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
   distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
   SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
+
+  SOCKET_IN_VECTOR(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
+
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
+  SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(rotation, "Rotation", 0.0f);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
@@ -2427,8 +2370,32 @@ GlossyBsdfNode::GlossyBsdfNode() : BsdfNode(get_node_type())
   distribution_orig = NBUILTIN_CLOSURES;
 }
 
+bool GlossyBsdfNode::is_isotropic()
+{
+  ShaderInput *anisotropy_input = input("Anisotropy");
+  /* Keep in sync with the thresholds in OSL's node_glossy_bsdf and SVM's svm_node_closure_bsdf. */
+  return (!anisotropy_input->link && fabsf(anisotropy) <= 1e-4f);
+}
+
+void GlossyBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_surface_link()) {
+    ShaderInput *tangent_in = input("Tangent");
+    if (!tangent_in->link && !is_isotropic())
+      attributes->add(ATTR_STD_GENERATED);
+  }
+
+  ShaderNode::attributes(shader, attributes);
+}
+
 void GlossyBsdfNode::simplify_settings(Scene *scene)
 {
+  /* If the anisotropy is close enough to zero, fall back to the isotropic case. */
+  ShaderInput *tangent_input = input("Tangent");
+  if (tangent_input->link && is_isotropic()) {
+    tangent_input->disconnect();
+  }
+
   if (distribution_orig == NBUILTIN_CLOSURES) {
     roughness_orig = roughness;
     distribution_orig = distribution;
@@ -2478,9 +2445,10 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
   if (closure == CLOSURE_BSDF_REFLECTION_ID)
     BsdfNode::compile(compiler, NULL, NULL);
   else if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
-    BsdfNode::compile(compiler, input("Roughness"), NULL, NULL, input("Color"));
+    BsdfNode::compile(
+        compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
   else
-    BsdfNode::compile(compiler, input("Roughness"), NULL);
+    BsdfNode::compile(compiler, input("Roughness"), input("Anisotropy"), input("Rotation"));
 }
 
 void GlossyBsdfNode::compile(OSLCompiler &compiler)

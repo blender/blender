@@ -28,7 +28,7 @@
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Edit Mesh #CD_BWEIGHT and #CD_CREASE Transform Creation
+/** \name Edit Mesh Bevel Weight and #CD_CREASE Transform Creation
  * \{ */
 
 static float *tc_mesh_cdata_transdata_center(const struct TransIslandData *island_data,
@@ -85,10 +85,10 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
 
     int cd_offset = -1;
     if (t->mode == TFM_BWEIGHT) {
-      if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-        BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
+      if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert")) {
+        BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
       }
-      cd_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+      cd_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
     }
     else {
       if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {

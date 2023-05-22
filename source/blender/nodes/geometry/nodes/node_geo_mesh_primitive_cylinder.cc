@@ -17,36 +17,36 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshCylinder)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertices"))
+  b.add_input<decl::Int>("Vertices")
       .default_value(32)
       .min(3)
       .max(512)
-      .description(N_("The number of vertices on the top and bottom circles"));
-  b.add_input<decl::Int>(N_("Side Segments"))
+      .description("The number of vertices on the top and bottom circles");
+  b.add_input<decl::Int>("Side Segments")
       .default_value(1)
       .min(1)
       .max(512)
-      .description(N_("The number of rectangular segments along each side"));
-  b.add_input<decl::Int>(N_("Fill Segments"))
+      .description("The number of rectangular segments along each side");
+  b.add_input<decl::Int>("Fill Segments")
       .default_value(1)
       .min(1)
       .max(512)
-      .description(N_("The number of concentric rings used to fill the round faces"));
-  b.add_input<decl::Float>(N_("Radius"))
+      .description("The number of concentric rings used to fill the round faces");
+  b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The radius of the cylinder"));
-  b.add_input<decl::Float>(N_("Depth"))
+      .description("The radius of the cylinder");
+  b.add_input<decl::Float>("Depth")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The height of the cylinder"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Bool>(N_("Top")).field_on_all();
-  b.add_output<decl::Bool>(N_("Side")).field_on_all();
-  b.add_output<decl::Bool>(N_("Bottom")).field_on_all();
-  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
+      .description("The height of the cylinder");
+  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Bool>("Top").field_on_all();
+  b.add_output<decl::Bool>("Side").field_on_all();
+  b.add_output<decl::Bool>("Bottom").field_on_all();
+  b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -74,7 +74,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryMeshCylinder &storage = node_storage(*node);
   const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
   const bool has_fill = fill != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
+  bke::nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

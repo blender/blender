@@ -109,7 +109,10 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
   assert(queue);
   (void)kernel_global_size;
   const static size_t preferred_work_group_size_intersect_shading = 32;
-  const static size_t preferred_work_group_size_technical = 1024;
+  /* Shader evaluation kernels seems to use some amount of shared memory, so better
+   * to avoid usage of maximum work group sizes for them. */
+  const static size_t preferred_work_group_size_shader_evaluation = 256;
+  const static size_t preferred_work_group_size_default = 1024;
 
   size_t preferred_work_group_size = 0;
   switch (kernel) {
@@ -133,19 +136,36 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY:
     case DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY:
     case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
     case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
+      preferred_work_group_size = GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE;
+      break;
+
+    case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
+    case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
     case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES:
-    case DEVICE_KERNEL_INTEGRATOR_RESET:
-    case DEVICE_KERNEL_INTEGRATOR_SHADOW_CATCHER_COUNT_POSSIBLE_SPLITS:
-      preferred_work_group_size = preferred_work_group_size_technical;
+      preferred_work_group_size = GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE;
+      break;
+
+    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
+    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS:
+      preferred_work_group_size = GPU_PARALLEL_SORT_BLOCK_SIZE;
+      break;
+
+    case DEVICE_KERNEL_PREFIX_SUM:
+      preferred_work_group_size = GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE;
+      break;
+
+    case DEVICE_KERNEL_SHADER_EVAL_DISPLACE:
+    case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND:
+    case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY:
+      preferred_work_group_size = preferred_work_group_size_shader_evaluation;
       break;
 
     default:
-      preferred_work_group_size = 512;
+      preferred_work_group_size = preferred_work_group_size_default;
+      break;
   }
 
   const size_t limit_work_group_size = reinterpret_cast<sycl::queue *>(queue)
@@ -176,7 +196,7 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
 
 bool oneapi_kernel_is_compatible_with_hardware_raytracing(const std::string &kernel_name)
 {
-  /* MNEE and Raytrace kernels work correctly with Hardware Raytracing starting with Embree 4.1.
+  /* MNEE and Ray-trace kernels work correctly with Hardware Ray-tracing starting with Embree 4.1.
    */
 #  if defined(RTC_VERSION) && RTC_VERSION < 40100
   return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) ==
@@ -316,12 +336,6 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
       kernel_context->queue, device_kernel, global_size);
   assert(global_size % local_size == 0);
 
-  /* Local size for DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY needs to be enforced so we
-   * overwrite it outside of oneapi_kernel_preferred_local_size. */
-  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY) {
-    local_size = GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE;
-  }
-
   /* Kernels listed below need a specific number of work groups. */
   if (device_kernel == DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY ||
       device_kernel == DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY ||
@@ -352,6 +366,14 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic error "-Wswitch"
 #  endif
+
+  int max_shaders = 0;
+
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS ||
+      device_kernel == DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS)
+  {
+    max_shaders = (kernel_context->scene_max_shaders);
+  }
 
   try {
     queue->submit([&](sycl::handler &cgh) {
@@ -495,13 +517,31 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_bucket_pass);
+          sycl::local_accessor<int> local_mem(max_shaders, cgh);
+          oneapi_kernel_integrator_sort_bucket_pass(kg,
+                                                    global_size,
+                                                    local_size,
+                                                    cgh,
+                                                    *(int *)(args[0]),
+                                                    *(int *)(args[1]),
+                                                    *(int *)(args[2]),
+                                                    *(int **)(args[3]),
+                                                    *(int *)(args[4]),
+                                                    local_mem);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sort_write_pass);
+          sycl::local_accessor<int> local_mem(max_shaders, cgh);
+          oneapi_kernel_integrator_sort_write_pass(kg,
+                                                   global_size,
+                                                   local_size,
+                                                   cgh,
+                                                   *(int *)(args[0]),
+                                                   *(int *)(args[1]),
+                                                   *(int *)(args[2]),
+                                                   *(int **)(args[3]),
+                                                   *(int *)(args[4]),
+                                                   local_mem);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY: {

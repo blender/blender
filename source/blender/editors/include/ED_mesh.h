@@ -419,8 +419,9 @@ void paintface_select_linked(struct bContext *C,
                              struct Object *ob,
                              const int mval[2],
                              bool select);
-/** Grow the selection of faces.
- * \param face_step If true will also select faces that only touch on the corner.
+/**
+ * Grow the selection of faces.
+ * \param face_step: If true will also select faces that only touch on the corner.
  */
 void paintface_select_more(struct Mesh *mesh, bool face_step);
 void paintface_select_less(struct Mesh *mesh, bool face_step);
@@ -586,10 +587,6 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, int layernum);
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name);
 int ED_mesh_color_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-int ED_mesh_sculpt_color_add(struct Mesh *me,
-                             const char *name,
-                             bool do_init,
-                             struct ReportList *reports);
 
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, char selectmode);

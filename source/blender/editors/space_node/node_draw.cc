@@ -38,7 +38,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
@@ -312,7 +312,7 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
 float2 node_to_view(const bNode &node, const float2 &co)
 {
   float2 result;
-  nodeToView(&node, co.x, co.y, &result.x, &result.y);
+  bke::nodeToView(&node, co.x, co.y, &result.x, &result.y);
   return result * UI_SCALE_FAC;
 }
 
@@ -332,7 +332,7 @@ float2 node_from_view(const bNode &node, const float2 &co)
   const float x = co.x / UI_SCALE_FAC;
   const float y = co.y / UI_SCALE_FAC;
   float2 result;
-  nodeFromView(&node, x, y, &result.x, &result.y);
+  bke::nodeFromView(&node, x, y, &result.x, &result.y);
   return result;
 }
 
@@ -402,7 +402,7 @@ static void node_update_basis(const bContext &C,
     uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
 
-    const char *socket_label = nodeSocketLabel(socket);
+    const char *socket_label = bke::nodeSocketLabel(socket);
     const char *socket_translation_context = node_socket_get_translation_context(*socket);
     socket->typeinfo->draw((bContext *)&C,
                            row,
@@ -539,7 +539,7 @@ static void node_update_basis(const bContext &C,
 
     uiLayout *row = uiLayoutRow(layout, true);
 
-    const char *socket_label = nodeSocketLabel(socket);
+    const char *socket_label = bke::nodeSocketLabel(socket);
     const char *socket_translation_context = node_socket_get_translation_context(*socket);
     socket->typeinfo->draw((bContext *)&C,
                            row,
@@ -1162,7 +1162,7 @@ static char *node_socket_get_tooltip(const SpaceNode *snode,
   }
 
   if (output.str().empty()) {
-    output << nodeSocketLabel(&socket);
+    output << bke::nodeSocketLabel(&socket);
   }
 
   return BLI_strdup(output.str().c_str());
@@ -2322,7 +2322,7 @@ static void node_draw_basis(const bContext &C,
   }
 
   char showname[128];
-  nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -2351,7 +2351,7 @@ static void node_draw_basis(const bContext &C,
   const float outline_width = 1.0f;
   {
     /* Use warning color to indicate undefined types. */
-    if (nodeTypeUndefined(&node)) {
+    if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
@@ -2424,7 +2424,7 @@ static void node_draw_basis(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (nodeTypeUndefined(&node)) {
+    else if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
@@ -2493,7 +2493,7 @@ static void node_draw_hidden(const bContext &C,
   /* Body. */
   float color[4];
   {
-    if (nodeTypeUndefined(&node)) {
+    if (bke::node_type_is_undefined(&node)) {
       /* Use warning color to indicate undefined types. */
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
@@ -2557,7 +2557,7 @@ static void node_draw_hidden(const bContext &C,
   }
 
   char showname[128];
-  nodeLabel(&ntree, &node, showname, sizeof(showname));
+  bke::nodeLabel(&ntree, &node, showname, sizeof(showname));
 
   uiBut *but = uiDefBut(&block,
                         UI_BTYPE_LABEL,
@@ -2590,7 +2590,7 @@ static void node_draw_hidden(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (nodeTypeUndefined(&node)) {
+    else if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else {
@@ -2855,7 +2855,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const float font_size = data->label_size / aspect;
 
   char label[MAX_NAME];
-  nodeLabel(&ntree, &node, label, sizeof(label));
+  bke::nodeLabel(&ntree, &node, label, sizeof(label));
 
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
@@ -3247,14 +3247,14 @@ static void node_draw_nodetree(const bContext &C,
   nodelink_batch_start(snode);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link) && !nodeLinkIsSelected(link)) {
+    if (!nodeLinkIsHidden(link) && !bke::nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, false);
     }
   }
 
   /* Draw selected node links after the unselected ones, so they are shown on top. */
   LISTBASE_FOREACH (const bNodeLink *, link, &ntree.links) {
-    if (!nodeLinkIsHidden(link) && nodeLinkIsSelected(link)) {
+    if (!nodeLinkIsHidden(link) && bke::nodeLinkIsSelected(link)) {
       node_draw_link(C, region.v2d, snode, *link, true);
     }
   }

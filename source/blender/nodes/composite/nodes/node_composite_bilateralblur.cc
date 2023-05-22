@@ -25,13 +25,13 @@ NODE_STORAGE_FUNCS(NodeBilateralBlurData)
 
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Color>(N_("Determinator"))
+  b.add_input<decl::Color>("Determinator")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(1);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_bilateralblur(bNodeTree * /*ntree*/, bNode *node)

@@ -136,8 +136,8 @@ void register_node_type_tex_output(void)
   static bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_OUTPUT, "Output", NODE_CLASS_OUTPUT);
-  node_type_socket_templates(&ntype, inputs, nullptr);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = init;
   node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
   ntype.exec_fn = exec;

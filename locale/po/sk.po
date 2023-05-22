@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'ae1c52b3f2e0')\n"
+"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-08 10:27:51\n"
+"POT-Creation-Date: 2023-05-15 09:19:43\n"
 "PO-Revision-Date: 2023-05-07 10:07+0200\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
@@ -9605,10 +9605,6 @@ msgid "Simple Expression"
 msgstr "Zjednodušený výraz"
 
 
-msgid "The scripted expression can be evaluated without using the full python interpreter"
-msgstr "Skriptový výraz, ktorý možno hodnotiť bez použitia úplného prekladača jazyka Python"
-
-
 msgid "Invalid"
 msgstr "Neplatné"
 
@@ -17146,8 +17142,8 @@ msgid "Falloff Curve"
 msgstr "Krivka dopadu"
 
 
-msgid "Custom light falloff curve"
-msgstr "Vlastná krivka dopadu svetla"
+msgid "Custom falloff curve"
+msgstr "Vlastná krivka dopadu"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17578,10 +17574,6 @@ msgstr "Posuv hĺbky ťahu"
 
 msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
 msgstr "Posúva ťahy mierne smerom ku kamere, aby ste sa vyhli orezaniu a zároveň zachovali hĺbku zobrazenia"
-
-
-msgid "Grease Pencil layer assigned to the generated strokes"
-msgstr "Vrstva pastelky priradená ku generovaným ťahom"
 
 
 msgid "Grease Pencil material assigned to the generated strokes"
@@ -19099,14 +19091,6 @@ msgstr "Viditeľné vrstvy"
 
 msgid "Armature layer visibility"
 msgstr "Armatúra viditeľnej vrstvy"
-
-
-msgid "Layer Proxy Protection"
-msgstr "Ochrana vrstvy náhrady"
-
-
-msgid "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo"
-msgstr "Chránené vrstvy v inštanciách náhrady sa obnovia podľa nastavenia oblasti vplyvu pri opätovnom načítaní súboru a vrátenia späť"
 
 
 msgid "Pose Position"
@@ -20828,10 +20812,6 @@ msgid "Use Plane Trim"
 msgstr "Použiť orezanie plochy"
 
 
-msgid "Enable Plane Trim"
-msgstr "Povolí orezanie plochy"
-
-
 msgid "Keep Anchor Point"
 msgstr "Zachovať bod ukotvenia"
 
@@ -21921,18 +21901,6 @@ msgstr "Pripne potomkov na dráhe krivky tak, aby nemohli prechádzať za počia
 
 msgid "Follow"
 msgstr "Sledovať"
-
-
-msgid "Make curve path children to rotate along the path"
-msgstr "Vytvorí potomkom dráhu krivky pre rotáciu pozdĺž dráhy"
-
-
-msgid "Option for paths and curve-deform: apply the curve radius with path following it and deforming"
-msgstr "Voľba pre dráhy a krivky deformácie: Použije polomer krivky na sledovanie dráhy a deformácie"
-
-
-msgid "Option for curve-deform: make deformed child to stretch along entire path"
-msgstr "Voľba pre krivku deformácie: Vytvorí deformovaného potomka na roztiahnutie pozdĺž celej dráhy"
 
 
 msgid "Surface Curve"
@@ -23932,6 +23900,10 @@ msgstr "Intenzita"
 
 msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Energia svetla vyžarovaná cez celú oblasť svetla vo všetkých smeroch"
+
+
+msgid "Custom light falloff curve"
+msgstr "Vlastná krivka dopadu svetla"
 
 
 msgid "Falloff Type"
@@ -26142,10 +26114,6 @@ msgid "Shape Key Lock"
 msgstr "Zamknúť kľúčový tvar"
 
 
-msgid "Always show the current shape for this object"
-msgstr "Vždy ukazovať aktuálny tvar pre tento objekt"
-
-
 msgid "Display Texture Space"
 msgstr "Zobraziť priestor textúry"
 
@@ -27621,10 +27589,6 @@ msgstr "Nastavenie EEVEE pre scénu"
 
 msgid "Current Frame"
 msgstr "Aktuálna snímka"
-
-
-msgid "Current frame, to update animation data from python frame_set() instead"
-msgstr "Aktuálna snímka na aktualizáciu údajov animácie namiesto pre Python frame_set ()"
 
 
 msgid "Current Frame Final"
@@ -37396,10 +37360,6 @@ msgstr "Modifikátor háku pre zmenu polohy vrcholov"
 
 msgid "Center of the hook, used for falloff and display"
 msgstr "Stred háku použitého pre dopad a zobrazenie"
-
-
-msgid "Custom falloff curve"
-msgstr "Vlastná krivka dopadu"
 
 
 msgid "Vertex Indices"
@@ -49663,16 +49623,8 @@ msgid "Export Keying Set..."
 msgstr "Exportovať sústavu kľúčovania..."
 
 
-msgid "Export Keying Set to a python script"
-msgstr "Exportuje sústavu kľúčovania do python skriptu"
-
-
 msgid "Filter folders"
 msgstr "Filtrovať priečinky"
-
-
-msgid "Filter python"
-msgstr "Filtrovať Python"
 
 
 msgid "Filter text"
@@ -50400,10 +50352,6 @@ msgstr "Filter súborov filmu"
 
 msgid "Filter OBJ files"
 msgstr "Filter súborov OBJ"
-
-
-msgid "Filter python files"
-msgstr "Filter python súborov"
 
 
 msgid "Filter sound files"
@@ -52225,10 +52173,6 @@ msgstr "Predošlé slovo"
 msgctxt "Operator"
 msgid "Console Execute"
 msgstr "Spustiť konzolu"
-
-
-msgid "Execute the current console line as a python expression"
-msgstr "Spustí konzolu aktuálneho riadka ako výrazu jazyka Python"
 
 
 msgctxt "Operator"
@@ -71346,10 +71290,6 @@ msgid "Export Key Configuration..."
 msgstr "Exportovať konfiguráciu kláves..."
 
 
-msgid "Export key configuration to a python script"
-msgstr "Exportuje konfiguráciu kláves do python skriptu"
-
-
 msgid "All Keymaps"
 msgstr "Všetky priradenia kláves"
 
@@ -71361,10 +71301,6 @@ msgstr "Zapíše všetky priradenia kláves (nie len upravené užívateľom)"
 msgctxt "Operator"
 msgid "Import Key Configuration..."
 msgstr "Importovať konfiguráciu kláves..."
-
-
-msgid "Import key configuration from a python script"
-msgstr "Importuje konfiguráciu kláves z python skriptu"
 
 
 msgid "Keep Original"
@@ -80628,10 +80564,6 @@ msgid "Operator Enum Pie"
 msgstr "Koláčový operátor výpočtu"
 
 
-msgid "Operator name (in python as string)"
-msgstr "Názov operátora (v jazyku Python ako reťazec)"
-
-
 msgid "Property name (as a string)"
 msgstr "Názov vlastnosti (ako reťazec)"
 
@@ -80748,10 +80680,6 @@ msgstr "Zmaže náhľady scén"
 
 msgid "Trusted Blend Files"
 msgstr "Dôveryhodné Blend súbory"
-
-
-msgid "Enable python evaluation for selected files"
-msgstr "Povolí hodnotenie jazyka Python pre vybrané súbory"
 
 
 msgctxt "Operator"
@@ -80941,10 +80869,6 @@ msgstr "Pole hodnôt PRAVDA alebo NEPRAVDA"
 
 msgid "A string value"
 msgstr "Hodnota raťazca"
-
-
-msgid "Edit a python value directly, for unsupported property types"
-msgstr "Priama úprava hodnoty jazyka Python pre nepodporované typy vlastností"
 
 
 msgid "Soft Max"
@@ -86471,10 +86395,6 @@ msgstr "Povolí viditeľnosť nových uzlov objemov v užívateľskom rozhraní"
 
 msgid "Override Templates"
 msgstr "Šablóny prepisu"
-
-
-msgid "Enable library override template in the python API"
-msgstr "Povolí šablóny prepisu knižnice v rozhraní API jazyka python"
 
 
 msgid "Sculpt Texture Paint"
@@ -95725,10 +95645,6 @@ msgid "Space Console"
 msgstr "Konzola priestoru"
 
 
-msgid "Interactive python console"
-msgstr "Interaktívna konzola jazyka Python"
-
-
 msgid "Font size to use for displaying the text"
 msgstr "Veľkosť písma použitá na zobrazenie textu"
 
@@ -97350,10 +97266,6 @@ msgstr "Prehľadáva znova od začiatku súboru po dosiahnutí konca"
 
 msgid "Live Edit"
 msgstr "Okamžitá úprava"
-
-
-msgid "Run python while editing"
-msgstr "Spustí jazyk Python počas úpravy"
 
 
 msgid "Match Case"
@@ -108299,10 +108211,6 @@ msgstr "Extrapolovať"
 
 msgid "Rotation Range"
 msgstr "Rozsah otáčania"
-
-
-msgid "Blender 2.6 doesn't support python constraints yet"
-msgstr "Blender 2.6 ešte nepodporuje python vynútenia"
 
 
 msgctxt "Operator"
@@ -126399,10 +126307,6 @@ msgid "Midtones"
 msgstr "Stredné tóny"
 
 
-msgid "Node not supported in the Viewport compositor"
-msgstr "Uzol nie je podporovaný v kompozítore záberu"
-
-
 msgid "Upper Left"
 msgstr "Vľavo hore"
 
@@ -126425,6 +126329,10 @@ msgstr "Strom uzlov musí byť kompozičným stromom uzlov akejkoľvek scény v 
 
 msgid "Pick"
 msgstr "Nabrať"
+
+
+msgid "Node not supported in the Viewport compositor"
+msgstr "Uzol nie je podporovaný v kompozítore záberu"
 
 
 msgid "Bokeh Type:"

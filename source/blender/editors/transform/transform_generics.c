@@ -660,7 +660,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_CURSOR_WRAP;
   }
 
+  if (op && (t->flag & T_MODAL) && !(t->flag & T_RELEASE_CONFIRM) &&
+      (prop = RNA_struct_find_property(op->ptr, "allow_navigation")) &&
+      RNA_property_boolean_get(op->ptr, prop))
+  {
+    t->vod = ED_view3d_navigation_init(C);
+  }
+
   setTransformViewMatrices(t);
+  calculateCenter2D(t);
+  calculateCenterLocal(t, t->center_global);
   initNumInput(&t->num);
 
   transform_gizmo_3d_model_from_constraint_and_mode_init(t);
@@ -770,6 +779,10 @@ void postTrans(bContext *C, TransInfo *t)
   }
 
   freeSnapping(t);
+
+  if (t->vod) {
+    ED_view3d_navigation_free(C, t->vod);
+  }
 }
 
 void applyTransObjects(TransInfo *t)

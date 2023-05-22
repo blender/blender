@@ -808,8 +808,8 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   gso->fn_kdtree = NULL;
   gso->fn_used = 0;
   gso->fn_size = 0;
-  gso->use_find_nearest = ((gso->brush->gpencil_weight_tool == GPWEIGHT_TOOL_BLUR) ||
-                           (gso->brush->gpencil_weight_tool == GPWEIGHT_TOOL_SMEAR));
+  gso->use_find_nearest = ELEM(
+      gso->brush->gpencil_weight_tool, GPWEIGHT_TOOL_BLUR, GPWEIGHT_TOOL_SMEAR);
 
   gso->gpd = ED_gpencil_data_get_active(C);
   gso->scene = scene;

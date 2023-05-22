@@ -7,19 +7,19 @@ namespace blender::nodes::node_shader_light_path_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Is Camera Ray"));
-  b.add_output<decl::Float>(N_("Is Shadow Ray"));
-  b.add_output<decl::Float>(N_("Is Diffuse Ray"));
-  b.add_output<decl::Float>(N_("Is Glossy Ray"));
-  b.add_output<decl::Float>(N_("Is Singular Ray"));
-  b.add_output<decl::Float>(N_("Is Reflection Ray"));
-  b.add_output<decl::Float>(N_("Is Transmission Ray"));
-  b.add_output<decl::Float>(N_("Ray Length"));
-  b.add_output<decl::Float>(N_("Ray Depth"));
-  b.add_output<decl::Float>(N_("Diffuse Depth"));
-  b.add_output<decl::Float>(N_("Glossy Depth"));
-  b.add_output<decl::Float>(N_("Transparent Depth"));
-  b.add_output<decl::Float>(N_("Transmission Depth"));
+  b.add_output<decl::Float>("Is Camera Ray");
+  b.add_output<decl::Float>("Is Shadow Ray");
+  b.add_output<decl::Float>("Is Diffuse Ray");
+  b.add_output<decl::Float>("Is Glossy Ray");
+  b.add_output<decl::Float>("Is Singular Ray");
+  b.add_output<decl::Float>("Is Reflection Ray");
+  b.add_output<decl::Float>("Is Transmission Ray");
+  b.add_output<decl::Float>("Ray Length");
+  b.add_output<decl::Float>("Ray Depth");
+  b.add_output<decl::Float>("Diffuse Depth");
+  b.add_output<decl::Float>("Glossy Depth");
+  b.add_output<decl::Float>("Transparent Depth");
+  b.add_output<decl::Float>("Transmission Depth");
 }
 
 static int node_shader_gpu_light_path(GPUMaterial *mat,
