@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -2095,30 +2095,6 @@ msgid "Fill"
 msgstr "ﺔﺌﺒﻌﺗ"
 
 
-msgid "Smooth"
-msgstr "ﻢﻋﺎﻧ"
-
-
-msgid "Thickness"
-msgstr "ﺔﻛﺎﻤﺴﻟﺍ"
-
-
-msgid "Grab"
-msgstr "ﺐﺤﺳﺍ"
-
-
-msgid "Twist"
-msgstr "ءﺍﻮﺘﻟﻹ﻿ﺍ"
-
-
-msgid "Pinch"
-msgstr "ﺪﻌّﺟ"
-
-
-msgid "Clone"
-msgstr "ﺦﺴﻧﺍ"
-
-
 msgid "Draw"
 msgstr "ﻢﺳﺭﺍ"
 
@@ -2133,6 +2109,14 @@ msgstr "ﺦﻄّﻟ"
 
 msgid "Input Samples"
 msgstr "ﻞﺧﺪﻟﺍ ﺕﺎﻨﻴﻋ"
+
+
+msgid "Thickness"
+msgstr "ﺔﻛﺎﻤﺴﻟﺍ"
+
+
+msgid "Smooth"
+msgstr "ﻢﻋﺎﻧ"
 
 
 msgid "Iterations"
@@ -9255,22 +9239,6 @@ msgid "Gaussian"
 msgstr "ﻲﺳﻭﺎﻏ"
 
 
-msgid "Deformation"
-msgstr "ﻩﻮّﺸﺘﻟﺍ"
-
-
-msgid "Bend"
-msgstr "ءﺎﻨﺤﻧﻻ﻿ﺍ"
-
-
-msgid "Expand"
-msgstr "ﻊﺳﻮﻣ"
-
-
-msgid "Inflate"
-msgstr "ﺲﻔّﻧ"
-
-
 msgid "Brush's capabilities"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﺕﺍﺭﺪﻗ"
 
@@ -9293,6 +9261,22 @@ msgstr "ﺦﺴﻨﻟﺍ ﺓﺍﺩﺍ ﺓﺭﻮﺻ"
 
 msgid "Clone Offset"
 msgstr "ﺦﺴﻨﻟﺍ ﺔﺣﺍﺯﺍ"
+
+
+msgid "Deformation"
+msgstr "ﻩﻮّﺸﺘﻟﺍ"
+
+
+msgid "Inflate"
+msgstr "ﺲﻔّﻧ"
+
+
+msgid "Grab"
+msgstr "ﺐﺤﺳﺍ"
+
+
+msgid "Expand"
+msgstr "ﻊﺳﻮﻣ"
 
 
 msgid "Snake Hook"
@@ -9345,6 +9329,10 @@ msgstr "ﺮﻳﺮﺤﺘﻠﻟ ﻞﺑﺎﻗ ﻁﻮﻘﺳ ﻰﻨﺤﻨﻣ"
 
 msgid "Comb"
 msgstr "ﻂﺸﻣ"
+
+
+msgid "Pinch"
+msgstr "ﺪﻌّﺟ"
 
 
 msgid "Puff"
@@ -9405,6 +9393,10 @@ msgstr "ﺭﻮﺼﻟﺍ ﻢﺳﺭ ﺓﺍﺩﺍ"
 
 msgid "Soften"
 msgstr "ﻒﻄّﻟ"
+
+
+msgid "Clone"
+msgstr "ﺦﺴﻧﺍ"
 
 
 msgid "Mask"
@@ -11707,18 +11699,6 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "ﺔﻓﺎﻔﺸﻟﺍ ﻪﺟﻭﻸ﻿ﻟ ﺞﻣﺪﻟﺍ ﻂﻤﻧ"
 
 
-msgid "Opaque"
-msgstr "ﻢﺘﻌﻣ"
-
-
-msgid "Alpha Clip"
-msgstr "ﺎﻔﻟﺍ ﻢﻴﻠﻘﺗ"
-
-
-msgid "Alpha Blend"
-msgstr "ﺎﻔﻟﺍ ﺞﻣﺩ"
-
-
 msgid "Render polygon transparent, depending on alpha channel of the texture"
 msgstr "ﺞﻴﺴﻨﻠﻟ ﺎﻔﻟﺍ ﺓﺎﻨﻗ ﻰﻠﻋ ﺩﺎﻤﺘﻋﻹ﻿ﺎﺑ ,ﺢﻄﺴﻟﺍ ﺔﻴﻓﺎﻔﺷ ﺮﻴّﺻ"
 
@@ -11801,6 +11781,14 @@ msgstr "ﺮﻌﺸﻟﺍ ﻝﺎﺒﺣ"
 
 msgid "Roughness"
 msgstr "ﺔﻧﻮﺸﺧ"
+
+
+msgid "Opaque"
+msgstr "ﻢﺘﻌﻣ"
+
+
+msgid "Alpha Clip"
+msgstr "ﺎﻔﻟﺍ ﻢﻴﻠﻘﺗ"
 
 
 msgid "Specular Color"
@@ -13465,6 +13453,10 @@ msgstr "ﻝﻮﻳﺬﻟﺍ ﺩﺪﻋ"
 
 msgid "Number of trail particles"
 msgstr "ﻞﻳﺬﻟﺍ ﺕﺎﻴﺋﺰﺟ ﺩﺪﻋ"
+
+
+msgid "Twist"
+msgstr "ءﺍﻮﺘﻟﻹ﻿ﺍ"
 
 
 msgid "Absolute Path Time"
@@ -18492,6 +18484,11 @@ msgid "Rotate around the Z axis of the modifier space"
 msgstr "ﺮﻴﻐﻤﻟﺍ ءﺎﻀﻔﻟ Z ﺭﻮﺤﻣ ﻝﻮﺣ ﺭﻭﺩ"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "ﻦﺣﺇ"
+
+
 msgid "Linearly scale along Z axis of the modifier space"
 msgstr "ﺮﻴّﻐﻤﻟﺍ ءﺎﻀﻔﻟ Z ﺭﻮﺤﻣ ﻝﻮﻃ ﻰﻠﻋ ﺎﻴﻄﺧ ﻢﺠﺣ"
 
@@ -23079,6 +23076,10 @@ msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻢﻜﺤﺘﻟﺍ ﻂﻘﻧ ﻖﺜﺑﺍ"
 
 msgid "Skin Resize"
 msgstr "ﺓﺮﺸﻘﻟﺍ ﻢﺠّﺣ"
+
+
+msgid "Bend"
+msgstr "ءﺎﻨﺤﻧﻻ﻿ﺍ"
 
 
 msgid "Shrink/Fatten"
@@ -28823,11 +28824,6 @@ msgid "To 3D Object"
 msgstr "ﻲﺛﻼ﻿ﺛ ﻦﺋﺎﻛ ﻰﻟﺍ"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "ﻦﺣﺇ"
-
-
 msgid "Edit Grease Pencil"
 msgstr "ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ ﺭﺮﺣ"
 
@@ -32631,6 +32627,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "ﻥﺯﻮﻟﺍ ﻦﻳﻮﻠﺗ ﻊﺿﻭ ﻲﻓ ﻥﺯﻮﻟﺍ ﺔﻨﻳﺎﻌﻤﻟ ﻞﻤﻌﺘﺴﻤﻟﺍ ﻥﺍﻮﻟﻷ﻿ﺍ ﻕﺎﻄﻧ"
 
 
+msgid "Base"
+msgstr "ﺱﺎﺳﻷ﻿ﺍ"
+
+
+msgid "Temperature"
+msgstr "ﺓﺭﺍﺮﺤﻟﺍ"
+
+
 msgid "ID Property Group"
 msgstr "ﻑﺮﻌﻣ ﺹﺍﻮﺧ ﺔﻋﻮﻤﺠﻣ"
 
@@ -33657,10 +33661,6 @@ msgstr "ﻡﺍﺪﻄﺻﻹ﻿ﺍ ﻉﻮﻧ"
 
 msgid "Linear Damping"
 msgstr "ﻲﻄﺧ ﺐﺤﺳ"
-
-
-msgid "Base"
-msgstr "ﺱﺎﺳﻷ﻿ﺍ"
 
 
 msgid "All modifiers"
@@ -36832,10 +36832,6 @@ msgid "Remove"
 msgstr "ﺔﻟﺍﺯﺇ"
 
 
-msgid "Out"
-msgstr "ﺝﺭﺎﺧ"
-
-
 msgid "Control Rotation"
 msgstr "ﻥﺍﺭﻭﺩ ﻢﻜﺤﺘﻟﺍ"
 
@@ -37161,10 +37157,6 @@ msgstr "ﻲﺋﺎﻘﻠﺗ ﻡﺪﻘﺗ"
 
 msgid "Refraction"
 msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ"
-
-
-msgid "Temperature"
-msgstr "ﺓﺭﺍﺮﺤﻟﺍ"
 
 
 msgid "Paths:"
@@ -38728,6 +38720,10 @@ msgstr "ﺩﻭﺪﺤﻠﻟ ﻢﺠّﺣ"
 
 msgid "Cannot re-link markers into the same scene"
 msgstr "ﻂﺋﺍﺮﺸﻟﺍ ﺭﺮﺤﻤﻠﻟ ﻢﻠﻓ ﺔﺻﺎﺼﻗ ﻂﻳﺮﺷ ﻒﺿﺃ"
+
+
+msgid "Out"
+msgstr "ﺝﺭﺎﺧ"
 
 
 msgid "Add a new control-point to the envelope on the current frame"
@@ -40748,10 +40744,6 @@ msgid "Japanese (日本語)"
 msgstr "(日本語) ﺔﻴﻧﺎﺑﺎﻴﻟﺍ"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "(Nederlandse taal) ﺔﻳﺪﻨﻟﻮﻫ "
-
-
 msgid "Italian (Italiano)"
 msgstr "(Italiano) ﺔﻴﻟﺎﻃﻹ﻿ﺍ"
 
@@ -40844,10 +40836,6 @@ msgid "Turkish (Türkçe)"
 msgstr "(Türkçe) ﺔﻴﻛﺮﺘﻟﺍ"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "(Eestlane) ﻲﻧﻮﺘﺳﺃ"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "(Esperanto) ﻮﺘﻧﺍﺮﻴﺒﺳﺃ"
 
@@ -40862,14 +40850,6 @@ msgstr "(Oʻzbek) ﻲﻜﺑﺯﻭﻷ﻿ﺍ"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "(Ўзбек) ﺔﻴﻠﻳﺮﻴﺴﻟﺍ ﻲﻜﺑﺯﻭﻷ﻿ﺍ"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "(मानक हिन्दी) ﻱﺪﻨﻫ"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "ﺔﻴﻣﺎﻨﺘﻴﻔﻟﺍ"
 
 
 msgid "Complete"

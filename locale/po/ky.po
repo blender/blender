@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -329,12 +329,12 @@ msgid "Marker"
 msgstr "Маркер"
 
 
-msgid "Smooth"
-msgstr "Тегиз"
-
-
 msgid "Draw"
 msgstr "Тартуу"
+
+
+msgid "Smooth"
+msgstr "Тегиз"
 
 
 msgid "Background Image"
@@ -1104,12 +1104,12 @@ msgid "Intensity"
 msgstr "Күчөгөндүгү"
 
 
-msgid "Opaque"
-msgstr "Күңүрттүк"
-
-
 msgid "Hair"
 msgstr "Чач"
+
+
+msgid "Opaque"
+msgstr "Күңүрттүк"
 
 
 msgid "Update"
@@ -4017,10 +4017,6 @@ msgid "Japanese (日本語)"
 msgstr "Жапон (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Голланд (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Итальян (Italiano)"
 
@@ -4121,10 +4117,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Иврит (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Эстон (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Эсперанто (Esperanto)"
 
@@ -4139,10 +4131,6 @@ msgstr "Өзбек (Oʻzbek)"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Өзбек кириллица (Ўзбек)"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Хинди (मानक हिन्दी)"
 
 
 msgid "Complete"

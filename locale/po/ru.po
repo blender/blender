@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1998,10 +1998,6 @@ msgid "Shape Key data-blocks"
 msgstr "Датаблоки ключей формы"
 
 
-msgid "Simulations"
-msgstr "Симуляции"
-
-
 msgid "Sounds"
 msgstr "Звуки"
 
@@ -3844,38 +3840,6 @@ msgid "Eraser Stroke"
 msgstr "Ластик штрихов"
 
 
-msgid "Smooth"
-msgstr "Сглаживание"
-
-
-msgid "Thickness"
-msgstr "Толщина"
-
-
-msgid "Randomize"
-msgstr "Рандомизация"
-
-
-msgid "Grab"
-msgstr "Захват"
-
-
-msgid "Push"
-msgstr "Отталкивание"
-
-
-msgid "Twist"
-msgstr "Кручение"
-
-
-msgid "Pinch"
-msgstr "Щипок"
-
-
-msgid "Clone"
-msgstr "Клонирование"
-
-
 msgid "Draw"
 msgstr "Рисование"
 
@@ -3908,6 +3872,10 @@ msgid "Material used for strokes drawn using this brush"
 msgstr "Материал, используемый для штрихов от этой кисти"
 
 
+msgid "Thickness"
+msgstr "Толщина"
+
+
 msgctxt "Brush"
 msgid "Jitter"
 msgstr "Дрожание"
@@ -3915,6 +3883,10 @@ msgstr "Дрожание"
 
 msgid "Jitter factor for new strokes"
 msgstr "Коэффициент дрожания для новых штрихов"
+
+
+msgid "Smooth"
+msgstr "Сглаживание"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -11876,6 +11848,10 @@ msgid "Show Scene data-blocks"
 msgstr "Показать датаблоки сцен"
 
 
+msgid "Simulations"
+msgstr "Симуляции"
+
+
 msgid "Show Simulation data-blocks"
 msgstr "Показать датаблоки симуляций"
 
@@ -17738,24 +17714,8 @@ msgid "Gaussian"
 msgstr "Гауссовский"
 
 
-msgid "Deformation"
-msgstr "Деформация"
-
-
 msgid "Deformation type that is used in the brush"
 msgstr "Тип деформации, использующийся в кисти"
-
-
-msgid "Bend"
-msgstr "Изгиб"
-
-
-msgid "Expand"
-msgstr "Расширить"
-
-
-msgid "Inflate"
-msgstr "Раздувание"
 
 
 msgid "Loop"
@@ -17784,6 +17744,26 @@ msgstr "Инструмент клонирования изображения"
 
 msgid "Clone Offset"
 msgstr "Смещение копии"
+
+
+msgid "Deformation"
+msgstr "Деформация"
+
+
+msgid "Push"
+msgstr "Отталкивание"
+
+
+msgid "Inflate"
+msgstr "Раздувание"
+
+
+msgid "Grab"
+msgstr "Захват"
+
+
+msgid "Expand"
+msgstr "Расширить"
 
 
 msgid "Snake Hook"
@@ -17897,6 +17877,10 @@ msgstr "Постоянная"
 
 msgid "Comb"
 msgstr "Расчёска"
+
+
+msgid "Pinch"
+msgstr "Щипок"
 
 
 msgid "Puff"
@@ -18041,6 +18025,10 @@ msgstr "Инструмент рисования изображения"
 
 msgid "Soften"
 msgstr "Смягчение"
+
+
+msgid "Clone"
+msgstr "Клонирование"
 
 
 msgid "Mask"
@@ -21424,32 +21412,16 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "Режим смешивания для прозрачных граней"
 
 
-msgid "Opaque"
-msgstr "Непрозрачность"
-
-
 msgid "Render surface without transparency"
 msgstr "Рендеринг поверхности без прозрачности"
-
-
-msgid "Alpha Clip"
-msgstr "Альфа-усечение"
 
 
 msgid "Use the alpha threshold to clip the visibility (binary visibility)"
 msgstr "Использовать порог альфа-канала для ограничения видимости (бинарная видимость)"
 
 
-msgid "Alpha Hashed"
-msgstr "Альфа-хеш"
-
-
 msgid "Use noise to dither the binary visibility (works well with multi-samples)"
 msgstr "Использовать шум для дизеринга ступенчатых градиентов (хорошо работает с несколькими сэмплами)"
-
-
-msgid "Alpha Blend"
-msgstr "Альфа-смешивание"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -21588,8 +21560,20 @@ msgid "Material will cast no shadow"
 msgstr "Материал не будет отбрасывать тени"
 
 
+msgid "Opaque"
+msgstr "Непрозрачность"
+
+
 msgid "Material will cast shadows without transparency"
 msgstr "Материал будет отбрасывать тени без прозрачности"
+
+
+msgid "Alpha Clip"
+msgstr "Альфа-усечение"
+
+
+msgid "Alpha Hashed"
+msgstr "Альфа-хеш"
 
 
 msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
@@ -23778,6 +23762,10 @@ msgstr "Размер шлейфа"
 
 msgid "Number of trail particles"
 msgstr "Количество частиц в шлейфе"
+
+
+msgid "Twist"
+msgstr "Кручение"
 
 
 msgid "Number of turns around parent along the strand"
@@ -29408,10 +29396,6 @@ msgid "Color for filling region bounded by each stroke"
 msgstr "Цвет заливки областей, ограниченных штрихами"
 
 
-msgid "Fill Style"
-msgstr "Стиль заливки"
-
-
 msgid "Select style used to fill strokes"
 msgstr "Стиль заливки штрихов"
 
@@ -29523,10 +29507,6 @@ msgstr "Показать обводку"
 
 msgid "Show stroke lines of this material"
 msgstr "Показать обводку для этого материала"
-
-
-msgid "Stroke Style"
-msgstr "Стиль обводки"
 
 
 msgid "Select style used to draw strokes"
@@ -31363,6 +31343,10 @@ msgid "Seed for random if used"
 msgstr "Вариация генератора случайных чисел, если он используется"
 
 
+msgid "Randomize"
+msgstr "Рандомизация"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "Собирать грани или рёбра в случайном порядке"
 
@@ -32189,10 +32173,6 @@ msgstr "Модификатор динамического рисования"
 
 msgid "Dynamic Paint modifier"
 msgstr "Модификатор динамического рисования"
-
-
-msgid "Canvas"
-msgstr "Холст"
 
 
 msgid "EdgeSplit Modifier"
@@ -33212,16 +33192,22 @@ msgid "Deform around local axis"
 msgstr "Деформировать вокруг локальных осей"
 
 
+msgctxt "Operator"
+msgid "Twist"
+msgstr "Скручивание"
+
+
 msgid "Rotate around the Z axis of the modifier space"
 msgstr "Вращение вокруг оси Z в пространстве модификатора"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Изогнуть"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "Изогнуть меш по оси Z в пространстве модификатора"
-
-
-msgid "Taper"
-msgstr "Конус"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -38568,10 +38554,6 @@ msgid "Volume Scatter"
 msgstr "Рассеивание объёма"
 
 
-msgid "Pixel Size"
-msgstr "Размер пикселя"
-
-
 msgid "Use screen pixel size instead of world units"
 msgstr "Использовать размер пикселя экрана вместо единиц мира"
 
@@ -42617,6 +42599,10 @@ msgstr "Изменить размер скелетной оболочки"
 
 msgid "To Sphere"
 msgstr "В сферу"
+
+
+msgid "Bend"
+msgstr "Изгиб"
 
 
 msgid "Shrink/Fatten"
@@ -59301,11 +59287,6 @@ msgid "Transformation orientation"
 msgstr "Ориентация осей"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Изогнуть"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "Изогнуть выделенные элементы между 3D-курсором и указателем мыши"
 
@@ -63558,6 +63539,10 @@ msgid "Properties of image and texture painting mode"
 msgstr "Свойства изображения и режима рисования по текстуре"
 
 
+msgid "Canvas"
+msgstr "Холст"
+
+
 msgid "Image used as canvas"
 msgstr "Изображение, используемое в качестве холста"
 
@@ -65305,11 +65290,6 @@ msgstr "Толщина"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "Интенсивность"
-
-
-msgctxt "Operator"
-msgid "Twist"
-msgstr "Скручивание"
 
 
 msgctxt "Operator"
@@ -68185,6 +68165,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "Цветовой диапазон, используемый для визуализации в режиме рисования весов"
 
 
+msgid "Base"
+msgstr "Основа"
+
+
+msgid "Temperature"
+msgstr "Температура"
+
+
 msgid "ID Property Group"
 msgstr "Группа ID-свойств"
 
@@ -70041,6 +70029,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Вертикальная составляющая формата пикселя для широкоэкранного вывода или неквадратных пикселей"
 
 
+msgid "Pixel Size"
+msgstr "Размер пикселя"
+
+
 msgid "Pixel size for viewport rendering"
 msgstr "Размер пикселя во вьюпорте во время рендеринга"
 
@@ -71007,10 +70999,6 @@ msgstr "Источник меша"
 
 msgid "Source of the mesh used to create collision shape"
 msgstr "Источник меша, определяющего форму столкновения"
-
-
-msgid "Base"
-msgstr "Основа"
 
 
 msgid "Base mesh"
@@ -79387,386 +79375,6 @@ msgid "WorkSpace UI Tags"
 msgstr "Теги интрефейса рабочего пространства"
 
 
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Действие:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Анимация:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Арматура:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Blender_id:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Рой:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Кисть:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Кнопки:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "Файл кэша:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Камера:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Видеофрагмент:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Ткань:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Коллекция:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Консоль:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Ограничитель:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Кривая:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Дин. рисование:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Правка:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Экспорт анимации:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Экспорт анимации:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Экспорт меша:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Экспорт сцены:"
-
-
-msgctxt "Operator"
-msgid "Export_shape:"
-msgstr "Экспорт формы:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "Файл:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Жидкость:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Шрифт:"
-
-
-msgctxt "Operator"
-msgid "Geometry:"
-msgstr "Геометрия:"
-
-
-msgctxt "Operator"
-msgid "Gizmogroup:"
-msgstr "Группа манипуляторов:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Grease Pencil:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Граф:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Изображение:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Импорт анимации:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Импорт кривой:"
-
-
-msgctxt "Operator"
-msgid "Import_image:"
-msgstr "Импорт изображения:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Импорт меша:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Импорт сцены:"
-
-
-msgctxt "Operator"
-msgid "Import_shape:"
-msgstr "Импорт формы:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Информация:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Решётка:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Маркер:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Маска:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Материал:"
-
-
-msgctxt "Operator"
-msgid "Mathvis:"
-msgstr "Мат. визуал.:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "МСфера:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Меш:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "НЛА:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Нода:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Объект:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Структура проекта:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Кривая рисования:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Рисование:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Палитра:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Частица:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "Библиотека поз:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Поза:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Настройки:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "Кэш частиц:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Рендер:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Твёрдое тело:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Сцена:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Экран:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Скрипт:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Скульптинг:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Видеоредактор:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Звук:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Поверхность:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Текстура:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Текст:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Преобразование:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Интерфейс:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "UV:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "2D-вид:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "3D-вид:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Окна:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Рабочее пространство:"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "Мир:"
-
-
 msgid "Search"
 msgstr "Поиск"
 
@@ -81260,10 +80868,6 @@ msgid "Curve Out X"
 msgstr "X конца кривой"
 
 
-msgid "Out"
-msgstr "Выход"
-
-
 msgid "Start Handle"
 msgstr "Рукоятка начала"
 
@@ -82391,10 +81995,6 @@ msgstr "Рендер-движок"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Запечь только кубическую карту"
-
-
-msgid "Temperature"
-msgstr "Температура"
 
 
 msgid "General Override"
@@ -86128,10 +85728,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Всего файлов: %d | Изменено: %d | Ошибок: %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "Невозможно преобразовать путь «%s» в относительный"
-
-
 msgid "Scene Collection"
 msgstr "Коллекция сцены"
 
@@ -86869,6 +86465,10 @@ msgstr "Копируемый драйвер не найден, поскольк�
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Драйвер не может быть вставлен, поскольку RNA-путь недопустим для данного ID (ID = %s, путь = %s)"
+
+
+msgid "Out"
+msgstr "Выход"
 
 
 msgid "<Unknown Modifier>"
@@ -93593,10 +93193,6 @@ msgid "Japanese (日本語)"
 msgstr "Японский (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Голландский (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Итальянский (Italiano)"
 
@@ -93709,10 +93305,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Иврит (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Эстонский (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Эсперанто (Esperanto)"
 
@@ -93733,24 +93325,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Узбекский кириллицей (Oʻzbek)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Хинди (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Вьетнамский (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "Баскский (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "Хауса (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "Казахский (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

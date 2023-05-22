@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -548,10 +548,6 @@ msgstr "เครื่องหมาย"
 
 msgid "Smooth"
 msgstr "ราบเรียบ"
-
-
-msgid "Randomize"
-msgstr "สุ่ม"
 
 
 msgid "Path"
@@ -2283,6 +2279,10 @@ msgstr "แพตช์"
 
 msgid "Percent"
 msgstr "ร้อยละ"
+
+
+msgid "Randomize"
+msgstr "สุ่ม"
 
 
 msgid "Ray Radius"
@@ -4020,31 +4020,6 @@ msgid "Method to display/shade objects in the 3D View"
 msgstr "วิธีที่จะแสดง/แรเงาวัตถุบนมุมมองสามมิติ"
 
 
-msgctxt "Operator"
-msgid "Action:"
-msgstr "กระทำ:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "ไซเคิล:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "หน้ากาก:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "การตั้งค่า:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "พื้นที่ใช้งาน:"
-
-
 msgid "Search"
 msgstr "ค้นหา"
 
@@ -5716,10 +5691,6 @@ msgid "Japanese (日本語)"
 msgstr "ภาษาญี่ปุ่น (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "ภาษาดัตช์ (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "ภาษาอิตาลี (Italiano)"
 
@@ -5832,10 +5803,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "ภาษาฮิบรู (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "ภาษาเอสโตเนีย (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "ภาษาเอสเปรันโต (Esperanto)"
 
@@ -5856,24 +5823,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "ภาษาอุซเบกซีริลลิก (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "ภาษาฮินดี (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "ภาษาเวียดนาม (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "ภาษาบาสก์ (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "ภาษาฮัวซา (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "ภาษาคาซัค (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"
