@@ -915,22 +915,20 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
                        deg_evaluate_object_modifiers_mode_node_visibility(depsgraph, id_node);
                      });
 
-  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+  int modifier_index;
+  LISTBASE_FOREACH_INDEX (ModifierData *, modifier, &object->modifiers, modifier_index) {
     OperationNode *modifier_node = add_operation_node(
         &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
     if (modifier->type == eModifierType_Nodes) {
-      modifier_node->evaluate = [nmd = reinterpret_cast<NodesModifierData *>(modifier),
-                                 modifier_node](::Depsgraph *depsgraph) {
-        if (!DEG_is_active(depsgraph)) {
-          return;
-        }
-        if (modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
-          if (nmd->simulation_cache &&
-              nmd->simulation_cache->cache_state() == bke::sim::CacheState::Valid) {
-            nmd->simulation_cache->invalidate();
-          }
-        }
-      };
+      modifier_node->evaluate =
+          [id_node, modifier_index, modifier_node](::Depsgraph * /*depsgraph*/) {
+            Object *ob_eval = reinterpret_cast<Object *>(id_node->id_cow);
+            ModifierData *md_eval = reinterpret_cast<ModifierData *>(
+                BLI_findlink(&ob_eval->modifiers, modifier_index));
+            /* Set flag that the modifier can check when it is evaluated. */
+            const bool is_user_modified = modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED;
+            SET_FLAG_FROM_TEST(md_eval->flag, is_user_modified, eModifierFlag_UserModified);
+          };
     }
 
     /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.

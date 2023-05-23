@@ -1159,6 +1159,15 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
     }
 
     {
+      /* Invalidate cached data on user edits. */
+      if (nmd.modifier.flag & eModifierFlag_UserModified) {
+        if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked) {
+          nmd_orig.simulation_cache->invalidate();
+        }
+      }
+    }
+
+    {
       /* Reset cached data if necessary. */
       const bke::sim::StatesAroundFrame sim_states =
           nmd_orig.simulation_cache->get_states_around_frame(current_frame);
