@@ -45,6 +45,9 @@
 
 #include <string>
 
+/* For detail flood fill developer mode */
+#include "../../blenkernel/intern/dyntopo_intern.hh"
+
 using blender::float3;
 
 /* -------------------------------------------------------------------- */
@@ -84,15 +87,25 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Detail Flood Fill
  * \{ */
-static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wmOperator * /*op*/)
+static int sculpt_detail_flood_fill_run(Object *ob,
+                                        Sculpt *sd,
+                                        Brush *brush,
+                                        wmOperator *op,
+                                        std::function<void()> lock_main_thread,
+                                        std::function<void()> unlock_main_thread,
+                                        std::function<void()> update_main_thread,
+                                        std::function<bool()> should_stop)
 {
   using namespace blender::bke::dyntopo;
 
-  SculptSession *ss = ob->sculpt;
+  lock_main_thread();
 
+  bool developer_mode = RNA_boolean_get(op->ptr, "developer");
+  SculptSession *ss = ob->sculpt;
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   if (nodes.is_empty()) {
+    unlock_main_thread();
     return OPERATOR_CANCELLED;
   }
 
@@ -124,25 +137,52 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
   double time = PIL_check_seconds_timer();
   int edge_step_mul = 1 + int(ss->cached_dyntopo.quality * 100.0f);
 
-  for (int i = 0; i < 1 + ss->cached_dyntopo.repeat; i++) {
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  unlock_main_thread();
 
+  int repeat = ss->cached_dyntopo.repeat;
+  for (int i = 0; i < 1 + repeat; i++) {
+    lock_main_thread();
+
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
     for (int j = 0; j < nodes.size(); j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
     blender::bke::dyntopo::BrushNoRadius brush_tester;
-    remesh_topology(&brush_tester,
-                    ss,
-                    ss->pbvh,
-                    mode,
-                    false,
-                    float3(0.0f, 0.0f, 1.0f),
-                    false,
-                    mask_cb,
-                    mask_cb_data,
-                    edge_step_mul);
+    EdgeQueueContext remesher(&brush_tester,
+                              ss,
+                              ss->pbvh,
+                              mode,
+                              false,
+                              float3(0.0f, 0.0f, 1.0f),
+                              false,
+                              mask_cb,
+                              mask_cb_data,
+                              edge_step_mul);
+
+    remesher.start();
+
+    while (!remesher.done()) {
+      remesher.step();
+
+      if (developer_mode && remesher.was_flushed()) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+        unlock_main_thread();
+        update_main_thread();
+        PIL_sleep_ms(1);
+        lock_main_thread();
+      }
+
+      if (should_stop()) {
+        break;
+      }
+    }
+
+    remesher.finish();
+    unlock_main_thread();
   }
+
+  lock_main_thread();
 
   time = (PIL_check_seconds_timer() - time) * 1000.0;
   printf("    Time: %.3fms\n", float(time));
@@ -151,6 +191,8 @@ static int sculpt_detail_flood_fill_run(Object *ob, Sculpt *sd, Brush *brush, wm
 
   after_stroke(ss->pbvh, true);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
+  unlock_main_thread();
 
   return OPERATOR_FINISHED;
 }
@@ -167,7 +209,14 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
   int ret = sculpt_detail_flood_fill_run(
-      CTX_data_active_object(C), sd, BKE_paint_brush(&sd->paint), op);
+      CTX_data_active_object(C),
+      sd,
+      BKE_paint_brush(&sd->paint),
+      op,
+      []() {},
+      []() {},
+      []() {},
+      []() { return false; });
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   SCULPT_undo_push_end(ob);
@@ -195,26 +244,30 @@ static void start_fill_job(void * /*custom_data*/,
 {
   printf("Start detail fill job.\n");
 
+  auto lock_main_thread = [&]() { WM_job_main_thread_lock_acquire(flood_fill_job.job); };
+  auto unlock_main_thread = [&]() { WM_job_main_thread_lock_release(flood_fill_job.job); };
+  auto update_main_thread = [&]() { *do_update = true; };
+  auto should_stop = [&]() { return *stop; };
+
   while (true) {
     if (*stop) {
       break;
     }
 
-    WM_job_main_thread_lock_acquire(flood_fill_job.job);
-
-    if (sculpt_detail_flood_fill_run(
-            flood_fill_job.ob, flood_fill_job.sd, flood_fill_job.brush, flood_fill_job.op) ==
-        OPERATOR_CANCELLED)
+    if (sculpt_detail_flood_fill_run(flood_fill_job.ob,
+                                     flood_fill_job.sd,
+                                     flood_fill_job.brush,
+                                     flood_fill_job.op,
+                                     lock_main_thread,
+                                     unlock_main_thread,
+                                     update_main_thread,
+                                     should_stop) == OPERATOR_CANCELLED)
     {
-      WM_job_main_thread_lock_release(flood_fill_job.job);
       break;
     }
 
-    WM_job_main_thread_lock_release(flood_fill_job.job);
-
     *do_update = true;
-
-    PIL_sleep_ms(50);
+    PIL_sleep_ms(15);
   }
 
   printf("\nJob finished\n\n");
@@ -303,6 +356,7 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna, "interactive", true, "Interactive", "Interactive mode");
+  RNA_def_boolean(ot->srna, "developer", false, "Developer", "Developer mode");
 }
 
 /** \} */

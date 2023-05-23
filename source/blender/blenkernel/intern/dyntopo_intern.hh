@@ -3,10 +3,12 @@
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.hh"
 
 #include "BLI_asan.h"
 #include "BLI_heap_minmax.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rand.hh"
 
 #include "bmesh.h"
 #include "pbvh_intern.hh"
@@ -251,6 +253,57 @@ struct EdgeQueueContext {
 
   PBVHTopologyUpdateMode mode;
   bool reproject_cdata;
+
+  bool updatePBVH = false;
+  int steps[2];
+  PBVHTopologyUpdateMode ops[2];
+  int totop = 0;
+  int current_i = 0;
+  int max_steps;
+  PBVH *pbvh;
+  BMEdge **edges;
+  int etot;
+  int edges_size;
+  SmallHash subd_edges;
+  bool modified = false;
+  int count_subd = 0;
+  int count = 0;
+  int curop = 0;
+  int max_subd;
+
+  ~EdgeQueueContext();
+  EdgeQueueContext(BrushTester *brush_tester,
+                   struct SculptSession *ss,
+                   PBVH *pbvh,
+                   PBVHTopologyUpdateMode mode,
+                   bool use_frontface,
+                   float3 view_normal,
+                   bool updatePBVH,
+                   DyntopoMaskCB mask_cb,
+                   void *mask_cb_data,
+                   int edge_limit_multiply);
+
+  void flush_subdivision();
+  void start();
+  bool done();
+  void step();
+  void finish();
+
+  void report();
+
+  bool was_flushed()
+  {
+    if (flushed_) {
+      flushed_ = false;
+      return true;
+    }
+
+    return false;
+  }
+
+  blender::RandomNumberGenerator rand;
+ private:
+  bool flushed_ = false;
 };
 
 bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root);

@@ -1799,7 +1799,8 @@ void BM_log_set_current_entry(BMLog *log, BMLogEntry *entry)
 
 bool BM_log_entry_drop(BMLogEntry *entry)
 {
-  printf("%s: Freeing log entry %p\n", __func__, entry);
+  float size = entry->calc_size() / 1024.0f / 1024.0f;
+  printf("%s: Freeing log entry %p, size: %.3fmb\n", __func__, entry, size);
 
   if (entry->prev) {
     entry->prev->next = entry->next;
