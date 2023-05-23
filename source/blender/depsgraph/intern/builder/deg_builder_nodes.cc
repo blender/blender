@@ -131,7 +131,6 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain,
       scene_(nullptr),
       view_layer_(nullptr),
       view_layer_index_(-1),
-      collection_(nullptr),
       is_parent_collection_visible_(true)
 {
 }
@@ -711,10 +710,8 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
     return;
   }
   /* Backup state. */
-  Collection *current_state_collection = collection_;
   const bool is_current_parent_collection_visible = is_parent_collection_visible_;
   /* Modify state as we've entered new collection/ */
-  collection_ = collection;
   is_parent_collection_visible_ = is_collection_visible;
   /* Build collection objects. */
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
@@ -725,7 +722,6 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
     build_collection(nullptr, child->collection);
   }
   /* Restore state. */
-  collection_ = current_state_collection;
   is_parent_collection_visible_ = is_current_parent_collection_visible;
   id_node->is_collection_fully_expanded = true;
 }
