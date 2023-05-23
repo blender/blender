@@ -32,16 +32,6 @@ const char *kernel_type_as_string(MetalPipelineType pso_type)
   return "";
 }
 
-bool kernel_has_intersection(DeviceKernel device_kernel)
-{
-  return (device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
-}
-
 struct ShaderCache {
   ShaderCache(id<MTLDevice> _mtlDevice) : mtlDevice(_mtlDevice)
   {
@@ -393,6 +383,11 @@ bool MetalKernelPipeline::should_use_binary_archive() const
       }
     }
 
+    if (use_metalrt && device_kernel_has_intersection(device_kernel)) {
+      /* Binary linked functions aren't supported in binary archives. */
+      return false;
+    }
+
     if (pso_type == PSO_GENERIC) {
       /* Archive the generic kernels. */
       return true;
@@ -581,7 +576,7 @@ void MetalKernelPipeline::compile()
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL]];
     [unique_functions addObjectsFromArray:table_functions[METALRT_TABLE_LOCAL_PRIM]];
 
-    if (kernel_has_intersection(device_kernel)) {
+    if (device_kernel_has_intersection(device_kernel)) {
       linked_functions = [[NSArray arrayWithArray:[unique_functions allObjects]]
           sortedArrayUsingComparator:^NSComparisonResult(id<MTLFunction> f1, id<MTLFunction> f2) {
             return [f1.label compare:f2.label];
