@@ -2052,7 +2052,7 @@ static bool do_write_image_or_movie(Render *re,
   re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
-  printf(" Time: %s", filepath);
+  printf("Time: %s", filepath);
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
