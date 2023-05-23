@@ -27,17 +27,11 @@ Keywords and Positional Arguments
 For calling operators keywords are used for operator properties and
 positional arguments are used to define how the operator is called.
 
-There are 3 optional positional arguments (documented in detail below).
+There are 2 optional positional arguments (documented in detail below).
 
 .. code-block:: python
 
-   bpy.ops.test.operator(override_context, execution_context, undo)
-
-- override_context - ``dict`` type.
-
-  .. deprecated:: 3.2
-
-     :class:`bpy.types.Context.temp_override` should be used instead of this argument.
+   bpy.ops.test.operator(execution_context, undo)
 
 - execution_context - ``str`` (enum).
 - undo - ``bool`` type.

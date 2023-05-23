@@ -40,19 +40,13 @@ class _BPyOpsSubModOp:
 
     @staticmethod
     def _parse_args(args):
-        C_dict = None
         C_exec = 'EXEC_DEFAULT'
         C_undo = False
 
-        is_dict = is_exec = is_undo = False
+        is_exec = is_undo = False
 
         for arg in args:
-            if is_dict is False and isinstance(arg, dict):
-                if is_exec is True or is_undo is True:
-                    raise ValueError("dict arg must come first")
-                C_dict = arg
-                is_dict = True
-            elif is_exec is False and isinstance(arg, str):
+            if is_exec is False and isinstance(arg, str):
                 if is_undo is True:
                     raise ValueError("string arg must come before the boolean")
                 C_exec = arg
@@ -61,9 +55,9 @@ class _BPyOpsSubModOp:
                 C_undo = arg
                 is_undo = True
             else:
-                raise ValueError("1-3 args execution context is supported")
+                raise ValueError("1-2 args execution context is supported")
 
-        return C_dict, C_exec, C_undo
+        return C_exec, C_undo
 
     @staticmethod
     def _view_layer_update(context):
@@ -83,8 +77,8 @@ class _BPyOpsSubModOp:
         self._func = func
 
     def poll(self, *args):
-        C_dict, C_exec, _C_undo = _BPyOpsSubModOp._parse_args(args)
-        return _op_poll(self.idname_py(), C_dict, C_exec)
+        C_exec, _C_undo = _BPyOpsSubModOp._parse_args(args)
+        return _op_poll(self.idname_py(), C_exec)
 
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo
@@ -107,10 +101,10 @@ class _BPyOpsSubModOp:
         _BPyOpsSubModOp._view_layer_update(context)
 
         if args:
-            C_dict, C_exec, C_undo = _BPyOpsSubModOp._parse_args(args)
-            ret = _op_call(self.idname_py(), C_dict, kw, C_exec, C_undo)
+            C_exec, C_undo = _BPyOpsSubModOp._parse_args(args)
+            ret = _op_call(self.idname_py(), kw, C_exec, C_undo)
         else:
-            ret = _op_call(self.idname_py(), None, kw)
+            ret = _op_call(self.idname_py(), kw)
 
         if 'FINISHED' in ret and context.window_manager == wm:
             _BPyOpsSubModOp._view_layer_update(context)
