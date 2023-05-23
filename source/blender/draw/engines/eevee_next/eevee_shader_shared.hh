@@ -355,7 +355,7 @@ enum eVelocityStep : uint32_t {
 
 struct VelocityObjectIndex {
   /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;
 
@@ -367,11 +367,11 @@ BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
   /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 len;
+  packed_int3 len;
 
   int _pad0;
 
