@@ -1575,25 +1575,24 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
       RE_AcquireResultImage(re, &rres, view_id);
 
-      if (rres.rectf) {
-        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
-        memcpy(ibufs_arr[view_id]->float_buffer.data,
-               rres.rectf,
-               sizeof(float[4]) * rres.rectx * rres.recty);
+      if (rres.combined_buffer.data) {
+        ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, 0);
+        IMB_assign_shared_float_buffer(
+            ibufs_arr[view_id], rres.combined_buffer.data, rres.combined_buffer.sharing_info);
 
-        if (rres.rectz) {
-          addzbuffloatImBuf(ibufs_arr[view_id]);
-          memcpy(ibufs_arr[view_id]->float_z_buffer.data,
-                 rres.rectz,
-                 sizeof(float) * rres.rectx * rres.recty);
+        if (rres.z_buffer.data) {
+          IMB_assign_shared_float_z_buffer(
+              ibufs_arr[view_id], rres.z_buffer.data, rres.z_buffer.sharing_info);
         }
 
         /* float buffers in the sequencer are not linear */
         seq_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }
-      else if (rres.rect32) {
+      else if (rres.byte_buffer.data) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
-        memcpy(ibufs_arr[view_id]->byte_buffer.data, rres.rect32, 4 * rres.rectx * rres.recty);
+        memcpy(ibufs_arr[view_id]->byte_buffer.data,
+               rres.byte_buffer.data,
+               4 * rres.rectx * rres.recty);
       }
 
       if (view_id != context->view_id) {

@@ -43,6 +43,7 @@
 #include "../blenlib/BLI_sys_types.h"
 #include "../gpu/GPU_texture.h"
 
+#include "BLI_implicit_sharing.h"
 #include "IMB_imbuf_types.h"
 
 #ifdef __cplusplus
@@ -147,6 +148,20 @@ struct ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
                                   unsigned int w,
                                   unsigned int h,
                                   unsigned int channels);
+
+/* Assign the content of the corresponding buffer using an implicitly shareable data pointer.
+ *
+ * NOTE: Does not modify the the topology (width, height, number of channels) or the mipmaps in any
+ * way. */
+void IMB_assign_shared_byte_buffer(struct ImBuf *ibuf,
+                                   uint8_t *buffer_data,
+                                   const ImplicitSharingInfoHandle *implicit_sharing);
+void IMB_assign_shared_float_buffer(struct ImBuf *ibuf,
+                                    float *buffer_data,
+                                    const ImplicitSharingInfoHandle *implicit_sharing);
+void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
+                                      float *buffer_data,
+                                      const ImplicitSharingInfoHandle *implicit_sharing);
 
 /* Assign the content of the corresponding buffer with the given data and ownership.
  * The current content of the buffer is released corresponding to its ownership configuration.

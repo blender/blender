@@ -22,6 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_implicit_sharing.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -65,12 +66,16 @@ void imb_mmap_unlock(void)
  * buffer to its defaults. */
 template<class BufferType> static void imb_free_buffer(BufferType &buffer)
 {
-  if (buffer.data) {
+  if (buffer.implicit_sharing) {
+    blender::implicit_sharing::free_shared_data(&buffer.data, &buffer.implicit_sharing);
+  }
+  else if (buffer.data) {
     switch (buffer.ownership) {
       case IB_DO_NOT_TAKE_OWNERSHIP:
         break;
 
       case IB_TAKE_OWNERSHIP:
+        BLI_assert(buffer.implicit_sharing == nullptr);
         MEM_freeN(buffer.data);
         break;
     }
@@ -79,6 +84,7 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
   /* Reset buffer to defaults. */
   buffer.data = nullptr;
   buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
+  buffer.implicit_sharing = nullptr;
 }
 
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
@@ -110,6 +116,11 @@ template<class BufferType> void imb_make_writeable_buffer(BufferType &buffer)
     case IB_DO_NOT_TAKE_OWNERSHIP:
       buffer.data = static_cast<decltype(BufferType::data)>(MEM_dupallocN(buffer.data));
       buffer.ownership = IB_TAKE_OWNERSHIP;
+
+      if (buffer.implicit_sharing) {
+        buffer.implicit_sharing->remove_user_and_delete_if_last();
+        buffer.implicit_sharing = nullptr;
+      }
       break;
 
     case IB_TAKE_OWNERSHIP:
@@ -142,6 +153,30 @@ auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
   BLI_assert_unreachable();
 
   return nullptr;
+}
+
+/* Assign the new data of the buffer which is implicitly shared via the given handle.
+ * The old content of the buffer is freed using imb_free_buffer. */
+template<class BufferType>
+void imb_assign_shared_buffer(BufferType &buffer,
+                              decltype(BufferType::data) buffer_data,
+                              const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(buffer);
+
+  if (implicit_sharing) {
+    BLI_assert(buffer_data != nullptr);
+
+    blender::implicit_sharing::copy_shared_pointer(
+        buffer_data, implicit_sharing, &buffer.data, &buffer.implicit_sharing);
+  }
+  else {
+    BLI_assert(buffer_data == nullptr);
+    buffer.data = nullptr;
+    buffer.implicit_sharing = nullptr;
+  }
+
+  buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 }
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
@@ -481,6 +516,45 @@ void IMB_make_writable_byte_buffer(ImBuf *ibuf)
 void IMB_make_writable_float_buffer(ImBuf *ibuf)
 {
   imb_make_writeable_buffer(ibuf->float_buffer);
+}
+
+void IMB_assign_shared_byte_buffer(ImBuf *ibuf,
+                                   uint8_t *buffer_data,
+                                   const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->byte_buffer);
+  ibuf->flags &= ~IB_rect;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->byte_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_rect;
+  }
+}
+
+void IMB_assign_shared_float_buffer(ImBuf *ibuf,
+                                    float *buffer_data,
+                                    const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->float_buffer);
+  ibuf->flags &= ~IB_rectfloat;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->float_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_rectfloat;
+  }
+}
+
+void IMB_assign_shared_float_z_buffer(ImBuf *ibuf,
+                                      float *buffer_data,
+                                      const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->float_z_buffer);
+  ibuf->flags &= ~IB_zbuffloat;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->float_z_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_zbuffloat;
+  }
 }
 
 void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, const ImBufOwnership ownership)

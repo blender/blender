@@ -271,7 +271,7 @@ static void eevee_render_color_result(RenderLayer *rl,
                              num_channels,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->rect);
+                             rp->buffer.data);
 }
 
 static void eevee_render_result_combined(RenderLayer *rl,
