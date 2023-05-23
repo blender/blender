@@ -38,14 +38,16 @@ struct Library;
 struct MainLock;
 struct UniqueName_Map;
 
-/* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
-/* We pack pixel data after that struct. */
+/**
+ * Blender thumbnail, as written to the `.blend` file (width, height, and data as char RGBA).
+ */
 typedef struct BlendThumbnail {
   int width, height;
+  /** Pixel data, RGBA (repeated): `sizeof(char[4]) * width * height`. */
   char rect[0];
 } BlendThumbnail;
 
-/* Structs caching relations between data-blocks in a given Main. */
+/** Structs caching relations between data-blocks in a given Main. */
 typedef struct MainIDRelationsEntryItem {
   struct MainIDRelationsEntryItem *next;
 
@@ -123,10 +125,10 @@ typedef struct Main {
   /**
    * The file-path of this blend file, an empty string indicates an unsaved file.
    *
-   * \note For the current loaded blend file this path should be absolute & normalized
-   * to prevent redundant leading slashes or current-working-directory relative paths
-   * from causing problems with absolute/relative patch conversion that relies on this being
-   * an absolute path. See #BLI_path_canonicalize_native.
+   * \note For the current loaded blend file this path must be absolute & normalized.
+   * This prevents redundant leading slashes or current-working-directory relative paths
+   * from causing problems with absolute/relative conversion which relies on this `filepath`
+   * being absolute. See #BLI_path_canonicalize_native.
    *
    * This rule is not strictly enforced as in some cases loading a #Main is performed
    * to read data temporarily (preferences & startup) for e.g.
@@ -230,10 +232,10 @@ typedef struct Main {
    */
   struct MainIDRelations *relations;
 
-  /* IDMap of IDs. Currently used when reading (expanding) libraries. */
+  /** IDMap of IDs. Currently used when reading (expanding) libraries. */
   struct IDNameLib_Map *id_map;
 
-  /* Used for efficient calculations of unique names. */
+  /** Used for efficient calculations of unique names. */
   struct UniqueName_Map *name_map;
 
   struct MainLock *lock;

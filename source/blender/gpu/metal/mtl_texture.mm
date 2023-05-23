@@ -176,7 +176,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
       }
     }
 
-    /* Note: Texture type for cube maps can be overriden as a 2D array. This is done
+    /* Note: Texture type for cube maps can be overridden as a 2D array. This is done
      * via modifying this textures type flags. */
     MTLTextureType texture_view_texture_type = to_metal_type(type_);
 
