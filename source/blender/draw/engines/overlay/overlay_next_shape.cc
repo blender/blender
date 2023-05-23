@@ -5,8 +5,6 @@
  * \ingroup overlay
  */
 
-#pragma once
-
 #include "overlay_next_private.hh"
 
 namespace blender::draw::overlay {
