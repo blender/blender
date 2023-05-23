@@ -445,10 +445,17 @@ def external_scripts_update(args: argparse.Namespace,
                     # automatically and fails when the branch is available in multiple remotes.
                     if make_utils.git_local_branch_exists(args.git_command, submodule_branch):
                         call([args.git_command, "checkout", submodule_branch])
-                    elif make_utils.git_remote_exist(args.git_command, "origin"):
-                        call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
-                    elif make_utils.git_remote_exist(args.git_command, "upstream"):
-                        call([args.git_command, "checkout", "-t", f"upstream/{submodule_branch}"])
+                    else:
+                        if make_utils.git_remote_branch_exists(args.git_command, "origin", submodule_branch):
+                            call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
+                        elif make_utils.git_remote_exist(args.git_command, "upstream"):
+                            # For the Github style of upstream workflow create a local branch from
+                            # the upstream, but do not track it, so that we stick to the paradigm
+                            # that no local branches are tracking upstream, preventing possible
+                            # accidental commit to upstream.
+                            call([args.git_command, "checkout", "-b", submodule_branch,
+                                 f"upstream/{submodule_branch}", "--no-track"])
+
                 # Don't use extra fetch since all remotes of interest have been already fetched
                 # some lines above.
                 skip_msg += work_tree_update(args, use_fetch=False)
