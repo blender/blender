@@ -26,6 +26,17 @@ enum eUVPackIsland_MarginMethod {
   ED_UVPACK_MARGIN_FRACTION,
 };
 
+enum eUVPackIsland_RotationMethod {
+  /** No rotation. */
+  ED_UVPACK_ROTATION_NONE = 0,
+  /** Rotated to a minimal rectangle, either vertical or horizontal. */
+  ED_UVPACK_ROTATION_AXIS_ALIGNED,
+  /** Only 90 degree rotations are allowed. */
+  ED_UVPACK_ROTATION_CARDINAL,
+  /** Any angle. */
+  ED_UVPACK_ROTATION_ANY,
+};
+
 enum eUVPackIsland_ShapeMethod {
   /** Use Axis-Aligned Bounding-Boxes. */
   ED_UVPACK_SHAPE_AABB = 0,
@@ -57,8 +68,8 @@ class UVPackIsland_Params {
   void setUDIMOffsetFromSpaceImage(const SpaceImage *sima);
   bool isCancelled() const;
 
-  /** Islands can be rotated to improve packing. */
-  bool rotate;
+  /** Restrictions around island rotation. */
+  eUVPackIsland_RotationMethod rotate_method;
   /** Resize islands to fill the unit square. */
   bool scale_to_fit;
   /** (In UV Editor) only pack islands which have one or more selected UVs. */

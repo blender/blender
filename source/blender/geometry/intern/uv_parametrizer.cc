@@ -4113,7 +4113,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   Vector<PackIsland *> pack_island_vector;
 
   UVPackIsland_Params params;
-  params.rotate = do_rotate;
+  params.rotate_method = do_rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
   params.margin = margin;
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
 

@@ -211,6 +211,12 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
   if (!can_rotate_(params)) {
     return; /* Nothing to do. */
   }
+  if (params.rotate_method == ED_UVPACK_ROTATION_CARDINAL) {
+    /* Arbitrary rotations are not allowed. */
+    return;
+  }
+  BLI_assert(params.rotate_method == ED_UVPACK_ROTATION_ANY ||
+             params.rotate_method == ED_UVPACK_ROTATION_AXIS_ALIGNED);
 
   /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an arbitrary
    * angle to minimize the area of the enclosing AABB. This angle is stored in the `pre_rotate_`
@@ -325,7 +331,7 @@ void PackIsland::place_(const float scale, const uv_phi phi)
 
 UVPackIsland_Params::UVPackIsland_Params()
 {
-  rotate = false;
+  rotate_method = ED_UVPACK_ROTATION_NONE;
   scale_to_fit = true;
   only_selected_uvs = false;
   only_selected_faces = false;
@@ -1095,8 +1101,8 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
   if (island_indices.size() == 0) {
     return false; /* Nothing to do. */
   }
-  if (!params.rotate) {
-    return false; /* Unable to rotate. */
+  if (params.rotate_method != ED_UVPACK_ROTATION_ANY) {
+    return false; /* Unable to rotate by arbitrary angle. */
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
     /* AABB margin calculations are not preserved under rotations. */
@@ -1927,7 +1933,7 @@ void PackIsland::build_inverse_transformation(const float scale,
 
 bool PackIsland::can_rotate_(const UVPackIsland_Params &params) const
 {
-  if (!params.rotate) {
+  if (params.rotate_method == ED_UVPACK_ROTATION_NONE) {
     return false;
   }
   if (!pinned) {

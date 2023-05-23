@@ -1507,7 +1507,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   }
 
   pack_island_params.setFromUnwrapOptions(options);
-  pack_island_params.rotate = RNA_boolean_get(op->ptr, "rotate");
+  pack_island_params.rotate_method = eUVPackIsland_RotationMethod(
+      RNA_enum_get(op->ptr, "rotate_method"));
   pack_island_params.scale_to_fit = RNA_boolean_get(op->ptr, "scale");
   pack_island_params.merge_overlap = RNA_boolean_get(op->ptr, "merge_overlap");
   pack_island_params.pin_method = eUVPackIsland_PinMethod(RNA_enum_get(op->ptr, "pin_method"));
@@ -1561,6 +1562,23 @@ static const EnumPropertyItem pack_margin_method_items[] = {
      0,
      "Fraction",
      "Specify a precise fraction of final UV output"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem pack_rotate_method_items[] = {
+    {ED_UVPACK_ROTATION_NONE, "NONE", 0, "No rotation", "No rotation is applied to the islands"},
+    RNA_ENUM_ITEM_SEPR,
+    {ED_UVPACK_ROTATION_AXIS_ALIGNED,
+     "AXIS_ALIGNED",
+     0,
+     "Axis-aligned",
+     "Rotated to a minimal rectangle, either vertical or horizontal"},
+    {ED_UVPACK_ROTATION_CARDINAL,
+     "CARDINAL",
+     0,
+     "Cardinal",
+     "Only 90 degree rotations are allowed"},
+    {ED_UVPACK_ROTATION_ANY, "ANY", 0, "Any", "Any angle is allowed for rotation"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1627,7 +1645,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
-  RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
+  RNA_def_enum(ot->srna,
+               "rotate_method",
+               pack_rotate_method_items,
+               ED_UVPACK_ROTATION_ANY,
+               "Rotation Method",
+               "");
   RNA_def_boolean(ot->srna, "scale", true, "Scale", "Scale islands to fill unit square");
   RNA_def_boolean(
       ot->srna, "merge_overlap", false, "Merge Overlapped", "Overlapping islands stick together");
@@ -2360,7 +2383,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
 
     blender::geometry::UVPackIsland_Params pack_island_params;
     pack_island_params.setFromUnwrapOptions(options);
-    pack_island_params.rotate = true;
+    pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
     pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
@@ -2502,7 +2525,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   blender::geometry::UVPackIsland_Params pack_island_params;
   pack_island_params.setFromUnwrapOptions(options);
-  pack_island_params.rotate = true;
+  pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
   pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
@@ -2882,7 +2905,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
     blender::geometry::UVPackIsland_Params params;
-    params.rotate = true;
+    params.rotate_method = ED_UVPACK_ROTATION_ANY;
     params.only_selected_uvs = only_selected_uvs;
     params.only_selected_faces = true;
     params.correct_aspect = correct_aspect;
@@ -3871,7 +3894,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   /* Pack UVs. */
   blender::geometry::UVPackIsland_Params params;
-  params.rotate = true;
+  params.rotate_method = ED_UVPACK_ROTATION_ANY;
   params.only_selected_uvs = false;
   params.only_selected_faces = false;
   params.correct_aspect = false;
