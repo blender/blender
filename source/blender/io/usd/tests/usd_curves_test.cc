@@ -192,8 +192,8 @@ static void check_catmullRom_curve(const pxr::UsdPrim prim,
         << "Wrap token should be periodic for periodic curve";
   }
   else {
-    EXPECT_EQ(wrap_token, pxr::UsdGeomTokens->nonperiodic)
-        << "Wrap token should be nonperiodic for nonperiodic curve";
+    EXPECT_EQ(wrap_token, pxr::UsdGeomTokens->pinned)
+        << "Wrap token should be pinned for nonperiodic catmullRom curve";
   }
 
   pxr::UsdAttribute vert_count_attr = curve.GetCurveVertexCountsAttr();
