@@ -78,7 +78,6 @@ static PyStructSequence_Field app_info_fields[] = {
      "Blender versions"},
     {"version_string", "The Blender version formatted as a string"},
     {"version_cycle", "The release status of this build alpha/beta/rc/release"},
-    {"version_char", "Deprecated, always an empty string"},
     {"background",
      "Boolean, True when blender is running without a user interface (started with -b)"},
     {"factory_startup", "Boolean, True when blender is running with --factory-startup)"},
@@ -148,7 +147,6 @@ static PyObject *make_app_info(void)
   SetStrItem(BKE_blender_version_string());
 
   SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));
-  SetStrItem("");
   SetObjItem(PyBool_FromLong(G.background));
   SetObjItem(PyBool_FromLong(G.factory_startup));
 
