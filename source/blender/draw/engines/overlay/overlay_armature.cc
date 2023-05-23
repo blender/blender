@@ -619,9 +619,6 @@ static void drw_shgroup_bone_envelope(ArmatureDrawContext *ctx,
 
 /* Custom (geometry) */
 
-extern "C" void drw_batch_cache_validate(Object *custom);
-extern "C" void drw_batch_cache_generate_requested_delayed(Object *custom);
-
 BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
                                                        DRWShadingGroup *grp,
                                                        GPUBatch *custom_geom)

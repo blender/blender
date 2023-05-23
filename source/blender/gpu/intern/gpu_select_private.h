@@ -37,6 +37,19 @@ void gpu_select_query_begin(
 bool gpu_select_query_load_id(uint id);
 uint gpu_select_query_end(void);
 
+/* gpu_select_next */
+
+void gpu_select_next_begin(GPUSelectResult *buffer,
+                           uint buffer_len,
+                           const rcti *input,
+                           eGPUSelectMode mode);
+uint gpu_select_next_end(void);
+
+/* Return a single offset since picking uses squared viewport. */
+int gpu_select_next_get_pick_area_center(void);
+eGPUSelectMode gpu_select_next_get_mode(void);
+void gpu_select_next_set_result(GPUSelectResult *buffer, uint buffer_len);
+
 #define SELECT_ID_NONE ((uint)0xffffffff)
 
 #ifdef __cplusplus

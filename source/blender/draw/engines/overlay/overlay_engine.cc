@@ -20,10 +20,19 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
+#include "GPU_capabilities.h"
+
 #include "DNA_space_types.h"
+
+#include "draw_manager.hh"
+#include "overlay_next_instance.hh"
 
 #include "overlay_engine.h"
 #include "overlay_private.hh"
+
+using namespace blender::draw;
+
+using Instance = blender::draw::overlay::Instance;
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
@@ -46,8 +55,7 @@ static void OVERLAY_engine_init(void *vedata)
 
   /* Allocate instance. */
   if (data->instance == nullptr) {
-    data->instance = static_cast<OVERLAY_Instance *>(
-        MEM_callocN(sizeof(*data->instance), __func__));
+    data->instance = new Instance(select::SelectionType::DISABLED);
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
@@ -729,17 +737,17 @@ static void OVERLAY_draw_scene(void *vedata)
 static void OVERLAY_engine_free()
 {
   OVERLAY_shader_free();
+  overlay::ShaderModule::module_free();
 }
 
 static void OVERLAY_instance_free(void *instance_)
 {
-  OVERLAY_Instance *instance = (OVERLAY_Instance *)instance_;
-  DRW_UBO_FREE_SAFE(instance->grid_ubo);
-  MEM_freeN(instance);
+  auto *instance = (Instance *)instance_;
+  if (instance != nullptr) {
+    delete instance;
+  }
 }
-
 /** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Engine Type
  * \{ */
