@@ -2089,7 +2089,7 @@ static bool lib_override_library_resync(Main *bmain,
        * during a previous Blender session, in which case it became directly linked and a reference
        * to it was stored in the local .blend file. however, since that linked liboverride ID does
        * not actually exist in the original library file, on next file read it is lost and marked
-       * as missing ID.*/
+       * as missing ID. */
       if (id_override_old == nullptr && ID_IS_LINKED(id_override_new)) {
         id_override_old = lib_override_library_resync_search_missing_ids_data(missing_ids_data,
                                                                               id_override_new);
@@ -2188,6 +2188,25 @@ static bool lib_override_library_resync(Main *bmain,
     }
 
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old)) {
+      /* The remapping from old to new liboverrides above has a sad side effect on ShapeKeys. Since
+       * old liboverrides are also remapped, it means that the old liboverride owner of the shape
+       * key is also now pointing to the new liboverride shape key, not the old one. Since shape
+       * keys do not own their liboverride data, the old liboverride shape key user has to be
+       * restored to use the old liboverride shapekey, otherwise applying shape key override
+       * operations will be useless (would apply using the new, from linked data, liboverride,
+       * being effectively a no-op). */
+      Key **key_override_old_p = BKE_key_from_id_p(id_override_old);
+      if (key_override_old_p != nullptr && *key_override_old_p != nullptr) {
+        Key *key_linked_reference = BKE_key_from_id(id_override_new->override_library->reference);
+        BLI_assert(key_linked_reference != nullptr);
+        BLI_assert(key_linked_reference->id.newid == &(*key_override_old_p)->id);
+
+        Key *key_override_old = static_cast<Key *>(
+            BLI_ghash_lookup(linkedref_to_old_override, &key_linked_reference->id));
+        BLI_assert(key_override_old != nullptr);
+        *key_override_old_p = key_override_old;
+      }
+
       /* Apply rules on new override ID using old one as 'source' data. */
       /* Note that since we already remapped ID pointers in old override IDs to new ones, we
        * can also apply ID pointer override rules safely here. */
@@ -2220,6 +2239,12 @@ static bool lib_override_library_resync(Main *bmain,
                                 id_override_new->override_library,
                                 do_hierarchy_enforce ? RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS :
                                                        RNA_OVERRIDE_APPLY_FLAG_NOP);
+
+      /* Clear the old shape key pointer again, otherwise it won't make ID management code happy
+       * when freeing (at least from user count side of things).  */
+      if (key_override_old_p != nullptr) {
+        *key_override_old_p = nullptr;
+      }
     }
 
     BLI_linklist_prepend(&id_override_old_list, id_override_old);
