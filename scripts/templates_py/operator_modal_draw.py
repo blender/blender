@@ -11,7 +11,7 @@ def draw_callback_px(self, context):
 
     # draw some text
     blf.position(font_id, 15, 30, 0)
-    blf.size(font_id, 20, 72)
+    blf.size(font_id, 20.0)
     blf.draw(font_id, "Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line

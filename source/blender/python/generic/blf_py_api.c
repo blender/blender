@@ -61,16 +61,11 @@ PyDoc_STRVAR(py_blf_size_doc,
              "   :type dpi: int\n");
 static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
-  int fontid, dpi = -1;
+  int fontid;
   float size;
 
-  if (!PyArg_ParseTuple(args, "if|i:blf.size", &fontid, &size, &dpi)) {
+  if (!PyArg_ParseTuple(args, "if:blf.size", &fontid, &size)) {
     return NULL;
-  }
-
-  if (dpi != -1) {
-    size *= (float)dpi / 72.0f;
-    PyErr_WarnEx(PyExc_DeprecationWarning, "'dpi' is deprecated and assumed to be always 72.", 1);
   }
 
   BLF_size(fontid, size);
