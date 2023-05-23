@@ -56,9 +56,7 @@ PyDoc_STRVAR(py_blf_size_doc,
              "font use 0.\n"
              "   :type fontid: int\n"
              "   :arg size: Point size of the font.\n"
-             "   :type size: float\n"
-             "   :arg dpi: DEPRECATED: Defaults to 72 when omitted.\n"
-             "   :type dpi: int\n");
+             "   :type size: float\n");
 static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
   int fontid;
