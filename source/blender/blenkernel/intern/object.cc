@@ -1227,7 +1227,7 @@ static IDProperty *object_asset_dimensions_property(Object *ob)
   }
 
   IDPropertyTemplate idprop{};
-  idprop.array.len = ARRAY_SIZE(dimensions);
+  idprop.array.len = 3;
   idprop.array.type = IDP_FLOAT;
 
   IDProperty *property = IDP_New(IDP_ARRAY, &idprop, "dimensions");

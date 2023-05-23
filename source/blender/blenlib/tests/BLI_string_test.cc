@@ -1332,3 +1332,18 @@ TEST_F(StringEscape, Control)
 }
 
 /** \} */
+
+TEST(BLI_string, bounded_strcpy)
+{
+  {
+    char str[8];
+    STRNCPY(str, "Hello");
+    EXPECT_STREQ(str, "Hello");
+  }
+
+  {
+    char str[8];
+    STRNCPY(str, "Hello, World!");
+    EXPECT_STREQ(str, "Hello, ");
+  }
+}

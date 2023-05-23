@@ -1402,6 +1402,10 @@ float geodesic_distance_propagate_across_triangle(
 
 /** \} */
 
+#ifdef __cplusplus
+}
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Definitions
  * \{ */
@@ -1415,7 +1419,3 @@ float geodesic_distance_propagate_across_triangle(
 #endif
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif
