@@ -112,14 +112,13 @@ static void subdivide_attribute_linear(const OffsetIndices<int> src_points_by_cu
   });
 }
 
-template<typename T>
 static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_by_curve,
                                             const OffsetIndices<int> dst_points_by_curve,
                                             const IndexMask selection,
                                             const Span<int> all_point_offsets,
                                             const Span<bool> cyclic,
-                                            const Span<T> src,
-                                            MutableSpan<T> dst)
+                                            const GSpan src,
+                                            GMutableSpan dst)
 {
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     for (const int curve_i : selection.slice(selection_range)) {
@@ -132,26 +131,6 @@ static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_
                                                          all_point_offsets.slice(src_segments),
                                                          dst.slice(dst_points));
     }
-  });
-}
-
-static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_by_curve,
-                                            const OffsetIndices<int> dst_points_by_curve,
-                                            const IndexMask selection,
-                                            const Span<int> all_point_offsets,
-                                            const Span<bool> cyclic,
-                                            const GSpan src,
-                                            GMutableSpan dst)
-{
-  bke::attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    subdivide_attribute_catmull_rom(src_points_by_curve,
-                                    dst_points_by_curve,
-                                    selection,
-                                    all_point_offsets,
-                                    cyclic,
-                                    src.typed<T>(),
-                                    dst.typed<T>());
   });
 }
 
