@@ -670,12 +670,8 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
       ris_samples[0].avg_bsdf_eval = average(ris_samples[0].bsdf_eval.sum);
       ris_samples[0].guide_pdf = guiding_bsdf_pdf(kg, state, ris_samples[0].wo);
       ris_samples[0].guide_pdf *= (1.0f - bssrdf_sampling_prob);
-#  ifdef RIS_INCOMING_RADIANCE
       ris_samples[0].incoming_radiance_pdf = guiding_surface_incoming_radiance_pdf(
           kg, state, ris_samples[0].wo);
-#  else
-      ris_samples[0].cosine = max(0.01f, fabsf(dot(sd->N, ris_samples[0].wo)));
-#  endif
       ris_samples[0].bsdf_pdf = max(0.0f, ris_samples[0].bsdf_pdf);
     }
 
@@ -687,12 +683,8 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
     ris_samples[1].guide_pdf = guiding_bsdf_sample(
         kg, state, float3_to_float2(ris_samples[1].rand), &ris_samples[1].wo);
     ris_samples[1].guide_pdf *= (1.0f - bssrdf_sampling_prob);
-#  ifdef RIS_INCOMING_RADIANCE
     ris_samples[1].incoming_radiance_pdf = guiding_surface_incoming_radiance_pdf(
         kg, state, ris_samples[1].wo);
-#  else
-    ris_samples[1].cosine = max(0.01f, fabsf(dot(sd->N, ris_samples[1].wo)));
-#  endif
     ris_samples[1].bsdf_pdf = surface_shader_bsdf_eval_pdfs(
         kg, sd, ris_samples[1].wo, &ris_samples[1].bsdf_eval, unguided_bsdf_pdfs, 0);
     ris_samples[1].label = ris_samples[0].label;
