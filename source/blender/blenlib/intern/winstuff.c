@@ -160,8 +160,7 @@ bool BLI_windows_register_blend_extension(const bool background)
     BLI_windows_get_executable_dir(InstallDir);
     GetSystemDirectory(SysDir, FILE_MAXDIR);
     const char *ThumbHandlerDLL = "BlendThumb.dll";
-    snprintf(
-        RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
+    SNPRINTF(RegCmd, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
     system(RegCmd);
   }
 #  endif
