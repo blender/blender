@@ -227,9 +227,11 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = mesh->corner_verts_for_write();
 
-  poly_offsets.take_front(quads.size()).fill(4);
-  poly_offsets.drop_front(quads.size()).fill(3);
-  blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  if (!poly_offsets.is_empty()) {
+    poly_offsets.take_front(quads.size()).fill(4);
+    poly_offsets.drop_front(quads.size()).fill(3);
+    blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  }
 
   for (const int i : vert_positions.index_range()) {
     vert_positions[i] = float3(vertices[i].x(), vertices[i].y(), vertices[i].z());
