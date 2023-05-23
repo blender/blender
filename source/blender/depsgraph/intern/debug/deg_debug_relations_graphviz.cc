@@ -400,6 +400,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::COPY_ON_WRITE:
     case NodeType::OBJECT_FROM_LAYER:
+    case NodeType::HIERARCHY:
     case NodeType::BATCH_CACHE:
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:

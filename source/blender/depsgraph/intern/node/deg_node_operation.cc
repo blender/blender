@@ -34,6 +34,9 @@ const char *operationCodeAsString(OperationCode opcode)
       return "PARAMETERS_EXIT";
     case OperationCode::VISIBILITY:
       return "VISIBILITY";
+    /* Hierarchy. */
+    case OperationCode::HIERARCHY:
+      return "HIERARCHY";
     /* Animation, Drivers, etc. */
     case OperationCode::ANIMATION_ENTRY:
       return "ANIMATION_ENTRY";

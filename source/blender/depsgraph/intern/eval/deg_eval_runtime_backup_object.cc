@@ -124,6 +124,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 
   object->base_flag = base_flag;
   object->base_local_view_bits = base_local_view_bits;
+
   /* Restore modifier's runtime data.
    * NOTE: Data of unused modifiers will be freed there. */
   restore_modifier_runtime_data(object);

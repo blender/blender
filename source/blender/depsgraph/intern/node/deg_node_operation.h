@@ -28,12 +28,15 @@ enum class OperationCode {
   /* Placeholder for operations which don't need special mention */
   OPERATION = 0,
 
-  /* Generic parameters evaluation. */
+  /* Generic parameters evaluation. --------------------------------------- */
   ID_PROPERTY,
   PARAMETERS_ENTRY,
   PARAMETERS_EVAL,
   PARAMETERS_EXIT,
   VISIBILITY,
+
+  /* Hierarchy. ----------------------------------------------------------- */
+  HIERARCHY,
 
   /* Animation, Drivers, etc. --------------------------------------------- */
   /* NLA + Action */

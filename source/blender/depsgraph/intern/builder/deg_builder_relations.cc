@@ -282,6 +282,15 @@ Node *DepsgraphRelationBuilder::get_node(const RNAPathKey &key)
   return rna_node_query_.find_node(&key.ptr, key.prop, key.source);
 }
 
+ComponentNode *DepsgraphRelationBuilder::find_node(const ComponentKey &key) const
+{
+  IDNode *id_node = graph_->find_id_node(key.id);
+  if (!id_node) {
+    return nullptr;
+  }
+  return id_node->find_component(key.type, key.name);
+}
+
 OperationNode *DepsgraphRelationBuilder::find_node(const OperationKey &key) const
 {
   IDNode *id_node = graph_->find_id_node(key.id);
@@ -296,6 +305,11 @@ OperationNode *DepsgraphRelationBuilder::find_node(const OperationKey &key) cons
 }
 
 bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
+{
+  return find_node(key) != nullptr;
+}
+
+bool DepsgraphRelationBuilder::has_node(const ComponentKey &key) const
 {
   return find_node(key) != nullptr;
 }
@@ -617,6 +631,8 @@ void DepsgraphRelationBuilder::build_idproperties(IDProperty *id_property)
 void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_collection,
                                                 Collection *collection)
 {
+  const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+
   if (from_layer_collection != nullptr) {
     /* If we came from layer collection we don't go deeper, view layer builder takes care of going
      * deeper.
@@ -624,6 +640,23 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
      * NOTE: Do early output before tagging build as done, so possible subsequent builds from
      * outside of the layer collection properly recurses into all the nested objects and
      * collections. */
+
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+      Object *object = cob->ob;
+
+      /* Ensure that the hierarchy relations always exists, even for the layer collection.
+       *
+       * Note that the view layer builder can skip bases if they are constantly excluded from the
+       * collections. In order to avoid noisy output check that the target node exists before
+       * adding the relation. */
+      const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
+      if (has_node(object_hierarchy_key)) {
+        add_relation(collection_hierarchy_key,
+                     object_hierarchy_key,
+                     "Collection -> Object hierarchy",
+                     RELATION_CHECK_BEFORE_ADD);
+      }
+    }
     return;
   }
 
@@ -632,6 +665,7 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
   }
 
   build_idproperties(collection->id.properties);
+  build_parameters(&collection->id);
 
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(collection->id);
 
@@ -639,22 +673,27 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
       &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    build_object(cob->ob);
+    Object *object = cob->ob;
+
+    build_object(object);
+
+    const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
+    add_relation(collection_hierarchy_key, object_hierarchy_key, "Collection -> Object hierarchy");
 
     /* The geometry of a collection depends on the positions of the elements in it. */
     const OperationKey object_transform_key{
-        &cob->ob->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
+        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
     add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
 
     /* Only create geometry relations to child objects, if they have a geometry component. */
     const OperationKey object_geometry_key{
-        &cob->ob->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
+        &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
     if (find_node(object_geometry_key) != nullptr) {
       add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
     }
 
     /* An instance is part of the geometry of the collection. */
-    if (cob->ob->type == OB_EMPTY) {
+    if (object->type == OB_EMPTY) {
       Collection *collection_instance = cob->ob->instance_collection;
       if (collection_instance != nullptr) {
         const OperationKey collection_instance_key{
@@ -3254,6 +3293,11 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
      *   we allow flush to layer collections component which will ensure
      *   that cached array of bases exists and is up-to-date. */
     if (ELEM(comp_node->type, NodeType::PARAMETERS, NodeType::LAYER_COLLECTIONS)) {
+      rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+    }
+    /* Compatibility with the legacy tagging: groups are only tagged for Copy-on-Write when their
+     * hierarchy changes, and it needs to be flushed downstream. */
+    if (id_type == ID_GR && comp_node->type == NodeType::HIERARCHY) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
     /* All entry operations of each component should wait for a proper
