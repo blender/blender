@@ -31,7 +31,10 @@ def man_format(data: str) -> str:
 def blender_extract_info(blender_bin: str) -> Dict[str, str]:
 
     blender_env = {
-        "ASAN_OPTIONS": "exitcode=0:" + os.environ.get("ASAN_OPTIONS", ""),
+        "ASAN_OPTIONS": (
+            os.environ.get("ASAN_OPTIONS", "") +
+            ":exitcode=0:check_initialization_order=0:strict_init_order=0"
+        ).lstrip(":"),
     }
 
     blender_help = subprocess.run(
