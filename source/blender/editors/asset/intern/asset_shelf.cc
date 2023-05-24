@@ -454,9 +454,14 @@ int ED_asset_shelf_context(const bContext *C,
 
 namespace blender::ed::asset::shelf {
 
+static PointerRNA active_shelf_ptr_from_context(const bContext *C)
+{
+  return CTX_data_pointer_get_type(C, "asset_shelf", &RNA_AssetShelf);
+}
+
 AssetShelf *active_shelf_from_context(const bContext *C)
 {
-  PointerRNA shelf_settings_ptr = CTX_data_pointer_get_type(C, "asset_shelf", &RNA_AssetShelf);
+  PointerRNA shelf_settings_ptr = active_shelf_ptr_from_context(C);
   return static_cast<AssetShelf *>(shelf_settings_ptr.data);
 }
 
@@ -551,13 +556,16 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
 
   uiItemS(layout);
 
-  AssetShelf *shelf = shelf::active_shelf_from_context(C);
+  PointerRNA shelf_ptr = shelf::active_shelf_ptr_from_context(C);
+  AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data);
   if (shelf) {
     add_catalog_toggle_buttons(shelf->settings, *layout);
   }
 
   uiItemSpacer(layout);
 
+  uiItemR(layout, &shelf_ptr, "search_filter", 0, "", ICON_VIEWZOOM);
+  uiItemS(layout);
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
 }
 

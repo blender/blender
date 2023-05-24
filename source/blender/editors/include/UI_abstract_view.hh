@@ -134,6 +134,9 @@ class AbstractViewItem {
   bool is_active_ = false;
   bool is_renaming_ = false;
 
+  /** Cache filtered state here to avoid having to re-query. */
+  mutable std::optional<bool> is_filtered_visible_;
+
  public:
   virtual ~AbstractViewItem() = default;
 
@@ -215,6 +218,16 @@ class AbstractViewItem {
    * \note Always call the base class implementation when overriding this!
    */
   virtual void update_from_old(const AbstractViewItem &old);
+
+  /**
+   * \note Do not call this directly to avoid constantly rechecking the filter state. Instead use
+   *       #is_filtered_visible_cached() for querying.
+   */
+  virtual bool is_filtered_visible() const;
+
+  /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
+   * queried once per redraw. */
+  bool is_filtered_visible_cached() const;
 
   /**
    * Add a text button for renaming the item to \a block. This must be used for the built-in

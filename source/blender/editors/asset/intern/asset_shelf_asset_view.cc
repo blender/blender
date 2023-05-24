@@ -10,6 +10,8 @@
 
 #include "BKE_screen.h"
 
+#include "BLI_fnmatch.h"
+
 #include "DNA_asset_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -36,6 +38,9 @@ namespace blender::ed::asset::shelf {
 class AssetView : public ui::AbstractGridView {
   const AssetLibraryReference library_ref_;
   const AssetShelf &shelf_;
+  /** Copy of the filter string from #AssetShelfSettings, with extra '*' added to the beginning and
+   * end of the string, for `fnmatch()` to work. */
+  char search_string[sizeof(AssetShelfSettings::search_string) + 2] = "";
   std::optional<asset_system::AssetCatalogFilter> catalog_filter_ = std::nullopt;
   /* XXX Temporary: Only for #asset_poll__() callback. Should use traits instead. */
   bContext &evil_C_;
@@ -64,6 +69,7 @@ class AssetViewItem : public ui::PreviewGridItem {
   void disable_asset_drag();
   void build_grid_tile(uiLayout &layout) const override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
+  bool is_filtered_visible() const override;
 
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
 };
@@ -83,6 +89,10 @@ AssetView::AssetView(const AssetLibraryReference &library_ref,
                      bContext &evil_C)
     : library_ref_(library_ref), shelf_(shelf), evil_C_(evil_C)
 {
+  if (shelf.settings.search_string[0]) {
+    BLI_strncpy_ensure_pad(
+        search_string, shelf.settings.search_string, '*', sizeof(search_string));
+  }
 }
 
 void AssetView::build_items()
@@ -186,6 +196,17 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
   const AssetView &asset_view = dynamic_cast<AssetView &>(get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   shelf_type.draw_context_menu(&C, &shelf_type, &asset_, &column);
+}
+
+bool AssetViewItem::is_filtered_visible() const
+{
+  const AssetView &asset_view = dynamic_cast<AssetView &>(get_view());
+  if (asset_view.search_string[0] == '\0') {
+    return true;
+  }
+
+  const char *asset_name = ED_asset_handle_get_name(&asset_);
+  return fnmatch(asset_view.search_string, asset_name, FNM_CASEFOLD) == 0;
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const
