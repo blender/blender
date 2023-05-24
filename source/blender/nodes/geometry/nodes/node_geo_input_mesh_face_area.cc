@@ -40,7 +40,7 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_face_area_varray(mesh, domain);
   }

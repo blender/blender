@@ -32,7 +32,7 @@ void sample_point_attribute(Span<int> corner_verts,
                             Span<int> looptri_indices,
                             Span<float3> bary_coords,
                             const GVArray &src,
-                            IndexMask mask,
+                            const IndexMask &mask,
                             GMutableSpan dst);
 
 void sample_point_normals(Span<int> corner_verts,
@@ -47,20 +47,20 @@ void sample_corner_attribute(Span<MLoopTri> looptris,
                              Span<int> looptri_indices,
                              Span<float3> bary_coords,
                              const GVArray &src,
-                             IndexMask mask,
+                             const IndexMask &mask,
                              GMutableSpan dst);
 
 void sample_corner_normals(Span<MLoopTri> looptris,
                            Span<int> looptri_indices,
                            Span<float3> bary_coords,
                            Span<float3> src,
-                           IndexMask mask,
+                           const IndexMask &mask,
                            MutableSpan<float3> dst);
 
 void sample_face_attribute(Span<int> looptri_polys,
                            Span<int> looptri_indices,
                            const GVArray &src,
-                           IndexMask mask,
+                           const IndexMask &mask,
                            GMutableSpan dst);
 
 /**
@@ -148,7 +148,7 @@ class BaryWeightFromPositionFn : public mf::MultiFunction {
 
  public:
   BaryWeightFromPositionFn(GeometrySet geometry);
-  void call(IndexMask mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
 };
 
 /**
@@ -163,7 +163,7 @@ class CornerBaryWeightFromPositionFn : public mf::MultiFunction {
 
  public:
   CornerBaryWeightFromPositionFn(GeometrySet geometry);
-  void call(IndexMask mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
 };
 
 /**
@@ -183,7 +183,7 @@ class BaryWeightSampleFn : public mf::MultiFunction {
  public:
   BaryWeightSampleFn(GeometrySet geometry, fn::GField src_field);
 
-  void call(IndexMask mask, mf::Params params, mf::Context context) const;
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const;
 
  private:
   void evaluate_source(fn::GField src_field);

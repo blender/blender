@@ -17,7 +17,8 @@ class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
  public:
   InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation") {}
 
-  GVArray get_varray_for_context(const bke::Instances &instances, IndexMask /*mask*/) const final
+  GVArray get_varray_for_context(const bke::Instances &instances,
+                                 const IndexMask & /*mask*/) const final
   {
     auto rotation_fn = [&](const int i) -> float3 {
       return float3(math::to_euler(math::normalize(instances.transforms()[i])));

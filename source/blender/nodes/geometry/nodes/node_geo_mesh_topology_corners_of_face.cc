@@ -43,7 +43,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const OffsetIndices polys = mesh.polys();
 
@@ -63,12 +63,12 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
     const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> corner_of_face(mask.min_array_size());
-    threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+    mask.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment segment) {
       /* Reuse arrays to avoid allocation. */
       Array<float> sort_weights;
       Array<int> sort_indices;
 
-      for (const int selection_i : mask.slice(range)) {
+      for (const int selection_i : segment) {
         const int poly_i = face_indices[selection_i];
         const int index_in_sort = indices_in_sort[selection_i];
         if (!polys.index_range().contains(poly_i)) {
@@ -141,7 +141,7 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_FACE) {
       return {};

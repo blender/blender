@@ -11,7 +11,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
-#include "BLI_index_mask_ops.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
@@ -268,7 +268,7 @@ void CurvesGeometry::fill_curve_types(const CurveType type)
   this->tag_topology_changed();
 }
 
-void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType type)
+void CurvesGeometry::fill_curve_types(const IndexMask &selection, const CurveType type)
 {
   if (selection.size() == this->curves_num()) {
     this->fill_curve_types(type);
@@ -281,7 +281,7 @@ void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType
     }
   }
   /* A potential performance optimization is only counting the changed indices. */
-  this->curve_types_for_write().fill_indices(selection.indices(), type);
+  index_mask::masked_fill<int8_t>(this->curve_types_for_write(), type, selection);
   this->update_curve_types();
   this->tag_topology_changed();
 }
@@ -549,17 +549,17 @@ OffsetIndices<int> CurvesGeometry::evaluated_points_by_curve() const
 }
 
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
-                                                 Vector<int64_t> &r_indices) const
+                                                 IndexMaskMemory &memory) const
 {
-  return this->indices_for_curve_type(type, this->curves_range(), r_indices);
+  return this->indices_for_curve_type(type, this->curves_range(), memory);
 }
 
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
-                                                 const IndexMask selection,
-                                                 Vector<int64_t> &r_indices) const
+                                                 const IndexMask &selection,
+                                                 IndexMaskMemory &memory) const
 {
   return curves::indices_for_type(
-      this->curve_types(), this->curve_type_counts(), type, selection, r_indices);
+      this->curve_types(), this->curve_type_counts(), type, selection, memory);
 }
 
 Array<int> CurvesGeometry::point_to_curve_map() const
@@ -573,8 +573,8 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
   const bke::CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.nurbs_basis_cache.ensure([&](Vector<curves::nurbs::BasisCache> &r_data) {
-    Vector<int64_t> nurbs_indices;
-    const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, nurbs_indices);
+    IndexMaskMemory memory;
+    const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, memory);
     if (nurbs_mask.is_empty()) {
       r_data.clear_and_shrink();
       return;
@@ -588,9 +588,9 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
     const VArray<int8_t> orders = this->nurbs_orders();
     const VArray<int8_t> knots_modes = this->nurbs_knots_modes();
 
-    threading::parallel_for(nurbs_mask.index_range(), 64, [&](const IndexRange range) {
+    nurbs_mask.foreach_segment(GrainSize(64), [&](const IndexMaskSegment segment) {
       Vector<float, 32> knots;
-      for (const int curve_index : nurbs_mask.slice(range)) {
+      for (const int curve_index : segment) {
         const IndexRange points = points_by_curve[curve_index];
         const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
 
@@ -629,26 +629,23 @@ Span<float3> CurvesGeometry::evaluated_positions() const
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
     const Span<float3> positions = this->positions();
 
-    auto evaluate_catmull = [&](const IndexMask selection) {
+    auto evaluate_catmull = [&](const IndexMask &selection) {
       const VArray<bool> cyclic = this->cyclic();
       const VArray<int> resolution = this->resolution();
-      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
-        for (const int curve_index : selection.slice(range)) {
-          const IndexRange points = points_by_curve[curve_index];
-          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
-          curves::catmull_rom::interpolate_to_evaluated(
-              positions.slice(points),
-              cyclic[curve_index],
-              resolution[curve_index],
-              evaluated_positions.slice(evaluated_points));
-        }
+      selection.foreach_index(GrainSize(128), [&](const int curve_index) {
+        const IndexRange points = points_by_curve[curve_index];
+        const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+        curves::catmull_rom::interpolate_to_evaluated(positions.slice(points),
+                                                      cyclic[curve_index],
+                                                      resolution[curve_index],
+                                                      evaluated_positions.slice(evaluated_points));
       });
     };
-    auto evaluate_poly = [&](const IndexMask selection) {
+    auto evaluate_poly = [&](const IndexMask &selection) {
       curves::copy_point_data(
           points_by_curve, evaluated_points_by_curve, selection, positions, evaluated_positions);
     };
-    auto evaluate_bezier = [&](const IndexMask selection) {
+    auto evaluate_bezier = [&](const IndexMask &selection) {
       const Span<float3> handle_positions_left = this->handle_positions_left();
       const Span<float3> handle_positions_right = this->handle_positions_right();
       if (handle_positions_left.is_empty() || handle_positions_right.is_empty()) {
@@ -657,35 +654,30 @@ Span<float3> CurvesGeometry::evaluated_positions() const
       }
       const Span<int> all_bezier_offsets =
           runtime.evaluated_offsets_cache.data().all_bezier_offsets;
-      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
-        for (const int curve_index : selection.slice(range)) {
-          const IndexRange points = points_by_curve[curve_index];
-          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
-          const IndexRange offsets = curves::per_curve_point_offsets_range(points, curve_index);
-          curves::bezier::calculate_evaluated_positions(
-              positions.slice(points),
-              handle_positions_left.slice(points),
-              handle_positions_right.slice(points),
-              all_bezier_offsets.slice(offsets),
-              evaluated_positions.slice(evaluated_points));
-        }
+      selection.foreach_index(GrainSize(128), [&](const int curve_index) {
+        const IndexRange points = points_by_curve[curve_index];
+        const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+        const IndexRange offsets = curves::per_curve_point_offsets_range(points, curve_index);
+        curves::bezier::calculate_evaluated_positions(positions.slice(points),
+                                                      handle_positions_left.slice(points),
+                                                      handle_positions_right.slice(points),
+                                                      all_bezier_offsets.slice(offsets),
+                                                      evaluated_positions.slice(evaluated_points));
       });
     };
-    auto evaluate_nurbs = [&](const IndexMask selection) {
+    auto evaluate_nurbs = [&](const IndexMask &selection) {
       this->ensure_nurbs_basis_cache();
       const VArray<int8_t> nurbs_orders = this->nurbs_orders();
       const Span<float> nurbs_weights = this->nurbs_weights();
       const Span<curves::nurbs::BasisCache> nurbs_basis_cache = runtime.nurbs_basis_cache.data();
-      threading::parallel_for(selection.index_range(), 128, [&](const IndexRange range) {
-        for (const int curve_index : selection.slice(range)) {
-          const IndexRange points = points_by_curve[curve_index];
-          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
-          curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
-                                                  nurbs_orders[curve_index],
-                                                  nurbs_weights.slice_safe(points),
-                                                  positions.slice(points),
-                                                  evaluated_positions.slice(evaluated_points));
-        }
+      selection.foreach_index(GrainSize(128), [&](const int curve_index) {
+        const IndexRange points = points_by_curve[curve_index];
+        const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+        curves::nurbs::interpolate_to_evaluated(nurbs_basis_cache[curve_index],
+                                                nurbs_orders[curve_index],
+                                                nurbs_weights.slice_safe(points),
+                                                positions.slice(points),
+                                                evaluated_positions.slice(evaluated_points));
       });
     };
     curves::foreach_curve_by_type(this->curve_types(),
@@ -722,34 +714,32 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
     /* Correct the first and last tangents of non-cyclic Bezier curves so that they align with
      * the inner handles. This is a separate loop to avoid the cost when Bezier type curves are
      * not used. */
-    Vector<int64_t> bezier_indices;
-    const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
+    IndexMaskMemory memory;
+    const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, memory);
     if (!bezier_mask.is_empty()) {
       const OffsetIndices<int> points_by_curve = this->points_by_curve();
       const Span<float3> positions = this->positions();
       const Span<float3> handles_left = this->handle_positions_left();
       const Span<float3> handles_right = this->handle_positions_right();
 
-      threading::parallel_for(bezier_mask.index_range(), 1024, [&](IndexRange range) {
-        for (const int curve_index : bezier_mask.slice(range)) {
-          if (cyclic[curve_index]) {
-            continue;
-          }
-          const IndexRange points = points_by_curve[curve_index];
-          const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
+      bezier_mask.foreach_index(GrainSize(1024), [&](const int curve_index) {
+        if (cyclic[curve_index]) {
+          return;
+        }
+        const IndexRange points = points_by_curve[curve_index];
+        const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
 
-          const float epsilon = 1e-6f;
-          if (!math::almost_equal_relative(
-                  handles_right[points.first()], positions[points.first()], epsilon))
-          {
-            tangents[evaluated_points.first()] = math::normalize(handles_right[points.first()] -
-                                                                 positions[points.first()]);
-          }
-          if (!math::almost_equal_relative(
-                  handles_left[points.last()], positions[points.last()], epsilon)) {
-            tangents[evaluated_points.last()] = math::normalize(positions[points.last()] -
-                                                                handles_left[points.last()]);
-          }
+        const float epsilon = 1e-6f;
+        if (!math::almost_equal_relative(
+                handles_right[points.first()], positions[points.first()], epsilon))
+        {
+          tangents[evaluated_points.first()] = math::normalize(handles_right[points.first()] -
+                                                               positions[points.first()]);
+        }
+        if (!math::almost_equal_relative(
+                handles_left[points.last()], positions[points.last()], epsilon)) {
+          tangents[evaluated_points.last()] = math::normalize(positions[points.last()] -
+                                                              handles_left[points.last()]);
         }
       });
     }
@@ -1126,13 +1116,13 @@ static void copy_construct_data(const GSpan src, GMutableSpan dst)
 
 static CurvesGeometry copy_with_removed_points(
     const CurvesGeometry &curves,
-    const IndexMask points_to_delete,
+    const IndexMask &points_to_delete,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
   /* Use a map from points to curves to facilitate using an #IndexMask input. */
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
 
-  const Vector<IndexRange> copy_point_ranges = points_to_delete.extract_ranges_invert(
+  const Vector<IndexRange> copy_point_ranges = points_to_delete.to_ranges_invert(
       curves.points_range());
 
   /* For every range of points to copy, find the offset in the result curves point layers. */
@@ -1227,7 +1217,7 @@ static CurvesGeometry copy_with_removed_points(
   return new_curves;
 }
 
-void CurvesGeometry::remove_points(const IndexMask points_to_delete,
+void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   if (points_to_delete.is_empty()) {
@@ -1241,13 +1231,13 @@ void CurvesGeometry::remove_points(const IndexMask points_to_delete,
 
 static CurvesGeometry copy_with_removed_curves(
     const CurvesGeometry &curves,
-    const IndexMask curves_to_delete,
+    const IndexMask &curves_to_delete,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
   const OffsetIndices old_points_by_curve = curves.points_by_curve();
   const Span<int> old_offsets = curves.offsets();
-  const Vector<IndexRange> old_curve_ranges = curves_to_delete.extract_ranges_invert(
-      curves.curves_range(), nullptr);
+  const Vector<IndexRange> old_curve_ranges = curves_to_delete.to_ranges_invert(
+      curves.curves_range());
   Vector<IndexRange> new_curve_ranges;
   Vector<IndexRange> old_point_ranges;
   Vector<IndexRange> new_point_ranges;
@@ -1338,7 +1328,7 @@ static CurvesGeometry copy_with_removed_curves(
   return new_curves;
 }
 
-void CurvesGeometry::remove_curves(const IndexMask curves_to_delete,
+void CurvesGeometry::remove_curves(const IndexMask &curves_to_delete,
                                    const AnonymousAttributePropagationInfo &propagation_info)
 {
   if (curves_to_delete.is_empty()) {
@@ -1353,43 +1343,38 @@ void CurvesGeometry::remove_curves(const IndexMask curves_to_delete,
 
 template<typename T>
 static void reverse_curve_point_data(const CurvesGeometry &curves,
-                                     const IndexMask curve_selection,
+                                     const IndexMask &curve_selection,
                                      MutableSpan<T> data)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  threading::parallel_for(curve_selection.index_range(), 256, [&](IndexRange range) {
-    for (const int curve_i : curve_selection.slice(range)) {
-      data.slice(points_by_curve[curve_i]).reverse();
-    }
-  });
+  curve_selection.foreach_index(
+      GrainSize(256), [&](const int curve_i) { data.slice(points_by_curve[curve_i]).reverse(); });
 }
 
 template<typename T>
 static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
-                                          const IndexMask curve_selection,
+                                          const IndexMask &curve_selection,
                                           MutableSpan<T> data_a,
                                           MutableSpan<T> data_b)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  threading::parallel_for(curve_selection.index_range(), 256, [&](IndexRange range) {
-    for (const int curve_i : curve_selection.slice(range)) {
-      const IndexRange points = points_by_curve[curve_i];
-      MutableSpan<T> a = data_a.slice(points);
-      MutableSpan<T> b = data_b.slice(points);
-      for (const int i : IndexRange(points.size() / 2)) {
-        const int end_index = points.size() - 1 - i;
-        std::swap(a[end_index], b[i]);
-        std::swap(b[end_index], a[i]);
-      }
-      if (points.size() % 2) {
-        const int64_t middle_index = points.size() / 2;
-        std::swap(a[middle_index], b[middle_index]);
-      }
+  curve_selection.foreach_index(GrainSize(256), [&](const int curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    MutableSpan<T> a = data_a.slice(points);
+    MutableSpan<T> b = data_b.slice(points);
+    for (const int i : IndexRange(points.size() / 2)) {
+      const int end_index = points.size() - 1 - i;
+      std::swap(a[end_index], b[i]);
+      std::swap(b[end_index], a[i]);
+    }
+    if (points.size() % 2) {
+      const int64_t middle_index = points.size() / 2;
+      std::swap(a[middle_index], b[middle_index]);
     }
   });
 }
 
-void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
+void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
 {
   Set<StringRef> bezier_handle_names{{ATTR_HANDLE_POSITION_LEFT,
                                       ATTR_HANDLE_POSITION_RIGHT,

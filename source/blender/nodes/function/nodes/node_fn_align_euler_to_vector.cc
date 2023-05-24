@@ -29,7 +29,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "pivot_axis", 0, IFACE_("Pivot"), ICON_NONE);
 }
 
-static void align_rotations_auto_pivot(IndexMask mask,
+static void align_rotations_auto_pivot(const IndexMask &mask,
                                        const VArray<float3> &input_rotations,
                                        const VArray<float3> &vectors,
                                        const VArray<float> &factors,
@@ -78,7 +78,7 @@ static void align_rotations_auto_pivot(IndexMask mask,
   });
 }
 
-static void align_rotations_fixed_pivot(IndexMask mask,
+static void align_rotations_fixed_pivot(const IndexMask &mask,
                                         const VArray<float3> &input_rotations,
                                         const VArray<float3> &vectors,
                                         const VArray<float> &factors,
@@ -150,7 +150,7 @@ class MF_AlignEulerToVector : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &input_rotations = params.readonly_single_input<float3>(0, "Rotation");
     const VArray<float> &factors = params.readonly_single_input<float>(1, "Factor");

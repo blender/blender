@@ -22,7 +22,7 @@ namespace blender::geometry {
 PointCloud *point_merge_by_distance(
     const PointCloud &src_points,
     const float merge_distance,
-    const IndexMask selection,
+    const IndexMask &selection,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

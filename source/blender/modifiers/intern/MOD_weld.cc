@@ -48,6 +48,7 @@
 
 using blender::Array;
 using blender::IndexMask;
+using blender::IndexMaskMemory;
 using blender::Span;
 using blender::Vector;
 
@@ -64,18 +65,15 @@ static Span<MDeformVert> get_vertex_group(const Mesh &mesh, const int defgrp_ind
   return {vertex_group, mesh.totvert};
 }
 
-static Vector<int64_t> selected_indices_from_vertex_group(Span<MDeformVert> vertex_group,
-                                                          const int index,
-                                                          const bool invert)
+static IndexMask selected_indices_from_vertex_group(Span<MDeformVert> vertex_group,
+                                                    const int index,
+                                                    const bool invert,
+                                                    IndexMaskMemory &memory)
 {
-  Vector<int64_t> selected_indices;
-  for (const int i : vertex_group.index_range()) {
-    const bool found = BKE_defvert_find_weight(&vertex_group[i], index) > 0.0f;
-    if (found != invert) {
-      selected_indices.append(i);
-    }
-  }
-  return selected_indices;
+  return IndexMask::from_predicate(
+      vertex_group.index_range(), blender::GrainSize(512), memory, [&](const int i) {
+        return (BKE_defvert_find_weight(&vertex_group[i], index) > 0.0f) != invert;
+      });
 }
 
 static Array<bool> selection_array_from_vertex_group(Span<MDeformVert> vertex_group,
@@ -98,8 +96,9 @@ static std::optional<Mesh *> calculate_weld(const Mesh &mesh, const WeldModifier
 
   if (wmd.mode == MOD_WELD_MODE_ALL) {
     if (!vertex_group.is_empty()) {
-      Vector<int64_t> selected_indices = selected_indices_from_vertex_group(
-          vertex_group, defgrp_index, invert);
+      IndexMaskMemory memory;
+      const IndexMask selected_indices = selected_indices_from_vertex_group(
+          vertex_group, defgrp_index, invert, memory);
       return blender::geometry::mesh_merge_by_distance_all(
           mesh, IndexMask(selected_indices), wmd.merge_dist);
     }

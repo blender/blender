@@ -14,7 +14,7 @@ void copy(const GVArray &src, GMutableSpan dst, const int64_t grain_size)
 }
 
 void copy(const GVArray &src,
-          const IndexMask selection,
+          const IndexMask &selection,
           GMutableSpan dst,
           const int64_t grain_size)
 {
@@ -27,7 +27,7 @@ void copy(const GVArray &src,
 }
 
 void gather(const GVArray &src,
-            const IndexMask indices,
+            const IndexMask &indices,
             GMutableSpan dst,
             const int64_t grain_size)
 {
@@ -38,7 +38,7 @@ void gather(const GVArray &src,
   });
 }
 
-void gather(const GSpan src, const IndexMask indices, GMutableSpan dst, const int64_t grain_size)
+void gather(const GSpan src, const IndexMask &indices, GMutableSpan dst, const int64_t grain_size)
 {
   gather(GVArray::ForSpan(src), indices, dst, grain_size);
 }

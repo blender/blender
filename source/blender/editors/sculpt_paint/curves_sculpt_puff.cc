@@ -19,7 +19,6 @@
 
 #include "WM_api.h"
 
-#include "BLI_index_mask_ops.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
@@ -57,7 +56,7 @@ struct PuffOperationExecutor {
   CurvesGeometry *curves_ = nullptr;
 
   VArray<float> point_factors_;
-  Vector<int64_t> selected_curve_indices_;
+  IndexMaskMemory selected_curve_memory_;
   IndexMask curve_selection_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
@@ -106,7 +105,7 @@ struct PuffOperationExecutor {
 
     point_factors_ = *curves_->attributes().lookup_or_default<float>(
         ".selection", ATTR_DOMAIN_POINT, 1.0f);
-    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
@@ -164,9 +163,11 @@ struct PuffOperationExecutor {
         changed_curves_indices.append(curve_selection_[select_i]);
       }
     }
+    IndexMaskMemory memory;
+    const IndexMask changed_curves_mask = IndexMask::from_indices<int64_t>(changed_curves_indices,
+                                                                           memory);
 
-    self_->constraint_solver_.solve_step(
-        *curves_, IndexMask(changed_curves_indices), surface_, transforms_);
+    self_->constraint_solver_.solve_step(*curves_, changed_curves_mask, surface_, transforms_);
 
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);

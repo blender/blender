@@ -240,7 +240,7 @@ struct CurvesEffectOperationExecutor {
   CurvesGeometry *curves_ = nullptr;
 
   VArray<float> curve_selection_factors_;
-  Vector<int64_t> selected_curve_indices_;
+  IndexMaskMemory selected_curve_memory_;
   IndexMask curve_selection_;
 
   const Brush *brush_ = nullptr;
@@ -279,7 +279,7 @@ struct CurvesEffectOperationExecutor {
 
     curve_selection_factors_ = *curves_->attributes().lookup_or_default(
         ".selection", ATTR_DOMAIN_CURVE, 1.0f);
-    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     const CurvesSculpt &curves_sculpt = *ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);

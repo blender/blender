@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_mask_ops.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
 
@@ -326,7 +325,7 @@ bool GeometryDataSource::has_selection_filter() const
   }
 }
 
-IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
+IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) const
 {
   std::lock_guard lock{mutex_};
   const IndexMask full_range(this->tot_rows());
@@ -363,8 +362,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                                   }),
             ATTR_DOMAIN_POINT,
             domain_);
-        return index_mask_ops::find_indices_from_virtual_array(
-            full_range, selection, 1024, indices);
+        return IndexMask::from_bools(selection, memory);
       }
 
       if (mesh_eval->totvert == bm->totvert) {
@@ -377,8 +375,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                                   }),
             ATTR_DOMAIN_POINT,
             domain_);
-        return index_mask_ops::find_indices_from_virtual_array(
-            full_range, selection, 2048, indices);
+        return IndexMask::from_bools(selection, memory);
       }
 
       return full_range;
@@ -390,9 +387,9 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
       const Curves &curves_id = *component.get_for_read();
       switch (domain_) {
         case ATTR_DOMAIN_POINT:
-          return curves::retrieve_selected_points(curves_id, indices);
+          return curves::retrieve_selected_points(curves_id, memory);
         case ATTR_DOMAIN_CURVE:
-          return curves::retrieve_selected_curves(curves_id, indices);
+          return curves::retrieve_selected_curves(curves_id, memory);
         default:
           BLI_assert_unreachable();
       }

@@ -16,7 +16,7 @@ namespace blender::geometry {
 
 PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
-                                    const IndexMask selection,
+                                    const IndexMask &selection,
                                     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::AttributeAccessor src_attributes = src_points.attributes();
@@ -26,9 +26,8 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   /* Create the KD tree based on only the selected points, to speed up merge detection and
    * balancing. */
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
-  for (const int i : selection.index_range()) {
-    BLI_kdtree_3d_insert(tree, i, positions[selection[i]]);
-  }
+  selection.foreach_index_optimized<int64_t>(
+      [&](const int64_t i, const int64_t pos) { BLI_kdtree_3d_insert(tree, pos, positions[i]); });
   BLI_kdtree_3d_balance(tree);
 
   /* Find the duplicates in the KD tree. Because the tree only contains the selected points, the
@@ -51,6 +50,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   for (const int i : merge_indices.index_range()) {
     merge_indices[i] = i;
   }
+
   for (const int i : selection_merge_indices.index_range()) {
     const int merge_index = selection_merge_indices[i];
     if (merge_index != -1) {

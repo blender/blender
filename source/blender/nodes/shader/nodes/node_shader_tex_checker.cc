@@ -60,7 +60,7 @@ class NodeTexChecker : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
@@ -72,7 +72,7 @@ class NodeTexChecker : public mf::MultiFunction {
         params.uninitialized_single_output_if_required<ColorGeometry4f>(4, "Color");
     MutableSpan<float> r_fac = params.uninitialized_single_output<float>(5, "Fac");
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       /* Avoid precision issues on unit coordinates. */
       const float3 p = (vector[i] * scale[i] + 0.000001f) * 0.999999f;
 
@@ -81,12 +81,11 @@ class NodeTexChecker : public mf::MultiFunction {
       const int zi = abs(int(floorf(p.z)));
 
       r_fac[i] = ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
-    }
+    });
 
     if (!r_color.is_empty()) {
-      for (int64_t i : mask) {
-        r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i];
-      }
+      mask.foreach_index(
+          [&](const int64_t i) { r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i]; });
     }
   }
 };

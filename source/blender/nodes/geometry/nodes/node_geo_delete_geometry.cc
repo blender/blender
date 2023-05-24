@@ -73,7 +73,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
                                           const bke::AttributeAccessor src_attributes,
                                           bke::MutableAttributeAccessor dst_attributes,
                                           const eAttrDomain domain,
-                                          const IndexMask mask)
+                                          const IndexMask &mask)
 {
   for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -146,8 +146,12 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
       indices.append_unchecked(corner);
     }
   }
-  copy_attributes_based_on_mask(
-      attributes, src_attributes, dst_attributes, ATTR_DOMAIN_CORNER, IndexMask(indices));
+  IndexMaskMemory memory;
+  copy_attributes_based_on_mask(attributes,
+                                src_attributes,
+                                dst_attributes,
+                                ATTR_DOMAIN_CORNER,
+                                IndexMask::from_indices<int64_t>(indices, memory));
 }
 
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
@@ -851,6 +855,8 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   int selected_polys_num = 0;
   int selected_loops_num = 0;
 
+  IndexMaskMemory memory;
+
   Mesh *mesh_out;
 
   Map<AttributeIDRef, AttributeKind> attributes;
@@ -932,11 +938,12 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                    mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_attributes_based_on_mask(
+          attributes,
+          mesh_in.attributes(),
+          mesh_out->attributes_for_write(),
+          ATTR_DOMAIN_FACE,
+          IndexMask::from_indices(selected_poly_indices.as_span(), memory));
       copy_face_corner_attributes(attributes,
                                   mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),
@@ -1001,11 +1008,12 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                    mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_attributes_based_on_mask(
+          attributes,
+          mesh_in.attributes(),
+          mesh_out->attributes_for_write(),
+          ATTR_DOMAIN_FACE,
+          IndexMask::from_indices(selected_poly_indices.as_span(), memory));
       copy_face_corner_attributes(attributes,
                                   mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),
@@ -1060,11 +1068,12 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                       mesh_in.attributes(),
                       mesh_out->attributes_for_write(),
                       {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE});
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
+      copy_attributes_based_on_mask(
+          attributes,
+          mesh_in.attributes(),
+          mesh_out->attributes_for_write(),
+          ATTR_DOMAIN_FACE,
+          IndexMask::from_indices(selected_poly_indices.as_span(), memory));
       copy_face_corner_attributes(attributes,
                                   mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),

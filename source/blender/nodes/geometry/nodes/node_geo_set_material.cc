@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
-static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Material *material)
+static void assign_material_to_faces(Mesh &mesh, const IndexMask &selection, Material *material)
 {
   if (selection.size() != mesh.totpoly) {
     /* If the entire mesh isn't selected, and there is no material slot yet, add an empty
@@ -53,7 +53,7 @@ static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Mate
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
-  material_indices.span.fill_indices(selection.indices(), new_material_index);
+  index_mask::masked_fill(material_indices.span, new_material_index, selection);
   material_indices.finish();
 }
 

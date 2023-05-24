@@ -155,11 +155,11 @@ struct CurvesConstraintSolver {
 
  public:
   void initialize(const bke::CurvesGeometry &curves,
-                  const IndexMask curve_selection,
+                  const IndexMask &curve_selection,
                   const bool use_surface_collision);
 
   void solve_step(bke::CurvesGeometry &curves,
-                  const IndexMask curve_selection,
+                  const IndexMask &curve_selection,
                   const Mesh *surface,
                   const CurvesSurfaceTransforms &transforms);
 

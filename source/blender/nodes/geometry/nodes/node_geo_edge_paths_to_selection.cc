@@ -21,19 +21,16 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static void edge_paths_to_selection(const Mesh &src_mesh,
-                                    const IndexMask start_selection,
+                                    const IndexMask &start_selection,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
   const Span<int2> edges = src_mesh.edges();
 
-  Array<bool> selection(src_mesh.totvert, false);
+  Array<bool> selection(src_mesh.totvert);
+  start_selection.to_bools(selection);
 
-  for (const int start_vert : start_selection) {
-    selection[start_vert] = true;
-  }
-
-  for (const int start_i : start_selection) {
+  start_selection.foreach_index([&](const int start_i) {
     int iter = start_i;
     while (iter != next_indices[iter] && !selection[next_indices[iter]]) {
       if (next_indices[iter] < 0 || next_indices[iter] >= src_mesh.totvert) {
@@ -42,7 +39,7 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
       selection[next_indices[iter]] = true;
       iter = next_indices[iter];
     }
-  }
+  });
 
   for (const int i : edges.index_range()) {
     const int2 &edge = edges[i];
@@ -70,7 +67,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, mesh.totvert};

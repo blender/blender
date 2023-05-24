@@ -182,6 +182,7 @@ set(SRC
   BLI_assert.h
   BLI_astar.h
   BLI_atomic_disjoint_set.hh
+  BLI_binary_search.hh
   BLI_bit_group_vector.hh
   BLI_bit_ref.hh
   BLI_bit_span.hh
@@ -250,7 +251,6 @@ set(SRC
   BLI_implicit_sharing.hh
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
-  BLI_index_mask_ops.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh
   BLI_iterator.h
@@ -318,6 +318,7 @@ set(SRC
   BLI_noise.h
   BLI_noise.hh
   BLI_offset_indices.hh
+  BLI_offset_span.hh
   BLI_parameter_pack_utils.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
@@ -362,6 +363,7 @@ set(SRC
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
+  BLI_unique_sorted_indices.hh
   BLI_utildefines.h
   BLI_utildefines_iter.h
   BLI_utildefines_stack.h
@@ -479,6 +481,7 @@ if(WITH_GTESTS)
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
+    tests/BLI_binary_search_test.cc
     tests/BLI_bit_group_vector_test.cc
     tests/BLI_bit_ref_test.cc
     tests/BLI_bit_span_test.cc
@@ -546,6 +549,7 @@ if(WITH_GTESTS)
     tests/BLI_task_graph_test.cc
     tests/BLI_task_test.cc
     tests/BLI_tempfile_test.cc
+    tests/BLI_unique_sorted_indices_test.cc
     tests/BLI_utildefines_test.cc
     tests/BLI_uuid_test.cc
     tests/BLI_vector_set_test.cc

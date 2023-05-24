@@ -41,7 +41,10 @@ inline void copy(const Span<T> src, MutableSpan<T> dst, const int64_t grain_size
  * Fill the destination span by copying masked values from the `src` array. Threaded based on
  * grain-size.
  */
-void copy(const GVArray &src, IndexMask selection, GMutableSpan dst, int64_t grain_size = 4096);
+void copy(const GVArray &src,
+          const IndexMask &selection,
+          GMutableSpan dst,
+          int64_t grain_size = 4096);
 
 /**
  * Fill the destination span by copying values from the `src` array. Threaded based on
@@ -49,34 +52,34 @@ void copy(const GVArray &src, IndexMask selection, GMutableSpan dst, int64_t gra
  */
 template<typename T>
 inline void copy(const Span<T> src,
-                 const IndexMask selection,
+                 const IndexMask &selection,
                  MutableSpan<T> dst,
                  const int64_t grain_size = 4096)
 {
   BLI_assert(src.size() == dst.size());
-  threading::parallel_for(selection.index_range(), grain_size, [&](const IndexRange range) {
-    for (const int64_t index : selection.slice(range)) {
-      dst[index] = src[index];
-    }
-  });
+  selection.foreach_index_optimized<int64_t>(GrainSize(grain_size),
+                                             [&](const int64_t i) { dst[i] = src[i]; });
 }
 
 /**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
-void gather(const GVArray &src, IndexMask indices, GMutableSpan dst, int64_t grain_size = 4096);
+void gather(const GVArray &src,
+            const IndexMask &indices,
+            GMutableSpan dst,
+            int64_t grain_size = 4096);
 
 /**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
-void gather(GSpan src, IndexMask indices, GMutableSpan dst, int64_t grain_size = 4096);
+void gather(GSpan src, const IndexMask &indices, GMutableSpan dst, int64_t grain_size = 4096);
 
 /**
  * Fill the destination span by gathering indexed values from the `src` array.
  */
 template<typename T>
 inline void gather(const VArray<T> &src,
-                   const IndexMask indices,
+                   const IndexMask &indices,
                    MutableSpan<T> dst,
                    const int64_t grain_size = 4096)
 {
@@ -91,16 +94,17 @@ inline void gather(const VArray<T> &src,
  */
 template<typename T, typename IndexT>
 inline void gather(const Span<T> src,
-                   const IndexMask indices,
+                   const IndexMask &indices,
                    MutableSpan<T> dst,
                    const int64_t grain_size = 4096)
 {
   BLI_assert(indices.size() == dst.size());
-  threading::parallel_for(indices.index_range(), grain_size, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      dst[i] = src[indices[i]];
-    }
-  });
+  indices.foreach_segment(GrainSize(grain_size),
+                          [&](const IndexMaskSegment segment, const int64_t segment_pos) {
+                            for (const int64_t i : segment.index_range()) {
+                              dst[segment_pos + i] = src[segment[i]];
+                            }
+                          });
 }
 
 /**

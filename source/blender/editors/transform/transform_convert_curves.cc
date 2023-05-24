@@ -5,7 +5,6 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_index_mask_ops.hh"
 #include "BLI_inplace_priority_queue.hh"
 #include "BLI_span.hh"
 
@@ -60,7 +59,7 @@ static void calculate_curve_point_distances_for_proportional_editing(
 static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
 {
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
-  Array<Vector<int64_t>> selected_indices_per_object(t->data_container_len);
+  IndexMaskMemory memory;
   Array<IndexMask> selection_per_object(t->data_container_len);
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
@@ -75,8 +74,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
       tc.data_len = curves.point_num;
     }
     else {
-      selection_per_object[i] = ed::curves::retrieve_selected_points(
-          curves, selected_indices_per_object[i]);
+      selection_per_object[i] = ed::curves::retrieve_selected_points(curves, memory);
       tc.data_len = selection_per_object[i].size();
     }
 

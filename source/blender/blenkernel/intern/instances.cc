@@ -105,11 +105,12 @@ blender::Span<InstanceReference> Instances::references() const
   return references_;
 }
 
-void Instances::remove(const IndexMask mask,
+void Instances::remove(const IndexMask &mask,
                        const AnonymousAttributePropagationInfo &propagation_info)
 {
   using namespace blender;
-  if (mask.is_range() && mask.as_range().start() == 0) {
+  const std::optional<IndexRange> masked_range = mask.to_range();
+  if (masked_range.has_value() && masked_range->start() == 0) {
     /* Deleting from the end of the array can be much faster since no data has to be shifted. */
     this->resize(mask.size());
     this->remove_unused_references();
@@ -118,12 +119,12 @@ void Instances::remove(const IndexMask mask,
 
   const Span<int> old_handles = this->reference_handles();
   Vector<int> new_handles(mask.size());
-  array_utils::gather(old_handles, mask.indices(), new_handles.as_mutable_span());
+  array_utils::gather(old_handles, mask, new_handles.as_mutable_span());
   reference_handles_ = std::move(new_handles);
 
   const Span<float4x4> old_tansforms = this->transforms();
   Vector<float4x4> new_transforms(mask.size());
-  array_utils::gather(old_tansforms, mask.indices(), new_transforms.as_mutable_span());
+  array_utils::gather(old_tansforms, mask, new_transforms.as_mutable_span());
   transforms_ = std::move(new_transforms);
 
   const bke::CustomDataAttributes &src_attributes = attributes_;
@@ -140,7 +141,7 @@ void Instances::remove(const IndexMask mask,
         GSpan src = *src_attributes.get_for_read(id);
         dst_attributes.create(id, meta_data.data_type);
         GMutableSpan dst = *dst_attributes.get_for_write(id);
-        array_utils::gather(src, mask.indices(), dst);
+        array_utils::gather(src, mask, dst);
 
         return true;
       },

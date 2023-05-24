@@ -20,7 +20,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BLI_index_mask_ops.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
@@ -505,7 +505,7 @@ struct DensitySubtractOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
-  Vector<int64_t> selected_curve_indices_;
+  IndexMaskMemory selected_curve_memory_;
   IndexMask curve_selection_;
 
   Object *surface_ob_orig_ = nullptr;
@@ -568,7 +568,7 @@ struct DensitySubtractOperationExecutor {
 
     minimum_distance_ = brush_->curves_sculpt_settings->minimum_distance;
 
-    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
@@ -585,10 +585,10 @@ struct DensitySubtractOperationExecutor {
 
     root_points_kdtree_ = BLI_kdtree_3d_new(curve_selection_.size());
     BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(root_points_kdtree_); });
-    for (const int curve_i : curve_selection_) {
+    curve_selection_.foreach_index([&](const int curve_i) {
       const float3 &pos_cu = self_->deformed_root_positions_[curve_i];
       BLI_kdtree_3d_insert(root_points_kdtree_, curve_i, pos_cu);
-    }
+    });
     BLI_kdtree_3d_balance(root_points_kdtree_);
 
     /* Find all curves that should be deleted. */
@@ -603,14 +603,11 @@ struct DensitySubtractOperationExecutor {
       BLI_assert_unreachable();
     }
 
-    Vector<int64_t> indices;
-    const IndexMask mask_to_delete = index_mask_ops::find_indices_based_on_predicate(
-        curves_->curves_range(), 4096, indices, [&](const int curve_i) {
-          return curves_to_delete[curve_i];
-        });
+    IndexMaskMemory mask_memory;
+    const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
 
     /* Remove deleted curves from the stored deformed root positions. */
-    const Vector<IndexRange> ranges_to_keep = mask_to_delete.extract_ranges_invert(
+    const Vector<IndexRange> ranges_to_keep = mask_to_delete.to_ranges_invert(
         curves_->curves_range());
     BLI_assert(curves_->curves_num() == self_->deformed_root_positions_.size());
     Vector<float3> new_deformed_positions;
@@ -676,35 +673,37 @@ struct DensitySubtractOperationExecutor {
     });
 
     /* Detect curves that are too close to other existing curves. */
-    for (const int curve_i : curve_selection_) {
-      if (curves_to_delete[curve_i]) {
-        continue;
-      }
-      if (!allow_remove_curve[curve_i]) {
-        continue;
-      }
-      const float3 orig_pos_cu = self_->deformed_root_positions_[curve_i];
-      const float3 pos_cu = math::transform_point(brush_transform, orig_pos_cu);
-      float2 pos_re;
-      ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
-      const float dist_to_brush_sq_re = math::distance_squared(brush_pos_re_, pos_re);
-      if (dist_to_brush_sq_re > brush_radius_sq_re) {
-        continue;
-      }
-      BLI_kdtree_3d_range_search_cb_cpp(
-          root_points_kdtree_,
-          orig_pos_cu,
-          minimum_distance_,
-          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
-            if (other_curve_i == curve_i) {
+    curve_selection_.foreach_segment([&](const IndexMaskSegment segment) {
+      for (const int curve_i : segment) {
+        if (curves_to_delete[curve_i]) {
+          continue;
+        }
+        if (!allow_remove_curve[curve_i]) {
+          continue;
+        }
+        const float3 orig_pos_cu = self_->deformed_root_positions_[curve_i];
+        const float3 pos_cu = math::transform_point(brush_transform, orig_pos_cu);
+        float2 pos_re;
+        ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
+        const float dist_to_brush_sq_re = math::distance_squared(brush_pos_re_, pos_re);
+        if (dist_to_brush_sq_re > brush_radius_sq_re) {
+          continue;
+        }
+        BLI_kdtree_3d_range_search_cb_cpp(
+            root_points_kdtree_,
+            orig_pos_cu,
+            minimum_distance_,
+            [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
+              if (other_curve_i == curve_i) {
+                return true;
+              }
+              if (allow_remove_curve[other_curve_i]) {
+                curves_to_delete[other_curve_i] = true;
+              }
               return true;
-            }
-            if (allow_remove_curve[other_curve_i]) {
-              curves_to_delete[other_curve_i] = true;
-            }
-            return true;
-          });
-    }
+            });
+      }
+    });
   }
 
   void reduce_density_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
@@ -763,33 +762,35 @@ struct DensitySubtractOperationExecutor {
     });
 
     /* Detect curves that are too close to other existing curves. */
-    for (const int curve_i : curve_selection_) {
-      if (curves_to_delete[curve_i]) {
-        continue;
-      }
-      if (!allow_remove_curve[curve_i]) {
-        continue;
-      }
-      const float3 &pos_cu = self_->deformed_root_positions_[curve_i];
-      const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
-      if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-        continue;
-      }
+    curve_selection_.foreach_segment([&](const IndexMaskSegment segment) {
+      for (const int curve_i : segment) {
+        if (curves_to_delete[curve_i]) {
+          continue;
+        }
+        if (!allow_remove_curve[curve_i]) {
+          continue;
+        }
+        const float3 &pos_cu = self_->deformed_root_positions_[curve_i];
+        const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
+        if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+          continue;
+        }
 
-      BLI_kdtree_3d_range_search_cb_cpp(
-          root_points_kdtree_,
-          pos_cu,
-          minimum_distance_,
-          [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
-            if (other_curve_i == curve_i) {
+        BLI_kdtree_3d_range_search_cb_cpp(
+            root_points_kdtree_,
+            pos_cu,
+            minimum_distance_,
+            [&](const int other_curve_i, const float * /*co*/, float /*dist_sq*/) {
+              if (other_curve_i == curve_i) {
+                return true;
+              }
+              if (allow_remove_curve[other_curve_i]) {
+                curves_to_delete[other_curve_i] = true;
+              }
               return true;
-            }
-            if (allow_remove_curve[other_curve_i]) {
-              curves_to_delete[other_curve_i] = true;
-            }
-            return true;
-          });
-    }
+            });
+      }
+    });
   }
 };
 

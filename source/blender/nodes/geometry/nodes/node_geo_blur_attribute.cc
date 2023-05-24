@@ -395,7 +395,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const int64_t domain_size = context.attributes()->domain_size(context.domain());
 

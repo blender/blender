@@ -71,22 +71,13 @@ struct AttributeOutputs {
 static void save_selection_as_attribute(Mesh &mesh,
                                         const AnonymousAttributeID *id,
                                         const eAttrDomain domain,
-                                        const IndexMask selection)
+                                        const IndexMask &selection)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   BLI_assert(!attributes.contains(id));
 
   SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(id, domain);
-  /* Rely on the new attribute being zeroed by default. */
-  BLI_assert(!attribute.span.as_span().contains(true));
-
-  if (selection.is_range()) {
-    attribute.span.slice(selection.as_range()).fill(true);
-  }
-  else {
-    attribute.span.fill_indices(selection.indices(), true);
-  }
-
+  selection.to_bools(attribute.span);
   attribute.finish();
 }
 
@@ -452,16 +443,19 @@ static void extrude_mesh_edges(Mesh &mesh,
   if (!edge_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
     bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
-    for (const int i_edge : edge_selection) {
+    edge_selection.foreach_index([&](const int i_edge) {
       const int2 &edge = orig_edges[i_edge];
       const float3 offset = edge_offsets[i_edge];
       mixer.mix_in(edge[0], offset);
       mixer.mix_in(edge[1], offset);
-    }
+    });
     mixer.finalize();
   }
 
-  const VectorSet<int> new_vert_indices = vert_indices_from_edges(mesh, edge_selection.indices());
+  Vector<int> edge_selection_indices(edge_selection.size());
+  edge_selection.to_indices(edge_selection_indices.as_mutable_span());
+  const VectorSet<int> new_vert_indices = vert_indices_from_edges<int>(mesh,
+                                                                       edge_selection_indices);
 
   const IndexRange new_vert_range{orig_vert_size, new_vert_indices.size()};
   /* The extruded edges connect the original and duplicate edges. */
@@ -729,10 +723,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     return;
   }
 
-  Array<bool> poly_selection_array(orig_polys.size(), false);
-  for (const int i_poly : poly_selection) {
-    poly_selection_array[i_poly] = true;
-  }
+  Array<bool> poly_selection_array(orig_polys.size());
+  poly_selection.to_bools(poly_selection_array);
 
   /* Mix the offsets from the face domain to the vertex domain. Evaluate on the face domain above
    * in order to be consistent with the selection, and to use the face normals rather than vertex
@@ -741,12 +733,12 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   if (!poly_position_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
     bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
-    for (const int i_poly : poly_selection) {
+    poly_selection.foreach_index([&](const int i_poly) {
       const float3 offset = poly_position_offsets[i_poly];
       for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
         mixer.mix_in(vert, offset);
       }
-    }
+    });
     mixer.finalize();
   }
 
@@ -760,11 +752,11 @@ static void extrude_mesh_face_regions(Mesh &mesh,
    * Start the size at one vert per poly to reduce unnecessary reallocation. */
   VectorSet<int> all_selected_verts;
   all_selected_verts.reserve(orig_polys.size());
-  for (const int i_poly : poly_selection) {
+  poly_selection.foreach_index([&](const int i_poly) {
     for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
       all_selected_verts.add(vert);
     }
-  }
+  });
 
   /* Edges inside of an extruded region that are also attached to deselected edges. They must be
    * duplicated in order to leave the old edge attached to the unchanged deselected faces. */
@@ -898,7 +890,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* Connect the selected faces to the extruded or duplicated edges and the new vertices. */
-  for (const int i_poly : poly_selection) {
+  poly_selection.foreach_index([&](const int i_poly) {
     for (const int corner : polys[i_poly]) {
       const int i_new_vert = new_vert_indices.index_of_try(corner_verts[corner]);
       if (i_new_vert != -1) {
@@ -915,7 +907,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
         corner_edges[corner] = new_inner_edge_range[i_new_inner_edge];
       }
     }
-  }
+  });
 
   /* Create the faces on the sides of extruded regions. */
   for (const int i : boundary_edge_indices.index_range()) {

@@ -35,6 +35,19 @@
 #include "BLI_lazy_threading.hh"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
+/**
+ * Wrapper type around an integer to differentiate it from other parameters in a function call.
+ */
+struct GrainSize {
+  int64_t value;
+
+  explicit constexpr GrainSize(const int64_t grain_size) : value(grain_size) {}
+};
+
+}  // namespace blender
+
 namespace blender::threading {
 
 template<typename Range, typename Function>

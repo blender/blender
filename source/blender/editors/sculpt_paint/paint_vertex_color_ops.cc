@@ -13,7 +13,6 @@
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_index_mask_ops.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_vector.hh"
@@ -42,6 +41,7 @@ using blender::ColorGeometry4f;
 using blender::FunctionRef;
 using blender::GMutableSpan;
 using blender::IndexMask;
+using blender::IndexMaskMemory;
 using blender::IndexRange;
 using blender::Vector;
 
@@ -158,7 +158,7 @@ void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
 
 static IndexMask get_selected_indices(const Mesh &mesh,
                                       const eAttrDomain domain,
-                                      Vector<int64_t> &indices)
+                                      IndexMaskMemory &memory)
 {
   using namespace blender;
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -166,14 +166,12 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
     const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_poly", domain, false);
-    return index_mask_ops::find_indices_from_virtual_array(
-        selection.index_range(), selection, 4096, indices);
+    return IndexMask::from_bools(selection, memory);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
     const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".select_vert", domain, false);
-    return index_mask_ops::find_indices_from_virtual_array(
-        selection.index_range(), selection, 4096, indices);
+    return IndexMask::from_bools(selection, memory);
   }
   return IndexMask(attributes.domain_size(domain));
 }
@@ -207,8 +205,8 @@ static bool vertex_color_smooth(Object *ob)
     return false;
   }
 
-  Vector<int64_t> indices;
-  const IndexMask selection = get_selected_indices(*me, ATTR_DOMAIN_CORNER, indices);
+  IndexMaskMemory memory;
+  const IndexMask selection = get_selected_indices(*me, ATTR_DOMAIN_CORNER, memory);
 
   face_corner_color_equalize_verts(*me, selection);
 
@@ -265,15 +263,15 @@ static void transform_active_color_data(
     return;
   }
 
-  Vector<int64_t> indices;
-  const IndexMask selection = get_selected_indices(mesh, color_attribute.domain, indices);
+  IndexMaskMemory memory;
+  const IndexMask selection = get_selected_indices(mesh, color_attribute.domain, memory);
 
-  threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
+  selection.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment segment) {
     color_attribute.varray.type().to_static_type_tag<ColorGeometry4f, ColorGeometry4b>(
         [&](auto type_tag) {
           using namespace blender;
           using T = typename decltype(type_tag)::type;
-          for ([[maybe_unused]] const int i : selection.slice(range)) {
+          for ([[maybe_unused]] const int i : segment) {
             if constexpr (std::is_void_v<T>) {
               BLI_assert_unreachable();
             }

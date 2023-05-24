@@ -64,10 +64,10 @@ class GVectorArray : NonCopyable, NonMovable {
   void extend(int64_t index, GSpan values);
 
   /* Add multiple elements to multiple vectors. */
-  void extend(IndexMask mask, const GVVectorArray &values);
-  void extend(IndexMask mask, const GVectorArray &values);
+  void extend(const IndexMask &mask, const GVVectorArray &values);
+  void extend(const IndexMask &mask, const GVectorArray &values);
 
-  void clear(IndexMask mask);
+  void clear(const IndexMask &mask);
 
   GMutableSpan operator[](int64_t index);
   GSpan operator[](int64_t index) const;

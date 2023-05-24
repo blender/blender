@@ -16,7 +16,7 @@ namespace blender::geometry {
  * between the start and end points.
  */
 bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
-                                IndexMask selection,
+                                const IndexMask &selection,
                                 const VArray<float> &starts,
                                 const VArray<float> &ends,
                                 GeometryNodeCurveSampleMode mode,

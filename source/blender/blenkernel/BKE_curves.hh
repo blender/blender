@@ -160,7 +160,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Set all curve types to the value and call #update_curve_types. */
   void fill_curve_types(CurveType type);
   /** Set the types for the curves in the selection and call #update_curve_types. */
-  void fill_curve_types(IndexMask selection, CurveType type);
+  void fill_curve_types(const IndexMask &selection, CurveType type);
   /** Update the cached count of curves of each type, necessary after #curve_types_for_write. */
   void update_curve_types();
 
@@ -173,10 +173,10 @@ class CurvesGeometry : public ::CurvesGeometry {
   /**
    * All of the curve indices for curves with a specific type.
    */
-  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
+  IndexMask indices_for_curve_type(CurveType type, IndexMaskMemory &memory) const;
   IndexMask indices_for_curve_type(CurveType type,
-                                   IndexMask selection,
-                                   Vector<int64_t> &r_indices) const;
+                                   const IndexMask &selection,
+                                   IndexMaskMemory &memory) const;
 
   Array<int> point_to_curve_map() const;
 
@@ -361,16 +361,16 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void calculate_bezier_auto_handles();
 
-  void remove_points(IndexMask points_to_delete,
+  void remove_points(const IndexMask &points_to_delete,
                      const AnonymousAttributePropagationInfo &propagation_info = {});
-  void remove_curves(IndexMask curves_to_delete,
+  void remove_curves(const IndexMask &curves_to_delete,
                      const AnonymousAttributePropagationInfo &propagation_info = {});
 
   /**
    * Change the direction of selected curves (switch the start and end) without changing their
    * shape.
    */
-  void reverse_curves(IndexMask curves_to_reverse);
+  void reverse_curves(const IndexMask &curves_to_reverse);
 
   /**
    * Remove any attributes that are unused based on the types in the curves.

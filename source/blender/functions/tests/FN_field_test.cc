@@ -31,7 +31,7 @@ class IndexFieldInput final : public FieldInput {
   IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index") {}
 
   GVArray get_varray_for_context(const FieldContext & /*context*/,
-                                 IndexMask mask,
+                                 const IndexMask &mask,
                                  ResourceScope & /*scope*/) const final
   {
     auto index_func = [](int i) { return i; };
@@ -58,7 +58,8 @@ TEST(field, VArrayInput)
   Array<int> result_2(10);
 
   const Array<int64_t> indices = {2, 4, 6, 8};
-  const IndexMask mask{indices};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
 
   FieldEvaluator evaluator_2{context, &mask};
   evaluator_2.add_with_destination(index_field, result_2.as_mutable_span());
@@ -79,7 +80,8 @@ TEST(field, VArrayInputMultipleOutputs)
   Array<int> result_2(10);
 
   const Array<int64_t> indices = {2, 4, 6, 8};
-  const IndexMask mask{indices};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
 
   FieldContext context;
   FieldEvaluator evaluator{context, &mask};
@@ -106,7 +108,8 @@ TEST(field, InputAndFunction)
   Array<int> result(10);
 
   const Array<int64_t> indices = {2, 4, 6, 8};
-  const IndexMask mask{indices};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
 
   FieldContext context;
   FieldEvaluator evaluator{context, &mask};
@@ -131,7 +134,8 @@ TEST(field, TwoFunctions)
   Array<int> result(10);
 
   const Array<int64_t> indices = {2, 4, 6, 8};
-  const IndexMask mask{indices};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
 
   FieldContext context;
   FieldEvaluator evaluator{context, &mask};
@@ -158,7 +162,7 @@ class TwoOutputFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &in1 = params.readonly_single_input<int>(0, "In1");
     const VArray<int> &in2 = params.readonly_single_input<int>(1, "In2");
@@ -187,7 +191,8 @@ TEST(field, FunctionTwoOutputs)
   Array<int> result_2(10);
 
   const Array<int64_t> indices = {2, 4, 6, 8};
-  const IndexMask mask{indices};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
 
   FieldContext context;
   FieldEvaluator evaluator{context, &mask};
@@ -212,7 +217,8 @@ TEST(field, TwoFunctionsTwoOutputs)
       std::make_unique<TwoOutputFunction>(), {index_field, index_field});
 
   Array<int64_t> mask_indices = {2, 4, 6, 8};
-  IndexMask mask = mask_indices.as_span();
+  IndexMaskMemory memory;
+  IndexMask mask = IndexMask::from_indices<int64_t>(mask_indices, memory);
 
   Field<int> result_field_1{fn, 0};
   Field<int> intermediate_field{fn, 1};

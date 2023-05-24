@@ -18,13 +18,13 @@ namespace blender::geometry::curve_constraints {
 
 void compute_segment_lengths(const OffsetIndices<int> points_by_curve,
                              const Span<float3> positions,
-                             const IndexMask curve_selection,
+                             const IndexMask &curve_selection,
                              MutableSpan<float> r_segment_lengths)
 {
   BLI_assert(r_segment_lengths.size() == points_by_curve.total_size());
 
-  threading::parallel_for(curve_selection.index_range(), 256, [&](const IndexRange range) {
-    for (const int curve_i : curve_selection.slice(range)) {
+  curve_selection.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
+    for (const int curve_i : segment) {
       const IndexRange points = points_by_curve[curve_i].drop_back(1);
       for (const int point_i : points) {
         const float3 &p1 = positions[point_i];
@@ -37,14 +37,14 @@ void compute_segment_lengths(const OffsetIndices<int> points_by_curve,
 }
 
 void solve_length_constraints(const OffsetIndices<int> points_by_curve,
-                              const IndexMask curve_selection,
+                              const IndexMask &curve_selection,
                               const Span<float> segment_lenghts,
                               MutableSpan<float3> positions)
 {
   BLI_assert(segment_lenghts.size() == points_by_curve.total_size());
 
-  threading::parallel_for(curve_selection.index_range(), 256, [&](const IndexRange range) {
-    for (const int curve_i : curve_selection.slice(range)) {
+  curve_selection.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
+    for (const int curve_i : segment) {
       const IndexRange points = points_by_curve[curve_i].drop_back(1);
       for (const int point_i : points) {
         const float3 &p1 = positions[point_i];
@@ -58,7 +58,7 @@ void solve_length_constraints(const OffsetIndices<int> points_by_curve,
 }
 
 void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_curve,
-                                            const IndexMask curve_selection,
+                                            const IndexMask &curve_selection,
                                             const Span<float> segment_lengths_cu,
                                             const Span<float3> start_positions_cu,
                                             const Mesh &surface,
@@ -74,8 +74,8 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
   const float radius = 0.005f;
   const int max_collisions = 5;
 
-  threading::parallel_for(curve_selection.index_range(), 64, [&](const IndexRange range) {
-    for (const int curve_i : curve_selection.slice(range)) {
+  curve_selection.foreach_segment(GrainSize(64), [&](const IndexMaskSegment segment) {
+    for (const int curve_i : segment) {
       const IndexRange points = points_by_curve[curve_i];
 
       /* Sometimes not all collisions can be handled. This happens relatively rarely, but if it

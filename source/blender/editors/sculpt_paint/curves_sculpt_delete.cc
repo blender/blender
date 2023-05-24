@@ -4,7 +4,6 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_rand.hh"
@@ -72,7 +71,7 @@ struct DeleteOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
-  Vector<int64_t> selected_curve_indices_;
+  IndexMaskMemory selected_curve_memory_;
   IndexMask curve_selection_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
@@ -94,8 +93,7 @@ struct DeleteOperationExecutor {
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &curves_id_->geometry.wrap();
 
-    selected_curve_indices_.clear();
-    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
@@ -129,14 +127,11 @@ struct DeleteOperationExecutor {
       BLI_assert_unreachable();
     }
 
-    Vector<int64_t> indices;
-    const IndexMask mask_to_delete = index_mask_ops::find_indices_based_on_predicate(
-        curves_->curves_range(), 4096, indices, [&](const int curve_i) {
-          return curves_to_delete[curve_i];
-        });
+    IndexMaskMemory mask_memory;
+    const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
 
     /* Remove deleted curves from the stored deformed positions. */
-    const Vector<IndexRange> ranges_to_keep = mask_to_delete.extract_ranges_invert(
+    const Vector<IndexRange> ranges_to_keep = mask_to_delete.to_ranges_invert(
         curves_->curves_range());
     const OffsetIndices points_by_curve = curves_->points_by_curve();
     Vector<float3> new_deformed_positions;
@@ -173,8 +168,8 @@ struct DeleteOperationExecutor {
     const float brush_radius_sq_re = pow2f(brush_radius_re);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
-      for (const int curve_i : curve_selection_.slice(range)) {
+    curve_selection_.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
         if (points.size() == 1) {
           const float3 pos_cu = math::transform_point(brush_transform_inv,
@@ -237,8 +232,8 @@ struct DeleteOperationExecutor {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
 
-    threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
-      for (const int curve_i : curve_selection_.slice(range)) {
+    curve_selection_.foreach_segment(GrainSize(512), [&](const IndexMaskSegment segment) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
 
         if (points.size() == 1) {

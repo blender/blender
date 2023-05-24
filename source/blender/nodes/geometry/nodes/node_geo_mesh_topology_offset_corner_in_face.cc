@@ -37,7 +37,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const IndexRange corner_range(mesh.totloop);
     const OffsetIndices polys = mesh.polys();
