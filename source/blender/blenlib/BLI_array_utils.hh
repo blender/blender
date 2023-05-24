@@ -141,4 +141,16 @@ inline void gather(const VArray<T> &src,
 
 void invert_booleans(MutableSpan<bool> span);
 
+enum class BooleanMix {
+  None,
+  AllFalse,
+  AllTrue,
+  Mixed,
+};
+BooleanMix booleans_mix_calc(const VArray<bool> &varray, IndexRange range_to_check);
+inline BooleanMix booleans_mix_calc(const VArray<bool> &varray)
+{
+  return booleans_mix_calc(varray, varray.index_range());
+}
+
 }  // namespace blender::array_utils
