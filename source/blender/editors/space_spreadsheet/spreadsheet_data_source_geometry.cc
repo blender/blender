@@ -382,7 +382,6 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
     }
     case GEO_COMPONENT_TYPE_CURVE: {
       BLI_assert(object_eval_->type == OB_CURVES);
-      BLI_assert(object_eval_->mode == OB_MODE_SCULPT_CURVES);
       const CurveComponent &component = static_cast<const CurveComponent &>(*component_);
       const Curves &curves_id = *component.get_for_read();
       switch (domain_) {
