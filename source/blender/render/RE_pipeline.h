@@ -509,7 +509,7 @@ RenderBuffer RE_RenderBuffer_new(float *data);
 void RE_RenderBuffer_assign_data(RenderBuffer *render_buffer, float *data);
 
 /**
- * Effectively `lhs = rhs`. The ths will share the same buffer as the ths (with an increased user
+ * Effectively `lhs = rhs`. The lhs will share the same buffer as the rhs (with an increased user
  * counter).
  *
  * The current content of the lhs is freed.
