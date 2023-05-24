@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* NOTE: the original vertex color stuff is now just used for
- * getting info on the layers themselves, accessing the data is
- * done through the (not yet written) mpoly interfaces. */
-
 /** \file
  * \ingroup RNA
  */

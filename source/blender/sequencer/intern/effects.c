@@ -511,7 +511,6 @@ static void do_cross_effect(const SeqRenderData *context,
 /** \name Gamma Cross
  * \{ */
 
-/* copied code from initrender.c */
 static ushort gamtab[65536];
 static ushort igamtab1[256];
 static bool gamma_tabs_init = false;
