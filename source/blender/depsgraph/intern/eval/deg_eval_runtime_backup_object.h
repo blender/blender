@@ -39,6 +39,7 @@ class ObjectRuntimeBackup {
   void restore_pose_channel_runtime_data(Object *object);
 
   Object_Runtime runtime;
+  LightLinkingRuntime light_linking_runtime;
   short base_flag;
   unsigned short base_local_view_bits;
   Map<SessionUUID, ModifierDataBackup> modifier_runtime_data;

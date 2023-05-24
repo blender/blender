@@ -68,6 +68,10 @@ class Object : public Node {
   NODE_SOCKET_API(float, ao_distance)
 
   NODE_SOCKET_API(ustring, lightgroup)
+  NODE_SOCKET_API(uint, receiver_light_set)
+  NODE_SOCKET_API(uint64_t, light_set_membership)
+  NODE_SOCKET_API(uint, blocker_shadow_set)
+  NODE_SOCKET_API(uint64_t, shadow_set_membership)
 
   /* Set during device update. */
   bool intersects_volume;

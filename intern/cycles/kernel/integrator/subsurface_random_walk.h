@@ -197,6 +197,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   ray.self.prim = prim;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
+  ray.self.light = LAMP_NONE;
 
   /* Convert subsurface to volume coefficients.
    * The single-scattering albedo is named alpha to avoid confusion with the surface albedo. */

@@ -29,6 +29,7 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
+struct Collection;
 struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
@@ -247,6 +248,61 @@ enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_INTERSECTION_PRIORITY = (1 << 1),
 };
 
+/* Evaluated light linking state needed for the render engines integration. */
+typedef struct LightLinkingRuntime {
+
+  /* For objects that emit light: a bitmask of light sets this emitter is part of for the light
+   * linking.
+   * A light set is a combination of emitters used by one or more receiver objects.
+   *
+   * If there is no light linking in the scene or if the emitter does not specify light linking all
+   * bits are set.
+   *
+   * NOTE: There can only be 64 light sets in a scene. */
+  uint64_t light_set_membership;
+
+  /* For objects that emit light: a bitmask of light sets this emitter is part of for the shadow
+   * linking.
+   * A light set is a combination of emitters from which a blocked object does not cast a shadow.
+   *
+   * If there is no shadow linking in the scene or if the emitter does not specify shadow linking
+   * all bits are set.
+   *
+   * NOTE: There can only be 64 light sets in a scene. */
+  uint64_t shadow_set_membership;
+
+  /* For receiver objects: the index of the light set from which this object receives light.
+   *
+   * If there is no light linking in the scene or the receiver is not linked to any light this is
+   * assigned zero. */
+  uint8_t receiver_light_set;
+
+  /* For blocker objects: the index of the light set from which this object casts shadow from.
+   *
+   *If there is no shadow shadow in the scene or the blocker is not linked to any emitter this is
+   *assigned zero. */
+  uint8_t blocker_shadow_set;
+
+  uint8_t _pad[6];
+} LightLinkingRuntime;
+
+typedef struct LightLinking {
+  /* Collections which contains objects (possibly via nested collection indirection) which defines
+   * the light linking relation: such as whether objects are included or excluded from being lit by
+   * this emitter (receiver_collection), oe whether they block light from this emitter
+   * (blocker_collection).
+   *
+   * If the collection is a null pointer then all objects from the current scene are receiving
+   * light from this emitter, and nothing is excluded from receiving the light and shadows.
+   *
+   * The emitter in this context is assumed to be either object of lamp type, or objects with
+   * surface which has emissive shader. */
+  struct Collection *receiver_collection;
+  struct Collection *blocker_collection;
+
+  LightLinkingRuntime runtime;
+} LightLinking;
+
 typedef struct Object {
   DNA_DEFINE_CXX_METHODS(Object)
 
@@ -450,10 +506,11 @@ typedef struct Object {
   /** Lightgroup membership information. */
   struct LightgroupMembership *lightgroup;
 
+  /** Light linking information. */
+  LightLinking *light_linking;
+
   /** Irradiance caches baked for this object (light-probes only). */
   struct LightProbeObjectCache *lightprobe_cache;
-
-  void *_pad9;
 
   /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;

@@ -37,7 +37,7 @@ namespace blender::deg {
  * get colored by individual types or classes.
  */
 #define COLOR_SCHEME_NODE_CLASS 1
-//#define COLOR_SCHEME_NODE_TYPE  2
+// #define COLOR_SCHEME_NODE_TYPE  2
 
 static const char *deg_debug_graphviz_fontname = "helvetica";
 static float deg_debug_graphviz_graph_label_size = 20.0f;

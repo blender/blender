@@ -36,6 +36,10 @@ struct ShaderCache {
   ShaderCache(id<MTLDevice> _mtlDevice) : mtlDevice(_mtlDevice)
   {
     /* Initialize occupancy tuning LUT. */
+
+    // TODO: Look into tuning for DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT and
+    // DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT.
+
     if (MetalInfo::get_device_vendor(mtlDevice) == METAL_GPU_APPLE) {
       switch (MetalInfo::get_apple_gpu_architecture(mtlDevice)) {
         default:

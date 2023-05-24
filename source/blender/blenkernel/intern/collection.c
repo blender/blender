@@ -1307,8 +1307,8 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
+  /* Cyclic dependency check. */
   if (ob->instance_collection) {
-    /* Cyclic dependency check. */
     if ((ob->instance_collection == collection) ||
         collection_find_child_recursive(ob->instance_collection, collection))
     {

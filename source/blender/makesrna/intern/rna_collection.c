@@ -419,6 +419,43 @@ static void rna_Collection_instance_offset_update(Main *UNUSED(bmain),
   DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
 }
 
+static char *rna_CollectionLightLinking_path(const PointerRNA *ptr)
+{
+  Collection *collection = (Collection *)ptr->owner_id;
+  CollectionLightLinking *collection_light_linking = (CollectionLightLinking *)ptr->data;
+
+  int counter;
+
+  counter = 0;
+  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
+    if (&collection_object->light_linking == collection_light_linking) {
+      return BLI_sprintfN("collection_objects[%d].light_linking", counter);
+    }
+    ++counter;
+  }
+
+  counter = 0;
+  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
+    if (&collection_child->light_linking == collection_light_linking) {
+      return BLI_sprintfN("collection_children[%d].light_linking", counter);
+    }
+    ++counter;
+  }
+
+  return BLI_strdup("..");
+}
+
+static void rna_CollectionLightLinking_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  /* The light linking collection comes from the collection. It does not have shading component,
+   * but is collected to objects via hierarchy component. Tagging its hierarchy for update will
+   * lead the the objects which use the collection to update its shading. */
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_HIERARCHY);
+
+  /* Tag relations for update so that an updated state of light sets is calculated. */
+  DEG_relations_tag_update(bmain);
+}
+
 #else
 
 /* collection.objects */
@@ -473,6 +510,70 @@ static void rna_def_collection_children(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "child", "Collection", "", "Collection to remove");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+}
+
+static void rna_def_collection_light_linking(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* TODO(sergey): Use proper icons. */
+  static const EnumPropertyItem light_linking_state_items[] = {
+      {COLLECTION_LIGHT_LINKING_STATE_INCLUDE, "INCLUDE", ICON_OUTLINER_OB_LIGHT, "Include", ""},
+      {COLLECTION_LIGHT_LINKING_STATE_EXCLUDE, "EXCLUDE", ICON_LIGHT, "Exclude", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  srna = RNA_def_struct(brna, "CollectionLightLinking", NULL);
+  RNA_def_struct_sdna(srna, "CollectionLightLinking");
+  RNA_def_struct_ui_text(
+      srna,
+      "Collection Light Linking",
+      "Light linking settings of objects and children collections of a collection");
+  RNA_def_struct_path_func(srna, "rna_CollectionLightLinking_path");
+
+  /* Light state. */
+  prop = RNA_def_property(srna, "link_state", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, light_linking_state_items);
+  RNA_def_property_ui_text(
+      prop, "Link State", "Light or shadow receiving state of the object or collection");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_CollectionLightLinking_update");
+}
+
+static void rna_def_collection_object(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CollectionObject", NULL);
+  RNA_def_struct_sdna(srna, "CollectionObject");
+  RNA_def_struct_ui_text(
+      srna, "Collection Object", "Object of a collection with its collection related settings");
+
+  /* Light Linking. */
+  prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "CollectionLightLinking");
+  RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings of the collection");
+}
+
+static void rna_def_collection_child(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CollectionChild", NULL);
+  RNA_def_struct_sdna(srna, "CollectionChild");
+  RNA_def_struct_ui_text(
+      srna, "Collection Child", "Child collection with its collection related settings");
+
+  /* Light Linking. */
+  prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "CollectionLightLinking");
+  RNA_def_property_ui_text(
+      prop, "Light Linking", "Light linking settings of the collection object");
 }
 
 void RNA_def_collections(BlenderRNA *brna)
@@ -541,6 +642,25 @@ void RNA_def_collections(BlenderRNA *brna)
                                     NULL,
                                     NULL);
   rna_def_collection_children(brna, prop);
+
+  /* Collection objects. */
+  prop = RNA_def_property(srna, "collection_objects", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CollectionObject");
+  RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Collection Objects",
+      "Objects of the collection with their parent-collection-specific settings");
+  /* TODO(sergey): Functions to link and unlink objects. */
+
+  /* Children collections. */
+  prop = RNA_def_property(srna, "collection_children", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CollectionChild");
+  RNA_def_property_collection_sdna(prop, NULL, "children", NULL);
+  RNA_def_property_ui_text(prop,
+                           "Collection Children",
+                           "Children collections their parent-collection-specific settings");
+  /* TODO(sergey): Functions to link and unlink collections. */
 
   /* Flags */
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
@@ -639,6 +759,10 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_color_tag_update");
 
   RNA_define_lib_overridable(false);
+
+  rna_def_collection_light_linking(brna);
+  rna_def_collection_object(brna);
+  rna_def_collection_child(brna);
 }
 
 #endif

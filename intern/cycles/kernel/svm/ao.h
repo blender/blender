@@ -66,6 +66,7 @@ ccl_device float svm_ao(
     ray.self.prim = sd->prim;
     ray.self.light_object = OBJECT_NONE;
     ray.self.light_prim = PRIM_NONE;
+    ray.self.light = LAMP_NONE;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
 

@@ -1682,6 +1682,7 @@ bool OSLRenderServices::trace(TraceOpt &options,
   ray.self.prim = PRIM_NONE;
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
+  ray.self.light = LAMP_NONE;
 
   if (options.mindist == 0.0f) {
     /* avoid self-intersections */

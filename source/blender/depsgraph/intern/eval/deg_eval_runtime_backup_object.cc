@@ -29,6 +29,12 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
 {
   /* Store evaluated mesh and curve_cache, and make sure we don't free it. */
   runtime = object->runtime;
+  if (object->light_linking) {
+    light_linking_runtime = object->light_linking->runtime;
+  }
+  else {
+    memset(&light_linking_runtime, 0, sizeof(light_linking_runtime));
+  }
   BKE_object_runtime_reset(object);
   /* Keep bbox (for now at least). */
   object->runtime.bb = runtime.bb;
@@ -120,6 +126,10 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
     else {
       object->data = object->runtime.data_eval;
     }
+  }
+
+  if (object->light_linking) {
+    object->light_linking->runtime = light_linking_runtime;
   }
 
   object->base_flag = base_flag;

@@ -491,6 +491,12 @@ void Scene::update_kernel_features()
     else if (geom->is_pointcloud()) {
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;
     }
+    if (object->get_receiver_light_set()) {
+      kernel_features |= KERNEL_FEATURE_LIGHT_LINKING;
+    }
+    if (object->get_blocker_shadow_set()) {
+      kernel_features |= KERNEL_FEATURE_SHADOW_LINKING;
+    }
   }
 
   foreach (Light *light, lights) {

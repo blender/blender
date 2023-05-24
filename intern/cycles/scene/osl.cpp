@@ -1051,8 +1051,10 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
     case SocketType::CLOSURE:
     case SocketType::NODE:
     case SocketType::NODE_ARRAY:
+    case SocketType::UINT:
+    case SocketType::UINT64:
     case SocketType::UNDEFINED:
-    case SocketType::UINT: {
+    case SocketType::NUM_TYPES: {
       assert(0);
       break;
     }

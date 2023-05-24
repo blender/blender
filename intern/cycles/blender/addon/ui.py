@@ -7,7 +7,7 @@ from bpy.app.translations import contexts as i18n_contexts
 from bpy_extras.node_utils import find_node_input
 from bl_ui.utils import PresetPanel
 
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.properties_render import draw_curves_settings
@@ -1301,6 +1301,7 @@ class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
     bl_label = "Light Group"
     bl_parent_id = "CYCLES_OBJECT_PT_shading"
     bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -1319,6 +1320,88 @@ class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
         sub = row.column(align=True)
         sub.enabled = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
         sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = ob.lightgroup
+
+
+class CYCLES_OBJECT_MT_light_linking_context_menu(Menu):
+    bl_label = "Light Linking Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("object.light_linking_receivers_select")
+
+
+class CYCLES_OBJECT_MT_shadow_linking_context_menu(Menu):
+    bl_label = "Shadow Linking Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("object.light_linking_blockers_select")
+
+
+class CYCLES_OBJECT_PT_light_linking(CyclesButtonsPanel, Panel):
+    bl_label = "Light Linking"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        object = context.object
+        light_linking = object.light_linking
+
+        col = layout.column()
+
+        col.template_ID(
+            light_linking,
+            "receiver_collection",
+            new="object.light_linking_receiver_collection_new")
+
+        if not light_linking.receiver_collection:
+            return
+
+        row = layout.row()
+        col = row.column()
+        col.template_light_linking_collection(light_linking, "receiver_collection")
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.menu("CYCLES_OBJECT_MT_light_linking_context_menu", icon='DOWNARROW_HLT', text="")
+
+
+class CYCLES_OBJECT_PT_shadow_linking(CyclesButtonsPanel, Panel):
+    bl_label = "Shadow Linking"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        object = context.object
+        light_linking = object.light_linking
+
+        col = layout.column()
+
+        col.template_ID(
+            light_linking,
+            "blocker_collection",
+            new="object.light_linking_blocker_collection_new")
+
+        if not light_linking.blocker_collection:
+            return
+
+        row = layout.row()
+        col = row.column()
+        col.template_light_linking_collection(light_linking, "blocker_collection")
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.menu("CYCLES_OBJECT_MT_shadow_linking_context_menu", icon='DOWNARROW_HLT', text="")
 
 
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
@@ -2451,6 +2534,10 @@ classes = (
     CYCLES_OBJECT_PT_shading_gi_approximation,
     CYCLES_OBJECT_PT_shading_caustics,
     CYCLES_OBJECT_PT_lightgroup,
+    CYCLES_OBJECT_MT_light_linking_context_menu,
+    CYCLES_OBJECT_PT_light_linking,
+    CYCLES_OBJECT_MT_shadow_linking_context_menu,
+    CYCLES_OBJECT_PT_shadow_linking,
     CYCLES_OBJECT_PT_visibility,
     CYCLES_OBJECT_PT_visibility_ray_visibility,
     CYCLES_OBJECT_PT_visibility_culling,

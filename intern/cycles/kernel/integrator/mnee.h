@@ -408,6 +408,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
   Ray projection_ray;
   projection_ray.self.light_object = OBJECT_NONE;
   projection_ray.self.light_prim = PRIM_NONE;
+  projection_ray.self.light = LAMP_NONE;
   projection_ray.dP = differential_make_compact(sd->dP);
   projection_ray.dD = differential_zero_compact();
   projection_ray.tmin = 0.0f;
@@ -482,6 +483,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
         if (!hit)
           break;
 
+        // TODO: Is the fetch needed here? The shade_surface simply reads isect->object.
         int hit_object = (projection_isect.object == OBJECT_NONE) ?
                              kernel_data_fetch(prim_object, projection_isect.prim) :
                              projection_isect.object;
@@ -826,6 +828,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   Ray probe_ray;
   probe_ray.self.light_object = ls->object;
   probe_ray.self.light_prim = ls->prim;
+  probe_ray.self.light = ls->lamp;
   probe_ray.tmin = 0.0f;
   probe_ray.dP = differential_make_compact(sd->dP);
   probe_ray.dD = differential_zero_compact();
@@ -926,6 +929,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
   probe_ray.self.prim = sd->prim;
   probe_ray.self.light_object = ls->object;
   probe_ray.self.light_prim = ls->prim;
+  probe_ray.self.light = ls->lamp;
   probe_ray.P = sd->P;
   probe_ray.tmin = 0.0f;
   if (ls->t == FLT_MAX) {

@@ -122,6 +122,7 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
@@ -129,6 +130,7 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
       preferred_work_group_size = preferred_work_group_size_intersect_shading;
       break;
 
@@ -435,6 +437,15 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                       oneapi_kernel_integrator_intersect_volume_stack);
           break;
         }
+        case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT: {
+          oneapi_call(kg,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_intersect_dedicated_light);
+          break;
+        }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND: {
           oneapi_call(
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_background);
@@ -472,6 +483,15 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME: {
           oneapi_call(
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_volume);
+          break;
+        }
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT: {
+          oneapi_call(kg,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_dedicated_light);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY: {

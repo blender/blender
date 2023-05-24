@@ -399,9 +399,8 @@ ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
 #endif
 }
 
-/* Records the scattered contribution of a next event estimation
- * (i.e., a direct light estimate scattered at the current path vertex
- * towards the previous vertex). */
+/* Records direct lighting from either next event estimation or a dedicated BSDF
+ * sampled shadow ray. */
 ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
                                                         IntegratorShadowState state)
 {
@@ -414,7 +413,22 @@ ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
                                           INTEGRATOR_STATE(state, shadow_path, unlit_throughput));
 
     const float3 Lo_rgb = spectrum_to_rgb(Lo);
-    openpgl::cpp::AddScatteredContribution(state->shadow_path.path_segment, guiding_vec3f(Lo_rgb));
+
+    const float mis_weight = INTEGRATOR_STATE(state, shadow_path, guiding_mis_weight);
+
+    if (mis_weight == 0.0f) {
+      /* Scattered contribution of a next event estimation (i.e., a direct light estimate
+       * scattered at the current path vertex towards the previous vertex). */
+      openpgl::cpp::AddScatteredContribution(state->shadow_path.path_segment,
+                                             guiding_vec3f(Lo_rgb));
+    }
+    else {
+      /* Dedicated shadow ray for BSDF sampled ray direction.
+       * The mis weight was already folded into the throughput, so need to divide it out. */
+      openpgl::cpp::SetDirectContribution(state->shadow_path.path_segment,
+                                          guiding_vec3f(Lo_rgb / mis_weight));
+      openpgl::cpp::SetMiWeight(state->shadow_path.path_segment, mis_weight);
+    }
   }
 #endif
 }

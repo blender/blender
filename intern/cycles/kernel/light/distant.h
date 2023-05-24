@@ -36,6 +36,39 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
   return true;
 }
 
+/* Special intersection check.
+ * Returns true if the distant_light_sample_from_intersection() for this light would return true.
+ *
+ * The intersection parameters t, u, v are optimized for the shadow ray towards a dedicated light:
+ * u = v = 0, t = FLT_MAX.
+ */
+ccl_device bool distant_light_intersect(const ccl_global KernelLight *klight,
+                                        const ccl_private Ray *ccl_restrict ray,
+                                        ccl_private float *t,
+                                        ccl_private float *u,
+                                        ccl_private float *v)
+{
+  kernel_assert(klight->type == LIGHT_DISTANT);
+
+  if (klight->distant.radius == 0.0f) {
+    return false;
+  }
+
+  const float3 lightD = klight->co;
+  const float costheta = dot(-lightD, ray->D);
+  const float cosangle = klight->distant.cosangle;
+
+  if (costheta < cosangle) {
+    return false;
+  }
+
+  *t = FLT_MAX;
+  *u = 0.0f;
+  *v = 0.0f;
+
+  return true;
+}
+
 ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
                                                        const float3 ray_D,
                                                        const int lamp,

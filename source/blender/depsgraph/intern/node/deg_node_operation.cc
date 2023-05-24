@@ -173,6 +173,9 @@ const char *operationCodeAsString(OperationCode opcode)
       return "LIGHT_UPDATE";
     case OperationCode::WORLD_UPDATE:
       return "WORLD_UPDATE";
+    /* Light linking. */
+    case OperationCode::LIGHT_LINKING_UPDATE:
+      return "LIGHT_LINKING_UPDATE";
     /* Node Tree. */
     case OperationCode::NTREE_OUTPUT:
       return "NTREE_OUTPUT";

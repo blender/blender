@@ -129,6 +129,12 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
               continue;
             }
 
+#ifdef __SHADOW_LINKING__
+            if (intersection_skip_shadow_link(kg, ray, prim_object)) {
+              continue;
+            }
+#endif
+
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 if (triangle_intersect(kg,
