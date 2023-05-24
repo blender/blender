@@ -38,7 +38,7 @@ extern "C" {
  * (most likely doesn't exist or no access).
  */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
+int BLI_copy(const char *path_src, const char *path_dst) ATTR_NONNULL();
 
 /**
  * Rename a file or directory.
@@ -77,12 +77,12 @@ int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
  */
 int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
 /**
- * When `path` points to a directory, moves all its contents into `to`,
- * else rename `path` itself to `to`.
+ * When `path_src` points to a directory, moves all its contents into `path_dst`,
+ * else rename `path_src` itself to `path_dst`.
  */
-int BLI_path_move(const char *path, const char *to) ATTR_NONNULL();
+int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
 #if 0 /* Unused */
-int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
+int BLI_create_symlink(const char *path, const char *path_dst) ATTR_NONNULL();
 #endif
 
 /* Keep in sync with the definition of struct `direntry` in `BLI_fileops_types.h`. */
