@@ -2792,7 +2792,7 @@ static void rna_def_mvert(BlenderRNA *brna)
   RNA_def_property_float_funcs(
       prop, "rna_MeshVertex_bevel_weight_get", "rna_MeshVertex_bevel_weight_set", NULL);
   RNA_def_property_ui_text(
-      prop, "Bevel Weight", "Weight used by the Bevel modifier 'Only Vertices' option");
+      prop, "Bevel Weight", "Weight used by the Bevel modifier Vertices mode");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);

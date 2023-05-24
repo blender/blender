@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 class ResolutionFieldInput final : public bke::CurvesFieldInput {
  public:
-  ResolutionFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "resolution")
+  ResolutionFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "Resolution")
   {
     category_ = Category::NamedAttribute;
   }

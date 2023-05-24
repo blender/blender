@@ -4775,7 +4775,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_text(prop,
                            "Tap Key Timeout",
-                           "Pie menu button held longer than this will dismiss menu on release."
+                           "Pie menu button held longer than this will dismiss menu on release "
                            "(in 1/100ths of sec)");
 
   prop = RNA_def_property(srna, "pie_animation_timeout", PROP_INT, PROP_NONE);

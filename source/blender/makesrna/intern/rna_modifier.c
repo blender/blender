@@ -2431,7 +2431,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Time Offset",
-      "Either the starting frame (for positive speed) or ending frame (for negative speed.)");
+      "Either the starting frame (for positive speed) or ending frame (for negative speed)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
@@ -3336,7 +3336,7 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "lambda");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 5, 3);
-  RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
+  RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth effect factor");
   RNA_def_property_update(prop, 0, "rna_CorrectiveSmoothModifier_update");
 
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
@@ -3440,7 +3440,7 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "lambda");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -1000.0, 1000.0, 5, 3);
-  RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
+  RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth effect factor");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "lambda_border", PROP_FLOAT, PROP_NONE);
@@ -4768,7 +4768,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_NONMANIFOLD_FLAT_FACES);
   RNA_def_property_ui_text(prop,
                            "Flat Faces",
-                           "Make faces use the minimal vertex weight assigned to their vertices"
+                           "Make faces use the minimal vertex weight assigned to their vertices "
                            "(ensures new faces remain parallel to their original ones, slow, "
                            "disable when not needed)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
