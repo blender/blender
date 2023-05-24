@@ -38,7 +38,17 @@ extern "C" {
  * (most likely doesn't exist or no access).
  */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+/**
+ * \return 0 on success.
+ */
 int BLI_copy(const char *path_src, const char *path_dst) ATTR_NONNULL();
+/**
+ * When `path_src` points to a directory, moves all its contents into `path_dst`,
+ * else rename `path_src` itself to `path_dst`.
+ * \return 0 on success.
+ */
+int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
 
 /**
  * Rename a file or directory.
@@ -76,11 +86,6 @@ int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
  * \return zero on success (matching 'remove' behavior).
  */
 int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
-/**
- * When `path_src` points to a directory, moves all its contents into `path_dst`,
- * else rename `path_src` itself to `path_dst`.
- */
-int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
 #if 0 /* Unused */
 int BLI_create_symlink(const char *path, const char *path_dst) ATTR_NONNULL();
 #endif
