@@ -193,8 +193,10 @@ typedef struct Tex {
 
   /* variables disabled, moved to struct iuser */
   short _pad0;
-  int len;
-  int frames, offset, sfra;
+  int len DNA_DEPRECATED;
+  int frames DNA_DEPRECATED;
+  int offset DNA_DEPRECATED;
+  int sfra DNA_DEPRECATED;
 
   float checkerdist, nabla;
   char _pad1[4];
