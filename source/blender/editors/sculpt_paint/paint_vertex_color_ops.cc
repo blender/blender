@@ -271,6 +271,7 @@ static void transform_active_color_data(
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     color_attribute.varray.type().to_static_type_tag<ColorGeometry4f, ColorGeometry4b>(
         [&](auto type_tag) {
+          using namespace blender;
           using T = typename decltype(type_tag)::type;
           for ([[maybe_unused]] const int i : selection.slice(range)) {
             if constexpr (std::is_void_v<T>) {
