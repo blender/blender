@@ -6292,6 +6292,22 @@ static void rna_def_userdef_script_directory(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  /* NOTE(@ideasman42): Ideally, changing scripts directory would behave as if
+   * Blender were launched with different script directories (instead of requiring a restart).
+   * Editing could re-initialize Python's `sys.path`, however this isn't enough.
+   *
+   * - For adding new directories this would work for the most-part, duplicate modules between
+   *   directories might cause Python's state on restart to differ however that could
+   *   be considered a corner case as duplicate modules might cause bad/unexpected behavior anyway.
+   * - Support for removing/changing directories is more involved as there might be modules
+   *   loaded into memory which are no longer accessible.
+   *
+   * Properly supporting this would likely require unloading all Blender/Python modules,
+   * then re-initializing Python's state. This is already supported with `SCRIPT_OT_reload`,
+   * even then, there are cases that don't work well (especially if any Python operators are
+   * running at the time this runs). So accept the limitation having to restart
+   * before changes to script directories are taken into account. */
+
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "dir_path");
   RNA_def_property_ui_text(
@@ -6299,7 +6315,6 @@ static void rna_def_userdef_script_directory(BlenderRNA *brna)
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with sub-directories: startup, add-ons, "
       "modules, and presets (requires restart)");
-  /* TODO: editing should reset sys.path! */
 }
 
 static void rna_def_userdef_script_directory_collection(BlenderRNA *brna, PropertyRNA *cprop)
