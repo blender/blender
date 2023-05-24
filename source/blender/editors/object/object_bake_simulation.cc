@@ -209,8 +209,7 @@ static bool bake_simulation_poll(bContext *C)
 
 struct ModifierBakeData {
   NodesModifierData *nmd;
-  std::string meta_dir;
-  std::string bdata_dir;
+  std::string absolute_bake_dir;
   std::unique_ptr<bke::sim::BDataSharing> bdata_sharing;
 };
 
@@ -244,6 +243,9 @@ static void bake_simulation_job_startjob(void *customdata,
     if (!BKE_id_is_editable(job.bmain, &object->id)) {
       continue;
     }
+
+    const char *base_path = ID_BLEND_PATH(job.bmain, &object->id);
+
     ObjectBakeData bake_data;
     bake_data.object = object;
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
@@ -252,10 +254,14 @@ static void bake_simulation_job_startjob(void *customdata,
         if (nmd->simulation_cache != nullptr) {
           nmd->simulation_cache->reset();
         }
-        bake_data.modifiers.append({nmd,
-                                    bke::sim::get_meta_directory(*job.bmain, *object, *md),
-                                    bke::sim::get_bdata_directory(*job.bmain, *object, *md),
-                                    std::make_unique<BDataSharing>()});
+        if (StringRef(nmd->simulation_bake_directory).is_empty()) {
+          nmd->simulation_bake_directory = BLI_strdup(
+              bke::sim::get_default_modifier_bake_directory(*job.bmain, *object, *md).c_str());
+        }
+        char absolute_bake_dir[FILE_MAX];
+        STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
+        BLI_path_abs(absolute_bake_dir, base_path);
+        bake_data.modifiers.append({nmd, absolute_bake_dir, std::make_unique<BDataSharing>()});
       }
     }
     objects_to_bake.append(std::move(bake_data));
@@ -305,12 +311,14 @@ static void bake_simulation_job_startjob(void *customdata,
         char bdata_path[FILE_MAX];
         BLI_path_join(bdata_path,
                       sizeof(bdata_path),
-                      modifier_bake_data.bdata_dir.c_str(),
+                      modifier_bake_data.absolute_bake_dir.c_str(),
+                      "bdata",
                       bdata_file_name.c_str());
         char meta_path[FILE_MAX];
         BLI_path_join(meta_path,
                       sizeof(meta_path),
-                      modifier_bake_data.meta_dir.c_str(),
+                      modifier_bake_data.absolute_bake_dir.c_str(),
+                      "meta",
                       meta_file_name.c_str());
 
         BLI_file_ensure_parent_dir_exists(bdata_path);
@@ -429,20 +437,24 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
   }
 
   for (Object *object : objects) {
+    const char *base_path = ID_BLEND_PATH(bmain, &object->id);
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        const std::string bake_directory = bke::sim::get_bake_directory(*bmain, *object, *md);
-        if (BLI_exists(bake_directory.c_str())) {
-          if (BLI_delete(bake_directory.c_str(), true, true)) {
-            BKE_reportf(op->reports,
-                        RPT_ERROR,
-                        "Failed to remove bake directory %s",
-                        bake_directory.c_str());
-          }
-        }
         if (nmd->simulation_cache != nullptr) {
           nmd->simulation_cache->reset();
+        }
+        if (StringRef(nmd->simulation_bake_directory).is_empty()) {
+          continue;
+        }
+        char absolute_bake_dir[FILE_MAX];
+        STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
+        BLI_path_abs(absolute_bake_dir, base_path);
+        if (BLI_exists(absolute_bake_dir)) {
+          if (BLI_delete(absolute_bake_dir, true, true)) {
+            BKE_reportf(
+                op->reports, RPT_ERROR, "Failed to remove bake directory %s", absolute_bake_dir);
+          }
         }
       }
     }

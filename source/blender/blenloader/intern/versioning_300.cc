@@ -67,6 +67,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_screen.h"
+#include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.h"
@@ -4478,5 +4479,21 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
 
     BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
+
+    /* Store simulation bake directory in geometry nodes modifier. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        if (nmd->simulation_bake_directory) {
+          continue;
+        }
+        const std::string bake_dir = blender::bke::sim::get_default_modifier_bake_directory(
+            *bmain, *ob, *md);
+        nmd->simulation_bake_directory = BLI_strdup(bake_dir.c_str());
+      }
+    }
   }
 }
