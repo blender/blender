@@ -276,7 +276,7 @@ bool BLI_windows_unregister_blend_extension(const bool all_users)
     BLI_windows_get_executable_dir(install_dir);
     GetSystemDirectory(system_dir, sizeof(system_dir));
     const char *thumbnail_handler = "BlendThumb.dll";
-    SNPRINTF(reg_cmd, "%s\\regsvr32 /u \"%s\\%s\"", system_dir, install_dir, thumbnail_handler);
+    SNPRINTF(reg_cmd, "%s\\regsvr32 /u /s \"%s\\%s\"", system_dir, install_dir, thumbnail_handler);
     system(reg_cmd);
   }
 #  endif
