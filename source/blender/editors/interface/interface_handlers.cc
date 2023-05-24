@@ -3776,21 +3776,22 @@ static void ui_do_but_textedit(
         }
         break;
       case EVT_RIGHTARROWKEY:
-        ui_textedit_move(but,
-                         data,
-                         STRCUR_DIR_NEXT,
-                         event->modifier & KM_SHIFT,
-                         (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
+      case EVT_LEFTARROWKEY: {
+        eStrCursorJumpDirection direction = (event->type == EVT_RIGHTARROWKEY) ? STRCUR_DIR_NEXT :
+                                                                                 STRCUR_DIR_PREV;
+#ifdef __APPLE__
+        eStrCursorJumpType jump = (event->modifier & KM_OSKEY) ?
+                                      STRCUR_JUMP_ALL :
+                                      ((event->modifier & KM_ALT) ? STRCUR_JUMP_DELIM :
+                                                                    STRCUR_JUMP_NONE);
+#else
+        eStrCursorJumpType jump = (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM :
+                                                                STRCUR_JUMP_NONE;
+#endif
+        ui_textedit_move(but, data, direction, event->modifier & KM_SHIFT, jump);
         retval = WM_UI_HANDLER_BREAK;
         break;
-      case EVT_LEFTARROWKEY:
-        ui_textedit_move(but,
-                         data,
-                         STRCUR_DIR_PREV,
-                         event->modifier & KM_SHIFT,
-                         (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM : STRCUR_JUMP_NONE);
-        retval = WM_UI_HANDLER_BREAK;
-        break;
+      }
       case WHEELDOWNMOUSE:
       case EVT_DOWNARROWKEY:
         if (data->searchbox) {
@@ -3831,22 +3832,22 @@ static void ui_do_but_textedit(
         retval = WM_UI_HANDLER_BREAK;
         break;
       case EVT_DELKEY:
-        changed = ui_textedit_delete(but,
-                                     data,
-                                     STRCUR_DIR_NEXT,
-                                     (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM :
-                                                                   STRCUR_JUMP_NONE);
+      case EVT_BACKSPACEKEY: {
+        eStrCursorJumpDirection direction = (event->type == EVT_DELKEY) ? STRCUR_DIR_NEXT :
+                                                                          STRCUR_DIR_PREV;
+#ifdef __APPLE__
+        eStrCursorJumpType jump = (event->modifier & KM_OSKEY) ?
+                                      STRCUR_JUMP_ALL :
+                                      ((event->modifier & KM_ALT) ? STRCUR_JUMP_DELIM :
+                                                                    STRCUR_JUMP_NONE);
+#else
+        eStrCursorJumpType jump = (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM :
+                                                                STRCUR_JUMP_NONE;
+#endif
+        changed = ui_textedit_delete(but, data, direction, jump);
         retval = WM_UI_HANDLER_BREAK;
         break;
-
-      case EVT_BACKSPACEKEY:
-        changed = ui_textedit_delete(but,
-                                     data,
-                                     STRCUR_DIR_PREV,
-                                     (event->modifier & KM_CTRL) ? STRCUR_JUMP_DELIM :
-                                                                   STRCUR_JUMP_NONE);
-        retval = WM_UI_HANDLER_BREAK;
-        break;
+      }
 
       case EVT_AKEY:
 
