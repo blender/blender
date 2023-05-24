@@ -159,6 +159,15 @@ endif()
 
 get_blender_version()
 
+if(WIN32)
+  add_definitions(
+    # This is the app ID used for file registration, given it's used from several modules
+    # there really is no nice way to get this information consistent without a global define.
+    -DBLENDER_WIN_APPID="blender.${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}"
+    # This is the name that will be shown in the taskbar and OpenWith windows UI
+    -DBLENDER_WIN_APPID_FRIENDLY_NAME="Blender ${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}"
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Declare Options

@@ -17,6 +17,9 @@
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include "BLT_translation.h"
 
@@ -663,6 +666,14 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_GPU, NULL);
   rna_userdef_update(bmain, scene, ptr);
+}
+
+static bool rna_userdef_is_microsoft_store_install_get(PointerRNA *UNUSED(ptr))
+{
+#  ifdef WIN32
+  return BLI_windows_is_store_install();
+#  endif
+  return false;
 }
 
 static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -5816,6 +5827,24 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_ui_text(prop, "Legacy Compute Device Type", "For backwards compatibility only");
 #  endif
+
+  /* Registration and Unregistration */
+
+  prop = RNA_def_property(srna, "register_all_users", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_REGISTER_ALL_USERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Register for All Users",
+      "Make this Blender version open blend files for all users. Requires elevated privileges.");
+
+  prop = RNA_def_boolean(
+      srna,
+      "is_microsoft_store_install",
+      false,
+      "Is Microsoft Store Install",
+      "Whether this blender installation is a sandboxed Microsoft Store version.");
+  RNA_def_property_boolean_funcs(prop, "rna_userdef_is_microsoft_store_install_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_userdef_input(BlenderRNA *brna)

@@ -1143,7 +1143,7 @@ typedef enum eUserpref_UI_Flag {
   USER_UIFLAG_UNUSED_3 = (1 << 19), /* Cleared. */
   USER_ZOOM_TO_MOUSEPOS = (1 << 20),
   USER_SHOW_FPS = (1 << 21),
-  USER_UIFLAG_UNUSED_22 = (1 << 22), /* cleared */
+  USER_REGISTER_ALL_USERS = (1 << 22),
   USER_MENUFIXEDORDER = (1 << 23),
   USER_CONTINUOUS_MOUSE = (1 << 24),
   USER_ZOOM_INVERT = (1 << 25),

@@ -638,11 +638,16 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         return sys.platform[:3] == "win"
 
     def draw_centered(self, _context, layout):
-        layout.label(text="Make this installation your default Blender")
-        split = layout.split(factor=0.4)
-        split.alignment = 'RIGHT'
-        split.label(text="")
-        split.operator("preferences.associate_blend", text="Make Default")
+        if _context.preferences.system.is_microsoft_store_install:
+            layout.label(text="Microsoft Store installation.")
+            layout.label(text="Use Windows 'Default Apps' to associate with blend files.")
+        else:
+            layout.label(text="Open blend files with this Blender version")
+            split = layout.split(factor=0.5)
+            split.alignment = 'LEFT'
+            split.operator("preferences.associate_blend", text="Register")
+            split.operator("preferences.unassociate_blend", text="Unregister")
+            layout.prop(bpy.context.preferences.system, "register_all_users", text="For All Users")
 
 
 class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):

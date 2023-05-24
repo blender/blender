@@ -627,8 +627,10 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "/?");
 
   /* WIN32 only (ignored for non-win32) */
-  BLI_args_print_arg_doc(ba, "-R");
-  BLI_args_print_arg_doc(ba, "-r");
+  BLI_args_print_arg_doc(ba, "--register");
+  BLI_args_print_arg_doc(ba, "--register-allusers");
+  BLI_args_print_arg_doc(ba, "--unregister");
+  BLI_args_print_arg_doc(ba, "--unregister-allusers");
 
   BLI_args_print_arg_doc(ba, "--version");
 
@@ -1399,20 +1401,60 @@ static int arg_handle_start_with_console(int UNUSED(argc),
 
 static const char arg_handle_register_extension_doc[] =
     "\n\t"
-    "Register blend-file extension, then exit (Windows only).";
-static const char arg_handle_register_extension_doc_silent[] =
-    "\n\t"
-    "Silently register blend-file extension, then exit (Windows only).";
-static int arg_handle_register_extension(int UNUSED(argc), const char **UNUSED(argv), void *data)
+    "Register blend-file extension for current user, then exit (Windows only).";
+static int arg_handle_register_extension(int UNUSED(argc),
+                                         const char **UNUSED(argv),
+                                         void *UNUSED(data))
 {
 #  ifdef WIN32
-  if (data) {
-    G.background = 1;
-  }
-  BLI_windows_register_blend_extension(G.background);
+  G.background = 1;
+  BLI_windows_register_blend_extension(false);
   TerminateProcess(GetCurrentProcess(), 0);
-#  else
-  (void)data; /* unused */
+#  endif
+  return 0;
+}
+
+static const char arg_handle_register_extension_all_doc[] =
+    "\n\t"
+    "Register blend-file extension for all users, then exit (Windows only).";
+static int arg_handle_register_extension_all(int UNUSED(argc),
+                                             const char **UNUSED(argv),
+                                             void *UNUSED(data))
+{
+#  ifdef WIN32
+  G.background = 1;
+  BLI_windows_register_blend_extension(true);
+  TerminateProcess(GetCurrentProcess(), 0);
+#  endif
+  return 0;
+}
+
+static const char arg_handle_unregister_extension_doc[] =
+    "\n\t"
+    "Unregister blend-file extension for current user, then exit (Windows only).";
+static int arg_handle_unregister_extension(int UNUSED(argc),
+                                           const char **UNUSED(argv),
+                                           void *UNUSED(data))
+{
+#  ifdef WIN32
+  G.background = 1;
+  BLI_windows_unregister_blend_extension(false);
+  TerminateProcess(GetCurrentProcess(), 0);
+#  endif
+  return 0;
+}
+
+static const char arg_handle_unregister_extension_all_doc[] =
+    "\n\t"
+    "Unregister blend-file extension for all users, then exit (Windows only).";
+static int arg_handle_unregister_extension_all(int UNUSED(argc),
+                                               const char **UNUSED(argv),
+                                               void *UNUSED(data))
+{
+#  ifdef WIN32
+  G.background = 1;
+  BLI_windows_unregister_blend_extension(true);
+  TerminateProcess(GetCurrentProcess(), 0);
 #  endif
   return 0;
 }
@@ -2335,8 +2377,10 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_args_add(ba, "-M", "--window-maximized", CB(arg_handle_window_maximized), NULL);
   BLI_args_add(ba, NULL, "--no-window-focus", CB(arg_handle_no_window_focus), NULL);
   BLI_args_add(ba, "-con", "--start-console", CB(arg_handle_start_with_console), NULL);
-  BLI_args_add(ba, "-R", NULL, CB(arg_handle_register_extension), NULL);
-  BLI_args_add(ba, "-r", NULL, CB_EX(arg_handle_register_extension, silent), ba);
+  BLI_args_add(ba, "-r", "--register", CB(arg_handle_register_extension), NULL);
+  BLI_args_add(ba, NULL, "--register-allusers", CB(arg_handle_register_extension_all), NULL);
+  BLI_args_add(ba, NULL, "--unregister", CB(arg_handle_unregister_extension), NULL);
+  BLI_args_add(ba, NULL, "--unregister-allusers", CB(arg_handle_unregister_extension_all), NULL);
   BLI_args_add(ba, NULL, "--no-native-pixels", CB(arg_handle_native_pixels_set), ba);
 
   /* Pass: Disabling Things & Forcing Settings. */

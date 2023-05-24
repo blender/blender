@@ -540,7 +540,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     userdef->flag &= ~(USER_FLAG_UNUSED_4);
 
-    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_UIFLAG_UNUSED_22);
+    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_REGISTER_ALL_USERS);
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
