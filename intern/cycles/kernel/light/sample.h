@@ -367,39 +367,6 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
   }
 }
 
-ccl_device_inline bool light_sample_new_position(KernelGlobals kg,
-                                                 const float randu,
-                                                 const float randv,
-                                                 const float time,
-                                                 const float3 P,
-                                                 ccl_private LightSample *ls)
-{
-  /* Sample a new position on the same light, for volume sampling. */
-  if (ls->type == LIGHT_TRIANGLE) {
-    if (!triangle_light_sample<false>(kg, ls->prim, ls->object, randu, randv, time, ls, P)) {
-      return false;
-    }
-
-#ifdef __LIGHT_TREE__
-    if (kernel_data.integrator.use_light_tree) {
-      ls->pdf *= ls->pdf_selection;
-    }
-    else
-#endif
-    {
-      /* Handled in triangle_light_sample for efficiency. */
-    }
-    return true;
-  }
-  else {
-    if (!light_sample<false>(kg, ls->lamp, randu, randv, P, 0, ls)) {
-      return false;
-    }
-    ls->pdf *= ls->pdf_selection;
-    return true;
-  }
-}
-
 ccl_device_forceinline void light_sample_update_position(KernelGlobals kg,
                                                          ccl_private LightSample *ls,
                                                          const float3 P)
