@@ -445,6 +445,9 @@ endif()
 
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
+option(WITH_INSTALL_COPYRIGHT    "Copy the official Blender Foundation's copyright.txt into the Blender install folder" OFF)
+mark_as_advanced(WITH_INSTALL_COPYRIGHT)
+
 if((WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE) OR WITH_MOD_FLUID)
   option(WITH_PYTHON_NUMPY "Include NumPy in Blender (used by Audaspace and Mantaflow)"  ON)
 endif()

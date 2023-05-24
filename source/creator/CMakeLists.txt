@@ -334,11 +334,15 @@ endif()
 
 
 set(BLENDER_TEXT_FILES
-  ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
   # Generate this file:
   # `${CMAKE_SOURCE_DIR}/release/text/readme.html`
 )
 
+if(WITH_INSTALL_COPYRIGHT)
+  list(APPEND BLENDER_TEXT_FILES
+    ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Platform specific target destinations
