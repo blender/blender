@@ -372,11 +372,18 @@ void split_edges(Mesh &mesh,
   }
 
   /* Precalculate topology info. */
-  Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(edges,
-                                                                                   mesh.totvert);
-  Vector<Vector<int>> edge_to_loop_map = bke::mesh_topology::build_edge_to_loop_map_resizable(
-      mesh.corner_edges(), mesh.totedge);
-  Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(mesh.polys());
+  Array<Vector<int>> vert_to_edge_map(mesh.totvert);
+  for (const int i : edges.index_range()) {
+    vert_to_edge_map[edges[i][0]].append(i);
+    vert_to_edge_map[edges[i][1]].append(i);
+  }
+
+  Array<int> orig_edge_to_loop_offsets;
+  Array<int> orig_edge_to_loop_indices;
+  const GroupedSpan<int> orig_edge_to_loop_map = bke::mesh::build_edge_to_loop_map(
+      mesh.corner_edges(), mesh.totedge, orig_edge_to_loop_offsets, orig_edge_to_loop_indices);
+
+  Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(mesh.polys());
 
   /* Store offsets, so we can split edges in parallel. */
   Array<int> edge_offsets(edges.size());
@@ -385,7 +392,7 @@ void split_edges(Mesh &mesh,
   for (const int edge : mask) {
     edge_offsets[edge] = new_edges_size;
     /* We add duplicates of the edge for each poly (except the first). */
-    const int num_connected_loops = edge_to_loop_map[edge].size();
+    const int num_connected_loops = orig_edge_to_loop_map[edge].size();
     const int num_duplicates = std::max(0, num_connected_loops - 1);
     new_edges_size += num_duplicates;
     num_edge_duplicates[edge] = num_duplicates;
@@ -398,7 +405,12 @@ void split_edges(Mesh &mesh,
   Vector<int2> new_edges(new_edges_size);
   new_edges.as_mutable_span().take_front(edges.size()).copy_from(edges);
 
-  edge_to_loop_map.resize(new_edges_size);
+  Vector<Vector<int>> edge_to_loop_map(new_edges_size);
+  threading::parallel_for(edges.index_range(), 512, [&](const IndexRange range) {
+    for (const int i : range) {
+      edge_to_loop_map[i].extend(orig_edge_to_loop_map[i]);
+    }
+  });
 
   /* Used for transferring attributes. */
   Vector<int> new_to_old_edges_map(IndexRange(new_edges.size()).as_span());

@@ -120,27 +120,6 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 #ifdef __cplusplus
 
 /**
- * Generates a map where the key is the vertex and the value
- * is a list of polys that use that vertex as a corner.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_vert_poly_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   blender::OffsetIndices<int> polys,
-                                   const int *corner_verts,
-                                   int totvert);
-/**
- * Generates a map where the key is the vertex and the value
- * is a list of loops that use that vertex as a corner.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   blender::OffsetIndices<int> polys,
-                                   const int *corner_verts,
-                                   int totvert);
-
-/**
  * Generates a map where the key is the edge and the value
  * is a list of looptris that use that edge.
  * The lists are allocated from one memory pool.
@@ -152,42 +131,6 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int totlooptri,
                                       const int *corner_verts,
                                       int totloop);
-/**
- * Generates a map where the key is the vertex and the value
- * is a list of edges that use that vertex as an endpoint.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_vert_edge_map_create(
-    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge);
-/**
- * A version of #BKE_mesh_vert_edge_map_create that references connected vertices directly
- * (not their edges).
- */
-void BKE_mesh_vert_edge_vert_map_create(
-    MeshElemMap **r_map, int **r_mem, const blender::int2 *edges, int totvert, int totedge);
-
-/**
- * Generates a map where the key is the edge and the value is a list of loops that use that edge.
- * Loops indices of a same poly are contiguous and in winding order.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   int totedge,
-                                   blender::OffsetIndices<int> polys,
-                                   const int *corner_edges,
-                                   int totloop);
-/**
- * Generates a map where the key is the edge and the value
- * is a list of polygons that use that edge.
- * The lists are allocated from one memory pool.
- */
-void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
-                                   int **r_mem,
-                                   int totedge,
-                                   blender::OffsetIndices<int> polys,
-                                   const int *corner_edges,
-                                   int totloop);
 /**
  * This function creates a map so the source-data (vert/edge/loop/poly)
  * can loop over the destination data (using the destination arrays origindex).
@@ -346,20 +289,36 @@ int *BKE_mesh_calc_smoothgroups(int totedge,
 
 #ifdef __cplusplus
 
-namespace blender::bke::mesh_topology {
+namespace blender::bke::mesh {
 
 Array<int> build_loop_to_poly_map(OffsetIndices<int> polys);
 
-Array<Vector<int>> build_vert_to_edge_map(Span<int2> edges, int verts_num);
-Array<Vector<int>> build_vert_to_poly_map(OffsetIndices<int> polys,
-                                          Span<int> corner_verts,
-                                          int verts_num);
-Array<Vector<int>> build_vert_to_loop_map(Span<int> corner_verts, int verts_num);
-Array<Vector<int>> build_edge_to_loop_map(Span<int> corner_edges, int edges_num);
-Array<Vector<int, 2>> build_edge_to_poly_map(OffsetIndices<int> polys,
-                                             Span<int> corner_edges,
-                                             int edges_num);
-Vector<Vector<int>> build_edge_to_loop_map_resizable(Span<int> corner_edges, int edges_num);
+GroupedSpan<int> build_vert_to_edge_map(Span<int2> edges,
+                                        int verts_num,
+                                        Array<int> &r_offsets,
+                                        Array<int> &r_indices);
 
-}  // namespace blender::bke::mesh_topology
+GroupedSpan<int> build_vert_to_poly_map(OffsetIndices<int> polys,
+                                        Span<int> corner_verts,
+                                        int verts_num,
+                                        Array<int> &r_offsets,
+                                        Array<int> &r_indices);
+
+GroupedSpan<int> build_vert_to_loop_map(Span<int> corner_verts,
+                                        int verts_num,
+                                        Array<int> &r_offsets,
+                                        Array<int> &r_indices);
+
+GroupedSpan<int> build_edge_to_loop_map(Span<int> corner_edges,
+                                        int edges_num,
+                                        Array<int> &r_offsets,
+                                        Array<int> &r_indices);
+
+GroupedSpan<int> build_edge_to_poly_map(OffsetIndices<int> polys,
+                                        Span<int> corner_edges,
+                                        int edges_num,
+                                        Array<int> &r_offsets,
+                                        Array<int> &r_indices);
+
+}  // namespace blender::bke::mesh
 #endif

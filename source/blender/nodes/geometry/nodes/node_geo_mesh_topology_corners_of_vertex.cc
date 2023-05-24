@@ -54,9 +54,10 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
                                  const IndexMask mask) const final
   {
     const IndexRange vert_range(mesh.totvert);
-    const Span<int> corner_verts = mesh.corner_verts();
-    Array<Vector<int>> vert_to_loop_map = bke::mesh_topology::build_vert_to_loop_map(corner_verts,
-                                                                                     mesh.totvert);
+    Array<int> map_offsets;
+    Array<int> map_indices;
+    const GroupedSpan<int> vert_to_loop_map = bke::mesh::build_vert_to_loop_map(
+        mesh.corner_verts(), mesh.totvert, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -67,7 +68,7 @@ class CornersOfVertInput final : public bke::MeshFieldInput {
     const VArray<int> indices_in_sort = evaluator.get_evaluated<int>(1);
 
     const bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
-    fn::FieldEvaluator corner_evaluator{corner_context, corner_verts.size()};
+    fn::FieldEvaluator corner_evaluator{corner_context, mesh.totloop};
     corner_evaluator.add(sort_weight_);
     corner_evaluator.evaluate();
     const VArray<float> all_sort_weights = corner_evaluator.get_evaluated<float>(0);

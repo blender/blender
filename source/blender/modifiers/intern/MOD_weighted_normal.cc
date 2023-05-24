@@ -538,7 +538,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   int defgrp_index;
   MOD_get_vgroup(ctx->object, mesh, wnmd->defgrp_name, &dvert, &defgrp_index);
 
-  const Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(result->polys());
+  const Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(result->polys());
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(

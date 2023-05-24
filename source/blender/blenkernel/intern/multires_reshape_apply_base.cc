@@ -70,13 +70,14 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   float(*base_positions)[3] = BKE_mesh_vert_positions_for_write(base_mesh);
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_positions = base_positions;
-  MeshElemMap *pmap;
-  int *pmap_mem;
-  BKE_mesh_vert_poly_map_create(&pmap,
-                                &pmap_mem,
-                                reshape_context->base_polys,
-                                reshape_context->base_corner_verts.data(),
-                                base_mesh->totvert);
+  blender::Array<int> vert_to_poly_offsets;
+  blender::Array<int> vert_to_poly_indices;
+  const blender::GroupedSpan<int> pmap = blender::bke::mesh::build_vert_to_poly_map(
+      reshape_context->base_polys,
+      reshape_context->base_corner_verts,
+      base_mesh->totvert,
+      vert_to_poly_offsets,
+      vert_to_poly_indices);
 
   float(*origco)[3] = static_cast<float(*)[3]>(
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(float[3]), __func__));
@@ -88,14 +89,14 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
 
     /* Don't adjust vertices not used by at least one poly. */
-    if (!pmap[i].count) {
+    if (!pmap[i].size()) {
       continue;
     }
 
     /* Find center. */
     int tot = 0;
-    for (int j = 0; j < pmap[i].count; j++) {
-      const blender::IndexRange poly = reshape_context->base_polys[pmap[i].indices[j]];
+    for (int j = 0; j < pmap[i].size(); j++) {
+      const blender::IndexRange poly = reshape_context->base_polys[pmap[i][j]];
 
       /* This double counts, not sure if that's bad or good. */
       for (const int corner : poly) {
@@ -109,8 +110,8 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     mul_v3_fl(center, 1.0f / tot);
 
     /* Find normal. */
-    for (int j = 0; j < pmap[i].count; j++) {
-      const blender::IndexRange poly = reshape_context->base_polys[pmap[i].indices[j]];
+    for (int j = 0; j < pmap[i].size(); j++) {
+      const blender::IndexRange poly = reshape_context->base_polys[pmap[i][j]];
 
       /* Set up poly, loops, and coords in order to call #bke::mesh::poly_normal_calc(). */
       blender::Array<int> poly_verts(poly.size());
@@ -142,8 +143,6 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   }
 
   MEM_freeN(origco);
-  MEM_freeN(pmap);
-  MEM_freeN(pmap_mem);
 
   /* Vertices were moved around, need to update normals after all the vertices are updated
    * Probably this is possible to do in the loop above, but this is rather tricky because

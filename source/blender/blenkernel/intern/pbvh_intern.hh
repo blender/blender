@@ -12,7 +12,6 @@
 
 struct PBVHGPUFormat;
 struct MLoopTri;
-struct MeshElemMap;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -206,7 +205,7 @@ struct PBVH {
   BMLog *bm_log;
   SubdivCCG *subdiv_ccg;
 
-  const MeshElemMap *pmap;
+  blender::GroupedSpan<int> pmap;
 
   CustomDataLayer *color_layer;
   eAttrDomain color_domain;

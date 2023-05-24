@@ -2230,13 +2230,10 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   const Span<float3> coarse_positions = coarse_mesh->vert_positions();
   const Span<int2> coarse_edges = coarse_mesh->edges();
 
-  int *vert_to_edge_buffer;
-  MeshElemMap *vert_to_edge_map;
-  BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
-                                &vert_to_edge_buffer,
-                                coarse_edges.data(),
-                                coarse_mesh->totvert,
-                                coarse_edges.size());
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  const blender::GroupedSpan<int> vert_to_edge_map = blender::bke::mesh::build_vert_to_edge_map(
+      coarse_edges, coarse_mesh->totvert, vert_to_edge_offsets, vert_to_edge_indices);
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];
@@ -2278,9 +2275,6 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
   }
-
-  MEM_freeN(vert_to_edge_buffer);
-  MEM_freeN(vert_to_edge_map);
 
   /* Copy the remaining loose_verts. */
   for (int i = 0; i < coarse_loose_vert_len; i++) {

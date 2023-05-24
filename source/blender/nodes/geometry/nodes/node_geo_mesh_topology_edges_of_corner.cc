@@ -76,7 +76,7 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
     }
     const OffsetIndices polys = mesh.polys();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
     return VArray<int>::ForFunc(
         mesh.totloop,
         [polys, corner_edges, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {

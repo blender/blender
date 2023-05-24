@@ -174,10 +174,6 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  if (!ob->sculpt->pmap) {
-    return OPERATOR_CANCELLED;
-  }
-
   int num_verts = SCULPT_vertex_count_get(ss);
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);

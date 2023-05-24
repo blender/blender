@@ -70,10 +70,6 @@ void SCULPT_pbvh_clear(Object *ob)
     ss->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-
-  MEM_SAFE_FREE(ss->pmap_mem);
-
   BKE_object_free_derived_caches(ob);
 
   /* Tag to rebuild PBVH in depsgraph. */

@@ -5,7 +5,7 @@
 
 namespace blender::offset_indices {
 
-void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int start_offset)
+OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int start_offset)
 {
   int offset = start_offset;
   for (const int i : counts_to_offsets.index_range().drop_back(1)) {
@@ -15,6 +15,7 @@ void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int 
     offset += count;
   }
   counts_to_offsets.last() = offset;
+  return OffsetIndices<int>(counts_to_offsets);
 }
 
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map)
@@ -24,6 +25,15 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map)
       r_map.slice(offsets[i]).fill(i);
     }
   });
+}
+
+void build_reverse_offsets(const Span<int> indices, MutableSpan<int> offsets)
+{
+  BLI_assert(std::all_of(offsets.begin(), offsets.end(), [](int value) { return value == 0; }));
+  for (const int i : indices) {
+    offsets[i]++;
+  }
+  offset_indices::accumulate_counts_to_offsets(offsets);
 }
 
 }  // namespace blender::offset_indices

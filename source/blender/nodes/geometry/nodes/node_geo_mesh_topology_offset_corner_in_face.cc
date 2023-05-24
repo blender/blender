@@ -50,7 +50,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
 
     Array<int> offset_corners(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {

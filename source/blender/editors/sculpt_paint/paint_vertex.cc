@@ -1246,15 +1246,11 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
   const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
 
-  if (gmap->vert_to_loop == nullptr) {
-    gmap->vert_map_mem = nullptr;
-    gmap->vert_to_loop = nullptr;
-    gmap->poly_map_mem = nullptr;
-    gmap->vert_to_poly = nullptr;
-    BKE_mesh_vert_loop_map_create(
-        &gmap->vert_to_loop, &gmap->vert_map_mem, polys, corner_verts.data(), me->totvert);
-    BKE_mesh_vert_poly_map_create(
-        &gmap->vert_to_poly, &gmap->poly_map_mem, polys, corner_verts.data(), me->totvert);
+  if (gmap->vert_to_loop_indices.is_empty()) {
+    gmap->vert_to_loop = blender::bke::mesh::build_vert_to_loop_map(
+        corner_verts, me->totvert, gmap->vert_to_loop_offsets, gmap->vert_to_loop_indices);
+    gmap->vert_to_poly = blender::bke::mesh::build_vert_to_poly_map(
+        polys, corner_verts, me->totvert, gmap->vert_to_poly_offsets, gmap->vert_to_poly_indices);
   }
 
   /* Create average brush arrays */
@@ -1975,8 +1971,7 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
         /* Get the average poly weight */
         int total_hit_loops = 0;
         float weight_final = 0.0f;
-        for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-          const int p_index = gmap->vert_to_poly[v_index].indices[j];
+        for (const int p_index : gmap->vert_to_poly[v_index]) {
           const blender::IndexRange poly = ss->polys[p_index];
 
           total_hit_loops += poly.size();
@@ -2089,8 +2084,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
             /* Get the color of the loop in the opposite direction of the brush movement
              * (this callback is specifically for smear.) */
             float weight_final = 0.0;
-            for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-              const int p_index = gmap->vert_to_poly[v_index].indices[j];
+            for (const int p_index : gmap->vert_to_poly[v_index]) {
               for (const int v_other_index : ss->corner_verts.slice(ss->polys[p_index])) {
                 if (v_other_index != v_index) {
                   const float3 &mv_other = ss->vert_positions[v_other_index];
@@ -3022,8 +3016,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
               int total_hit_loops = 0;
               Blend blend[4] = {0};
 
-              for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                int p_index = gmap->vert_to_poly[v_index].indices[j];
+              for (const int p_index : gmap->vert_to_poly[v_index]) {
                 if (!use_face_sel || select_poly[p_index]) {
                   const blender::IndexRange poly = ss->polys[p_index];
                   total_hit_loops += poly.size();
@@ -3054,9 +3047,9 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
                 /* For each poly owning this vert,
                  * paint each loop belonging to this vert. */
-                for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                  const int p_index = gmap->vert_to_poly[v_index].indices[j];
-                  const int l_index = gmap->vert_to_loop[v_index].indices[j];
+                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+                  const int p_index = gmap->vert_to_poly[v_index][j];
+                  const int l_index = gmap->vert_to_loop[v_index][j];
                   BLI_assert(ss->corner_verts[l_index] == v_index);
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
@@ -3166,8 +3159,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
               int total_hit_loops = 0;
               Blend blend[4] = {0};
 
-              for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                int p_index = gmap->vert_to_poly[v_index].indices[j];
+              for (const int p_index : gmap->vert_to_poly[v_index]) {
                 if (!use_face_sel || select_poly[p_index]) {
                   const blender::IndexRange poly = ss->polys[p_index];
                   total_hit_loops += poly.size();
@@ -3198,11 +3190,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
                 /* For each poly owning this vert,
                  * paint each loop belonging to this vert. */
-                for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                  const int p_index = gmap->vert_to_poly[v_index].indices[j];
-
-                  BLI_assert(ss->corner_verts[gmap->vert_to_loop[v_index].indices[j]] == v_index);
-
+                for (const int p_index : gmap->vert_to_poly[v_index]) {
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
 
@@ -3323,9 +3311,9 @@ static void do_vpaint_brush_smear(bContext *C,
                  * direction of the brush movement */
                 Color color_final(0, 0, 0, 0);
 
-                for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                  const int p_index = gmap->vert_to_poly[v_index].indices[j];
-                  const int l_index = gmap->vert_to_loop[v_index].indices[j];
+                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+                  const int p_index = gmap->vert_to_poly[v_index][j];
+                  const int l_index = gmap->vert_to_loop[v_index][j];
                   BLI_assert(ss->corner_verts[l_index] == v_index);
                   UNUSED_VARS_NDEBUG(l_index);
                   if (!use_face_sel || select_poly[p_index]) {
@@ -3368,15 +3356,15 @@ static void do_vpaint_brush_smear(bContext *C,
 
                   /* For each poly owning this vert,
                    * paint each loop belonging to this vert. */
-                  for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                    const int p_index = gmap->vert_to_poly[v_index].indices[j];
+                  for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+                    const int p_index = gmap->vert_to_poly[v_index][j];
 
                     int elem_index;
                     if constexpr (domain == ATTR_DOMAIN_POINT) {
                       elem_index = v_index;
                     }
                     else {
-                      const int l_index = gmap->vert_to_loop[v_index].indices[j];
+                      const int l_index = gmap->vert_to_loop[v_index][j];
                       elem_index = l_index;
                       BLI_assert(ss->corner_verts[l_index] == v_index);
                     }
@@ -3460,13 +3448,13 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
           if (BKE_brush_curve_strength(brush, 0.0, cache->radius) > 0.0) {
             /* If the vertex is selected for painting. */
             if (!use_vert_sel || select_vert[v_index]) {
-              accum2->len += gmap->vert_to_loop[v_index].count;
+              accum2->len += gmap->vert_to_poly[v_index].size();
               /* if a vertex is within the brush region, then add its color to the blend. */
-              for (int j = 0; j < gmap->vert_to_loop[v_index].count; j++) {
+              for (int j = 0; j < gmap->vert_to_poly[v_index].size(); j++) {
                 int elem_index;
 
                 if constexpr (domain == ATTR_DOMAIN_CORNER) {
-                  elem_index = gmap->vert_to_loop[v_index].indices[j];
+                  elem_index = gmap->vert_to_loop[v_index][j];
                 }
                 else {
                   elem_index = v_index;
@@ -3632,9 +3620,9 @@ static void vpaint_do_draw(bContext *C,
               }
               else {
                 /* For each poly owning this vert, paint each loop belonging to this vert. */
-                for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
-                  const int p_index = gmap->vert_to_poly[v_index].indices[j];
-                  const int l_index = gmap->vert_to_loop[v_index].indices[j];
+                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+                  const int p_index = gmap->vert_to_poly[v_index][j];
+                  const int l_index = gmap->vert_to_loop[v_index][j];
                   BLI_assert(ss->corner_verts[l_index] == v_index);
                   if (!use_face_sel || select_poly[p_index]) {
                     Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
