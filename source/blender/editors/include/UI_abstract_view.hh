@@ -178,6 +178,10 @@ class AbstractViewItem {
    */
   virtual std::unique_ptr<AbstractViewItemDropTarget> create_drop_target();
 
+  /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
+   * queried once per redraw. */
+  bool is_filtered_visible_cached() const;
+
   /** Get the view this item is registered for using #AbstractView::register_item(). */
   AbstractView &get_view() const;
 
@@ -227,10 +231,6 @@ class AbstractViewItem {
    *       #is_filtered_visible_cached() for querying.
    */
   virtual bool is_filtered_visible() const;
-
-  /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
-   * queried once per redraw. */
-  bool is_filtered_visible_cached() const;
 
   /**
    * Add a text button for renaming the item to \a block. This must be used for the built-in
