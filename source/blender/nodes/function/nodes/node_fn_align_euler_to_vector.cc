@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_vector.h"
-#include "BLI_task.hh"
 
 #include "RNA_enum_types.h"
 
@@ -34,47 +33,44 @@ static void align_rotations_auto_pivot(const IndexMask &mask,
                                        const VArray<float3> &vectors,
                                        const VArray<float> &factors,
                                        const float3 local_main_axis,
-                                       const MutableSpan<float3> output_rotations)
+                                       MutableSpan<float3> output_rotations)
 {
-  threading::parallel_for(mask.index_range(), 512, [&](IndexRange mask_range) {
-    for (const int maski : mask_range) {
-      const int64_t i = mask[maski];
-      const float3 vector = vectors[i];
-      if (is_zero_v3(vector)) {
-        output_rotations[i] = input_rotations[i];
-        continue;
-      }
-
-      float old_rotation[3][3];
-      eul_to_mat3(old_rotation, input_rotations[i]);
-      float3 old_axis;
-      mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
-
-      const float3 new_axis = math::normalize(vector);
-      float3 rotation_axis = math::cross_high_precision(old_axis, new_axis);
-      if (is_zero_v3(rotation_axis)) {
-        /* The vectors are linearly dependent, so we fall back to another axis. */
-        rotation_axis = math::cross_high_precision(old_axis, float3(1, 0, 0));
-        if (is_zero_v3(rotation_axis)) {
-          /* This is now guaranteed to not be zero. */
-          rotation_axis = math::cross_high_precision(old_axis, float3(0, 1, 0));
-        }
-      }
-
-      const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
-      const float angle = factors[i] * full_angle;
-
-      float rotation[3][3];
-      axis_angle_to_mat3(rotation, rotation_axis, angle);
-
-      float new_rotation_matrix[3][3];
-      mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
-
-      float3 new_rotation;
-      mat3_to_eul(new_rotation, new_rotation_matrix);
-
-      output_rotations[i] = new_rotation;
+  mask.foreach_index([&](const int64_t i) {
+    const float3 vector = vectors[i];
+    if (is_zero_v3(vector)) {
+      output_rotations[i] = input_rotations[i];
+      return;
     }
+
+    float old_rotation[3][3];
+    eul_to_mat3(old_rotation, input_rotations[i]);
+    float3 old_axis;
+    mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
+
+    const float3 new_axis = math::normalize(vector);
+    float3 rotation_axis = math::cross_high_precision(old_axis, new_axis);
+    if (is_zero_v3(rotation_axis)) {
+      /* The vectors are linearly dependent, so we fall back to another axis. */
+      rotation_axis = math::cross_high_precision(old_axis, float3(1, 0, 0));
+      if (is_zero_v3(rotation_axis)) {
+        /* This is now guaranteed to not be zero. */
+        rotation_axis = math::cross_high_precision(old_axis, float3(0, 1, 0));
+      }
+    }
+
+    const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
+    const float angle = factors[i] * full_angle;
+
+    float rotation[3][3];
+    axis_angle_to_mat3(rotation, rotation_axis, angle);
+
+    float new_rotation_matrix[3][3];
+    mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
+
+    float3 new_rotation;
+    mat3_to_eul(new_rotation, new_rotation_matrix);
+
+    output_rotations[i] = new_rotation;
   });
 }
 
@@ -84,48 +80,45 @@ static void align_rotations_fixed_pivot(const IndexMask &mask,
                                         const VArray<float> &factors,
                                         const float3 local_main_axis,
                                         const float3 local_pivot_axis,
-                                        const MutableSpan<float3> output_rotations)
+                                        MutableSpan<float3> output_rotations)
 {
-  threading::parallel_for(mask.index_range(), 512, [&](IndexRange mask_range) {
-    for (const int64_t maski : mask_range) {
-      const int64_t i = mask[maski];
-      if (local_main_axis == local_pivot_axis) {
-        /* Can't compute any meaningful rotation angle in this case. */
-        output_rotations[i] = input_rotations[i];
-        continue;
-      }
-
-      const float3 vector = vectors[i];
-      if (is_zero_v3(vector)) {
-        output_rotations[i] = input_rotations[i];
-        continue;
-      }
-
-      float old_rotation[3][3];
-      eul_to_mat3(old_rotation, input_rotations[i]);
-      float3 old_axis;
-      mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
-      float3 pivot_axis;
-      mul_v3_m3v3(pivot_axis, old_rotation, local_pivot_axis);
-
-      float full_angle = angle_signed_on_axis_v3v3_v3(vector, old_axis, pivot_axis);
-      if (full_angle > M_PI) {
-        /* Make sure the point is rotated as little as possible. */
-        full_angle -= 2.0f * M_PI;
-      }
-      const float angle = factors[i] * full_angle;
-
-      float rotation[3][3];
-      axis_angle_to_mat3(rotation, pivot_axis, angle);
-
-      float new_rotation_matrix[3][3];
-      mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
-
-      float3 new_rotation;
-      mat3_to_eul(new_rotation, new_rotation_matrix);
-
-      output_rotations[i] = new_rotation;
+  mask.foreach_index([&](const int64_t i) {
+    if (local_main_axis == local_pivot_axis) {
+      /* Can't compute any meaningful rotation angle in this case. */
+      output_rotations[i] = input_rotations[i];
+      return;
     }
+
+    const float3 vector = vectors[i];
+    if (is_zero_v3(vector)) {
+      output_rotations[i] = input_rotations[i];
+      return;
+    }
+
+    float old_rotation[3][3];
+    eul_to_mat3(old_rotation, input_rotations[i]);
+    float3 old_axis;
+    mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
+    float3 pivot_axis;
+    mul_v3_m3v3(pivot_axis, old_rotation, local_pivot_axis);
+
+    float full_angle = angle_signed_on_axis_v3v3_v3(vector, old_axis, pivot_axis);
+    if (full_angle > M_PI) {
+      /* Make sure the point is rotated as little as possible. */
+      full_angle -= 2.0f * M_PI;
+    }
+    const float angle = factors[i] * full_angle;
+
+    float rotation[3][3];
+    axis_angle_to_mat3(rotation, pivot_axis, angle);
+
+    float new_rotation_matrix[3][3];
+    mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
+
+    float3 new_rotation;
+    mat3_to_eul(new_rotation, new_rotation_matrix);
+
+    output_rotations[i] = new_rotation;
   });
 }
 
@@ -176,6 +169,13 @@ class MF_AlignEulerToVector : public mf::MultiFunction {
                                   local_pivot_axis,
                                   output_rotations);
     }
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
   }
 };
 
