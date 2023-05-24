@@ -273,7 +273,10 @@ static void transform_active_color_data(
         [&](auto type_tag) {
           using T = typename decltype(type_tag)::type;
           for ([[maybe_unused]] const int i : selection.slice(range)) {
-            if constexpr (std::is_same_v<T, ColorGeometry4f>) {
+            if constexpr (std::is_void_v<T>) {
+              BLI_assert_unreachable();
+            }
+            else if constexpr (std::is_same_v<T, ColorGeometry4f>) {
               ColorGeometry4f color = color_attribute.varray.get<ColorGeometry4f>(i);
               transform_fn(color);
               color_attribute.varray.set_by_copy(i, &color);
