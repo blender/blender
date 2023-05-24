@@ -710,9 +710,7 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
 
   LightSample ls ccl_optional_struct_init;
   if (!light_sample_from_volume_segment(kg,
-                                        rand_light.z,
-                                        rand_light.x,
-                                        rand_light.y,
+                                        rand_light,
                                         sd->time,
                                         sd->P,
                                         ray->D,
@@ -776,9 +774,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
     if (!light_sample_from_position(kg,
                                     rng_state,
-                                    rand_light.z,
-                                    rand_light.x,
-                                    rand_light.y,
+                                    rand_light,
                                     sd->time,
                                     P,
                                     zero_float3(),

@@ -671,9 +671,7 @@ ccl_device int light_tree_root_node_index(KernelGlobals kg, const int object_rec
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           float randn,
-                                           const float randu,
-                                           const float randv,
+                                           const float3 rand,
                                            const float time,
                                            const float3 P,
                                            float3 N_or_D,
@@ -694,6 +692,8 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
   int selected_emitter = -1;
   int object_emitter = 0;
   int node_index = light_tree_root_node_index(kg, object_receiver);
+  /* The first two dimensions of the Sobol sequence have better stratification. */
+  float rand_selection = rand.z;
 
   float3 local_P = P;
 
@@ -704,7 +704,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     if (is_leaf(knode)) {
       /* At a leaf node, we pick an emitter. */
       selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
-          kg, randn, local_P, N_or_D, t, has_transmission, &node_index, &pdf_selection);
+          kg, rand_selection, local_P, N_or_D, t, has_transmission, &node_index, &pdf_selection);
 
       if (node_index < 0) {
         break;
@@ -730,7 +730,8 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     float discard;
     float total_prob = left_prob;
     node_index = left_index;
-    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randn);
+    sample_resevoir(
+        right_index, 1.0f - left_prob, node_index, discard, total_prob, rand_selection);
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 
@@ -741,8 +742,7 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
   pdf_selection *= pdf_leaf;
 
   return light_sample<in_volume_segment>(kg,
-                                         randu,
-                                         randv,
+                                         float3_to_float2(rand),
                                          time,
                                          P,
                                          object_receiver,

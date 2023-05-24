@@ -93,8 +93,7 @@ ccl_device_inline bool light_link_object_match(KernelGlobals kg,
 template<bool in_volume_segment>
 ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const int lamp,
-                                    const float randu,
-                                    const float randv,
+                                    const float2 rand,
                                     const float3 P,
                                     const uint32_t path_flag,
                                     ccl_private LightSample *ls)
@@ -112,8 +111,8 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   ls->object = PRIM_NONE;
   ls->prim = PRIM_NONE;
   ls->lamp = lamp;
-  ls->u = randu;
-  ls->v = randv;
+  ls->u = rand.x;
+  ls->v = rand.y;
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (in_volume_segment && (type == LIGHT_DISTANT || type == LIGHT_BACKGROUND)) {
@@ -130,13 +129,13 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   }
 
   if (type == LIGHT_DISTANT) {
-    if (!distant_light_sample(klight, randu, randv, ls)) {
+    if (!distant_light_sample(klight, rand, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_BACKGROUND) {
     /* infinite area light (e.g. light dome or env light) */
-    float3 D = -background_light_sample(kg, P, randu, randv, &ls->pdf);
+    float3 D = -background_light_sample(kg, P, rand, &ls->pdf);
 
     ls->P = D;
     ls->Ng = D;
@@ -145,18 +144,18 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(klight, randu, randv, P, ls)) {
+    if (!spot_light_sample<in_volume_segment>(klight, rand, P, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample<in_volume_segment>(klight, randu, randv, P, ls)) {
+    if (!point_light_sample<in_volume_segment>(klight, rand, P, ls)) {
       return false;
     }
   }
   else {
     /* area light */
-    if (!area_light_sample<in_volume_segment>(klight, randu, randv, P, ls)) {
+    if (!area_light_sample<in_volume_segment>(klight, rand, P, ls)) {
       return false;
     }
   }
@@ -168,8 +167,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_sample(KernelGlobals kg,
-                                      const float randu,
-                                      const float randv,
+                                      const float2 rand,
                                       const float time,
                                       const float3 P,
                                       const int object_receiver,
@@ -218,7 +216,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
     }
 
     const int shader_flag = mesh_light.shader_flag;
-    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, randu, randv, time, ls, P)) {
+    if (!triangle_light_sample<in_volume_segment>(kg, prim, object, rand, time, ls, P)) {
       return false;
     }
     ls->shader |= shader_flag;
@@ -234,7 +232,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
       return false;
     }
 
-    if (!light_sample<in_volume_segment>(kg, light, randu, randv, P, path_flag, ls)) {
+    if (!light_sample<in_volume_segment>(kg, light, rand, P, path_flag, ls)) {
       return false;
     }
   }

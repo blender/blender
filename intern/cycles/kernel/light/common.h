@@ -28,24 +28,24 @@ typedef struct LightSample {
 
 /* Utilities */
 
-ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float randu, float randv)
+ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float2 rand)
 {
-  const float2 rand = concentric_sample_disk(randu, randv);
-  return ru * rand.x + rv * rand.y;
+  const float2 uv = concentric_sample_disk(rand);
+  return ru * uv.x + rv * uv.y;
 }
 
-ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float randu, float randv)
+ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float2 rand)
 {
-  return ru * (2.0f * randu - 1.0f) + rv * (2.0f * randv - 1.0f);
+  return ru * (2.0f * rand.x - 1.0f) + rv * (2.0f * rand.y - 1.0f);
 }
 
-ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
+ccl_device float3 disk_light_sample(float3 n, float2 rand)
 {
   float3 ru, rv;
 
-  make_orthonormals(v, &ru, &rv);
+  make_orthonormals(n, &ru, &rv);
 
-  return ellipse_sample(ru, rv, randu, randv);
+  return ellipse_sample(ru, rv, rand);
 }
 
 ccl_device float lamp_light_pdf(const float3 Ng, const float3 I, float t)

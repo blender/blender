@@ -180,7 +180,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   /* Sample diffuse surface scatter into the object. */
   float3 D;
   float pdf;
-  sample_cos_hemisphere(-N, rand_bsdf.x, rand_bsdf.y, &D, &pdf);
+  sample_cos_hemisphere(-N, rand_bsdf, &D, &pdf);
   if (dot(-Ng, D) <= 0.0f) {
     return false;
   }
@@ -326,8 +326,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
         ray.D = newD;
       }
       else {
-        float3 newD = henyey_greenstrein_sample(
-            ray.D, anisotropy, rand_scatter.x, rand_scatter.y, &hg_pdf);
+        float3 newD = henyey_greenstrein_sample(ray.D, anisotropy, rand_scatter, &hg_pdf);
         cos_theta = dot(newD, N);
         ray.D = newD;
       }

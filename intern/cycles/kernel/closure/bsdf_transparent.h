@@ -71,8 +71,6 @@ ccl_device Spectrum bsdf_transparent_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
                                        float3 wi,
-                                       float randu,
-                                       float randv,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)

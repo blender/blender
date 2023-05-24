@@ -254,9 +254,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
     if (!light_sample_from_position(kg,
                                     rng_state,
-                                    rand_light.z,
-                                    rand_light.x,
-                                    rand_light.y,
+                                    rand_light,
                                     sd->time,
                                     sd->P,
                                     sd->N,
@@ -576,7 +574,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
 
   float3 ao_D;
   float ao_pdf;
-  sample_cos_hemisphere(ao_N, rand_bsdf.x, rand_bsdf.y, &ao_D, &ao_pdf);
+  sample_cos_hemisphere(ao_N, rand_bsdf, &ao_D, &ao_pdf);
 
   bool skip_self = true;
 

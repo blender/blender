@@ -10,8 +10,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight,
-                                            const float randu,
-                                            const float randv,
+                                            const float2 rand,
                                             ccl_private LightSample *ls)
 {
   /* distant light */
@@ -21,7 +20,7 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
   float invarea = klight->distant.invarea;
 
   if (radius > 0.0f) {
-    D = normalize(D + disk_light_sample(D, randu, randv) * radius);
+    D = normalize(D + disk_light_sample(D, rand) * radius);
   }
 
   ls->P = D;
