@@ -260,9 +260,9 @@ typedef struct Object {
 
   short type; /* #ObjectType */
   short partype;
-  /** Can be vertexnrs. */
+  /** Can be vertex indices. */
   int par1, par2, par3;
-  /** String describing subobject info, MAX_ID_NAME-2. */
+  /** String describing sub-object info, `MAX_ID_NAME - 2`. */
   char parsubstr[64];
   struct Object *parent, *track;
   /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */

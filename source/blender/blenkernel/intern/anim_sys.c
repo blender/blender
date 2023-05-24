@@ -3250,8 +3250,8 @@ static void animsys_create_action_track_strip(const AnimData *adt,
    * and this setting doesn't work. */
   r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 
-  /* Unless extendmode is Nothing (might be useful for flattening NLA evaluation), disable range.
-   * Extendmode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
+  /* Unless `extendmode` is Nothing (might be useful for flattening NLA evaluation), disable range.
+   * Extend-mode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
    */
   if (r_action_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
     r_action_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;

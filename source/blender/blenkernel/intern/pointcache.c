@@ -1286,8 +1286,8 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 
   /* could crash if trying to copy a string out of this range */
   if (len > ext_len) {
-    /* using frame_len here gives compile error (vla) */
-    char num[/* frame_len */ 6 + 1];
+    /* Using frame_len here gives compile error (VLA). */
+    char num[/*frame_len*/ 6 + 1];
     STRNCPY(num, filename + len - ext_len);
 
     return atoi(num);

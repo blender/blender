@@ -88,7 +88,7 @@ SequencerDrawView sequencer_view3d_fn = NULL; /* NULL in background mode */
 void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
 #if 0
-  /* Bute buffer is supposed to be in sequencer working space already. */
+  /* Byte buffer is supposed to be in sequencer working space already. */
   if (ibuf->rect != NULL) {
     IMB_colormanagement_assign_rect_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
   }

@@ -97,7 +97,7 @@ static int neighStraightY[8] = {0, 1, 0, -1, 1, 1, -1, -1};
 
 /* subframe_updateObject() flags */
 #define SUBFRAME_RECURSION 5
-/* surface_getBrushFlags() return vals */
+/* #surface_getBrushFlags() return values. */
 #define BRUSH_USES_VELOCITY (1 << 0)
 /* Brush mesh ray-cast status. */
 #define HIT_VOLUME 1

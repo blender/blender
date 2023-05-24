@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-/* Name of subfolder inside BLENDER_DATAFILES that contains font files. */
+/* Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
 /* File name of the default variable-width font. */

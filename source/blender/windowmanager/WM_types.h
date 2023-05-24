@@ -563,7 +563,7 @@ typedef struct wmGesture {
   /** optional, maximum amount of points stored. */
   int points_alloc;
   int modal_state;
-  /** optional, draw the active side of the straightline gesture. */
+  /** Optional, draw the active side of the straight-line gesture. */
   bool draw_active_side;
 
   /**

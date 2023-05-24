@@ -1948,7 +1948,7 @@ void BKE_library_make_local(Main *bmain,
   /* This is probably more of a hack than something we should do here, but...
    * Issue is, the whole copying + remapping done in complex cases above may leave pose-channels
    * of armatures in complete invalid state (more precisely, the bone pointers of the
-   * pose-channels - very crappy cross-data-blocks relationship), se we tag it to be fully
+   * pose-channels - very crappy cross-data-blocks relationship), so we tag it to be fully
    * recomputed, but this does not seems to be enough in some cases, and evaluation code ends up
    * trying to evaluate a not-yet-updated armature object's deformations.
    * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */

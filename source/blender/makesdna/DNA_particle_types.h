@@ -437,7 +437,7 @@ enum {
   /* REACTOR type currently unused */
   /* PART_REACTOR = 1, */
   PART_HAIR = 2,
-  PART_FLUID = 3, /* deprecated (belonged to elbeem) */
+  PART_FLUID = 3, /* Deprecated (belonged to ELBEEM). */
   PART_FLUID_FLIP = 4,
   PART_FLUID_SPRAY = 5,
   PART_FLUID_BUBBLE = 6,

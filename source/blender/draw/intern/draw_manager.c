@@ -2573,7 +2573,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   draw_select_framebuffer_depth_only_setup(viewport_size);
   GPU_framebuffer_bind(g_select_buffer.framebuffer_depth_only);
   GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
-  /* WORKAROUND: Needed for Select-Next for keeping the same codeflow as Overlay-Next. */
+  /* WORKAROUND: Needed for Select-Next for keeping the same code-flow as Overlay-Next. */
   BLI_assert(DRW_viewport_texture_list_get()->depth == NULL);
   DRW_viewport_texture_list_get()->depth = g_select_buffer.texture_depth;
 

@@ -103,7 +103,7 @@ def check_if_changed(a, b):
 
 def get_props_from_txt(input_filename):
     """
-    If the file is *.txt, the script assumes it is formatted as outlined in this script docstring
+    If the file is *.txt, the script assumes it is formatted as outlined in this script doc-string.
     """
 
     file = open(input_filename, 'r')

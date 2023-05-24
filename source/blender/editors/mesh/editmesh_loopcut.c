@@ -229,7 +229,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
        *     in editmesh_select.cc (around line 1000)... */
       /* sets as active, useful for other tools */
       if (em->selectmode & SCE_SELECT_VERTEX) {
-        /* low priority TODO: get vertrex close to mouse. */
+        /* low priority TODO: get vertex close to mouse. */
         BM_select_history_store(em->bm, lcd->eed->v1);
       }
       if (em->selectmode & SCE_SELECT_EDGE) {

@@ -108,7 +108,7 @@ typedef struct RenderLayer {
 
   int rectx, recty;
 
-  /** Optional saved endresult on disk. */
+  /** Optional saved end-result on disk. */
   void *exrhandle;
 
   ListBase passes;

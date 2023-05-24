@@ -2150,7 +2150,7 @@ void ED_spacetype_view3d()
   art->lock = 1; /* can become flag, see BKE_spacedata_draw_locks */
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: listview/buttons */
+  /* regions: list-view/buttons */
   art = MEM_cnew<ARegionType>("spacetype view3d buttons region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;

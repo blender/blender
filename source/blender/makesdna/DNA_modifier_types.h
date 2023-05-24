@@ -143,7 +143,7 @@ typedef enum {
   eModifierFlag_Active = (1 << 2),
   /**
    * Only set on modifiers in evaluated objects. The flag indicates that the user modified inputs
-   * to the modifer which might invalidate simulation caches.
+   * to the modifier which might invalidate simulation caches.
    */
   eModifierFlag_UserModified = (1 << 3),
 } ModifierFlag;

@@ -970,7 +970,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
   if (object->instance_collection) {
     Collection *dup_collection = object->instance_collection;
     if ((dup_collection->id.tag & LIB_TAG_DOIT) == 0) {
-      /* Cycle already exists in collections, let's prevent further crappyness */
+      /* Cycle already exists in collections, let's prevent further creepiness. */
       return true;
     }
     /* flag the object to identify cyclic dependencies in further dupli collections */

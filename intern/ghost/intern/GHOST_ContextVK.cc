@@ -824,7 +824,7 @@ static bool surfaceFormatSupported(const VkSurfaceFormatKHR &surface_format)
 /**
  * Select the surface format that we will use.
  *
- * We will select any 8bit unorm surface.
+ * We will select any 8bit UNORM surface.
  */
 static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
                                 const VkSurfaceKHR surface,

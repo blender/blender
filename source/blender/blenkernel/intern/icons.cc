@@ -745,7 +745,7 @@ static int icon_gplayer_color_ensure_create_icon(bGPDlayer *gpl)
   BLI_assert(BLI_thread_is_main());
 
   /* NOTE: The color previews for GP Layers don't really need
-   * to be "rendered" to image per se (as it will just be a plain
+   * to be "rendered" to image per-se (as it will just be a plain
    * colored rectangle), we need to define icon data here so that
    * we can store a pointer to the layer data in icon->obj.
    */

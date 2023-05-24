@@ -286,11 +286,11 @@ typedef enum PropertyFlag {
 
   /** This is an IDProperty, not a DNA one. */
   PROP_IDPROPERTY = (1 << 10),
-  /** For dynamic arrays, and retvals of type string. */
+  /** For dynamic arrays & return values of type string. */
   PROP_DYNAMIC = (1 << 17),
   /** For enum that shouldn't be contextual */
   PROP_ENUM_NO_CONTEXT = (1 << 24),
-  /** For enums not to be translated (e.g. viewlayers' names in nodes). */
+  /** For enums not to be translated (e.g. view-layers' names in nodes). */
   PROP_ENUM_NO_TRANSLATE = (1 << 29),
 
   /**

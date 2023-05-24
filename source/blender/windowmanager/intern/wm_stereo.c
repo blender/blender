@@ -277,7 +277,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   if (prev_display_mode == S3D_DISPLAY_PAGEFLIP &&
       prev_display_mode != win_src->stereo3d_format->display_mode)
   {
-    /* in case the hardware supports pageflip but not the display */
+    /* In case the hardware supports page-flip but not the display. */
     if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
       /* pass */
     }
@@ -292,13 +292,13 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   else if (win_src->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     const bScreen *screen = WM_window_get_active_screen(win_src);
 
-    /* ED_workspace_layout_duplicate() can't handle other cases yet #44688 */
+    /* #ED_workspace_layout_duplicate() can't handle other cases yet #44688 */
     if (screen->state != SCREENNORMAL) {
       BKE_report(
           op->reports, RPT_ERROR, "Failed to switch to Time Sequential mode when in fullscreen");
       ok = false;
     }
-    /* pageflip requires a new window to be created with the proper OS flags */
+    /* Page-flip requires a new window to be created with the proper OS flags. */
     else if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
       if (GPU_stereo_quadbuffer_support()) {
         BKE_report(op->reports, RPT_INFO, "Quad-buffer window successfully created");

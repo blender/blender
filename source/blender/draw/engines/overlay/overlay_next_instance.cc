@@ -155,7 +155,7 @@ void Instance::draw(Manager &manager)
   const DRWView *view_legacy = DRW_view_default_get();
   View view("OverlayView", view_legacy);
 
-  /* TODO: Better semantical switch? */
+  /* TODO: Better semantics using a switch? */
   if (!resources.color_overlay_tx.is_valid()) {
     /* Likely to be the selection case. Allocate dummy texture and bind only depth buffer. */
     resources.line_tx.acquire(int2(1, 1), GPU_RGBA8);

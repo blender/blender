@@ -3832,7 +3832,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
-/* circleselect-like modal operators */
+/* Circle-select-like modal operators. */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

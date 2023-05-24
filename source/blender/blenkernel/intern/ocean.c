@@ -1454,7 +1454,7 @@ void BKE_ocean_bake(struct Ocean *o,
 
           // pr = pr * och->foam_fade; /* overall fade */
 
-          /* Remember ocean coord sys is Y up!
+          /* Remember ocean coord system is Y up!
            * break up the foam where height (Y) is low (wave valley),
            * and X and Z displacement is greatest. */
 

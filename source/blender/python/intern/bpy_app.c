@@ -555,8 +555,8 @@ PyObject *BPY_app_struct(void)
   /* prevent user from creating new instances */
   BlenderAppType.tp_init = NULL;
   BlenderAppType.tp_new = NULL;
-  BlenderAppType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
+  /* Without this we can't do `set(sys.modules)` #29635. */
+  BlenderAppType.tp_hash = (hashfunc)_Py_HashPointer;
 
   /* Kind of a hack on top of #PyStructSequence. */
   py_struct_seq_getset_init();

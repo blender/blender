@@ -354,7 +354,7 @@ enum eVelocityStep : uint32_t {
 };
 
 struct VelocityObjectIndex {
-  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;

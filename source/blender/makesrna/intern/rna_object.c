@@ -1147,7 +1147,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
   if (ob->type == OB_GPENCIL_LEGACY) {
-    /* notifying material property in topbar */
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }

@@ -598,7 +598,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
     {
       for (uint i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
         /* This is the lower triangle of the sparse matrix,
-         * therefore multiplication occurs with transposed submatrices. */
+         * therefore multiplication occurs with transposed sub-matrices. */
         muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
       }
     }

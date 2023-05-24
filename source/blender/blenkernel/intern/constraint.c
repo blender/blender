@@ -4025,7 +4025,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         mat4_to_size(dvec, ct->matrix);
 
         if (is_negative_m4(ct->matrix)) {
-          /* Bugfix #27886: (this is a limitation that riggers will have to live with for now).
+          /* Bug-fix #27886: (this is a limitation that riggers will have to live with for now).
            * We can't be sure which axis/axes are negative,
            * though we know that something is negative.
            * Assume we don't care about negativity of separate axes. */

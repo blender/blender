@@ -1285,11 +1285,9 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     return false;
   }
 
-  /* take a mesh/curve/mball as starting point, remove 1 index,
-   * AND with all objects that share the ob->data
-   *
-   * after that check indices in mesh/curve/mball!!!
-   */
+  /* Take a mesh/curve/meta-ball as starting point, remove 1 index,
+   * AND with all objects that share the `ob->data`.
+   * After that check indices in mesh/curve/meta-ball! */
 
   totcolp = BKE_object_material_len_p(ob);
   matarar = BKE_object_material_array_p(ob);

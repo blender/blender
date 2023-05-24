@@ -253,7 +253,7 @@ typedef struct ThemeSpace {
   unsigned char button_text[4];
   unsigned char button_text_hi[4];
 
-  /* listview regions */
+  /* List-view regions. */
   /** Region background. */
   unsigned char list[4];
   /** Panel title. */
@@ -489,7 +489,7 @@ typedef struct bTheme {
   ThemeUI tui;
 
   /**
-   * Individual Spacetypes:
+   * Individual Space-types:
    * \note Ensure #UI_THEMESPACE_END is updated when adding.
    */
   ThemeSpace space_properties;

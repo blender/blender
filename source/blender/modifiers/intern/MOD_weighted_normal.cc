@@ -507,8 +507,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Right now:
    * If weight = 50 then all faces are given equal weight.
-   * If weight > 50 then more weight given to faces with larger vals (face area / corner angle).
-   * If weight < 50 then more weight given to faces with lesser vals. However current calculation
+   * If weight > 50 then more weight given to faces with larger values (face area / corner angle).
+   * If weight < 50 then more weight given to faces with lesser values. However current calculation
    * does not converge to min/max.
    */
   float weight = float(wnmd->weight) / 50.0f;
