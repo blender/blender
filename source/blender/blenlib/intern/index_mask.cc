@@ -134,20 +134,20 @@ IndexMask IndexMask::slice_and_offset(const int64_t start,
   if (std::optional<IndexRange> range = this->to_range()) {
     return range->slice(start, size).shift(offset);
   }
-  const IndexMask sliced_mask = this->slice(start, size);
+  IndexMask sliced_mask = this->slice(start, size);
   if (offset == 0) {
     return sliced_mask;
   }
   if (std::optional<IndexRange> range = sliced_mask.to_range()) {
     return range->shift(offset);
   }
-  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(segments_num_);
-  for (const int64_t i : IndexRange(segments_num_)) {
-    new_segment_offsets[i] = segment_offsets_[i] + offset;
+  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(
+      sliced_mask.segments_num_);
+  for (const int64_t i : new_segment_offsets.index_range()) {
+    new_segment_offsets[i] = sliced_mask.segment_offsets_[i] + offset;
   }
-  IndexMask offset_mask = *this;
-  offset_mask.segment_offsets_ = new_segment_offsets.data();
-  return offset_mask;
+  sliced_mask.segment_offsets_ = new_segment_offsets.data();
+  return sliced_mask;
 }
 
 IndexMask IndexMask::complement(const IndexRange universe, IndexMaskMemory &memory) const
