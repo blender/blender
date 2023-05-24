@@ -189,7 +189,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
   /* enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_metaelem_type_items);
-  RNA_def_property_ui_text(prop, "Type", "Metaball types");
+  RNA_def_property_ui_text(prop, "Type", "Metaball type");
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
   /* number values */
@@ -319,7 +319,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "MetaBall", "ID");
-  RNA_def_struct_ui_text(srna, "MetaBall", "Metaball data-block to defined blobby surfaces");
+  RNA_def_struct_ui_text(srna, "MetaBall", "Metaball data-block to define blobby surfaces");
   RNA_def_struct_ui_icon(srna, ICON_META_DATA);
 
   prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
@@ -340,7 +340,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "wiresize");
   RNA_def_property_range(prop, 0.005f, 10000.0f);
   RNA_def_property_ui_range(prop, 0.05f, 1000.0f, 2.5f, 3);
-  RNA_def_property_ui_text(prop, "Wire Size", "Polygonization resolution in the 3D viewport");
+  RNA_def_property_ui_text(prop, "Viewport Size", "Polygonization resolution in the 3D viewport");
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
   prop = RNA_def_property(srna, "render_resolution", PROP_FLOAT, PROP_DISTANCE);

@@ -3698,7 +3698,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_ui_text(
-      prop, "Color", "Object color and alpha, used when faces have the ObColor mode enabled");
+      prop, "Color", "Object color and alpha, used when the Object Color mode is enabled");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* physics */

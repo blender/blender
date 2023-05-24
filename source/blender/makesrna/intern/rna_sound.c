@@ -89,7 +89,7 @@ static void rna_def_sound(BlenderRNA *brna)
   prop = RNA_def_property(srna, "samplerate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "samplerate");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Samplerate", "Samplerate of the audio in Hz");
+  RNA_def_property_ui_text(prop, "Sample Rate", "Sample rate of the audio in Hz");
 
   prop = RNA_def_property(srna, "channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "audio_channels");
