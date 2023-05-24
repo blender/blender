@@ -1111,16 +1111,19 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
   /* We are checking here if we have an absolute path that is not in the current `.blend` file
    * as a lib main - we are basically checking for the case that a UNIX root `/` is passed. */
   if (!wasrelative && !BLI_path_is_abs_win32(path)) {
+    const size_t root_dir_len = 3;
     char *p = path;
     BLI_windows_get_default_root_dir(tmp);
-    /* Get rid of the slashes at the beginning of the path. */
-    while (ELEM(*p, '\\', '/')) {
+    BLI_assert(strlen(tmp) == root_dir_len);
+
+    /* Step over the slashes at the beginning of the path. */
+    while (BLI_path_slash_is_native_compat(*p)) {
       p++;
     }
-    strcat(tmp, p);
+    BLI_strncpy(tmp + root_dir_len, p, sizeof(tmp) - root_dir_len);
   }
   else {
-    BLI_strncpy(tmp, path, FILE_MAX);
+    STRNCPY(tmp, path);
   }
 #else
   STRNCPY(tmp, path);
