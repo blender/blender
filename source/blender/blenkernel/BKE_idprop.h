@@ -86,8 +86,6 @@ struct IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNU
  */
 void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, int maxncpy) ATTR_NONNULL();
 void IDP_AssignString(struct IDProperty *prop, const char *st) ATTR_NONNULL();
-void IDP_ConcatStringC(struct IDProperty *prop, const char *st) ATTR_NONNULL();
-void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append) ATTR_NONNULL();
 void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
 
 /*-------- ID Type -------*/
