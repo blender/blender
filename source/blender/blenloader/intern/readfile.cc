@@ -3965,14 +3965,29 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
+    /* Must happen before applying liboverrides, as this process may fully invalidate e.g. view
+     * layer pointers in case a Scene is a liboverride. */
+    link_global(fd, bfd);
+
     /* Now that all our data-blocks are loaded,
      * we can re-generate overrides from their references. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
       /* Do not apply in undo case! */
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer();
 
+      std::string cur_view_layer_name = bfd->cur_view_layer != nullptr ?
+                                            bfd->cur_view_layer->name :
+                                            "";
+
       BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
+
+      /* In case the current scene is a liboverride, while the ID pointer itself remains valid,
+       * above update of liboverrides will have completely invalidated its old content, so the
+       * current viewlayer needs to be searched for again. */
+      if (bfd->cur_view_layer != nullptr) {
+        bfd->cur_view_layer = BKE_view_layer_find(bfd->curscene, cur_view_layer_name.c_str());
+      }
 
       /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
        * `BKE_lib_override_library_main_update`, see #103062.
@@ -3987,8 +4002,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Make all relative paths, relative to the open blend file. */
     fix_relpaths_library(fd->relabase, bfd->main);
-
-    link_global(fd, bfd); /* as last */
   }
 
   fd->mainlist = nullptr; /* Safety, this is local variable, shall not be used afterward. */
