@@ -22,6 +22,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"
@@ -251,16 +252,9 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
     /* Merge OpenSubdiv library code with our own library code. */
     const char *patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
     const char *subdiv_lib_code = datatoc_common_subdiv_lib_glsl;
-    char *library_code = static_cast<char *>(
-        MEM_mallocN(strlen(patch_basis_source) + strlen(subdiv_lib_code) + 1,
-                    "subdiv patch evaluation library code"));
-    library_code[0] = '\0';
-    strcat(library_code, patch_basis_source);
-    strcat(library_code, subdiv_lib_code);
-
+    char *library_code = BLI_string_joinN(patch_basis_source, subdiv_lib_code);
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
         compute_code, library_code, defines, get_shader_name(shader_type));
-
     MEM_freeN(library_code);
   }
 
