@@ -2667,8 +2667,8 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
 /**
  * Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
  * (typical case: Mesh object which only relationship to the rest of the liboverride hierarchy is
- * though its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
- * object). Sadge.
+ * through its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
+ * object).
  *
  * Logic and rational of this function are very similar to these of
  * #lib_override_hierarchy_dependencies_recursive_tag_from, but withing specific resync context.
@@ -4440,10 +4440,20 @@ void BKE_lib_override_library_main_unused_cleanup(Main *bmain)
 
 static void lib_override_id_swap(Main *bmain, ID *id_local, ID *id_temp)
 {
+  /* Ensure ViewLayers are in sync in case a Scene is being swapped, and prevent any further resync
+   * during the swapping itself. */
+  if (GS(id_local->name) == ID_SCE) {
+    BKE_scene_view_layers_synced_ensure(reinterpret_cast<Scene *>(id_local));
+    BKE_scene_view_layers_synced_ensure(reinterpret_cast<Scene *>(id_temp));
+  }
+  BKE_layer_collection_resync_forbid();
+
   BKE_lib_id_swap(bmain, id_local, id_temp, true, 0);
   /* We need to keep these tags from temp ID into orig one.
    * ID swap does not swap most of ID data itself. */
   id_local->tag |= (id_temp->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC);
+
+  BKE_layer_collection_resync_allow();
 }
 
 void BKE_lib_override_library_update(Main *bmain, ID *local)
