@@ -86,6 +86,11 @@ const char *dirname(char *path);
 /* Windows utility functions. */
 
 bool BLI_windows_register_blend_extension(bool background);
+/**
+ * Set the `root_dir` to the default root directory on MS-Windows,
+ * The string is guaranteed to be set with a length of 3 & null terminated,
+ * using a fall-back in case the root directory can't be found.
+ */
 void BLI_windows_get_default_root_dir(char root_dir[4]);
 int BLI_windows_get_executable_dir(char *str);
 
