@@ -30,7 +30,7 @@ void GammaCorrectOperation::execute_pixel_sampled(float output[4],
     input_color[2] /= input_color[3];
   }
 
-  /* check for negative to avoid nan's */
+  /* Check for negative to avoid NAN's. */
   output[0] = input_color[0] > 0.0f ? input_color[0] * input_color[0] : 0.0f;
   output[1] = input_color[1] > 0.0f ? input_color[1] * input_color[1] : 0.0f;
   output[2] = input_color[2] > 0.0f ? input_color[2] * input_color[2] : 0.0f;
@@ -57,7 +57,7 @@ void GammaCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,
       color[2] /= color[3];
     }
 
-    /* Check for negative to avoid nan's. */
+    /* Check for negative to avoid NAN's. */
     it.out[0] = color[0] > 0.0f ? color[0] * color[0] : 0.0f;
     it.out[1] = color[1] > 0.0f ? color[1] * color[1] : 0.0f;
     it.out[2] = color[2] > 0.0f ? color[2] * color[2] : 0.0f;

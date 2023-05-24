@@ -328,7 +328,7 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
     block->aspect = 2.0f / fabsf(region->winx * block->winmat[0][0]);
   }
   else {
-    /* No subwindow created yet, for menus for example, so we use the main
+    /* No sub-window created yet, for menus for example, so we use the main
      * window instead, since buttons are created there anyway. */
     const int width = WM_window_pixels_x(window);
     const int height = WM_window_pixels_y(window);

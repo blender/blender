@@ -1674,7 +1674,7 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
     /* Filter visible data. */
     rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_GPLAYER);
 
-    /* rearrange datablock's layers */
+    /* Rearrange data-block's layers. */
     rearrange_animchannel_islands(
         &gpd->layers, rearrange_func, mode, ANIMTYPE_GPLAYER, &anim_data_visible);
 

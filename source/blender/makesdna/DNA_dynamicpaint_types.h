@@ -33,7 +33,7 @@ enum {
 enum {
   MOD_DPAINT_ACTIVE = 1 << 0, /* Is surface enabled */
 
-  MOD_DPAINT_ANTIALIAS = 1 << 1,    /* do antialiasing */
+  MOD_DPAINT_ANTIALIAS = 1 << 1,    /* do anti-aliasing. */
   MOD_DPAINT_DISSOLVE = 1 << 2,     /* do dissolve */
   MOD_DPAINT_MULALPHA = 1 << 3,     /* Multiply color by alpha when saving image */
   MOD_DPAINT_DISSOLVE_LOG = 1 << 4, /* Use 1/x for surface dissolve */

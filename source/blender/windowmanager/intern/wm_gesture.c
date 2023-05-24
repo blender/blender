@@ -436,7 +436,7 @@ void wm_gesture_draw(wmWindow *win)
 
   GPU_line_width(1.0f);
   for (; gt; gt = gt->next) {
-    /* all in subwindow space */
+    /* All in sub-window space. */
     wmViewport(&gt->winrct);
 
     if (gt->type == WM_GESTURE_RECT) {

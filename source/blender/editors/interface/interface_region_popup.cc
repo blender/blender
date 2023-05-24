@@ -745,7 +745,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   /* Adds sub-window. */
   ED_region_floating_init(region);
 
-  /* get winmat now that we actually have the subwindow */
+  /* Get `winmat` now that we actually have the sub-window. */
   wmGetProjectionMatrix(block->winmat, &region->winrct);
 
   /* notify change and redraw */

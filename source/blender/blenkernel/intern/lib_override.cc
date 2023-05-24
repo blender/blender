@@ -2668,7 +2668,7 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
  * Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
  * (typical case: Mesh object which only relationship to the rest of the liboverride hierarchy is
  * though its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
- * object). Sadge.
+ * object). This is unfortunate.
  *
  * Logic and rational of this function are very similar to these of
  * #lib_override_hierarchy_dependencies_recursive_tag_from, but withing specific resync context.

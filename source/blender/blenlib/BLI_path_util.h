@@ -625,7 +625,7 @@ bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUS
  * \{ */
 
 /**
- * These values need to be hard-coded in structs, dna does not recognize defines
+ * These values need to be hard-coded in structs, DNA does not recognize defines
  * (also defined in `DNA_space_types.h`).
  *
  * \note In general path functions should *not* depend on these hard coded limits,
