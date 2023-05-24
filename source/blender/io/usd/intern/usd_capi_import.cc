@@ -159,9 +159,9 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
   G.is_break = false;
 
   if (data->params.create_collection) {
-    char display_name[1024];
+    char display_name[MAX_ID_NAME - 2];
     BLI_path_to_display_name(
-        display_name, strlen(data->filepath), BLI_path_basename(data->filepath));
+        display_name, sizeof(display_name), BLI_path_basename(data->filepath));
     Collection *import_collection = BKE_collection_add(
         data->bmain, data->scene->master_collection, display_name);
     id_fake_user_set(&import_collection->id);
