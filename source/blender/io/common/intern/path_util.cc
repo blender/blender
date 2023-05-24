@@ -71,7 +71,7 @@ void path_reference_copy(const Set<std::pair<std::string, std::string>> &copy_se
       fprintf(stderr, "Can't make directory for '%s', not copying\n", dst);
       continue;
     }
-    if (!BLI_copy(src, dst)) {
+    if (BLI_copy(src, dst) != 0) {
       fprintf(stderr, "Can't copy '%s' to '%s'\n", src, dst);
       continue;
     }
