@@ -87,10 +87,12 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Detail Flood Fill
  * \{ */
-static int sculpt_detail_flood_fill_run(Object *ob,
-                                        Sculpt *sd,
+static int sculpt_detail_flood_fill_run(Scene *scene,
+                                        Object *ob,
+                                        ToolSettings *tool_settings,
                                         Brush *brush,
                                         wmOperator *op,
+                                        ViewContext *vc,
                                         std::function<void()> lock_main_thread,
                                         std::function<void()> unlock_main_thread,
                                         std::function<void()> update_main_thread,
@@ -102,6 +104,8 @@ static int sculpt_detail_flood_fill_run(Object *ob,
 
   bool developer_mode = RNA_boolean_get(op->ptr, "developer");
   SculptSession *ss = ob->sculpt;
+  Sculpt *sd = tool_settings->sculpt;
+
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
   if (nodes.is_empty()) {
@@ -109,7 +113,7 @@ static int sculpt_detail_flood_fill_run(Object *ob,
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_apply_dyntopo_settings(ss, sd, brush);
+  SCULPT_apply_dyntopo_settings(scene, ss, sd, brush);
   float detail_range = ss->cached_dyntopo.detail_range;
 
   /* Update topology size. */
@@ -139,17 +143,57 @@ static int sculpt_detail_flood_fill_run(Object *ob,
 
   unlock_main_thread();
 
+  float radius;
+  float3 center;
+  bool emulate_brush = RNA_boolean_get(op->ptr, "emulate_brush") && developer_mode && vc;
+
+  if (emulate_brush && vc) {
+    // ViewContext
+
+    if (tool_settings->unified_paint_settings.average_stroke_counter) {
+      center = float3(tool_settings->unified_paint_settings.average_stroke_accum) /
+               float(tool_settings->unified_paint_settings.average_stroke_counter);
+    }
+    else {
+      zero_v3(center);
+    }
+
+    radius = SCULPT_calc_radius(vc, brush, vc->scene, center);
+    printf("radius: %.5f", radius);
+  }
+
   int repeat = ss->cached_dyntopo.repeat;
   for (int i = 0; i < 1 + repeat; i++) {
     lock_main_thread();
 
+    BrushNoRadius null_brush_tester;
+    BrushSphere sphere_brush_tester(center, radius);
+    BrushTester *tester;
+
     nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+
+    if (!emulate_brush) {
+      tester = &null_brush_tester;
+    }
+    else {
+      tester = &sphere_brush_tester;
+
+#if 0
+      SculptSearchSphereData data{};
+      data.sd = sd;
+      data.radius_squared = radius*radius;
+      data.original = false;
+      data.center = center;
+
+      nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+#endif
+    }
+
     for (int j = 0; j < nodes.size(); j++) {
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
-    blender::bke::dyntopo::BrushNoRadius brush_tester;
-    EdgeQueueContext remesher(&brush_tester,
+    EdgeQueueContext remesher(tester,
                               ss,
                               ss->pbvh,
                               mode,
@@ -209,10 +253,12 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
   int ret = sculpt_detail_flood_fill_run(
+      CTX_data_scene(C),
       CTX_data_active_object(C),
-      sd,
+      CTX_data_tool_settings(C),
       BKE_paint_brush(&sd->paint),
       op,
+      nullptr,
       []() {},
       []() {},
       []() {},
@@ -232,7 +278,8 @@ struct FloodFillJob {
   wmOperator *op;
   bContext *C;
   Brush *brush;
-  Sculpt *sd;
+  ToolSettings *tool_settings;
+  ViewContext vc;
 };
 
 static FloodFillJob flood_fill_job;
@@ -254,10 +301,12 @@ static void start_fill_job(void * /*custom_data*/,
       break;
     }
 
-    if (sculpt_detail_flood_fill_run(flood_fill_job.ob,
-                                     flood_fill_job.sd,
+    if (sculpt_detail_flood_fill_run(flood_fill_job.scene,
+                                     flood_fill_job.ob,
+                                     flood_fill_job.tool_settings,
                                      flood_fill_job.brush,
                                      flood_fill_job.op,
+                                     &flood_fill_job.vc,
                                      lock_main_thread,
                                      unlock_main_thread,
                                      update_main_thread,
@@ -280,7 +329,7 @@ static void end_fill_job(void *)
   printf("End fill job\n");
 }
 
-static void flood_fill_free(void *customdata)
+static void flood_fill_free(void *)
 {
   printf("%s: detail flood fill free.\n", __func__);
 }
@@ -298,14 +347,33 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
     SCULPT_undo_push_begin(ob, op);
     SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
-    flood_fill_job.sd = CTX_data_tool_settings(C)->sculpt;
-    flood_fill_job.brush = BKE_paint_brush(&flood_fill_job.sd->paint);
+    flood_fill_job.tool_settings = CTX_data_tool_settings(C);
+    flood_fill_job.brush = BKE_paint_brush(&flood_fill_job.tool_settings->sculpt->paint);
     flood_fill_job.ob = CTX_data_active_object(C);
     flood_fill_job.op = op;
     flood_fill_job.C = C;
     flood_fill_job.scene = CTX_data_scene(C);
     flood_fill_job.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    ED_view3d_viewcontext_init(C, &flood_fill_job.vc, flood_fill_job.depsgraph);
 
+    if (!flood_fill_job.vc.rv3d) {
+      LISTBASE_FOREACH (ScrArea *, area, &CTX_wm_screen(C)->areabase) {
+        if (area->spacetype == SPACE_VIEW3D) {
+          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+            if (region->regiontype == RGN_TYPE_WINDOW) {
+              flood_fill_job.vc.region = region;
+              flood_fill_job.vc.rv3d = static_cast<RegionView3D *>(region->regiondata);
+              break;
+            }
+          }
+          break;
+        }
+
+        if (flood_fill_job.vc.rv3d) {
+          break;
+        }
+      }
+    }
     flood_fill_job.job = WM_jobs_get(CTX_wm_manager(C),
                                      CTX_wm_window(C),
                                      static_cast<void *>(&flood_fill_job),
@@ -357,6 +425,8 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "interactive", true, "Interactive", "Interactive mode");
   RNA_def_boolean(ot->srna, "developer", false, "Developer", "Developer mode");
+  RNA_def_boolean(
+      ot->srna, "emulate_brush", false, "Emulate Brush", "Use last brush position and radius");
 }
 
 /** \} */

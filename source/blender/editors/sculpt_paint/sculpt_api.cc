@@ -56,6 +56,7 @@
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -75,7 +76,6 @@
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
-
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
@@ -602,8 +602,43 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
   }
 }
 
-void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *brush)
+namespace blender::bke::dyntopo {
+extern float dyntopo_params[5];
+}
+
+void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *sculpt, Brush *brush)
 {
+  using namespace blender::bke::dyntopo;
+  if (scene->id.properties) {
+    auto load_prop = [&](const char *name, int index) {
+      IDProperty *prop = IDP_GetPropertyFromGroup(scene->id.properties, name);
+      if (prop) {
+        float val = 0.0f;
+        if (prop->type == IDP_FLOAT) {
+          val = IDP_Float(prop);
+        }
+        else if (prop->type == IDP_DOUBLE) {
+          val = float(IDP_Double(prop));
+        }
+        else {
+          return prop;
+        }
+
+        printf("%s: Found %s (%.5f)\n", __func__, name, val);
+
+        dyntopo_params[index] = val;
+      }
+
+      return prop;
+    };
+
+    IDProperty *prop1 = load_prop("dparam1", 0);
+    load_prop("dparam2", 1);
+    load_prop("dparam3", 2);
+    load_prop("dparam4", 3);
+    load_prop("dparam5", 4);
+  }
+
   if (!brush) {
     ss->cached_dyntopo = sculpt->dyntopo;
     return;

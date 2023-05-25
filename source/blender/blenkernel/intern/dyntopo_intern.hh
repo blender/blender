@@ -9,6 +9,7 @@
 #include "BLI_heap_minmax.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
+#include "BLI_set.hh"
 
 #include "bmesh.h"
 #include "pbvh_intern.hh"
@@ -121,7 +122,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 #define EVEN_EDGELEN_THRESHOLD 1.2f
 /* How much the limit increases per recursion
  * (avoids performing subdivisions too far away). */
-#define EVEN_GENERATION_SCALE 1.05f
+#define EVEN_GENERATION_SCALE 1.25f
 
 /* recursion depth to start applying front face test */
 #define DEPTH_START_LIMIT 4
@@ -132,7 +133,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 /* Slightly relax geometry by this factor along surface tangents
  * to improve convergence of dyntopo remesher.
  */
-#define DYNTOPO_SAFE_SMOOTH_FAC 0.015f
+#define DYNTOPO_SAFE_SMOOTH_FAC 0.01f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
@@ -218,6 +219,8 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 struct EdgeQueue;
 
+extern float dyntopo_params[5];
+
 struct EdgeQueueContext {
   blender::bke::dyntopo::BrushTester *brush_tester;
   SculptSession *ss;
@@ -261,10 +264,11 @@ struct EdgeQueueContext {
   int current_i = 0;
   int max_steps;
   PBVH *pbvh;
-  BMEdge **edges;
+  BMEdge **split_edges;
+  int split_edges_size;
   int etot;
-  int edges_size;
-  SmallHash subd_edges;
+  blender::Set<BMEdge *> subd_edges;
+
   bool modified = false;
   int count_subd = 0;
   int count = 0;
@@ -302,6 +306,7 @@ struct EdgeQueueContext {
   }
 
   blender::RandomNumberGenerator rand;
+
  private:
   bool flushed_ = false;
 };

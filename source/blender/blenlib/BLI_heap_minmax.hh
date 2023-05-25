@@ -17,10 +17,55 @@ using blender::Vector;
 #include <algorithm>
 
 namespace blender {
+template<typename Value, typename NodeType> class HeapValueIter {
+  Span<NodeType> nodes_;
+  int i_ = 0;
+
+ public:
+  HeapValueIter(Vector<NodeType> &nodes) : nodes_(nodes) {}
+  HeapValueIter(Span<NodeType> &nodes) : nodes_(nodes) {}
+  HeapValueIter(const HeapValueIter &b) : nodes_(b.nodes_), i_(b.i_) {}
+
+  bool operator==(const HeapValueIter &b)
+  {
+    return b.i_ == i_;
+  }
+
+  bool operator!=(const HeapValueIter &b)
+  {
+    return b.i_ != i_;
+  }
+
+  Value operator*()
+  {
+    return nodes_[i_].value;
+  }
+
+  HeapValueIter &operator++()
+  {
+    i_++;
+
+    return *this;
+  }
+
+  HeapValueIter begin()
+  {
+    return HeapValueIter(nodes_);
+  }
+
+  HeapValueIter end()
+  {
+    HeapValueIter ret(nodes_);
+    ret.i_ = std::max(int(nodes_.size()) - 1, 0);
+
+    return ret;
+  }
+};
+
 template<typename Value = void *,
          int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Value))>
 
-#if 1
+#if 0
 class MinMaxHeap {
   struct MinMaxHeapNode {
     Value value;
@@ -31,7 +76,7 @@ class MinMaxHeap {
 
  public:
   MinMaxHeap(int reserved = 0) {}
-  ATTR_NO_OPT MinMaxHeapNode *insert(float weight, Value value)
+  MinMaxHeapNode *insert(float weight, Value value)
   {
     nodes.resize(nodes.size() + 1);
     MinMaxHeapNode *node = &nodes.last();
@@ -81,7 +126,7 @@ class MinMaxHeap {
     return max()->weight;
   }
 
-  ATTR_NO_OPT void pop_node(MinMaxHeapNode *node)
+  void pop_node(MinMaxHeapNode *node)
   {
     int i = node - nodes.data();
 
@@ -125,6 +170,11 @@ class MinMaxHeap {
     return nodes.size() == 0;
   }
 
+  HeapValueIter<Value, MinMaxHeapNode> values()
+  {
+    return HeapValueIter<Value, MinMaxHeapNode>(nodes);
+  }
+
  private:
   Vector<MinMaxHeapNode> nodes;
 };
@@ -147,6 +197,11 @@ class MinMaxHeap {
   }
 
   ~MinMaxHeap() {}
+
+  HeapValueIter<Value, MinMaxHeapNode> values()
+  {
+    return HeapValueIter<Value, MinMaxHeapNode>(nodes);
+  }
 
   MinMaxHeapNode *insert(float weight, Value value)
   {
@@ -206,7 +261,7 @@ class MinMaxHeap {
 
   float max_weight()
   {
-    return max()->weight;
+    return max().weight;
   }
 
   Value pop_min()
@@ -222,10 +277,10 @@ class MinMaxHeap {
 #  endif
 
     Value ret = nodes[0].value;
-    MinMaxHeapNode *last = heap_pop_last();
+    MinMaxHeapNode last = heap_pop_last();
 
-    std::swap(last->weight, nodes[0].weight);
-    std::swap(last->value, nodes[0].value);
+    nodes[0].weight = last.weight;
+    nodes[1].value = last.value;
 
     heap_push_down(&nodes[0]);
 
@@ -247,7 +302,7 @@ class MinMaxHeap {
       return nodes.pop_last().value;
     }
 
-    MinMaxHeapNode *node = max();
+    MinMaxHeapNode &node = max();
 
 #  ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
@@ -255,17 +310,17 @@ class MinMaxHeap {
     }
 #  endif
 
-    Value ret = node->value;
+    Value ret = node.value;
     if (r_w) {
-      *r_w = node->weight;
+      *r_w = node.weight;
     }
 
-    MinMaxHeapNode *last = heap_pop_last();
+    MinMaxHeapNode last = heap_pop_last();
 
-    node->weight = last->weight;
-    node->value = last->value;
+    node.weight = last.weight;
+    node.value = last.value;
 
-    node = heap_push_down(node);
+    heap_push_down(&node);
 
 #  ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
@@ -298,30 +353,30 @@ class MinMaxHeap {
   }
 
  private:
-  MinMaxHeapNode *min()
+  MinMaxHeapNode &min()
   {
-    return &nodes[0];
+    return nodes[0];
   }
 
-  MinMaxHeapNode *max()
+  MinMaxHeapNode &max()
   {
     if (nodes.size() == 1) {
-      return &nodes[0];
+      return nodes[0];
     }
 
     MinMaxHeapNode &root = nodes[0];
     if (root.child1 != -1 && root.child2 != -1) {
       if (nodes[nodes[0].child1].weight > nodes[nodes[0].child2].weight) {
-        return &nodes[nodes[0].child1];
+        return nodes[nodes[0].child1];
       }
 
-      return &nodes[nodes[0].child2];
+      return nodes[nodes[0].child2];
     }
     else if (root.child1 != -1) {
-      return &nodes[nodes[0].child1];
+      return nodes[nodes[0].child1];
     }
     else {
-      return &nodes[nodes[0].child2];
+      return nodes[nodes[0].child2];
     }
   }
 
@@ -586,22 +641,22 @@ class MinMaxHeap {
     return node;
   }
 
-  MinMaxHeapNode *heap_pop_last()
+  MinMaxHeapNode heap_pop_last()
   {
-    MinMaxHeapNode *last = &nodes[nodes.size() - 1];
+    int index = nodes.size() - 1;
 
-    if (last->parent) {
-      MinMaxHeapNode *parent = &nodes[last->parent];
-      if (parent->child1 == nodes.size() - 1) {
-        parent->child1 = -1;
+    MinMaxHeapNode last = nodes[index];
+    if (last.parent != -1) {
+      MinMaxHeapNode &parent = nodes[last.parent];
+      if (parent.child1 == index) {
+        parent.child1 = -1;
       }
       else {
-        parent->child2 = -1;
+        parent.child2 = -1;
       }
     }
 
     nodes.pop_last();
-
     return last;
   }
 

@@ -949,10 +949,26 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             "detail_range"
         )
 
+        if 0:
+            scene = context.scene
+            def do_prop(name, text=None):
+                if text is None: text = name
+
+                if name in scene:
+                    sub.prop(scene, "[\"%s\"]" % name, text=text)
+
+            do_prop("dparam1", text="p0")
+            do_prop("dparam2", text="p1")
+            do_prop("dparam3", text="p2")
+            do_prop("dparam4", text="p3")
+            do_prop("dparam5", text="p4")
+
         if UnifiedPaintPanel.get_dyntopo_prop(context, brush, "mode") in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
             col.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "interactive")
             col.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "developer")
+            if WindowManager.operator_properties_last("sculpt.detail_flood_fill").developer:
+                col.prop(WindowManager.operator_properties_last("sculpt.detail_flood_fill"), "emulate_brush")
 
         UnifiedPaintPanel.prop_unified_dyntopo(
             sub,

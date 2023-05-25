@@ -26,6 +26,7 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -67,6 +68,7 @@ used by various code that needs to statically store per-pass state.
 */
 #define SCULPT_MAX_SYMMETRY_PASSES 255
 
+using blender::float3;
 using blender::Span;
 using blender::Vector;
 
@@ -1541,6 +1543,11 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
  * #PAINT_FALLOFF_SHAPE_NOOP
  */
 
+float SCULPT_calc_radius(ViewContext *vc,
+                         const Brush *brush,
+                         const Scene *scene,
+                         const float3 location);
+
 SculptBrushTestFn SCULPT_brush_test_init(const SculptSession *ss, SculptBrushTest *test);
 SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
                                             SculptBrushTest *test,
@@ -2099,7 +2106,7 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(wmOperatorType *ot);
 void SCULPT_OT_set_detail_size(wmOperatorType *ot);
 void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot);
-void SCULPT_apply_dyntopo_settings(SculptSession *ss, Sculpt *sculpt, Brush *brush);
+void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *sculpt, Brush *brush);
 /** \} */
 
 /* Dyntopo. */
