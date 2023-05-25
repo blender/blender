@@ -347,9 +347,9 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
   return true;
 }
 
-ccl_device_forceinline void area_light_update_position(const ccl_global KernelLight *klight,
-                                                       ccl_private LightSample *ls,
-                                                       const float3 P)
+ccl_device_forceinline void area_light_mnee_sample_update(const ccl_global KernelLight *klight,
+                                                          ccl_private LightSample *ls,
+                                                          const float3 P)
 {
   if (klight->area.tan_half_spread == 0) {
     /* Update position on the light to keep the direction fixed. */

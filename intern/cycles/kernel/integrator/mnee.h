@@ -778,9 +778,8 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   /* Initialize throughput and evaluate receiver bsdf * |n.wo|. */
   surface_shader_bsdf_eval(kg, state, sd, wo, throughput, ls->shader);
 
-  /* Update light sample with new position / direct.ion
-   * and keep pdf in vertex area measure */
-  light_sample_update_position(kg, ls, vertices[vertex_count - 1].p);
+  /* Update light sample with new position / direction and keep pdf in vertex area measure. */
+  light_sample_update(kg, ls, vertices[vertex_count - 1].p);
 
   /* Save state path bounce info in case a light path node is used in the refractive interface or
    * light shader graph. */

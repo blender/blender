@@ -366,15 +366,26 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
   }
 }
 
-ccl_device_forceinline void light_sample_update_position(KernelGlobals kg,
-                                                         ccl_private LightSample *ls,
-                                                         const float3 P)
+/* Update light sample with new shading point position for MNEE. The position on the light is fixed
+ * except for directional light. */
+ccl_device_forceinline void light_sample_update(KernelGlobals kg,
+                                                ccl_private LightSample *ls,
+                                                const float3 P)
 {
-  /* Update light sample for new shading point position, while keeping
-   * position on the light fixed. */
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
 
-  /* NOTE : preserve pdf in area measure. */
-  light_update_position(kg, ls, P);
+  if (ls->type == LIGHT_POINT) {
+    point_light_mnee_sample_update(klight, ls, P);
+  }
+  else if (ls->type == LIGHT_SPOT) {
+    spot_light_mnee_sample_update(klight, ls, P);
+  }
+  else if (ls->type == LIGHT_AREA) {
+    area_light_mnee_sample_update(klight, ls, P);
+  }
+  else {
+    /* Keep previous values. */
+  }
 
   /* Re-apply already computed selection pdf. */
   ls->pdf *= ls->pdf_selection;
