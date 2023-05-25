@@ -5835,14 +5835,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Register for All Users",
-      "Make this Blender version open blend files for all users. Requires elevated privileges.");
+      "Make this Blender version open blend files for all users. Requires elevated privileges");
 
   prop = RNA_def_boolean(
       srna,
       "is_microsoft_store_install",
       false,
       "Is Microsoft Store Install",
-      "Whether this blender installation is a sandboxed Microsoft Store version.");
+      "Whether this blender installation is a sandboxed Microsoft Store version");
   RNA_def_property_boolean_funcs(prop, "rna_userdef_is_microsoft_store_install_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
