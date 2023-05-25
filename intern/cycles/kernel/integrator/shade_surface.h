@@ -10,14 +10,14 @@
 #include "kernel/film/denoising_passes.h"
 #include "kernel/film/light_passes.h"
 
+#include "kernel/light/sample.h"
+
 #include "kernel/integrator/mnee.h"
 
 #include "kernel/integrator/guiding.h"
 #include "kernel/integrator/shadow_linking.h"
 #include "kernel/integrator/subsurface.h"
 #include "kernel/integrator/volume_stack.h"
-
-#include "kernel/light/sample.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -286,8 +286,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   const bool is_transmission = dot(ls.D, sd->N) < 0.0f;
 
-#ifdef __MNEE__
   int mnee_vertex_count = 0;
+#ifdef __MNEE__
   IF_KERNEL_FEATURE(MNEE)
   {
     if (ls.lamp != LAMP_NONE) {
