@@ -47,18 +47,15 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
    * finding, converting from indices into the selection to indices into the full input point
    * cloud. */
   Array<int> merge_indices(src_size);
-  for (const int i : merge_indices.index_range()) {
-    merge_indices[i] = i;
-  }
+  std::iota(merge_indices.begin(), merge_indices.end(), 0);
 
-  for (const int i : selection_merge_indices.index_range()) {
-    const int merge_index = selection_merge_indices[i];
+  selection.foreach_index([&](const int src_index, const int pos) {
+    const int merge_index = selection_merge_indices[pos];
     if (merge_index != -1) {
       const int src_merge_index = selection[merge_index];
-      const int src_index = selection[i];
       merge_indices[src_index] = src_merge_index;
     }
-  }
+  });
 
   /* For every source index, find the corresponding index in the result by iterating through the
    * source indices and counting how many merges happened before that point. */
