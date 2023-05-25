@@ -1746,9 +1746,22 @@ static int editsource_text_edit(bContext *C,
   Main *bmain = CTX_data_main(C);
   Text *text = nullptr;
 
-  /* Developers may wish to copy-paste to an external editor. */
-  printf("%s:%d\n", filepath, line);
+  if (U.text_editor[0] != '\0') {
+    wmOperatorType *ot = WM_operatortype_find("TEXT_OT_jump_to_file_at_point", true);
+    PointerRNA op_props;
 
+    WM_operator_properties_create_ptr(&op_props, ot);
+    RNA_string_set(&op_props, "filepath", filepath);
+    RNA_int_set(&op_props, "line", line - 1);
+    RNA_int_set(&op_props, "column", 0);
+
+    int result = WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props, NULL);
+    WM_operator_properties_free(&op_props);
+
+    if (result & OPERATOR_FINISHED) {
+      return OPERATOR_FINISHED;
+    }
+  }
   LISTBASE_FOREACH (Text *, text_iter, &bmain->texts) {
     if (text_iter->filepath && BLI_path_cmp(text_iter->filepath, filepath) == 0) {
       text = text_iter;

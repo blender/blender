@@ -6507,6 +6507,29 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "image_editor");
   RNA_def_property_ui_text(prop, "Image Editor", "Path to an image editor");
 
+  prop = RNA_def_property(srna, "text_editor", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "text_editor");
+  RNA_def_property_ui_text(prop,
+                           "Text Editor",
+                           "Command to launch the text editor, "
+                           "either a full path or a command in $PATH.\n"
+                           "Use the internal editor when left blank");
+
+  prop = RNA_def_property(srna, "text_editor_args", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "text_editor_args");
+  RNA_def_property_ui_text(
+      prop,
+      "Text Editor Args",
+      "Defines the specific format of the arguments with which the text editor opens files. "
+      "The supported expansions are as follows:\n"
+      "\n"
+      "$filepath The absolute path of the file.\n"
+      "$line The line to open at (Optional).\n"
+      "$column The column to open from the beginning of the line (Optional).\n"
+      "$line0 & column0 start at zero."
+      "\n"
+      "Example: -f $filepath -l $line -c $column");
+
   prop = RNA_def_property(srna, "animation_player", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "anim_player");
   RNA_def_property_ui_text(
