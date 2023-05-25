@@ -17,8 +17,6 @@ namespace blender::draw::overlay {
 
 class Grid {
  private:
-  const SelectionType selection_type_;
-
   UniformBuffer<OVERLAY_GridData> data_;
 
   PassSimple grid_ps_ = {"grid_ps_"};
@@ -32,8 +30,6 @@ class Grid {
   bool enabled_ = false;
 
  public:
-  Grid(const SelectionType selection_type) : selection_type_(selection_type){};
-
   void begin_sync(Resources &res, const State &state, const View &view)
   {
     this->update_ubo(state, view);

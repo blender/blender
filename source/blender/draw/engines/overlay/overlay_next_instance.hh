@@ -33,11 +33,11 @@ class Instance {
   State state;
 
   /** Overlay types. */
-  Background background = {selection_type_};
-  Prepass prepass = {selection_type_};
+  Background background;
+  Prepass prepass;
   Metaballs metaballs = {selection_type_};
   Empties empties = {selection_type_};
-  Grid grid = {selection_type_};
+  Grid grid;
 
   Instance(const SelectionType selection_type) : selection_type_(selection_type){};
 
