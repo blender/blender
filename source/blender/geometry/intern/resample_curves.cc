@@ -422,7 +422,7 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
   CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
-  bke::curves::copy_curve_sizes(src_evaluated_points_by_curve, selection, dst_offsets);
+  offset_indices::copy_group_sizes(src_evaluated_points_by_curve, selection, dst_offsets);
   bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();

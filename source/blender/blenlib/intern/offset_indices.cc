@@ -19,6 +19,23 @@ OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offse
   return OffsetIndices<int>(counts_to_offsets);
 }
 
+void copy_group_sizes(const OffsetIndices<int> offsets,
+                      const IndexMask &mask,
+                      MutableSpan<int> sizes)
+{
+  mask.foreach_index_optimized<int64_t>(GrainSize(4096),
+                                        [&](const int64_t i) { sizes[i] = offsets[i].size(); });
+}
+
+void gather_group_sizes(const OffsetIndices<int> offsets,
+                        const IndexMask &mask,
+                        MutableSpan<int> sizes)
+{
+  mask.foreach_index_optimized<int64_t>(GrainSize(4096), [&](const int64_t i, const int64_t pos) {
+    sizes[pos] = offsets[i].size();
+  });
+}
+
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map)
 {
   threading::parallel_for(offsets.index_range(), 1024, [&](const IndexRange range) {

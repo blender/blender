@@ -9,13 +9,6 @@
 namespace blender::bke::curves {
 
 void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
-                      const IndexMask &mask,
-                      MutableSpan<int> sizes)
-{
-  mask.foreach_index(GrainSize(4096), [&](const int i) { sizes[i] = points_by_curve[i].size(); });
-}
-
-void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
                       const Span<IndexRange> curve_ranges,
                       MutableSpan<int> sizes)
 {

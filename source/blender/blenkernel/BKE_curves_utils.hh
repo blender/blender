@@ -539,13 +539,6 @@ void fill_points(const OffsetIndices<int> points_by_curve,
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves);
 
 /**
- * Copy the number of points in every curve in the mask to the corresponding index in #sizes.
- */
-void copy_curve_sizes(OffsetIndices<int> points_by_curve,
-                      const IndexMask &mask,
-                      MutableSpan<int> sizes);
-
-/**
  * Copy the number of points in every curve in #curve_ranges to the corresponding index in
  * #sizes.
  */
