@@ -311,7 +311,7 @@ ccl_device_forceinline int lights_intersect_impl(KernelGlobals kg,
 
 #ifdef __LIGHT_LINKING__
     /* Light linking. */
-    if (!light_link_light_match(kg, receiver_forward, lamp)) {
+    if (!light_link_light_match(kg, receiver_forward, lamp) && !(path_flag & PATH_RAY_CAMERA)) {
       continue;
     }
 #endif

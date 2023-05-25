@@ -113,13 +113,15 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
                                                        ccl_global float *ccl_restrict
                                                            render_buffer)
 {
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
 #ifdef __LIGHT_LINKING__
-  if (!light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object)) {
+  if (!light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object) &&
+      !(path_flag & PATH_RAY_CAMERA))
+  {
     return;
   }
 #endif
-
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
 #ifdef __SHADOW_LINKING__
   /* Indirect emission of shadow-linked emissive surfaces is done via shadow rays to dedicated

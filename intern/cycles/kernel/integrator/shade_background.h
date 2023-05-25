@@ -140,7 +140,9 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 #endif
 
 #ifdef __LIGHT_LINKING__
-      if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), lamp)) {
+      if (!light_link_light_match(kg, light_link_receiver_forward(kg, state), lamp) &&
+          !(path_flag & PATH_RAY_CAMERA))
+      {
         continue;
       }
 #endif
