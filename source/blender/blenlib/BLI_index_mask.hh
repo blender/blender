@@ -31,7 +31,7 @@ namespace blender::index_mask {
  * - The second most-significant bit is not used for indices so that #max_segment_size itself can
  *   be stored in the #int16_t.
  * - The maximum number of indices in a segment is 16384, which is generally enough to make the
- *   overhead per segment negilible when processing large index masks.
+ *   overhead per segment negligible when processing large index masks.
  * - A power of two is used for #max_segment_size, because that allows for faster construction of
  *   index masks for index ranges.
  */
@@ -335,7 +335,7 @@ class IndexMask : private IndexMaskData {
    */
   void to_bits(MutableBitSpan r_bits) const;
   /**
-   * Set the bools at indies inthe mask to true and all others to false.
+   * Set the bools at indies in the mask to true and all others to false.
    */
   void to_bools(MutableSpan<bool> r_bools) const;
   /**

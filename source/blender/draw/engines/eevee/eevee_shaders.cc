@@ -300,7 +300,7 @@ GPUShader *EEVEE_shaders_probe_filter_visibility_sh_get(void)
 {
   if (e_data.probe_filter_visibility_sh == nullptr) {
     e_data.probe_filter_visibility_sh = DRW_shader_create_from_info_name(
-        "eevee_legacy_probe_filter_visiblity");
+        "eevee_legacy_probe_filter_visibility");
   }
   return e_data.probe_filter_visibility_sh;
 }

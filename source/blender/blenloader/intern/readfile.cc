@@ -3984,7 +3984,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
       /* In case the current scene is a liboverride, while the ID pointer itself remains valid,
        * above update of liboverrides will have completely invalidated its old content, so the
-       * current viewlayer needs to be searched for again. */
+       * current view-layer needs to be searched for again. */
       if (bfd->cur_view_layer != nullptr) {
         bfd->cur_view_layer = BKE_view_layer_find(bfd->curscene, cur_view_layer_name.c_str());
       }

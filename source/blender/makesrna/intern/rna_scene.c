@@ -5908,7 +5908,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 #  endif
 
 #  ifdef WITH_OPENJPEG
-  /* Jpeg 2000 */
+  /* JPEG 2000 */
   prop = RNA_def_property(srna, "use_jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_YCC);
   RNA_def_property_ui_text(

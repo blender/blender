@@ -49,7 +49,7 @@ ccl_device int shadow_linking_pick_mesh_intersection(KernelGlobals kg,
     }
 
     /* Only record primitives that potentially have emission.
-     * TODO: optimize with a dedicated ray visiblity flag, which could then also be
+     * TODO: optimize with a dedicated ray visibility flag, which could then also be
      * used once lights are in the BVH as geometry? */
     const int shader = intersection_get_shader(kg, &current_isect);
     const int shader_flags = kernel_data_fetch(shaders, shader).flags;

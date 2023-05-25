@@ -73,7 +73,7 @@ class EmitterData {
   static constexpr int MAX_COLLECTION_ID = 63;
 
   /* Mask of a light linking collection this emitter uses in its configuration.
-   * A single bit is set in this bitfield which corresponds to an identifier of a light linking
+   * A single bit is set in this bit-field which corresponds to an identifier of a light linking
    * collection in the scene. */
   uint64_t collection_mask = 0;
 
@@ -121,7 +121,7 @@ class EmitterDataMap {
   }
 
  private:
-  /* Get linked collection depending on whether this is emitter information os for light or shadow
+  /* Get linked collection depending on whether this is emitter information for light or shadow
    * linking. */
   /* TODO(sergey): Check whether template specialization is preferred here. */
   inline const Collection *get_collection(const Object &emitter) const
