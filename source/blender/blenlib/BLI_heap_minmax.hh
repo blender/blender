@@ -65,7 +65,7 @@ template<typename Value, typename NodeType> class HeapValueIter {
 template<typename Value = void *,
          int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Value))>
 
-#if 0
+#if 1
 class MinMaxHeap {
   struct MinMaxHeapNode {
     Value value;

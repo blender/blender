@@ -122,7 +122,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 #define EVEN_EDGELEN_THRESHOLD 1.2f
 /* How much the limit increases per recursion
  * (avoids performing subdivisions too far away). */
-#define EVEN_GENERATION_SCALE 1.25f
+#define EVEN_GENERATION_SCALE 1.15f
 
 /* recursion depth to start applying front face test */
 #define DEPTH_START_LIMIT 4

@@ -231,8 +231,15 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
   float w = 1.0 - maskcb_get(eq_ctx, v1, v2);
   float len = len_squared_v3v3(v1->co, v2->co);
 
-  w = 1.0 + w * float(mode);
-  return len * w;
+  switch (mode) {
+    case SPLIT:
+      w = 1.0 + w * float(mode);
+      break;
+    case COLLAPSE:
+      w = 1.0 + 2.0 * w * float(mode);
+      break;
+  }
+  return len * w * w;
 }
 
 static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
@@ -400,7 +407,7 @@ float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3
   return dis;
 }
 
-static bool skinny_bad_edge(BMEdge *e, const float limit = 3.0f)
+static bool skinny_bad_edge(BMEdge *e, const float limit = 4.0f)
 {
   float len1 = len_v3v3(e->v1->co, e->v2->co);
 
@@ -2461,6 +2468,14 @@ static void pbvh_split_edges(
    */
 
   auto test_near_brush = [&](BMEdge *e, float *co, float *r_w = nullptr) {
+#if 0
+    const int vlimit = 8;
+    if (BM_ELEM_CD_GET_INT(e->v1, pbvh->cd_valence) > vlimit ||
+        BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_valence) > vlimit)
+    {
+      return true;
+    }
+#endif
     float w = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
     if (r_w) {
       *r_w = w;
