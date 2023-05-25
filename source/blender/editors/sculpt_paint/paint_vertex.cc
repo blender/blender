@@ -1180,7 +1180,7 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BKE_sculpt_toolsettings_data_ensure(scene);
 
   BLI_assert(ob->sculpt == nullptr);
-  ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
+  ob->sculpt = MEM_new<SculptSession>(__func__);
   ob->sculpt->mode_type = object_mode;
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
 
