@@ -29,9 +29,6 @@ ccl_device_inline bool point_light_sample(const ccl_global KernelLight *klight,
   ls->Ng = -ls->D;
 
   ls->eval_fac = M_1_PI_F * 0.25f * klight->spot.invarea;
-  if (!in_volume_segment && ls->eval_fac == 0.0f) {
-    return false;
-  }
 
   float2 uv = map_to_sphere(ls->Ng);
   ls->u = uv.x;
@@ -89,10 +86,6 @@ ccl_device_inline bool point_light_sample_from_intersection(
   float invarea = klight->spot.invarea;
   ls->eval_fac = (0.25f * M_1_PI_F) * invarea;
   ls->pdf = invarea;
-
-  if (ls->eval_fac == 0.0f) {
-    return false;
-  }
 
   float2 uv = map_to_sphere(ls->Ng);
   ls->u = uv.x;
