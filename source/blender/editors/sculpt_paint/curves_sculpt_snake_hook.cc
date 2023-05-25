@@ -186,9 +186,9 @@ struct SnakeHookOperatorExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
       MoveAndResampleBuffers resample_buffer;
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
@@ -272,9 +272,9 @@ struct SnakeHookOperatorExecutor {
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
       MoveAndResampleBuffers resample_buffer;
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
