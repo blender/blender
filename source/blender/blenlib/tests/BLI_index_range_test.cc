@@ -219,17 +219,6 @@ TEST(index_range, TakeBackLargeN)
   EXPECT_EQ(slice.size(), 4);
 }
 
-TEST(index_range, AsSpan)
-{
-  IndexRange range = IndexRange(4, 6);
-  Span<int64_t> span = range.as_span();
-  EXPECT_EQ(span.size(), 6);
-  EXPECT_EQ(span[0], 4);
-  EXPECT_EQ(span[1], 5);
-  EXPECT_EQ(span[2], 6);
-  EXPECT_EQ(span[3], 7);
-}
-
 TEST(index_range, constexpr_)
 {
   constexpr IndexRange range = IndexRange(1, 1);

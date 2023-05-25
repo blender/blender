@@ -413,7 +413,8 @@ void split_edges(Mesh &mesh,
   });
 
   /* Used for transferring attributes. */
-  Vector<int> new_to_old_edges_map(IndexRange(new_edges.size()).as_span());
+  Vector<int> new_to_old_edges_map(new_edges.size());
+  std::iota(new_to_old_edges_map.begin(), new_to_old_edges_map.end(), 0);
 
   /* Step 1: Split the edges. */
 
