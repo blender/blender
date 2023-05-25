@@ -1444,6 +1444,16 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
+  ss->vert_to_poly_offsets = {};
+  ss->vert_to_poly_indices = {};
+  ss->pmap = {};
+  ss->edge_to_poly_offsets = {};
+  ss->edge_to_poly_indices = {};
+  ss->epmap = {};
+  ss->vert_to_edge_offsets = {};
+  ss->vert_to_edge_indices = {};
+  ss->vemap = {};
+
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
 
