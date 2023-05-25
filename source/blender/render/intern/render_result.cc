@@ -1129,6 +1129,11 @@ static RenderView *duplicate_render_view(RenderView *rview)
 {
   RenderView *new_rview = MEM_cnew<RenderView>("new render view", *rview);
 
+  /* Reset buffers, they are not supposed to be shallow-coped. */
+  new_rview->combined_buffer = {};
+  new_rview->z_buffer = {};
+  new_rview->byte_buffer = {};
+
   if (rview->combined_buffer.data != nullptr) {
     RE_RenderBuffer_assign_data(&new_rview->combined_buffer,
                                 static_cast<float *>(MEM_dupallocN(rview->combined_buffer.data)));
@@ -1162,13 +1167,23 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
     BLI_addtail(&new_rr->views, new_rview);
   }
 
-  RE_RenderBuffer_assign_data(&new_rr->combined_buffer,
-                              static_cast<float *>(MEM_dupallocN(rr->combined_buffer.data)));
-  RE_RenderBuffer_assign_data(&new_rr->z_buffer,
-                              static_cast<float *>(MEM_dupallocN(rr->z_buffer.data)));
+  /* Reset buffers, they are not supposed to be shallow-coped. */
+  new_rr->combined_buffer = {};
+  new_rr->z_buffer = {};
+  new_rr->byte_buffer = {};
 
-  RE_RenderByteBuffer_assign_data(&new_rr->byte_buffer,
-                                  static_cast<uint8_t *>(MEM_dupallocN(rr->byte_buffer.data)));
+  if (rr->combined_buffer.data) {
+    RE_RenderBuffer_assign_data(&new_rr->combined_buffer,
+                                static_cast<float *>(MEM_dupallocN(rr->combined_buffer.data)));
+  }
+  if (rr->z_buffer.data) {
+    RE_RenderBuffer_assign_data(&new_rr->z_buffer,
+                                static_cast<float *>(MEM_dupallocN(rr->z_buffer.data)));
+  }
+  if (rr->byte_buffer.data) {
+    RE_RenderByteBuffer_assign_data(&new_rr->byte_buffer,
+                                    static_cast<uint8_t *>(MEM_dupallocN(rr->byte_buffer.data)));
+  }
 
   new_rr->stamp_data = BKE_stamp_data_copy(new_rr->stamp_data);
   return new_rr;
