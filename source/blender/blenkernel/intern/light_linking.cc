@@ -25,6 +25,15 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+void BKE_light_linking_free_if_empty(Object *object)
+{
+  if (object->light_linking->receiver_collection == nullptr &&
+      object->light_linking->blocker_collection == nullptr)
+  {
+    MEM_SAFE_FREE(object->light_linking);
+  }
+}
+
 Collection *BKE_light_linking_collection_get(const Object *object,
                                              const LightLinkingType link_type)
 {
@@ -108,12 +117,7 @@ void BKE_light_linking_collection_assign_only(struct Object *object,
       id_us_plus(&new_collection->id);
     }
 
-    /* Free if empty. */
-    if (object->light_linking->receiver_collection == nullptr &&
-        object->light_linking->blocker_collection == nullptr)
-    {
-      MEM_SAFE_FREE(object->light_linking);
-    }
+    BKE_light_linking_free_if_empty(object);
   }
 }
 

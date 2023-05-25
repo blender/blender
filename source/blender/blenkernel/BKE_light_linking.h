@@ -28,6 +28,9 @@ typedef enum LightLinkingType {
   LIGHT_LINKING_BLOCKER,
 } LightLinkingType;
 
+/* Free object's light_linking if it is not needed to hold any of collections. */
+void BKE_light_linking_free_if_empty(struct Object *object);
+
 /* Get a collection of the given light linking type of the given object. */
 struct Collection *BKE_light_linking_collection_get(const struct Object *object,
                                                     LightLinkingType link_type);

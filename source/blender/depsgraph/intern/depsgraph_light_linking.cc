@@ -483,11 +483,18 @@ void Cache::eval_runtime_data(Object &object_eval) const
     runtime.shadow_set_membership = EmitterSetMembership::SET_MEMBERSHIP_ALL;
   }
 
+  const bool need_runtime = (memcmp(&runtime, &runtime_no_links, sizeof(runtime)) != 0);
+
   /* Assign, allocating light linking on demand if needed. */
   if (object_eval.light_linking) {
     object_eval.light_linking->runtime = runtime;
+    if (!need_runtime) {
+      /* Note that this will only remove lazily allocated light_linking on the evaluated object,
+       * as an empty light_linking is not allowed on the original object. */
+      BKE_light_linking_free_if_empty(&object_eval);
+    }
   }
-  else if (memcmp(&runtime, &runtime_no_links, sizeof(runtime)) != 0) {
+  else if (need_runtime) {
     object_eval.light_linking = MEM_cnew<LightLinking>(__func__);
     object_eval.light_linking->runtime = runtime;
   }

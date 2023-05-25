@@ -32,9 +32,6 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
   if (object->light_linking) {
     light_linking_runtime = object->light_linking->runtime;
   }
-  else {
-    memset(&light_linking_runtime, 0, sizeof(light_linking_runtime));
-  }
   BKE_object_runtime_reset(object);
   /* Keep bbox (for now at least). */
   object->runtime.bb = runtime.bb;
@@ -128,8 +125,13 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
     }
   }
 
-  if (object->light_linking) {
-    object->light_linking->runtime = light_linking_runtime;
+  if (light_linking_runtime) {
+    /* Lazily allocate light linking on the evaluated object for the cases when the object is only
+     * a receiver or a blocker and does not need its own LightLinking on the original object. */
+    if (!object->light_linking) {
+      object->light_linking = MEM_cnew<LightLinking>(__func__);
+    }
+    object->light_linking->runtime = *light_linking_runtime;
   }
 
   object->base_flag = base_flag;
