@@ -1081,7 +1081,7 @@ typedef struct GPUPixelBuffer GPUPixelBuffer;
 /**
  * Creates a #GPUPixelBuffer object with \a byte_size worth of storage.
  */
-GPUPixelBuffer *GPU_pixel_buffer_create(uint byte_size);
+GPUPixelBuffer *GPU_pixel_buffer_create(size_t byte_size);
 
 /**
  * Free a #GPUPixelBuffer object.
@@ -1106,7 +1106,7 @@ void GPU_pixel_buffer_unmap(GPUPixelBuffer *pixel_buf);
 /**
  * Return size in bytes of the \a pix_buf .
  */
-uint GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
+size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 
 /**
  * Return the native handle of the \a pix_buf to use for graphic interoperability registration.

@@ -139,7 +139,7 @@ class GLPixelBuffer : public PixelBuffer {
   void *map() override;
   void unmap() override;
   int64_t get_native_handle() override;
-  uint get_size() override;
+  size_t get_size() override;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLPixelBuffer")
 };

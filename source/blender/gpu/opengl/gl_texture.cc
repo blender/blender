@@ -886,7 +886,7 @@ int64_t GLPixelBuffer::get_native_handle()
   return int64_t(gl_id_);
 }
 
-uint GLPixelBuffer::get_size()
+size_t GLPixelBuffer::get_size()
 {
   return size_;
 }

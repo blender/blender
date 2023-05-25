@@ -777,7 +777,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
 
   /* Ensure alignment of an allocation is aligned to compatible offset boundaries. */
   BLI_assert(alignment > 0);
-  alignment = max_ulul(alignment, 256);
+  alignment = max_uu(alignment, 256);
 
   /* Align current offset and allocation size to desired alignment */
   uint64_t aligned_current_offset = ceil_to_multiple_ul(current_offset_, alignment);
