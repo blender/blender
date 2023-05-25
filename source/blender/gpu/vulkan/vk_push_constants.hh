@@ -30,6 +30,7 @@ namespace blender::gpu {
 class VKShaderInterface;
 class VKUniformBuffer;
 class VKContext;
+class VKDevice;
 
 /**
  * Container to store push constants in a buffer.
@@ -88,17 +89,16 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
    public:
     /**
      * Return the desired storage type that can fit the push constants of the given shader create
-     * info, matching the device limits.
+     * info, matching the limits of the given device.
      *
      * Returns:
      * - StorageType::NONE: No push constants are needed.
      * - StorageType::PUSH_CONSTANTS: Regular vulkan push constants can be used.
      * - StorageType::UNIFORM_BUFFER: The push constants don't fit in the limits of the given
-     * device. A uniform buffer should be used as a fallback method.
+     *   device. A uniform buffer should be used as a fallback method.
      */
-    static StorageType determine_storage_type(
-        const shader::ShaderCreateInfo &info,
-        const VkPhysicalDeviceLimits &vk_physical_device_limits);
+    static StorageType determine_storage_type(const shader::ShaderCreateInfo &info,
+                                              const VKDevice &device);
 
     /**
      * Initialize the push constants of the given shader create info with the
