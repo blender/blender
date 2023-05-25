@@ -9,6 +9,7 @@
 #define __RNA_TYPES_H__
 
 #include "../blenlib/BLI_sys_types.h"
+#include "../blenlib/BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +82,7 @@ typedef enum PropertyUnit {
   PROP_UNIT_POWER = (11 << 16),        /* W */
   PROP_UNIT_TEMPERATURE = (12 << 16),  /* C */
 } PropertyUnit;
+ENUM_OPERATORS(PropertyUnit, PROP_UNIT_TEMPERATURE)
 
 /**
  * Use values besides #PROP_SCALE_LINEAR
@@ -367,6 +369,7 @@ typedef enum ParameterFlag {
    */
   PARM_PYFUNC_OPTIONAL = (1 << 3),
 } ParameterFlag;
+ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_OPTIONAL)
 
 struct CollectionPropertyIterator;
 struct Link;
