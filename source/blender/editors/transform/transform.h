@@ -768,6 +768,7 @@ void applyMouseInput(struct TransInfo *t,
                      const int mval[2],
                      float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
+void transform_input_virtual_mval_reset(TransInfo *t);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);

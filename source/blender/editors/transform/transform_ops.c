@@ -428,9 +428,10 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     if (t->modifiers & MOD_PRECISION) {
-      /* Remove Precision modifier, it may have be unintentionally enabled. */
+      /* WORKAROUND: Remove precision modification, it may have be unintentionally enabled. */
       t->modifiers &= ~MOD_PRECISION;
-      t->mouse.precision = 0;
+      t->mouse.precision = false;
+      transform_input_virtual_mval_reset(t);
     }
 
     /* Make sure `t->mval` is up to date before calling #transformViewUpdate. */
