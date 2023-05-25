@@ -7037,6 +7037,11 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_node_group_update");
 
+  prop = RNA_def_property(srna, "simulation_bake_directory", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_ui_text(
+      prop, "Simulation Bake Directory", "Location on disk where the bake data is stored");
+  RNA_def_property_update(prop, 0, NULL);
+
   RNA_define_lib_overridable(false);
 }
 
