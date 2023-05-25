@@ -412,6 +412,10 @@ void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char 
 
 void dynamicPaintSurface_updateType(DynamicPaintSurface *surface)
 {
+  const char *name_prefix = "";
+  const char *name_suffix_1 = "";
+  const char *name_suffix_2 = "";
+
   if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
     surface->output_name[0] = '\0';
     surface->output_name2[0] = '\0';
@@ -419,28 +423,33 @@ void dynamicPaintSurface_updateType(DynamicPaintSurface *surface)
     surface->depth_clamp = 1.0f;
   }
   else {
-    strcpy(surface->output_name, "dp_");
-    STRNCPY(surface->output_name2, surface->output_name);
+    name_prefix = "dp_";
     surface->flags &= ~MOD_DPAINT_ANTIALIAS;
     surface->depth_clamp = 0.0f;
   }
 
   if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-    strcat(surface->output_name, "paintmap");
-    strcat(surface->output_name2, "wetmap");
-    surface_setUniqueOutputName(surface, surface->output_name2, 1);
+    name_suffix_1 = "paintmap";
+    name_suffix_2 = "wetmap";
   }
   else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-    strcat(surface->output_name, "displace");
+    name_suffix_1 = name_suffix_2 = "displace";
   }
   else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-    strcat(surface->output_name, "weight");
+    name_suffix_1 = name_suffix_2 = "weight";
   }
   else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-    strcat(surface->output_name, "wave");
+    name_suffix_1 = name_suffix_2 = "wave";
   }
 
+  SNPRINTF(surface->output_name, "%s%s", name_prefix, name_suffix_1);
+  SNPRINTF(surface->output_name2, "%s%s", name_prefix, name_suffix_2);
+  const bool output_name_equal = STREQ(surface->output_name, surface->output_name2);
+
   surface_setUniqueOutputName(surface, surface->output_name, 0);
+  if (!output_name_equal) {
+    surface_setUniqueOutputName(surface, surface->output_name2, 1);
+  }
 }
 
 static int surface_totalSamples(DynamicPaintSurface *surface)
