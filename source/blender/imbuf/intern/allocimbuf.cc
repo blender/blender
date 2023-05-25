@@ -100,6 +100,7 @@ bool imb_alloc_buffer(
   }
 
   buffer.ownership = IB_TAKE_OWNERSHIP;
+  buffer.implicit_sharing = nullptr;
 
   return true;
 }
@@ -416,6 +417,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 
   imb_free_buffer(ibuf->encoded_buffer);
 
+  ibuf->encoded_buffer = new_buffer;
   ibuf->encoded_buffer_size = newsize;
   ibuf->flags |= IB_mem;
 

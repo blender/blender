@@ -179,7 +179,8 @@ void IMB_make_writable_byte_buffer(struct ImBuf *ibuf);
 void IMB_make_writable_float_buffer(struct ImBuf *ibuf);
 
 /* Steal the buffer data pointer: the ImBuf is no longer an owner of this data.
- * NOTE: If the ImBuf does not own the data the behavior is undefined. */
+ * NOTE: If the ImBuf does not own the data the behavior is undefined.
+ * NOTE: Stealing encoded buffer resets the encoded size. */
 uint8_t *IMB_steal_byte_buffer(struct ImBuf *ibuf);
 float *IMB_steal_float_buffer(struct ImBuf *ibuf);
 uint8_t *IMB_steal_encoded_buffer(struct ImBuf *ibuf);
