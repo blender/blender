@@ -190,7 +190,7 @@ id<MTLBuffer> MTLUniformBuf::get_metal_buffer()
   return nil;
 }
 
-int MTLUniformBuf::get_size()
+size_t MTLUniformBuf::get_size()
 {
   BLI_assert(this);
   return size_in_bytes_;

@@ -828,7 +828,9 @@ void MTLComputeState::bind_compute_sampler(MTLSamplerBinding &sampler_binding,
   }
 }
 
-void MTLRenderPassState::bind_vertex_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index)
+void MTLRenderPassState::bind_vertex_buffer(id<MTLBuffer> buffer,
+                                            uint64_t buffer_offset,
+                                            uint index)
 {
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
   BLI_assert(buffer_offset >= 0);
@@ -858,7 +860,9 @@ void MTLRenderPassState::bind_vertex_buffer(id<MTLBuffer> buffer, uint buffer_of
   }
 }
 
-void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index)
+void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer,
+                                              uint64_t buffer_offset,
+                                              uint index)
 {
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
   BLI_assert(buffer_offset >= 0);
@@ -889,7 +893,7 @@ void MTLRenderPassState::bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_
 }
 
 void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
-                                          uint buffer_offset,
+                                          uint64_t buffer_offset,
                                           uint index,
                                           bool writeable)
 {
@@ -924,7 +928,7 @@ void MTLComputeState::bind_compute_buffer(id<MTLBuffer> buffer,
   }
 }
 
-void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint length, uint index)
+void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -949,7 +953,7 @@ void MTLRenderPassState::bind_vertex_bytes(void *bytes, uint length, uint index)
   this->cached_vertex_buffer_bindings[index].offset = -1;
 }
 
-void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint length, uint index)
+void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);
@@ -974,7 +978,7 @@ void MTLRenderPassState::bind_fragment_bytes(void *bytes, uint length, uint inde
   this->cached_fragment_buffer_bindings[index].offset = -1;
 }
 
-void MTLComputeState::bind_compute_bytes(void *bytes, uint length, uint index)
+void MTLComputeState::bind_compute_bytes(void *bytes, uint64_t length, uint index)
 {
   /* Bytes always updated as source data may have changed. */
   BLI_assert(index >= 0 && index < MTL_MAX_BUFFER_BINDINGS);

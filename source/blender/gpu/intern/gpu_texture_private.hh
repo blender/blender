@@ -336,16 +336,16 @@ static inline const Texture *unwrap(const GPUTexture *vert)
 /* GPU pixel Buffer. */
 class PixelBuffer {
  protected:
-  uint size_ = 0;
+  size_t size_ = 0;
 
  public:
-  PixelBuffer(uint size) : size_(size){};
+  PixelBuffer(size_t size) : size_(size){};
   virtual ~PixelBuffer(){};
 
   virtual void *map() = 0;
   virtual void unmap() = 0;
   virtual int64_t get_native_handle() = 0;
-  virtual uint get_size() = 0;
+  virtual size_t get_size() = 0;
 };
 
 /* Syntactic sugar. */

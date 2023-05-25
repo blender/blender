@@ -956,7 +956,7 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
  * Pixel buffer utility functions.
  * \{ */
 
-GPUPixelBuffer *GPU_pixel_buffer_create(uint size)
+GPUPixelBuffer *GPU_pixel_buffer_create(size_t size)
 {
   /* Ensure buffer satisfies the alignment of 256 bytes for copying
    * data between buffers and textures. As specified in:
@@ -985,7 +985,7 @@ void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf)
   reinterpret_cast<PixelBuffer *>(pix_buf)->unmap();
 }
 
-uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
+size_t GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
 {
   return reinterpret_cast<PixelBuffer *>(pix_buf)->get_size();
 }
