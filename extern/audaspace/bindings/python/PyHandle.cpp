@@ -38,7 +38,7 @@ Handle_dealloc(Handle* self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_pause_doc,
-			 ".. classmethod:: pause()\n\n"
+			 ".. method:: pause()\n\n"
 			 "   Pauses playback.\n\n"
 			 "   :return: Whether the action succeeded.\n"
 			 "   :rtype: bool");
@@ -58,7 +58,7 @@ Handle_pause(Handle* self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_resume_doc,
-			 ".. classmethod:: resume()\n\n"
+			 ".. method:: resume()\n\n"
 			 "   Resumes playback.\n\n"
 			 "   :return: Whether the action succeeded.\n"
 			 "   :rtype: bool");
@@ -78,7 +78,7 @@ Handle_resume(Handle* self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_stop_doc,
-			 ".. classmethod:: stop()\n\n"
+			 ".. method:: stop()\n\n"
 			 "   Stops playback.\n\n"
 			 "   :return: Whether the action succeeded.\n"
 			 "   :rtype: bool\n\n"
