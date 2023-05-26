@@ -61,7 +61,7 @@ ccl_device int shadow_linking_pick_mesh_intersection(KernelGlobals kg,
       if (set_membership != LIGHT_LINK_MASK_ALL) {
         ++num_hits;
 
-        if ((linked_isect->prim == PRIM_NONE) && (lcg_step_float(lcg_state) < 1.0f / num_hits)) {
+        if ((linked_isect->prim == PRIM_NONE) || (lcg_step_float(lcg_state) < 1.0f / num_hits)) {
           *linked_isect = current_isect;
         }
       }
