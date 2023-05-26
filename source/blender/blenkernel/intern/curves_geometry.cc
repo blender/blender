@@ -1139,11 +1139,13 @@ CurvesGeometry curves_copy_point_selection(
         gather_attributes(curves.attributes(),
                           ATTR_DOMAIN_POINT,
                           propagation_info,
+                          {},
                           points_to_copy,
                           dst_curves.attributes_for_write());
         gather_attributes(curves.attributes(),
                           ATTR_DOMAIN_CURVE,
                           propagation_info,
+                          {},
                           curves_to_copy,
                           dst_curves.attributes_for_write());
       });
@@ -1201,7 +1203,6 @@ CurvesGeometry curves_copy_curve_selection(
     const IndexMask &curves_to_copy,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-
   CurvesGeometry dst_curves(0, curves_to_copy.size());
   MutableSpan<int> new_curve_offsets = dst_curves.offsets_for_write();
   offset_indices::gather_group_sizes(
@@ -1231,7 +1232,7 @@ CurvesGeometry curves_copy_curve_selection(
   });
 
   gather_attributes(
-      src_attributes, ATTR_DOMAIN_CURVE, propagation_info, curves_to_copy, dst_attributes);
+      src_attributes, ATTR_DOMAIN_CURVE, propagation_info, {}, curves_to_copy, dst_attributes);
 
   dst_curves.remove_attributes_based_on_types();
   dst_curves.update_curve_types();
