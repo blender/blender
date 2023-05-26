@@ -403,33 +403,50 @@ struct Uniqueness_Key {
 static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
 {
   Set<Uniqueness_Key> id_names_libs;
+  Set<ID *> id_validated;
   bool is_valid = true;
   ListBase *lb_iter;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb_iter) {
     LISTBASE_FOREACH_MUTABLE (ID *, id_iter, lb_iter) {
+      if (id_validated.contains(id_iter)) {
+        /* Do not re-check an already validated ID. */
+        continue;
+      }
+
       Uniqueness_Key key;
       STRNCPY(key.name, id_iter->name);
       key.lib = id_iter->lib;
       if (!id_names_libs.add(key)) {
         is_valid = false;
-        CLOG_ERROR(&LOG,
-                   "ID name '%s' (from library '%s') is found more than once",
-                   id_iter->name,
-                   id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
         if (do_fix) {
-          /* NOTE: this may imply moving this ID in its listbase, however re-checking it later is
-           * not really an issue. */
+          CLOG_WARN(&LOG,
+                    "ID name '%s' (from library '%s') is found more than once",
+                    id_iter->name,
+                    id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+          /* NOTE: this may imply moving this ID in its listbase. The logic below will add the ID
+           * to the validated set if it can now be added to `id_names_libs`, and will prevent
+           * further checking (which would fail again, since the new ID name/lib key has already
+           * been added to `id_names_libs`). */
           BKE_id_new_name_validate(
               bmain, which_libbase(bmain, GS(id_iter->name)), id_iter, nullptr, true);
           STRNCPY(key.name, id_iter->name);
           if (!id_names_libs.add(key)) {
+            /* This is a serious error, very likely a bug, keep it as CLOG_ERROR even when doing
+             * fixes. */
             CLOG_ERROR(&LOG,
                        "\tID has been renamed to '%s', but it still seems to be already in use",
                        id_iter->name);
           }
           else {
             CLOG_WARN(&LOG, "\tID has been renamed to '%s'", id_iter->name);
+            id_validated.add(id_iter);
           }
+        }
+        else {
+          CLOG_ERROR(&LOG,
+                     "ID name '%s' (from library '%s') is found more than once",
+                     id_iter->name,
+                     id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
         }
       }
 
@@ -445,11 +462,23 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
       STRNCPY(key_namemap.name, id_iter->name + 2);
       if (!type_map->full_names.contains(key_namemap)) {
         is_valid = false;
-        CLOG_ERROR(&LOG,
-                   "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
-                   "the namemap",
-                   id_iter->name,
-                   id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+        if (do_fix) {
+          CLOG_INFO(
+              &LOG,
+              3,
+              "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
+              "the namemap",
+              id_iter->name,
+              id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+        }
+        else {
+          CLOG_ERROR(
+              &LOG,
+              "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
+              "the namemap",
+              id_iter->name,
+              id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+        }
       }
     }
   }
@@ -472,11 +501,23 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
             key.lib = lib;
             if (!id_names_libs.contains(key)) {
               is_valid = false;
-              CLOG_ERROR(&LOG,
-                         "ID name '%s' (from library '%s') is listed in the namemap, but does not "
-                         "exists in current Main",
-                         key.name,
-                         lib != nullptr ? lib->filepath : "<None>");
+              if (do_fix) {
+                CLOG_INFO(
+                    &LOG,
+                    3,
+                    "ID name '%s' (from library '%s') is listed in the namemap, but does not "
+                    "exists in current Main",
+                    key.name,
+                    lib != nullptr ? lib->filepath : "<None>");
+              }
+              else {
+                CLOG_ERROR(
+                    &LOG,
+                    "ID name '%s' (from library '%s') is listed in the namemap, but does not "
+                    "exists in current Main",
+                    key.name,
+                    lib != nullptr ? lib->filepath : "<None>");
+              }
             }
           }
         }
@@ -491,16 +532,7 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
   }
 
   /* Clear all existing namemaps. */
-  lib = nullptr;
-  UniqueName_Map **name_map_p = &bmain->name_map;
-  do {
-    BLI_assert(name_map_p != nullptr);
-    if (*name_map_p != nullptr) {
-      BKE_main_namemap_destroy(name_map_p);
-    }
-    lib = static_cast<Library *>((lib == nullptr) ? bmain->libraries.first : lib->id.next);
-    name_map_p = (lib != nullptr) ? &lib->runtime.name_map : nullptr;
-  } while (lib != nullptr);
+  BKE_main_namemap_clear(bmain);
 
   return is_valid;
 }
