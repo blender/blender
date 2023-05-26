@@ -61,6 +61,13 @@ template<class T> static inline const T *get_original(const T *id)
   return reinterpret_cast<T *>(DEG_get_original_id(const_cast<ID *>(&id->id)));
 }
 
+/* Check whether the ID is suitable to be an input of the dependency graph. */
+/* TODO(sergey): Move the function and check to a more generic place. */
+bool is_valid_input_id(const ID &id)
+{
+  return (id.tag & LIB_TAG_LOCALIZED) || DEG_is_original_id(&id);
+}
+
 }  // namespace
 
 namespace blender::deg::light_linking {
@@ -153,7 +160,7 @@ void EmitterDataMap::clear()
 
 EmitterData *EmitterDataMap::ensure_data_if_possible(const Scene &scene, const Object &emitter)
 {
-  BLI_assert(DEG_is_original_id(&emitter.id));
+  BLI_assert(is_valid_input_id(emitter.id));
 
   const Collection *collection = get_collection(emitter);
   BLI_assert(collection);
@@ -209,7 +216,7 @@ const EmitterData *EmitterDataMap::get_data(const Object &emitter) const
 
 bool EmitterDataMap::can_skip_emitter(const Object &emitter) const
 {
-  BLI_assert(DEG_is_original_id(&emitter.id));
+  BLI_assert(is_valid_input_id(emitter.id));
 
   const Collection *collection = get_collection(emitter);
 
@@ -249,7 +256,7 @@ void LinkingData::link_object(const EmitterData &emitter_data,
 
 LightSet &LinkingData::ensure_light_set_for(const Object &object)
 {
-  BLI_assert(DEG_is_original_id(&object.id));
+  BLI_assert(is_valid_input_id(object.id));
 
   return light_linked_sets_.lookup_or_add_as(&object);
 }
@@ -363,7 +370,7 @@ void Cache::clear()
 
 void Cache::add_emitter(const Scene &scene, const Object &emitter)
 {
-  BLI_assert(DEG_is_original_id(&emitter.id));
+  BLI_assert(is_valid_input_id(emitter.id));
 
   add_light_linking_emitter(scene, emitter);
   add_shadow_linking_emitter(scene, emitter);
@@ -371,7 +378,7 @@ void Cache::add_emitter(const Scene &scene, const Object &emitter)
 
 void Cache::add_light_linking_emitter(const Scene &scene, const Object &emitter)
 {
-  BLI_assert(DEG_is_original_id(&emitter.id));
+  BLI_assert(is_valid_input_id(emitter.id));
 
   if (light_emitter_data_map_.can_skip_emitter(emitter)) {
     return;
@@ -390,7 +397,7 @@ void Cache::add_light_linking_emitter(const Scene &scene, const Object &emitter)
 
 void Cache::add_shadow_linking_emitter(const Scene &scene, const Object &emitter)
 {
-  BLI_assert(DEG_is_original_id(&emitter.id));
+  BLI_assert(is_valid_input_id(emitter.id));
 
   if (shadow_emitter_data_map_.can_skip_emitter(emitter)) {
     return;
@@ -411,7 +418,7 @@ void Cache::add_receiver_object(const EmitterData &emitter_data,
                                 const CollectionLightLinking &collection_light_linking,
                                 const Object &receiver)
 {
-  BLI_assert(DEG_is_original_id(&receiver.id));
+  BLI_assert(is_valid_input_id(receiver.id));
 
   if (!can_link_to_emitter(receiver)) {
     return;
@@ -425,7 +432,7 @@ void Cache::add_blocker_object(const EmitterData &emitter_data,
                                const CollectionLightLinking &collection_light_linking,
                                const Object &blocker)
 {
-  BLI_assert(DEG_is_original_id(&blocker.id));
+  BLI_assert(is_valid_input_id(blocker.id));
 
   if (!can_link_to_emitter(blocker)) {
     return;
