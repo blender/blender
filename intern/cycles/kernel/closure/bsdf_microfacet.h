@@ -396,7 +396,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
    * - Purely reflective closures can't have refraction.
    * - Purely refractive closures can't have reflection.
    */
-  if ((cos_NI <= 0) || (alpha_x * alpha_y <= 1e-7f) || ((cos_NgO < 0.0f) != is_refraction) ||
+  if ((cos_NI <= 0) || (alpha_x * alpha_y <= 5e-7f) || ((cos_NgO < 0.0f) != is_refraction) ||
       (is_refraction && !m_refractive) || (!is_refraction && m_refractive && !m_glass))
   {
     *pdf = 0.0f;
@@ -478,7 +478,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   const bool m_refractive = CLOSURE_IS_REFRACTIVE(bsdf->type);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  bool m_singular = (m_type == MicrofacetType::SHARP) || (alpha_x * alpha_y <= 1e-7f);
+  bool m_singular = (m_type == MicrofacetType::SHARP) || (alpha_x * alpha_y <= 5e-7f);
 
   const float3 N = bsdf->N;
   const float cos_NI = dot(N, wi);
