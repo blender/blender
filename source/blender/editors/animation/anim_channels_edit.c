@@ -3951,6 +3951,8 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
   ot->invoke = animchannels_channel_select_keys_invoke;
   ot->poll = animedit_poll_channels_active;
 
+  ot->flag = OPTYPE_UNDO;
+
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
