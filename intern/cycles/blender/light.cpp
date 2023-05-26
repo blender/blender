@@ -38,6 +38,8 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     }
   }
 
+  light->name = b_light.name().c_str();
+
   /* type */
   switch (b_light.type()) {
     case BL::Light::type_POINT: {
