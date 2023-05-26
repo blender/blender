@@ -4207,7 +4207,7 @@ void BKE_lib_override_library_main_operations_restore(Main *bmain, int *r_report
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!(!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+    if (!(!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) && id->override_library->runtime &&
           (id->override_library->runtime->tag & LIBOVERRIDE_TAG_NEEDS_RESTORE) != 0))
     {
       continue;
