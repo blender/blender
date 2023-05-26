@@ -20,6 +20,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
@@ -607,13 +608,13 @@ struct DensitySubtractOperationExecutor {
     const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
 
     /* Remove deleted curves from the stored deformed root positions. */
-    const Vector<IndexRange> ranges_to_keep = mask_to_delete.to_ranges_invert(
-        curves_->curves_range());
+    IndexMaskMemory memory;
+    const IndexMask mask_to_keep = mask_to_delete.complement(curves_->curves_range(), memory);
     BLI_assert(curves_->curves_num() == self_->deformed_root_positions_.size());
-    Vector<float3> new_deformed_positions;
-    for (const IndexRange range : ranges_to_keep) {
-      new_deformed_positions.extend(self_->deformed_root_positions_.as_span().slice(range));
-    }
+    Vector<float3> new_deformed_positions(mask_to_keep.size());
+    array_utils::gather(self_->deformed_root_positions_.as_span(),
+                        mask_to_keep,
+                        new_deformed_positions.as_mutable_span());
     self_->deformed_root_positions_ = std::move(new_deformed_positions);
 
     curves_->remove_curves(mask_to_delete);

@@ -63,7 +63,7 @@ static void duplicate_fillet_point_data(const OffsetIndices<int> src_points_by_c
 
 static void calculate_result_offsets(const OffsetIndices<int> src_points_by_curve,
                                      const IndexMask &selection,
-                                     const Span<IndexRange> unselected_ranges,
+                                     const IndexMask &unselected,
                                      const VArray<float> &radii,
                                      const VArray<int> &counts,
                                      const Span<bool> cyclic,
@@ -71,7 +71,7 @@ static void calculate_result_offsets(const OffsetIndices<int> src_points_by_curv
                                      MutableSpan<int> dst_point_offsets)
 {
   /* Fill the offsets array with the curve point counts, then accumulate them to form offsets. */
-  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_curve_offsets);
+  offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_curve_offsets);
   selection.foreach_index(GrainSize(512), [&](const int curve_i) {
     const IndexRange src_points = src_points_by_curve[curve_i];
     const IndexRange offsets_range = bke::curves::per_curve_point_offsets_range(src_points,
@@ -404,8 +404,8 @@ static bke::CurvesGeometry fillet_curves(
   const Span<float3> positions = src_curves.positions();
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
   const bke::AttributeAccessor src_attributes = src_curves.attributes();
-  const Vector<IndexRange> unselected_ranges = curve_selection.to_ranges_invert(
-      src_curves.curves_range());
+  IndexMaskMemory memory;
+  const IndexMask unselected = curve_selection.complement(src_curves.curves_range(), memory);
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
   /* Stores the offset of every result point for every original point.
@@ -413,7 +413,7 @@ static bke::CurvesGeometry fillet_curves(
   Array<int> dst_point_offsets(src_curves.points_num() + src_curves.curves_num());
   calculate_result_offsets(src_points_by_curve,
                            curve_selection,
-                           unselected_ranges,
+                           unselected,
                            radius_input,
                            counts,
                            cyclic,
@@ -531,15 +531,12 @@ static bke::CurvesGeometry fillet_curves(
     attribute.dst.finish();
   }
 
-  if (!unselected_ranges.is_empty()) {
+  if (!unselected.is_empty()) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
              src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
     {
-      bke::curves::copy_point_data(src_points_by_curve,
-                                   dst_points_by_curve,
-                                   unselected_ranges,
-                                   attribute.src,
-                                   attribute.dst.span);
+      bke::curves::copy_point_data(
+          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
       attribute.dst.finish();
     }
   }

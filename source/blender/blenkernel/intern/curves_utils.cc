@@ -8,37 +8,6 @@
 
 namespace blender::bke::curves {
 
-void copy_curve_sizes(const OffsetIndices<int> points_by_curve,
-                      const Span<IndexRange> curve_ranges,
-                      MutableSpan<int> sizes)
-{
-  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
-    for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
-      threading::parallel_for(curves_range, 4096, [&](IndexRange range) {
-        for (const int i : range) {
-          sizes[i] = points_by_curve[i].size();
-        }
-      });
-    }
-  });
-}
-
-void copy_point_data(const OffsetIndices<int> src_points_by_curve,
-                     const OffsetIndices<int> dst_points_by_curve,
-                     const Span<IndexRange> curve_ranges,
-                     const GSpan src,
-                     GMutableSpan dst)
-{
-  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
-    for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange src_points = src_points_by_curve[range];
-      const IndexRange dst_points = dst_points_by_curve[range];
-      /* The arrays might be large, so a threaded copy might make sense here too. */
-      dst.slice(dst_points).copy_from(src.slice(src_points));
-    }
-  });
-}
-
 void copy_point_data(const OffsetIndices<int> src_points_by_curve,
                      const OffsetIndices<int> dst_points_by_curve,
                      const IndexMask &src_curve_selection,
@@ -63,21 +32,6 @@ void fill_points(const OffsetIndices<int> points_by_curve,
   curve_selection.foreach_index(GrainSize(512), [&](const int i) {
     const IndexRange points = points_by_curve[i];
     type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
-  });
-}
-
-void fill_points(const OffsetIndices<int> points_by_curve,
-                 Span<IndexRange> curve_ranges,
-                 GPointer value,
-                 GMutableSpan dst)
-{
-  BLI_assert(*value.type() == dst.type());
-  const CPPType &type = dst.type();
-  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
-    for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange points = points_by_curve[range];
-      type.fill_assign_n(value.get(), dst.slice(points).data(), points.size());
-    }
   });
 }
 

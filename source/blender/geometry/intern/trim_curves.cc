@@ -937,8 +937,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  const Vector<IndexRange> unselected_ranges = selection.to_ranges_invert(
-      src_curves.curves_range());
+  IndexMaskMemory memory;
+  const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   BLI_assert(selection.size() > 0);
   BLI_assert(selection.last() <= src_curves.curves_num());
@@ -960,7 +960,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                 start_points,
                                 end_points,
                                 src_ranges);
-  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_curve_offsets);
+  offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_curve_offsets);
   offset_indices::accumulate_counts_to_offsets(dst_curve_offsets);
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
@@ -1043,7 +1043,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
   }
 
   /* Copy unselected */
-  if (unselected_ranges.is_empty()) {
+  if (unselected.is_empty()) {
     /* Since all curves were trimmed, none of them are cyclic and the attribute can be removed. */
     dst_curves.attributes_for_write().remove("cyclic");
   }
@@ -1068,11 +1068,8 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
                                                                  propagation_info,
                                                                  copy_point_skip))
     {
-      bke::curves::copy_point_data(src_points_by_curve,
-                                   dst_points_by_curve,
-                                   unselected_ranges,
-                                   attribute.src,
-                                   attribute.dst.span);
+      bke::curves::copy_point_data(
+          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
       attribute.dst.finish();
     }
   }

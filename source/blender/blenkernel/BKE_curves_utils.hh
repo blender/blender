@@ -475,12 +475,6 @@ class IndexRangeCyclic {
  */
 void copy_point_data(OffsetIndices<int> src_points_by_curve,
                      OffsetIndices<int> dst_points_by_curve,
-                     Span<IndexRange> curve_ranges,
-                     GSpan src,
-                     GMutableSpan dst);
-
-void copy_point_data(OffsetIndices<int> src_points_by_curve,
-                     OffsetIndices<int> dst_points_by_curve,
                      const IndexMask &src_curve_selection,
                      GSpan src,
                      GMutableSpan dst);
@@ -513,20 +507,6 @@ void fill_points(const OffsetIndices<int> points_by_curve,
   fill_points(points_by_curve, curve_selection, &value, dst);
 }
 
-void fill_points(const OffsetIndices<int> points_by_curve,
-                 Span<IndexRange> curve_ranges,
-                 GPointer value,
-                 GMutableSpan dst);
-
-template<typename T>
-void fill_points(const OffsetIndices<int> points_by_curve,
-                 Span<IndexRange> curve_ranges,
-                 const T &value,
-                 MutableSpan<T> dst)
-{
-  fill_points(points_by_curve, curve_ranges, &value, dst);
-}
-
 /**
  * Create new curves with the same number of curves as the input, but no points. Copy all curve
  * domain attributes to the new curves, except the offsets encoding the size of each curve.
@@ -537,14 +517,6 @@ void fill_points(const OffsetIndices<int> points_by_curve,
  * \warning The returned curves have invalid offsets!
  */
 bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves);
-
-/**
- * Copy the number of points in every curve in #curve_ranges to the corresponding index in
- * #sizes.
- */
-void copy_curve_sizes(OffsetIndices<int> points_by_curve,
-                      Span<IndexRange> curve_ranges,
-                      MutableSpan<int> sizes);
 
 IndexMask indices_for_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &type_counts,

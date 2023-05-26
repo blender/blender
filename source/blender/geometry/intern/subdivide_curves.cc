@@ -13,7 +13,7 @@ namespace blender::geometry {
 
 static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
                                      const IndexMask &selection,
-                                     const Span<IndexRange> unselected_ranges,
+                                     const IndexMask &unselected,
                                      const VArray<int> &cuts,
                                      const Span<bool> cyclic,
                                      MutableSpan<int> dst_curve_offsets,
@@ -21,7 +21,7 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
 {
   /* Fill the array with each curve's point count, then accumulate them to the offsets. */
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
-  bke::curves::copy_curve_sizes(src_points_by_curve, unselected_ranges, dst_curve_offsets);
+  offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_curve_offsets);
   selection.foreach_index(GrainSize(1024), [&](const int curve_i) {
     const IndexRange src_points = src_points_by_curve[curve_i];
     const IndexRange src_segments = bke::curves::per_curve_point_offsets_range(src_points,
@@ -276,8 +276,8 @@ bke::CurvesGeometry subdivide_curves(
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   /* Cyclic is accessed a lot, it's probably worth it to make sure it's a span. */
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
-  const Vector<IndexRange> unselected_ranges = selection.to_ranges_invert(
-      src_curves.curves_range());
+  IndexMaskMemory memory;
+  const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
 
@@ -299,7 +299,7 @@ bke::CurvesGeometry subdivide_curves(
 #endif
   calculate_result_offsets(src_curves,
                            selection,
-                           unselected_ranges,
+                           unselected,
                            cuts,
                            cyclic,
                            dst_curves.offsets_for_write(),
@@ -404,15 +404,12 @@ bke::CurvesGeometry subdivide_curves(
                                      subdivide_bezier,
                                      subdivide_nurbs);
 
-  if (!unselected_ranges.is_empty()) {
+  if (!unselected.is_empty()) {
     for (auto &attribute : bke::retrieve_attributes_for_transfer(
              src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
     {
-      bke::curves::copy_point_data(src_points_by_curve,
-                                   dst_points_by_curve,
-                                   unselected_ranges,
-                                   attribute.src,
-                                   attribute.dst.span);
+      bke::curves::copy_point_data(
+          src_points_by_curve, dst_points_by_curve, unselected, attribute.src, attribute.dst.span);
       attribute.dst.finish();
     }
   }

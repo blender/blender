@@ -131,14 +131,14 @@ struct DeleteOperationExecutor {
     const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
 
     /* Remove deleted curves from the stored deformed positions. */
-    const Vector<IndexRange> ranges_to_keep = mask_to_delete.to_ranges_invert(
-        curves_->curves_range());
+    IndexMaskMemory memory;
+    const IndexMask mask_to_keep = mask_to_delete.complement(curves_->curves_range(), memory);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
     Vector<float3> new_deformed_positions;
-    for (const IndexRange curves_range : ranges_to_keep) {
+    mask_to_keep.foreach_index([&](const int64_t i) {
       new_deformed_positions.extend(
-          self_->deformed_positions_.as_span().slice(points_by_curve[curves_range]));
-    }
+          self_->deformed_positions_.as_span().slice(points_by_curve[i]));
+    });
     self_->deformed_positions_ = std::move(new_deformed_positions);
 
     curves_->remove_curves(mask_to_delete);
