@@ -276,6 +276,7 @@ struct LightTreeNode {
   __forceinline void add(const LightTreeEmitter &emitter)
   {
     measure.add(emitter.measure);
+    light_link.add(emitter.light_set_membership);
   }
 
   __forceinline Leaf &get_leaf()
