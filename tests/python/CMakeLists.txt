@@ -168,6 +168,7 @@ add_blender_test(
   blendfile_library_overrides
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_library_overrides.py --
   --output-dir ${TEST_OUT_DIR}/blendfile_io/
+  --test-dir "${TEST_SRC_DIR}/libraries_and_linking"
 )
 
 # ------------------------------------------------------------------------------

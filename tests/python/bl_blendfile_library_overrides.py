@@ -296,10 +296,37 @@ class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
         assert obj_armature.constraints[0].target == obj_ctrl2
 
 
+class TestLibraryOverridesFromProxies(TestHelper, unittest.TestCase):
+    # Very basic test, could be improved/extended.
+    # NOTE: Tests way more than only liboverride proxy conversion actually, since this is a fairly old .blend file.
+
+    MAIN_BLEND_FILE = "library_test_scene.blend"
+
+    def __init__(self, args):
+        self.args = args
+
+        self.test_dir = pathlib.Path(self.args.test_dir)
+        self.assertTrue(self.test_dir.exists(),
+                        'Test dir {0} should exist'.format(self.test_dir))
+
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+
+    def test_open_linked_proxy_file(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.test_dir / self.MAIN_BLEND_FILE))
+
+        # Check stability of 'same name' fixing for IDs.
+        direct_linked_A = bpy.data.libraries["lib.002"]
+        assert direct_linked_A.filepath == "//libraries/direct_linked_A.blend"
+
+        assert bpy.data.objects['HairCubeArmatureGroup_proxy'].library == direct_linked_A
+        assert bpy.data.objects['HairCubeArmatureGroup_proxy'].override_library != None
+
+
 TESTS = (
     TestLibraryOverrides,
     TestLibraryTemplate,
     TestLibraryOverridesResync,
+    TestLibraryOverridesFromProxies,
 )
 
 
@@ -314,6 +341,13 @@ def argparse_create():
         dest="output_dir",
         default=".",
         help="Where to output temp saved blendfiles",
+        required=False,
+    )
+    parser.add_argument(
+        "--test-dir",
+        dest="test_dir",
+        default=".",
+        help="Where are the test blendfiles",
         required=False,
     )
 
