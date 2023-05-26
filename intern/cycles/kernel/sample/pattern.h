@@ -13,6 +13,20 @@ CCL_NAMESPACE_BEGIN
  * this single threaded on a CPU for repeatable results. */
 //#define __DEBUG_CORRELATION__
 
+/*
+ * The `path_rng_*()` functions below use a shuffled scrambled Sobol
+ * sequence to generate their samples.  Sobol samplers have a property
+ * that is worth being aware of when choosing how to use the sample
+ * dimensions:
+ *
+ * 1. In general, earlier sets of dimensions are better stratified.  So
+ *    prefer e.g. x,y over y,z over z,w for the things that are most
+ *    important to sample well.
+ * 2. As a rule of thumb, dimensions that are closer to each other are
+ *    better stratified than dimensions that are far.  So prefer e.g.
+ *    x,y over x,z.
+ */
+
 ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
                                          uint rng_hash,
                                          int sample,
