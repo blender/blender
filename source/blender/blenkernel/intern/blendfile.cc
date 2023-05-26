@@ -442,6 +442,9 @@ static void setup_app_data(bContext *C,
    * linked libraries. */
   if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 1)) {
     BKE_lib_override_library_main_proxy_convert(bmain, reports);
+    /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
+     * #107847 to be properly fixed. */
+    BKE_main_namemap_validate_and_fix(bmain);
   }
 
   if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 3)) {
