@@ -2495,7 +2495,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     }
     else if (!is_in_partial_resync_hierarchy) {
       /* This ID is not tagged for resync, and is part of a loop where none of the other IDs are
-       * tagged for resync, nothing else to to. */
+       * tagged for resync, nothing else to do. */
       return;
     }
     /* This ID is not yet tagged for resync, but is part of a loop which is (partially) tagged

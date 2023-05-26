@@ -95,9 +95,9 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
     bssrdf_sampling_fraction /= bsdf_bssrdf_sampling_sum;
   }
 
-  /* Init guiding */
-  /* The the roughness because the function returns alpha.x * alpha.y. In addition alpha is squared
-   * again */
+  /* Initial guiding */
+  /* The roughness because the function returns `alpha.x * alpha.y`.
+   * In addition alpha is squared again. */
   float avg_roughness = surface_shader_average_sample_weight_squared_roughness(sd);
   avg_roughness = safe_sqrtf(avg_roughness);
   if (!fully_opaque || avg_roughness < guiding_roughness_threshold ||

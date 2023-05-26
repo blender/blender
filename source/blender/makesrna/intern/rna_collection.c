@@ -449,7 +449,7 @@ static void rna_CollectionLightLinking_update(Main *bmain, Scene *UNUSED(scene),
 {
   /* The light linking collection comes from the collection. It does not have shading component,
    * but is collected to objects via hierarchy component. Tagging its hierarchy for update will
-   * lead the the objects which use the collection to update its shading. */
+   * lead the objects which use the collection to update its shading. */
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_HIERARCHY);
 
   /* Tag relations for update so that an updated state of light sets is calculated. */

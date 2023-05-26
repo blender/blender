@@ -374,7 +374,7 @@ def external_script_add_origin_if_needed(args: argparse.Namespace,
         #  - Rename remote "upstream" to "origin", which takes care of changing the names of
         #    remotes the local branches are tracking.
         #
-        #  - Change the URL to the "origin", which so was was still pointing to upstream.
+        #  - Change the URL to the "origin", which was still pointing to upstream.
         #
         #  - Re-introduce the "upstream" remote, with the same URL as it had prior to rename.
 

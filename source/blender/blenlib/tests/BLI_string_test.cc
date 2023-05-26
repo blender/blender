@@ -90,7 +90,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
 TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 {
   /* A UTF8 sequence that has a null byte before the sequence ends.
-   * Ensure the the UTF8 sequence does not step over the null byte. */
+   * Ensure the UTF8 sequence does not step over the null byte. */
 #define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
   { \
     char src[] = {__VA_ARGS__, 0}; \

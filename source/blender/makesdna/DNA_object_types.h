@@ -279,8 +279,8 @@ typedef struct LightLinkingRuntime {
 
   /* For blocker objects: the index of the light set from which this object casts shadow from.
    *
-   *If there is no shadow shadow in the scene or the blocker is not linked to any emitter this is
-   *assigned zero. */
+   * If there is no shadow in the scene or the blocker is not linked to any emitter this is
+   * assigned zero. */
   uint8_t blocker_shadow_set;
 
   uint8_t _pad[6];

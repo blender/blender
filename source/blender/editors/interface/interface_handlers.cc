@@ -3632,7 +3632,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 }
 
 /**
- * Return the jump type used for for cursor motion & back-space/delete actions.
+ * Return the jump type used for cursor motion & back-space/delete actions.
  */
 static eStrCursorJumpType ui_textedit_jump_type_from_event(const wmEvent *event)
 {
