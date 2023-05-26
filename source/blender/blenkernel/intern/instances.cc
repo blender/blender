@@ -108,7 +108,6 @@ blender::Span<InstanceReference> Instances::references() const
 void Instances::remove(const IndexMask &mask,
                        const AnonymousAttributePropagationInfo &propagation_info)
 {
-  using namespace blender;
   const std::optional<IndexRange> masked_range = mask.to_range();
   if (masked_range.has_value() && masked_range->start() == 0) {
     /* Deleting from the end of the array can be much faster since no data has to be shifted. */
@@ -153,9 +152,6 @@ void Instances::remove(const IndexMask &mask,
 
 void Instances::remove_unused_references()
 {
-  using namespace blender;
-  using namespace blender::bke;
-
   const int tot_instances = this->instances_num();
   const int tot_references_before = references_.size();
 
@@ -261,9 +257,8 @@ void Instances::ensure_owns_direct_data()
   }
 }
 
-static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
+static Array<int> generate_unique_instance_ids(Span<int> original_ids)
 {
-  using namespace blender;
   Array<int> unique_ids(original_ids.size());
 
   Set<int> used_unique_ids;
@@ -314,7 +309,7 @@ static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
   return unique_ids;
 }
 
-blender::Span<int> Instances::almost_unique_ids() const
+Span<int> Instances::almost_unique_ids() const
 {
   std::lock_guard lock(almost_unique_ids_mutex_);
   std::optional<GSpan> instance_ids_gspan = attributes_.get_for_read("id");
