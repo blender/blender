@@ -82,6 +82,10 @@ class Light : public Node {
   /* Check whether the light has contribution the scene. */
   bool has_contribution(Scene *scene);
 
+  /* Check whether this light participates in light or shadow linking. */
+  bool has_light_linking() const;
+  bool has_shadow_linking() const;
+
   friend class LightManager;
   friend class LightTree;
 };

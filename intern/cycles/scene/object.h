@@ -113,6 +113,11 @@ class Object : public Node {
   /* Check whether this object can be used as light-emissive. */
   bool usable_as_light() const;
 
+  /* Check whether the object participates in light or shadow linking, either as a receiver/blocker
+   * or emitter. */
+  bool has_light_linking() const;
+  bool has_shadow_linking() const;
+
  protected:
   /* Specifies the position of the object in scene->objects and
    * in the device vectors. Gets set in device_update. */

@@ -174,6 +174,24 @@ bool Light::has_contribution(Scene *scene)
   return !is_zero(effective_shader->emission_estimate);
 }
 
+bool Light::has_light_linking() const
+{
+  if (get_light_set_membership() != LIGHT_LINK_MASK_ALL) {
+    return true;
+  }
+
+  return false;
+}
+
+bool Light::has_shadow_linking() const
+{
+  if (get_shadow_set_membership() != LIGHT_LINK_MASK_ALL) {
+    return true;
+  }
+
+  return false;
+}
+
 /* Light Manager */
 
 LightManager::LightManager()
