@@ -4297,10 +4297,6 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
-                                 IFACE_("Flip to Bottom") :
-                                 IFACE_("Flip to Top");
   {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first, &ptr);
@@ -4322,12 +4318,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
             "SCREEN_OT_header_toggle_menus");
   }
 
-  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-
   if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
     uiItemS(layout);
-    uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+    ED_screens_region_flip_menu_create(C, layout, NULL);
     uiItemS(layout);
     screen_area_menu_items(area, layout);
   }
@@ -4336,31 +4329,26 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
-                                 IFACE_("Flip to Bottom") :
-                                 IFACE_("Flip to Top");
+
   {
     PointerRNA ptr;
     RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first, &ptr);
     uiItemR(layout, &ptr, "show_region_footer", 0, IFACE_("Show Footer"), ICON_NONE);
   }
 
-  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-
-  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
-
+  ED_screens_region_flip_menu_create(C, layout, NULL);
   uiItemS(layout);
   screen_area_menu_items(area, layout);
 }
 
-void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
+void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   const ARegion *region = CTX_wm_region(C);
-  const char *but_flip_str = (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_LEFT) ?
-                                 IFACE_("Flip to Right") :
-                                 IFACE_("Flip to Left");
+  const short region_alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
+  const char *but_flip_str = region_alignment == RGN_ALIGN_LEFT   ? IFACE_("Flip to Right") :
+                             region_alignment == RGN_ALIGN_RIGHT  ? IFACE_("Flip to Left") :
+                             region_alignment == RGN_ALIGN_BOTTOM ? IFACE_("Flip to Top") :
+                                                                    IFACE_("Flip to Bottom");
 
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -4411,7 +4399,7 @@ static int screen_context_menu_invoke(bContext *C,
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
       uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
-      ED_screens_navigation_bar_tools_menu_create(C, layout, NULL);
+      ED_screens_region_flip_menu_create(C, layout, NULL);
       UI_popup_menu_end(C, pup);
     }
   }
