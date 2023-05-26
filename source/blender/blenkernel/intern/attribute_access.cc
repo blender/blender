@@ -994,4 +994,34 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
 
 /** \} */
 
+void gather_attributes(const AttributeAccessor src_attributes,
+                       const eAttrDomain domain,
+                       const AnonymousAttributePropagationInfo &propagation_info,
+                       const IndexMask &selection,
+                       MutableAttributeAccessor dst_attributes)
+{
+  const int src_size = src_attributes.domain_size(domain);
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
+    }
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    const bke::GAttributeReader src = src_attributes.lookup(id, domain);
+    if (selection.size() == src_size && src.sharing_info && src.varray.is_span()) {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      dst_attributes.add(id, domain, meta_data.data_type, init);
+    }
+    else {
+      bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          id, domain, meta_data.data_type);
+      array_utils::gather(src.varray, selection, dst.span);
+      dst.finish();
+    }
+    return true;
+  });
+}
+
 }  // namespace blender::bke
