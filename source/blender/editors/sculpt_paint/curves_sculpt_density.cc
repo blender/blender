@@ -593,23 +593,21 @@ struct DensitySubtractOperationExecutor {
     BLI_kdtree_3d_balance(root_points_kdtree_);
 
     /* Find all curves that should be deleted. */
-    Array<bool> curves_to_delete(curves_->curves_num(), false);
+    Array<bool> curves_to_keep(curves_->curves_num(), true);
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->reduce_density_projected_with_symmetry(curves_to_delete);
+      this->reduce_density_projected_with_symmetry(curves_to_keep);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->reduce_density_spherical_with_symmetry(curves_to_delete);
+      this->reduce_density_spherical_with_symmetry(curves_to_keep);
     }
     else {
       BLI_assert_unreachable();
     }
 
     IndexMaskMemory mask_memory;
-    const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
+    const IndexMask mask_to_keep = IndexMask::from_bools(curves_to_keep, mask_memory);
 
     /* Remove deleted curves from the stored deformed root positions. */
-    IndexMaskMemory memory;
-    const IndexMask mask_to_keep = mask_to_delete.complement(curves_->curves_range(), memory);
     BLI_assert(curves_->curves_num() == self_->deformed_root_positions_.size());
     Vector<float3> new_deformed_positions(mask_to_keep.size());
     array_utils::gather(self_->deformed_root_positions_.as_span(),
@@ -617,7 +615,7 @@ struct DensitySubtractOperationExecutor {
                         new_deformed_positions.as_mutable_span());
     self_->deformed_root_positions_ = std::move(new_deformed_positions);
 
-    curves_->remove_curves(mask_to_delete);
+    *curves_ = bke::curves_copy_curve_selection(*curves_, mask_to_keep, {});
     BLI_assert(curves_->curves_num() == self_->deformed_root_positions_.size());
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
@@ -625,17 +623,16 @@ struct DensitySubtractOperationExecutor {
     ED_region_tag_redraw(ctx_.region);
   }
 
-  void reduce_density_projected_with_symmetry(MutableSpan<bool> curves_to_delete)
+  void reduce_density_projected_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->reduce_density_projected(brush_transform, curves_to_delete);
+      this->reduce_density_projected(brush_transform, curves_to_keep);
     }
   }
 
-  void reduce_density_projected(const float4x4 &brush_transform,
-                                MutableSpan<bool> curves_to_delete)
+  void reduce_density_projected(const float4x4 &brush_transform, MutableSpan<bool> curves_to_keep)
   {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -650,7 +647,7 @@ struct DensitySubtractOperationExecutor {
       RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
-        if (curves_to_delete[curve_i]) {
+        if (!curves_to_keep[curve_i]) {
           allow_remove_curve[curve_i] = true;
           continue;
         }
@@ -676,7 +673,7 @@ struct DensitySubtractOperationExecutor {
     /* Detect curves that are too close to other existing curves. */
     curve_selection_.foreach_segment([&](const IndexMaskSegment segment) {
       for (const int curve_i : segment) {
-        if (curves_to_delete[curve_i]) {
+        if (!curves_to_keep[curve_i]) {
           continue;
         }
         if (!allow_remove_curve[curve_i]) {
@@ -699,7 +696,7 @@ struct DensitySubtractOperationExecutor {
                 return true;
               }
               if (allow_remove_curve[other_curve_i]) {
-                curves_to_delete[other_curve_i] = true;
+                curves_to_keep[other_curve_i] = false;
               }
               return true;
             });
@@ -707,7 +704,7 @@ struct DensitySubtractOperationExecutor {
     });
   }
 
-  void reduce_density_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
+  void reduce_density_spherical_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const std::optional<CurvesBrush3D> brush_3d = sample_curves_surface_3d_brush(*ctx_.depsgraph,
@@ -725,13 +722,13 @@ struct DensitySubtractOperationExecutor {
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float3 brush_pos_cu = math::transform_point(brush_transform, brush_3d->position_cu);
-      this->reduce_density_spherical(brush_pos_cu, brush_3d->radius_cu, curves_to_delete);
+      this->reduce_density_spherical(brush_pos_cu, brush_3d->radius_cu, curves_to_keep);
     }
   }
 
   void reduce_density_spherical(const float3 &brush_pos_cu,
                                 const float brush_radius_cu,
-                                MutableSpan<bool> curves_to_delete)
+                                MutableSpan<bool> curves_to_keep)
   {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
@@ -742,7 +739,7 @@ struct DensitySubtractOperationExecutor {
       RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
-        if (curves_to_delete[curve_i]) {
+        if (!curves_to_keep[curve_i]) {
           allow_remove_curve[curve_i] = true;
           continue;
         }
@@ -765,7 +762,7 @@ struct DensitySubtractOperationExecutor {
     /* Detect curves that are too close to other existing curves. */
     curve_selection_.foreach_segment([&](const IndexMaskSegment segment) {
       for (const int curve_i : segment) {
-        if (curves_to_delete[curve_i]) {
+        if (!curves_to_keep[curve_i]) {
           continue;
         }
         if (!allow_remove_curve[curve_i]) {
@@ -786,7 +783,7 @@ struct DensitySubtractOperationExecutor {
                 return true;
               }
               if (allow_remove_curve[other_curve_i]) {
-                curves_to_delete[other_curve_i] = true;
+                curves_to_keep[other_curve_i] = false;
               }
               return true;
             });

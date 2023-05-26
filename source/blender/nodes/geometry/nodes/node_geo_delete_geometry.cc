@@ -299,10 +299,11 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
   });
 }
 
-static void delete_curves_selection(GeometrySet &geometry_set,
-                                    const Field<bool> &selection_field,
-                                    const eAttrDomain selection_domain,
-                                    const bke::AnonymousAttributePropagationInfo &propagation_info)
+static void separate_curves_selection(
+    GeometrySet &geometry_set,
+    const Field<bool> &selection_field,
+    const eAttrDomain selection_domain,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
@@ -313,24 +314,28 @@ static void delete_curves_selection(GeometrySet &geometry_set,
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  if (selection.is_empty()) {
+  if (selection.size() == domain_size) {
     return;
   }
-  if (selection.size() == domain_size) {
+  if (selection.is_empty()) {
     geometry_set.remove<CurveComponent>();
     return;
   }
 
-  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-  Curves &curves_id = *component.get_for_write();
-  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-
+  Curves *dst_curves_id = nullptr;
   if (selection_domain == ATTR_DOMAIN_POINT) {
-    curves.remove_points(selection, propagation_info);
+    bke::CurvesGeometry dst_curves = bke::curves_copy_point_selection(
+        src_curves, selection, propagation_info);
+    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   }
   else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    curves.remove_curves(selection, propagation_info);
+    bke::CurvesGeometry dst_curves = bke::curves_copy_curve_selection(
+        src_curves, selection, propagation_info);
+    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
   }
+
+  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+  geometry_set.replace_curves(dst_curves_id);
 }
 
 static void separate_point_cloud_selection(
@@ -1142,8 +1147,7 @@ void separate_geometry(GeometrySet &geometry_set,
   }
   if (geometry_set.has_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      file_ns::delete_curves_selection(
-          geometry_set, fn::invert_boolean_field(selection_field), domain, propagation_info);
+      file_ns::separate_curves_selection(geometry_set, selection_field, domain, propagation_info);
       some_valid_domain = true;
     }
   }

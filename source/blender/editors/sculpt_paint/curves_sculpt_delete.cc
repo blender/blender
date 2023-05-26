@@ -116,23 +116,21 @@ struct DeleteOperationExecutor {
       self_->deformed_positions_ = deformation.positions;
     }
 
-    Array<bool> curves_to_delete(curves_->curves_num(), false);
+    Array<bool> curves_to_keep(curves_->curves_num(), true);
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->delete_projected_with_symmetry(curves_to_delete);
+      this->delete_projected_with_symmetry(curves_to_keep);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->delete_spherical_with_symmetry(curves_to_delete);
+      this->delete_spherical_with_symmetry(curves_to_keep);
     }
     else {
       BLI_assert_unreachable();
     }
 
     IndexMaskMemory mask_memory;
-    const IndexMask mask_to_delete = IndexMask::from_bools(curves_to_delete, mask_memory);
+    const IndexMask mask_to_keep = IndexMask::from_bools(curves_to_keep, mask_memory);
 
     /* Remove deleted curves from the stored deformed positions. */
-    IndexMaskMemory memory;
-    const IndexMask mask_to_keep = mask_to_delete.complement(curves_->curves_range(), memory);
     const OffsetIndices points_by_curve = curves_->points_by_curve();
     Vector<float3> new_deformed_positions;
     mask_to_keep.foreach_index([&](const int64_t i) {
@@ -141,23 +139,23 @@ struct DeleteOperationExecutor {
     });
     self_->deformed_positions_ = std::move(new_deformed_positions);
 
-    curves_->remove_curves(mask_to_delete);
+    *curves_ = bke::curves_copy_curve_selection(*curves_, mask_to_keep, {});
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(ctx_.region);
   }
 
-  void delete_projected_with_symmetry(MutableSpan<bool> curves_to_delete)
+  void delete_projected_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->delete_projected(brush_transform, curves_to_delete);
+      this->delete_projected(brush_transform, curves_to_keep);
     }
   }
 
-  void delete_projected(const float4x4 &brush_transform, MutableSpan<bool> curves_to_delete)
+  void delete_projected(const float4x4 &brush_transform, MutableSpan<bool> curves_to_keep)
   {
     const float4x4 brush_transform_inv = math::invert(brush_transform);
 
@@ -178,7 +176,7 @@ struct DeleteOperationExecutor {
           ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.ptr());
 
           if (math::distance_squared(brush_pos_re_, pos_re) <= brush_radius_sq_re) {
-            curves_to_delete[curve_i] = true;
+            curves_to_keep[curve_i] = false;
           }
           continue;
         }
@@ -196,7 +194,7 @@ struct DeleteOperationExecutor {
           const float dist_sq_re = dist_squared_to_line_segment_v2(
               brush_pos_re_, pos1_re, pos2_re);
           if (dist_sq_re <= brush_radius_sq_re) {
-            curves_to_delete[curve_i] = true;
+            curves_to_keep[curve_i] = false;
             break;
           }
         }
@@ -204,7 +202,7 @@ struct DeleteOperationExecutor {
     });
   }
 
-  void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
+  void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_keep)
   {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.ptr());
@@ -222,11 +220,11 @@ struct DeleteOperationExecutor {
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->delete_spherical(math::transform_point(brush_transform, brush_cu), curves_to_delete);
+      this->delete_spherical(math::transform_point(brush_transform, brush_cu), curves_to_keep);
     }
   }
 
-  void delete_spherical(const float3 &brush_cu, MutableSpan<bool> curves_to_delete)
+  void delete_spherical(const float3 &brush_cu, MutableSpan<bool> curves_to_keep)
   {
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
@@ -240,7 +238,7 @@ struct DeleteOperationExecutor {
           const float3 &pos_cu = self_->deformed_positions_[points.first()];
           const float distance_sq_cu = math::distance_squared(pos_cu, brush_cu);
           if (distance_sq_cu < brush_radius_sq_cu) {
-            curves_to_delete[curve_i] = true;
+            curves_to_keep[curve_i] = false;
           }
           continue;
         }
@@ -253,7 +251,7 @@ struct DeleteOperationExecutor {
           if (distance_sq_cu > brush_radius_sq_cu) {
             continue;
           }
-          curves_to_delete[curve_i] = true;
+          curves_to_keep[curve_i] = false;
           break;
         }
       }

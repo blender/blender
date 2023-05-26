@@ -1109,19 +1109,17 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
   return true;
 }
 
-static CurvesGeometry copy_with_removed_points(
+CurvesGeometry curves_copy_point_selection(
     const CurvesGeometry &curves,
-    const IndexMask &points_to_delete,
+    const IndexMask &points_to_copy,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  IndexMaskMemory memory;
-  const IndexMask points_to_copy = points_to_delete.complement(curves.points_range(), memory);
-
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
   points_to_copy.foreach_index(
       [&](const int64_t point_i) { curve_point_counts[point_to_curve_map[point_i]]++; });
 
+  IndexMaskMemory memory;
   const IndexMask curves_to_copy = IndexMask::from_predicate(
       curves.curves_range(), GrainSize(4096), memory, [&](const int64_t i) {
         return curve_point_counts[i] > 0;
@@ -1169,7 +1167,9 @@ void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
   if (points_to_delete.size() == this->points_num()) {
     *this = {};
   }
-  *this = copy_with_removed_points(*this, points_to_delete, propagation_info);
+  IndexMaskMemory memory;
+  const IndexMask points_to_copy = points_to_delete.complement(this->points_range(), memory);
+  *this = curves_copy_point_selection(*this, points_to_copy, propagation_info);
 }
 
 template<typename T>
@@ -1196,13 +1196,11 @@ static void gather_group_to_group(const OffsetIndices<int> src_offsets,
   });
 }
 
-static CurvesGeometry copy_with_removed_curves(
+CurvesGeometry curves_copy_curve_selection(
     const CurvesGeometry &curves,
-    const IndexMask &curves_to_delete,
+    const IndexMask &curves_to_copy,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  IndexMaskMemory memory;
-  const IndexMask curves_to_copy = curves_to_delete.complement(curves.curves_range(), memory);
 
   CurvesGeometry dst_curves(0, curves_to_copy.size());
   MutableSpan<int> new_curve_offsets = dst_curves.offsets_for_write();
@@ -1251,7 +1249,9 @@ void CurvesGeometry::remove_curves(const IndexMask &curves_to_delete,
     *this = {};
     return;
   }
-  *this = copy_with_removed_curves(*this, curves_to_delete, propagation_info);
+  IndexMaskMemory memory;
+  const IndexMask curves_to_copy = curves_to_delete.complement(this->curves_range(), memory);
+  *this = curves_copy_curve_selection(*this, curves_to_copy, propagation_info);
 }
 
 template<typename T>
