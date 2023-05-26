@@ -536,10 +536,6 @@ class MTLCommandBufferManager {
   friend class MTLContext;
 
  public:
-  /* Event to coordinate sequential execution across all "main" command buffers. */
-  static id<MTLEvent> sync_event;
-  static uint64_t event_signal_val;
-
   /* Counter for active command buffers. */
   static int num_active_cmd_bufs;
 
