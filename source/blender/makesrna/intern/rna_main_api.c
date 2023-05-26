@@ -2016,7 +2016,7 @@ void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
-void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
   FunctionRNA *func;
