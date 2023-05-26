@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
@@ -99,7 +101,11 @@ static void mesh_init_data(ID *id)
   mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
 }
 
-static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void mesh_copy_data(Main *bmain,
+                           std::optional<Library *> owner_library,
+                           ID *id_dst,
+                           const ID *id_src,
+                           const int flag)
 {
   Mesh *mesh_dst = reinterpret_cast<Mesh *>(id_dst);
   const Mesh *mesh_src = reinterpret_cast<const Mesh *>(id_src);
@@ -193,7 +199,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   /* TODO: Do we want to add flag to prevent this? */
   if (mesh_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_ex(bmain, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
+    BKE_id_copy_in_lib(bmain, owner_library, &mesh_src->key->id, (ID **)&mesh_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     mesh_dst->key->from = &mesh_dst->id;
   }

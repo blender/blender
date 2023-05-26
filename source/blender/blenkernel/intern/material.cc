@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <optional>
 
 #include "CLG_log.h"
 
@@ -91,7 +92,11 @@ static void material_init_data(ID *id)
   *((short *)id->name) = ID_MA;
 }
 
-static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void material_copy_data(Main *bmain,
+                               std::optional<Library *> owner_library,
+                               ID *id_dst,
+                               const ID *id_src,
+                               const int flag)
 {
   Material *material_dst = (Material *)id_dst;
   const Material *material_src = (const Material *)id_src;
@@ -105,10 +110,11 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
       material_dst->nodetree = ntreeLocalize(material_src->nodetree);
     }
     else {
-      BKE_id_copy_ex(bmain,
-                     (ID *)material_src->nodetree,
-                     (ID **)&material_dst->nodetree,
-                     flag_private_id_data);
+      BKE_id_copy_in_lib(bmain,
+                         owner_library,
+                         (ID *)material_src->nodetree,
+                         (ID **)&material_dst->nodetree,
+                         flag_private_id_data);
     }
     material_dst->nodetree->owner_id = &material_dst->id;
   }

@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,7 +59,11 @@
 
 static void sound_free_audio(bSound *sound);
 
-static void sound_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void sound_copy_data(Main * /*bmain*/,
+                            std::optional<Library *> /*owner_library*/,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int /*flag*/)
 {
   bSound *sound_dst = (bSound *)id_dst;
   const bSound *sound_src = (const bSound *)id_src;

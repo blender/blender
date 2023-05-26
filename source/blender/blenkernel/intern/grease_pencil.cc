@@ -7,6 +7,7 @@
  */
 
 #include <iostream>
+#include <optional>
 
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
@@ -88,6 +89,7 @@ static void grease_pencil_init_data(ID *id)
 }
 
 static void grease_pencil_copy_data(Main * /*bmain*/,
+                                    std::optional<Library *> /*owner_library*/,
                                     ID *id_dst,
                                     const ID *id_src,
                                     const int /*flag*/)
