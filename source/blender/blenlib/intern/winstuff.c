@@ -44,7 +44,8 @@ int BLI_windows_get_executable_dir(char *str)
   return 1;
 }
 
-bool BLI_windows_is_store_install(void) {
+bool BLI_windows_is_store_install(void)
+{
   char install_dir[FILE_MAXDIR];
   BLI_windows_get_executable_dir(install_dir);
   return (BLI_strcasestr(install_dir, "\\WindowsApps\\") != NULL);

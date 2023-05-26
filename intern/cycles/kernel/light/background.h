@@ -54,8 +54,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
     int middle = first + step;
 
     if (kernel_data_fetch(light_background_conditional_cdf, index_v * cdf_width + middle).y <
-        rand.x)
-    {
+        rand.x) {
       first = middle + 1;
       count -= step + 1;
     }

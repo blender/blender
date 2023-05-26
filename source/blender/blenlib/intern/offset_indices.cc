@@ -5,7 +5,8 @@
 
 namespace blender::offset_indices {
 
-OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, const int start_offset)
+OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets,
+                                                const int start_offset)
 {
   int offset = start_offset;
   for (const int i : counts_to_offsets.index_range().drop_back(1)) {

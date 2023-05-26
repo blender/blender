@@ -237,8 +237,7 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 static bool associate_blend_poll(bContext *C)
 {
 #ifdef WIN32
-  if (BLI_windows_is_store_install())
-  {
+  if (BLI_windows_is_store_install()) {
     CTX_wm_operator_poll_msg_set(C, "Not available for Microsoft Store installations");
     return false;
   }
@@ -253,7 +252,8 @@ static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 {
 #ifdef WIN32
   if (BLI_windows_is_store_install()) {
-    BKE_report(op->reports, RPT_ERROR, "Registration not possible from Microsoft Store installations");
+    BKE_report(
+        op->reports, RPT_ERROR, "Registration not possible from Microsoft Store installations");
     return OPERATOR_CANCELLED;
   }
 
