@@ -16,6 +16,8 @@ using blender::Vector;
 
 #include <algorithm>
 
+//#define BLI_MINMAX_HEAP_VALIDATE
+
 namespace blender {
 template<typename Value, typename NodeType> class HeapValueIter {
   Span<NodeType> nodes_;
@@ -65,7 +67,7 @@ template<typename Value, typename NodeType> class HeapValueIter {
 template<typename Value = void *,
          int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Value))>
 
-#if 1
+#if 0
 class MinMaxHeap {
   struct MinMaxHeapNode {
     Value value;
@@ -198,12 +200,59 @@ class MinMaxHeap {
 
   ~MinMaxHeap() {}
 
+  ATTR_NO_OPT bool valid_recurse(int i)
+  {
+    bool ret = true;
+
+    MinMaxHeapNode &node = nodes[i];
+    int level = i & 1;
+
+    if (node.child1 != -1) {
+      MinMaxHeapNode &child = nodes[node.child1];
+      if (child.weight != node.weight && (child.weight < node.weight) ^ level) {
+        printf("error: node %d[%f] is less than node %d[%f]\n",
+               i,
+               node.weight,
+               node.child1,
+               child.weight);
+      }
+
+      ret = ret && valid_recurse(node.child1);
+    }
+
+    if (node.child2 != -1) {
+      MinMaxHeapNode &child = nodes[node.child2];
+
+      if (child.weight != node.weight && (child.weight < node.weight) ^ level) {
+        printf("error: node %d[%f] is less than node %d[%f]\n",
+               i,
+               node.weight,
+               node.child2,
+               child.weight);
+      }
+
+      ret = ret && valid_recurse(node.child2);
+    }
+
+    return ret;
+  }
+
+  ATTR_NO_OPT bool is_valid()
+  {
+
+    if (nodes.size() == 0) {
+      return true;
+    }
+
+    return valid_recurse(0);
+  }
+
   HeapValueIter<Value, MinMaxHeapNode> values()
   {
     return HeapValueIter<Value, MinMaxHeapNode>(nodes);
   }
 
-  MinMaxHeapNode *insert(float weight, Value value)
+  ATTR_NO_OPT MinMaxHeapNode *insert(float weight, Value value)
   {
     MinMaxHeapNode *node = heap_make_node();
 
@@ -226,7 +275,15 @@ class MinMaxHeap {
       parent->child2 = i;
     }
 
-    return heap_push_up(node);
+    MinMaxHeapNode *ret = heap_push_up(node);
+
+#  ifdef BLI_MINMAX_HEAP_VALIDATE
+    if (!is_valid()) {
+      printf("invalid heap!\n");
+    }
+#  endif
+
+    return ret;
   }
 
   void insert_or_update(MinMaxHeapNode **node_p, float weight, Value value)
@@ -280,7 +337,7 @@ class MinMaxHeap {
     MinMaxHeapNode last = heap_pop_last();
 
     nodes[0].weight = last.weight;
-    nodes[1].value = last.value;
+    nodes[0].value = last.value;
 
     heap_push_down(&nodes[0]);
 
@@ -467,78 +524,74 @@ class MinMaxHeap {
 
   MinMaxHeapNode *heap_push_down_min(MinMaxHeapNode *node)
   {
-    MinMaxHeapNode *ret = nullptr;
+    MinMaxHeapNode *ret = node;
+    MinMaxHeapNode *node2 = heap_descent_min(node);
 
-    while (node->child1 >= 0 || node->child2 >= 0) {
-      MinMaxHeapNode *node2 = heap_descent_min(node);
+    if (!node2) {
+      return node;
+    }
 
-      if (!node2) {
-        break;
-      }
+    /* Is node2 a grandchild? */
+    if (node2->parent != node - nodes.data()) {
+      MinMaxHeapNode *parent = &nodes[node2->parent];
 
       if (node2->weight < node->weight) {
         std::swap(node2->weight, node->weight);
         std::swap(node2->value, node->value);
+        ret = node2;
 
-        if (node2->parent != node - nodes.data()) {
-          MinMaxHeapNode *parent = &nodes[node2->parent];
-
-          if (node2->weight > parent->weight) {
-            std::swap(node2->weight, parent->weight);
-            std::swap(node2->value, parent->value);
-
-            /* this is a bit tricky, our return node has now
-               moved into the other interleaved heap side */
-            if (!ret) {
-              ret = parent;
-            }
-          }
+        if (node2->weight > parent->weight) {
+          std::swap(node2->weight, parent->weight);
+          std::swap(node2->value, parent->value);
+          ret = parent;
         }
 
-        node = node2;
-      }
-      else {
-        break;
+        ret = heap_push_down(node2);
       }
     }
+    else if (node2->weight < node->weight) {
+      std::swap(node2->weight, node->weight);
+      std::swap(node2->value, node->value);
+      ret = node2;
+    }
 
-    return ret ? ret : node;
+    return ret;
   }
 
   MinMaxHeapNode *heap_push_down_max(MinMaxHeapNode *node)
   {
-    MinMaxHeapNode *ret = nullptr;
+    MinMaxHeapNode *ret = node;
+    MinMaxHeapNode *node2 = heap_descent_max(node);
 
-    while (node->child1 >= 0 || node->child2 >= 0) {
-      MinMaxHeapNode *node2 = heap_descent_max(node);
+    if (!node2) {
+      return node;
+    }
+
+    /* Is node2 a grandchild? */
+    if (node2->parent != node - nodes.data()) {
+      MinMaxHeapNode *parent = &nodes[node2->parent];
 
       if (node2->weight > node->weight) {
         std::swap(node2->weight, node->weight);
         std::swap(node2->value, node->value);
+        ret = node2;
 
-        if (node2->parent != node - nodes.data()) {
-          MinMaxHeapNode *parent = &nodes[node2->parent];
-
-          if (node2->weight < parent->weight) {
-            std::swap(node2->weight, parent->weight);
-            std::swap(node2->value, parent->value);
-
-            /* this is a bit tricky, our return node has now
-               moved into the other interleaved heap side */
-            if (!ret) {
-              ret = parent;
-            }
-          }
+        if (node2->weight < parent->weight) {
+          std::swap(node2->weight, parent->weight);
+          std::swap(node2->value, parent->value);
+          ret = parent;
         }
 
-        node = node2;
-      }
-      else {
-        break;
+        ret = heap_push_down(node2);
       }
     }
+    else if (node2->weight > node->weight) {
+      std::swap(node2->weight, node->weight);
+      std::swap(node2->value, node->value);
+      ret = node2;
+    }
 
-    return ret ? ret : node;
+    return ret;
   }
 
   int heap_get_level(const MinMaxHeapNode *node)

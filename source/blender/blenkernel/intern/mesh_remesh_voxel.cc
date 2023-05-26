@@ -533,7 +533,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
     if (BM_elem_flag_test(ed, BM_ELEM_TAG)) {
       float co[3];
       mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
-      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true, true, true, nullptr);
+      BMVert *vc = BM_edge_collapse(bm, ed, ed->v1, true, true, true, true);
       copy_v3_v3(vc->co, co);
     }
   }

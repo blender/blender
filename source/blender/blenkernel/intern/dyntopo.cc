@@ -77,6 +77,10 @@ static void surface_smooth_v_safe(
   float tan[3];
   float tot = 0.0;
 
+  if (BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) > 12) {
+    return;
+  }
+
   PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v)};
   if (stroke_id_test_no_update(ss, vertex, STROKEID_USER_ORIGINAL)) {
     copy_v3_v3(origco1, v->co);
@@ -234,12 +238,26 @@ BLI_INLINE float calc_weighted_length(EdgeQueueContext *eq_ctx,
   switch (mode) {
     case SPLIT:
       w = 1.0 + w * float(mode);
-      break;
-    case COLLAPSE:
-      w = 1.0 + 2.0 * w * float(mode);
-      break;
+      return len > eq_ctx->limit_len_max_sqr ? len * w * w : len;
+    case COLLAPSE: {
+#if 0
+      if (eq_ctx->brush_tester->is_sphere_or_tube) {
+        BrushSphere *sphere = static_cast<BrushSphere *>(eq_ctx->brush_tester);
+
+        float l1 = len_v3v3(v1->co, sphere->center());
+        float l2 = len_v3v3(v2->co, sphere->center());
+        float l = min_ff(min_ff(l1, l2) / sphere->radius(), 1.0f);
+      }
+#endif
+
+      return len < eq_ctx->limit_len_min_sqr ?
+                 len + eq_ctx->limit_len_min_sqr * 1.0f * powf(w, 5.0) :
+                 len;
+    }
   }
-  return len * w * w;
+
+  BLI_assert_unreachable();
+  return 0.0f;
 }
 
 static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
@@ -1120,6 +1138,68 @@ bool check_for_fins(PBVH *pbvh, BMVert *v)
 }
 
 bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
+{
+  static Vector<BMFace *> fs;
+
+  /* Prevent pathological allocation thrashing on topology with
+   * vertices with lots of edges around them by reusing the same
+   * static local vector, instead of allocating on the stack.
+   */
+  fs.clear();
+
+  uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
+  if (!(*flag & SCULPTFLAG_NEED_TRIANGULATE)) {
+    return true;
+  }
+
+  if (!v->e) {
+    *flag &= ~SCULPTFLAG_NEED_TRIANGULATE;
+    return true;
+  }
+
+  const int tag = BM_ELEM_TAG_ALT;
+
+  BMEdge *e = v->e;
+  do {
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      l->f->head.hflag |= tag;
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  e = v->e;
+  do {
+    BMLoop *l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      if (l->f->head.hflag & tag) {
+        l->f->head.hflag &= ~tag;
+        fs.append(l->f);
+      }
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  for (int i = 0; i < fs.size(); i++) {
+    /* Triangulation can sometimes delete a face. */
+    if (!BM_elem_is_free((BMElem *)fs[i], BM_FACE)) {
+      check_face_is_tri(pbvh, fs[i]);
+    }
+  }
+
+  *flag &= ~SCULPTFLAG_NEED_TRIANGULATE;
+  return false;
+}
+
+bool _check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 {
   uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
 
@@ -2128,6 +2208,7 @@ void EdgeQueueContext::step()
 
   if (count >= steps[curop]) {
     if (ops[curop] == PBVH_Subdivide) {  // && count_subd < max_subd) {
+      BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
       flush_subdivision();
       flushed_ = true;
     }
@@ -2171,6 +2252,12 @@ void EdgeQueueContext::step()
       }
 
       if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE) || w < limit_len_max_sqr) {
+        break;
+      }
+
+      /*XXX*/
+      if (BM_vert_edge_count(e->v1) > 100 || BM_vert_edge_count(e->v2) > 100) {
+        printf("Pathological vertex for subdivide.\n");
         break;
       }
 
@@ -2219,6 +2306,12 @@ void EdgeQueueContext::step()
       }
 
       if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+        break;
+      }
+
+      /*XXX*/
+      if (BM_vert_edge_count(e->v1) > 100 || BM_vert_edge_count(e->v2) > 100) {
+        printf("Pathological vertex for collapse.\n");
         break;
       }
 

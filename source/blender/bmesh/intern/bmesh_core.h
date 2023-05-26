@@ -350,8 +350,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
                                          const bool do_del,
-                                         const bool combine_flags,
-                                         const struct BMTracer *tracer);
+                                         const bool combine_flags);
 
 BMVert *bmesh_kernel_join_vert_kill_edge_fast(BMesh *bm,
                                               BMEdge *e_kill,

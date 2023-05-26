@@ -524,7 +524,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
             BMO_slot_map_elem_insert(&weldop, slot_targetmap, v_src, v_tar);
 
 #ifdef USE_BM_EDGE_COLLAPSE
-            BM_edge_collapse(bm, e, v_src, true, true, true, true, NULL);
+            BM_edge_collapse(bm, e, v_src, true, true, true, true);
             break;
 #endif
           }

@@ -620,7 +620,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     copy_v3_v3(co, v_conn->co);
 
     /* Full non-manifold collapse. */
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, nullptr);
+    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
     copy_v3_v3(v_conn->co, co);
   }
   else {
@@ -630,7 +630,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     mul_v3_fl(co, 0.5f);
 
     /* Full non-manifold collapse. */
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true, nullptr);
+    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
     copy_v3_v3(v_conn->co, co);
   }
 
@@ -674,30 +674,13 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return nullptr;
   }
 
-  pbvh_boundary_update_bmesh(pbvh, v_conn);
-  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
-
-#if 0
-  e2 = v_conn->e;
-  BMEdge *enext;
-  do {
-    if (!e2) {
-      break;
+  if (v_conn->e && !v_conn->e->l) {
+    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, v_conn->e);
+    if (BM_idmap_get_id(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e)) != BM_ID_NONE) {
+      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e), true);
     }
-
-    enext = BM_DISK_EDGE_NEXT(e2, v_conn);
-
-    // kill wire edge
-    if (!e2->l) {
-      BM_log_edge_pre(pbvh->header.bm, pbvh->bm_log, e2);
-      BM_idmap_release(pbvh->bm_idmap, (BMElem *)e2, true);
-      BM_edge_kill(pbvh->header.bm, e2);
-    }
-  } while (v_conn->e && (e2 = enext) != v_conn->e);
-#endif
-
-  pbvh_boundary_update_bmesh(pbvh, v_conn);
-  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
+    BM_edge_kill(pbvh->header.bm, v_conn->e);
+  }
 
   if (!v_conn->e) {
     /* Delete isolated vertex. */
@@ -706,14 +689,21 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     }
 
     BM_log_vert_removed(pbvh->header.bm, pbvh->bm_log, v_conn);
+    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn), true);
     BM_vert_kill(pbvh->header.bm, v_conn);
 
     bm_logstack_pop();
     return nullptr;
   }
 
+  pbvh_boundary_update_bmesh(pbvh, v_conn);
+  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
+
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-    printf("%s: error: failed to remove vert from pbvh?\n", __func__);
+    printf("%s: error: failed to remove vert from pbvh?  v_conn->e: %p v_conn->e->l\n",
+           __func__,
+           v_conn->e,
+           v_conn->e ? v_conn->e->l : nullptr);
   }
 
   if (v_conn) {

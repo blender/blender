@@ -99,6 +99,12 @@ typedef struct PBVHIter {
   int stackspace;
 } PBVHIter;
 
+void BB_zero(BB *bb)
+{
+  bb->bmin[0] = bb->bmin[1] = bb->bmin[2] = 0.0f;
+  bb->bmax[0] = bb->bmax[1] = bb->bmax[2] = 0.0f;
+}
+
 void BB_reset(BB *bb)
 {
   bb->bmin[0] = bb->bmin[1] = bb->bmin[2] = FLT_MAX;
@@ -176,6 +182,14 @@ void BBC_update_centroid(BBC *bbc)
 /* Not recursive */
 static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
 {
+  auto not_leaf_or_has_faces = [&](PBVHNode *node) {
+    if (!(node->flag & PBVH_Leaf)) {
+      return true;
+    }
+
+    return bool(node->bm_faces ? node->bm_faces->length : node->totprim);
+  };
+
   if (!(updateflag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB))) {
     return;
   }
@@ -210,16 +224,42 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
       }
     }
     BKE_pbvh_vertex_iter_end;
+
+    if (!not_leaf_or_has_faces(node)) {
+      zero_v3(vb.bmin);
+      zero_v3(vb.bmax);
+      zero_v3(orig_vb.bmin);
+      zero_v3(orig_vb.bmax);
+    }
   }
   else {
-    if (do_normal) {
-      BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
-      BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
+    bool ok = false;
+
+    if (not_leaf_or_has_faces(&pbvh->nodes[node->children_offset])) {
+      if (do_normal) {
+        BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset].vb);
+      }
+      if (do_orig) {
+        BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset].orig_vb);
+      }
+
+      ok = true;
     }
 
-    if (do_orig) {
-      BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset].orig_vb);
-      BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset + 1].orig_vb);
+    if (not_leaf_or_has_faces(&pbvh->nodes[node->children_offset + 1])) {
+      if (do_normal) {
+        BB_expand_with_bb(&vb, &pbvh->nodes[node->children_offset + 1].vb);
+      }
+      if (do_orig) {
+        BB_expand_with_bb(&orig_vb, &pbvh->nodes[node->children_offset + 1].orig_vb);
+      }
+
+      ok = true;
+    }
+
+    if (!ok) {
+      BB_zero(&vb);
+      BB_zero(&orig_vb);
     }
   }
 
@@ -1376,7 +1416,10 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
 
     float ff = dot_v3v3(node->vb.bmin, node->vb.bmax);
     if (isnan(ff) || !isfinite(ff)) {
-      printf("%s: nan!\n", __func__);
+      printf("%s: nan! totf: %d totv: %d\n",
+             __func__,
+             node->bm_faces ? node->bm_faces->length : 0,
+             node->bm_unique_verts ? node->bm_unique_verts->length : 0);
     }
 
     if (iter->scb && !iter->scb(node, iter->search_data)) {
@@ -4342,6 +4385,10 @@ void update_vert_boundary_faces(int *boundary_flags,
 
   if (!visible) {
     *flag |= SCULPTFLAG_VERT_FSET_HIDDEN;
+  }
+
+  if (totsharp_angle > 2) {
+    *boundary_flag |= SCULPT_CORNER_SHARP_ANGLE;
   }
 
   if (!ELEM(totsharp, 0, 2)) {

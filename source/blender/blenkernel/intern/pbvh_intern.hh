@@ -305,7 +305,9 @@ struct PBVH {
 /* pbvh.cc */
 
 void BB_reset(BB *bb);
-/**
+void BB_zero(BB *bb);
+
+    /**
  * Expand the bounding box to include a new coordinate.
  */
 void BB_expand(BB *bb, const float co[3]);

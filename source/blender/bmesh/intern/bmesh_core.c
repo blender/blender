@@ -6,9 +6,10 @@
  * Core BMesh functions for adding, removing BMesh elements.
  */
 
+//#define JVKE_DEBUG
 //#define FORCE_BMESH_CHECK
 
-#if !defined(NDEBUG) || defined(FORCE_BMESH_CHECK)
+#if !defined(NDEBUG) || defined(FORCE_BMESH_CHECK) || defined(JVKE_DEBUG)
 #  define BMESH_DEBUG
 #endif
 
@@ -1567,12 +1568,9 @@ BMVert *bmesh_kernel_split_edge_make_vert(BMesh *bm, BMVert *tv, BMEdge *e, BMEd
   int valence1, valence2;
   bool edok;
   int i;
-  > blender.exe !bmesh_kernel_split_edge_make_vert(
-        BMesh * bm, BMVert * tv, BMEdge * e, BMEdge * *r_e) Line 1576 C
-
 #endif
 
-          BLI_assert(BM_vert_in_edge(e, tv) != false);
+  BLI_assert(BM_vert_in_edge(e, tv) != false);
 
   v_old = BM_edge_other_vert(e, tv);
 
@@ -1880,8 +1878,6 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
   }
   return NULL;
 }
-
-//#define JVKE_DEBUG
 
 #ifdef JVKE_DEBUG
 
@@ -2308,7 +2304,7 @@ char *_last_local_obj = NULL;
 #  define JVKE_CHECK_ELEMENT(elem)
 #endif
 
-static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
+static bool cleanup_vert(BMesh *bm, BMVert *v)
 {
   BMEdge *e = v->e;
 
@@ -2327,23 +2323,8 @@ static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
     }
 
     f_example = l->f;
-
-    do {
-      if (tracer) {
-        tracer->on_face_kill(bm, l->f, tracer->userdata);
-      }
-    } while ((l = l->radial_next) != e->l);
+    break;
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  if (tracer) {
-    do {
-      tracer->on_edge_kill(bm, e, tracer->userdata);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-  }
-
-  if (tracer) {
-    tracer->on_vert_kill(bm, v, tracer->userdata);
-  }
 
   BMVert *v1 = BM_edge_other_vert(v->e, v);
   BMVert *v2 = BM_edge_other_vert(BM_DISK_EDGE_NEXT(v->e, v), v);
@@ -2362,15 +2343,11 @@ static bool cleanup_vert(BMesh *bm, BMVert *v, const BMTracer *tracer)
 
   BM_vert_kill(bm, v);
 
-  if (tracer) {
-    tracer->on_face_create(bm, f, tracer->userdata);
-  }
-
   bm_logstack_pop();
   return true;
 }
 
-static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *tracer)
+static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e)
 {
   if (!e->l) {
     return;
@@ -2397,7 +2374,7 @@ static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *t
       }
 
       if (BM_vert_edge_count(l2->v) == 3) {
-        if (cleanup_vert(bm, l2->v, tracer)) {
+        if (cleanup_vert(bm, l2->v)) {
           stop = false;
           break;
         }
@@ -2426,12 +2403,8 @@ static void bmesh_kernel_check_val3_vert(BMesh *bm, BMEdge *e, const BMTracer *t
  * +-+-+-+    +-+-+-+
  * </pre>
  */
-BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
-                                         BMEdge *e,
-                                         BMVert *v_kill,
-                                         const bool do_del,
-                                         const bool combine_flags,
-                                         const BMTracer *tracer)
+ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
+    BMesh *bm, BMEdge *e, BMVert *v_kill, const bool do_del, const bool combine_flags)
 {
   BMVert *v_conn = BM_edge_other_vert(e, v_kill);
 
@@ -2449,7 +2422,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 #endif
 
   /* Free any surrounding valence-3 rings disconnected from the edge. */
-  bmesh_kernel_check_val3_vert(bm, e, tracer);
+  bmesh_kernel_check_val3_vert(bm, e);
 
   BMFace **fs = NULL;
   BMEdge **deles = NULL;
@@ -2467,8 +2440,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
   JVKE_CHECK_ELEMENT(v_conn);
   JVKE_CHECK_ELEMENT(v_del);
 
-#define _OTHER_TRACES  // paranoia (and likely duplicate) calls to tracer callbacks
-
   /* first clear tags */
   for (int i = 0; i < 2; i++) {
     BMVert *v = i ? v_del : v_conn;
@@ -2479,22 +2450,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
     BMEdge *e2 = v->e;
     do {
-      /* build list of edges if needed for tracing */
-      if (tracer) {
-        bool ok = true;
-
-        for (int j = 0; j < BLI_array_len(es); j++) {
-          if (es[j] == e2) {
-            ok = false;
-            break;
-          }
-        }
-
-        if (ok) {
-          BLI_array_append(es, e2);
-        }
-      }
-
       if (!e2->l) {
         continue;
       }
@@ -2545,18 +2500,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
         }
       } while ((l = l->radial_next) != e2->l);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-  }
-
-  if (tracer) {
-    for (int i = 0; i < BLI_array_len(fs); i++) {
-      tracer->on_face_kill(bm, fs[i], tracer->userdata);
-    }
-  }
-
-  if (tracer) {
-    for (int i = 0; i < BLI_array_len(es); i++) {
-      tracer->on_edge_kill(bm, es[i], tracer->userdata);
-    }
   }
 
   /* unlink loops */
@@ -2653,22 +2596,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
     e2->l = NULL;
 
-#ifdef _OTHER_TRACES
-    if (tracer) {
-      bool found = false;
-      for (int j = 0; j < BLI_array_len(es); j++) {
-        if (es[j] == deles[i]) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        tracer->on_edge_kill(bm, deles[i], tracer->userdata);
-      }
-    }
-#endif
-
     if (deles[i]->l) {
       printf("%s: edge is not cleared\n", __func__);
     }
@@ -2704,12 +2631,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     } while (lnext && (l = lnext) != f->l_first);
 
     if (f->len <= 2) {
-#if 0  // def _OTHER_TRACES
-      if (tracer) {
-        tracer->on_face_kill(bm, f, tracer->userdata);
-      }
-#endif
-
       /* kill face */
       while (f->l_first) {
         BMLoop *l2 = f->l_first;
@@ -2753,6 +2674,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
       }
 
       bmesh_radial_loop_append(l->e, l);
+      JVKE_CHECK_ELEMENT(l->e);
 
       BM_ELEM_API_FLAG_DISABLE(l->e, dup_tag);
       BM_ELEM_API_FLAG_DISABLE(l->v, dup_tag);
@@ -2874,9 +2796,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
           BMFace *f;
 
           if ((f = BM_face_find_double(l->f))) {
-            if (tracer) {
-              tracer->on_face_kill(bm, l->f, tracer->userdata);
-            }
             BM_face_kill(bm, l->f);
           }
         } while (e2->l && (l = l_next) != e2->l);
@@ -2886,9 +2805,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
   // printf("v_del: %p, v_conn: %p\n", v_del->e, v_conn->e);
   if (do_del) {
     JVKE_CHECK_ELEMENT(v_del);
-    if (tracer) {
-      tracer->on_vert_kill(bm, v_del, tracer->userdata);
-    }
 
     if (v_del->e && v_del->e->l) {
       printf("%s: vert is not cleared\n", __func__);
@@ -2899,29 +2815,8 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     }
   }
 
-  if (tracer && v_conn->e) {
-    e = v_conn->e;
-    do {
-      tracer->on_edge_create(bm, e, tracer->userdata);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
-
-    do {
-      BMLoop *l = e->l;
-      if (!l) {
-        continue;
-      }
-
-      do {
-        if (BM_ELEM_API_FLAG_TEST(l->f, final_tag)) {
-          BM_ELEM_API_FLAG_DISABLE(l->f, final_tag);
-
-          tracer->on_face_create(bm, l->f, tracer->userdata);
-        }
-      } while ((l = l->radial_next) != e->l);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
-  }
-
 #ifdef JVKE_DEBUG
+#  if 0 /* "Inverted pyramid" situations will trigger this check */  
   if (v_conn && v_conn->e) {
     BMEdge *e = v_conn->e;
     do {
@@ -2937,6 +2832,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
       }
     } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
   }
+#  endif
 
   bm_local_obj_free(saved_obj, buf);
 #endif

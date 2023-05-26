@@ -678,7 +678,7 @@ void pbvh_bmesh_face_remove(
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
 
   if (!f_node || !(f_node->flag & PBVH_Leaf)) {
-    printf("pbvh corruption\n");
+    printf("%s: pbvh corruption\n", __func__);
     fflush(stdout);
     return;
   }
@@ -3563,7 +3563,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
 }
 
 /* Prunes leaf nodes that are too small or degenerate. */
-static void pbvh_bmesh_balance_tree(PBVH *pbvh)
+ATTR_NO_OPT static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 {
   float *overlaps = MEM_cnew_array<float>(pbvh->totnode, "overlaps");
   PBVHNode **parentmap = MEM_cnew_array<PBVHNode *>(pbvh->totnode, "parentmap");
@@ -3614,27 +3614,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
       float overlap = BB_volume(&clip);
       float factor;
 
-      /* use higher threshold for the root node and its immediate children */
-      switch (stack.size()) {
-        case 0:
-          factor = 0.5;
-          break;
-        case 1:
-        case 2:
-          factor = 0.2;
-          break;
-        default:
-          factor = 0.2;
-          break;
-      }
-
-#if 0
-      for (int k = 0; k < stack.size(); k++) {
-        printf(" ");
-      }
-
-      printf("factor: %.3f\n", factor);
-#endif
+      factor = 0.2f;
 
       bool bad = overlap > volume * factor;
 
