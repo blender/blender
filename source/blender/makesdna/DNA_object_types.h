@@ -503,7 +503,7 @@ typedef struct Object {
 
   ObjectLineArt lineart;
 
-  /** Lightgroup membership information. */
+  /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
 
   /** Light linking information. */

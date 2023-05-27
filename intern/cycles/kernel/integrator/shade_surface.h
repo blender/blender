@@ -221,7 +221,7 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
         state, path, bounce);
   }
 
-  /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
+  /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = light_group;
 
 #ifdef __PATH_GUIDING__

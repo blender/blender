@@ -36,7 +36,7 @@ KERNEL_STRUCT_MEMBER(background, int, map_res_x)
 KERNEL_STRUCT_MEMBER(background, int, map_res_y)
 /* Multiple importance sampling. */
 KERNEL_STRUCT_MEMBER(background, int, use_mis)
-/* Lightgroup. */
+/* Light-group. */
 KERNEL_STRUCT_MEMBER(background, int, lightgroup)
 /* Light Index. */
 KERNEL_STRUCT_MEMBER(background, int, light_index)

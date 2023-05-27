@@ -1398,7 +1398,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 
 #if defined(__APPLE__) || defined(WIN32)
-            /* OSX and Win32 don't return to the mainloop while resize */
+            /* MACOS and WIN32 don't return to the main-loop while resize. */
             wm_window_timer(C);
             wm_event_do_handlers(C);
             wm_event_do_notifiers(C);

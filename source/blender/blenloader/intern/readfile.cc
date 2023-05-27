@@ -2675,11 +2675,11 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   Main *newmain;
 
   /* Make sure we have full path in lib->filepath_abs */
-  /* Note that since existing libs are searched by their absolute path, this has to be generated
+  /* NOTE: Since existing libraries are searched by their absolute path, this has to be generated
    * before the lookup below. Otherwise, in case the stored absolute filepath is not 'correct' (may
    * be empty, or have been stored in a different 'relative path context'), the comparison below
    * will always fail, leading to creating duplicates IDs of a same library. */
-  /* TODO: May be worth checking whether conparison below could use `lib->filepath` instead? */
+  /* TODO: May be worth checking whether comparison below could use `lib->filepath` instead? */
   STRNCPY(lib->filepath_abs, lib->filepath);
   BLI_path_abs(lib->filepath_abs, fd->relabase);
   BLI_path_normalize(lib->filepath_abs);
