@@ -841,7 +841,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 223) {
     VFont *vf;
     for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
-      if (STREQ(vf->filepath + strlen(vf->filepath) - 6, ".Bfont")) {
+      if (BLI_str_endswith(vf->filepath, ".Bfont")) {
         strcpy(vf->filepath, FO_BUILTIN_NAME);
       }
     }
