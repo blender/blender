@@ -1053,7 +1053,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
   StripProxy *proxy = seq->strip->proxy;
 
   if (proxy->anim == NULL) {
-    if (seq_proxy_get_custom_file_fname(seq, filepath, context->view_id)) {
+    if (seq_proxy_get_custom_file_filepath(seq, filepath, context->view_id)) {
       proxy->anim = openanim(filepath, IB_rect, 0, seq->strip->colorspace_settings.name);
     }
     if (proxy->anim == NULL) {

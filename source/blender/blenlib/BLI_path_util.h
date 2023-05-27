@@ -95,7 +95,7 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
  * leveraged by higher layers to support "virtual filenames" which contain
  * substitution markers delineated between the two characters.
  *
- * \return true if \a fname was changed, false otherwise.
+ * \return true if \a filename was changed, false otherwise.
  *
  * For now, simply replaces reserved chars (as listed in
  * https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
@@ -114,8 +114,8 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
  * \note On Windows, it also checks for forbidden names
  * (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
-bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens) ATTR_NONNULL(1);
-bool BLI_path_make_safe_filename(char *fname) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename_ex(char *filename, bool allow_tokens) ATTR_NONNULL(1);
+bool BLI_path_make_safe_filename(char *filename) ATTR_NONNULL(1);
 
 /**
  * Make given path OS-safe.

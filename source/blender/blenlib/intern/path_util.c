@@ -408,7 +408,7 @@ int BLI_path_canonicalize_native(char *path, int path_maxncpy)
   return path_len;
 }
 
-bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
+bool BLI_path_make_safe_filename_ex(char *filename, bool allow_tokens)
 {
 #define INVALID_CHARS \
   "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" \
@@ -424,69 +424,69 @@ bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
   char *fn;
   bool changed = false;
 
-  if (*fname == '\0') {
+  if (*filename == '\0') {
     return changed;
   }
 
-  for (fn = fname; *fn && (fn = strpbrk(fn, invalid)); fn++) {
+  for (fn = filename; *fn && (fn = strpbrk(fn, invalid)); fn++) {
     *fn = '_';
     changed = true;
   }
 
   /* Forbid only dots. */
-  for (fn = fname; *fn == '.'; fn++) {
+  for (fn = filename; *fn == '.'; fn++) {
     /* Pass. */
   }
   if (*fn == '\0') {
-    *fname = '_';
+    *filename = '_';
     changed = true;
   }
 
 #ifdef WIN32
   {
-    const size_t len = strlen(fname);
+    const size_t len = strlen(filename);
     const char *invalid_names[] = {
         "con",  "prn",  "aux",  "null", "com1", "com2", "com3", "com4",
         "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3",
         "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", NULL,
     };
-    char *lower_fname = BLI_strdup(fname);
+    char *filename_lower = BLI_strdup(filename);
     const char **iname;
 
     /* Forbid trailing dot (trailing space has already been replaced above). */
-    if (fname[len - 1] == '.') {
-      fname[len - 1] = '_';
+    if (filename[len - 1] == '.') {
+      filename[len - 1] = '_';
       changed = true;
     }
 
     /* Check for forbidden names - not we have to check all combination
-     * of upper and lower cases, hence the usage of lower_fname
+     * of upper and lower cases, hence the usage of filename_lower
      * (more efficient than using #BLI_strcasestr repeatedly). */
-    BLI_str_tolower_ascii(lower_fname, len);
+    BLI_str_tolower_ascii(filename_lower, len);
     for (iname = invalid_names; *iname; iname++) {
-      if (strstr(lower_fname, *iname) == lower_fname) {
+      if (strstr(filename_lower, *iname) == filename_lower) {
         const size_t iname_len = strlen(*iname);
         /* Only invalid if the whole name is made of the invalid chunk, or it has an
          * (assumed extension) dot just after. This means it will also catch *valid*
          * names like `aux.foo.bar`, but should be good enough for us! */
-        if ((iname_len == len) || (lower_fname[iname_len] == '.')) {
-          *fname = '_';
+        if ((iname_len == len) || (filename_lower[iname_len] == '.')) {
+          *filename = '_';
           changed = true;
           break;
         }
       }
     }
 
-    MEM_freeN(lower_fname);
+    MEM_freeN(filename_lower);
   }
 #endif
 
   return changed;
 }
 
-bool BLI_path_make_safe_filename(char *fname)
+bool BLI_path_make_safe_filename(char *filename)
 {
-  return BLI_path_make_safe_filename_ex(fname, false);
+  return BLI_path_make_safe_filename_ex(filename, false);
 }
 
 bool BLI_path_make_safe(char *path)

@@ -96,7 +96,7 @@ double SEQ_rendersize_to_scale_factor(int render_size)
   return 1.0;
 }
 
-bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int view_id)
+bool seq_proxy_get_custom_file_filepath(Sequence *seq, char *filepath, const int view_id)
 {
   /* Ideally this would be #PROXY_MAXFILE however BLI_path_abs clamps to #FILE_MAX. */
   char filepath_temp[FILE_MAX];
@@ -124,12 +124,12 @@ bool seq_proxy_get_custom_file_fname(Sequence *seq, char *filepath, const int vi
   return true;
 }
 
-static bool seq_proxy_get_fname(Scene *scene,
-                                Sequence *seq,
-                                int timeline_frame,
-                                eSpaceSeq_Proxy_RenderSize render_size,
-                                char *filepath,
-                                const int view_id)
+static bool seq_proxy_get_filepath(Scene *scene,
+                                   Sequence *seq,
+                                   int timeline_frame,
+                                   eSpaceSeq_Proxy_RenderSize render_size,
+                                   char *filepath,
+                                   const int view_id)
 {
   char dirpath[PROXY_MAXFILE];
   char suffix[24] = {'\0'};
@@ -149,7 +149,7 @@ static bool seq_proxy_get_fname(Scene *scene,
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
       ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
   {
-    if (seq_proxy_get_custom_file_fname(seq, filepath, view_id)) {
+    if (seq_proxy_get_custom_file_filepath(seq, filepath, view_id)) {
       return true;
     }
   }
@@ -214,7 +214,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
     int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                   seq->anim_startofs;
     if (proxy->anim == NULL) {
-      if (seq_proxy_get_fname(
+      if (seq_proxy_get_filepath(
               context->scene, seq, timeline_frame, psize, filepath, context->view_id) == 0)
       {
         return NULL;
@@ -235,7 +235,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
     return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
 
-  if (seq_proxy_get_fname(
+  if (seq_proxy_get_filepath(
           context->scene, seq, timeline_frame, psize, filepath, context->view_id) == 0)
   {
     return NULL;
@@ -267,7 +267,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   ImBuf *ibuf_tmp, *ibuf;
   Scene *scene = context->scene;
 
-  if (!seq_proxy_get_fname(
+  if (!seq_proxy_get_filepath(
           scene, seq, timeline_frame, proxy_render_size, filepath, context->view_id))
   {
     return;
