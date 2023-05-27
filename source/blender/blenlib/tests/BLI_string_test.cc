@@ -123,6 +123,33 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Concatinate
+ * \{ */
+
+TEST(string, StrCat)
+{
+#define STR_N_CAT(dst_init, dst_size, src, result_expect) \
+  { \
+    char dst[dst_size + 1] = dst_init; \
+    dst[dst_size] = 0xff; \
+    BLI_strncat(dst, src, dst_size); \
+    EXPECT_STREQ(dst, result_expect); \
+    EXPECT_EQ(dst[dst_size], 0xff); \
+  }
+
+  STR_N_CAT("", 1, "", "");
+  STR_N_CAT("", 1, "Y", "");
+  STR_N_CAT("", 2, "Y", "Y");
+  STR_N_CAT("", 2, "YZ", "Y");
+  STR_N_CAT("X", 2, "YZ", "X");
+  STR_N_CAT("ABC", 4, "XYZ", "ABC");
+  STR_N_CAT("ABC", 7, "XYZ", "ABCXYZ");
+#undef STR_N_CAT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Replace
  * \{ */
 
