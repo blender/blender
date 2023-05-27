@@ -644,14 +644,14 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("Cycles Render Options:\n");
   printf("\tCycles add-on options must be specified following a double dash.\n");
   printf("\n");
-  printf("``--cycles-device OPTIX``\n");
+  printf("--cycles-device OPTIX\n");
   printf("\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n");
   printf("\n");
   printf("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n");
   printf("\n");
   printf("\tExample:\n");
   printf("\t# blender -b file.blend -f 20 -- --cycles-device OPTIX\n");
-  printf("``--cycles-print-stats``\n");
+  printf("--cycles-print-stats\n");
   printf("\tLog statistics about render memory and time usage.\n");
 #  endif /*WITH_CYCLES*/
 
