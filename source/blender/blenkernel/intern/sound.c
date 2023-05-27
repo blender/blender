@@ -256,10 +256,10 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 {
   bSound *sound;
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
   STRNCPY(sound->filepath, filepath);
@@ -284,17 +284,17 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 bSound *BKE_sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   bSound *sound;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
-    STRNCPY(strtest, sound->filepath);
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
+    STRNCPY(filepath_test, sound->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &sound->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
@@ -1258,15 +1258,15 @@ bool BKE_sound_stream_info_get(struct Main *main,
                                SoundStreamInfo *sound_info)
 {
   const char *blendfile_path = BKE_main_blendfile_path(main);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
   AUD_Sound *sound;
   AUD_StreamInfo *stream_infos;
   int stream_count;
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
-  sound = AUD_Sound_file(str);
+  sound = AUD_Sound_file(filepath_abs);
   if (!sound) {
     return false;
   }

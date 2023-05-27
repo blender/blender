@@ -631,10 +631,11 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
-    char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dirpath, seq->strip->stripdata->filename);
-    BLI_path_abs(str, BKE_main_blendfile_path(bmain));
-    seq->sound = BKE_sound_new_file(bmain, str);
+    char filepath_abs[FILE_MAX];
+    BLI_path_join(
+        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
   }
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)

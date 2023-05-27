@@ -1358,7 +1358,7 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
 
 /* Get the output filename-- similar to the other output formats */
 static void ffmpeg_filepath_get(FFMpegContext *context,
-                                char string[FILE_MAX],
+                                char filepath[FILE_MAX],
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix)
@@ -1369,7 +1369,7 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   const char **fe = exts;
   int sfra, efra;
 
-  if (!string || !exts) {
+  if (!filepath || !exts) {
     return;
   }
 
@@ -1382,10 +1382,10 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
     efra = rd->efra;
   }
 
-  BLI_strncpy(string, rd->pic, FILE_MAX);
-  BLI_path_abs(string, BKE_main_blendfile_path_from_global());
+  BLI_strncpy(filepath, rd->pic, FILE_MAX);
+  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_file_ensure_parent_dir_exists(string);
+  BLI_file_ensure_parent_dir_exists(filepath);
 
   autosplit[0] = '\0';
 
@@ -1397,33 +1397,33 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
 
   if (rd->scemode & R_EXTENSION) {
     while (*fe) {
-      if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), *fe) == 0) {
+      if (BLI_strcasecmp(filepath + strlen(filepath) - strlen(*fe), *fe) == 0) {
         break;
       }
       fe++;
     }
 
     if (*fe == NULL) {
-      BLI_strncat(string, autosplit, FILE_MAX);
+      BLI_strncat(filepath, autosplit, FILE_MAX);
 
-      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
-      BLI_strncat(string, *exts, FILE_MAX);
+      BLI_path_frame_range(filepath, FILE_MAX, sfra, efra, 4);
+      BLI_strncat(filepath, *exts, FILE_MAX);
     }
     else {
-      *(string + strlen(string) - strlen(*fe)) = '\0';
-      BLI_strncat(string, autosplit, FILE_MAX);
-      BLI_strncat(string, *fe, FILE_MAX);
+      *(filepath + strlen(filepath) - strlen(*fe)) = '\0';
+      BLI_strncat(filepath, autosplit, FILE_MAX);
+      BLI_strncat(filepath, *fe, FILE_MAX);
     }
   }
   else {
-    if (BLI_path_frame_check_chars(string)) {
-      BLI_path_frame_range(string, FILE_MAX, sfra, efra, 4);
+    if (BLI_path_frame_check_chars(filepath)) {
+      BLI_path_frame_range(filepath, FILE_MAX, sfra, efra, 4);
     }
 
-    BLI_strncat(string, autosplit, FILE_MAX);
+    BLI_strncat(filepath, autosplit, FILE_MAX);
   }
 
-  BLI_path_suffix(string, FILE_MAX, suffix, "");
+  BLI_path_suffix(filepath, FILE_MAX, suffix, "");
 }
 
 void BKE_ffmpeg_filepath_get(char *filepath,

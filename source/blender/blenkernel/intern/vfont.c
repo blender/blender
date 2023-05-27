@@ -366,17 +366,17 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists)
 {
   VFont *vfont;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (vfont = bmain->fonts.first; vfont; vfont = vfont->id.next) {
-    STRNCPY(strtest, vfont->filepath);
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &vfont->id));
+    STRNCPY(filepath_test, vfont->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &vfont->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&vfont->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
