@@ -189,6 +189,9 @@ void MTLDrawList::submit()
   id<MTLRenderCommandEncoder> rec = batch_->bind(0);
   if (rec == nil) {
     BLI_assert_msg(false, "A RenderCommandEncoder should always be available!\n");
+
+    /* Unbind batch. */
+    batch_->unbind(rec);
     return;
   }
 
@@ -272,7 +275,7 @@ void MTLDrawList::submit()
   }
 
   /* Unbind batch. */
-  batch_->unbind();
+  batch_->unbind(rec);
 
   /* Reset command offsets. */
   command_len_ = 0;

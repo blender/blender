@@ -575,6 +575,13 @@ class MTLCommandBufferManager {
   int vertex_submitted_count_ = 0;
   bool empty_ = true;
 
+  /** Debug groups. */
+  /* Stack tracking all calls to push_debug_group. */
+  std::vector<std::string> debug_group_stack;
+  /* Stack tracking calls resulting in active API calls to pushDebugGroup on the current command
+   * buffer. */
+  std::vector<std::string> debug_group_pushed_stack;
+
  public:
   MTLCommandBufferManager(MTLContext &context)
       : context_(context), render_pass_state_(context, *this), compute_state_(context, *this){};
@@ -639,6 +646,9 @@ class MTLCommandBufferManager {
   id<MTLCommandBuffer> ensure_begin();
 
   void register_encoder_counters();
+
+  /* Debug group management. */
+  void unfold_pending_debug_groups();
 };
 
 /** MTLContext -- Core render loop and state management. **/
