@@ -568,6 +568,11 @@ bool BLI_path_is_win32_drive(const char *path)
   return isalpha(path[0]) && (path[1] == ':');
 }
 
+bool BLI_path_is_win32_drive_only(const char *path)
+{
+  return isalpha(path[0]) && (path[1] == ':') && (path[2] == '\0');
+}
+
 bool BLI_path_is_win32_drive_with_slash(const char *path)
 {
   return isalpha(path[0]) && (path[1] == ':') && ELEM(path[2], '\\', '/');

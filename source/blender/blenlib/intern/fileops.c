@@ -307,7 +307,7 @@ static bool dir_create_recursive(char *dirname, int len)
     *dirname_parent_end = '\0';
 #ifdef WIN32
     /* Check special case `c:\foo`, don't try create `c:`, harmless but unnecessary. */
-    if (dirname[0] && !(isalpha(dirname[0]) && (dirname[1] == ':') && dirname[2] == '\0'))
+    if (dirname[0] && !BLI_path_is_win32_drive_only(dirname))
 #endif
     {
       const int mode = BLI_exists(dirname);
