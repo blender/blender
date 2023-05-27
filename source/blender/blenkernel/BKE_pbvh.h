@@ -726,7 +726,8 @@ void BKE_pbvh_face_iter_step(PBVHFaceIter *fd);
 bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd);
 void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 
-/** Iterate over faces inside a PBVHNode.  These are either base mesh faces
+/**
+ * Iterate over faces inside a #PBVHNode. These are either base mesh faces
  * (for PBVH_FACES and PBVH_GRIDS) or BMesh faces (for PBVH_BMESH).
  */
 #define BKE_pbvh_face_iter_begin(pbvh, node, fd) \

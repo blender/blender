@@ -52,7 +52,8 @@ typedef struct UvElement {
   unsigned int island;
 } UvElement;
 
-/** UvElementMap is a container for UvElements of a BMesh.
+/**
+ * UvElementMap is a container for UvElements of a BMesh.
  *
  * It simplifies access to UV information and ensures the
  * different UV selection modes are respected.

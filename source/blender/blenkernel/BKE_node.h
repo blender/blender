@@ -316,7 +316,8 @@ typedef struct bNodeType {
   bool (*poll)(const struct bNodeType *ntype,
                const struct bNodeTree *nodetree,
                const char **r_disabled_hint);
-  /** Can this node be added to a node tree?
+  /**
+   * Can this node be added to a node tree?
    * \param r_disabled_hint: See `poll()`.
    */
   bool (*poll_instance)(const struct bNode *node,

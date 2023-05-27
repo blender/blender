@@ -63,7 +63,8 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
  */
 bool BKE_main_namemap_validate(struct Main *bmain) ATTR_NONNULL();
 
-/** Same as #BKE_main_namemap_validate, but also fixes any issue by re-generating all name maps,
+/**
+ * Same as #BKE_main_namemap_validate, but also fixes any issue by re-generating all name maps,
  * and ensuring again all ID names are unique.
  *
  * This is typically only used in `do_versions` code to fix broken files.

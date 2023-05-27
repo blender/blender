@@ -5420,7 +5420,8 @@ finally:
 /** \name Select Mode UV Vert/Edge/Face/Island Operator
  * \{ */
 
-/** Deselects UVs that are not part of a complete island selection.
+/**
+ * Deselects UVs that are not part of a complete island selection.
  *
  * Use only when sync select disabled.
  */

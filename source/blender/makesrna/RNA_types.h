@@ -344,7 +344,8 @@ typedef enum PropertyOverrideFlag {
   /** The property supports insertion (collections only). */
   PROPOVERRIDE_LIBRARY_INSERTION = (1 << 10),
 
-  /** Only use indices to compare items in the property, never names (collections only).
+  /**
+   * Only use indices to compare items in the property, never names (collections only).
    *
    * Useful when nameprop of the items is generated from other data
    * (e.g. name of material slots is actually name of assigned material).

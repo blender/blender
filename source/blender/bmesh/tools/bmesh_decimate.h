@@ -29,7 +29,8 @@ void BM_mesh_decimate_collapse(BMesh *bm,
                                float symmetry_eps);
 
 /**
- * \param tag_only: so we can call this from an operator */
+ * \param tag_only: so we can call this from an operator.
+ */
 void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, int iterations, bool tag_only);
 void BM_mesh_decimate_unsubdivide(BMesh *bm, int iterations);
 

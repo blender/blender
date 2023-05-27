@@ -152,8 +152,10 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
 /**
  * This has to be called from each make_local_* func, we could call from BKE_lib_id_make_local()
  * but then the make local functions would not be self contained.
- * Also note that the id _must_ have a library - campbell */
-/* TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase. */
+ *
+ * NOTE(@ideasman42): that the id _must_ have a library.
+ * TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase.
+ */
 static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
   const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath_abs};
@@ -1754,19 +1756,19 @@ static void library_make_local_copying_check(ID *id,
   BLI_gset_remove(loop_tags, id, NULL);
 }
 
-/* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
- * without actually making any check whether they were also indirectly used or not...
- *
- * Current version uses regular id_make_local callback, with advanced pre-processing step to
- * detect all cases of IDs currently indirectly used, but which will be used by local data only
- * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
- * hence all time lost afterwards to remove orphaned linked data-blocks. */
 void BKE_library_make_local(Main *bmain,
                             const Library *lib,
                             GHash *old_to_new_ids,
                             const bool untagged_only,
                             const bool set_fake)
 {
+  /* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
+   * without actually making any check whether they were also indirectly used or not...
+   *
+   * Current version uses regular id_make_local callback, with advanced pre-processing step to
+   * detect all cases of IDs currently indirectly used, but which will be used by local data only
+   * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
+   * hence all time lost afterwards to remove orphaned linked data-blocks. */
 
   ListBase *lbarray[INDEX_ID_MAX];
 

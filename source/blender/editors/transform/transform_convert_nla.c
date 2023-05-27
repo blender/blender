@@ -77,8 +77,9 @@ static bool nlastrip_is_overlap(const NlaStrip *strip_a,
                     strip_b->end + offset_b);
 }
 
-/** Assumes strips to horizontally translate (shuffle) are tagged with
- * NLASTRIP_FLAG_INVALID_LOCATION.
+/**
+ * Assumes strips to horizontally translate (shuffle) are tagged with
+ * #NLASTRIP_FLAG_INVALID_LOCATION.
  *
  * \returns The total sided offset that results in no overlaps between tagged strips and non-tagged
  * strips.
@@ -122,8 +123,9 @@ static float transdata_get_time_shuffle_offset_side(ListBase *trans_datas, const
   return total_offset;
 }
 
-/** Assumes strips to horizontally translate (shuffle) are tagged with
- * NLASTRIP_FLAG_INVALID_LOCATION.
+/**
+ * Assumes strips to horizontally translate (shuffle) are tagged with
+ * #NLASTRIP_FLAG_INVALID_LOCATION.
  *
  * \returns The minimal total signed offset that results in no overlaps between tagged strips and
  * non-tagged strips.

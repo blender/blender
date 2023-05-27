@@ -251,7 +251,8 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 #define MAX_DIR_RECURSE 16
 #define FILESIZE_INVALID_DIRECTORY -1
 
-/** Find the given filename recursively in the given search directory and its sub-directories.
+/**
+ * Find the given filename recursively in the given search directory and its sub-directories.
  *
  * \note Use the biggest matching file found, so that thumbnails don't get used by mistake.
  *

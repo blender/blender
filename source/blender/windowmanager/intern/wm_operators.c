@@ -1561,7 +1561,8 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 /**
  * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
  *
- * \note operator menu needs undo flag enabled, for redo callback */
+ * \note operator menu needs undo flag enabled, for redo callback.
+ */
 static int wm_operator_props_popup_ex(bContext *C,
                                       wmOperator *op,
                                       const bool do_call,

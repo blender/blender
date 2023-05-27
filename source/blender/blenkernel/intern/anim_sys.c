@@ -2490,7 +2490,8 @@ static void nlaevalchan_combine_quaternion_get_inverted_lower_evalchan(
   BLI_bitmap_set_all(r_lower_necs->remap_domain.ptr, true, 4);
 }
 
-/** Based on blendmode and mix mode, solve for the lower values such that when lower blended or
+/**
+ * Based on blendmode and mix mode, solve for the lower values such that when lower blended or
  * combined with upper then we get blended values as a result.
  *
  * Only processes blended values in the remap domain. Successfully remapped lower values are placed
@@ -3496,10 +3497,9 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
     }
   }
 
-  /** NOTE: Although we early out, we can still keyframe to the non-pushed action since the
+  /* NOTE: Although we early out, we can still keyframe to the non-pushed action since the
    * keyframe remap function detects (r_context->strip.act == NULL) and will keyframe without
-   * remapping.
-   */
+   * remapping. */
   if (is_action_track_evaluated_without_nla(adt, has_strips)) {
     BLI_freelistN(&lower_estrips);
     return;

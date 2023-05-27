@@ -3340,7 +3340,8 @@ struct UV_FaceBranch {
   float branch;
 };
 
-/** Compute the sphere projection for a BMFace using #map_to_sphere and store on BMLoops.
+/**
+ * Compute the sphere projection for a BMFace using #map_to_sphere and store on BMLoops.
  *
  * Heuristics are used in #uv_map_mirror to improve winding.
  *

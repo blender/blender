@@ -151,9 +151,8 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   effects->sss_surface_count = 0;
   common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 
-  /** Screen Space SubSurface Scattering overview
-   * TODO
-   */
+  /* Screen Space SubSurface Scattering overview.
+   * TODO */
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL;
   DRW_PASS_CREATE(psl->sss_blur_ps, state);
   DRW_PASS_CREATE(psl->sss_resolve_ps, state | DRW_STATE_BLEND_ADD);

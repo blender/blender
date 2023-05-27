@@ -81,7 +81,8 @@ typedef struct FileIndexerType {
    * Is called at the end of the file listing process. An indexer can free the data that it created
    * during the file listing process.
    *
-   * This is an optional callback */
+   * This is an optional callback.
+   */
   FileIndexerFreeUserDataFunc free_user_data;
 
   /**

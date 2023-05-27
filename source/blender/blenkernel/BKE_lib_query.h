@@ -131,11 +131,14 @@ typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
 /* Flags for the foreach function itself. */
 enum {
   IDWALK_NOP = 0,
-  /** The callback will never modify the ID pointers it processes.
+  /**
+   * The callback will never modify the ID pointers it processes.
    * WARNING: It is very important to pass this flag when valid, as it can lead to important
-   * optimizations and debug/assert code. */
+   * optimizations and debug/assert code.
+   */
   IDWALK_READONLY = (1 << 0),
-  /** Recurse into 'descendant' IDs.
+  /**
+   * Recurse into 'descendant' IDs.
    * Each ID is only processed once. Order of ID processing is not guaranteed.
    *
    * Also implies IDWALK_READONLY, and excludes IDWALK_DO_INTERNAL_RUNTIME_POINTERS.

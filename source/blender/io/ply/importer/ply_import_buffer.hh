@@ -26,12 +26,15 @@ class PlyReadBuffer {
   /** After header is parsed, indicate whether the rest of reading will be ascii or binary. */
   void after_header(bool is_binary);
 
-  /** Gets the next line from the file as a Span. The line does not include any newline characters.
+  /**
+   * Gets the next line from the file as a Span. The line does not include any newline characters.
    */
   Span<char> read_line();
 
-  /** Reads a number of bytes into provided destination pointer. Returns false if this amount of
-   * bytes can not be read. */
+  /**
+   * Reads a number of bytes into provided destination pointer. Returns false if this amount of
+   * bytes can not be read.
+   */
   bool read_bytes(void *dst, size_t size);
 
  private:

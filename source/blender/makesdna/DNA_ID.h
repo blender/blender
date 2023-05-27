@@ -352,7 +352,8 @@ typedef struct IDOverrideLibrary {
   /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
-  /** Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
+  /**
+   * Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
    * in degenerated cases.
    *
    * All liboverrides of a same hierarchy (e.g. a character collection) share the same root.

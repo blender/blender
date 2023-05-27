@@ -1547,7 +1547,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   return get_aspect_scaled_extent(final_extent, params);
 }
 
-/** Find the optimal scale to pack islands into the unit square.
+/**
+ * Find the optimal scale to pack islands into the unit square.
  * returns largest scale that will pack `islands` into the unit square.
  */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
