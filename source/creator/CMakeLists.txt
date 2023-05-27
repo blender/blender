@@ -1715,13 +1715,14 @@ if(\n\
   ($\{BLENDER_BIN\} IS_NEWER_THAN $\{MANPAGE_OUT\}) OR\n\
   ($\{MANPAGE_GEN\} IS_NEWER_THAN $\{MANPAGE_OUT\})\n\
 )\n\
-  set(\n\
-    ENV{ASAN_OPTIONS}\n\
-    \"$ENV{ASAN_OPTIONS}:exitcode=0:check_initialization_order=0:strict_init_order=0\"\n\
+  set(ENV{ASAN_OPTIONS} \"$ENV{ASAN_OPTIONS}:\
+exitcode=0:\
+check_initialization_order=0:\
+strict_init_order=0:\
+detect_leaks=0\"\n\
   )\n\
   execute_process(\n\
     OUTPUT_QUIET\n\
-    ERROR_QUIET\n\
     COMMAND $\{BLENDER_BIN\}\n\
     --background\n\
     --factory-startup\n\
