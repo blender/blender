@@ -934,12 +934,7 @@ static bool path_frame_chars_find_range(const char *path, int *char_start, int *
  */
 static void ensure_digits(char *path, int digits)
 {
-  char *file = (char *)BLI_path_slash_rfind(path);
-
-  if (file == NULL) {
-    file = path;
-  }
-
+  char *file = (char *)BLI_path_basename(path);
   if (strrchr(file, '#') == NULL) {
     int len = strlen(file);
 

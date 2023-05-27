@@ -319,7 +319,7 @@ class TestLibraryOverridesFromProxies(TestHelper, unittest.TestCase):
         assert direct_linked_A.filepath == "//libraries/direct_linked_A.blend"
 
         assert bpy.data.objects['HairCubeArmatureGroup_proxy'].library == direct_linked_A
-        assert bpy.data.objects['HairCubeArmatureGroup_proxy'].override_library != None
+        assert bpy.data.objects['HairCubeArmatureGroup_proxy'].override_library is not None
 
 
 TESTS = (
