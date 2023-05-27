@@ -498,8 +498,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
   return list;
 }
 
-int /*eContextResult*/ CTX_data_get(
-    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, PropertyRNA **r_prop, int *r_index, short *r_type)
+int /*eContextResult*/ CTX_data_get(const bContext *C,
+                                    const char *member,
+                                    PointerRNA *r_ptr,
+                                    ListBase *r_lb,
+                                    PropertyRNA **r_prop,
+                                    int *r_index,
+                                    short *r_type)
 {
   bContextDataResult result;
   eContextResult ret = ctx_data_get((bContext *)C, member, &result);
