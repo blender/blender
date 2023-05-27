@@ -42,6 +42,8 @@
 
 #include "UI_interface_icons.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "RNA_enum_types.h" /* For `rna_enum_wm_job_type_items`. */
 
 /* for notifiers */
@@ -514,11 +516,29 @@ static PyObject *bpy_app_is_job_running(PyObject *UNUSED(self), PyObject *args, 
   return PyBool_FromLong(WM_jobs_has_running_type(wm, job_type_enum.value));
 }
 
+char *(*BPY_python_app_help_text_fn)(void) = NULL;
+
+PyDoc_STRVAR(bpy_app_help_text_doc,
+             ".. staticmethod:: help_text()\n"
+             "\n"
+             "   Return the help text as a string.\n");
+static PyObject *bpy_app_help_text(PyObject *UNUSED(self))
+{
+  char *buf = BPY_python_app_help_text_fn();
+  PyObject *result = PyUnicode_FromString(buf);
+  MEM_freeN(buf);
+  return result;
+}
+
 static struct PyMethodDef bpy_app_methods[] = {
     {"is_job_running",
      (PyCFunction)bpy_app_is_job_running,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_app_is_job_running_doc},
+    {"help_text",
+     (PyCFunction)bpy_app_help_text,
+     METH_NOARGS | METH_STATIC,
+     bpy_app_help_text_doc},
     {NULL, NULL, 0, NULL},
 };
 

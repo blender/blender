@@ -19,6 +19,7 @@
 #  endif
 
 #  include "BLI_args.h"
+#  include "BLI_dynstr.h"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
 #  include "BLI_mempool.h"
@@ -483,21 +484,18 @@ static int arg_handle_print_version(int UNUSED(argc),
   return 0;
 }
 
-static const char arg_handle_print_help_doc[] =
-    "\n\t"
-    "Print this help text and exit.";
-static const char arg_handle_print_help_doc_win32[] =
-    "\n\t"
-    "Print this help text and exit (Windows only).";
-static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
+static void print_help(bArgs *ba)
 {
-  bArgs *ba = (bArgs *)data;
+/* All printing must go via `PRINT` macro.  */
+#  define printf __ERROR__
 
-  printf("Blender %s\n", BKE_blender_version_string());
-  printf("Usage: blender [args ...] [file] [args ...]\n");
-  printf("\n");
+#  define PRINT(...) BLI_args_printf(ba, __VA_ARGS__)
 
-  printf("Render Options:\n");
+  PRINT("Blender %s\n", BKE_blender_version_string());
+  PRINT("Usage: blender [args ...] [file] [args ...]\n");
+  PRINT("\n");
+
+  PRINT("Render Options:\n");
   BLI_args_print_arg_doc(ba, "--background");
   BLI_args_print_arg_doc(ba, "--render-anim");
   BLI_args_print_arg_doc(ba, "--scene");
@@ -510,31 +508,31 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--threads");
 
 #  ifdef WITH_CYCLES
-  printf("Cycles Render Options:\n");
-  printf("\tCycles add-on options must be specified following a double dash.\n");
-  printf("\n");
-  printf("--cycles-device OPTIX\n");
-  printf("\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n");
-  printf("\n");
-  printf("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n");
-  printf("\n");
-  printf("\tExample:\n");
-  printf("\t# blender -b file.blend -f 20 -- --cycles-device OPTIX\n");
-  printf("--cycles-print-stats\n");
-  printf("\tLog statistics about render memory and time usage.\n");
+  PRINT("Cycles Render Options:\n");
+  PRINT("\tCycles add-on options must be specified following a double dash.\n");
+  PRINT("\n");
+  PRINT("--cycles-device OPTIX\n");
+  PRINT("\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n");
+  PRINT("\n");
+  PRINT("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n");
+  PRINT("\n");
+  PRINT("\tExample:\n");
+  PRINT("\t# blender -b file.blend -f 20 -- --cycles-device OPTIX\n");
+  PRINT("--cycles-print-stats\n");
+  PRINT("\tLog statistics about render memory and time usage.\n");
 #  endif /*WITH_CYCLES*/
 
-  printf("\n");
-  printf("Format Options:\n");
+  PRINT("\n");
+  PRINT("Format Options:\n");
   BLI_args_print_arg_doc(ba, "--render-format");
   BLI_args_print_arg_doc(ba, "--use-extension");
 
-  printf("\n");
-  printf("Animation Playback Options:\n");
+  PRINT("\n");
+  PRINT("Animation Playback Options:\n");
   BLI_args_print_arg_doc(ba, "-a");
 
-  printf("\n");
-  printf("Window Options:\n");
+  PRINT("\n");
+  PRINT("Window Options:\n");
   BLI_args_print_arg_doc(ba, "--window-border");
   BLI_args_print_arg_doc(ba, "--window-fullscreen");
   BLI_args_print_arg_doc(ba, "--window-geometry");
@@ -543,12 +541,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--no-native-pixels");
   BLI_args_print_arg_doc(ba, "--no-window-focus");
 
-  printf("\n");
-  printf("Python Options:\n");
+  PRINT("\n");
+  PRINT("Python Options:\n");
   BLI_args_print_arg_doc(ba, "--enable-autoexec");
   BLI_args_print_arg_doc(ba, "--disable-autoexec");
 
-  printf("\n");
+  PRINT("\n");
 
   BLI_args_print_arg_doc(ba, "--python");
   BLI_args_print_arg_doc(ba, "--python-text");
@@ -558,8 +556,8 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--python-use-system-env");
   BLI_args_print_arg_doc(ba, "--addons");
 
-  printf("\n");
-  printf("Logging Options:\n");
+  PRINT("\n");
+  PRINT("Logging Options:\n");
   BLI_args_print_arg_doc(ba, "--log");
   BLI_args_print_arg_doc(ba, "--log-level");
   BLI_args_print_arg_doc(ba, "--log-show-basename");
@@ -567,12 +565,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--log-show-timestamp");
   BLI_args_print_arg_doc(ba, "--log-file");
 
-  printf("\n");
-  printf("Debug Options:\n");
+  PRINT("\n");
+  PRINT("Debug Options:\n");
   BLI_args_print_arg_doc(ba, "--debug");
   BLI_args_print_arg_doc(ba, "--debug-value");
 
-  printf("\n");
+  PRINT("\n");
   BLI_args_print_arg_doc(ba, "--debug-events");
 #  ifdef WITH_FFMPEG
   BLI_args_print_arg_doc(ba, "--debug-ffmpeg");
@@ -611,7 +609,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-all");
   BLI_args_print_arg_doc(ba, "--debug-io");
 
-  printf("\n");
+  PRINT("\n");
   BLI_args_print_arg_doc(ba, "--debug-fpe");
   BLI_args_print_arg_doc(ba, "--debug-exit-on-error");
 #  ifdef WITH_FREESTYLE
@@ -622,25 +620,25 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   BLI_args_print_arg_doc(ba, "--verbose");
 
-  printf("\n");
-  printf("GPU Options:\n");
+  PRINT("\n");
+  PRINT("GPU Options:\n");
   BLI_args_print_arg_doc(ba, "--gpu-backend");
 
-  printf("\n");
-  printf("Misc Options:\n");
+  PRINT("\n");
+  PRINT("Misc Options:\n");
   BLI_args_print_arg_doc(ba, "--open-last");
   BLI_args_print_arg_doc(ba, "--app-template");
   BLI_args_print_arg_doc(ba, "--factory-startup");
   BLI_args_print_arg_doc(ba, "--enable-event-simulate");
-  printf("\n");
+  PRINT("\n");
   BLI_args_print_arg_doc(ba, "--env-system-datafiles");
   BLI_args_print_arg_doc(ba, "--env-system-scripts");
   BLI_args_print_arg_doc(ba, "--env-system-python");
-  printf("\n");
+  PRINT("\n");
   BLI_args_print_arg_doc(ba, "-noaudio");
   BLI_args_print_arg_doc(ba, "-setaudio");
 
-  printf("\n");
+  PRINT("\n");
 
   BLI_args_print_arg_doc(ba, "--help");
   BLI_args_print_arg_doc(ba, "/?");
@@ -655,60 +653,98 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   BLI_args_print_arg_doc(ba, "--");
 
-  // printf("\n");
-  // printf("Experimental Features:\n");
+  // PRINT("\n");
+  // PRINT("Experimental Features:\n");
 
   /* Other options _must_ be last (anything not handled will show here).
    *
    * Note that it's good practice for this to remain empty,
    * nevertheless print if any exist. */
   if (BLI_args_has_other_doc(ba)) {
-    printf("\n");
-    printf("Other Options:\n");
+    PRINT("\n");
+    PRINT("Other Options:\n");
     BLI_args_print_other_doc(ba);
   }
 
-  printf("\n");
-  printf("Argument Parsing:\n");
-  printf("\tArguments must be separated by white space, eg:\n");
-  printf("\t# blender -ba test.blend\n");
-  printf("\t...will exit since '-ba' is an unknown argument.\n");
+  PRINT("\n");
+  PRINT("Argument Parsing:\n");
+  PRINT("\tArguments must be separated by white space, eg:\n");
+  PRINT("\t# blender -ba test.blend\n");
+  PRINT("\t...will exit since '-ba' is an unknown argument.\n");
 
-  printf("Argument Order:\n");
-  printf("\tArguments are executed in the order they are given. eg:\n");
-  printf("\t# blender --background test.blend --render-frame 1 --render-output '/tmp'\n");
-  printf(
+  PRINT("Argument Order:\n");
+  PRINT("\tArguments are executed in the order they are given. eg:\n");
+  PRINT("\t# blender --background test.blend --render-frame 1 --render-output '/tmp'\n");
+  PRINT(
       "\t...will not render to '/tmp' because '--render-frame 1' renders before the output path "
       "is set.\n");
-  printf("\t# blender --background --render-output /tmp test.blend --render-frame 1\n");
-  printf(
+  PRINT("\t# blender --background --render-output /tmp test.blend --render-frame 1\n");
+  PRINT(
       "\t...will not render to '/tmp' because loading the blend-file overwrites the render output "
       "that was set.\n");
-  printf("\t# blender --background test.blend --render-output /tmp --render-frame 1\n");
-  printf("\t...works as expected.\n");
-  printf("\n");
+  PRINT("\t# blender --background test.blend --render-output /tmp --render-frame 1\n");
+  PRINT("\t...works as expected.\n");
+  PRINT("\n");
 
-  printf("Environment Variables:\n");
-  printf("  $BLENDER_USER_RESOURCES  Top level directory for user files.\n");
-  printf("                           (other 'BLENDER_USER_*' variables override when set).\n");
-  printf("  $BLENDER_USER_CONFIG     Directory for user configuration files.\n");
-  printf("  $BLENDER_USER_SCRIPTS    Directory for user scripts.\n");
-  printf("  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).\n");
-  printf("\n");
-  printf("  $BLENDER_SYSTEM_RESOURCES  Top level directory for system files.\n");
-  printf("                             (other 'BLENDER_SYSTEM_*' variables override when set).\n");
-  printf("  $BLENDER_SYSTEM_SCRIPTS    Directory for system wide scripts.\n");
-  printf("  $BLENDER_SYSTEM_DATAFILES  Directory for system wide data files.\n");
-  printf("  $BLENDER_SYSTEM_PYTHON     Directory for system Python libraries.\n");
+  PRINT("Environment Variables:\n");
+  PRINT("  $BLENDER_USER_RESOURCES  Top level directory for user files.\n");
+  PRINT("                           (other 'BLENDER_USER_*' variables override when set).\n");
+  PRINT("  $BLENDER_USER_CONFIG     Directory for user configuration files.\n");
+  PRINT("  $BLENDER_USER_SCRIPTS    Directory for user scripts.\n");
+  PRINT("  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).\n");
+  PRINT("\n");
+  PRINT("  $BLENDER_SYSTEM_RESOURCES  Top level directory for system files.\n");
+  PRINT("                             (other 'BLENDER_SYSTEM_*' variables override when set).\n");
+  PRINT("  $BLENDER_SYSTEM_SCRIPTS    Directory for system wide scripts.\n");
+  PRINT("  $BLENDER_SYSTEM_DATAFILES  Directory for system wide data files.\n");
+  PRINT("  $BLENDER_SYSTEM_PYTHON     Directory for system Python libraries.\n");
 
 #  ifdef WITH_OCIO
-  printf("  $OCIO                     Path to override the OpenColorIO config file.\n");
+  PRINT("  $OCIO                     Path to override the OpenColorIO config file.\n");
 #  endif
 #  ifdef WIN32
-  printf("  $TEMP                     Store temporary files here.\n");
+  PRINT("  $TEMP                     Store temporary files here.\n");
 #  else
-  printf("  $TMP or $TMPDIR           Store temporary files here.\n");
+  PRINT("  $TMP or $TMPDIR           Store temporary files here.\n");
 #  endif
+
+#  undef printf
+#  undef PRINT
+}
+
+ATTR_PRINTF_FORMAT(2, 0)
+static void help_print_ds_fn(void *ds_v, const char *format, va_list args)
+{
+  DynStr *ds = ds_v;
+  BLI_dynstr_vappendf(ds, format, args);
+}
+
+static char *main_args_help_as_string(void)
+{
+  DynStr *ds = BLI_dynstr_new();
+  {
+    bArgs *ba = BLI_args_create(0, NULL);
+    main_args_setup(NULL, ba);
+    BLI_args_print_fn_set(ba, help_print_ds_fn, ds);
+    print_help(ba);
+    BLI_args_destroy(ba);
+  }
+  char *buf = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+  return buf;
+}
+
+static const char arg_handle_print_help_doc[] =
+    "\n\t"
+    "Print this help text and exit.";
+static const char arg_handle_print_help_doc_win32[] =
+    "\n\t"
+    "Print this help text and exit (Windows only).";
+static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
+{
+  bArgs *ba = (bArgs *)data;
+
+  print_help(ba);
 
   exit(0);
   BLI_assert_unreachable();
@@ -2187,7 +2223,6 @@ static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv)
 
 void main_args_setup(bContext *C, bArgs *ba)
 {
-
 #  define CB(a) a##_doc, a
 #  define CB_EX(a, b) a##_doc_##b, a
 
@@ -2433,6 +2468,9 @@ void main_args_setup(bContext *C, bArgs *ba)
 
 #  undef CB
 #  undef CB_EX
+
+  /* Use for Python to extract help text (Python can't call directly - bad-level call). */
+  BPY_python_app_help_text_fn = main_args_help_as_string;
 }
 
 /**
