@@ -1244,6 +1244,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     if ((selection_max_co[0] - selection_min_co[0]) * (selection_max_co[1] - selection_min_co[1]) >
         1e-40f)
     {
+      copy_v2_v2(params->udim_base_offset, selection_min_co);
+      params->target_extent = selection_max_co[1] - selection_min_co[1];
       params->target_aspect_y = (selection_max_co[0] - selection_min_co[0]) /
                                 (selection_max_co[1] - selection_min_co[1]);
     }
@@ -1342,20 +1344,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
     /* Perform the transformation. */
     island_uv_transform(island, matrix, pre_translate);
-
-    if (original_selection) {
-      const float rescale_x = (selection_max_co[0] - selection_min_co[0]) /
-                              params->target_aspect_y;
-      const float rescale_y = (selection_max_co[1] - selection_min_co[1]);
-      const float rescale = params->scale_to_fit ? std::min(rescale_x, rescale_y) : 1.0f;
-      matrix[0][0] = rescale;
-      matrix[0][1] = 0.0f;
-      matrix[1][0] = 0.0f;
-      matrix[1][1] = rescale;
-      pre_translate[0] = selection_min_co[0] / rescale;
-      pre_translate[1] = selection_min_co[1] / rescale;
-      island_uv_transform(island, matrix, pre_translate);
-    }
   }
 
   for (const int64_t i : pack_island_vector.index_range()) {
