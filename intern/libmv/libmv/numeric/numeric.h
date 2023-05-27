@@ -34,8 +34,8 @@
 #include <Eigen/SVD>
 
 #if !defined(__MINGW64__)
-#  if defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__) ||         \
-      defined(__NetBSD__) || defined(__HAIKU__)
+#  if defined(_WIN32) || defined(__APPLE__) || defined(__NetBSD__) ||          \
+      defined(__HAIKU__)
 inline void sincos(double x, double* sinx, double* cosx) {
   *sinx = sin(x);
   *cosx = cos(x);
