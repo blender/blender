@@ -509,6 +509,19 @@ ccl_device void sample_reservoir(const int current_index,
     return;
   }
   total_weight += current_weight;
+
+  /* When `-ffast-math` is used it is possible that the threshold is almost 1 but not quite.
+   * For this case we check the first assignment explicitly (instead of relying on the threshold to
+   * be 1, giving it certain probability). */
+  if (selected_index == -1) {
+    selected_index = current_index;
+    selected_weight = current_weight;
+    /* The threshold is expected to be 1 in this case with strict mathematics, so no need to divide
+     * the rand. In fact, division in such case could lead the rand to exceed 1 because of division
+     * by something smaller than 1. */
+    return;
+  }
+
   float thresh = current_weight / total_weight;
   if (rand <= thresh) {
     selected_index = current_index;
@@ -518,8 +531,10 @@ ccl_device void sample_reservoir(const int current_index,
   else {
     rand = (rand - thresh) / (1.0f - thresh);
   }
-  kernel_assert(rand >= 0.0f && rand <= 1.0f);
-  return;
+
+  /* Ensure the `rand` is always within 0..1 range, which could be violated above when
+   * `-ffast-math` is used. */
+  rand = saturatef(rand);
 }
 
 /* Pick an emitter from a leaf node using reservoir sampling, keep two reservoirs for upper and
