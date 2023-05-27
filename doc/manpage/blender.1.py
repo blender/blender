@@ -5,7 +5,7 @@
 This script generates the blender.1 man page, embedding the help text
 from the Blender executable itself. Invoke it as follows:
 
-    blender.1.py --blender <path-to-blender> --output <output-filename>
+    ./blender.bin -b --python doc/manpage/blender.1.py -- --output <output-filename>
 
 where <path-to-blender> is the path to the Blender executable,
 and <output-filename> is where to write the generated man page.
@@ -13,8 +13,8 @@ and <output-filename> is where to write the generated man page.
 
 import argparse
 import os
-import subprocess
 import time
+import sys
 
 from typing import (
     Dict,
@@ -28,61 +28,28 @@ def man_format(data: str) -> str:
     return data
 
 
-def blender_extract_info(blender_bin: str) -> Dict[str, str]:
+def blender_extract_info() -> Dict[str, str]:
+    # Only use of `bpy` in this file.
+    import bpy  # type: ignore
+    blender_help_text = bpy.app.help_text()
+    blender_version_text = bpy.app.version_string
+    blender_build_date_text = bpy.app.build_date
 
-    blender_env = {
-        "ASAN_OPTIONS": (
-            os.environ.get("ASAN_OPTIONS", "") +
-            ":exitcode=0:check_initialization_order=0:strict_init_order=0"
-        ).lstrip(":"),
-    }
-
-    blender_help = subprocess.run(
-        [blender_bin, "--help"],
-        env=blender_env,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout.decode(encoding="utf-8")
-
-    blender_version_output = subprocess.run(
-        [blender_bin, "--version"],
-        env=blender_env,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout.decode(encoding="utf-8")
-
-    # Extract information from the version string.
-    # Note that some internal modules may print errors (e.g. color management),
-    # check for each lines prefix to ensure these aren't included.
-    blender_version = ""
-    blender_date = ""
-    for l in blender_version_output.split("\n"):
-        if l.startswith("Blender "):
-            # Remove 'Blender' prefix.
-            blender_version = l.split(" ", 1)[1].strip()
-        elif l.lstrip().startswith("build date:"):
-            # Remove 'build date:' prefix.
-            blender_date = l.split(":", 1)[1].strip()
-        if blender_version and blender_date:
-            break
-
-    if not blender_date:
+    if blender_build_date_text == b'Unknown':
         # Happens when built without WITH_BUILD_INFO e.g.
-        date_string = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
+        blender_date = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
     else:
-        date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
+        blender_date = time.strftime("%B %d, %Y", time.strptime(blender_build_date_text, "%Y-%m-%d"))
 
     return {
-        "help": blender_help,
-        "version": blender_version,
-        "date": date_string,
+        "help": blender_help_text,
+        "version": blender_version_text,
+        "date": blender_date,
     }
 
 
-def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> None:
-    if verbose:
-        print("Extracting help text:", blender_bin)
-    blender_info = blender_extract_info(blender_bin)
+def man_page_from_blender_help(fh: TextIO, verbose: bool) -> None:
+    blender_info = blender_extract_info()
 
     # Header Content.
     fh.write(
@@ -176,11 +143,6 @@ def create_argparse() -> argparse.ArgumentParser:
         help="The man page to write to."
     )
     parser.add_argument(
-        "--blender",
-        required=True,
-        help="Path to the blender binary."
-    )
-    parser.add_argument(
         "--verbose",
         default=False,
         required=False,
@@ -192,15 +154,15 @@ def create_argparse() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    argv = sys.argv[sys.argv.index("--") + 1:]
     parser = create_argparse()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    blender_bin = args.blender
     output_filename = args.output
     verbose = args.verbose
 
     with open(output_filename, "w", encoding="utf-8") as fh:
-        man_page_from_blender_help(fh, blender_bin, verbose)
+        man_page_from_blender_help(fh, verbose)
         if verbose:
             print("Written:", output_filename)
 

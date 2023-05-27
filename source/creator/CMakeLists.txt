@@ -1715,7 +1715,20 @@ if(\n\
   ($\{BLENDER_BIN\} IS_NEWER_THAN $\{MANPAGE_OUT\}) OR\n\
   ($\{MANPAGE_GEN\} IS_NEWER_THAN $\{MANPAGE_OUT\})\n\
 )\n\
-  execute_process(COMMAND $\{MANPAGE_GEN\} --blender $\{BLENDER_BIN\} --output $\{MANPAGE_OUT\})\n\
+  set(\n\
+    ENV{ASAN_OPTIONS}\n\
+    \"$ENV{ASAN_OPTIONS}:exitcode=0:check_initialization_order=0:strict_init_order=0\"\n\
+  )\n\
+  execute_process(\n\
+    OUTPUT_QUIET\n\
+    ERROR_QUIET\n\
+    COMMAND $\{BLENDER_BIN\}\n\
+    --background\n\
+    --factory-startup\n\
+    --python $\{MANPAGE_GEN\}\n\
+    --\n\
+    --output $\{MANPAGE_OUT\}\n\
+  )\n\
 endif()\n\
 "
         DEPENDS blender
