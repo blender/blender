@@ -2550,7 +2550,7 @@ double ui_but_value_get(uiBut *but)
   if (but->rnaprop) {
     PropertyRNA *prop = but->rnaprop;
 
-    BLI_assert(but->rnaindex != -1);
+    BLI_assert(RNA_property_array_check(prop) ? but->rnaindex != -1 : true);
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
@@ -4720,7 +4720,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
     but->rnaindex = index;
   }
   else {
-    but->rnaindex = 0;
+    but->rnaindex = -1;
   }
 
   if (icon) {

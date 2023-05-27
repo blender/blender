@@ -3170,8 +3170,7 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
     /* Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects. */
     but->decorated_rnapoin = *ptr;
     but->decorated_rnaprop = prop;
-    /* ui_def_but_rna() sets non-array buttons to have a RNA index of 0. */
-    but->decorated_rnaindex = (!is_array || is_expand) ? i : index;
+    but->decorated_rnaindex = (!is_array) ? -1 : (is_expand) ? i : index;
   }
 }
 

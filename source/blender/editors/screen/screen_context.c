@@ -546,11 +546,6 @@ static eContextResult screen_ctx_property(const bContext *C, bContextDataResult 
   int index;
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
-  /* UI_context_active_but_prop_get returns an index of 0 if the property is not
-   * an array, but other functions expect -1 for non-arrays. */
-  if (!RNA_property_array_check(prop)) {
-    index = -1;
-  }
 
   CTX_data_type_set(result, CTX_DATA_TYPE_PROPERTY);
   CTX_data_pointer_set_ptr(result, &ptr);

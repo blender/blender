@@ -6735,7 +6735,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
   /* set rna directly, uiDefBlockButN doesn't do this */
   but->rnapoin = *ptr;
   but->rnaprop = RNA_struct_find_property(ptr, propname);
-  but->rnaindex = 0;
+  but->rnaindex = -1;
 
   UI_block_align_end(block);
 }

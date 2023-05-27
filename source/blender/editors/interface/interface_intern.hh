@@ -237,7 +237,8 @@ struct uiBut {
   /* RNA data */
   PointerRNA rnapoin = {};
   PropertyRNA *rnaprop = nullptr;
-  int rnaindex = 0;
+  /** The index (arrays only), otherwise set to -1. */
+  int rnaindex = -1;
 
   /* Operator data */
   wmOperatorType *optype = nullptr;
