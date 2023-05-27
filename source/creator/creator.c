@@ -451,7 +451,7 @@ int main(int argc,
   /* Ensure we free on early exit. */
   app_init_data.ba = ba;
 
-  main_args_setup(C, ba);
+  main_args_setup(C, ba, false);
 
   /* Begin argument parsing, ignore leaks so arguments that call #exit
    * (such as '--version' & '--help') don't report leaks. */

@@ -19,7 +19,7 @@ extern "C" {
 
 /* creator_args.c */
 
-void main_args_setup(struct bContext *C, struct bArgs *ba);
+void main_args_setup(struct bContext *C, struct bArgs *ba, bool all);
 void main_args_setup_post(struct bContext *C, struct bArgs *ba);
 
 /* creator_signals.c */

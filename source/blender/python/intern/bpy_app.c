@@ -516,15 +516,32 @@ static PyObject *bpy_app_is_job_running(PyObject *UNUSED(self), PyObject *args, 
   return PyBool_FromLong(WM_jobs_has_running_type(wm, job_type_enum.value));
 }
 
-char *(*BPY_python_app_help_text_fn)(void) = NULL;
+char *(*BPY_python_app_help_text_fn)(bool all) = NULL;
 
 PyDoc_STRVAR(bpy_app_help_text_doc,
-             ".. staticmethod:: help_text()\n"
+             ".. staticmethod:: help_text(all=False)\n"
              "\n"
-             "   Return the help text as a string.\n");
-static PyObject *bpy_app_help_text(PyObject *UNUSED(self))
+             "   Return the help text as a string.\n"
+             "\n"
+             "   :arg all: Return all arguments, "
+             "even those which aren't available for the current platform.\n"
+             "   :type all: bool\n");
+static PyObject *bpy_app_help_text(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-  char *buf = BPY_python_app_help_text_fn();
+  bool all = false;
+  static const char *_keywords[] = {"all", NULL};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `all` */
+      ":help_text",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, PyC_ParseBool, &all)) {
+    return NULL;
+  }
+
+  char *buf = BPY_python_app_help_text_fn(all);
   PyObject *result = PyUnicode_FromString(buf);
   MEM_freeN(buf);
   return result;
@@ -537,7 +554,7 @@ static struct PyMethodDef bpy_app_methods[] = {
      bpy_app_is_job_running_doc},
     {"help_text",
      (PyCFunction)bpy_app_help_text,
-     METH_NOARGS | METH_STATIC,
+     METH_VARARGS | METH_KEYWORDS | METH_STATIC,
      bpy_app_help_text_doc},
     {NULL, NULL, 0, NULL},
 };
