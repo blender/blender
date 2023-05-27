@@ -494,7 +494,8 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   bArgs *ba = (bArgs *)data;
 
   printf("Blender %s\n", BKE_blender_version_string());
-  printf("Usage: blender [args ...] [file] [args ...]\n\n");
+  printf("Usage: blender [args ...] [file] [args ...]\n");
+  printf("\n");
 
   printf("Render Options:\n");
   BLI_args_print_arg_doc(ba, "--background");
@@ -641,11 +642,13 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 #  ifdef WITH_CYCLES
   printf("Cycles Render Options:\n");
-  printf("\tCycles add-on options must be specified following a double dash.\n\n");
+  printf("\tCycles add-on options must be specified following a double dash.\n");
+  printf("\n");
   printf("``--cycles-device OPTIX``\n");
-  printf(
-      "\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n\n");
-  printf("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n\n");
+  printf("\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n");
+  printf("\n");
+  printf("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n");
+  printf("\n");
   printf("\tExample:\n");
   printf("\t# blender -b file.blend -f 20 -- --cycles-device OPTIX\n");
   printf("``--cycles-print-stats``\n");
@@ -682,7 +685,8 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
       "\t...will not render to '/tmp' because loading the blend-file overwrites the render output "
       "that was set.\n");
   printf("\t# blender --background test.blend --render-output /tmp --render-frame 1\n");
-  printf("\t...works as expected.\n\n");
+  printf("\t...works as expected.\n");
+  printf("\n");
 
   printf("Environment Variables:\n");
   printf("  $BLENDER_USER_RESOURCES  Top level directory for user files.\n");
