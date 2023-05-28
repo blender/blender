@@ -706,12 +706,12 @@ static int arg_handle_arguments_end(int UNUSED(argc),
 }
 
 /* only to give help message */
-#  ifndef WITH_PYTHON_SECURITY /* default */
-#    define PY_ENABLE_AUTO ", (default)"
-#    define PY_DISABLE_AUTO ""
-#  else
+#  ifdef WITH_PYTHON_SECURITY /* default */
 #    define PY_ENABLE_AUTO ""
-#    define PY_DISABLE_AUTO ", (compiled as non-standard default)"
+#    define PY_DISABLE_AUTO ", (default)"
+#  else
+#    define PY_ENABLE_AUTO ", (default, non-standard compilation option)"
+#    define PY_DISABLE_AUTO ""
 #  endif
 
 static const char arg_handle_python_set_doc_enable[] =
