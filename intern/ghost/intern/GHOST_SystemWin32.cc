@@ -1867,9 +1867,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           /* Mouse Tracking is now off. TrackMouseEvent restarts in MouseMove. */
           window->m_mousePresent = false;
 
-          /* Auto-focus only occurs within Blender windows, not with _other_ applications. */
+          /* Auto-focus only occurs within Blender windows, not with _other_ applications. We are
+           * notified of change of focus from our console, but it returns null from GetFocus. */
           HWND old_hwnd = ::GetFocus();
-          if (hwnd != old_hwnd) {
+          if (old_hwnd && hwnd != old_hwnd) {
             HWND new_parent = ::GetParent(hwnd);
             HWND old_parent = ::GetParent(old_hwnd);
             if (hwnd == old_parent || old_hwnd == new_parent) {
