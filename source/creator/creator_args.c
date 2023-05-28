@@ -30,6 +30,7 @@
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
+#  include "BKE_appdir.h"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.h"
 #  include "BKE_context.h"
@@ -577,8 +578,9 @@ static void print_help(bArgs *ba, bool all)
     PRINT("Cycles Render Options:\n");
     PRINT("\tCycles add-on options must be specified following a double dash.\n");
     PRINT("\n");
-    PRINT("--cycles-device OPTIX\n");
-    PRINT("\tSet the device used for rendering. Options: CPU, CUDA, OPTIX, HIP, ONEAPI, METAL.\n");
+    PRINT("--cycles-device <device>\n");
+    PRINT("\tSet the device used for rendering.\n");
+    PRINT("\tValid options are: 'CPU' 'CUDA' 'OPTIX' 'HIP' 'ONEAPI' 'METAL'.\n");
     PRINT("\n");
     PRINT("\tAppend +CPU to a GPU device to render on both CPU and GPU.\n");
     PRINT("\n");
@@ -737,10 +739,11 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\tArguments must be separated by white space, eg:\n");
   PRINT("\t# blender -ba test.blend\n");
   PRINT("\t...will exit since '-ba' is an unknown argument.\n");
+  PRINT("\n");
 
   PRINT("Argument Order:\n");
   PRINT("\tArguments are executed in the order they are given. eg:\n");
-  PRINT("\t# blender --background test.blend --render-frame 1 --render-output '/tmp'\n");
+  PRINT("\t# blender --background test.blend --render-frame 1 --render-output \"/tmp\"\n");
   PRINT(
       "\t...will not render to '/tmp' because '--render-frame 1' renders before the output path "
       "is set.\n");
@@ -1254,6 +1257,12 @@ static int arg_handle_debug_gpu_renderdoc_set(int UNUSED(argc),
   return 0;
 }
 
+static const char arg_handle_gpu_backend_set_doc_all[] =
+    "\n"
+    "\tForce to use a specific GPU backend. Valid options: "
+    "'vulkan',  "
+    "'metal',  "
+    "'opengl'.";
 static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
@@ -1331,7 +1340,7 @@ static int arg_handle_app_template(int argc, const char **argv, void *UNUSED(dat
 
 static const char arg_handle_factory_startup_set_doc[] =
     "\n\t"
-    "Skip reading the " STRINGIFY(BLENDER_STARTUP_FILE) " in the users home directory.";
+    "Skip reading the '" BLENDER_STARTUP_FILE "' in the users home directory.";
 static int arg_handle_factory_startup_set(int UNUSED(argc),
                                           const char **UNUSED(argv),
                                           void *UNUSED(data))
@@ -1396,7 +1405,7 @@ static const char arg_handle_playback_mode_doc[] =
     "\t\tOpen with lower left corner at <sx>, <sy>.\n"
     "\t-m\n"
     "\t\tRead from disk (Do not buffer).\n"
-    "\t-f <fps> <fps-base>\n"
+    "\t-f <fps> <fps_base>\n"
     "\t\tSpecify FPS to start with.\n"
     "\t-j <frame>\n"
     "\t\tSet frame step to <frame>.\n"
@@ -1680,10 +1689,10 @@ static const char arg_handle_image_type_set_doc[] =
     "<format>\n"
     "\tSet the render format.\n"
     "\tValid options are:\n"
-    "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
+    "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'.\n"
     "\n"
     "\tFormats that can be compiled into Blender, not available on all systems:\n"
-    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2' 'WEBP'";
+    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2' 'WEBP'.";
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
@@ -2283,8 +2292,12 @@ static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv)
 
 void main_args_setup(bContext *C, bArgs *ba, bool all)
 {
+  /** Expand the doc-string from the function. */
 #  define CB(a) a##_doc, a
+  /** A version of `CB` that expands an additional suffix. */
 #  define CB_EX(a, b) a##_doc_##b, a
+  /** A version of `CB` that uses `all`, needed when the doc-string depends on build options. */
+#  define CB_ALL(a) (all ? a##_doc_all : a##_doc), a
 
   struct BuildDefs defs;
   build_defs_init(&defs, all);
@@ -2321,7 +2334,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 
   /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
    * selection for animation player. */
-  BLI_args_add(ba, NULL, "--gpu-backend", CB(arg_handle_gpu_backend_set), NULL);
+  BLI_args_add(ba, NULL, "--gpu-backend", CB_ALL(arg_handle_gpu_backend_set), NULL);
 
   /* Pass: Background Mode & Settings
    *
@@ -2525,6 +2538,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
 
 #  undef CB
 #  undef CB_EX
+#  undef CB_ALL
 
 #  ifdef WITH_PYTHON
   /* Use for Python to extract help text (Python can't call directly - bad-level call). */
