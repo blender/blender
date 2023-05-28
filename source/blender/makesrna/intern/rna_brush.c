@@ -2550,6 +2550,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_brush_sculpt_tool_items);
   RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
 
   prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
@@ -2573,12 +2574,14 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "imagepaint_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_image_tool_items);
   RNA_def_property_ui_text(prop, "Image Paint Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update_and_reset_icon");
 
   prop = RNA_def_property(srna, "gpencil_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_types_items);
   RNA_def_property_ui_text(prop, "Grease Pencil Draw Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "gpencil_vertex_tool", PROP_ENUM, PROP_NONE);
