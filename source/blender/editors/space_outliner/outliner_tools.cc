@@ -2095,7 +2095,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
   }
   else if (event == OL_CONSTRAINTOP_DISABLE) {
-    constraint->flag = CONSTRAINT_OFF;
+    constraint->flag |= CONSTRAINT_OFF;
     ED_object_constraint_update(bmain, ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
   }
