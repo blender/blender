@@ -2219,7 +2219,7 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
  * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
  * \return true on success.
  */
-static bool handle_load_file(bContext *C, const char *filepath_arg)
+static bool handle_load_file(bContext *C, const char *filepath_arg, const bool load_empty_file)
 {
   /* Make the path absolute because its needed for relative linked blends to be found */
   char filepath[FILE_MAX];
@@ -2251,13 +2251,18 @@ static bool handle_load_file(bContext *C, const char *filepath_arg)
       return false;
     }
 
+    const char *error_msg_generic = "file could not be loaded";
     const char *error_msg = NULL;
-    if (BLI_exists(filepath)) {
+
+    if (load_empty_file == false) {
+      error_msg = error_msg_generic;
+    }
+    else if (BLI_exists(filepath)) {
       /* When a file is found but can't be loaded, handling it as a new file
        * could cause it to be unintentionally overwritten (data loss).
        * Further this is almost certainly not that a user would expect or want.
        * If they do, they can delete the file beforehand. */
-      error_msg = "file could not be loaded";
+      error_msg = error_msg_generic;
     }
     else if (!BKE_blendfile_extension_check(filepath)) {
       /* Unrelated arguments should not be treated as new blend files. */
@@ -2298,7 +2303,7 @@ int main_args_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     fprintf(stderr, "unknown argument, loading as file: %s\n", filepath);
   }
 
-  if (!handle_load_file(C, filepath)) {
+  if (!handle_load_file(C, filepath, true)) {
     return -1;
   }
   return 0;
@@ -2316,7 +2321,7 @@ static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv)
 
   bContext *C = data;
   const RecentFile *recent_file = G.recent_files.first;
-  if (!handle_load_file(C, recent_file->filepath)) {
+  if (!handle_load_file(C, recent_file->filepath, false)) {
     return -1;
   }
   return 0;
