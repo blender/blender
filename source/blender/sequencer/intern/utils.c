@@ -221,7 +221,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   SEQ_relations_sequence_free_anim(seq);
 
   BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
-  BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
 
   proxy = seq->strip->proxy;
 
