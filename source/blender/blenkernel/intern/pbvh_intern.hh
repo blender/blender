@@ -7,6 +7,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
+#include "BLI_offset_indices.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -31,7 +32,6 @@ struct PBVHTriBuf;
 struct PBVHGPUFormat;
 struct MLoopTri;
 struct BMIdMap;
-struct MeshElemMap;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -181,10 +181,6 @@ struct PBVH {
   int depth_limit;
 
   /* Mesh data */
-  struct MeshElemMap *vemap;
-  MeshElemMap *pmap;
-  int *pmap_mem;
-
   Mesh *mesh;
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
@@ -260,7 +256,6 @@ struct PBVH {
   int num_planes;
 
   int symmetry;
-  int boundary_symmetry;
 
   BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
@@ -282,6 +277,8 @@ struct PBVH {
   } cached_data;
 
   bool invalid;
+  blender::GroupedSpan<int> pmap;
+  blender::GroupedSpan<int> vemap;
 
   CustomDataLayer *color_layer;
   eAttrDomain color_domain;
@@ -454,7 +451,6 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   pbvh->cd_flag,
                                   pbvh->cd_valence,
                                   v,
-                                  pbvh->boundary_symmetry,
                                   &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv,
                                   pbvh->flags & PBVH_IGNORE_UVS,

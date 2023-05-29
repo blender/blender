@@ -118,7 +118,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   if ((bool)mesh && subdivision_type == Mesh::SUBDIVISION_NONE) {
     if (mesh.use_auto_smooth()) {
       mesh.calc_normals_split();
-      mesh.split_faces(false);
+      mesh.split_faces();
     }
 
     mesh.calc_loop_triangles();

@@ -96,7 +96,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   NodeIDVectorSet nodes_by_id;
 
-  /** Execution data.
+  /**
+   * Execution data.
    *
    * XXX It would be preferable to completely move this data out of the underlying node tree,
    * so node tree execution could finally run independent of the tree itself.

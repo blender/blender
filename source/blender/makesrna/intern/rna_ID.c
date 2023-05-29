@@ -1567,7 +1567,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  /* for mesh/mball/curve materials */
+  /* For mesh/meta-ball/curve materials. */
   srna = RNA_def_struct(brna, "IDMaterials", NULL);
   RNA_def_struct_sdna(srna, "ID");
   RNA_def_struct_ui_text(srna, "ID Materials", "Collection of materials");

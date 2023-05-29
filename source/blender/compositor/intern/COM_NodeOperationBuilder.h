@@ -63,9 +63,9 @@ class NodeOperationBuilder {
 
   Node *current_node_;
 
-  /** Operation that will be writing to the viewer image
-   *  Only one operation can occupy this place at a time,
-   *  to avoid race conditions
+  /**
+   * Operation that will be writing to the viewer image
+   * Only one operation can occupy this place at a time, to avoid race conditions.
    */
   ViewerOperation *active_viewer_;
 

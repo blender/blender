@@ -66,14 +66,13 @@ ccl_device Spectrum bsdf_oren_nayar_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_oren_nayar_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 wi,
-                                      float randu,
-                                      float randv,
+                                      float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf)
 {
   ccl_private const OrenNayarBsdf *bsdf = (ccl_private const OrenNayarBsdf *)sc;
-  sample_uniform_hemisphere(bsdf->N, randu, randv, wo, pdf);
+  sample_uniform_hemisphere(bsdf->N, rand, wo, pdf);
 
   if (dot(Ng, *wo) > 0.0f) {
     *eval = bsdf_oren_nayar_get_intensity(sc, bsdf->N, wi, *wo);

@@ -101,9 +101,9 @@ void filelist_free(struct FileList *filelist);
 const char *filelist_dir(const struct FileList *filelist);
 bool filelist_is_dir(struct FileList *filelist, const char *path);
 /**
- * May modify in place given r_dir, which is expected to be FILE_MAX_LIBEXTRA length.
+ * May modify in place given `dirpath`, which is expected to be #FILE_MAX_LIBEXTRA length.
  */
-void filelist_setdir(struct FileList *filelist, char *r_dir);
+void filelist_setdir(struct FileList *filelist, char dirpath[1090 /*FILE_MAX_LIBEXTRA*/]);
 
 /**
  * Limited version of full update done by space_file's file_refresh(),

@@ -253,7 +253,7 @@ typedef struct ThemeSpace {
   unsigned char button_text[4];
   unsigned char button_text_hi[4];
 
-  /* listview regions */
+  /* List-view regions. */
   /** Region background. */
   unsigned char list[4];
   /** Panel title. */
@@ -489,7 +489,7 @@ typedef struct bTheme {
   ThemeUI tui;
 
   /**
-   * Individual Spacetypes:
+   * Individual Space-types:
    * \note Ensure #UI_THEMESPACE_END is updated when adding.
    */
   ThemeSpace space_properties;
@@ -673,18 +673,12 @@ typedef struct UserDef_Experimental {
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_override_templates;
-
-  char use_sculpt_uvsmooth;
-
-  char _pad[6];
-
-  char use_named_attribute_nodes;
-
   char enable_eevee_next;
   char use_sculpt_texture_paint;
+  char enable_overlay_next;
   char enable_workbench_next;
   char use_new_volume_nodes;
-  char _pad2[6];
+  char _pad[5];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -995,7 +989,6 @@ typedef struct UserDef {
 
   UserDef_Experimental experimental;
 
-  char _pad15[8];
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
 } UserDef;
@@ -1150,7 +1143,7 @@ typedef enum eUserpref_UI_Flag {
   USER_UIFLAG_UNUSED_3 = (1 << 19), /* Cleared. */
   USER_ZOOM_TO_MOUSEPOS = (1 << 20),
   USER_SHOW_FPS = (1 << 21),
-  USER_UIFLAG_UNUSED_22 = (1 << 22), /* cleared */
+  USER_REGISTER_ALL_USERS = (1 << 22),
   USER_MENUFIXEDORDER = (1 << 23),
   USER_CONTINUOUS_MOUSE = (1 << 24),
   USER_ZOOM_INVERT = (1 << 25),

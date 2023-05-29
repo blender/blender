@@ -180,8 +180,8 @@ typedef struct Panel {
  * There are 16 defines because the expansion data is typically stored in a short.
  *
  * \note Expansion for instanced panels is stored in depth first order. For example, the value of
- * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second subpanel or the first
- * subpanel's first subpanel.
+ * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second sub-panel or the first
+ * sub-panel's first sub-panel.
  */
 typedef enum uiPanelDataExpansion {
   UI_PANEL_DATA_EXPAND_ROOT = (1 << 0),
@@ -572,6 +572,7 @@ typedef enum eScreen_Redraws_Flag {
   // TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
   TIME_NODES = (1 << 8),
   TIME_CLIPS = (1 << 9),
+  TIME_SPREADSHEETS = (1 << 10),
 
   TIME_FOLLOW = (1 << 15),
 } eScreen_Redraws_Flag;

@@ -213,12 +213,14 @@ typedef struct MVertSkin {
 } MVertSkin;
 
 typedef enum eMVertSkinFlag {
-  /** Marks a vertex as the edge-graph root, used for calculating rotations for all connected
+  /**
+   * Marks a vertex as the edge-graph root, used for calculating rotations for all connected
    * edges (recursively). Also used to choose a root when generating an armature.
    */
   MVERT_SKIN_ROOT = 1,
 
-  /** Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
+  /**
+   * Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
    * are directly hulled together, rather than the default of generating intermediate frames.
    */
   MVERT_SKIN_LOOSE = 2,

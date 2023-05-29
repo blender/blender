@@ -298,14 +298,13 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   float *dists = static_cast<float *>(MEM_malloc_arrayN(totvert, sizeof(float), __func__));
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, edges.size(), polys, corner_edges.data(), corner_edges.size());
+  if (ss->epmap.is_empty()) {
+    ss->epmap = blender::bke::mesh::build_edge_to_poly_map(
+        polys, corner_edges, edges.size(), ss->edge_to_poly_offsets, ss->edge_to_poly_indices);
   }
-  if (!ss->vemap) {
-
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->edges().data(), mesh->totvert, mesh->totedge);
+  if (ss->vemap.is_empty()) {
+    ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
+        edges, mesh->totvert, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -384,9 +383,9 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
             cos, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts, r_closest_verts);
       }
 
-      if (ss->epmap[e].count != 0) {
-        for (int poly_map_index = 0; poly_map_index < ss->epmap[e].count; poly_map_index++) {
-          const int poly = ss->epmap[e].indices[poly_map_index];
+      if (ss->epmap[e].size() != 0) {
+        for (int poly_map_index = 0; poly_map_index < ss->epmap[e].size(); poly_map_index++) {
+          const int poly = ss->epmap[e][poly_map_index];
           if (ss->hide_poly && ss->hide_poly[poly]) {
             continue;
           }
@@ -396,9 +395,9 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
             }
             if (sculpt_geodesic_mesh_test_dist_add(
                     cos, v_other, v1, v2, dists, initial_verts, nullptr)) {
-              for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].count;
+              for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].size();
                    edge_map_index++) {
-                const int e_other = ss->vemap[v_other].indices[edge_map_index];
+                const int e_other = ss->vemap[v_other][edge_map_index];
                 int ev_other;
                 if (edges[e_other][0] == v_other) {
                   ev_other = edges[e_other][1];
@@ -408,7 +407,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
                 }
 
                 if (e_other != e && !BLI_BITMAP_TEST(edge_tag, e_other) &&
-                    (ss->epmap[e_other].count == 0 || dists[ev_other] != FLT_MAX))
+                    (ss->epmap[e_other].size() == 0 || dists[ev_other] != FLT_MAX))
                 {
                   if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
                       BLI_BITMAP_TEST(affected_vertex, ev_other)) {

@@ -426,7 +426,7 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
 };
 
 /*
- * Average Vertices Facevert Data.
+ * Average Vertices Face-vert Data.
  *
  * Merge uv/vcols associated with the input vertices at
  * the bounding box center. (I know, it's not averaging but

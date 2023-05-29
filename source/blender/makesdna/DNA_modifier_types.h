@@ -141,6 +141,11 @@ typedef enum {
    * Only one modifier on an object should have this flag set.
    */
   eModifierFlag_Active = (1 << 2),
+  /**
+   * Only set on modifiers in evaluated objects. The flag indicates that the user modified inputs
+   * to the modifier which might invalidate simulation caches.
+   */
+  eModifierFlag_UserModified = (1 << 3),
 } ModifierFlag;
 
 /**
@@ -1166,21 +1171,13 @@ typedef struct ShrinkwrapModifierData {
   /** Axis to project over. */
   char projAxis;
 
-  /** If using projection over vertex normal this controls the level of subsurface that must be
-   * done before getting the vertex coordinates and normal
+  /**
+   * If using projection over vertex normal this controls the level of subsurface that must be
+   * done before getting the vertex coordinates and normal.
    */
   char subsurfLevels;
 
-  char optimizeNormalSteps;
-  char optimizeNormals;
-
-  float rayShrinkRatio;
-
-  char boundSmoothSteps;
-  char _pad2[3];
-
-  float boundSmoothScale; /* width of smoothed boundary is divided by this */
-  float optimizeNormalsScale;
+  char _pad[2];
 } ShrinkwrapModifierData;
 
 /** #ShrinkwrapModifierData.shrinkType */
@@ -1236,65 +1233,6 @@ enum {
   MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS = (1 << 0),
   MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS = (1 << 1),
   MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS = (1 << 2),
-};
-
-typedef struct BassReliefModifierData {
-  ModifierData modifier;
-
-  /** Shrink target. */
-  struct Object *target;
-  /** Shrink target collection */
-  struct Collection *collection;
-
-  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
-  char vgroup_name[64];
-  /** Distance offset to keep from mesh/projection point. */
-  float keepDist;
-
-  /** Shrink options. */
-  char shrinkOpts;
-  /** Axis to project over. */
-  char projAxis;
-
-  char optimizeSteps;
-  char boundSmoothSteps;
-
-  float boundSmoothFalloff; /* width of smoothed boundary is divided by this */
-  float detailScale;
-
-  /** Limit the projection ray cast. */
-  float projLimit;
-  float rayShrinkRatio;
-} BassReliefModifierData;
-
-/* BassReliefModifier->shrinkOpts */
-enum {
-  /** allow shrinkwrap to move the vertex in the positive direction of axis */
-  MOD_BASSRELIEF_PROJECT_ALLOW_POS_DIR = (1 << 0),
-  /** allow shrinkwrap to move the vertex in the negative direction of axis */
-  MOD_BASSRELIEF_PROJECT_ALLOW_NEG_DIR = (1 << 1),
-
-  /** ignore vertex moves if a vertex ends projected on a front face of the target */
-  MOD_BASSRELIEF_CULL_TARGET_FRONTFACE = (1 << 3),
-  /** ignore vertex moves if a vertex ends projected on a back face of the target */
-  MOD_BASSRELIEF_CULL_TARGET_BACKFACE = (1 << 4),
-
-  MOD_BASSRELIEF_INVERT_VGROUP = (1 << 5),
-  MOD_BASSRELIEF_INVERT_CULL_TARGET = (1 << 6),
-
-  MOD_BASSRELIEF_OPTIMIZE = (1 << 7)
-};
-
-#define MOD_BASSRELIEF_CULL_TARGET_MASK \
-  (MOD_BASSRELIEF_CULL_TARGET_FRONTFACE | MOD_BASSRELIEF_CULL_TARGET_BACKFACE)
-
-/* Shrinkwrap->projAxis */
-enum {
-  /** projection over normal is used if no axis is selected */
-  MOD_BASSRELIEF_PROJECT_OVER_NORMAL = 0,
-  MOD_BASSRELIEF_PROJECT_OVER_X_AXIS = (1 << 0),
-  MOD_BASSRELIEF_PROJECT_OVER_Y_AXIS = (1 << 1),
-  MOD_BASSRELIEF_PROJECT_OVER_Z_AXIS = (1 << 2),
 };
 
 typedef struct SimpleDeformModifierData {
@@ -1979,10 +1917,10 @@ typedef struct CorrectiveSmoothModifierData {
   /* NOTE: -1 is used to bind. */
   unsigned int bind_coords_num;
 
-  float lambda, scale, projection;
+  float lambda, scale;
   short repeat, flag;
   char smooth_type, rest_source;
-  char _pad[2];
+  char _pad[6];
 
   /** #MAX_VGROUP_NAME. */
   char defgrp_name[64];
@@ -2037,7 +1975,9 @@ typedef struct UVWarpModifierData {
 } UVWarpModifierData;
 
 /** #UVWarpModifierData.flag */
-enum { MOD_UVWARP_INVERT_VGROUP = 1 << 0, MOD_UVWARP_RESTRICT_ISLANDS = 1 << 1 };
+enum {
+  MOD_UVWARP_INVERT_VGROUP = 1 << 0,
+};
 
 /** Mesh cache modifier. */
 typedef struct MeshCacheModifierData {
@@ -2385,6 +2325,11 @@ typedef struct NodesModifierData {
   ModifierData modifier;
   struct bNodeTree *node_group;
   struct NodesModifierSettings settings;
+  /**
+   * Directory where baked simulation states are stored. This may be relative to the .blend file.
+   */
+  char *simulation_bake_directory;
+  void *_pad;
 
   /**
    * Contains logged information from the last evaluation.

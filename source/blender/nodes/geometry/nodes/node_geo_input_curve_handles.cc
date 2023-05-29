@@ -30,7 +30,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator(field_context, &mask);

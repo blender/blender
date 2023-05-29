@@ -563,7 +563,7 @@ typedef struct wmGesture {
   /** optional, maximum amount of points stored. */
   int points_alloc;
   int modal_state;
-  /** optional, draw the active side of the straightline gesture. */
+  /** Optional, draw the active side of the straight-line gesture. */
   bool draw_active_side;
 
   /**
@@ -1148,26 +1148,35 @@ typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDropBox *drop);
 
 typedef struct wmDragActiveDropState {
-  /** Informs which dropbox is activated with the drag item.
+  /**
+   * Informs which dropbox is activated with the drag item.
    * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
    * triggered.
    */
   struct wmDropBox *active_dropbox;
 
-  /** If `active_dropbox` is set, the area it successfully polled in. To restore the context of it
-   * as needed. */
+  /**
+   * If `active_dropbox` is set, the area it successfully polled in.
+   * To restore the context of it as needed.
+   */
   struct ScrArea *area_from;
-  /** If `active_dropbox` is set, the region it successfully polled in. To restore the context of
-   * it as needed. */
+  /**
+   * If `active_dropbox` is set, the region it successfully polled in.
+   * To restore the context of it as needed.
+   */
   struct ARegion *region_from;
 
-  /** If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
-   * Activated before context sensitive operations (polling, drawing, dropping). */
+  /**
+   * If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
+   * Activated before context sensitive operations (polling, drawing, dropping).
+   */
   struct bContextStore *ui_context;
 
-  /** Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
+  /**
+   * Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
    * operator poll fails. Typically the message the operator set with
-   * CTX_wm_operator_poll_msg_set(). */
+   * #CTX_wm_operator_poll_msg_set().
+   */
   const char *disabled_info;
   bool free_disabled_info;
 } wmDragActiveDropState;

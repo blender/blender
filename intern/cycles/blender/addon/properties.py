@@ -209,6 +209,21 @@ enum_guiding_distribution = (
     ('VMM', "VMM", "Use von Mises-Fisher models as directional distribution", 2),
 )
 
+enum_guiding_directional_sampling_types = (
+    ('MIS',
+     "Diffuse Product MIS",
+     "Guided diffuse BSDF component based on the incoming light distribution and the cosine product (closed form product)",
+     0),
+    ('RIS',
+     "Re-sampled Importance Sampling",
+     "Perform RIS sampling to guided based on the product of the incoming light distribution and the BSDF",
+     1),
+    ('ROUGHNESS',
+     "Roughness-based",
+     "Adjust the guiding probability based on the roughness of the material components",
+     2),
+)
+
 
 def enum_openimagedenoise_denoiser(self, context):
     import _cycles
@@ -568,6 +583,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='PARALLAX_AWARE_VMM',
     )
 
+    guiding_directional_sampling_type: EnumProperty(
+        name="Directional Sampling Type",
+        description="Type of the directional sampling used for guiding",
+        items=enum_guiding_directional_sampling_types,
+        default='RIS',
+    )
+
     use_surface_guiding: BoolProperty(
         name="Surface Guiding",
         description="Use guiding when sampling directions on a surface",
@@ -615,6 +637,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Use MIS Weights",
         description="Use the MIS weight to weight the contribution of directly visible light sources during guiding",
         default=True,
+    )
+
+    guiding_roughness_threshold: FloatProperty(
+        name="Guiding Roughness Threshold",
+        description="The minimal roughness value of a material to apply guiding",
+        min=0.0, max=1.0,
+        default=0.05,
     )
 
     max_bounces: IntProperty(

@@ -3178,7 +3178,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 

@@ -653,12 +653,17 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     }
     else {
       int me_numVerts;
-      rest_coords = em ? BKE_editmesh_vert_coords_alloc_orco(em, &me_numVerts) :
-                         BKE_mesh_vert_coords_alloc(static_cast<const Mesh *>(ob->data),
-                                                    &me_numVerts);
+      if (em) {
+        rest_coords = BKE_editmesh_vert_coords_alloc_orco(em, &me_numVerts);
+        is_rest_coords_alloc = true;
+      }
+      else {
+        const Mesh *me = static_cast<const Mesh *>(ob->data);
+        rest_coords = BKE_mesh_vert_positions(me);
+        me_numVerts = me->totvert;
+      }
 
       BLI_assert((uint)me_numVerts == verts_num);
-      is_rest_coords_alloc = true;
     }
 
 #ifdef DEBUG_TIME

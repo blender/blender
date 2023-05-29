@@ -61,7 +61,7 @@ struct IndexAttributes {
 /** \name Utility Functions
  * \{ */
 
-static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask selection,
+static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask &selection,
                                                        const VArray<int> &counts,
                                                        Array<int> &r_offset_data)
 {
@@ -88,7 +88,7 @@ static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask selection
 /* Utility functions for threaded copying of attribute data where possible. */
 template<typename T>
 static void threaded_slice_fill(const OffsetIndices<int> offsets,
-                                const IndexMask selection,
+                                const IndexMask &selection,
                                 const Span<T> src,
                                 MutableSpan<T> dst)
 {
@@ -101,7 +101,7 @@ static void threaded_slice_fill(const OffsetIndices<int> offsets,
 }
 
 static void threaded_slice_fill(const OffsetIndices<int> offsets,
-                                const IndexMask selection,
+                                const IndexMask &selection,
                                 const GSpan src,
                                 GMutableSpan dst)
 {
@@ -140,7 +140,7 @@ static void threaded_id_offset_copy(const OffsetIndices<int> offsets,
 /** Create the copy indices for the duplication domain. */
 static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attributes,
                                              const eAttrDomain output_domain,
-                                             const IndexMask selection,
+                                             const IndexMask &selection,
                                              const IndexAttributes &attribute_outputs,
                                              const OffsetIndices<int> offsets)
 {
@@ -180,7 +180,7 @@ static void copy_stable_id_point(const OffsetIndices<int> offsets,
 }
 
 static void copy_attributes_without_id(const OffsetIndices<int> offsets,
-                                       const IndexMask selection,
+                                       const IndexMask &selection,
                                        const AnonymousAttributePropagationInfo &propagation_info,
                                        const eAttrDomain domain,
                                        const bke::AttributeAccessor src_attributes,
@@ -206,7 +206,7 @@ static void copy_attributes_without_id(const OffsetIndices<int> offsets,
  */
 static void copy_curve_attributes_without_id(
     const bke::CurvesGeometry &src_curves,
-    const IndexMask selection,
+    const IndexMask &selection,
     const OffsetIndices<int> curve_offsets,
     const AnonymousAttributePropagationInfo &propagation_info,
     bke::CurvesGeometry &dst_curves)
@@ -255,7 +255,7 @@ static void copy_curve_attributes_without_id(
  * then loop over the remaining ones point by point, hashing their ids to the new ids.
  */
 static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
-                                  const IndexMask selection,
+                                  const IndexMask &selection,
                                   const OffsetIndices<int> offsets,
                                   bke::CurvesGeometry &dst_curves)
 {
@@ -385,7 +385,7 @@ static void copy_face_attributes_without_id(
     const Span<int> vert_mapping,
     const Span<int> loop_mapping,
     const OffsetIndices<int> offsets,
-    const IndexMask selection,
+    const IndexMask &selection,
     const AnonymousAttributePropagationInfo &propagation_info,
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes)
@@ -426,7 +426,7 @@ static void copy_face_attributes_without_id(
  * `face->edge->vert` mapping would mean creating a 1/1 mapping to allow for it, is it worth it?
  */
 static void copy_stable_id_faces(const Mesh &mesh,
-                                 const IndexMask selection,
+                                 const IndexMask &selection,
                                  const OffsetIndices<int> poly_offsets,
                                  const Span<int> vert_mapping,
                                  const bke::AttributeAccessor src_attributes,
@@ -590,7 +590,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
 static void copy_edge_attributes_without_id(
     const Span<int> point_mapping,
     const OffsetIndices<int> offsets,
-    const IndexMask selection,
+    const IndexMask &selection,
     const AnonymousAttributePropagationInfo &propagation_info,
     const bke::AttributeAccessor src_attributes,
     bke::MutableAttributeAccessor dst_attributes)
@@ -622,7 +622,7 @@ static void copy_edge_attributes_without_id(
  * and the duplicate number. This function is used for points when duplicating the edge domain.
  */
 static void copy_stable_id_edges(const Mesh &mesh,
-                                 const IndexMask selection,
+                                 const IndexMask &selection,
                                  const OffsetIndices<int> offsets,
                                  const bke::AttributeAccessor src_attributes,
                                  bke::MutableAttributeAccessor dst_attributes)

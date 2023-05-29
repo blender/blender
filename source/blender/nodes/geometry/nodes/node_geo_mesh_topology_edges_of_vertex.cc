@@ -27,13 +27,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       "The number of edges connected to each vertex");
 }
 
-static void convert_span(const Span<int> src, MutableSpan<int64_t> dst)
-{
-  for (const int i : src.index_range()) {
-    dst[i] = src[i];
-  }
-}
-
 class EdgesOfVertInput final : public bke::MeshFieldInput {
   const Field<int> vert_index_;
   const Field<int> sort_index_;
@@ -51,12 +44,14 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const IndexRange vert_range(mesh.totvert);
     const Span<int2> edges = mesh.edges();
-    const Array<Vector<int>> vert_to_edge_map = bke::mesh_topology::build_vert_to_edge_map(
-        edges, mesh.totvert);
+    Array<int> map_offsets;
+    Array<int> map_indices;
+    const GroupedSpan<int> vert_to_edge_map = bke::mesh::build_vert_to_edge_map(
+        edges, mesh.totvert, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -74,13 +69,12 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
     const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> edge_of_vertex(mask.min_array_size());
-    threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+    mask.foreach_segment(GrainSize(1024), [&](const IndexMaskSegment segment) {
       /* Reuse arrays to avoid allocation. */
-      Array<int64_t> edge_indices;
       Array<float> sort_weights;
       Array<int> sort_indices;
 
-      for (const int selection_i : mask.slice(range)) {
+      for (const int selection_i : segment) {
         const int vert_i = vert_indices[selection_i];
         const int index_in_sort = indices_in_sort[selection_i];
         if (!vert_range.contains(vert_i)) {
@@ -96,13 +90,10 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
 
         const int index_in_sort_wrapped = mod_i(index_in_sort, edges.size());
         if (use_sorting) {
-          /* Retrieve the connected edge indices as 64 bit integers for #materialize_compressed. */
-          edge_indices.reinitialize(edges.size());
-          convert_span(edges, edge_indices);
-
           /* Retrieve a compressed array of weights for each edge. */
           sort_weights.reinitialize(edges.size());
-          all_sort_weights.materialize_compressed(IndexMask(edge_indices),
+          IndexMaskMemory memory;
+          all_sort_weights.materialize_compressed(IndexMask::from_indices<int>(edges, memory),
                                                   sort_weights.as_mutable_span());
 
           /* Sort a separate array of compressed indices corresponding to the compressed weights.
@@ -115,7 +106,7 @@ class EdgesOfVertInput final : public bke::MeshFieldInput {
             return sort_weights[a] < sort_weights[b];
           });
 
-          edge_of_vertex[selection_i] = edge_indices[sort_indices[index_in_sort_wrapped]];
+          edge_of_vertex[selection_i] = edges[sort_indices[index_in_sort_wrapped]];
         }
         else {
           edge_of_vertex[selection_i] = edges[index_in_sort_wrapped];
@@ -162,7 +153,7 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};

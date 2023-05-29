@@ -129,39 +129,37 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void sample_indices_and_lengths(const Span<float> accumulated_lengths,
                                        const Span<float> sample_lengths,
                                        const GeometryNodeCurveSampleMode length_mode,
-                                       const IndexMask mask,
+                                       const IndexMask &mask,
                                        MutableSpan<int> r_segment_indices,
                                        MutableSpan<float> r_length_in_segment)
 {
   const float total_length = accumulated_lengths.last();
   length_parameterize::SampleSegmentHint hint;
 
-  mask.to_best_mask_type([&](const auto mask) {
-    for (const int64_t i : mask) {
-      const float sample_length = length_mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
-                                      sample_lengths[i] * total_length :
-                                      sample_lengths[i];
-      int segment_i;
-      float factor_in_segment;
-      length_parameterize::sample_at_length(accumulated_lengths,
-                                            std::clamp(sample_length, 0.0f, total_length),
-                                            segment_i,
-                                            factor_in_segment,
-                                            &hint);
-      const float segment_start = segment_i == 0 ? 0.0f : accumulated_lengths[segment_i - 1];
-      const float segment_end = accumulated_lengths[segment_i];
-      const float segment_length = segment_end - segment_start;
+  mask.foreach_index_optimized<int>([&](const int i) {
+    const float sample_length = length_mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
+                                    sample_lengths[i] * total_length :
+                                    sample_lengths[i];
+    int segment_i;
+    float factor_in_segment;
+    length_parameterize::sample_at_length(accumulated_lengths,
+                                          std::clamp(sample_length, 0.0f, total_length),
+                                          segment_i,
+                                          factor_in_segment,
+                                          &hint);
+    const float segment_start = segment_i == 0 ? 0.0f : accumulated_lengths[segment_i - 1];
+    const float segment_end = accumulated_lengths[segment_i];
+    const float segment_length = segment_end - segment_start;
 
-      r_segment_indices[i] = segment_i;
-      r_length_in_segment[i] = factor_in_segment * segment_length;
-    }
+    r_segment_indices[i] = segment_i;
+    r_length_in_segment[i] = factor_in_segment * segment_length;
   });
 }
 
 static void sample_indices_and_factors_to_compressed(const Span<float> accumulated_lengths,
                                                      const Span<float> sample_lengths,
                                                      const GeometryNodeCurveSampleMode length_mode,
-                                                     const IndexMask mask,
+                                                     const IndexMask &mask,
                                                      MutableSpan<int> r_segment_indices,
                                                      MutableSpan<float> r_factor_in_segment)
 {
@@ -170,27 +168,23 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
 
   switch (length_mode) {
     case GEO_NODE_CURVE_SAMPLE_FACTOR:
-      mask.to_best_mask_type([&](const auto mask) {
-        for (const int64_t i : IndexRange(mask.size())) {
-          const float length = sample_lengths[mask[i]] * total_length;
-          length_parameterize::sample_at_length(accumulated_lengths,
-                                                std::clamp(length, 0.0f, total_length),
-                                                r_segment_indices[i],
-                                                r_factor_in_segment[i],
-                                                &hint);
-        }
+      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+        const float length = sample_lengths[i] * total_length;
+        length_parameterize::sample_at_length(accumulated_lengths,
+                                              std::clamp(length, 0.0f, total_length),
+                                              r_segment_indices[pos],
+                                              r_factor_in_segment[pos],
+                                              &hint);
       });
       break;
     case GEO_NODE_CURVE_SAMPLE_LENGTH:
-      mask.to_best_mask_type([&](const auto mask) {
-        for (const int64_t i : IndexRange(mask.size())) {
-          const float length = sample_lengths[mask[i]];
-          length_parameterize::sample_at_length(accumulated_lengths,
-                                                std::clamp(length, 0.0f, total_length),
-                                                r_segment_indices[i],
-                                                r_factor_in_segment[i],
-                                                &hint);
-        }
+      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+        const float length = sample_lengths[i];
+        length_parameterize::sample_at_length(accumulated_lengths,
+                                              std::clamp(length, 0.0f, total_length),
+                                              r_segment_indices[pos],
+                                              r_factor_in_segment[pos],
+                                              &hint);
       });
       break;
   }
@@ -222,7 +216,7 @@ class SampleFloatSegmentsFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
     MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
@@ -269,7 +263,7 @@ class SampleCurveFunction : public mf::MultiFunction {
     this->evaluate_source();
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
         2, "Position");
@@ -281,13 +275,13 @@ class SampleCurveFunction : public mf::MultiFunction {
 
     auto return_default = [&]() {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask.indices(), {0, 0, 0});
+        index_mask::masked_fill(sampled_positions, {0, 0, 0}, mask);
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask.indices(), {0, 0, 0});
+        index_mask::masked_fill(sampled_tangents, {0, 0, 0}, mask);
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask.indices(), {0, 0, 0});
+        index_mask::masked_fill(sampled_normals, {0, 0, 0}, mask);
       }
     };
 
@@ -322,23 +316,25 @@ class SampleCurveFunction : public mf::MultiFunction {
     GArray<> src_original_values(source_data_->type());
     GArray<> src_evaluated_values(source_data_->type());
 
-    auto fill_invalid = [&](const IndexMask mask) {
+    auto fill_invalid = [&](const IndexMask &mask) {
       if (!sampled_positions.is_empty()) {
-        sampled_positions.fill_indices(mask.indices(), float3(0));
+        index_mask::masked_fill(sampled_positions, float3(0), mask);
       }
       if (!sampled_tangents.is_empty()) {
-        sampled_tangents.fill_indices(mask.indices(), float3(0));
+        index_mask::masked_fill(sampled_tangents, float3(0), mask);
       }
       if (!sampled_normals.is_empty()) {
-        sampled_normals.fill_indices(mask.indices(), float3(0));
+        index_mask::masked_fill(sampled_normals, float3(0), mask);
       }
       if (!sampled_values.is_empty()) {
-        const CPPType &type = sampled_values.type();
-        type.fill_construct_indices(type.default_value(), sampled_values.data(), mask);
+        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          index_mask::masked_fill<T>(sampled_values.typed<T>(), {}, mask);
+        });
       }
     };
 
-    auto sample_curve = [&](const int curve_i, const IndexMask mask) {
+    auto sample_curve = [&](const int curve_i, const IndexMask &mask) {
       const Span<float> accumulated_lengths = curves.evaluated_lengths_for_curve(curve_i,
                                                                                  cyclic[curve_i]);
       if (accumulated_lengths.is_empty()) {
@@ -364,16 +360,14 @@ class SampleCurveFunction : public mf::MultiFunction {
       if (!sampled_tangents.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_tangents.slice(evaluated_points), indices, factors, mask, sampled_tangents);
-        for (const int64_t i : mask) {
-          sampled_tangents[i] = math::normalize(sampled_tangents[i]);
-        }
+        mask.foreach_index(
+            [&](const int i) { sampled_tangents[i] = math::normalize(sampled_tangents[i]); });
       }
       if (!sampled_normals.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_normals.slice(evaluated_points), indices, factors, mask, sampled_normals);
-        for (const int64_t i : mask) {
-          sampled_normals[i] = math::normalize(sampled_normals[i]);
-        }
+        mask.foreach_index(
+            [&](const int i) { sampled_normals[i] = math::normalize(sampled_normals[i]); });
       }
       if (!sampled_values.is_empty()) {
         const IndexRange points = points_by_curve[curve_i];
@@ -400,24 +394,32 @@ class SampleCurveFunction : public mf::MultiFunction {
       }
     }
     else {
-      Vector<int64_t> invalid_indices;
-      MultiValueMap<int, int64_t> indices_per_curve;
+      Vector<int> invalid_indices;
+      VectorSet<int> used_curves;
       devirtualize_varray(curve_indices, [&](const auto curve_indices) {
-        for (const int64_t i : mask) {
+        mask.foreach_index([&](const int i) {
           const int curve_i = curve_indices[i];
           if (curves.curves_range().contains(curve_i)) {
-            indices_per_curve.add(curve_i, i);
+            used_curves.add(curve_i);
           }
           else {
             invalid_indices.append(i);
           }
-        }
+        });
       });
 
-      for (const int curve_i : indices_per_curve.keys()) {
-        sample_curve(curve_i, IndexMask(indices_per_curve.lookup(curve_i)));
+      IndexMaskMemory memory;
+      Array<IndexMask> mask_by_curve(used_curves.size());
+      IndexMask::from_groups<int>(
+          mask,
+          memory,
+          [&](const int i) { return used_curves.index_of(curve_indices[i]); },
+          mask_by_curve);
+
+      for (const int i : mask_by_curve.index_range()) {
+        sample_curve(used_curves[i], mask_by_curve[i]);
       }
-      fill_invalid(IndexMask(invalid_indices));
+      fill_invalid(IndexMask::from_indices<int>(invalid_indices, memory));
     }
   }
 

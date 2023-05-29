@@ -16,20 +16,18 @@ namespace blender::nodes {
 template<typename T>
 void copy_with_checked_indices(const VArray<T> &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                MutableSpan<T> dst)
 {
   const IndexRange src_range = src.index_range();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        if (src_range.contains(index)) {
-          dst[i] = src[index];
-        }
-        else {
-          dst[i] = {};
-        }
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      if (src_range.contains(index)) {
+        dst[i] = src[index];
+      }
+      else {
+        dst[i] = {};
       }
     });
   });
@@ -37,7 +35,7 @@ void copy_with_checked_indices(const VArray<T> &src,
 
 void copy_with_checked_indices(const GVArray &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                GMutableSpan dst)
 {
   bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
@@ -171,16 +169,14 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 template<typename T>
 void copy_with_clamped_indices(const VArray<T> &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                MutableSpan<T> dst)
 {
   const int last_index = src.index_range().last();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        dst[i] = src[std::clamp(index, 0, last_index)];
-      }
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      dst[i] = src[std::clamp(index, 0, last_index)];
     });
   });
 }
@@ -236,7 +232,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");

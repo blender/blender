@@ -40,7 +40,7 @@
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #23:Greek (Ελληνικά):el_GR
 35:Esperanto (Esperanto):eo
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #36:Spanish from Spain (Español de España):es_ES
-# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian (Eestlane):et_EE
+# Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian (Eesti keel):et_EE
 42:Basque (Euskara):eu_EU
 26:Persian (ﯽﺳﺭﺎﻓ):fa_IR
 6:Finnish (Suomi):fi_FI

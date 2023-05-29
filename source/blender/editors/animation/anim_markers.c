@@ -1416,7 +1416,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
  * xmin, ymin
  * xmax, ymax
  *
- * customdata: the wmGesture pointer, with subwindow
+ * customdata: the wmGesture pointer, with sub-window.
  *
  * callbacks:
  *

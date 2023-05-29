@@ -14,7 +14,6 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_index_mask_ops.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -1350,9 +1349,8 @@ void ED_mesh_split_faces(Mesh *mesh)
     }
   });
 
-  Vector<int64_t> split_indices;
-  const IndexMask split_mask = index_mask_ops::find_indices_from_virtual_array(
-      sharp_edges.index_range(), VArray<bool>::ForSpan(sharp_edges), 4096, split_indices);
+  IndexMaskMemory memory;
+  const IndexMask split_mask = IndexMask::from_bools(sharp_edges, memory);
   if (split_mask.is_empty()) {
     return;
   }

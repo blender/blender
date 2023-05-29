@@ -1744,7 +1744,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     uniforms.append(uniform);
   }
 
-  /** Prepare textures and uniform blocks.
+  /* Prepare textures and uniform blocks.
    * Perform across both resource categories and extract both
    * texture samplers and image types. */
 

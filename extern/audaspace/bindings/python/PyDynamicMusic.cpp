@@ -60,7 +60,7 @@ DynamicMusic_dealloc(DynamicMusicP* self)
 }
 
 PyDoc_STRVAR(M_aud_DynamicMusic_addScene_doc,
-	".. classmethod:: addScene(scene)\n\n"
+	".. method:: addScene(scene)\n\n"
 	"   Adds a new scene.\n\n"
 	"   :arg scene: The scene sound.\n"
 	"   :type scene: :class:`Sound`\n"
@@ -90,7 +90,7 @@ DynamicMusic_addScene(DynamicMusicP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_DynamicMusic_addTransition_doc,
-	".. classmethod:: addTransition(ini, end, transition)\n\n"
+	".. method:: addTransition(ini, end, transition)\n\n"
 	"   Adds a new scene.\n\n"
 	"   :arg ini: the initial scene foor the transition.\n"
 	"   :type ini: int\n"
@@ -125,7 +125,7 @@ DynamicMusic_addTransition(DynamicMusicP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_DynamicMusic_resume_doc,
-	".. classmethod:: resume()\n\n"
+	".. method:: resume()\n\n"
 	"   Resumes playback of the scene.\n\n"
 	"   :return: Whether the action succeeded.\n"
 	"   :rtype: bool");
@@ -145,7 +145,7 @@ DynamicMusic_resume(DynamicMusicP* self)
 }
 
 PyDoc_STRVAR(M_aud_DynamicMusic_pause_doc,
-	".. classmethod:: pause()\n\n"
+	".. method:: pause()\n\n"
 	"   Pauses playback of the scene.\n\n"
 	"   :return: Whether the action succeeded.\n"
 	"   :rtype: bool");
@@ -165,7 +165,7 @@ DynamicMusic_pause(DynamicMusicP* self)
 }
 
 PyDoc_STRVAR(M_aud_DynamicMusic_stop_doc,
-	".. classmethod:: stop()\n\n"
+	".. method:: stop()\n\n"
 	"   Stops playback of the scene.\n\n"
 	"   :return: Whether the action succeeded.\n"
 	"   :rtype: bool\n\n");

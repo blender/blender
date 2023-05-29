@@ -793,14 +793,14 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
-  /* add drop boxes */
+  /* Add drop boxes. */
   {
     ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);
 
-  /* add topbar */
+  /* Add top-bar. */
   ED_screen_global_areas_refresh(win);
 }
 
@@ -1398,7 +1398,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 
 #if defined(__APPLE__) || defined(WIN32)
-            /* OSX and Win32 don't return to the mainloop while resize */
+            /* MACOS and WIN32 don't return to the main-loop while resize. */
             wm_window_timer(C);
             wm_event_do_handlers(C);
             wm_event_do_notifiers(C);

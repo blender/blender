@@ -451,10 +451,10 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
 
 static void call_convert_to_uninitialized_fn(const GVArray &from,
                                              const mf::MultiFunction &fn,
-                                             const IndexMask mask,
+                                             const IndexMask &mask,
                                              GMutableSpan to)
 {
-  mf::ParamsBuilder params{fn, mask.min_array_size()};
+  mf::ParamsBuilder params{fn, &mask};
   params.add_readonly_single_input(from);
   params.add_uninitialized_single_output(to);
   mf::ContextBuilder context;
@@ -515,13 +515,13 @@ class GVArray_For_ConvertedGVArray : public GVArrayImpl {
     from_type_.destruct(buffer);
   }
 
-  void materialize(const IndexMask mask, void *dst) const override
+  void materialize(const IndexMask &mask, void *dst) const override
   {
     type_->destruct_n(dst, mask.min_array_size());
     this->materialize_to_uninitialized(mask, dst);
   }
 
-  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
+  void materialize_to_uninitialized(const IndexMask &mask, void *dst) const override
   {
     call_convert_to_uninitialized_fn(varray_,
                                      *old_to_new_conversions_.multi_function,
@@ -573,13 +573,13 @@ class GVMutableArray_For_ConvertedGVMutableArray : public GVMutableArrayImpl {
     varray_.set_by_relocate(index, buffer);
   }
 
-  void materialize(const IndexMask mask, void *dst) const override
+  void materialize(const IndexMask &mask, void *dst) const override
   {
     type_->destruct_n(dst, mask.min_array_size());
     this->materialize_to_uninitialized(mask, dst);
   }
 
-  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
+  void materialize_to_uninitialized(const IndexMask &mask, void *dst) const override
   {
     call_convert_to_uninitialized_fn(varray_,
                                      *old_to_new_conversions_.multi_function,

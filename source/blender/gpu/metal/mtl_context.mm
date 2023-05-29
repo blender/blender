@@ -1148,7 +1148,7 @@ bool MTLContext::ensure_buffer_bindings(
       /* buffer(N) index of where to bind the UBO. */
       const uint32_t buffer_index = ubo.buffer_index;
       id<MTLBuffer> ubo_buffer = nil;
-      int ubo_size = 0;
+      size_t ubo_size = 0;
 
       bool bind_dummy_buffer = false;
       if (this->pipeline_state.ubo_bindings[ubo_location].bound) {
@@ -1196,7 +1196,7 @@ bool MTLContext::ensure_buffer_bindings(
             if (ubo_size < expected_size) {
               MTL_LOG_UBO_ERROR(
                   "[Error][UBO] UBO (UBO Name: %s) bound at location: %d (buffer[[%d]]) with size "
-                  "%d (Expected size "
+                  "%lu (Expected size "
                   "%d)  (Shader Name: %s) is too small -- binding NULL buffer. This is likely an "
                   "over-binding, which is not used,  but we need this to avoid validation "
                   "issues\n",
@@ -1270,7 +1270,7 @@ bool MTLContext::ensure_buffer_bindings(
       /* buffer(N) index of where to bind the SSBO. */
       const uint32_t buffer_index = ssbo.buffer_index;
       id<MTLBuffer> ssbo_buffer = nil;
-      int ssbo_size = 0;
+      size_t ssbo_size = 0;
       UNUSED_VARS_NDEBUG(ssbo_size);
 
       if (this->pipeline_state.ssbo_bindings[ssbo_location].bound) {
@@ -1378,7 +1378,7 @@ bool MTLContext::ensure_buffer_bindings(
       /* buffer(N) index of where to bind the UBO. */
       const uint32_t buffer_index = ubo.buffer_index;
       id<MTLBuffer> ubo_buffer = nil;
-      int ubo_size = 0;
+      size_t ubo_size = 0;
 
       bool bind_dummy_buffer = false;
       if (this->pipeline_state.ubo_bindings[ubo_location].bound) {
@@ -1700,12 +1700,12 @@ void MTLContext::ensure_texture_bindings(
         }
         else {
           /* Populate argument buffer with current global sampler bindings. */
-          int size = [argument_encoder encodedLength];
-          int alignment = max_uu([argument_encoder alignment], 256);
-          int size_align_delta = (size % alignment);
-          int aligned_alloc_size = ((alignment > 1) && (size_align_delta > 0)) ?
-                                       size + (alignment - (size % alignment)) :
-                                       size;
+          size_t size = [argument_encoder encodedLength];
+          size_t alignment = max_uu([argument_encoder alignment], 256);
+          size_t size_align_delta = (size % alignment);
+          size_t aligned_alloc_size = ((alignment > 1) && (size_align_delta > 0)) ?
+                                          size + (alignment - (size % alignment)) :
+                                          size;
 
           /* Allocate buffer to store encoded sampler arguments. */
           encoder_buffer = MTLContext::get_global_memory_manager()->allocate(aligned_alloc_size,
@@ -1921,12 +1921,12 @@ void MTLContext::ensure_texture_bindings(
         }
         else {
           /* Populate argument buffer with current global sampler bindings. */
-          int size = [argument_encoder encodedLength];
-          int alignment = max_uu([argument_encoder alignment], 256);
-          int size_align_delta = (size % alignment);
-          int aligned_alloc_size = ((alignment > 1) && (size_align_delta > 0)) ?
-                                       size + (alignment - (size % alignment)) :
-                                       size;
+          size_t size = [argument_encoder encodedLength];
+          size_t alignment = max_uu([argument_encoder alignment], 256);
+          size_t size_align_delta = (size % alignment);
+          size_t aligned_alloc_size = ((alignment > 1) && (size_align_delta > 0)) ?
+                                          size + (alignment - (size % alignment)) :
+                                          size;
 
           /* Allocate buffer to store encoded sampler arguments. */
           encoder_buffer = MTLContext::get_global_memory_manager()->allocate(aligned_alloc_size,

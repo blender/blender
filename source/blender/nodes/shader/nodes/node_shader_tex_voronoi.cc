@@ -238,7 +238,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -286,7 +286,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               float2 pos;
@@ -304,7 +304,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -318,7 +318,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               float2 pos;
@@ -336,7 +336,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -351,7 +351,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -371,7 +371,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
         }
@@ -390,7 +390,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               noise::voronoi_f1(vector[i] * scale[i],
@@ -406,7 +406,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
               if (calc_position) {
                 r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -420,7 +420,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               noise::voronoi_f2(vector[i] * scale[i],
@@ -436,7 +436,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
               if (calc_position) {
                 r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -451,7 +451,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -469,7 +469,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
               if (calc_position) {
                 r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
-            }
+            });
             break;
           }
         }
@@ -491,7 +491,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
@@ -515,7 +515,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -532,7 +532,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
@@ -556,7 +556,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -574,7 +574,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
@@ -600,7 +600,7 @@ class VoronoiMinowskiFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
         }
@@ -675,7 +675,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -719,7 +719,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float p = w[i] * scale[i];
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -734,7 +734,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
               if (calc_w) {
                 r_w[i] = safe_divide(r_w[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -747,7 +747,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float p = w[i] * scale[i];
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -762,7 +762,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
               if (calc_w) {
                 r_w[i] = safe_divide(r_w[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -776,7 +776,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float p = w[i] * scale[i];
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
@@ -793,7 +793,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
               if (calc_w) {
                 r_w[i] = safe_divide(r_w[i], scale[i]);
               }
-            }
+            });
             break;
           }
         }
@@ -811,7 +811,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               float2 pos;
@@ -829,7 +829,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -842,7 +842,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               float2 pos;
@@ -860,7 +860,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -874,7 +874,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
@@ -894,7 +894,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                 pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
-            }
+            });
             break;
           }
         }
@@ -912,7 +912,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               noise::voronoi_f1(vector[i] * scale[i],
@@ -928,7 +928,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
               if (calc_position) {
                 r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -941,7 +941,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_distance = !r_distance.is_empty();
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               float3 col;
               noise::voronoi_f2(vector[i] * scale[i],
@@ -957,7 +957,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
               if (calc_position) {
                 r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -972,7 +972,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
                 const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
                 float3 col;
@@ -990,7 +990,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                 if (calc_position) {
                   r_position[i] = math::safe_divide(r_position[i], scale[i]);
                 }
-              }
+              });
             }
 
             break;
@@ -1013,7 +1013,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
@@ -1037,7 +1037,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_F2: {
@@ -1053,7 +1053,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               float3 col;
@@ -1077,7 +1077,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
           case SHD_VORONOI_SMOOTH_F1: {
@@ -1094,7 +1094,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
             const bool calc_color = !r_color.is_empty();
             const bool calc_position = !r_position.is_empty();
             const bool calc_w = !r_w.is_empty();
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float smth = std::min(std::max(smoothness[i] / 2.0f, 0.0f), 0.5f);
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
@@ -1120,7 +1120,7 @@ class VoronoiMetricFunction : public mf::MultiFunction {
                   r_w[i] = pos.w;
                 }
               }
-            }
+            });
             break;
           }
         }
@@ -1183,7 +1183,7 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -1213,20 +1213,20 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
         switch (feature_) {
           case SHD_VORONOI_DISTANCE_TO_EDGE: {
             MutableSpan<float> r_distance = get_r_distance(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float p = w[i] * scale[i];
               noise::voronoi_distance_to_edge(p, rand, &r_distance[i]);
-            }
+            });
             break;
           }
           case SHD_VORONOI_N_SPHERE_RADIUS: {
             MutableSpan<float> r_radius = get_r_radius(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float p = w[i] * scale[i];
               noise::voronoi_n_sphere_radius(p, rand, &r_radius[i]);
-            }
+            });
             break;
           }
         }
@@ -1239,20 +1239,20 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
         switch (feature_) {
           case SHD_VORONOI_DISTANCE_TO_EDGE: {
             MutableSpan<float> r_distance = get_r_distance(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float2 p = float2(vector[i].x, vector[i].y) * scale[i];
               noise::voronoi_distance_to_edge(p, rand, &r_distance[i]);
-            }
+            });
             break;
           }
           case SHD_VORONOI_N_SPHERE_RADIUS: {
             MutableSpan<float> r_radius = get_r_radius(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float2 p = float2(vector[i].x, vector[i].y) * scale[i];
               noise::voronoi_n_sphere_radius(p, rand, &r_radius[i]);
-            }
+            });
             break;
           }
         }
@@ -1265,18 +1265,18 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
         switch (feature_) {
           case SHD_VORONOI_DISTANCE_TO_EDGE: {
             MutableSpan<float> r_distance = get_r_distance(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               noise::voronoi_distance_to_edge(vector[i] * scale[i], rand, &r_distance[i]);
-            }
+            });
             break;
           }
           case SHD_VORONOI_N_SPHERE_RADIUS: {
             MutableSpan<float> r_radius = get_r_radius(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               noise::voronoi_n_sphere_radius(vector[i] * scale[i], rand, &r_radius[i]);
-            }
+            });
             break;
           }
         }
@@ -1290,20 +1290,20 @@ class VoronoiEdgeFunction : public mf::MultiFunction {
         switch (feature_) {
           case SHD_VORONOI_DISTANCE_TO_EDGE: {
             MutableSpan<float> r_distance = get_r_distance(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               noise::voronoi_distance_to_edge(p, rand, &r_distance[i]);
-            }
+            });
             break;
           }
           case SHD_VORONOI_N_SPHERE_RADIUS: {
             MutableSpan<float> r_radius = get_r_radius(param++);
-            for (int64_t i : mask) {
+            mask.foreach_index([&](const int64_t i) {
               const float rand = std::min(std::max(randomness[i], 0.0f), 1.0f);
               const float4 p = float4(vector[i].x, vector[i].y, vector[i].z, w[i]) * scale[i];
               noise::voronoi_n_sphere_radius(p, rand, &r_radius[i]);
-            }
+            });
             break;
           }
         }

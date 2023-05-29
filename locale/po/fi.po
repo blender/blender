@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1182,10 +1182,6 @@ msgid "Shape Key data-blocks"
 msgstr "Muotoavaimen data-palikat"
 
 
-msgid "Simulations"
-msgstr "Simulaatiot"
-
-
 msgid "Sounds"
 msgstr "Äänet"
 
@@ -2082,20 +2078,16 @@ msgid "Fill"
 msgstr "Täytä"
 
 
-msgid "Thickness"
-msgstr "Paksuus"
-
-
-msgid "Push"
-msgstr "Työnnä"
-
-
 msgid "Draw"
 msgstr "Piirrä"
 
 
 msgid "Blur"
 msgstr "Sumenna"
+
+
+msgid "Thickness"
+msgstr "Paksuus"
 
 
 msgid "Iterations"
@@ -4550,6 +4542,10 @@ msgid "Show Scene data-blocks"
 msgstr "Näytä kohtauksen data-palikat"
 
 
+msgid "Simulations"
+msgstr "Simulaatiot"
+
+
 msgid "Show Simulation data-blocks"
 msgstr "Näytä simulaation data-palikat"
 
@@ -4740,6 +4736,10 @@ msgstr "Automaattinen maskausmateriaali"
 
 msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
+
+
+msgid "Push"
+msgstr "Työnnä"
 
 
 msgid "Normals"
@@ -5083,10 +5083,6 @@ msgstr "RBG XYZ:ksi"
 
 msgid "Texture Coordinates"
 msgstr "Tekstuurikoordinaatit"
-
-
-msgid "Canvas"
-msgstr "Kangas"
 
 
 msgid "Particle UV"
@@ -6660,10 +6656,6 @@ msgid "Volume Info"
 msgstr "Volyymi-info"
 
 
-msgid "Pixel Size"
-msgstr "Pikselin koko"
-
-
 msgid "Texture Node"
 msgstr "Tekstuurinoodi"
 
@@ -7519,6 +7511,14 @@ msgid "Save Sequence"
 msgstr "Tallenna sekvenssi"
 
 
+msgid "Canvas"
+msgstr "Kangas"
+
+
+msgid "Pixel Size"
+msgstr "Pikselin koko"
+
+
 msgid "3D"
 msgstr "3D"
 
@@ -7716,41 +7716,6 @@ msgstr "Aktiivinen sarja"
 
 msgid "Show Selection"
 msgstr "Näytä valinta"
-
-
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Toiminta:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Kamera:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Kokoelma:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Konsoli:"
-
-
-msgctxt "Operator"
-msgid "Curves:"
-msgstr "Käyrät:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Käyrä:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Fontti:"
 
 
 msgid "Select Mouse"
@@ -10038,10 +10003,6 @@ msgid "Height:"
 msgstr "Korkeus:"
 
 
-msgid "Move Catalog"
-msgstr "Elokuvakatalogi"
-
-
 msgid "File path"
 msgstr "Tiedostopolku"
 
@@ -10878,20 +10839,20 @@ msgid "Bottom Height"
 msgstr "Pohjan korkeus"
 
 
-msgid "The distance between the bottom point and the X axis"
-msgstr "Pohjan pisteen ja X-akselin välinen etäisyys"
-
-
 msgid "Top Height"
 msgstr "Huipun korkeus"
 
 
-msgid "The distance between the top point and the X axis"
-msgstr "Huipun pisteen ja X-akselin välinen etäisyys"
-
-
 msgid "Point 4"
 msgstr "Piste 4"
+
+
+msgid "The distance between the bottom point and the X axis"
+msgstr "Pohjan pisteen ja X-akselin välinen etäisyys"
+
+
+msgid "The distance between the top point and the X axis"
+msgstr "Huipun pisteen ja X-akselin välinen etäisyys"
 
 
 msgid "Start Radius"
@@ -12035,10 +11996,6 @@ msgid "Japanese (日本語)"
 msgstr "Japani (日本語))"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Hollanti (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Italia (Italiano)"
 
@@ -12159,10 +12116,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Heprea (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Viro (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
 
@@ -12183,24 +12136,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Kyriilinen uzbekki (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Vietnam (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "Baski (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "Kazakki (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

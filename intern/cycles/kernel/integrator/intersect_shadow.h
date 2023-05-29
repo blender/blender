@@ -34,6 +34,9 @@ ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
   Intersection isect;
   const bool opaque_hit = scene_intersect(kg, ray, visibility & opaque_mask, &isect);
 
+  /* Only record the number of hits if nothing was hit, so that the shadow shading kernel does not
+   * consider any intersections. There is no need to write anything to the state if the hit is
+   * opaque because in this case the path is terminated. */
   if (!opaque_hit) {
     INTEGRATOR_STATE_WRITE(state, shadow_path, num_hits) = 0;
   }
@@ -144,10 +147,7 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;
   integrator_state_read_shadow_ray(state, &ray);
-  ray.self.object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, object);
-  ray.self.prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, prim);
-  ray.self.light_object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, object);
-  ray.self.light_prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, prim);
+  integrator_state_read_shadow_ray_self(kg, state, &ray);
   /* Compute visibility. */
   const uint visibility = integrate_intersect_shadow_visibility(kg, state);
 

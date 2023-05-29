@@ -288,7 +288,7 @@ ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
   return kernel_data_fetch(objects, object).pass_id;
 }
 
-/* Lightgroup of lamp */
+/* Light-group of lamp. */
 
 ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
 {
@@ -298,7 +298,7 @@ ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
   return kernel_data_fetch(lights, lamp).lightgroup;
 }
 
-/* Lightgroup of object */
+/* Light-group of object. */
 
 ccl_device_inline int object_lightgroup(KernelGlobals kg, int object)
 {

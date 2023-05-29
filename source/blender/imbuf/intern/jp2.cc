@@ -1206,7 +1206,7 @@ bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int /*flags*/
 
   /* compression ratio */
   /* invert range, from 10-100, 100-1
-   * Where jpeg see's 1 and highest quality (lossless) and 100 is very low quality. */
+   * Where JPEG see's 1 and highest quality (lossless) and 100 is very low quality. */
   parameters.tcp_rates[0] = ((100 - quality) / 90.0f * 99.0f) + 1;
 
   parameters.tcp_numlayers = 1; /* only one resolution */

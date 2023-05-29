@@ -34,6 +34,18 @@
 
 #include "console_intern.h"
 
+/* TODO: Text operations not yet supported for console:
+ * Mac KM_OSKEY-arrow to beginning/end of line
+ * Mac KM_OSKEY-backspace to start of line
+ * Mac KM_OSKEY-delete to end of line
+ * Text cursor insertion by mouse
+ * Mouse drag to select does not change text cursor position.
+ * Shift-ctrl-arrow to select word
+ * ctrl-x to copy to clipboard and delete.
+ * ctrl-a to select all
+ * ctrl-z，shift-crtrl-z undo/redo
+ */
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */

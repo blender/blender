@@ -531,24 +531,19 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
   }
 }
 
-void BKE_pointcloud_from_mesh(const Mesh *me, PointCloud *pointcloud)
-{
-  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
-  pointcloud->totpoint = me->totvert;
-  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, me->totvert);
-}
-
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
+  const Mesh *mesh_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
 
   PointCloud *pointcloud = (PointCloud *)BKE_pointcloud_add(bmain, ob->id.name + 2);
 
-  BKE_pointcloud_from_mesh(me_eval, pointcloud);
+  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
+  pointcloud->totpoint = mesh_eval->totvert;
+  CustomData_merge(&mesh_eval->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->totvert);
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 
@@ -559,27 +554,23 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   BKE_object_free_derived_caches(ob);
 }
 
-void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
-{
-  me->totvert = pointcloud->totpoint;
-  CustomData_merge(&pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, pointcloud->totpoint);
-}
-
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  PointCloud *pointcloud_eval = (PointCloud *)ob_eval->runtime.data_eval;
+  const PointCloud *pointcloud_eval = (const PointCloud *)ob_eval->runtime.data_eval;
 
-  Mesh *me = BKE_mesh_add(bmain, ob->id.name + 2);
+  Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
-  BKE_mesh_from_pointcloud(pointcloud_eval, me);
+  mesh->totvert = pointcloud_eval->totpoint;
+  CustomData_merge(
+      &pointcloud_eval->pdata, &mesh->vdata, CD_MASK_PROP_ALL, pointcloud_eval->totpoint);
 
-  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)me);
+  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
 
   id_us_min(&((PointCloud *)ob->data)->id);
-  ob->data = me;
+  ob->data = mesh;
   ob->type = OB_MESH;
 
   BKE_object_free_derived_caches(ob);

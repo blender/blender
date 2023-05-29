@@ -37,15 +37,8 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
-  if (ls.shader & SHADER_EXCLUDE_ANY) {
-    if (((ls.shader & SHADER_EXCLUDE_DIFFUSE) && (path_flag & PATH_RAY_DIFFUSE)) ||
-        ((ls.shader & SHADER_EXCLUDE_GLOSSY) &&
-         ((path_flag & (PATH_RAY_GLOSSY | PATH_RAY_REFLECT)) ==
-          (PATH_RAY_GLOSSY | PATH_RAY_REFLECT))) ||
-        ((ls.shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)) ||
-        ((ls.shader & SHADER_EXCLUDE_SCATTER) && (path_flag & PATH_RAY_VOLUME_SCATTER)))
-      return;
+  if (!is_light_shader_visible_to_path(ls.shader, path_flag)) {
+    return;
   }
 #endif
 

@@ -290,7 +290,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float dir[3];
   float dir3[3] = {0.0f, 0.0f, 0.0f};
 
-  float *areas;
+  float *areas = nullptr;
 
   SCULPT_vertex_check_origdata(ss, BKE_pbvh_make_vref(intptr_t(v)));
 
@@ -764,7 +764,6 @@ void SCULPT_smooth(
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;
-  PBVHType type = BKE_pbvh_type(ss->pbvh);
   int iteration, count;
   float last;
 
@@ -772,15 +771,8 @@ void SCULPT_smooth(
   SCULPT_smooth_undo_push(ob, nodes);
 
   /* PBVH_FACES needs ss->epmap. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->epmap) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  mesh->edges().size(),
-                                  mesh->polys(),
-                                  mesh->corner_edges().data(),
-                                  mesh->corner_edges().size());
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->epmap.is_empty()) {
+    SCULPT_ensure_epmap(ss);
   }
 
   CLAMP(bstrength, 0.0f, 1.0f);
@@ -788,7 +780,7 @@ void SCULPT_smooth(
   count = int(bstrength * max_iterations);
   last = max_iterations * (bstrength - count * fract);
 
-  if (type == PBVH_FACES && !ss->pmap) {
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->pmap.is_empty()) {
     BLI_assert_msg(0, "sculpt smooth: pmap missing");
     return;
   }

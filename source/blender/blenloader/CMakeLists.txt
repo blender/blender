@@ -43,7 +43,7 @@ set(SRC
   intern/versioning_250.c
   intern/versioning_260.c
   intern/versioning_270.c
-  intern/versioning_280.c
+  intern/versioning_280.cc
   intern/versioning_290.cc
   intern/versioning_300.cc
   intern/versioning_400.cc

@@ -185,7 +185,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
   return MTLPixelFormatRGBA8Unorm;
 }
 
-int get_mtl_format_bytesize(MTLPixelFormat tex_format)
+size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
 {
   switch (tex_format) {
     case MTLPixelFormatRGBA8Uint:

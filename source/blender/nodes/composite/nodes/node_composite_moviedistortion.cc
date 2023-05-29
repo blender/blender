@@ -5,8 +5,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BLT_translation.h"
-
 #include "BLI_string_utf8.h"
 
 #include "BKE_context.h"

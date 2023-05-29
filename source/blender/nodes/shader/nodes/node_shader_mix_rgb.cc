@@ -111,7 +111,7 @@ class MixRGBFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1,
@@ -121,15 +121,13 @@ class MixRGBFunction : public mf::MultiFunction {
     MutableSpan<ColorGeometry4f> results = params.uninitialized_single_output<ColorGeometry4f>(
         3, "Color");
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       results[i] = col1[i];
       ramp_blend(type_, results[i], clamp_f(fac[i], 0.0f, 1.0f), col2[i]);
-    }
+    });
 
     if (clamp_) {
-      for (int64_t i : mask) {
-        clamp_v3(results[i], 0.0f, 1.0f);
-      }
+      mask.foreach_index([&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
     }
   }
 };

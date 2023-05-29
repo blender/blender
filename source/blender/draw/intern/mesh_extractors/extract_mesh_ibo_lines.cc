@@ -119,14 +119,14 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_lines_iter_loose_edge_bm(const MeshRenderData *mr,
                                              const BMEdge *eed,
-                                             const int ledge_index,
+                                             const int loose_edge_i,
                                              void *tls_data)
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
-  const int l_index_offset = mr->edge_len + ledge_index;
+  const int l_index_offset = mr->edge_len + loose_edge_i;
   if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-    const int l_index = mr->loop_len + ledge_index * 2;
+    const int l_index = mr->loop_len + loose_edge_i * 2;
     GPU_indexbuf_set_line_verts(elb, l_index_offset, l_index, l_index + 1);
   }
   else {
@@ -138,15 +138,15 @@ static void extract_lines_iter_loose_edge_bm(const MeshRenderData *mr,
 
 static void extract_lines_iter_loose_edge_mesh(const MeshRenderData *mr,
                                                const int2 /*edge*/,
-                                               const int ledge_index,
+                                               const int loose_edge_i,
                                                void *tls_data)
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
-  const int l_index_offset = mr->edge_len + ledge_index;
-  const int e_index = mr->loose_edges[ledge_index];
+  const int l_index_offset = mr->edge_len + loose_edge_i;
+  const int e_index = mr->loose_edges[loose_edge_i];
   if (is_edge_visible(data, e_index)) {
-    const int l_index = mr->loop_len + ledge_index * 2;
+    const int l_index = mr->loop_len + loose_edge_i * 2;
     GPU_indexbuf_set_line_verts(elb, l_index_offset, l_index, l_index + 1);
   }
   else {

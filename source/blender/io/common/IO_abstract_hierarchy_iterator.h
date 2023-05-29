@@ -69,7 +69,7 @@ struct HierarchyContext {
 
   /*********** Determined during writer creation: ***************/
   float parent_matrix_inv_world[4][4]; /* Inverse of the parent's world matrix. */
-  std::string export_path; /* Hierarchical path, such as "/grandparent/parent/objectname". */
+  std::string export_path; /* Hierarchical path, such as "/grandparent/parent/object_name". */
   ParticleSystem *particle_system; /* Only set for particle/hair writers. */
 
   /* Hierarchical path of the object this object is duplicating; only set when this object should

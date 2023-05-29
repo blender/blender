@@ -217,7 +217,8 @@ struct FilmData {
   int2 offset;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent;
-  /** Sub-pixel offset applied to the window matrix.
+  /**
+   * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
    * NOTE: The origin is the center of the lower left film pixel of the area covered by a render
@@ -354,8 +355,8 @@ enum eVelocityStep : uint32_t {
 };
 
 struct VelocityObjectIndex {
-  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;
 
@@ -367,11 +368,11 @@ BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
   /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 len;
+  packed_int3 len;
 
   int _pad0;
 

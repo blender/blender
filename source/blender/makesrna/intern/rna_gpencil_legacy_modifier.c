@@ -3968,7 +3968,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Image Boundary Trimming",
-      "Trim all edges right at the boundary of image(including overscan region)");
+      "Trim all edges right at the boundary of image (including overscan region)");
 
   prop = RNA_def_property(srna, "use_back_face_culling", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_USE_BACK_FACE_CULLING);

@@ -104,47 +104,7 @@ void BKE_curvemapping_free(CurveMapping *cumap)
 {
   if (cumap) {
     BKE_curvemapping_free_data(cumap);
-    cumap->flag |= CUMA_IS_FREED;
     MEM_freeN(cumap);
-  }
-}
-
-static void *my_dupalloc_id(void *mem, const char *tag)
-{
-  size_t size = MEM_allocN_len(mem);
-
-  void *ret = MEM_mallocN(size, tag);
-  memcpy(ret, mem, size);
-
-  return ret;
-};
-
-void BKE_curvemapping_copy_data_tag_ex(CurveMapping *target,
-                                       const CurveMapping *cumap,
-                                       const char *tag)
-{
-  int a;
-
-  bool not_cache = !(target->flag & CUMA_PART_OF_CACHE);
-
-  *target = *cumap;
-
-  if (not_cache) {
-    target->flag &= ~CUMA_PART_OF_CACHE;
-  }
-
-  target->cache_users = 0;
-
-  for (a = 0; a < CM_TOT; a++) {
-    if (cumap->cm[a].curve) {
-      target->cm[a].curve = my_dupalloc_id(cumap->cm[a].curve, tag);
-    }
-    if (cumap->cm[a].table) {
-      target->cm[a].table = my_dupalloc_id(cumap->cm[a].table, tag);
-    }
-    if (cumap->cm[a].premultable) {
-      target->cm[a].premultable = my_dupalloc_id(cumap->cm[a].premultable, tag);
-    }
   }
 }
 
@@ -152,13 +112,7 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
 
-  bool not_cache = !(target->flag & CUMA_PART_OF_CACHE);
-
   *target = *cumap;
-
-  if (not_cache) {
-    target->flag &= ~CUMA_PART_OF_CACHE;
-  }
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
@@ -178,8 +132,6 @@ CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap)
   if (cumap) {
     CurveMapping *cumapn = MEM_dupallocN(cumap);
     BKE_curvemapping_copy_data(cumapn, cumap);
-    cumapn->flag &= ~CUMA_PART_OF_CACHE;
-    cumapn->cache_users = 0;
     return cumapn;
   }
   return NULL;
@@ -335,15 +287,6 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
     case CURVE_PRESET_BELL:
       cuma->totpoint = 3;
       break;
-    case CURVE_PRESET_POW2:
-      cuma->totpoint = 5;
-      break;
-    case CURVE_PRESET_POW3:
-      cuma->totpoint = 6;
-      break;
-    case CURVE_PRESET_POW15:
-      cuma->totpoint = 6;
-      break;
   }
 
   cuma->curve = MEM_callocN(cuma->totpoint * sizeof(CurveMapPoint), "curve points");
@@ -440,60 +383,8 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[2].x = 1.0f;
       cuma->curve[2].y = 0.025f;
       break;
-    case CURVE_PRESET_POW2:
-      cuma->curve[0].x = 0.0f;
-      cuma->curve[0].y = 0.0f;
-
-      cuma->curve[1].x = 0.25f;
-      cuma->curve[1].y = 0.0625f;
-
-      cuma->curve[2].x = 0.5;
-      cuma->curve[2].y = 0.25;
-
-      cuma->curve[3].x = 0.75f;
-      cuma->curve[3].y = 0.5625f;
-
-      cuma->curve[4].x = 1.0f;
-      cuma->curve[4].y = 1.0f;
-
-    case CURVE_PRESET_POW3:
-      cuma->curve[0].x = 0.0f;
-      cuma->curve[0].y = 0.0f;
-
-      cuma->curve[1].x = 0.135f;
-      cuma->curve[1].y = 0.002f;
-
-      cuma->curve[2].x = 0.318;
-      cuma->curve[2].y = 0.032;
-
-      cuma->curve[3].x = 0.528;
-      cuma->curve[3].y = 0.147f;
-
-      cuma->curve[4].x = 0.757f;
-      cuma->curve[4].y = 0.433f;
-
-      cuma->curve[5].x = 1.0f;
-      cuma->curve[5].y = 1.0f;
-    case CURVE_PRESET_POW15:
-      cuma->curve[0].x = 0.0f;
-      cuma->curve[0].y = 0.0f;
-
-      cuma->curve[1].x = 0.135f;
-      cuma->curve[1].y = 0.002f;
-
-      cuma->curve[2].x = 0.318;
-      cuma->curve[2].y = 0.032;
-
-      cuma->curve[3].x = 0.528;
-      cuma->curve[3].y = 0.147f;
-
-      cuma->curve[4].x = 0.757f;
-      cuma->curve[4].y = 0.433f;
-
-      cuma->curve[5].x = 1.0f;
-      cuma->curve[5].y = 1.0f;
   }
-  //[[0,0], [0.134,0.002], [0.318,0.032], [0.528,0.147], [0.757,0.433], [1,1]
+
   /* mirror curve in x direction to have positive slope
    * rather than default negative slope */
   if (slope == CURVEMAP_SLOPE_POSITIVE) {
@@ -1409,7 +1300,7 @@ void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping
 void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
 {
   /* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
-  cumap->flag &= ~(CUMA_PREMULLED | CUMA_PART_OF_CACHE);
+  cumap->flag &= ~CUMA_PREMULLED;
 
   for (int a = 0; a < CM_TOT; a++) {
     BLO_read_data_address(reader, &cumap->cm[a].curve);

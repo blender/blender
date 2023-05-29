@@ -764,7 +764,7 @@ void *IMB_exr_get_handle_name(const char *name)
 
   if (data == nullptr) {
     data = (ExrHandle *)IMB_exr_get_handle();
-    BLI_strncpy(data->name, name, strlen(name) + 1);
+    STRNCPY(data->name, name);
   }
   return data;
 }
@@ -821,12 +821,16 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
 }
 
 /* Multi-layer Blender files have the view name in all the passes (even the default view one). */
-static void imb_exr_insert_view_name(char *name_full, const char *passname, const char *viewname)
+static void imb_exr_insert_view_name(char name_full[EXR_TOT_MAXNAME + 1],
+                                     const char *passname,
+                                     const char *viewname)
 {
+  /* Match: `sizeof(ExrChannel::name)`. */
+  const size_t name_full_maxncpy = EXR_TOT_MAXNAME + 1;
   BLI_assert(!ELEM(name_full, passname, viewname));
 
   if (viewname == nullptr || viewname[0] == '\0') {
-    BLI_strncpy(name_full, passname, sizeof(ExrChannel::name));
+    BLI_strncpy(name_full, passname, name_full_maxncpy);
     return;
   }
 
@@ -838,10 +842,10 @@ static void imb_exr_insert_view_name(char *name_full, const char *passname, cons
   len = BLI_str_rpartition(passname, delims, &sep, &token);
 
   if (sep) {
-    BLI_snprintf(name_full, EXR_PASS_MAXNAME, "%.*s.%s.%s", int(len), passname, viewname, token);
+    BLI_snprintf(name_full, name_full_maxncpy, "%.*s.%s.%s", int(len), passname, viewname, token);
   }
   else {
-    BLI_snprintf(name_full, EXR_PASS_MAXNAME, "%s.%s", passname, viewname);
+    BLI_snprintf(name_full, name_full_maxncpy, "%s.%s", passname, viewname);
   }
 }
 
@@ -1142,7 +1146,7 @@ float *IMB_exr_channel_rect(void *handle,
 
   /* name has to be unique, thus it's a combination of layer, pass, view, and channel */
   if (layname && layname[0] != '\0') {
-    char temp_buf[EXR_PASS_MAXNAME];
+    char temp_buf[EXR_TOT_MAXNAME + 1];
     imb_exr_insert_view_name(temp_buf, name, viewname);
     STRNCPY(name, temp_buf);
   }
@@ -1926,7 +1930,7 @@ static void imb_exr_type_by_channels(ChannelList &channels,
      */
     for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); i++) {
       for (const std::string &layer_name : layerNames) {
-        /* see if any layername differs from a viewname */
+        /* see if any layer_name differs from a view_name. */
         if (imb_exr_get_multiView_id(views, layer_name) == -1) {
           std::string layerName = layer_name;
           size_t pos = layerName.rfind('.');

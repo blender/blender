@@ -3,6 +3,7 @@
 
 #include "scene/light.h"
 
+#include "blender/light_linking.h"
 #include "blender/sync.h"
 #include "blender/util.h"
 
@@ -36,6 +37,8 @@ void BlenderSync::sync_light(BL::Object &b_parent,
       return;
     }
   }
+
+  light->name = b_light.name().c_str();
 
   /* type */
   switch (b_light.type()) {
@@ -145,8 +148,12 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_use_scatter((visibility & PATH_RAY_VOLUME_SCATTER) != 0);
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
 
-  /* lightgroup */
+  /* Light group and linking. */
   light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
+  light->set_light_set_membership(
+      BlenderLightLink::get_light_set_membership(PointerRNA_NULL, b_ob_info.real_object));
+  light->set_shadow_set_membership(
+      BlenderLightLink::get_shadow_set_membership(PointerRNA_NULL, b_ob_info.real_object));
 
   /* tag */
   light->tag_update(scene);

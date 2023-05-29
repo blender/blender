@@ -4025,7 +4025,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         mat4_to_size(dvec, ct->matrix);
 
         if (is_negative_m4(ct->matrix)) {
-          /* Bugfix #27886: (this is a limitation that riggers will have to live with for now).
+          /* Bug-fix #27886: (this is a limitation that riggers will have to live with for now).
            * We can't be sure which axis/axes are negative,
            * though we know that something is negative.
            * Assume we don't care about negativity of separate axes. */
@@ -6565,8 +6565,8 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
 
   /* legacy fixes */
   LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    /* patch for error introduced by changing constraints (dunno how) */
-    /* if con->data type changes, dna cannot resolve the pointer! (ton) */
+    /* Patch for error introduced by changing constraints (don't know how). */
+    /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
     if (con->data == NULL) {
       con->type = CONSTRAINT_TYPE_NULL;
     }

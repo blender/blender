@@ -34,13 +34,14 @@ TEST(multi_function_procedure, ConstantOutput)
 
   ProcedureExecutor executor{procedure};
 
-  ParamsBuilder params{executor, 2};
+  const IndexMask mask(2);
+  ParamsBuilder params{executor, &mask};
   ContextBuilder context;
 
   Array<int> output_array(2);
   params.add_uninitialized_single_output(output_array.as_mutable_span());
 
-  executor.call(IndexRange(2), params, context);
+  executor.call(mask, params, context);
 
   EXPECT_EQ(output_array[0], 10);
   EXPECT_EQ(output_array[1], 10);
@@ -75,7 +76,8 @@ TEST(multi_function_procedure, SimpleTest)
 
   ProcedureExecutor executor{procedure};
 
-  ParamsBuilder params{executor, 3};
+  const IndexMask mask(3);
+  ParamsBuilder params{executor, &mask};
   ContextBuilder context;
 
   Array<int> input_array = {1, 2, 3};
@@ -85,7 +87,7 @@ TEST(multi_function_procedure, SimpleTest)
   Array<int> output_array(3);
   params.add_uninitialized_single_output(output_array.as_mutable_span());
 
-  executor.call(IndexRange(3), params, context);
+  executor.call(mask, params, context);
 
   EXPECT_EQ(output_array[0], 17);
   EXPECT_EQ(output_array[1], 18);
@@ -126,7 +128,8 @@ TEST(multi_function_procedure, BranchTest)
   EXPECT_TRUE(procedure.validate());
 
   ProcedureExecutor procedure_fn{procedure};
-  ParamsBuilder params(procedure_fn, 5);
+  const IndexMask mask(IndexRange(1, 4));
+  ParamsBuilder params(procedure_fn, &mask);
 
   Array<int> values_a = {1, 5, 3, 6, 2};
   Array<bool> values_cond = {true, false, true, true, false};
@@ -135,7 +138,7 @@ TEST(multi_function_procedure, BranchTest)
   params.add_readonly_single_input(values_cond.as_span());
 
   ContextBuilder context;
-  procedure_fn.call({1, 2, 3, 4}, params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(values_a[0], 1);
   EXPECT_EQ(values_a[1], 25);
@@ -168,14 +171,16 @@ TEST(multi_function_procedure, EvaluateOne)
   builder.add_output_parameter(*var2);
 
   ProcedureExecutor procedure_fn{procedure};
-  ParamsBuilder params{procedure_fn, 5};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({0, 1, 3, 4}, memory);
+  ParamsBuilder params{procedure_fn, &mask};
 
   Array<int> values_out = {1, 2, 3, 4, 5};
   params.add_readonly_single_input_value(1);
   params.add_uninitialized_single_output(values_out.as_mutable_span());
 
   ContextBuilder context;
-  procedure_fn.call({0, 1, 3, 4}, params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(values_out[0], 11);
   EXPECT_EQ(values_out[1], 11);
@@ -240,7 +245,9 @@ TEST(multi_function_procedure, SimpleLoop)
   EXPECT_TRUE(procedure.validate());
 
   ProcedureExecutor procedure_fn{procedure};
-  ParamsBuilder params{procedure_fn, 5};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({0, 1, 3, 4}, memory);
+  ParamsBuilder params{procedure_fn, &mask};
 
   Array<int> counts = {4, 3, 7, 6, 4};
   Array<int> results(5, -1);
@@ -249,7 +256,7 @@ TEST(multi_function_procedure, SimpleLoop)
   params.add_uninitialized_single_output(results.as_mutable_span());
 
   ContextBuilder context;
-  procedure_fn.call({0, 1, 3, 4}, params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(results[0], 1016);
   EXPECT_EQ(results[1], 1008);
@@ -296,7 +303,9 @@ TEST(multi_function_procedure, Vectors)
   EXPECT_TRUE(procedure.validate());
 
   ProcedureExecutor procedure_fn{procedure};
-  ParamsBuilder params{procedure_fn, 5};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({0, 1, 3, 4}, memory);
+  ParamsBuilder params{procedure_fn, &mask};
 
   Array<int> v1 = {5, 2, 3};
   GVectorArray v2{CPPType::get<int>(), 5};
@@ -311,7 +320,7 @@ TEST(multi_function_procedure, Vectors)
   params.add_vector_output(v3);
 
   ContextBuilder context;
-  procedure_fn.call({0, 1, 3, 4}, params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(v2[0].size(), 6);
   EXPECT_EQ(v2[1].size(), 4);
@@ -364,12 +373,15 @@ TEST(multi_function_procedure, BufferReuse)
   Array<int> inputs = {4, 1, 6, 2, 3};
   Array<int> results(5, -1);
 
-  ParamsBuilder params{procedure_fn, 5};
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({0, 2, 3, 4}, memory);
+  ParamsBuilder params{procedure_fn, &mask};
+
   params.add_readonly_single_input(inputs.as_span());
   params.add_uninitialized_single_output(results.as_mutable_span());
 
   ContextBuilder context;
-  procedure_fn.call({0, 2, 3, 4}, params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(results[0], 54);
   EXPECT_EQ(results[1], -1);
@@ -397,11 +409,12 @@ TEST(multi_function_procedure, OutputBufferReplaced)
   ProcedureExecutor procedure_fn{procedure};
 
   Array<int> output(3, 0);
-  mf::ParamsBuilder params(procedure_fn, output.size());
+  IndexMask mask(output.size());
+  mf::ParamsBuilder params(procedure_fn, &mask);
   params.add_uninitialized_single_output(output.as_mutable_span());
 
   mf::ContextBuilder context;
-  procedure_fn.call(IndexMask(output.size()), params, context);
+  procedure_fn.call(mask, params, context);
 
   EXPECT_EQ(output[0], output_value);
   EXPECT_EQ(output[1], output_value);

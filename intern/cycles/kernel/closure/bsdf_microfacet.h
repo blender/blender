@@ -76,8 +76,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf i
 ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
                                                               const float alpha_x,
                                                               const float alpha_y,
-                                                              const float randu,
-                                                              const float randv)
+                                                              const float2 rand)
 {
   /* 1. stretch wi */
   float3 wi_ = make_float3(alpha_x * wi.x, alpha_y * wi.y, wi.z);
@@ -90,8 +89,8 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
 
   if (wi_.z >= 0.99999f) {
     /* Special case (normal incidence). */
-    const float r = sqrtf(-logf(randu));
-    const float phi = M_2PI_F * randv;
+    const float r = sqrtf(-logf(rand.x));
+    const float phi = M_2PI_F * rand.y;
     slope_x = r * cosf(phi);
     slope_y = r * sinf(phi);
   }
@@ -125,8 +124,8 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
      *   solve y = 1 + b + K * (1 - b * b)
      */
     const float K = tan_theta_i * SQRT_PI_INV;
-    const float y_approx = randu * (1.0f + erf_a + K * (1 - erf_a * erf_a));
-    const float y_exact = randu * (1.0f + erf_a + K * exp_a2);
+    const float y_approx = rand.x * (1.0f + erf_a + K * (1 - erf_a * erf_a));
+    const float y_exact = rand.x * (1.0f + erf_a + K * exp_a2);
     float b = K > 0 ? (0.5f - sqrtf(K * (K - y_approx + 1.0f) + 0.25f)) / K : y_approx - 1.0f;
 
     float inv_erf = fast_ierff(b);
@@ -155,7 +154,7 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
     }
 
     slope_x = inv_erf;
-    slope_y = fast_ierff(2.0f * randv - 1.0f);
+    slope_y = fast_ierff(2.0f * rand.y - 1.0f);
   }
 
   /* 3. rotate */
@@ -178,8 +177,7 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
 ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
                                                          const float alpha_x,
                                                          const float alpha_y,
-                                                         const float randu,
-                                                         const float randv)
+                                                         const float2 rand)
 {
   /* Section 3.2: Transforming the view direction to the hemisphere configuration. */
   float3 wi_ = normalize(make_float3(alpha_x * wi.x, alpha_y * wi.y, wi.z));
@@ -198,7 +196,7 @@ ccl_device_forceinline float3 microfacet_ggx_sample_vndf(const float3 wi,
   }
 
   /* Section 4.2: Parameterization of the projected area. */
-  float2 t = concentric_sample_disk(randu, randv);
+  float2 t = concentric_sample_disk(rand);
   t.y = mix(safe_sqrtf(1.0f - sqr(t.x)), t.y, 0.5f * (1.0f + wi_.z));
 
   /* Section 4.3: Reprojection onto hemisphere. */
@@ -398,7 +396,7 @@ ccl_device Spectrum bsdf_microfacet_eval(ccl_private const ShaderClosure *sc,
    * - Purely reflective closures can't have refraction.
    * - Purely refractive closures can't have reflection.
    */
-  if ((cos_NI <= 0) || (alpha_x * alpha_y <= 1e-7f) || ((cos_NgO < 0.0f) != is_refraction) ||
+  if ((cos_NI <= 0) || (alpha_x * alpha_y <= 5e-7f) || ((cos_NgO < 0.0f) != is_refraction) ||
       (is_refraction && !m_refractive) || (!is_refraction && m_refractive && !m_glass))
   {
     *pdf = 0.0f;
@@ -467,9 +465,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
                                       const int path_flag,
                                       float3 Ng,
                                       float3 wi,
-                                      float randu,
-                                      float randv,
-                                      float randw,
+                                      const float3 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf,
@@ -482,7 +478,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
   const bool m_refractive = CLOSURE_IS_REFRACTIVE(bsdf->type);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
-  bool m_singular = (m_type == MicrofacetType::SHARP) || (alpha_x * alpha_y <= 1e-7f);
+  bool m_singular = (m_type == MicrofacetType::SHARP) || (alpha_x * alpha_y <= 5e-7f);
 
   const float3 N = bsdf->N;
   const float cos_NI = dot(N, wi);
@@ -513,11 +509,11 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
      * space before and after sampling. */
     local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
     if (m_type == MicrofacetType::GGX) {
-      local_H = microfacet_ggx_sample_vndf(local_I, alpha_x, alpha_y, randu, randv);
+      local_H = microfacet_ggx_sample_vndf(local_I, alpha_x, alpha_y, float3_to_float2(rand));
     }
     else {
       /* m_type == MicrofacetType::BECKMANN */
-      local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, randu, randv);
+      local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, float3_to_float2(rand));
     }
 
     H = X * local_H.x + Y * local_H.y + N * local_H.z;
@@ -545,7 +541,7 @@ ccl_device int bsdf_microfacet_sample(ccl_private const ShaderClosure *sc,
          * excessive noise for reflection highlights. */
         float reflect_pdf = (path_flag & PATH_RAY_CAMERA) ? clamp(fresnel, 0.125f, 0.875f) :
                                                             fresnel;
-        do_refract = (randw >= reflect_pdf);
+        do_refract = (rand.z >= reflect_pdf);
         lobe_pdf = do_refract ? (1.0f - reflect_pdf) : reflect_pdf;
       }
     }
@@ -764,9 +760,7 @@ ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
                                           const int path_flag,
                                           float3 Ng,
                                           float3 wi,
-                                          float randu,
-                                          float randv,
-                                          float randw,
+                                          const float3 rand,
                                           ccl_private Spectrum *eval,
                                           ccl_private float3 *wo,
                                           ccl_private float *pdf,
@@ -774,7 +768,7 @@ ccl_device int bsdf_microfacet_ggx_sample(ccl_private const ShaderClosure *sc,
                                           ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::GGX>(
-      sc, path_flag, Ng, wi, randu, randv, randw, eval, wo, pdf, sampled_roughness, eta);
+      sc, path_flag, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
 }
 
 /* Beckmann microfacet with Smith shadow-masking from:
@@ -833,9 +827,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *
                                                const int path_flag,
                                                float3 Ng,
                                                float3 wi,
-                                               float randu,
-                                               float randv,
-                                               float randw,
+                                               const float3 rand,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *wo,
                                                ccl_private float *pdf,
@@ -843,7 +835,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(ccl_private const ShaderClosure *
                                                ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
-      sc, path_flag, Ng, wi, randu, randv, randw, eval, wo, pdf, sampled_roughness, eta);
+      sc, path_flag, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
 }
 
 /* Specular interface, not really a microfacet model but close enough that sharing code makes
@@ -889,9 +881,7 @@ ccl_device int bsdf_microfacet_sharp_sample(ccl_private const ShaderClosure *sc,
                                             const int path_flag,
                                             float3 Ng,
                                             float3 wi,
-                                            float randu,
-                                            float randv,
-                                            float randw,
+                                            const float3 rand,
                                             ccl_private Spectrum *eval,
                                             ccl_private float3 *wo,
                                             ccl_private float *pdf,
@@ -899,7 +889,7 @@ ccl_device int bsdf_microfacet_sharp_sample(ccl_private const ShaderClosure *sc,
                                             ccl_private float *eta)
 {
   return bsdf_microfacet_sample<MicrofacetType::SHARP>(
-      sc, path_flag, Ng, wi, randu, randv, randw, eval, wo, pdf, sampled_roughness, eta);
+      sc, path_flag, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
 }
 
 CCL_NAMESPACE_END

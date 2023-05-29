@@ -768,7 +768,8 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
   return nullptr;
 }
 
-/** Get list of domain types but with ATTR_DOMAIN_FACE and
+/**
+ * Get list of domain types but with ATTR_DOMAIN_FACE and
  * ATTR_DOMAIN_CORNER swapped.
  */
 static void get_domains_types(eAttrDomain domains[ATTR_DOMAIN_NUM])

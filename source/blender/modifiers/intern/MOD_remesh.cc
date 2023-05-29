@@ -188,7 +188,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                                   rmd->scale,
                                                   rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
-    output->mesh->poly_offsets_for_write().last() = output->mesh->totloop;
     result = output->mesh;
     MEM_freeN(output);
   }

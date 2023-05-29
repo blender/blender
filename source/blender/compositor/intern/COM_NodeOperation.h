@@ -72,7 +72,8 @@ class NodeOperationInput {
  private:
   NodeOperation *operation_;
 
-  /** Datatype of this socket. Is used for automatically data transformation.
+  /**
+   * Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
   DataType datatype_;
@@ -135,7 +136,8 @@ class NodeOperationOutput {
  private:
   NodeOperation *operation_;
 
-  /** Datatype of this socket. Is used for automatically data transformation.
+  /**
+   * Datatype of this socket. Is used for automatically data transformation.
    * \section data-conversion
    */
   DataType datatype_;

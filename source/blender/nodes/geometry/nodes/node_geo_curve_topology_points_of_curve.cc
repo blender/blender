@@ -43,7 +43,7 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const OffsetIndices points_by_curve = curves.points_by_curve();
 
@@ -63,12 +63,12 @@ class PointsOfCurveInput final : public bke::CurvesFieldInput {
     const bool use_sorting = !all_sort_weights.is_single();
 
     Array<int> point_of_curve(mask.min_array_size());
-    threading::parallel_for(mask.index_range(), 256, [&](const IndexRange range) {
+    mask.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
       /* Reuse arrays to avoid allocation. */
       Array<float> sort_weights;
       Array<int> sort_indices;
 
-      for (const int selection_i : mask.slice(range)) {
+      for (const int selection_i : segment) {
         const int curve_i = curve_indices[selection_i];
         const int index_in_sort = indices_in_sort[selection_i];
         if (!curves.curves_range().contains(curve_i)) {
@@ -140,7 +140,7 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_CURVE) {
       return {};
@@ -197,7 +197,7 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain /*domain*/,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return VArray<int>::ForSpan(curves.offsets());
   }

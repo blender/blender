@@ -593,9 +593,9 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_edges = mesh->corner_edges();
 
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, edges.size(), polys, corner_edges.data(), corner_edges.size());
+  if (ss->epmap.is_empty()) {
+    ss->epmap = bke::mesh::build_edge_to_poly_map(
+        polys, corner_edges, edges.size(), ss->edge_to_poly_offsets, ss->edge_to_poly_indices);
   }
 
   int next_face_set = 1;
@@ -615,8 +615,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
       queue.pop();
 
       for (const int edge_i : corner_edges.slice(polys[poly_i])) {
-        const Span<int> neighbor_polys(ss->epmap[edge_i].indices, ss->epmap[edge_i].count);
-        for (const int neighbor_i : neighbor_polys) {
+        for (const int neighbor_i : ss->epmap[edge_i]) {
           if (neighbor_i == poly_i) {
             continue;
           }
@@ -1128,20 +1127,20 @@ void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
       for (int vert_i : ss->corner_verts.slice(ss->polys[face.i])) {
         PBVHVertRef vertex = {vert_i};
         BKE_sculpt_boundary_flag_update(ss, vertex);
+        break;
       }
-      break;
-    }
-    case PBVH_GRIDS: {
-      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      int grid_index = BKE_subdiv_ccg_start_face_grid_index_get(ss->subdiv_ccg)[face.i];
-      int vertex_i = grid_index * key->grid_area;
-      int verts_num = ss->polys[face.i].size() * key->grid_area;
+      case PBVH_GRIDS: {
+        const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+        int grid_index = BKE_subdiv_ccg_start_face_grid_index_get(ss->subdiv_ccg)[face.i];
+        int vertex_i = grid_index * key->grid_area;
+        int verts_num = ss->polys[face.i].size() * key->grid_area;
 
-      for (int i = 0; i < verts_num; i++, vertex_i++) {
-        BKE_sculpt_boundary_flag_update(ss, {vertex_i});
+        for (int i = 0; i < verts_num; i++, vertex_i++) {
+          BKE_sculpt_boundary_flag_update(ss, {vertex_i});
+        }
+
+        break;
       }
-
-      break;
     }
   }
 }
@@ -1198,9 +1197,9 @@ static void sculpt_face_set_grow_shrink(Object *ob,
     }
     else {  //
       for (const int vert_i : corner_verts.slice(polys[face_i])) {
-        const MeshElemMap *vert_map = &ss->pmap[vert_i];
-        for (int i = 0; i < vert_map->count; i++) {
-          const int neighbor_face_index = vert_map->indices[i];
+        const Span<int> vert_map = ss->pmap[vert_i];
+        for (int i : vert_map.index_range()) {
+          const int neighbor_face_index = vert_map[i];
           if (neighbor_face_index == face_i) {
             continue;
           }

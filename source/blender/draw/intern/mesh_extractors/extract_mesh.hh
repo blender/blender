@@ -257,17 +257,17 @@ using ExtractPolyBMeshFn = void(const MeshRenderData *mr,
 using ExtractPolyMeshFn = void(const MeshRenderData *mr, int poly_index, void *data);
 using ExtractLEdgeBMeshFn = void(const MeshRenderData *mr,
                                  const BMEdge *eed,
-                                 int ledge_index,
+                                 int loose_edge_i,
                                  void *data);
 using ExtractLEdgeMeshFn = void(const MeshRenderData *mr,
                                 blender::int2 edge,
-                                int ledge_index,
+                                int loose_edge_i,
                                 void *data);
 using ExtractLVertBMeshFn = void(const MeshRenderData *mr,
                                  const BMVert *eve,
-                                 int lvert_index,
+                                 int loose_vert_i,
                                  void *data);
-using ExtractLVertMeshFn = void(const MeshRenderData *mr, int lvert_index, void *data);
+using ExtractLVertMeshFn = void(const MeshRenderData *mr, int loose_vert_i, void *data);
 using ExtractLooseGeomSubdivFn = void(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *mr,
                                       void *buffer,

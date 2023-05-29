@@ -1549,7 +1549,7 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   immEnd();
   */
 
-  if (!ss->pmap) {
+  if (ss->pmap.is_empty()) {
     return;
   }
 

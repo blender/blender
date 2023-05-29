@@ -7,11 +7,11 @@
 #ifndef __MEM_CACHELIMITERC_API_H__
 #define __MEM_CACHELIMITERC_API_H__
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 struct MEM_CacheLimiter_s;
 struct MEM_CacheLimiterHandle_s;

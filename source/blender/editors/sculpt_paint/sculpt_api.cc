@@ -135,21 +135,20 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
     return true;
   }
 
-  const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
-  for (int i = 0; i < vert_map->count; i++) {
-    const IndexRange p = ss->polys[vert_map->indices[i]];
+  for (int poly : ss->pmap[v1]) {
+    const IndexRange p = ss->polys[poly];
 
     for (int l = 0; l < p.size(); l++) {
       const int *corner_verts = &ss->corner_verts[p.start() + l];
       if (*corner_verts == v2) {
         if (p1 == -1) {
-          p1 = vert_map->indices[i];
+          p1 = poly;
           break;
         }
 
         if (p2 == -1) {
-          p2 = vert_map->indices[i];
+          p2 = poly;
           break;
         }
       }
@@ -176,11 +175,10 @@ static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss,
   if (!ss->attrs.face_set) {
     return true;
   }
-  const MeshElemMap *vert_map = &ss->pmap[vertex];
   int fset1 = -1, fset2 = -1, fset3 = -1;
 
-  for (int i : IndexRange(vert_map->count)) {
-    PBVHFaceRef face = {vert_map->indices[i]};
+  for (int poly : ss->pmap[vertex]) {
+    PBVHFaceRef face = {poly};
     int fset = face_attr_get<int>(face, ss->attrs.face_set);
 
     if (fset1 == -1) {
@@ -223,20 +221,10 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
       if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next &&
           ss->cd_faceset_offset != -1)
       {
-        if (ss->boundary_symmetry) {
-          // TODO: calc and cache this properly
+        int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
+        int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, ss->cd_faceset_offset);
 
-          int boundflag1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
-          int boundflag2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
-
-          ret |= (boundflag1 | boundflag2) & SCULPT_BOUNDARY_FACE_SET;
-        }
-        else {
-          int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
-          int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, ss->cd_faceset_offset);
-
-          ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
-        }
+        ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
       }
 
       if (typemask & SCULPT_BOUNDARY_UV) {
@@ -260,23 +248,22 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
       eSculptBoundary epmap_mask = typemask & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET);
 
       /* Some boundary types require an edge->poly map to be fully accurate. */
-      if (epmap_mask && ss->epmap) {
+      if (epmap_mask && !ss->epmap.is_empty()) {
         if (ss->face_sets && epmap_mask & SCULPT_BOUNDARY_FACE_SET) {
-          MeshElemMap *polys = &ss->epmap[edge.i];
           int fset = -1;
 
-          for (int i : IndexRange(polys->count)) {
+          for (int poly : ss->epmap[edge.i]) {
             if (fset == -1) {
-              fset = ss->face_sets[polys->indices[i]];
+              fset = ss->face_sets[poly];
             }
-            else if (ss->face_sets[polys->indices[i]] != fset) {
+            else if (ss->face_sets[poly] != fset) {
               ret |= SCULPT_BOUNDARY_FACE_SET;
               break;
             }
           }
         }
         if (epmap_mask & SCULPT_BOUNDARY_MESH) {
-          ret |= ss->epmap[edge.i].count == 1 ? SCULPT_BOUNDARY_MESH : 0;
+          ret |= ss->epmap[edge.i].size() == 1 ? SCULPT_BOUNDARY_MESH : 0;
         }
       }
       else if (epmap_mask)
@@ -422,11 +409,13 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex.i)) {
     *flag |= SCULPT_BOUNDARY_MESH;
 
-    if (ss->pmap[vertex.i].count < 4) {
+    Span<int> pmap = ss->pmap[vertex.i];
+
+    if (pmap.size() < 4) {
       bool ok = true;
 
-      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
-        const IndexRange mp = ss->polys[ss->pmap[vertex.i].indices[i]];
+      for (int poly : pmap) {
+        const IndexRange mp = ss->polys[poly];
         if (mp.size() < 4) {
           ok = false;
         }
@@ -461,7 +450,6 @@ static bool sculpt_vertex_ensure_boundary(const SculptSession *ss,
                                       ss->attrs.flags->bmesh_cd_offset,
                                       ss->attrs.valence->bmesh_cd_offset,
                                       (BMVert *)vertex.i,
-                                      ss->boundary_symmetry,
                                       &ss->bm->ldata,
                                       ss->totuv,
                                       !ss->ignore_uvs,

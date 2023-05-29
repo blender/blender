@@ -1600,7 +1600,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   for (const PBVHNode *node : nodes) {
     for (const int vert : Span(node->vert_indices, node->uniq_verts)) {
       if (update_tags[vert]) {
-        polys_to_update.add_multiple({pbvh->pmap[vert].indices, pbvh->pmap[vert].count});
+        polys_to_update.add_multiple(pbvh->pmap[vert]);
       }
     }
   }
@@ -1622,7 +1622,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
         });
       },
       [&]() {
-        /* Update all normals connected to affected faces faces, even if not explicitly tagged. */
+        /* Update all normals connected to affected faces, even if not explicitly tagged. */
         verts_to_update.reserve(polys_to_update.size());
         for (const int poly : polys_to_update) {
           verts_to_update.add_multiple(corner_verts.slice(polys[poly]));
@@ -1639,7 +1639,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : verts_to_update.as_span().slice(range)) {
       float3 normal(0.0f);
-      for (const int poly : Span(pbvh->pmap[vert].indices, pbvh->pmap[vert].count)) {
+      for (const int poly : pbvh->pmap[vert]) {
         normal += poly_normals[poly];
       }
       vert_normals[vert] = math::normalize(normal);
@@ -4050,17 +4050,17 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *r_heap_alloc,
                             int **r_polys)
 {
-  MeshElemMap *map = pbvh->pmap + vertex.i;
+  Span<int> map = pbvh->pmap[vertex.i];
   int len = 0;
 
-  for (int i = 0; i < map->count; i++) {
-    int loopstart = pbvh->polys[map->indices[i]].start();
-    int loop_count = pbvh->polys[map->indices[i]].size();
+  for (int i : IndexRange(map.index_range())) {
+    int loopstart = pbvh->polys[map[i]].start();
+    int loop_count = pbvh->polys[map[i]].size();
 
     const Span<int> corner_verts(pbvh->corner_verts + loopstart, loop_count);
     const Span<int> corner_edges(pbvh->corner_edges + loopstart, loop_count);
 
-    if (pbvh->hide_poly && pbvh->hide_poly[map->indices[i]]) {
+    if (pbvh->hide_poly && pbvh->hide_poly[map[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -4073,7 +4073,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                                r_edges_size,
                                r_heap_alloc,
                                corner_edges[(j + loop_count - 1) % loop_count],
-                               map->indices[i],
+                               map[i],
                                &len,
                                r_polys);
         pbvh_pmap_to_edges_add(pbvh,
@@ -4082,7 +4082,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                                r_edges_size,
                                r_heap_alloc,
                                corner_edges[j],
-                               map->indices[i],
+                               map[i],
                                &len,
                                r_polys);
       }
@@ -4090,11 +4090,6 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
   }
 
   *r_edges_size = len;
-}
-
-void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
-{
-  pbvh->vemap = vemap;
 }
 
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
@@ -4111,9 +4106,9 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
       BKE_pbvh_pmap_to_edges(pbvh, vertex, &edges, &len, &heap_alloc, &polys);
       len = MIN2(len, valence);
 
-      if (pbvh->vemap) {
+      if (!pbvh->vemap.is_empty()) {
         /* sort poly references by vemap edge ordering */
-        MeshElemMap *emap = pbvh->vemap + vertex.i;
+        Span<int> emap = pbvh->vemap[vertex.i];
 
         int *polys_old = (int *)BLI_array_alloca(polys, len * 2);
         memcpy((void *)polys_old, (void *)polys, sizeof(int) * len * 2);
@@ -4124,7 +4119,7 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
 
         for (int i = 0; i < len; i++) {
           for (int j = 0; j < len; j++) {
-            if (emap->indices[i] == edges[j]) {
+            if (emap[i] == edges[j]) {
               polys[i * 2] = polys_old[j * 2];
               polys[i * 2 + 1] = polys_old[j * 2 + 1];
             }
@@ -4275,16 +4270,13 @@ static void pbvh_boundaries_flag_update(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
+void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry)
 {
-  if (symmetry == pbvh->symmetry && boundary_symmetry == pbvh->boundary_symmetry) {
+  if (symmetry == pbvh->symmetry) {
     return;
   }
 
   pbvh->symmetry = symmetry;
-  pbvh->boundary_symmetry = boundary_symmetry;
-
-  pbvh_boundaries_flag_update(pbvh);
 }
 
 namespace blender::bke::pbvh {
@@ -4309,14 +4301,14 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 const int *corner_edges,
                                 OffsetIndices<int> polys,
                                 int /*totpoly*/,
-                                const MeshElemMap *pmap,
+                                const blender::GroupedSpan<int> &pmap,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
                                 const bool *seam_edges,
                                 uint8_t *flags,
                                 int * /*valence*/)
 {
-  const MeshElemMap *vert_map = &pmap[vertex.i];
+  Span<int> vert_map = pmap[vertex.i];
   uint8_t *flag = flags + vertex.i;
 
   *flag &= ~SCULPTFLAG_VERT_FSET_HIDDEN;
@@ -4330,8 +4322,8 @@ void update_vert_boundary_faces(int *boundary_flags,
   int totsharp = 0, totseam = 0, totsharp_angle = 0;
   int visible = false;
 
-  for (int i = 0; i < vert_map->count; i++) {
-    int f_i = vert_map->indices[i];
+  for (int i : vert_map.index_range()) {
+    int f_i = vert_map[i];
 
     IndexRange poly = polys[f_i];
     const int *mc = corner_verts + poly.start();
@@ -4415,19 +4407,6 @@ void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
   }
 
   pbvh_boundaries_flag_update(pbvh);
-}
-
-struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh, int **r_pmap_mem)
-{
-  *r_pmap_mem = pbvh->pmap_mem;
-
-  return pbvh->pmap;
-}
-
-void BKE_pbvh_set_pmap(PBVH *pbvh, MeshElemMap *pmap, int *mem)
-{
-  pbvh->pmap = pmap;
-  pbvh->pmap_mem = mem;
 }
 
 void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
@@ -4889,4 +4868,19 @@ Vector<PBVHNode *> get_flagged_nodes(PBVH *pbvh, int flag)
 {
   return blender::bke::pbvh::search_gather(pbvh, update_search_cb, POINTER_FROM_INT(flag));
 }
+
+struct GroupedSpan<int> get_pmap(PBVH *pbvh) {
+  return pbvh->pmap;
+}
+
+void set_pmap(PBVH *pbvh, GroupedSpan<int> pmap)
+{
+  pbvh->pmap = pmap;
+}
+
+void set_vemap(PBVH *pbvh, GroupedSpan<int> vemap)
+{
+  pbvh->vemap = vemap;
+}
+
 }  // namespace blender::bke::pbvh

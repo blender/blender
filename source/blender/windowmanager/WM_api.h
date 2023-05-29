@@ -388,9 +388,6 @@ void WM_cursor_grab_enable(struct wmWindow *win,
                            eWM_CursorWrapAxis wrap,
                            const struct rcti *wrap_region,
                            bool hide);
-/**
- *
- */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.

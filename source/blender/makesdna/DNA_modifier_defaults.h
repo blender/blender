@@ -545,12 +545,6 @@
     .projLimit = 0.0f, \
     .projAxis = 0, \
     .subsurfLevels = 0, \
-    .optimizeNormalSteps = 8,\
-    .optimizeNormals = 0,\
-    .rayShrinkRatio = 1.0f,\
-    .boundSmoothSteps = 8,\
-    .boundSmoothScale = 3.0f,\
-    .optimizeNormalsScale = 1.5f\
   }
 
 #define _DNA_DEFAULT_SimpleDeformModifierData \
@@ -803,25 +797,6 @@
     .crease_weight = 1.0f, \
     .flag = MOD_WIREFRAME_REPLACE | MOD_WIREFRAME_OFS_EVEN, \
     .mat_ofs = 0, \
-  }
-
-#define _DNA_DEFAULT_BassReliefModifierData \
-  { \
-    .target = NULL, \
-    .collection = NULL, \
-    .vgroup_name = "", \
-    .keepDist = 0.0f, \
-    .shrinkOpts =\
-      MOD_BASSRELIEF_CULL_TARGET_FRONTFACE|\
-      MOD_BASSRELIEF_PROJECT_ALLOW_POS_DIR|\
-      MOD_BASSRELIEF_OPTIMIZE, \
-    .projLimit = 0.0f, \
-    .projAxis = 0, \
-    .optimizeSteps = 8,\
-    .rayShrinkRatio = 1.0f,\
-    .boundSmoothSteps = 8,\
-    .boundSmoothFalloff = 3.0f,\
-    .detailScale = 1.5f\
   }
 
 /* clang-format off */

@@ -511,7 +511,6 @@ static void do_cross_effect(const SeqRenderData *context,
 /** \name Gamma Cross
  * \{ */
 
-/* copied code from initrender.c */
 static ushort gamtab[65536];
 static ushort igamtab1[256];
 static bool gamma_tabs_init = false;
@@ -916,7 +915,7 @@ static void do_sub_effect(const SeqRenderData *context,
 /** \name Drop Effect
  * \{ */
 
-/* Must be > 0 or add precopy, etc to the function */
+/* Must be > 0 or add pre-copy, etc to the function. */
 #define XOFF 8
 #define YOFF 8
 
@@ -1980,7 +1979,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
     return;
   }
 
-  /* Allocate memory for the tempmap and the blur filter matrix */
+  /* Allocate memory for the temp-map and the blur filter matrix. */
   temp = MEM_mallocN(sizeof(float[4]) * width * height, "blurbitmaptemp");
   if (!temp) {
     return;

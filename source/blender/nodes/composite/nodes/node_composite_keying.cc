@@ -7,8 +7,6 @@
 
 #include "BLI_math_base.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_movieclip_types.h"
 
 #include "UI_interface.h"

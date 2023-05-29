@@ -22,6 +22,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"
@@ -251,16 +252,9 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
     /* Merge OpenSubdiv library code with our own library code. */
     const char *patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
     const char *subdiv_lib_code = datatoc_common_subdiv_lib_glsl;
-    char *library_code = static_cast<char *>(
-        MEM_mallocN(strlen(patch_basis_source) + strlen(subdiv_lib_code) + 1,
-                    "subdiv patch evaluation library code"));
-    library_code[0] = '\0';
-    strcat(library_code, patch_basis_source);
-    strcat(library_code, subdiv_lib_code);
-
+    char *library_code = BLI_string_joinN(patch_basis_source, subdiv_lib_code);
     g_subdiv_shaders[shader_type] = GPU_shader_create_compute(
         compute_code, library_code, defines, get_shader_name(shader_type));
-
     MEM_freeN(library_code);
   }
 
@@ -2236,13 +2230,10 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   const Span<float3> coarse_positions = coarse_mesh->vert_positions();
   const Span<int2> coarse_edges = coarse_mesh->edges();
 
-  int *vert_to_edge_buffer;
-  MeshElemMap *vert_to_edge_map;
-  BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
-                                &vert_to_edge_buffer,
-                                coarse_edges.data(),
-                                coarse_positions.size(),
-                                coarse_edges.size());
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  const blender::GroupedSpan<int> vert_to_edge_map = blender::bke::mesh::build_vert_to_edge_map(
+      coarse_edges, coarse_mesh->totvert, vert_to_edge_offsets, vert_to_edge_indices);
 
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];
@@ -2284,9 +2275,6 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
   }
-
-  MEM_freeN(vert_to_edge_buffer);
-  MEM_freeN(vert_to_edge_map);
 
   /* Copy the remaining loose_verts. */
   for (int i = 0; i < coarse_loose_vert_len; i++) {

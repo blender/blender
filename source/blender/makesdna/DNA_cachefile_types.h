@@ -93,7 +93,8 @@ typedef struct CacheFile {
   /* eCacheFileType enum. */
   char type;
 
-  /** Do not load data from the cache file and display objects in the scene as boxes, Cycles will
+  /**
+   * Do not load data from the cache file and display objects in the scene as boxes, Cycles will
    * load objects directly from the CacheFile. Other render engines which can load Alembic data
    * directly can take care of rendering it themselves.
    */

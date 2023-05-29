@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_implicit_sharing.h"
+
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
@@ -38,6 +40,21 @@ extern "C" {
 /* only used as handle */
 typedef struct Render Render;
 
+/* Buffer of a floating point values which uses implicit sharing.
+ *
+ * The buffer is allocated by render passes creation, and then is shared with the render result
+ * and image buffer. */
+typedef struct RenderBuffer {
+  float *data;
+  const ImplicitSharingInfoHandle *sharing_info;
+} RenderBuffer;
+
+/* Specialized render buffer to store 8bpp passes. */
+typedef struct RenderByteBuffer {
+  uint8_t *data;
+  const ImplicitSharingInfoHandle *sharing_info;
+} RenderByteBuffer;
+
 /* Render Result usage:
  *
  * - render engine allocates/frees and delivers raw floating point rects
@@ -51,11 +68,11 @@ typedef struct RenderView {
   char name[64]; /* EXR_VIEW_MAXNAME */
 
   /* if this exists, result of composited layers */
-  float *rectf;
-  /* if this exists, result of composited layers */
-  float *rectz;
+  RenderBuffer combined_buffer;
+  RenderBuffer z_buffer;
+
   /* optional, 32 bits version of picture, used for sequencer, OpenGL render and image curves */
-  int *rect32;
+  RenderByteBuffer byte_buffer;
 
 } RenderView;
 
@@ -64,7 +81,9 @@ typedef struct RenderPass {
   int channels;
   char name[64];   /* amount defined in IMB_openexr.h */
   char chan_id[8]; /* amount defined in IMB_openexr.h */
-  float *rect;
+
+  RenderBuffer buffer;
+
   int rectx, recty;
 
   char fullname[64]; /* EXR_PASS_MAXNAME */
@@ -89,7 +108,7 @@ typedef struct RenderLayer {
 
   int rectx, recty;
 
-  /** Optional saved endresult on disk. */
+  /** Optional saved end-result on disk. */
   void *exrhandle;
 
   ListBase passes;
@@ -102,15 +121,15 @@ typedef struct RenderResult {
   /* target image size */
   int rectx, recty;
 
-  /* The following rect32, rectf and rectz buffers are for temporary storage only,
+  /* The following byte, combined, and z buffers are for temporary storage only,
    * for RenderResult structs created in #RE_AcquireResultImage - which do not have RenderView */
 
   /* Optional, 32 bits version of picture, used for OpenGL render and image curves. */
-  int *rect32;
+  RenderByteBuffer byte_buffer;
+
   /* if this exists, a copy of one of layers, or result of composited layers */
-  float *rectf;
-  /* if this exists, a copy of one of layers, or result of composited layers */
-  float *rectz;
+  RenderBuffer combined_buffer;
+  RenderBuffer z_buffer;
 
   /* coordinates within final image (after cropping) */
   rcti tilerect;
@@ -259,6 +278,9 @@ void RE_render_result_rect_from_ibuf(struct RenderResult *rr,
 
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, const char *name, const char *viewname);
+RenderBuffer *RE_RenderLayerGetPassBuffer(struct RenderLayer *rl,
+                                          const char *name,
+                                          const char *viewname);
 
 bool RE_HasSingleLayer(struct Render *re);
 
@@ -433,6 +455,13 @@ struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl,
                                         int passtype,
                                         const char *viewname);
 
+/**
+ * Set the buffer data of the render pass.
+ * The pass takes ownership of the data, and creates an implicit sharing handle to allow its
+ * sharing with other users.
+ */
+void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
+
 /* shaded view or baking options */
 #define RE_BAKE_NORMALS 0
 #define RE_BAKE_DISPLACEMENT 1
@@ -466,6 +495,43 @@ struct RenderView *RE_RenderViewGetById(struct RenderResult *rr, int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *viewname);
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
+
+/**
+ * Create new render buffer which takes ownership of the given data.
+ * Creates an implicit sharing  handle for the data as well. */
+RenderBuffer RE_RenderBuffer_new(float *data);
+
+/**
+ * Assign the buffer data.
+ *
+ * The current buffer data is freed and the new one is assigned, and the implicit sharing for it.
+ */
+void RE_RenderBuffer_assign_data(RenderBuffer *render_buffer, float *data);
+
+/**
+ * Effectively `lhs = rhs`. The lhs will share the same buffer as the rhs (with an increased user
+ * counter).
+ *
+ * The current content of the lhs is freed.
+ * The rhs and its data is allowed to be nullptr, in which case the lhs's data will be nullptr
+ * after this call.
+ */
+void RE_RenderBuffer_assign_shared(RenderBuffer *lhs, const RenderBuffer *rhs);
+
+/**
+ * Free data of the given buffer.
+ *
+ * The data and implicit sharing information of the buffer is set to nullptr after this call.
+ * The buffer itself is not freed.
+ */
+void RE_RenderBuffer_data_free(RenderBuffer *render_buffer);
+
+/* Implementation of above, but for byte buffer. */
+/* TODO(sergey): Once everything is C++ we can remove the duplicated API.  */
+RenderByteBuffer RE_RenderByteBuffer_new(uint8_t *data);
+void RE_RenderByteBuffer_assign_data(RenderByteBuffer *render_buffer, uint8_t *data);
+void RE_RenderByteBuffer_assign_shared(RenderByteBuffer *lhs, const RenderByteBuffer *rhs);
+void RE_RenderByteBuffer_data_free(RenderByteBuffer *render_buffer);
 
 #ifdef __cplusplus
 }

@@ -174,6 +174,7 @@ class TestRejectModuleAccess(unittest.TestCase, TestExprMixIn_Reject):
         "__import__('os').expect_os_unreachable()",
         "exec(\"__import__('os').expect_os_unreachable()\")",
         "(globals().update(__import__('os').__dict__), expect_os_unreachable())",
+        "__builtins__['getattr'](__builtins__['__import__']('os'), 'expect_os_unreachable')()",
     )
 
     # Ensure the functions are actually called.

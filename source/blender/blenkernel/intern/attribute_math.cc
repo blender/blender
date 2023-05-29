@@ -13,7 +13,7 @@ ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
 }
 
 ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
-                                           const IndexMask mask,
+                                           const IndexMask &mask,
                                            const ColorGeometry4f default_color)
     : buffer_(buffer), default_color_(default_color), total_weights_(buffer.size(), 0.0f)
 {
@@ -49,7 +49,7 @@ void ColorGeometry4fMixer::finalize()
   this->finalize(buffer_.index_range());
 }
 
-void ColorGeometry4fMixer::finalize(const IndexMask mask)
+void ColorGeometry4fMixer::finalize(const IndexMask &mask)
 {
   mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];
@@ -74,7 +74,7 @@ ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
 }
 
 ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
-                                           const IndexMask mask,
+                                           const IndexMask &mask,
                                            const ColorGeometry4b default_color)
     : buffer_(buffer),
       default_color_(default_color),
@@ -111,7 +111,7 @@ void ColorGeometry4bMixer::finalize()
   this->finalize(buffer_.index_range());
 }
 
-void ColorGeometry4bMixer::finalize(const IndexMask mask)
+void ColorGeometry4bMixer::finalize(const IndexMask &mask)
 {
   mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];

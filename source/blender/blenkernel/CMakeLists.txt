@@ -185,6 +185,7 @@ set(SRC
   intern/lib_remap.c
   intern/library.c
   intern/light.c
+  intern/light_linking.cc
   intern/lightprobe.cc
   intern/linestyle.cc
   intern/main.c
@@ -419,6 +420,7 @@ set(SRC
   BKE_lib_remap.h
   BKE_library.h
   BKE_light.h
+  BKE_light_linking.h
   BKE_lightprobe.h
   BKE_linestyle.h
   BKE_main.h

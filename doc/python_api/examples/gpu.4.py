@@ -21,7 +21,7 @@ mesh.loop_triangles.foreach_get(
 
 vertex_colors = [(random(), random(), random(), 1) for _ in range(len(mesh.vertices))]
 
-shader = gpu.shader.from_builtin('3D_SMOOTH_COLOR')
+shader = gpu.shader.from_builtin('SMOOTH_COLOR')
 batch = batch_for_shader(
     shader, 'TRIS',
     {"pos": vertices, "color": vertex_colors},

@@ -5,8 +5,6 @@
 
 #include "BKE_mesh.hh"
 
-#include "BLT_translation.h"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_mesh_face_area_cc {
@@ -42,7 +40,7 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_face_area_varray(mesh, domain);
   }

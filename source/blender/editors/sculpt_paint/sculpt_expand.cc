@@ -767,8 +767,10 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
       }
     }
     else {
-      for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
-        for (const int vert : ss->corner_verts.slice(ss->polys[ss->pmap[v_next_i].indices[j]])) {
+      Span<int> map = ss->pmap[v_next_i];
+
+      for (int j : map.index_range()) {
+        for (const int vert : ss->corner_verts.slice(ss->polys[map[j]])) {
           const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
           if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
             continue;
@@ -2184,8 +2186,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   }
 
   const int totface = ss->totfaces;
-  MeshElemMap *pmap = ss->pmap;
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::GroupedSpan<int> pmap = ss->pmap;
+  const blender::OffsetIndices<int> polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
@@ -2224,10 +2226,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
       for (const int vert : corner_verts.slice(polys[f_index])) {
-        const MeshElemMap *vert_map = &pmap[vert];
-        for (int i = 0; i < vert_map->count; i++) {
-
-          const int neighbor_face_index = vert_map->indices[i];
+        for (const int neighbor_face_index : pmap[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
             continue;

@@ -336,9 +336,7 @@ ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
 ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
                                            ccl_private const ShaderClosure *sc,
                                            ccl_private ShaderData *sd,
-                                           float randu,
-                                           float randv,
-                                           float randw,
+                                           float3 rand,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *wo,
                                            ccl_private float *pdf,
@@ -381,12 +379,12 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 
   int p = 0;
   for (; p < 3; p++) {
-    if (randw < Ap_energy[p]) {
+    if (rand.z < Ap_energy[p]) {
       break;
     }
-    randw -= Ap_energy[p];
+    rand.z -= Ap_energy[p];
   }
-  randw /= Ap_energy[p];
+  rand.z /= Ap_energy[p];
 
   float v = bsdf->v;
   if (p == 1) {
@@ -396,9 +394,10 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
     v *= 4.0f;
   }
 
-  randw = max(randw, 1e-5f);
-  const float fac = 1.0f + v * logf(randw + (1.0f - randw) * expf(-2.0f / v));
-  float sin_theta_i = -fac * sin_theta_o + cos_from_sin(fac) * cosf(M_2PI_F * randv) * cos_theta_o;
+  rand.z = max(rand.z, 1e-5f);
+  const float fac = 1.0f + v * logf(rand.z + (1.0f - rand.z) * expf(-2.0f / v));
+  float sin_theta_i = -fac * sin_theta_o +
+                      cos_from_sin(fac) * cosf(M_2PI_F * rand.y) * cos_theta_o;
   float cos_theta_i = cos_from_sin(sin_theta_i);
 
   float angles[6];
@@ -410,10 +409,10 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 
   float phi;
   if (p < 3) {
-    phi = delta_phi(p, gamma_o, gamma_t) + sample_trimmed_logistic(randu, bsdf->s);
+    phi = delta_phi(p, gamma_o, gamma_t) + sample_trimmed_logistic(rand.x, bsdf->s);
   }
   else {
-    phi = M_2PI_F * randu;
+    phi = M_2PI_F * rand.x;
   }
   const float phi_i = phi_o + phi;
 

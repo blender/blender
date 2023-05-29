@@ -276,8 +276,7 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
          * However, on some implementation, we need a buffer with a few extra bytes for the read to
          * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
         /* Avoid memcpy(), replace the pointer directly. */
-        MEM_SAFE_FREE(rp->rect);
-        rp->rect = result;
+        RE_pass_set_buffer_data(rp, result);
         BLI_mutex_unlock(&render->update_render_passes_mutex);
       }
     }
@@ -291,7 +290,7 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
       RenderPass *vector_rp = RE_pass_find_by_name(
           render_layer, vector_pass_name.c_str(), view_name);
       if (vector_rp) {
-        memset(vector_rp->rect, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+        memset(vector_rp->buffer.data, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
       }
     }
   }

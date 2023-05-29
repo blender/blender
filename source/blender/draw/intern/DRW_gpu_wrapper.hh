@@ -691,7 +691,7 @@ class Texture : NonCopyable {
       eGPUTextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(mip_len)) {
         mip_views_.append(
-            GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999, cube_as_array));
+            GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999, cube_as_array, false));
       }
       return true;
     }
@@ -726,7 +726,7 @@ class Texture : NonCopyable {
       eGPUTextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(layer_len)) {
         layer_views_.append(
-            GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1, cube_as_array));
+            GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1, cube_as_array, false));
       }
       return true;
     }
@@ -742,8 +742,8 @@ class Texture : NonCopyable {
   {
     if (stencil_view_ == nullptr) {
       eGPUTextureFormat format = GPU_texture_format(tx_);
-      stencil_view_ = GPU_texture_create_view(name_, tx_, format, 0, 9999, 0, 9999, cube_as_array);
-      GPU_texture_stencil_texture_mode_set(stencil_view_, true);
+      stencil_view_ = GPU_texture_create_view(
+          name_, tx_, format, 0, 9999, 0, 9999, cube_as_array, true);
     }
     return stencil_view_;
   }

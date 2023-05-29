@@ -592,15 +592,17 @@ class SpecMeshTest(MeshTest):
                 elif modifier.type == 'CLOTH' or modifier.type == 'SOFT_BODY':
                     test_object.modifiers[test_modifier_name].point_cache.frame_end = frame_end
                     override_setting = modifier.point_cache
-                    override = {'scene': scene, 'active_object': test_object, 'point_cache': override_setting}
-                    bpy.ops.ptcache.bake(override, bake=True)
+                    context_override = {'scene': scene, 'active_object': test_object, 'point_cache': override_setting}
+                    with bpy.context.temp_override(**context_override):
+                        bpy.ops.ptcache.bake(bake=True)
                     break
 
                 elif modifier.type == 'DYNAMIC_PAINT':
                     dynamic_paint_setting = modifier.canvas_settings.canvas_surfaces.active
                     override_setting = dynamic_paint_setting.point_cache
-                    override = {'scene': scene, 'active_object': test_object, 'point_cache': override_setting}
-                    bpy.ops.ptcache.bake(override, bake=True)
+                    context_override = {'scene': scene, 'active_object': test_object, 'point_cache': override_setting}
+                    with bpy.context.temp_override(**context_override):
+                        bpy.ops.ptcache.bake(bake=True)
                     break
 
     def _apply_particle_system(self, test_object, particle_sys_spec: ParticleSystemSpec):

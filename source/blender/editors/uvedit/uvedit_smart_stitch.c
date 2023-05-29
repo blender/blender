@@ -677,10 +677,10 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 
         /* check to see if other vertex of edge belongs to same vertex as */
         if (BM_elem_index_get(iter1->l->next->v) == elemindex2) {
-          iter2 = BM_uv_element_get(element_map, iter1->l->f, iter1->l->next);
+          iter2 = BM_uv_element_get(element_map, iter1->l->next);
         }
         else if (BM_elem_index_get(iter1->l->prev->v) == elemindex2) {
-          iter2 = BM_uv_element_get(element_map, iter1->l->f, iter1->l->prev);
+          iter2 = BM_uv_element_get(element_map, iter1->l->prev);
         }
 
         if (iter2) {
@@ -1163,7 +1163,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       /* just to test if face was added for processing.
        * uvs of unselected vertices will return NULL */
-      UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
+      UvElement *element = BM_uv_element_get(state->element_map, BM_FACE_FIRST_LOOP(efa));
 
       if (element) {
         int numoftris = efa->len - 2;
@@ -1795,8 +1795,12 @@ static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
 {
   UvEdge tmp_edge;
 
-  UvElement *element1 = BM_uv_element_get(state->element_map, l->f, l);
-  UvElement *element2 = BM_uv_element_get(state->element_map, l->f, l->next);
+  UvElement *element1 = BM_uv_element_get(state->element_map, l);
+  UvElement *element2 = BM_uv_element_get(state->element_map, l->next);
+
+  if (!element1 || !element2) {
+    return NULL;
+  }
 
   int uv1 = state->map[element1 - state->element_map->storage];
   int uv2 = state->map[element2 - state->element_map->storage];
@@ -1906,10 +1910,9 @@ static StitchState *stitch_init(bContext *C,
     }
 
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      UvElement *element = BM_uv_element_get(state->element_map, efa, l);
+      UvElement *element = BM_uv_element_get(state->element_map, l);
       int itmp1 = element - state->element_map->storage;
-      int itmp2 = BM_uv_element_get(state->element_map, efa, l->next) -
-                  state->element_map->storage;
+      int itmp2 = BM_uv_element_get(state->element_map, l->next) - state->element_map->storage;
       UvEdge *edge;
 
       int offset1 = map[itmp1];
@@ -2015,8 +2018,8 @@ static StitchState *stitch_init(bContext *C,
         faceIndex = state_init->to_select[selected_count].faceIndex;
         elementIndex = state_init->to_select[selected_count].elementIndex;
         efa = BM_face_at_index(em->bm, faceIndex);
-        element = BM_uv_element_get(
-            state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
+        element = BM_uv_element_get(state->element_map,
+                                    BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
         stitch_select_uv(element, state, 1);
       }
     }
@@ -2031,13 +2034,12 @@ static StitchState *stitch_init(bContext *C,
         faceIndex = state_init->to_select[selected_count].faceIndex;
         elementIndex = state_init->to_select[selected_count].elementIndex;
         efa = BM_face_at_index(em->bm, faceIndex);
-        element = BM_uv_element_get(
-            state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
+        element = BM_uv_element_get(state->element_map,
+                                    BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
         uv1 = map[element - state->element_map->storage];
 
         element = BM_uv_element_get(
             state->element_map,
-            efa,
             BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, (elementIndex + 1) % efa->len));
         uv2 = map[element - state->element_map->storage];
 
@@ -2070,7 +2072,7 @@ static StitchState *stitch_init(bContext *C,
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
           if (uvedit_uv_select_test(scene, l, offsets)) {
-            UvElement *element = BM_uv_element_get(state->element_map, efa, l);
+            UvElement *element = BM_uv_element_get(state->element_map, l);
             if (element) {
               stitch_select_uv(element, state, 1);
             }
@@ -2111,7 +2113,7 @@ static StitchState *stitch_init(bContext *C,
   }
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
+    UvElement *element = BM_uv_element_get(state->element_map, BM_FACE_FIRST_LOOP(efa));
 
     if (element) {
       state->tris_per_island[element->island] += (efa->len > 2) ? efa->len - 2 : 0;
@@ -2484,8 +2486,10 @@ static StitchState *stitch_select(bContext *C,
       }
 
       /* This works due to setting of tmp in find nearest uv vert */
-      UvElement *element = BM_uv_element_get(state->element_map, hit.efa, hit.l);
-      stitch_select_uv(element, state, false);
+      UvElement *element = BM_uv_element_get(state->element_map, hit.l);
+      if (element) {
+        stitch_select_uv(element, state, false);
+      }
 
       return state;
     }

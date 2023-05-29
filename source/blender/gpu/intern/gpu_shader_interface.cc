@@ -62,7 +62,7 @@ void ShaderInterface::sort_inputs()
       MutableSpan<ShaderInput>(inputs_ + attr_len_ + ubo_len_ + uniform_len_, ssbo_len_));
 }
 
-void ShaderInterface::debug_print()
+void ShaderInterface::debug_print() const
 {
   Span<ShaderInput> attrs = Span<ShaderInput>(inputs_, attr_len_);
   Span<ShaderInput> ubos = Span<ShaderInput>(inputs_ + attr_len_, ubo_len_);

@@ -139,7 +139,8 @@ bool Texture::init_view(GPUTexture *src_,
                         int mip_len,
                         int layer_start,
                         int layer_len,
-                        bool cube_as_array)
+                        bool cube_as_array,
+                        bool use_stencil)
 {
   const Texture *src = unwrap(src_);
   w_ = src->w_;
@@ -172,7 +173,7 @@ bool Texture::init_view(GPUTexture *src_,
     type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
   }
   sampler_state = src->sampler_state;
-  return this->init_internal(src_, mip_start, layer_start);
+  return this->init_internal(src_, mip_start, layer_start, use_stencil);
 }
 
 void Texture::usage_set(eGPUTextureUsage usage_flags)
@@ -457,7 +458,8 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int mip_len,
                                     int layer_start,
                                     int layer_len,
-                                    bool cube_as_array)
+                                    bool cube_as_array,
+                                    bool use_stencil)
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
@@ -472,7 +474,8 @@ GPUTexture *GPU_texture_create_view(const char *name,
                   mip_len,
                   layer_start,
                   layer_len,
-                  cube_as_array);
+                  cube_as_array,
+                  use_stencil);
   return wrap(view);
 }
 
@@ -666,12 +669,6 @@ void GPU_texture_extend_mode(GPUTexture *tex_, GPUSamplerExtendMode extend_mode)
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
 {
   reinterpret_cast<Texture *>(tex)->swizzle_set(swizzle);
-}
-
-void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil)
-{
-  BLI_assert(GPU_texture_has_stencil_format(tex) || !use_stencil);
-  reinterpret_cast<Texture *>(tex)->stencil_texture_mode_set(use_stencil);
 }
 
 void GPU_texture_free(GPUTexture *tex_)
@@ -959,7 +956,7 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
  * Pixel buffer utility functions.
  * \{ */
 
-GPUPixelBuffer *GPU_pixel_buffer_create(uint size)
+GPUPixelBuffer *GPU_pixel_buffer_create(size_t size)
 {
   /* Ensure buffer satisfies the alignment of 256 bytes for copying
    * data between buffers and textures. As specified in:
@@ -988,7 +985,7 @@ void GPU_pixel_buffer_unmap(GPUPixelBuffer *pix_buf)
   reinterpret_cast<PixelBuffer *>(pix_buf)->unmap();
 }
 
-uint GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
+size_t GPU_pixel_buffer_size(GPUPixelBuffer *pix_buf)
 {
   return reinterpret_cast<PixelBuffer *>(pix_buf)->get_size();
 }

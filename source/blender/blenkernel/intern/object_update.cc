@@ -49,7 +49,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_light_linking.hh"
 #include "DEG_depsgraph_query.h"
+
+namespace deg = blender::deg;
 
 void BKE_object_eval_reset(Object *ob_eval)
 {
@@ -442,4 +445,10 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
     BLI_assert(base_orig->object != nullptr);
     base_orig->flag = base->flag;
   }
+}
+
+void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+  deg::light_linking::eval_runtime_data(depsgraph, *object);
 }

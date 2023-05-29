@@ -78,7 +78,7 @@ class Grid3DFieldContext : public FieldContext {
   }
 
   GVArray get_varray_for_input(const FieldInput &field_input,
-                               const IndexMask /*mask*/,
+                               const IndexMask & /*mask*/,
                                ResourceScope & /*scope*/) const
   {
     const bke::AttributeFieldInput *attribute_field_input =

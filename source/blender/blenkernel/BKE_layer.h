@@ -16,10 +16,6 @@
 extern "C" {
 #endif
 
-#define TODO_LAYER_OVERRIDE  /* CollectionOverride */
-#define TODO_LAYER_OPERATORS /* collection mamanger and property panel operators */
-#define TODO_LAYER           /* generic todo */
-
 struct Base;
 struct BlendDataReader;
 struct BlendLibReader;

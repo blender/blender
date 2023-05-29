@@ -56,7 +56,7 @@ typedef struct bActionStrip {
   float actstart, actend;
   /** Offset within action, for cycles and striding. */
   float actoffs;
-  /** The stridelength (considered when flag & ACT_USESTRIDE). */
+  /** The stride-length (considered when flag & ACT_USESTRIDE). */
   float stridelen;
   /** The number of times to repeat the action range. */
   float repeat;

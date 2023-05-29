@@ -445,12 +445,13 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
   bool diffuse = false, z = false;
   for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
+    float *rpass_buffer_data = rpass->buffer.data;
     if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE_COLOR)) {
-      controller->setPassDiffuse(rpass->rect, rpass->rectx, rpass->recty);
+      controller->setPassDiffuse(rpass_buffer_data, rpass->rectx, rpass->recty);
       diffuse = true;
     }
     if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-      controller->setPassZ(rpass->rect, rpass->rectx, rpass->recty);
+      controller->setPassZ(rpass_buffer_data, rpass->rectx, rpass->recty);
       z = true;
     }
   }

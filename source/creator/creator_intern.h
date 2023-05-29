@@ -19,8 +19,17 @@ extern "C" {
 
 /* creator_args.c */
 
-void main_args_setup(struct bContext *C, struct bArgs *ba);
-void main_args_setup_post(struct bContext *C, struct bArgs *ba);
+/**
+ * \param all: When enabled, all arguments are initialized
+ * even for configurations that don't apply to the current system.
+ * Used for documentation (see Python API: `bpy.app.help_text(all=True)`).
+ */
+void main_args_setup(struct bContext *C, struct bArgs *ba, bool all);
+/**
+ * Handler for loading blend files.
+ * \note arguments that cannot be parsed are assumed to be blend files.
+ */
+int main_args_handle_load_file(int argc, const char **argv, void *data);
 
 /* creator_signals.c */
 

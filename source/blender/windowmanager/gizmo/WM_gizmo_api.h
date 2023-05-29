@@ -218,7 +218,7 @@ struct wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGi
 void WM_gizmogrouptype_iter(struct GHashIterator *ghi);
 
 /**
- * Append and insert into a gizmo typemap.
+ * Append and insert into a gizmo type-map.
  * This is most common for C gizmos which are enabled by default.
  */
 struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(

@@ -340,18 +340,18 @@ class VariableState : NonCopyable, NonMovable {
     return false;
   }
 
-  bool is_fully_initialized(const IndexMask full_mask)
+  bool is_fully_initialized(const IndexMask &full_mask)
   {
     return tot_initialized_ == full_mask.size();
   }
 
-  bool is_fully_uninitialized(const IndexMask full_mask)
+  bool is_fully_uninitialized(const IndexMask &full_mask)
   {
     UNUSED_VARS(full_mask);
     return tot_initialized_ == 0;
   }
 
-  void add_as_input(ParamsBuilder &params, IndexMask mask, const DataType &data_type) const
+  void add_as_input(ParamsBuilder &params, const IndexMask &mask, const DataType &data_type) const
   {
     /* Sanity check to make sure that enough values are initialized. */
     BLI_assert(mask.size() <= tot_initialized_);
@@ -390,7 +390,7 @@ class VariableState : NonCopyable, NonMovable {
     }
   }
 
-  void ensure_is_mutable(IndexMask full_mask,
+  void ensure_is_mutable(const IndexMask &full_mask,
                          const DataType &data_type,
                          ValueAllocator &value_allocator)
   {
@@ -464,8 +464,8 @@ class VariableState : NonCopyable, NonMovable {
   }
 
   void add_as_mutable(ParamsBuilder &params,
-                      IndexMask mask,
-                      IndexMask full_mask,
+                      const IndexMask &mask,
+                      const IndexMask &full_mask,
                       const DataType &data_type,
                       ValueAllocator &value_allocator)
   {
@@ -497,8 +497,8 @@ class VariableState : NonCopyable, NonMovable {
   }
 
   void add_as_output(ParamsBuilder &params,
-                     IndexMask mask,
-                     IndexMask full_mask,
+                     const IndexMask &mask,
+                     const IndexMask &full_mask,
                      const DataType &data_type,
                      ValueAllocator &value_allocator)
   {
@@ -646,7 +646,7 @@ class VariableState : NonCopyable, NonMovable {
   }
 
   void add_as_output__one(ParamsBuilder &params,
-                          IndexMask mask,
+                          const IndexMask &mask,
                           const DataType &data_type,
                           ValueAllocator &value_allocator)
   {
@@ -687,8 +687,8 @@ class VariableState : NonCopyable, NonMovable {
    * \return True when all elements of this variable are initialized and the variable state can be
    *  released.
    */
-  bool destruct(IndexMask mask,
-                IndexMask full_mask,
+  bool destruct(const IndexMask &mask,
+                const IndexMask &full_mask,
                 const DataType &data_type,
                 ValueAllocator &value_allocator)
   {
@@ -757,7 +757,7 @@ class VariableState : NonCopyable, NonMovable {
     return should_self_destruct;
   }
 
-  void indices_split(IndexMask mask, IndicesSplitVectors &r_indices)
+  void indices_split(const IndexMask &mask, IndicesSplitVectors &r_indices)
   {
     BLI_assert(mask.size() <= tot_initialized_);
     BLI_assert(value_ != nullptr);
@@ -765,25 +765,22 @@ class VariableState : NonCopyable, NonMovable {
     switch (value_->type) {
       case ValueType::GVArray: {
         const VArray<bool> varray = this->value_as<VariableValue_GVArray>()->data.typed<bool>();
-        for (const int i : mask) {
-          r_indices[varray[i]].append(i);
-        }
+        mask.foreach_index([&](const int64_t i) { r_indices[varray[i]].append(i); });
         break;
       }
       case ValueType::Span: {
         const Span<bool> span(
             static_cast<const bool *>(this->value_as<VariableValue_Span>()->data),
             mask.min_array_size());
-        for (const int i : mask) {
-          r_indices[span[i]].append(i);
-        }
+        mask.foreach_index([&](const int64_t i) { r_indices[span[i]].append(i); });
         break;
       }
       case ValueType::OneSingle: {
         auto *value_typed = this->value_as<VariableValue_OneSingle>();
         BLI_assert(value_typed->is_initialized);
         const bool condition = *static_cast<const bool *>(value_typed->data);
-        r_indices[condition].extend(mask);
+        Vector<int64_t> &indices = r_indices[condition];
+        mask.foreach_index([&](const int64_t i) { indices.append(i); });
         break;
       }
       case ValueType::GVVectorArray:
@@ -817,12 +814,12 @@ class VariableStates {
   const Procedure &procedure_;
   /** The state of every variable, indexed by #Variable::index_in_procedure(). */
   Array<VariableState> variable_states_;
-  IndexMask full_mask_;
+  const IndexMask &full_mask_;
 
  public:
   VariableStates(LinearAllocator<> &linear_allocator,
                  const Procedure &procedure,
-                 IndexMask full_mask)
+                 const IndexMask &full_mask)
       : value_allocator_(linear_allocator),
         procedure_(procedure),
         variable_states_(procedure.variables().size()),
@@ -999,7 +996,7 @@ static void gather_parameter_variable_states(const MultiFunction &fn,
 }
 
 static void fill_params__one(const MultiFunction &fn,
-                             const IndexMask mask,
+                             const IndexMask &mask,
                              ParamsBuilder &params,
                              VariableStates &variable_states,
                              const Span<VariableState *> param_variable_states)
@@ -1017,7 +1014,7 @@ static void fill_params__one(const MultiFunction &fn,
 }
 
 static void fill_params(const MultiFunction &fn,
-                        const IndexMask mask,
+                        const IndexMask &mask,
                         ParamsBuilder &params,
                         VariableStates &variable_states,
                         const Span<VariableState *> param_variable_states)
@@ -1035,7 +1032,7 @@ static void fill_params(const MultiFunction &fn,
 }
 
 static void execute_call_instruction(const CallInstruction &instruction,
-                                     const IndexMask mask,
+                                     const IndexMask &mask,
                                      VariableStates &variable_states,
                                      const Context &context)
 {
@@ -1048,11 +1045,12 @@ static void execute_call_instruction(const CallInstruction &instruction,
   /* If all inputs to the function are constant, it's enough to call the function only once instead
    * of for every index. */
   if (evaluate_as_one(param_variable_states, mask, variable_states.full_mask())) {
-    ParamsBuilder params(fn, 1);
+    static const IndexMask one_mask(1);
+    ParamsBuilder params(fn, &one_mask);
     fill_params__one(fn, mask, params, variable_states, param_variable_states);
 
     try {
-      fn.call(IndexRange(1), params, context);
+      fn.call(one_mask, params, context);
     }
     catch (...) {
       /* Multi-functions must not throw exceptions. */
@@ -1075,15 +1073,11 @@ static void execute_call_instruction(const CallInstruction &instruction,
 
 /** An index mask, that might own the indices if necessary. */
 struct InstructionIndices {
-  bool is_owned;
-  Vector<int64_t> owned_indices;
+  std::unique_ptr<IndexMaskMemory> memory;
   IndexMask referenced_indices;
 
-  IndexMask mask() const
+  const IndexMask &mask() const
   {
-    if (this->is_owned) {
-      return this->owned_indices.as_span();
-    }
     return this->referenced_indices;
   }
 };
@@ -1093,7 +1087,7 @@ struct NextInstructionInfo {
   const Instruction *instruction = nullptr;
   InstructionIndices indices;
 
-  IndexMask mask() const
+  const IndexMask &mask() const
   {
     return this->indices.mask();
   }
@@ -1115,13 +1109,12 @@ class InstructionScheduler {
  public:
   InstructionScheduler() = default;
 
-  void add_referenced_indices(const Instruction &instruction, IndexMask mask)
+  void add_referenced_indices(const Instruction &instruction, const IndexMask &mask)
   {
     if (mask.is_empty()) {
       return;
     }
     InstructionIndices new_indices;
-    new_indices.is_owned = false;
     new_indices.referenced_indices = mask;
     next_instructions_.push({&instruction, std::move(new_indices)});
   }
@@ -1131,11 +1124,11 @@ class InstructionScheduler {
     if (indices.is_empty()) {
       return;
     }
-    BLI_assert(IndexMask::indices_are_valid_index_mask(indices));
 
     InstructionIndices new_indices;
-    new_indices.is_owned = true;
-    new_indices.owned_indices = std::move(indices);
+    new_indices.memory = std::make_unique<IndexMaskMemory>();
+    new_indices.referenced_indices = IndexMask::from_indices<int64_t>(indices,
+                                                                      *new_indices.memory);
     next_instructions_.push({&instruction, std::move(new_indices)});
   }
 
@@ -1161,7 +1154,7 @@ class InstructionScheduler {
   }
 };
 
-void ProcedureExecutor::call(IndexMask full_mask, Params params, Context context) const
+void ProcedureExecutor::call(const IndexMask &full_mask, Params params, Context context) const
 {
   BLI_assert(procedure_.validate());
 

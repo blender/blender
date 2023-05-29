@@ -11,7 +11,7 @@ struct Mesh;
 namespace blender::geometry {
 
 void split_edges(Mesh &mesh,
-                 IndexMask mask,
+                 const IndexMask &mask,
                  const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

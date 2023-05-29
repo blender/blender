@@ -73,7 +73,8 @@ size_t BLI_timecode_string_from_time(char *str,
        *   within this length. Hours will only be included if relevant.
        * - Only show frames when zoomed in enough for them to be relevant
        *   (using separator of '+' for frames).
-       *   When showing frames, use slightly different display to avoid confusion with mm:ss format
+       *   When showing frames, use slightly different display
+       *   to avoid confusion with `mm:ss` format.
        */
       if (brevity_level <= 0) {
         /* include "frames" in display */

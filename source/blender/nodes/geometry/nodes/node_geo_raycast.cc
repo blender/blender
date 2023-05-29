@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_mask_ops.hh"
-
 #include "DNA_mesh_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -116,7 +114,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void raycast_to_mesh(IndexMask mask,
+static void raycast_to_mesh(const IndexMask &mask,
                             const Mesh &mesh,
                             const VArray<float3> &ray_origins,
                             const VArray<float3> &ray_directions,
@@ -137,7 +135,7 @@ static void raycast_to_mesh(IndexMask mask,
   /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
   BLI_assert(tree_data.cached);
 
-  for (const int i : mask) {
+  mask.foreach_index([&](const int i) {
     const float ray_length = ray_lengths[i];
     const float3 ray_origin = ray_origins[i];
     const float3 ray_direction = ray_directions[i];
@@ -187,7 +185,7 @@ static void raycast_to_mesh(IndexMask mask,
         r_hit_distances[i] = ray_length;
       }
     }
-  }
+  });
 }
 
 class RaycastFunction : public mf::MultiFunction {
@@ -214,7 +212,7 @@ class RaycastFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     BLI_assert(target_.has_mesh());
     const Mesh &mesh = *target_.get_mesh_for_read();

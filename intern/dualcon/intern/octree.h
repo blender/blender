@@ -1171,9 +1171,10 @@ class Octree {
     return nleaf;
   }
 
-  /** Locate a leaf
-   * WARNING: assuming this leaf already exists! */
-
+  /**
+   * Locate a leaf
+   * WARNING: assuming this leaf already exists!
+   */
   LeafNode *locateLeaf(int st[3])
   {
     Node *node = (Node *)root;

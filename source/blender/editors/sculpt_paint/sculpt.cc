@@ -639,9 +639,8 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
-        if (!ss->hide_poly[vert_map->indices[j]]) {
+      for (const int poly : ss->pmap[vertex.i]) {
+        if (!ss->hide_poly[poly]) {
           return true;
         }
       }
@@ -673,9 +672,8 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       if (!ss->hide_poly) {
         return true;
       }
-      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int j = 0; j < vert_map->count; j++) {
-        if (ss->hide_poly[vert_map->indices[j]]) {
+      for (const int poly : ss->pmap[vertex.i]) {
+        if (ss->hide_poly[poly]) {
           return false;
         }
       }
@@ -725,9 +723,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BLI_assert(ss->face_sets != nullptr);
-      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int j = 0; j < vert_map->count; j++) {
-        const int poly_index = vert_map->indices[j];
+      for (const int poly_index : ss->pmap[vertex.i]) {
         if (ss->hide_poly && ss->hide_poly[poly_index]) {
           /* Skip hidden faces connected to the vertex. */
           continue;
@@ -778,11 +774,9 @@ void SCULPT_vertex_face_set_increase(SculptSession *ss, PBVHVertRef vertex, cons
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      int index = (int)vertex.i;
-      MeshElemMap *vert_map = &ss->pmap[index];
-      for (int j = 0; j < ss->pmap[index].count; j++) {
-        if (ss->face_sets[vert_map->indices[j]] > 0) {
-          ss->face_sets[vert_map->indices[j]] += increase;
+      for (int poly : ss->pmap[vertex.i]) {
+        if (ss->face_sets[poly] > 0) {
+          ss->face_sets[poly] += increase;
         }
       }
     } break;
@@ -824,11 +818,10 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
-      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       int face_set = 0;
-      for (int i = 0; i < vert_map->count; i++) {
-        if (ss->face_sets[vert_map->indices[i]] > face_set) {
-          face_set = abs(ss->face_sets[vert_map->indices[i]]);
+      for (const int poly_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[poly_index] > face_set) {
+          face_set = abs(ss->face_sets[poly_index]);
         }
       }
       return face_set;
@@ -870,9 +863,8 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int i = 0; i < vert_map->count; i++) {
-        if (ss->face_sets[vert_map->indices[i]] == face_set) {
+      for (const int poly_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[poly_index] == face_set) {
           return true;
         }
       }
@@ -1181,8 +1173,8 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
   int len = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
 
   BKE_pbvh_pmap_to_edges(ss->pbvh, vertex, &edges, &len, &heap_alloc, &unused_polys);
-  /* length of array is now in len */
 
+  /* Length of array is now in len. */
   for (int i = 0; i < len; i++) {
     const int2 &e = ss->edges[edges[i]];
     int v2 = e[0] == vertex.i ? e[1] : e[0];
@@ -1194,23 +1186,6 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
     MEM_freeN(unused_polys);
     MEM_freeN(edges);
   }
-#if 0
-  for (int i = 0; i < vert_map->count; i++) {
-    if (ss->hide_poly && ss->hide_poly[vert_map->indices[i]]) {
-      /* Skip connectivity from hidden faces. */
-      continue;
-    }
-
-    const blender::IndexRange poly = ss->polys[vert_map->indices[i]];
-    const blender::int2 f_adj_v = blender::bke::mesh::poly_find_adjecent_verts(
-        poly, ss->corner_verts, vertex.i);
-    for (int j = 0; j < 2; j++) {
-      if (f_adj_v[j] != vertex.i) {
-        sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
-      }
-    }
-  }
-#endif
 
   if (ss->fake_neighbors.use_fake_neighbors) {
     BLI_assert(ss->fake_neighbors.fake_neighbor_index != nullptr);
@@ -1227,9 +1202,6 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
                                                     PBVHVertRef vertex,
                                                     SculptVertexNeighborIter *iter)
 {
-  int index = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
-
-  MeshElemMap *vert_map = &ss->vemap[index];
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
@@ -1238,8 +1210,8 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
   iter->is_duplicate = false;
   iter->no_free = false;
 
-  for (int i = 0; i < vert_map->count; i++) {
-    const int2 &e = ss->edges[vert_map->indices[i]];
+  for (int edge : ss->vemap[vertex.i]) {
+    const int2 &e = ss->edges[edge];
 
     unsigned int v = e[0] == (unsigned int)vertex.i ? e[1] : e[0];
     int8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
@@ -1249,17 +1221,16 @@ static void sculpt_vertex_neighbors_get_faces_vemap(const SculptSession *ss,
       continue;
     }
 
-    sculpt_vertex_neighbor_add_nocheck(
-        iter, BKE_pbvh_make_vref(v), BKE_pbvh_make_eref(vert_map->indices[i]), v);
+    sculpt_vertex_neighbor_add_nocheck(iter, BKE_pbvh_make_vref(v), BKE_pbvh_make_eref(edge), v);
   }
 
   if (ss->fake_neighbors.use_fake_neighbors) {
     BLI_assert(ss->fake_neighbors.fake_neighbor_index != nullptr);
-    if (ss->fake_neighbors.fake_neighbor_index[index].i != FAKE_NEIGHBOR_NONE) {
+    if (ss->fake_neighbors.fake_neighbor_index[vertex.i].i != FAKE_NEIGHBOR_NONE) {
       sculpt_vertex_neighbor_add(iter,
-                                 ss->fake_neighbors.fake_neighbor_index[index],
+                                 ss->fake_neighbors.fake_neighbor_index[vertex.i],
                                  BKE_pbvh_make_eref(PBVH_REF_NONE),
-                                 ss->fake_neighbors.fake_neighbor_index[index].i);
+                                 ss->fake_neighbors.fake_neighbor_index[vertex.i].i);
     }
   }
 }
@@ -1328,8 +1299,8 @@ void SCULPT_vertex_neighbors_get(const SculptSession *ss,
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       /* use vemap if it exists, so result is in disk cycle order */
-      if (ss->vemap) {
-        BKE_pbvh_set_vemap(ss->pbvh, ss->vemap);
+      if (!ss->vemap.is_empty()) {
+        blender::bke::pbvh::set_vemap(ss->pbvh, ss->vemap);
         sculpt_vertex_neighbors_get_faces_vemap(ss, vertex, iter);
       }
       else {
@@ -6923,22 +6894,20 @@ void SCULPT_boundary_info_ensure(Object *object)
 
 void SCULPT_ensure_vemap(SculptSession *ss)
 {
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, ss->edges.data(), ss->totvert, ss->totedges);
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && ss->vemap.is_empty()) {
+    ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
+        ss->edges, ss->totvert, ss->vert_to_edge_offsets, ss->vert_to_edge_indices);
   }
 }
 
 void SCULPT_ensure_epmap(SculptSession *ss)
 {
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->epmap) {
-
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  ss->totedges,
-                                  ss->polys,
-                                  ss->corner_edges.data(),
-                                  ss->totloops);
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && ss->epmap.is_empty()) {
+    ss->epmap = blender::bke::mesh::build_edge_to_poly_map(ss->polys,
+                                                           ss->corner_edges,
+                                                           ss->totedges,
+                                                           ss->edge_to_poly_offsets,
+                                                           ss->edge_to_poly_indices);
   }
 }
 

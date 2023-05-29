@@ -1124,28 +1124,28 @@ static void cache_filepath(
     char *filepath, const char *dirname, const char *relbase, int frame, int type)
 {
   char cachepath[FILE_MAX];
-  const char *fname;
+  const char *filename;
 
   switch (type) {
     case CACHE_TYPE_FOAM:
-      fname = "foam_";
+      filename = "foam_";
       break;
     case CACHE_TYPE_NORMAL:
-      fname = "normal_";
+      filename = "normal_";
       break;
     case CACHE_TYPE_SPRAY:
-      fname = "spray_";
+      filename = "spray_";
       break;
     case CACHE_TYPE_SPRAY_INVERSE:
-      fname = "spray_inverse_";
+      filename = "spray_inverse_";
       break;
     case CACHE_TYPE_DISPLACE:
     default:
-      fname = "disp_";
+      filename = "disp_";
       break;
   }
 
-  BLI_path_join(cachepath, sizeof(cachepath), dirname, fname);
+  BLI_path_join(cachepath, sizeof(cachepath), dirname, filename);
 
   BKE_image_path_from_imtype(
       filepath, cachepath, relbase, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");
@@ -1454,7 +1454,7 @@ void BKE_ocean_bake(struct Ocean *o,
 
           // pr = pr * och->foam_fade; /* overall fade */
 
-          /* Remember ocean coord sys is Y up!
+          /* Remember ocean coord system is Y up!
            * break up the foam where height (Y) is low (wave valley),
            * and X and Z displacement is greatest. */
 

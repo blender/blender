@@ -149,4 +149,23 @@ TEST(linear_allocator, ConstructArray)
   }
 }
 
+TEST(linear_allocator, TransferOwnership)
+{
+  LinearAllocator<> main_allocator;
+  MutableSpan<int> values;
+
+  /* Allocate a large buffer that is likely to be given back to the system when freed. This test
+   * essentially only fails by crashing with a segfault. */
+  const int size = 1'000'000;
+  const int value = 42;
+  const int index = 500'000;
+  {
+    LinearAllocator<> nested_allocator;
+    values = nested_allocator.allocate_array<int>(size);
+    values[index] = value;
+    main_allocator.transfer_ownership_from(nested_allocator);
+  }
+  EXPECT_EQ(values[index], value);
+}
+
 }  // namespace blender::tests

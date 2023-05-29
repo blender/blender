@@ -4,11 +4,9 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "PIL_time.h"
-}
 
 #include <fstream>
 #include <iostream>

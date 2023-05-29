@@ -530,9 +530,10 @@ typedef struct View2DEdgePanData {
   float max_speed;
   /** Delay in seconds before maximum speed is reached. */
   float delay;
-  /** Influence factor for view zoom:
-   *    0 = Constant speed in UI units
-   *    1 = Constant speed in view space, UI speed slows down when zooming out
+  /**
+   * Influence factor for view zoom:
+   * - 0 = Constant speed in UI units.
+   * - 1 = Constant speed in view space, UI speed slows down when zooming out.
    */
   float zoom_influence;
 

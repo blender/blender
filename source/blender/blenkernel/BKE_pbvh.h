@@ -68,7 +68,6 @@ struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
 struct ImageUser;
-struct MeshElemMap;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -549,7 +548,6 @@ BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
-
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
@@ -859,7 +857,8 @@ void BKE_pbvh_face_iter_step(PBVHFaceIter *fd);
 bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd);
 void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 
-/** Iterate over faces inside a PBVHNode.  These are either base mesh faces
+/**
+ * Iterate over faces inside a #PBVHNode. These are either base mesh faces
  * (for PBVH_FACES and PBVH_GRIDS) or BMesh faces (for PBVH_BMESH).
  */
 #define BKE_pbvh_face_iter_begin(pbvh, node, fd) \
@@ -1012,7 +1011,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    const int cd_flag,
                                    const int cd_valence,
                                    struct BMVert *v,
-                                   int bound_symmetry,
                                    const CustomData *ldata,
                                    const int totuv,
                                    const bool do_uvs,
@@ -1185,14 +1183,10 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             int *r_edges_size,
                             bool *heap_alloc,
                             int **r_polys);
-void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
-void BKE_pbvh_set_pmap(PBVH *pbvh, struct MeshElemMap *pmap, int *mem);
-struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh, int **r_mem);
-void BKE_pbvh_cache_remove(PBVH *pbvh);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
 
@@ -1202,6 +1196,7 @@ bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 void BKE_pbvh_flush_tri_areas(PBVH *pbvh);
 
 #ifdef __cplusplus
+void BKE_pbvh_pmap_set(PBVH *pbvh, blender::GroupedSpan<int> pmap);
 }
 
 #  include "BLI_math_vector.hh"
@@ -1219,7 +1214,7 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 const int *corner_edges,
                                 blender::OffsetIndices<int> polys,
                                 int totpoly,
-                                const MeshElemMap *pmap,
+                                const blender::GroupedSpan<int> &pmap,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
                                 const bool *seam_edges,
@@ -1232,5 +1227,8 @@ Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  PBVHNodeFlags leaf_flag = PBVH_Leaf);
 Vector<PBVHNode *> gather_proxies(PBVH *pbvh);
 Vector<PBVHNode *> get_flagged_nodes(PBVH *pbvh, int flag);
+void set_pmap(PBVH *pbvh, blender::GroupedSpan<int> pmap);
+void set_vemap(PBVH *pbvh, blender::GroupedSpan<int> vemap);
+struct GroupedSpan<int> get_pmap(PBVH *pbvh);
 }  // namespace blender::bke::pbvh
 #endif

@@ -22,15 +22,13 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
-  threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : selection.slice(range)) {
-      const IndexRange poly = polys[i];
-      for (const int j : IndexRange(poly.size() / 2)) {
-        const int a = poly[j + 1];
-        const int b = poly.last(j);
-        std::swap(corner_verts[a], corner_verts[b]);
-        std::swap(corner_edges[a - 1], corner_edges[b]);
-      }
+  selection.foreach_index(GrainSize(1024), [&](const int i) {
+    const IndexRange poly = polys[i];
+    for (const int j : IndexRange(poly.size() / 2)) {
+      const int a = poly[j + 1];
+      const int b = poly.last(j);
+      std::swap(corner_verts[a], corner_verts[b]);
+      std::swap(corner_edges[a - 1], corner_edges[b]);
     }
   });
 
@@ -50,10 +48,8 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
         bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
           using T = decltype(dummy);
           MutableSpan<T> dst_span = attribute.span.typed<T>();
-          threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
-            for (const int i : selection.slice(range)) {
-              dst_span.slice(polys[i].drop_front(1)).reverse();
-            }
+          selection.foreach_index(GrainSize(1024), [&](const int i) {
+            dst_span.slice(polys[i].drop_front(1)).reverse();
           });
         });
         attribute.finish();

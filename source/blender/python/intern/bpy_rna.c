@@ -4378,13 +4378,15 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
     else {
       PointerRNA newptr;
       ListBase newlb;
+      PropertyRNA *newprop;
+      int newindex;
       short newtype;
 
       /* An empty string is used to implement #CTX_data_dir_get,
        * without this check `getattr(context, "")` succeeds. */
       eContextResult done;
       if (name[0]) {
-        done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+        done = CTX_data_get(C, name, &newptr, &newlb, &newprop, &newindex, &newtype);
       }
       else {
         /* Fall through to built-in `getattr`. */
@@ -4410,6 +4412,27 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 
             for (link = newlb.first; link; link = link->next) {
               PyList_APPEND(ret, pyrna_struct_CreatePyObject(&link->ptr));
+            }
+            break;
+          }
+          case CTX_DATA_TYPE_PROPERTY: {
+            if (newprop != NULL) {
+              /* Create pointer to parent ID, and path from ID to property. */
+              PointerRNA idptr;
+              RNA_id_pointer_create(newptr.owner_id, &idptr);
+              char *path_str = RNA_path_from_ID_to_property(&newptr, newprop);
+
+              ret = PyTuple_New(3);
+              PyTuple_SET_ITEMS(ret,
+                                pyrna_struct_CreatePyObject(&idptr),
+                                PyUnicode_FromString(path_str),
+                                PyLong_FromLong(newindex));
+
+              MEM_freeN(path_str);
+            }
+            else {
+              ret = Py_None;
+              Py_INCREF(ret);
             }
             break;
           }
@@ -4605,9 +4628,12 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 
     PointerRNA newptr;
     ListBase newlb;
+    PropertyRNA *newprop;
+    int newindex;
     short newtype;
 
-    const eContextResult done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+    const eContextResult done = CTX_data_get(
+        C, name, &newptr, &newlb, &newprop, &newindex, &newtype);
 
     if (done == CTX_RESULT_OK) {
       PyErr_Format(

@@ -677,15 +677,14 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
 
   if (!region->draw_buffer) {
     if (use_viewport) {
-      /* Allocate viewport which includes an offscreen buffer with depth
-       * multisample, etc. */
+      /* Allocate viewport which includes an off-screen buffer with depth multi-sample, etc. */
       region->draw_buffer = MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer");
       region->draw_buffer->viewport = stereo ? GPU_viewport_stereo_create() :
                                                GPU_viewport_create();
     }
     else {
-      /* Allocate offscreen buffer if it does not exist. This one has no
-       * depth or multisample buffers. 3D view creates own buffers with
+      /* Allocate off-screen buffer if it does not exist. This one has no
+       * depth or multi-sample buffers. 3D view creates own buffers with
        * the data it needs. */
       GPUOffScreen *offscreen = GPU_offscreen_create(
           region->winx, region->winy, false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);

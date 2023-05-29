@@ -568,12 +568,12 @@ static Sequence *seq_dupli(const Scene *scene_src,
     BLI_assert_unreachable();
   }
 
-  /* When using SEQ_DUPE_UNIQUE_NAME, it is mandatory to add new sequences in relevant container
+  /* When using #SEQ_DUPE_UNIQUE_NAME, it is mandatory to add new sequences in relevant container
    * (scene or meta's one), *before* checking for unique names. Otherwise the meta's list is empty
-   * and hence we miss all seqs in that meta that have already been duplicated (see #55668).
-   * Note that unique name check itself could be done at a later step in calling code, once all
-   * seqs have bee duplicated (that was first, simpler solution), but then handling of animation
-   * data will be broken (see #60194). */
+   * and hence we miss all sequence-strips in that meta that have already been duplicated,
+   * (see #55668). Note that unique name check itself could be done at a later step in calling
+   * code, once all sequence-strips have bee duplicated (that was first, simpler solution),
+   * but then handling of animation data will be broken (see #60194). */
   if (new_seq_list != NULL) {
     BLI_addtail(new_seq_list, seqn);
   }

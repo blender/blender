@@ -375,12 +375,12 @@ static void constraintRotLim(const TransInfo *UNUSED(t), TransData *td)
           continue;
         }
 
-        /* skip incompatible spacetypes */
+        /* Skip incompatible space-types. */
         if (!ELEM(con->ownspace, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL)) {
           continue;
         }
 
-        /* only do conversion if necessary, to preserve quats and eulers */
+        /* Only do conversion if necessary, to preserve quaternion and euler rotations. */
         if (do_limit == false) {
           constraintob_from_transdata(&cob, td);
           do_limit = true;

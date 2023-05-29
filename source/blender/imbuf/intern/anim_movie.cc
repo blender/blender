@@ -766,7 +766,7 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-  /* Try do detect if input has 0-255 YCbCR range (JFIF Jpeg MotionJpeg) */
+  /* Try do detect if input has 0-255 YCbCR range (JFIF, JPEG, Motion-JPEG). */
   if (!sws_getColorspaceDetails(anim->img_convert_ctx,
                                 (int **)&inv_table,
                                 &srcRange,

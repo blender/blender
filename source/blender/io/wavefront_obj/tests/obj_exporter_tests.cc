@@ -276,7 +276,7 @@ class obj_exporter_regression_test : public obj_exporter_test {
     BKE_tempdir_init(nullptr);
     std::string tempdir = std::string(BKE_tempdir_base());
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
-    strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
+    STRNCPY(params.filepath, out_file_path.c_str());
     params.blen_filepath = bfile->main->filepath;
     std::string golden_file_path = blender::tests::flags_test_asset_dir() + SEP_STR + golden_obj;
     BLI_path_split_dir_part(

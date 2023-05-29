@@ -186,16 +186,18 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
 
   float totarea = 0.0;
 
-  MeshElemMap *elem = ss->vemap + vertex.i;
-  for (int i = 0; i < elem->count; i++) {
-    int i1 = (i + elem->count - 1) % elem->count;
+  Span<int> elem = ss->vemap[vertex.i];
+  const int count = elem.size();
+
+  for (int i = 0; i < count; i++) {
+    int i1 = (i + count - 1) % count;
     int i2 = i;
-    int i3 = (i + 1) % elem->count;
+    int i3 = (i + 1) % count;
 
     const float *v = ss->vert_positions[vertex.i];
-    const int2 &e1 = ss->edges[elem->indices[i1]];
-    const int2 &e2 = ss->edges[elem->indices[i2]];
-    const int2 &e3 = ss->edges[elem->indices[i3]];
+    const int2 &e1 = ss->edges[elem[i1]];
+    const int2 &e2 = ss->edges[elem[i2]];
+    const int2 &e3 = ss->edges[elem[i3]];
 
     const float *v1 = (unsigned int)vertex.i == e1[0] ? ss->vert_positions[e1[1]] :
                                                         ss->vert_positions[e1[0]];
@@ -232,7 +234,7 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
 
   float mul = 1.0f / (totarea * 2.0);
 
-  for (int i = 0; i < elem->count; i++) {
+  for (int i = 0; i < count; i++) {
     r_ws[i] *= mul;
   }
 }
@@ -253,10 +255,7 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
     case PBVH_FACES: {
       Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-      if (!ss->vemap) {
-        BKE_mesh_vert_edge_map_create(
-            &ss->vemap, &ss->vemap_mem, mesh->edges().data(), mesh->totvert, mesh->totedge);
-      }
+      SCULPT_ensure_vemap(ss);
 
       break;
     }
@@ -432,8 +431,15 @@ void SCULPT_pbvh_clear(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  MEM_SAFE_FREE(ss->pmap);
-  MEM_SAFE_FREE(ss->pmap_mem);
+  ss->pmap = {};
+  ss->vert_to_poly_indices = {};
+  ss->vert_to_poly_offsets = {};
+  ss->epmap = {};
+  ss->edge_to_poly_indices = {};
+  ss->edge_to_poly_offsets = {};
+  ss->vemap = {};
+  ss->vert_to_edge_indices = {};
+  ss->vert_to_edge_offsets = {};
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
@@ -478,9 +484,16 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   customdata_strip_templayers(&me->vdata, me->totvert);
   customdata_strip_templayers(&me->pdata, me->totpoly);
 
-  if (ss->pbvh) {
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
+  if (!ss->pmap.is_empty()) {
+    ss->pmap = {};
+    ss->vert_to_poly_indices = {};
+    ss->vert_to_poly_offsets = {};
+    ss->epmap = {};
+    ss->edge_to_poly_indices = {};
+    ss->edge_to_poly_offsets = {};
+    ss->vemap = {};
+    ss->vert_to_edge_indices = {};
+    ss->vert_to_edge_offsets = {};
   }
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {

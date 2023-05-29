@@ -124,7 +124,8 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     int hitbuf_size[3];
     GPU_texture_get_mipmap_size(effects->ssr_hit_output, 0, hitbuf_size);
 
-    /** Screen space ray-tracing overview
+    /**
+     * Screen space ray-tracing overview.
      *
      * Following Frostbite stochastic SSR.
      *

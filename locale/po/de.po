@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1870,10 +1870,6 @@ msgid "Shape Key data-blocks"
 msgstr "Formschlüssel-Datenblöcke"
 
 
-msgid "Simulations"
-msgstr "Simulationen"
-
-
 msgid "Sounds"
 msgstr "Klänge"
 
@@ -3678,38 +3674,6 @@ msgid "Eraser Stroke"
 msgstr "Radiergummi Strich"
 
 
-msgid "Smooth"
-msgstr "Weich"
-
-
-msgid "Thickness"
-msgstr "Dicke"
-
-
-msgid "Randomize"
-msgstr "Zufällig"
-
-
-msgid "Grab"
-msgstr "Greifen"
-
-
-msgid "Push"
-msgstr "Drücken"
-
-
-msgid "Twist"
-msgstr "Verdrehen"
-
-
-msgid "Pinch"
-msgstr "Ausdünnen"
-
-
-msgid "Clone"
-msgstr "Klonen"
-
-
 msgid "Draw"
 msgstr "Zeichnen"
 
@@ -3742,8 +3706,16 @@ msgid "Material used for strokes drawn using this brush"
 msgstr "Material für mit diesem Pinsel gezeichnete Striche"
 
 
+msgid "Thickness"
+msgstr "Dicke"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "Flimmerfaktor für neue Striche"
+
+
+msgid "Smooth"
+msgstr "Weich"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -9816,6 +9788,10 @@ msgid "Show Scene data-blocks"
 msgstr "Szenen-Datenblöcke anzeigen"
 
 
+msgid "Simulations"
+msgstr "Simulationen"
+
+
 msgid "Show Simulation data-blocks"
 msgstr "Simulations-Datenblöcke anzeigen"
 
@@ -12937,22 +12913,6 @@ msgid "Gaussian"
 msgstr "Gauß'sche"
 
 
-msgid "Deformation"
-msgstr "Verformung"
-
-
-msgid "Bend"
-msgstr "Krümmen"
-
-
-msgid "Expand"
-msgstr "Erweitern"
-
-
-msgid "Inflate"
-msgstr "Aufblasen"
-
-
 msgid "Loop"
 msgstr "Schleife"
 
@@ -12989,8 +12949,28 @@ msgid "How much the applied forces are propagated through the cloth"
 msgstr "Wieviel der angewendeten Kraft breitet sich durch das Gewebe aus"
 
 
+msgid "Deformation"
+msgstr "Verformung"
+
+
+msgid "Push"
+msgstr "Drücken"
+
+
 msgid "Pinch Point"
 msgstr "Punktklemmung"
+
+
+msgid "Inflate"
+msgstr "Aufblasen"
+
+
+msgid "Grab"
+msgstr "Greifen"
+
+
+msgid "Expand"
+msgstr "Erweitern"
 
 
 msgid "Snake Hook"
@@ -13053,6 +13033,10 @@ msgid "Paint Selection"
 msgstr "Mal Auswahl"
 
 
+msgid "Pinch"
+msgstr "Ausdünnen"
+
+
 msgid "Puff"
 msgstr "Bauschen"
 
@@ -13083,10 +13067,6 @@ msgstr "Projektiert"
 
 msgid "Fill Threshold"
 msgstr "Füllschwelle"
-
-
-msgid "Grease Pencil Sculpt Paint Tool"
-msgstr "Wachsstift-Skulptur Malwerkzeug"
 
 
 msgid "Smooth stroke points"
@@ -13167,6 +13147,10 @@ msgstr "Bildmalwerkzeug"
 
 msgid "Soften"
 msgstr "Weichzeichnen"
+
+
+msgid "Clone"
+msgstr "Klonen"
 
 
 msgid "Mask"
@@ -15336,10 +15320,6 @@ msgid "Clip Threshold"
 msgstr "Clip-Schwellenwert"
 
 
-msgid "Alpha Blend"
-msgstr "Alphablende"
-
-
 msgid "Cycles Material Settings"
 msgstr "Kraftfeldeinstellungen"
 
@@ -16845,6 +16825,10 @@ msgstr "Optimieren"
 
 msgid "Timestep"
 msgstr "Zeitschritt"
+
+
+msgid "Twist"
+msgstr "Verdrehen"
 
 
 msgid "Twist Curve"
@@ -20540,10 +20524,6 @@ msgid "Color for filling region bounded by each stroke"
 msgstr "Farbe für den Füllbereich, der von jedem Strich begrenzt wird"
 
 
-msgid "Fill Style"
-msgstr "Füllstil"
-
-
 msgid "Select style used to fill strokes"
 msgstr "Wähle den Stil zum Füllen von Strichen"
 
@@ -20602,10 +20582,6 @@ msgstr "Strich anzeigen"
 
 msgid "Show stroke lines of this material"
 msgstr "Strichlinie auf diesem Material anzeigen"
-
-
-msgid "Stroke Style"
-msgstr "Strichstil"
 
 
 msgid "Select style used to draw strokes"
@@ -21879,6 +21855,10 @@ msgid "Seed for random if used"
 msgstr "Seed des Rauschens"
 
 
+msgid "Randomize"
+msgstr "Zufällig"
+
+
 msgid "Reversed"
 msgstr "Invertieren"
 
@@ -22201,10 +22181,6 @@ msgstr "Texturkoordinaten Objekt"
 
 msgid "Dynamic Paint Modifier"
 msgstr "Dynamisch Malen Modifikator"
-
-
-msgid "Canvas"
-msgstr "Leinwand"
 
 
 msgid "EdgeSplit Modifier"
@@ -22796,16 +22772,22 @@ msgid "Angle of deformation"
 msgstr "Winkel der Verformung"
 
 
+msgctxt "Operator"
+msgid "Twist"
+msgstr "Verdrehen"
+
+
 msgid "Rotate around the Z axis of the modifier space"
 msgstr "Um Z-Achse des Modifikatorraums rotieren"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Biegen"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "Die Masche über die Z-Achse des Modifikatorraumes krümmen"
-
-
-msgid "Taper"
-msgstr "Neigen"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -26982,10 +26964,6 @@ msgid "Volume Info"
 msgstr "Volumeninformation"
 
 
-msgid "Pixel Size"
-msgstr "Pixelgröße"
-
-
 msgid "Texture Node"
 msgstr "Texturknoten"
 
@@ -29789,6 +29767,10 @@ msgstr "Skalieren"
 
 msgid "To Sphere"
 msgstr "Zur Kugel"
+
+
+msgid "Bend"
+msgstr "Krümmen"
 
 
 msgid "Shrink/Fatten"
@@ -40328,11 +40310,6 @@ msgid "Transformation orientation"
 msgstr "Transformationsausrichtung"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Biegen"
-
-
 msgid "Center Override"
 msgstr "Zentrum überschreiben"
 
@@ -41224,24 +41201,8 @@ msgid "Interactively fly around the scene"
 msgstr "Interaktiv durch die Szene fliegen"
 
 
-msgid "Plane Axis"
-msgstr "Flächen-Achsen"
-
-
-msgid "Cursor Plane"
-msgstr "Cursorfläche"
-
-
-msgid "Cursor View"
-msgstr "Cursoransicht"
-
-
 msgid "ICO Sphere"
 msgstr "ICO Kugel"
-
-
-msgid "Snap to"
-msgstr "Anheften an"
 
 
 msgctxt "Operator"
@@ -42788,6 +42749,10 @@ msgid "Grease Pencil Sculpt Paint"
 msgstr "Wachsstift Skulpturmalen"
 
 
+msgid "Canvas"
+msgstr "Leinwand"
+
+
 msgid "Texture filtering type"
 msgstr "Textur Filtertyp"
 
@@ -44182,11 +44147,6 @@ msgstr "Dicke"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "Stärke"
-
-
-msgctxt "Operator"
-msgid "Twist"
-msgstr "Verdrehen"
 
 
 msgctxt "Operator"
@@ -46351,6 +46311,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "Farbspanne, welche für den Visualisierungseinfluss vom Malereieinflussmodus verwendet wird"
 
 
+msgid "Base"
+msgstr "Basis"
+
+
+msgid "Temperature"
+msgstr "Temperatur"
+
+
 msgid "ID Property Group"
 msgstr "ID Eigenschaftsgruppe"
 
@@ -47407,6 +47375,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Vertikales Seitenverhältnis - für verzerrte oder nicht-quadratische Pixelausgabe"
 
 
+msgid "Pixel Size"
+msgstr "Pixelgröße"
+
+
 msgid "1x"
 msgstr "1x"
 
@@ -48257,10 +48229,6 @@ msgstr "Maschen-Quelle"
 
 msgid "Source of the mesh used to create collision shape"
 msgstr "Quelle der Masche, das zum Erstellen einer Kollisionsform verwendet wird"
-
-
-msgid "Base"
-msgstr "Basis"
 
 
 msgid "Base mesh"
@@ -52147,6 +52115,18 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Normal Vektor verwende zum kopieren, hinzufügen oder multiplizieren"
 
 
+msgid "Plane Axis"
+msgstr "Flächen-Achsen"
+
+
+msgid "Cursor Plane"
+msgstr "Cursorfläche"
+
+
+msgid "Cursor View"
+msgstr "Cursoransicht"
+
+
 msgctxt "Curve"
 msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
@@ -52158,6 +52138,10 @@ msgstr "Einrastelement"
 
 msgid "Type of element to snap to"
 msgstr "Typ an dem eingerastet werden soll"
+
+
+msgid "Snap to"
+msgstr "Anheften an"
 
 
 msgid "Snap Node Element"
@@ -53116,10 +53100,6 @@ msgid "VR viewport near clipping distance"
 msgstr "VR Viewport näheste Clipping Entfernung"
 
 
-msgid "Dark"
-msgstr "Dunkel"
-
-
 msgid "Show Selection"
 msgstr "Auswahl anzeigen"
 
@@ -53154,381 +53134,6 @@ msgstr "Sammlung von OpenXR Benutzerpfaden"
 
 msgid "WorkSpace UI Tags"
 msgstr "Arbeitsplatz UI Tags"
-
-
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Aktion:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Anim:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Anker:"
-
-
-msgctxt "Operator"
-msgid "Asset:"
-msgstr "Bestand:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Blender_id:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Boid:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Pinsel:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Knöpfe:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "Pufferdatei:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Kamera:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Abschneiden:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Gewebe:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Sammlung:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Konsole:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Beschränkung:"
-
-
-msgctxt "Operator"
-msgid "Curves:"
-msgstr "Kurven:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Kurve:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Dmalen:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Bearbeiten:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Export_Animation:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Export_Anim:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Export_Masche:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Export_Szene:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "Datei:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Flüssigkeit:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Schrift:"
-
-
-msgctxt "Operator"
-msgid "Geometry:"
-msgstr "Geometrie:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Wachsstift:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Graph:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Bild:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Import_Anim:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Import_Kurve:"
-
-
-msgctxt "Operator"
-msgid "Import_image:"
-msgstr "Import_Bild:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Import_Masche:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Import_Szene:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Info:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Gitter:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Markierung:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Maske:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Material:"
-
-
-msgctxt "Operator"
-msgid "Mathvis:"
-msgstr "Mathvis:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "Metaball:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Masche:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "Nla:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Knoten:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Objekt:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Outliner:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Malkurve:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Malen:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Palette:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Partikel:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "Darstellungsbibliothek:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Darstellung:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Benutzereinstellungen:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "PtPuffer:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Rendern:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Starrer Körper:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Szene:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Bildschirm:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Skript:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Skulptur:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Sequenzer:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Klang:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Oberfläche:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Textur:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Text:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Transformieren:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Ui:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "Uv:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "2D Ansicht:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "3D Ansicht:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Wm:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Arbeitsplatz:"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "Welt:"
 
 
 msgid "Search"
@@ -55375,10 +54980,6 @@ msgid "Display Size X"
 msgstr "Größe X anzeigen"
 
 
-msgid "Out"
-msgstr "Ausschneiden"
-
-
 msgid "Start Handle"
 msgstr "Griffanfang"
 
@@ -56522,10 +56123,6 @@ msgstr "Renderengine"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Nur Cubemap backen"
-
-
-msgid "Temperature"
-msgstr "Temperatur"
 
 
 msgid "General Override"
@@ -60318,10 +59915,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Gesamt Dateien %d | Geänderte %d | Fehlgeschlagene %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "Pfad '%s' kann nicht relativiert werden"
-
-
 msgid "Scene Collection"
 msgstr "Szenensammlung"
 
@@ -60867,6 +60460,10 @@ msgstr "Szene nicht gefunden"
 
 msgid "Cannot re-link markers into the same scene"
 msgstr "Konnte Marker nicht wieder zur selben Szene verknüpfen"
+
+
+msgid "Out"
+msgstr "Ausschneiden"
 
 
 msgid "✕ (Ax + B)"
@@ -63024,10 +62621,6 @@ msgstr "Keine Objekte um die Orientierung zu übernehmen"
 
 msgid "Unassigned"
 msgstr "Unbestimmt"
-
-
-msgid "into"
-msgstr "hinein"
 
 
 msgid "File path"
@@ -65666,10 +65259,6 @@ msgid "Japanese (日本語)"
 msgstr "Japanisch (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Niederländisch (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Italienisch (Italiano)"
 
@@ -65786,10 +65375,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Hebräisch (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Estländisch (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
 
@@ -65810,24 +65395,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Usbekisch Kyrillisch (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Vietnamesisch (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "Baskisch (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "Kasachisch (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

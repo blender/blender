@@ -1453,10 +1453,12 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
   else {
     return;
   }
-  MEM_SAFE_FREE(gmap->vert_to_loop);
-  MEM_SAFE_FREE(gmap->vert_map_mem);
-  MEM_SAFE_FREE(gmap->vert_to_poly);
-  MEM_SAFE_FREE(gmap->poly_map_mem);
+  gmap->vert_to_loop_offsets = {};
+  gmap->vert_to_loop_indices = {};
+  gmap->vert_to_loop = {};
+  gmap->vert_to_poly_offsets = {};
+  gmap->vert_to_poly_indices = {};
+  gmap->vert_to_poly = {};
 }
 
 /**
@@ -1502,14 +1504,15 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-  MEM_SAFE_FREE(ss->pmap_mem);
-
-  MEM_SAFE_FREE(ss->epmap);
-  MEM_SAFE_FREE(ss->epmap_mem);
-
-  MEM_SAFE_FREE(ss->vemap);
-  MEM_SAFE_FREE(ss->vemap_mem);
+  ss->vert_to_poly_offsets = {};
+  ss->vert_to_poly_indices = {};
+  ss->pmap = {};
+  ss->edge_to_poly_offsets = {};
+  ss->edge_to_poly_indices = {};
+  ss->epmap = {};
+  ss->vert_to_edge_offsets = {};
+  ss->vert_to_edge_indices = {};
+  ss->vemap = {};
 
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
@@ -1572,14 +1575,9 @@ void BKE_sculptsession_free(Object *ob)
 
     sculptsession_free_pbvh(ob);
 
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
-
-    MEM_SAFE_FREE(ss->epmap);
-    MEM_SAFE_FREE(ss->epmap_mem);
-
-    MEM_SAFE_FREE(ss->vemap);
-    MEM_SAFE_FREE(ss->vemap_mem);
+    if (ss->bm_log) {
+      BM_log_free(ss->bm_log);
+    }
 
     if (ss->tex_pool) {
       BKE_image_pool_free(ss->tex_pool);
@@ -1609,7 +1607,7 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->last_paint_canvas_key);
 
-    MEM_freeN(ss);
+    MEM_delete(ss);
 
     ob->sculpt = nullptr;
   }
@@ -1727,12 +1725,6 @@ void BKE_sculpt_ensure_idmap(Object *ob)
   }
 }
 
-char BKE_get_fset_boundary_symflag(Object *object)
-{
-  const Mesh *mesh = BKE_mesh_from_object(object);
-  return mesh->flag & ME_SCULPT_MIRROR_FSET_BOUNDARIES ? mesh->symmetry : 0;
-}
-
 void BKE_sculptsession_ignore_uvs_set(Object *ob, bool value)
 {
   ob->sculpt->ignore_uvs = value;
@@ -1811,7 +1803,6 @@ static void sculpt_update_object(
     ss->save_temp_layers = scene->toolsettings->save_temp_layers;
   }
 
-  ss->boundary_symmetry = (int)BKE_get_fset_boundary_symflag(ob);
   ss->shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
   ss->material_index = (int *)CustomData_get_layer_named(
@@ -1953,18 +1944,14 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (ob->type == OB_MESH && !ss->pmap) {
-    if (!ss->pmap && ss->pbvh) {
-      // ss->pmap = BKE_pbvh_get_pmap(ss->pbvh, &ss->pmap_mem);
-    }
-
-    if (!ss->pmap) {
-      BKE_mesh_vert_poly_map_create(
-          &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
-
-      if (ss->pbvh) {
-        BKE_pbvh_set_pmap(ss->pbvh, ss->pmap, ss->pmap_mem);
-      }
+  if (ob->type == OB_MESH && ss->pmap.is_empty()) {
+    ss->pmap = blender::bke::mesh::build_vert_to_poly_map(me->polys(),
+                                                          me->corner_verts(),
+                                                          me->totvert,
+                                                          ss->vert_to_poly_offsets,
+                                                          ss->vert_to_poly_indices);
+    if (ss->pbvh) {
+      blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
     }
   }
 
@@ -2596,8 +2583,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
   }
   BKE_pbvh_sharp_limit_set(pbvh, ob->sculpt->sharp_angle_limit);
 
-  BKE_pbvh_set_symmetry(pbvh, 0, (int)BKE_get_fset_boundary_symflag(ob));
-
   return pbvh;
 }
 
@@ -2606,9 +2591,12 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  if (!ss->pmap) {
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
+  if (ss->pmap.is_empty()) {
+    ss->pmap = blender::bke::mesh::build_vert_to_poly_map(me->polys(),
+                                                          me->corner_verts(),
+                                                          me->totvert,
+                                                          ss->vert_to_poly_offsets,
+                                                          ss->vert_to_poly_indices);
   }
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
@@ -2616,7 +2604,7 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   BKE_sculpt_init_flags_valence(ob, pbvh, me->totvert, true);
   sculpt_check_face_areas(ob, pbvh);
   BKE_sculptsession_update_attr_refs(ob);
-  BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
+  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
 
   BKE_pbvh_build_mesh(pbvh, me);
   BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
@@ -2666,16 +2654,15 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
   ss->temp_vdata_elems = BKE_pbvh_get_grid_num_verts(pbvh);
   ss->temp_pdata_elems = ss->totfaces;
 
-  if (!ss->pmap) {
-    BKE_mesh_vert_poly_map_create(&ss->pmap,
-                                  &ss->pmap_mem,
-                                  base_mesh->polys(),
-                                  base_mesh->corner_verts().data(),
-                                  base_mesh->totvert);
+  if (ss->pmap.is_empty()) {
+    ss->pmap = blender::bke::mesh::build_vert_to_poly_map(base_mesh->polys(),
+                                                          base_mesh->corner_verts(),
+                                                          base_mesh->totvert,
+                                                          ss->vert_to_poly_offsets,
+                                                          ss->vert_to_poly_indices);
   }
 
-  BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
-
+  blender::bke::pbvh::set_pmap(ss->pbvh, ss->pmap);
   int totvert = BKE_pbvh_get_grid_num_verts(pbvh);
   BKE_sculpt_init_flags_valence(ob, pbvh, totvert, true);
 
@@ -2832,13 +2819,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
   }
 
-  if (!ss->pmap) {
-    Mesh *me = BKE_object_get_original_mesh(ob);
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
-  }
-
-  BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
   ss->pbvh = pbvh;
 
   sculpt_attribute_update_refs(ob);
@@ -3119,9 +3099,10 @@ BMesh *BKE_sculptsession_empty_bmesh_create()
   return bm;
 }
 
-/** Returns pointer to a CustomData associated with a given domain, if
+/**
+ * Returns pointer to a CustomData associated with a given domain, if
  * one exists.  If not nullptr is returned (this may happen with e.g.
- * multires and ATTR_DOMAIN_POINT).
+ * multires and #ATTR_DOMAIN_POINT).
  */
 static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
 {

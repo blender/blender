@@ -50,7 +50,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   size_t names_size = info.interface_names_size_;
   const VKDevice &device = VKBackend::get().device_get();
   const VKPushConstants::StorageType push_constants_storage_type =
-      VKPushConstants::Layout::determine_storage_type(info, device.physical_device_limits_get());
+      VKPushConstants::Layout::determine_storage_type(info, device);
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     ubo_len_++;
     names_size += PUSH_CONSTANTS_FALLBACK_NAME_LEN + 1;

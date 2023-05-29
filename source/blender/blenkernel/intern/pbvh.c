@@ -4760,16 +4760,13 @@ static void pbvh_boundaries_flag_update(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry)
+void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry)
 {
-  if (symmetry == pbvh->symmetry && boundary_symmetry == pbvh->boundary_symmetry) {
+  if (symmetry == pbvh->symmetry) {
     return;
   }
 
   pbvh->symmetry = symmetry;
-  pbvh->boundary_symmetry = boundary_symmetry;
-
-  pbvh_boundaries_flag_update(pbvh);
 }
 
 void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *msculptverts)

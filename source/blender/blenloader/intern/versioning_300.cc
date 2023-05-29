@@ -69,6 +69,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_screen.h"
+#include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.h"
@@ -644,6 +645,11 @@ static bool seq_speed_factor_set(Sequence *seq, void *user_data)
     }
     if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
       seq_speed_factor_fix_rna_path(seq, &scene->adt->drivers);
+    }
+
+    /* Pitch value of 0 has been found in some files. This would cause problems. */
+    if (seq->pitch <= 0.0f) {
+      seq->pitch = 1.0f;
     }
 
     seq->speed_factor = seq->pitch;
@@ -2316,6 +2322,73 @@ static void version_ensure_missing_regions(ScrArea *area, SpaceLink *sl)
 
       break;
     }
+  }
+}
+
+/**
+ * Change override RNA path from `frame_{start,end}` to `frame_{start,end}_raw`.
+ * See #102662.
+ */
+static void version_liboverride_nla_strip_frame_start_end(IDOverrideLibrary *liboverride,
+                                                          const char *parent_rna_path,
+                                                          NlaStrip *strip)
+{
+  if (!strip) {
+    return;
+  }
+
+  /* Escape the strip name for inclusion in the RNA path. */
+  char name_esc_strip[sizeof(strip->name) * 2];
+  BLI_str_escape(name_esc_strip, strip->name, sizeof(name_esc_strip));
+
+  const std::string rna_path_strip = std::string(parent_rna_path) + ".strips[\"" + name_esc_strip +
+                                     "\"]";
+
+  { /* Rename .frame_start -> .frame_start_raw: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_start";
+    BKE_lib_override_library_property_rna_path_change(
+        liboverride, rna_path_prop.c_str(), (rna_path_prop + "_raw").c_str());
+  }
+
+  { /* Rename .frame_end -> .frame_end_raw: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_end";
+    BKE_lib_override_library_property_rna_path_change(
+        liboverride, rna_path_prop.c_str(), (rna_path_prop + "_raw").c_str());
+  }
+
+  { /* Remove .frame_start_ui: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_start_ui";
+    BKE_lib_override_library_property_search_and_delete(liboverride, rna_path_prop.c_str());
+  }
+
+  { /* Remove .frame_end_ui: */
+    const std::string rna_path_prop = rna_path_strip + ".frame_end_ui";
+    BKE_lib_override_library_property_search_and_delete(liboverride, rna_path_prop.c_str());
+  }
+
+  /* Handle meta-strip contents. */
+  LISTBASE_FOREACH (NlaStrip *, substrip, &strip->strips) {
+    version_liboverride_nla_strip_frame_start_end(liboverride, rna_path_strip.c_str(), substrip);
+  }
+}
+
+/** Fix the `frame_start` and `frame_end` overrides on NLA strips. See #102662. */
+static void version_liboverride_nla_frame_start_end(ID *id, AnimData *adt, void * /*user_data*/)
+{
+  IDOverrideLibrary *liboverride = id->override_library;
+  if (!liboverride) {
+    return;
+  }
+
+  int track_index;
+  LISTBASE_FOREACH_INDEX (NlaTrack *, track, &adt->nla_tracks, track_index) {
+    char *rna_path_track = BLI_sprintfN("animation_data.nla_tracks[%d]", track_index);
+
+    LISTBASE_FOREACH (NlaStrip *, strip, &track->strips) {
+      version_liboverride_nla_strip_frame_start_end(liboverride, rna_path_track, strip);
+    }
+
+    MEM_freeN(rna_path_track);
   }
 }
 
@@ -4577,5 +4650,23 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       versioning_remove_microfacet_sharp_distribution(ntree);
     }
     FOREACH_NODETREE_END;
+
+    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
+
+    /* Store simulation bake directory in geometry nodes modifier. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        if (nmd->simulation_bake_directory) {
+          continue;
+        }
+        const std::string bake_dir = blender::bke::sim::get_default_modifier_bake_directory(
+            *bmain, *ob, *md);
+        nmd->simulation_bake_directory = BLI_strdup(bake_dir.c_str());
+      }
+    }
   }
 }

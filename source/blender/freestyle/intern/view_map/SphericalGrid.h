@@ -73,7 +73,8 @@ class SphericalGrid {
   };
 
  public:
-  /** Iterator needs to allow the user to avoid full 3D comparison in two cases:
+  /**
+   * Iterator needs to allow the user to avoid full 3D comparison in two cases:
    *
    *  (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of
    * the target point.

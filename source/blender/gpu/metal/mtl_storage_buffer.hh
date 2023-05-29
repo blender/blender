@@ -71,7 +71,7 @@ class MTLStorageBuf : public StorageBuf {
   void init();
 
   id<MTLBuffer> get_metal_buffer();
-  int get_size();
+  size_t get_size();
   const char *get_name()
   {
     return name_;

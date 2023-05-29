@@ -122,10 +122,8 @@ struct SortInfo {
   void *thunk;
 #endif
 
-  /**
-   * Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
-   *
-   * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit */
+  /* Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
+   * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit. */
   list_node *ranks[MAX_RANKS];
 };
 

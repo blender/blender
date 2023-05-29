@@ -293,8 +293,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
                                                    int uvs_offset,
                                                    struct GPUVertBuf *stretch_angles);
 
-/** Return the format used for the positions and normals VBO.
- */
+/** Return the format used for the positions and normals VBO. */
 struct GPUVertFormat *draw_subdiv_get_pos_nor_format(void);
 
 #ifdef __cplusplus

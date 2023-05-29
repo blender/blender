@@ -100,7 +100,7 @@ class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bool exists = context.attributes()->contains(name_);
     const int domain_size = context.attributes()->domain_size(context.domain());

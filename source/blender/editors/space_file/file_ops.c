@@ -2759,9 +2759,9 @@ static void file_expand_directory(bContext *C)
     {
       BLI_windows_get_default_root_dir(params->dir);
     }
-    /* change "C:" --> "C:\", #28102. */
-    else if ((isalpha(params->dir[0]) && (params->dir[1] == ':')) && (params->dir[2] == '\0')) {
-      params->dir[2] = '\\';
+    /* Change `C:` --> `C:\`, #28102. */
+    else if (BLI_path_is_win32_drive_only(params->dir)) {
+      params->dir[2] = SEP;
       params->dir[3] = '\0';
     }
     else if (BLI_path_is_unc(params->dir)) {

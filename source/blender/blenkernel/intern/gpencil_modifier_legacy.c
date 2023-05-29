@@ -38,6 +38,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_screen.h"
 #include "BKE_shrinkwrap.h"
 
 #include "DEG_depsgraph.h"
@@ -447,9 +448,7 @@ const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType
 void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname)
 {
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(type);
-
-  strcpy(r_idname, GPENCIL_MODIFIER_TYPE_PANEL_PREFIX);
-  strcat(r_idname, mti->name);
+  BLI_string_join(r_idname, BKE_ST_MAXNAME, GPENCIL_MODIFIER_TYPE_PANEL_PREFIX, mti->name);
 }
 
 void BKE_gpencil_modifier_panel_expand(GpencilModifierData *md)

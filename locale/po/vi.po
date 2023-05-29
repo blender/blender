@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -2054,10 +2054,6 @@ msgid "Shape Key data-blocks"
 msgstr "Các cục dữ liệu Hình Dạng Mẫu"
 
 
-msgid "Simulations"
-msgstr "Mô Phỏng"
-
-
 msgid "Sounds"
 msgstr "Âm Thanh"
 
@@ -3994,38 +3990,6 @@ msgid "Eraser Stroke"
 msgstr "Nét Cục Gôm"
 
 
-msgid "Smooth"
-msgstr "Mịn Hóa"
-
-
-msgid "Thickness"
-msgstr "Bề Dày"
-
-
-msgid "Randomize"
-msgstr "Ngẫu Nhiên Hóa"
-
-
-msgid "Grab"
-msgstr "Cầm"
-
-
-msgid "Push"
-msgstr "Đẩy"
-
-
-msgid "Twist"
-msgstr "Xoắn"
-
-
-msgid "Pinch"
-msgstr "Ngắc"
-
-
-msgid "Clone"
-msgstr "Chép Lại"
-
-
 msgid "Draw"
 msgstr "Vẽ"
 
@@ -4058,8 +4022,16 @@ msgid "Material used for strokes drawn using this brush"
 msgstr "Vật Liệu được sử dụng cho vẽ nét với bút này"
 
 
+msgid "Thickness"
+msgstr "Bề Dày"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "Hệ số hốt hoảng cho nét mới"
+
+
+msgid "Smooth"
+msgstr "Mịn Hóa"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -12224,6 +12196,10 @@ msgid "Show Scene data-blocks"
 msgstr "Hiện các cục dữ liệu Cảnh"
 
 
+msgid "Simulations"
+msgstr "Mô Phỏng"
+
+
 msgid "Show Simulation data-blocks"
 msgstr "Hiện các cục dữ liệu Mô Phỏng"
 
@@ -18809,24 +18785,8 @@ msgid "Gaussian"
 msgstr "Gauss"
 
 
-msgid "Deformation"
-msgstr "Sự Méo Hóa"
-
-
 msgid "Deformation type that is used in the brush"
 msgstr "Loại méo hóa được dùng trong bút"
-
-
-msgid "Bend"
-msgstr "Bể Cong"
-
-
-msgid "Expand"
-msgstr "Mở Rộng"
-
-
-msgid "Inflate"
-msgstr "Phình Lên"
 
 
 msgid "Boundary Falloff"
@@ -18913,12 +18873,32 @@ msgid "How much the applied forces are propagated through the cloth"
 msgstr "Mức các lực tác dụng được truyền dẫn trong vải"
 
 
+msgid "Deformation"
+msgstr "Sự Méo Hóa"
+
+
+msgid "Push"
+msgstr "Đẩy"
+
+
 msgid "Pinch Point"
 msgstr "Điểm Ngắt"
 
 
 msgid "Pinch Perpendicular"
 msgstr "Ngắt Vuông Góc"
+
+
+msgid "Inflate"
+msgstr "Phình Lên"
+
+
+msgid "Grab"
+msgstr "Cầm"
+
+
+msgid "Expand"
+msgstr "Mở Rộng"
 
 
 msgid "Snake Hook"
@@ -19053,6 +19033,10 @@ msgid "Comb"
 msgstr "Lược"
 
 
+msgid "Pinch"
+msgstr "Ngắc"
+
+
 msgid "Puff"
 msgstr "Sưng"
 
@@ -19105,14 +19089,6 @@ msgid "Maximum distance to search for disconnected loose parts in the mesh"
 msgstr "Khoảng các cực đại để tìm kiếm cho bộ phận rời ra trong mạng lưới"
 
 
-msgid "Bi-Scale Grab"
-msgstr "Bắt Nhị-Phóng To"
-
-
-msgid "Tri-Scale Grab"
-msgstr "Bắt Tam-Phóng To"
-
-
 msgid "Poisson ratio for elastic deformation. Higher values preserve volume more, but also lead to more bulging"
 msgstr "Tỉ số poisson cho méo hóa dẻo. Giá trị càng cao càng giữ ngyuyên thể tích, nhưng làm càng phính ra"
 
@@ -19155,10 +19131,6 @@ msgstr "Ngưỡng cho tô đầy, hơn giá trị này không truyền tô"
 
 msgid "Amount of paint that is applied per stroke sample"
 msgstr "Mức nước sơn được áp dụng từng mẫu nét"
-
-
-msgid "Grease Pencil Sculpt Paint Tool"
-msgstr "Dụng Cụ Sơn Khắc Bút Sáp"
 
 
 msgid "Smooth stroke points"
@@ -19279,6 +19251,10 @@ msgstr "Dụng Cụ Sơn Ảnh"
 
 msgid "Soften"
 msgstr "Mềm Hóa"
+
+
+msgid "Clone"
+msgstr "Chép Lại"
 
 
 msgid "Mask"
@@ -23536,32 +23512,16 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "Chế Độ Pha Trộn Cho Mặt Trong Suốt"
 
 
-msgid "Opaque"
-msgstr "Đục"
-
-
 msgid "Render surface without transparency"
 msgstr "Kết xuất bề mặt không có trong suốt"
-
-
-msgid "Alpha Clip"
-msgstr "Cắt Độ Đục"
 
 
 msgid "Use the alpha threshold to clip the visibility (binary visibility)"
 msgstr "Sử dụng ngưỡng độ đục để cắt sự hiển thị (sự hiển thị nhị phận)"
 
 
-msgid "Alpha Hashed"
-msgstr "Độ Đục Đẩu Động"
-
-
 msgid "Use noise to dither the binary visibility (works well with multi-samples)"
 msgstr "Sử dụng huyên náo để đẩu động sự hiển thị nhị phận (hoạt động tốt với nhiều mẫu vật)"
-
-
-msgid "Alpha Blend"
-msgstr "Pha Trộn Độ Đục"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -23716,8 +23676,20 @@ msgid "Material will cast no shadow"
 msgstr "Vật Liệu sẽ không phát bóng tối"
 
 
+msgid "Opaque"
+msgstr "Đục"
+
+
 msgid "Material will cast shadows without transparency"
 msgstr "Vật Liệu sẽ phát bóng tối không trong suốt"
+
+
+msgid "Alpha Clip"
+msgstr "Cắt Độ Đục"
+
+
+msgid "Alpha Hashed"
+msgstr "Độ Đục Đẩu Động"
 
 
 msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
@@ -26294,6 +26266,10 @@ msgstr "Số Lượng Vệt"
 
 msgid "Number of trail particles"
 msgstr "Số lượng của hạt vệt"
+
+
+msgid "Twist"
+msgstr "Xoắn"
 
 
 msgid "Number of turns around parent along the strand"
@@ -32724,10 +32700,6 @@ msgid "Color for filling region bounded by each stroke"
 msgstr "Màu cho tô đầy vùng được mỗi nét bao quanh"
 
 
-msgid "Fill Style"
-msgstr "Phong Cách Tô Đầy"
-
-
 msgid "Select style used to fill strokes"
 msgstr "Chọn phong cách để sử dụng tô đầy nét"
 
@@ -32850,10 +32822,6 @@ msgstr "Hiện Nét"
 
 msgid "Show stroke lines of this material"
 msgstr "Hiện đường nét của vật liệu này"
-
-
-msgid "Stroke Style"
-msgstr "Phong Cách Nét"
 
 
 msgid "Select style used to draw strokes"
@@ -35243,6 +35211,10 @@ msgid "Seed for random if used"
 msgstr "Nếu dùng, số hạt cho làm ngẫu nhiên"
 
 
+msgid "Randomize"
+msgstr "Ngẫu Nhiên Hóa"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "Ngẫu nhiên hóa vị trí mặt hay cạnh khi xây dựng"
 
@@ -36105,10 +36077,6 @@ msgstr "Bộ Điều Chỉnh Sơn Động Lý"
 
 msgid "Dynamic Paint modifier"
 msgstr "Bộ điều chỉnh sơn động lý"
-
-
-msgid "Canvas"
-msgstr "Vải Sơn"
 
 
 msgid "EdgeSplit Modifier"
@@ -37392,16 +37360,22 @@ msgid "Deform around local axis"
 msgstr "Méo hóa quanh trục địa phương"
 
 
+msgctxt "Operator"
+msgid "Twist"
+msgstr "Xoắn"
+
+
 msgid "Rotate around the Z axis of the modifier space"
 msgstr "Xoay quang trục Z của không gian bộ điều chỉnh"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Bể Cong"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "Uống cong mạng lưới quang trục Z của không gian bộ điều chỉnh"
-
-
-msgid "Taper"
-msgstr "Nến"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -46126,10 +46100,6 @@ msgstr ""
 "Lưu ý: khi đang tam giác hóa các mạng lưới trước được xử lý bởi Cycles, tô pô sẽ xuất hiện như đã tam giác hóa"
 
 
-msgid "Pixel Size"
-msgstr "Kích Cỡ Điểm Ảnh"
-
-
 msgid "Use screen pixel size instead of world units"
 msgstr "Dùng kích cỡ điểm ảnh màn thay thế đơn vị thế giới"
 
@@ -50947,6 +50917,10 @@ msgstr "Chỉnh Kích Cỡ Da"
 
 msgid "To Sphere"
 msgstr "Đến Hình Cầu"
+
+
+msgid "Bend"
+msgstr "Bể Cong"
 
 
 msgid "Shrink/Fatten"
@@ -72662,11 +72636,6 @@ msgid "Transformation orientation"
 msgstr "Định hướng biến hóa"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Bể Cong"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "Bể cong mặt hàng được chọn giữa cong trỏ 3D và chuột"
 
@@ -74846,54 +74815,6 @@ msgid "Use a fixed 1:1 aspect"
 msgstr "Dùng một tỉ số cạnh hằng số 1:1"
 
 
-msgid "Plane Axis"
-msgstr "Trục Mặt Phẳng"
-
-
-msgid "The axis used for placing the base region"
-msgstr "Trục được dùng cho đặt vị trí cho vùng cơ sở"
-
-
-msgid "Auto Axis"
-msgstr "Trục Tự Động"
-
-
-msgid "Select the closest axis when placing objects (surface overrides)"
-msgstr "Chọn trục gần nhất khi đặt vị trí vật thể (đồ vượt quyền bề mặt)"
-
-
-msgid "The initial depth used when placing the cursor"
-msgstr "Độ sâu khởi động khi đặt vị trí con trỏ"
-
-
-msgid "Start placing on the surface, using the 3D cursor position as a fallback"
-msgstr "Bắt đầu đặt vị trí trên bề mặt, dùng con trỏ 3D nếu có vấn đề"
-
-
-msgid "Cursor Plane"
-msgstr "Mặt Phẳng Con Trỏ"
-
-
-msgid "Start placement using a point projected onto the orientation axis at the 3D cursor position"
-msgstr "Bắt đầu đặt vị trí dùng một điểm được chiếu trên trục định hướng tại vị trí của con trỏ 3D"
-
-
-msgid "Cursor View"
-msgstr "Màn Nhìn Con Trỏ"
-
-
-msgid "Start placement using a point projected onto the view plane at the 3D cursor position"
-msgstr "Bắt đầu đặt vị trí dùng một điểm được chiếu trên mặt phẳng màn nhìn tại vị trí con trỏ 3D"
-
-
-msgid "Use the surface normal (using the transform orientation as a fallback)"
-msgstr "Dùng pháp tuyến bề mặt (dùng định hướng của biến hóa nếu có sự cố)"
-
-
-msgid "Use the current transform orientation"
-msgstr "Dùng định hướng của biến hóa hiện tại"
-
-
 msgid "The initial position for placement"
 msgstr "Vị trí khởi động cho đặt vị trí"
 
@@ -74908,22 +74829,6 @@ msgstr "Bắt đầu đặt vị trí của trung tâm"
 
 msgid "ICO Sphere"
 msgstr "Hình Cầu Nhị Thập Diện"
-
-
-msgid "Snap to"
-msgstr "Hút Dính đến"
-
-
-msgid "The target to use while snapping"
-msgstr "Mục tiểu khi đang hút dính"
-
-
-msgid "Snap to all geometry"
-msgstr "Hút dính đến hết hình dạng"
-
-
-msgid "Use the current snap settings"
-msgstr "Dùng cài đặt hiện tại"
 
 
 msgctxt "Operator"
@@ -78641,6 +78546,10 @@ msgid "Properties of image and texture painting mode"
 msgstr "Đặc tính của chế độ sơn ảnh và chất liệu"
 
 
+msgid "Canvas"
+msgstr "Vải Sơn"
+
+
 msgid "Image used as canvas"
 msgstr "Ảnh được làm mặt sơn"
 
@@ -80703,11 +80612,6 @@ msgstr "Bề Dày"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "Sức Lực"
-
-
-msgctxt "Operator"
-msgid "Twist"
-msgstr "Xoắn"
 
 
 msgctxt "Operator"
@@ -84348,6 +84252,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "Phạm vi màu được dùng cho hiển thị quyền lượng trong chế độ sơn quyền lượng"
 
 
+msgid "Base"
+msgstr "Cơ Sở"
+
+
+msgid "Temperature"
+msgstr "Nhiệt Độ"
+
+
 msgid "ID Property Group"
 msgstr "Nhóm Đặc Tính ID"
 
@@ -86816,6 +86728,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Tỉ số cạnh dọc - cho xuất điểm ảnh dị hướng hay điểm ảnh không vuông"
 
 
+msgid "Pixel Size"
+msgstr "Kích Cỡ Điểm Ảnh"
+
+
 msgid "Pixel size for viewport rendering"
 msgstr "Kích thước điểm ảnh cho màn chiếu kết xuất"
 
@@ -87822,10 +87738,6 @@ msgstr "Nguồn Mạng Lưới"
 
 msgid "Source of the mesh used to create collision shape"
 msgstr "Nguồn mạng lưới dùng cho chế tạo hình dạng va chạm"
-
-
-msgid "Base"
-msgstr "Cơ Sở"
 
 
 msgid "Base mesh"
@@ -95917,6 +95829,54 @@ msgid "Normal Vector used to copy, add or multiply"
 msgstr "Vectơ pháp tuyến được dùng để sao chép, cộng hay nhân"
 
 
+msgid "Plane Axis"
+msgstr "Trục Mặt Phẳng"
+
+
+msgid "The axis used for placing the base region"
+msgstr "Trục được dùng cho đặt vị trí cho vùng cơ sở"
+
+
+msgid "Auto Axis"
+msgstr "Trục Tự Động"
+
+
+msgid "Select the closest axis when placing objects (surface overrides)"
+msgstr "Chọn trục gần nhất khi đặt vị trí vật thể (đồ vượt quyền bề mặt)"
+
+
+msgid "The initial depth used when placing the cursor"
+msgstr "Độ sâu khởi động khi đặt vị trí con trỏ"
+
+
+msgid "Start placing on the surface, using the 3D cursor position as a fallback"
+msgstr "Bắt đầu đặt vị trí trên bề mặt, dùng con trỏ 3D nếu có vấn đề"
+
+
+msgid "Cursor Plane"
+msgstr "Mặt Phẳng Con Trỏ"
+
+
+msgid "Start placement using a point projected onto the orientation axis at the 3D cursor position"
+msgstr "Bắt đầu đặt vị trí dùng một điểm được chiếu trên trục định hướng tại vị trí của con trỏ 3D"
+
+
+msgid "Cursor View"
+msgstr "Màn Nhìn Con Trỏ"
+
+
+msgid "Start placement using a point projected onto the view plane at the 3D cursor position"
+msgstr "Bắt đầu đặt vị trí dùng một điểm được chiếu trên mặt phẳng màn nhìn tại vị trí con trỏ 3D"
+
+
+msgid "Use the surface normal (using the transform orientation as a fallback)"
+msgstr "Dùng pháp tuyến bề mặt (dùng định hướng của biến hóa nếu có sự cố)"
+
+
+msgid "Use the current transform orientation"
+msgstr "Dùng định hướng của biến hóa hiện tại"
+
+
 msgid "Display size for proportional editing circle"
 msgstr "Kích cỡ hiển thị cho vòng tròn biên tập đồng biến"
 
@@ -95940,6 +95900,22 @@ msgstr "Phần Tử Hút Dính"
 
 msgid "Type of element to snap to"
 msgstr "Hút dính đến loại phần tử nào"
+
+
+msgid "Snap to"
+msgstr "Hút Dính đến"
+
+
+msgid "The target to use while snapping"
+msgstr "Mục tiểu khi đang hút dính"
+
+
+msgid "Snap to all geometry"
+msgstr "Hút dính đến hết hình dạng"
+
+
+msgid "Use the current snap settings"
+msgstr "Dùng cài đặt hiện tại"
 
 
 msgid "Face Nearest Steps"
@@ -98701,16 +98677,8 @@ msgid "VR viewport near clipping distance"
 msgstr "Khoảng cách cắt xa cho màn chiếu sự thật ảo"
 
 
-msgid "Controller Draw Style"
-msgstr "Phong Cách Vẽ Đồ Điều Khiển"
-
-
 msgid "Style to use when drawing VR controllers"
 msgstr "Phong cách dùng khi vẽ đồ điều khiển VR"
-
-
-msgid "Dark"
-msgstr "Đậm"
 
 
 msgid "Draw dark controller"
@@ -98721,16 +98689,8 @@ msgid "Draw light controller"
 msgstr "Vẽ đồ điều khiển sáng"
 
 
-msgid "Dark + Ray"
-msgstr "Đậm + Tia"
-
-
 msgid "Draw dark controller with aiming axis ray"
 msgstr "Vẽ đồ điều khiển đậm có tia trục nhắm"
-
-
-msgid "Light + Ray"
-msgstr "Sáng + Tia"
 
 
 msgid "Draw light controller with aiming axis ray"
@@ -98859,406 +98819,6 @@ msgstr "Nhãn Giao Diện Công Trường"
 
 msgid "WorkSpace UI Tags"
 msgstr "Nhãn Giao Diện Công Trường"
-
-
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Hành_động:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Hoạt_hình:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Cốt:"
-
-
-msgctxt "Operator"
-msgid "Asset:"
-msgstr "Tích Sản:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Tên_Blender:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Quần_thể:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Bút:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Nút:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "TậpTinĐệmChứa:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "MáyQuayPhim:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Cắt:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Vải:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Sưu_tập:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Diện_điều_khiển:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Ràng_buộc:"
-
-
-msgctxt "Operator"
-msgid "Curves:"
-msgstr "Đường_cong:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Đường_cong:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Sơn_động_lý:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Biên_tập:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Xuất_hoạt_hình:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Xuất_hoạt_hình:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Xuất_mạng_lưới:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Xuất_cảnh:"
-
-
-msgctxt "Operator"
-msgid "Export_shape:"
-msgstr "Xuất_hình_dạng:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "Tập_tin:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Chất_lỏng:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Phông:"
-
-
-msgctxt "Operator"
-msgid "Geometry:"
-msgstr "Hình Dạng:"
-
-
-msgctxt "Operator"
-msgid "Gizmogroup:"
-msgstr "NhómĐồĐạc:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Bút_sáp:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Biểu_đồ:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Ảnh:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Nhập_hoạt_hình:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Nhập_đường_cong:"
-
-
-msgctxt "Operator"
-msgid "Import_image:"
-msgstr "Nhập_ảnh:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Nhập_mạng_lưới:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Nhập_cảnh:"
-
-
-msgctxt "Operator"
-msgid "Import_shape:"
-msgstr "Nhập_hình_dạng:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Thông_tin:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Lưới_rào:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Ký_hiệu:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Mặt_nạ:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Vật_liệu:"
-
-
-msgctxt "Operator"
-msgid "Mathvis:"
-msgstr "Hiển_thị_toán:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "Siêu_cầu:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Mạng_lưới:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "Nla:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Giao_điểm:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Vật_thể:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Mục_lục:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Đường_cong_sơn:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Sơn:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Bảng:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Hạt:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "Thư_viện_dạng_đứng:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Dạng_đứng:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Tùy Chọn:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "Đệm_chứa_điểm:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Kết_xuất:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Thân_rắn:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Cảnh:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Màn Hình:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Bản_thảo:"
-
-
-msgctxt "Operator"
-msgid "Sculpt_curves:"
-msgstr "Đường_cong_khắc:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Khắc:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Bộ_trình_tự:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Âm_thanh:"
-
-
-msgctxt "Operator"
-msgid "Spreadsheet:"
-msgstr "Bảng Tính:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Bề_mặt:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Họa_tiết:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Văn_bản:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Biến_hóa:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Giao_diện:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "Uv:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "Màn_2d:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "Màn_3d:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Quyền_lượng:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Công_trường"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "Thế_giới:"
 
 
 msgid "Search"
@@ -102698,10 +102258,6 @@ msgid "Curve Out X"
 msgstr "Cong Ra X"
 
 
-msgid "Out"
-msgstr "Ra"
-
-
 msgid "Start Handle"
 msgstr "Tay Cầm Đầu"
 
@@ -104281,10 +103837,6 @@ msgstr "Động Cơ Kết Xuất"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Chỉ Nướng Bản Đồ Lập Phương"
-
-
-msgid "Temperature"
-msgstr "Nhiệt Độ"
 
 
 msgid "General Override"
@@ -109140,10 +108692,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Tổng số tập tin %d | Được đổi %d | Thất bại %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "Không được làm đường dẫn '%s' tương đối"
-
-
 msgid "Can't initialize cloth"
 msgstr "Không thể khởi động dải"
 
@@ -110401,6 +109949,10 @@ msgstr "Không kiếm đươc điều vận để chép, đường dẫn RNA kh�
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Không dán được điều vận, vì đường  dẫnRNA không hợp lệ cho ID này (ID = %s, đường dẫn = %s)"
+
+
+msgid "Out"
+msgstr "Ra"
 
 
 msgid "<Unknown Modifier>"
@@ -114798,14 +114350,6 @@ msgid "Unassigned"
 msgstr "Chưa Được Chỉ Định:"
 
 
-msgid "Move Catalog"
-msgstr "Di Chuyển Danh Mục"
-
-
-msgid "into"
-msgstr "vào"
-
-
 msgid "Move assets to catalog"
 msgstr "Di chuyển tích sản vào danh mục"
 
@@ -114816,10 +114360,6 @@ msgstr "Di chuyển đến danh mục"
 
 msgid "Only assets from this current file can be moved between catalogs"
 msgstr "Chỉ tích sản của tập tin hiện tại có thể di chuyển giữa danh mục"
-
-
-msgid "to the top level of the tree"
-msgstr "đến tầng cao nhất của cây"
 
 
 msgid "Move assets out of any catalog"
@@ -119322,12 +118862,12 @@ msgid "Separate Children"
 msgstr "Chẻ Con Cái"
 
 
-msgid "Output each child of the collection as a separate instance, sorted alphabetically"
-msgstr "Ngõ ra của mỗi con cái của sưu tập là một thực thể riêng, sắp xếp theo thứ tự chữ cái"
-
-
 msgid "Reset Children"
 msgstr "Đặt Lại Con Cái"
+
+
+msgid "Output each child of the collection as a separate instance, sorted alphabetically"
+msgstr "Ngõ ra của mỗi con cái của sưu tập là một thực thể riêng, sắp xếp theo thứ tự chữ cái"
 
 
 msgid "Reset the transforms of every child instance in the output. Only used when Separate Children is enabled"
@@ -119342,12 +118882,12 @@ msgid "Start Size"
 msgstr "Kích Cỡ Bắt Đầu"
 
 
-msgid "The amount of points to select from the start of each spline"
-msgstr "Số lượng điểm để chọn từ đầu của mỗi mẫu cong"
-
-
 msgid "End Size"
 msgstr "Kích Cỡ Cuối"
+
+
+msgid "The amount of points to select from the start of each spline"
+msgstr "Số lượng điểm để chọn từ đầu của mỗi mẫu cong"
 
 
 msgid "The amount of points to select from the end of each spline"
@@ -119364,6 +118904,22 @@ msgstr "Bán Kính Giới Hạn"
 
 msgid "Limit the maximum value of the radius in order to avoid overlapping fillets"
 msgstr "Hạn chế giá trị cực đại của bán kính để tránh mép lấn trên nhau"
+
+
+msgid "Start Angle"
+msgstr "Góc Bắt Đầu"
+
+
+msgid "Sweep Angle"
+msgstr "Góc Quét"
+
+
+msgid "Connect Center"
+msgstr "Kết Nối Trung Tâm"
+
+
+msgid "Invert Arc"
+msgstr "Đảo Nghịch Hình Cung"
 
 
 msgid "The number of points on the arc"
@@ -119386,16 +118942,8 @@ msgid "Distance of the points from the origin"
 msgstr "Khoảng cách của các điểm từ gốc tọa độ"
 
 
-msgid "Start Angle"
-msgstr "Góc Bắt Đầu"
-
-
 msgid "Starting angle of the arc"
 msgstr "Góc bắt đầu của hình cung"
-
-
-msgid "Sweep Angle"
-msgstr "Góc Quét"
 
 
 msgid "Length of the arc"
@@ -119406,16 +118954,8 @@ msgid "Offset angle of the arc"
 msgstr "Góc nới của hình cung"
 
 
-msgid "Connect Center"
-msgstr "Kết Nối Trung Tâm"
-
-
 msgid "Connect the arc at the center"
 msgstr "Kết nối hình cung tại trung tâm"
-
-
-msgid "Invert Arc"
-msgstr "Đảo Nghịch Hình Cung"
 
 
 msgid "Invert and draw opposite arc"
@@ -119454,16 +118994,8 @@ msgid "Position of the end control point of the curve"
 msgstr "Vị trí của điểm kiểm soát cuối cùng của đường cong"
 
 
-msgid "Number of points on the circle"
-msgstr "Số lượng điểm trên vòng tròn"
-
-
 msgid "Point 1"
 msgstr "Điểm 1"
-
-
-msgid "One of the three points on the circle. The point order determines the circle's direction"
-msgstr "Một của ba điểm trên vòng tròng. Thứ tự điểm sẽ xác định hướng của vòng tròn"
 
 
 msgid "Point 2"
@@ -119472,6 +119004,14 @@ msgstr "Điểm 2"
 
 msgid "Point 3"
 msgstr "Điểm 3"
+
+
+msgid "Number of points on the circle"
+msgstr "Số lượng điểm trên vòng tròn"
+
+
+msgid "One of the three points on the circle. The point order determines the circle's direction"
+msgstr "Một của ba điểm trên vòng tròng. Thứ tự điểm sẽ xác định hướng của vòng tròn"
 
 
 msgid "Position of the second control point"
@@ -119498,6 +119038,18 @@ msgid "Top Width"
 msgstr "Chiều Rộng Phía Trên"
 
 
+msgid "Bottom Height"
+msgstr "Chiều Cao Cạnh Dưới"
+
+
+msgid "Top Height"
+msgstr "Chiều Cao Cạnh Trên"
+
+
+msgid "Point 4"
+msgstr "Điểm 4"
+
+
 msgid "The X axis size of the shape"
 msgstr "Cỡ thước của trục Y của hình dạng"
 
@@ -119510,16 +119062,8 @@ msgid "For Parallelogram, the relative X difference between the top and bottom e
 msgstr "Cho Hình Bình Hành, chênh lệch X tương đối giữa cạnh trên và dưới. Cho Hình Thang, cách di chuyển cạnh trên hướng dương trục X."
 
 
-msgid "Bottom Height"
-msgstr "Chiều Cao Cạnh Dưới"
-
-
 msgid "The distance between the bottom point and the X axis"
 msgstr "Khoảng cách giữa điểm dưới cùng và trục X"
-
-
-msgid "Top Height"
-msgstr "Chiều Cao Cạnh Trên"
 
 
 msgid "The distance between the top point and the X axis"
@@ -119530,8 +119074,12 @@ msgid "The exact location of the point to use"
 msgstr "Vị trí chính xác của điểm để dùng"
 
 
-msgid "Point 4"
-msgstr "Điểm 4"
+msgid "Start Radius"
+msgstr "Bán Kính Bắt Đầu"
+
+
+msgid "End Radius"
+msgstr "Bạn Kính Kết Thúc"
 
 
 msgid "Number of points in one rotation of the spiral"
@@ -119542,16 +119090,8 @@ msgid "Number of times the spiral makes a full rotation"
 msgstr "Số lần hình ốc được xoay"
 
 
-msgid "Start Radius"
-msgstr "Bán Kính Bắt Đầu"
-
-
 msgid "Horizontal Distance from the Z axis at the start of the spiral"
 msgstr "Khoảng Cách ngang từ trục Z tại bắt đầu của hình ốc"
-
-
-msgid "End Radius"
-msgstr "Bạn Kính Kết Thúc"
 
 
 msgid "Horizontal Distance from the Z axis at the end of the spiral"
@@ -119566,20 +119106,24 @@ msgid "Switch the direction from clockwise to counterclockwise"
 msgstr "Lật hướng từ hướng kim đồng hồ thành nghịch hướng kim đồng hồ"
 
 
-msgid "Number of points on each of the circles"
-msgstr "Số lượng điểm từng vòng tròn"
-
-
 msgid "Inner Radius"
 msgstr "Bán Kính Nội"
 
 
-msgid "Radius of the inner circle; can be larger than outer radius"
-msgstr "Bán kính của vòng tròn nội; có thể lớn hơn bán kính ngoại"
-
-
 msgid "Outer Radius"
 msgstr "Bán Kính Ngoại"
+
+
+msgid "Outer Points"
+msgstr "Điểm Ngoại"
+
+
+msgid "Number of points on each of the circles"
+msgstr "Số lượng điểm từng vòng tròn"
+
+
+msgid "Radius of the inner circle; can be larger than outer radius"
+msgstr "Bán kính của vòng tròn nội; có thể lớn hơn bán kính ngoại"
 
 
 msgid "Radius of the outer circle; can be smaller than inner radius"
@@ -119588,10 +119132,6 @@ msgstr "Bán kính của vòng tròn ngoại; có thể nhỏ hơn bán kính n�
 
 msgid "The counterclockwise rotation of the inner set of points"
 msgstr "Xoay nghịch hướng kim đồng hồ của các điểm nội"
-
-
-msgid "Outer Points"
-msgstr "Điểm Ngoại"
 
 
 msgid "An attribute field with a selection of the outer points"
@@ -119694,16 +119234,16 @@ msgid "Density Max"
 msgstr "Tỉ Trọng Cực Đại"
 
 
+msgid "Duplicate Index"
+msgstr "Sao Chép Chỉ Số"
+
+
 msgid "The number of duplicates to create for each element"
 msgstr "Số lượng sao chép để chế tạo cho mỗi phần tử"
 
 
 msgid "The duplicated geometry, not including the original geometry"
 msgstr "Hình dạng sao chép, không gồm hình dạng ban đầu"
-
-
-msgid "Duplicate Index"
-msgstr "Sao Chép Chỉ Số"
 
 
 msgid "The indices of the duplicates for each element"
@@ -119746,28 +119286,28 @@ msgid "Vertex Index 1"
 msgstr "Chỉ số đỉnh 1"
 
 
-msgid "The index of the first vertex in the edge"
-msgstr "Chỉ số của đỉnh thứ nhất trong cạnh"
-
-
 msgid "Vertex Index 2"
 msgstr "Chỉ số đỉnh 2"
-
-
-msgid "The index of the second vertex in the edge"
-msgstr "Chỉ số của đỉnh thứ hai trong cạnh"
 
 
 msgid "Position 1"
 msgstr "Vị Trí 1"
 
 
-msgid "The position of the first vertex in the edge"
-msgstr "Vị trí của đỉnh thứ nhất trong cạnh"
-
-
 msgid "Position 2"
 msgstr "Vị Trí 2"
+
+
+msgid "The index of the first vertex in the edge"
+msgstr "Chỉ số của đỉnh thứ nhất trong cạnh"
+
+
+msgid "The index of the second vertex in the edge"
+msgstr "Chỉ số của đỉnh thứ hai trong cạnh"
+
+
+msgid "The position of the first vertex in the edge"
+msgstr "Vị trí của đỉnh thứ nhất trong cạnh"
 
 
 msgid "The position of the second vertex in the edge"
@@ -119798,12 +119338,12 @@ msgid "Island Index"
 msgstr "Chỉ Số Hòn Đảo"
 
 
-msgid "The index of the each vertex's island. Indices are based on the lowest vertex index contained in each island"
-msgstr "Chỉ số hòn đảo của mỗi đỉnh. Chỉ số tùy chỉ số thấp nhất được chứa trong mỗi hòn đảo"
-
-
 msgid "Island Count"
 msgstr "Số Lượng Hòn Đảo"
+
+
+msgid "The index of the each vertex's island. Indices are based on the lowest vertex index contained in each island"
+msgstr "Chỉ số hòn đảo của mỗi đỉnh. Chỉ số tùy chỉ số thấp nhất được chứa trong mỗi hòn đảo"
 
 
 msgid "The total number of mesh islands"
@@ -119834,6 +119374,14 @@ msgid "Realized geometry is not used when pick instances is true"
 msgstr "Hình dạng đã hình thành không được dùng khi chọn thực thể là đúng"
 
 
+msgid "Pick Instance"
+msgstr "Chọn Thực Thể"
+
+
+msgid "Instance Index"
+msgstr "Chỉ Số Thực Thể"
+
+
 msgid "Points to instance on"
 msgstr "Điểm cho thực thể trên nó"
 
@@ -119842,16 +119390,8 @@ msgid "Geometry that is instanced on the points"
 msgstr "Hình dạng được hình thành trên các điểm"
 
 
-msgid "Pick Instance"
-msgstr "Chọn Thực Thể"
-
-
 msgid "Choose instances from the \"Instance\" input at each point instead of instancing the entire geometry"
 msgstr "Chọn thực thể từ ngõ vào \"Thực Thể\" tại mỗi điểm thay thế thực thể hóa toàn bộ hình dạng"
-
-
-msgid "Instance Index"
-msgstr "Chỉ Số Thực Thể"
 
 
 msgid "Rotation of the instances"
@@ -119886,36 +119426,36 @@ msgid "Fill Segments must be at least 1"
 msgstr "Đầy Khúc phải có 1 khúc trở lên"
 
 
-msgid "Number of points on the circle at the top and bottom"
-msgstr "Số lượng điểm trên vòng tròn trên và dưới"
-
-
 msgid "Side Segments"
 msgstr "Khúc Bên Hong"
-
-
-msgid "The number of edges running vertically along the side of the cone"
-msgstr "Số lượng cạnh hướng dọc quanh cạnh của hình nón"
 
 
 msgid "Fill Segments"
 msgstr "Khúc Đầy"
 
 
-msgid "Number of concentric rings used to fill the round face"
-msgstr "Số lượng vàng đồng tâm sử dụng cho đầy lại mặt tròn"
-
-
 msgid "Radius Top"
 msgstr "Bán kính Trên"
 
 
-msgid "Radius of the top circle of the cone"
-msgstr "Bán kính cho vòng tròn trên của hình nón"
-
-
 msgid "Radius Bottom"
 msgstr "Bán kính Dưới"
+
+
+msgid "Number of points on the circle at the top and bottom"
+msgstr "Số lượng điểm trên vòng tròn trên và dưới"
+
+
+msgid "The number of edges running vertically along the side of the cone"
+msgstr "Số lượng cạnh hướng dọc quanh cạnh của hình nón"
+
+
+msgid "Number of concentric rings used to fill the round face"
+msgstr "Số lượng vàng đồng tâm sử dụng cho đầy lại mặt tròn"
+
+
+msgid "Radius of the top circle of the cone"
+msgstr "Bán kính cho vòng tròn trên của hình nón"
 
 
 msgid "Radius of the bottom circle of the cone"
@@ -119930,28 +119470,28 @@ msgid "Vertices must be at least 1"
 msgstr "Phải có 1 đỉnh trở lên"
 
 
-msgid "Side length along each axis"
-msgstr "Chiều dài của cạnh cho hướng mỗi trục"
-
-
 msgid "Vertices X"
 msgstr "Các Đỉnh X"
-
-
-msgid "Number of vertices for the X side of the shape"
-msgstr "Số lượng đỉnh cho cạnh X của hình dạng"
 
 
 msgid "Vertices Y"
 msgstr "Các Đỉnh Y"
 
 
-msgid "Number of vertices for the Y side of the shape"
-msgstr "Số lượng đỉnh cho cạnh Y của hình dạng"
-
-
 msgid "Vertices Z"
 msgstr "Các Đỉnh Z"
+
+
+msgid "Side length along each axis"
+msgstr "Chiều dài của cạnh cho hướng mỗi trục"
+
+
+msgid "Number of vertices for the X side of the shape"
+msgstr "Số lượng đỉnh cho cạnh X của hình dạng"
+
+
+msgid "Number of vertices for the Y side of the shape"
+msgstr "Số lượng đỉnh cho cạnh Y của hình dạng"
 
 
 msgid "Number of vertices for the Z side of the shape"
@@ -120919,10 +120459,6 @@ msgid "Saved \"%s\""
 msgstr "Đã Lưu \"%s\""
 
 
-msgid "The \"filepath\" property was not an absolute path: \"%s\""
-msgstr "Đặc tính \"filepath\" phải là đường dẫn tuyệt đối: \"%s\""
-
-
 msgid "Not a library"
 msgstr "Không phải là thư viện"
 
@@ -121551,10 +121087,6 @@ msgid "Japanese (日本語)"
 msgstr "Tiếng Nhật (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Tiếng Hà Lan (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Tiếng Ý (Italiano)"
 
@@ -121671,10 +121203,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Tiếng Do Thái (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Tiếng Estonia (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Tiếng Quốc Tế Ngữ (Esperanto)"
 
@@ -121695,24 +121223,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Tiếng Uzbek (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Tiếng Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Tiếng Việt"
-
-
 msgid "Basque (Euskara)"
 msgstr "Tiếng Euskara (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "Tiếng Hausa"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "Tiếng Kazakhstan (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

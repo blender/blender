@@ -73,7 +73,7 @@ typedef struct World {
   /* nodes */
   struct bNodeTree *nodetree;
 
-  /* Lightgroup membership information. */
+  /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
 
   /** Runtime. */

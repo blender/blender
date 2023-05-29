@@ -163,7 +163,7 @@ static void select_cache_init(void *vedata)
     }
     else {
       pd->shgrp_face_unif = DRW_shgroup_create(sh->select_id_uniform, psl->select_id_face_pass);
-      DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "id", 0);
+      DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "select_id", 0);
       DRW_shgroup_uniform_float_copy(pd->shgrp_face_unif, "retopologyOffset", retopology_offset);
     }
 

@@ -1798,7 +1798,7 @@ static char *rna_def_property_lookup_string_func(FILE *f,
   fprintf(f, "                }\n");
   fprintf(f, "            }\n");
   fprintf(f, "            else {\n");
-  fprintf(f, "                name = MEM_mallocN(namelen+1, \"name string\");\n");
+  fprintf(f, "                name = (char *)MEM_mallocN(namelen+1, \"name string\");\n");
   fprintf(f,
           "                %s_%s_get(&iter.ptr, name);\n",
           item_name_base->identifier,
@@ -1916,7 +1916,8 @@ static void rna_set_raw_offset(FILE *f, StructRNA *srna, PropertyRNA *prop)
 {
   PropertyDefRNA *dp = rna_find_struct_property_def(srna, prop);
 
-  fprintf(f, "\toffsetof(%s, %s), %d", dp->dnastructname, dp->dnaname, prop->rawtype);
+  fprintf(
+      f, "\toffsetof(%s, %s), (RawPropertyType)%d", dp->dnastructname, dp->dnaname, prop->rawtype);
 }
 
 static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
@@ -3506,7 +3507,7 @@ static void rna_generate_internal_property_prototypes(BlenderRNA *UNUSED(brna),
 
   for (prop = srna->cont.properties.first; prop; prop = prop->next) {
     fprintf(f,
-            "%s rna_%s_%s;\n",
+            "extern %s rna_%s_%s;\n",
             rna_property_structname(prop->type),
             srna->identifier,
             prop->identifier);
@@ -4068,7 +4069,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   rna_print_c_string(f, prop->translation_context);
   fprintf(f, ",\n");
   fprintf(f,
-          "\t%s, %s | %s, %s, %u, {%u, %u, %u}, %u,\n",
+          "\t%s, (PropertySubType)((int)%s | (int)%s), %s, %u, {%u, %u, %u}, %u,\n",
           RNA_property_typename(prop->type),
           rna_property_subtypename(prop->subtype),
           rna_property_subtype_unit(prop->subtype),
@@ -4093,7 +4094,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     rna_set_raw_offset(f, srna, prop);
   }
   else {
-    fprintf(f, "\t0, -1");
+    fprintf(f, "\t0, PROP_RAW_UNSET");
   }
 
   /* our own type - collections/arrays only */
@@ -4945,7 +4946,7 @@ static const char *cpp_classes =
     "    operator const PointerRNA&() { return ptr; }\n"
     "    bool is_a(StructRNA *type) { return RNA_struct_is_a(ptr.type, type) ? true: false; }\n"
     "    operator void*() { return ptr.data; }\n"
-    "    operator bool() { return ptr.data != NULL; }\n"
+    "    operator bool() const { return ptr.data != NULL; }\n"
     "\n"
     "    bool operator==(const Pointer &other) const { return ptr.data == other.ptr.data; }\n"
     "    bool operator!=(const Pointer &other) const { return ptr.data != other.ptr.data; }\n"
@@ -5017,7 +5018,7 @@ static const char *cpp_classes =
     "    CollectionIterator &operator=(const CollectionIterator &other) = delete;\n"
     "    CollectionIterator &operator=(CollectionIterator &&other) = delete;\n"
     "\n"
-    "    operator bool(void)\n"
+    "    operator bool(void) const\n"
     "    { return iter.valid != 0; }\n"
     "    const CollectionIterator<T, Tbegin, Tnext, Tend>& operator++() { Tnext(&iter); t = "
     "T(iter.ptr); return *this; }\n"

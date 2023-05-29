@@ -12,6 +12,10 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#ifdef __cplusplus
+#  include "BLI_array.hh"
+#  include "BLI_offset_indices.hh"
+#endif
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
@@ -49,7 +53,6 @@ struct ListBase;
 struct MLoopTri;
 struct Main;
 struct Mesh;
-struct MeshElemMap;
 struct Object;
 struct PBVH;
 struct Paint;
@@ -283,12 +286,17 @@ void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
 #define SCULPT_FACE_SET_NONE 0
 
 /** Used for both vertex color and weight paint. */
+#ifdef __cplusplus
 struct SculptVertexPaintGeomMap {
-  int *vert_map_mem;
-  struct MeshElemMap *vert_to_loop;
-  int *poly_map_mem;
-  struct MeshElemMap *vert_to_poly;
+  blender::Array<int> vert_to_loop_offsets;
+  blender::Array<int> vert_to_loop_indices;
+  blender::GroupedSpan<int> vert_to_loop;
+
+  blender::Array<int> vert_to_poly_offsets;
+  blender::Array<int> vert_to_poly_indices;
+  blender::GroupedSpan<int> vert_to_poly;
 };
+#endif
 
 /** Pose Brush IK Chain. */
 typedef struct SculptPoseIKChainSegment {
@@ -788,16 +796,20 @@ struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  MeshElemMap *pmap;
-  int *pmap_mem;
+
+  blender::Array<int> vert_to_poly_offsets;
+  blender::Array<int> vert_to_poly_indices;
+  blender::GroupedSpan<int> pmap;
 
   /* Edges to adjacent polys. */
-  struct MeshElemMap *epmap;
-  int *epmap_mem;
+  blender::Array<int> edge_to_poly_offsets;
+  blender::Array<int> edge_to_poly_indices;
+  blender::GroupedSpan<int> epmap;
 
   /* Vertices to adjacent edges. */
-  struct MeshElemMap *vemap;
-  int *vemap_mem;
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  blender::GroupedSpan<int> vemap;
 
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
@@ -932,7 +944,7 @@ struct SculptSession {
   float init_pivot_rot[4];
   float init_pivot_scale[3];
 
-  union {
+  struct {
     struct {
       struct SculptVertexPaintGeomMap gmap;
     } vpaint;
@@ -961,11 +973,7 @@ struct SculptSession {
    */
   char needs_flush_to_id;
 
-  // id of current stroke, used to detect
-  // if vertex original data needs to be updated
-  int boundary_symmetry;
-
-  bool fast_draw;  // hides facesets/masks and forces smooth to save GPU bandwidth
+  bool fast_draw;  /* Hides facesets/masks and forces smooth to save GPU bandwidth. */
 
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.

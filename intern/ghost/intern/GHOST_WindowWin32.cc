@@ -23,6 +23,9 @@
 
 #include <assert.h>
 #include <math.h>
+#include <propkey.h>
+#include <propvarutil.h>
+#include <shellapi.h>
 #include <shellscalingapi.h>
 #include <string.h>
 #include <windowsx.h>
@@ -113,6 +116,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   if (m_hWnd == NULL) {
     return;
   }
+
+  registerWindowAppUserModelProperties();
 
   /*  Store the device context. */
   m_hDC = ::GetDC(m_hWnd);
@@ -248,6 +253,10 @@ GHOST_TTrackpadInfo GHOST_WindowWin32::getTrackpadInfo()
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
+  if (m_hWnd) {
+    unregisterWindowAppUserModelProperties();
+  }
+
   if (m_Bar) {
     m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
     m_Bar->Release();
@@ -1192,3 +1201,55 @@ void GHOST_WindowWin32::endIME()
   m_imeInput.EndIME(m_hWnd);
 }
 #endif /* WITH_INPUT_IME */
+
+void GHOST_WindowWin32::registerWindowAppUserModelProperties()
+{
+  IPropertyStore *pstore;
+  char blender_path[MAX_PATH];
+  wchar_t shell_command[MAX_PATH];
+
+  /* Find the current executable, and see if it's blender.exe if not bail out. */
+  GetModuleFileName(0, blender_path, sizeof(blender_path));
+  char *blender_app = strstr(blender_path, "blender.exe");
+  if (!blender_app) {
+    return;
+  }
+
+  HRESULT hr = SHGetPropertyStoreForWindow(m_hWnd, IID_PPV_ARGS(&pstore));
+  if (!SUCCEEDED(hr)) {
+    return;
+  }
+
+  /* Set the launcher as the shell command so the console window will not flash.
+   * when people pin blender to the taskbar. */
+  strcpy(blender_app, "blender-launcher.exe");
+  wsprintfW(shell_command, L"\"%S\"", blender_path);
+  UTF16_ENCODE(BLENDER_WIN_APPID);
+  UTF16_ENCODE(BLENDER_WIN_APPID_FRIENDLY_NAME);
+  PROPVARIANT propvar;
+  hr = InitPropVariantFromString(BLENDER_WIN_APPID_16, &propvar);
+  hr = pstore->SetValue(PKEY_AppUserModel_ID, propvar);
+  hr = InitPropVariantFromString(shell_command, &propvar);
+  hr = pstore->SetValue(PKEY_AppUserModel_RelaunchCommand, propvar);
+  hr = InitPropVariantFromString(BLENDER_WIN_APPID_FRIENDLY_NAME_16, &propvar);
+  hr = pstore->SetValue(PKEY_AppUserModel_RelaunchDisplayNameResource, propvar);
+  pstore->Release();
+  UTF16_UN_ENCODE(BLENDER_WIN_APPID_FRIENDLY_NAME);
+  UTF16_UN_ENCODE(BLENDER_WIN_APPID);
+}
+
+/* as per MSDN: Any property not cleared before closing the window, will be leaked and NOT be
+ * returned to the OS. */
+void GHOST_WindowWin32::unregisterWindowAppUserModelProperties()
+{
+  IPropertyStore *pstore;
+  HRESULT hr = SHGetPropertyStoreForWindow(m_hWnd, IID_PPV_ARGS(&pstore));
+  if (SUCCEEDED(hr)) {
+    PROPVARIANT value;
+    PropVariantInit(&value);
+    pstore->SetValue(PKEY_AppUserModel_ID, value);
+    pstore->SetValue(PKEY_AppUserModel_RelaunchCommand, value);
+    pstore->SetValue(PKEY_AppUserModel_RelaunchDisplayNameResource, value);
+    pstore->Release();
+  }
+}

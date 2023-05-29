@@ -1205,7 +1205,8 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
 
 static void drw_engines_enable_overlays(void)
 {
-  use_drw_engine(&draw_engine_overlay_type);
+  use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
+                                                        &draw_engine_overlay_type);
 }
 /**
  * Use for select and depth-drawing.
@@ -1224,7 +1225,8 @@ static void drw_engine_enable_image_editor(void)
     use_drw_engine(&draw_engine_image_type);
   }
 
-  use_drw_engine(&draw_engine_overlay_type);
+  use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
+                                                        &draw_engine_overlay_type);
 }
 
 static void drw_engines_enable_editors(void)
@@ -1242,7 +1244,8 @@ static void drw_engines_enable_editors(void)
     SpaceNode *snode = (SpaceNode *)space_data;
     if ((snode->flag & SNODE_BACKDRAW) != 0) {
       use_drw_engine(&draw_engine_image_type);
-      use_drw_engine(&draw_engine_overlay_type);
+      use_drw_engine((U.experimental.enable_overlay_next) ? &draw_engine_overlay_next_type :
+                                                            &draw_engine_overlay_type);
     }
   }
 }
@@ -2459,7 +2462,10 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   DST.options.is_material_select = do_material_sub_selection;
   drw_task_graph_init();
   /* Get list of enabled engines */
-  if (use_obedit) {
+  if (U.experimental.enable_overlay_next) {
+    use_drw_engine(&draw_engine_select_next_type);
+  }
+  else if (use_obedit) {
     drw_engines_enable_overlays();
   }
   else if (!draw_surface) {
@@ -2568,6 +2574,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   draw_select_framebuffer_depth_only_setup(viewport_size);
   GPU_framebuffer_bind(g_select_buffer.framebuffer_depth_only);
   GPU_framebuffer_clear_depth(g_select_buffer.framebuffer_depth_only, 1.0f);
+  /* WORKAROUND: Needed for Select-Next for keeping the same code-flow as Overlay-Next. */
+  BLI_assert(DRW_viewport_texture_list_get()->depth == NULL);
+  DRW_viewport_texture_list_get()->depth = g_select_buffer.texture_depth;
 
   /* Start Drawing */
   DRW_state_reset();
@@ -2580,11 +2589,15 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
     if (!select_pass_fn(DRW_SELECT_PASS_PRE, select_pass_user_data)) {
       break;
     }
-    DRW_state_lock(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_TEST_ENABLED);
+    if (!U.experimental.enable_overlay_next) {
+      DRW_state_lock(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_TEST_ENABLED);
+    }
 
     drw_engines_draw_scene();
 
-    DRW_state_lock(0);
+    if (!U.experimental.enable_overlay_next) {
+      DRW_state_lock(0);
+    }
 
     if (!select_pass_fn(DRW_SELECT_PASS_POST, select_pass_user_data)) {
       break;
@@ -2592,6 +2605,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   }
 
   DRW_smoke_exit(DST.vmempool);
+
+  /* WORKAROUND: Do not leave ownership to the viewport list. */
+  DRW_viewport_texture_list_get()->depth = NULL;
 
   DRW_state_reset();
   drw_engines_disable();
@@ -2791,6 +2807,9 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
         }
         if (DRW_object_is_in_edit_mode(ob)) {
           /* Only background (non-edit) objects are used for occlusion. */
+          continue;
+        }
+        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
           continue;
         }
         drw_engines_cache_populate(ob);
@@ -3029,6 +3048,8 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_gpencil_type);
 
   DRW_engine_register(&draw_engine_overlay_type);
+  DRW_engine_register(&draw_engine_overlay_next_type);
+  DRW_engine_register(&draw_engine_select_next_type);
   DRW_engine_register(&draw_engine_select_type);
   DRW_engine_register(&draw_engine_basic_type);
   DRW_engine_register(&draw_engine_compositor_type);

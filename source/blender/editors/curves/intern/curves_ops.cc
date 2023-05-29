@@ -8,7 +8,6 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_devirtualize_parameters.hh"
-#include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
