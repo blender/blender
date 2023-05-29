@@ -92,7 +92,7 @@ bool BLI_windows_register_blend_extension(bool background);
  * using a fall-back in case the root directory can't be found.
  */
 void BLI_windows_get_default_root_dir(char root_dir[4]);
-int BLI_windows_get_executable_dir(char *str);
+int BLI_windows_get_executable_dir(char r_dirpath[/*FILE_MAXDIR*/]);
 
 /* ShellExecute Helpers. */
 
