@@ -143,6 +143,11 @@ GHOST_SystemWin32::GHOST_SystemWin32()
    * blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI. */
   SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 
+  /* Set App Id for the process so our console will be grouped on the Task Bar. */
+  UTF16_ENCODE(BLENDER_WIN_APPID);
+  HRESULT result = SetCurrentProcessExplicitAppUserModelID(BLENDER_WIN_APPID_16);
+  UTF16_UN_ENCODE(BLENDER_WIN_APPID);
+
   /* Check if current keyboard layout uses AltGr and save keylayout ID for
    * specialized handling if keys like VK_OEM_*. I.e. french keylayout
    * generates #VK_OEM_8 for their exclamation key (key left of right shift). */
