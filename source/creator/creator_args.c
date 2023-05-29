@@ -2215,27 +2215,22 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   return 0;
 }
 
-static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
+/**
+ * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
+ * \return true on success.
+ */
+static bool handle_load_file(bContext *C, const char *filepath_arg)
 {
-  bContext *C = data;
-  ReportList reports;
-  bool success;
-
   /* Make the path absolute because its needed for relative linked blends to be found */
   char filepath[FILE_MAX];
-
-  /* NOTE: we could skip these, but so far we always tried to load these files. */
-  if (argv[0][0] == '-') {
-    fprintf(stderr, "unknown argument, loading as file: %s\n", argv[0]);
-  }
-
-  STRNCPY(filepath, argv[0]);
+  STRNCPY(filepath, filepath_arg);
   BLI_path_canonicalize_native(filepath, sizeof(filepath));
 
   /* load the file */
+  ReportList reports;
   BKE_reports_init(&reports, RPT_PRINT);
   WM_file_autoexec_init(filepath);
-  success = WM_file_read(C, filepath, &reports);
+  const bool success = WM_file_read(C, filepath, &reports);
   BKE_reports_clear(&reports);
 
   if (success) {
@@ -2253,7 +2248,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
        * good or bad things are.
        */
       G.is_break = true;
-      return -1;
+      return false;
     }
 
     const char *error_msg = NULL;
@@ -2275,7 +2270,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
       G.is_break = true;
       WM_exit(C);
       /* Unreachable, return for clarity. */
-      return -1;
+      return false;
     }
 
     /* Behave as if a file was loaded, calling "Save" will write to the `filepath` from the CLI.
@@ -2290,6 +2285,22 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     printf("... opened default scene instead; saving will write to: %s\n", filepath);
   }
 
+  return true;
+}
+
+int main_args_handle_load_file(int UNUSED(argc), const char **argv, void *data)
+{
+  bContext *C = data;
+  const char *filepath = argv[0];
+
+  /* NOTE: we could skip these, but so far we always tried to load these files. */
+  if (argv[0][0] == '-') {
+    fprintf(stderr, "unknown argument, loading as file: %s\n", filepath);
+  }
+
+  if (!handle_load_file(C, filepath)) {
+    return -1;
+  }
   return 0;
 }
 
@@ -2303,9 +2314,12 @@ static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv)
     return -1;
   }
 
+  bContext *C = data;
   const RecentFile *recent_file = G.recent_files.first;
-  const char *fake_argv[] = {recent_file->filepath};
-  return arg_handle_load_file(ARRAY_SIZE(fake_argv), fake_argv, data);
+  if (!handle_load_file(C, recent_file->filepath)) {
+    return -1;
+  }
+  return 0;
 }
 
 void main_args_setup(bContext *C, bArgs *ba, bool all)
@@ -2562,14 +2576,6 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   /* Use for Python to extract help text (Python can't call directly - bad-level call). */
   BPY_python_app_help_text_fn = main_args_help_as_string;
 #  endif
-}
-
-/**
- * Needs to be added separately.
- */
-void main_args_setup_post(bContext *C, bArgs *ba)
-{
-  BLI_args_parse(ba, ARG_PASS_FINAL, arg_handle_load_file, C);
 }
 
 /** \} */
