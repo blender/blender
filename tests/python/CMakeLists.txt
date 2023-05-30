@@ -688,6 +688,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       image_texture_limit
       integrator
       light
+      light_group
       light_linking
       mesh
       pointcloud
