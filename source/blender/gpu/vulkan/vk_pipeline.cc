@@ -179,7 +179,8 @@ void VKPipeline::finalize(VKContext &context,
   pipeline_create_info.pMultisampleState = &multisample_state;
 
   /* States from the state manager. */
-  const VKPipelineStateManager &state_manager = state_manager_get();
+  VKPipelineStateManager &state_manager = state_manager_get();
+  state_manager.finalize_color_blend_state(framebuffer);
   pipeline_create_info.pColorBlendState = &state_manager.pipeline_color_blend_state;
   pipeline_create_info.pRasterizationState = &state_manager.rasterization_state;
   pipeline_create_info.pDepthStencilState = &state_manager.depth_stencil_state;
