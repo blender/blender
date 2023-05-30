@@ -34,6 +34,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -558,14 +559,15 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
 
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const PointCloud *pointcloud_eval = (const PointCloud *)ob_eval->runtime.data_eval;
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(*ob_eval);
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
-  mesh->totvert = pointcloud_eval->totpoint;
-  CustomData_merge(
-      &pointcloud_eval->pdata, &mesh->vdata, CD_MASK_PROP_ALL, pointcloud_eval->totpoint);
+  if (const PointCloud *points = geometry.get_pointcloud_for_read()) {
+    mesh->totvert = points->totpoint;
+    CustomData_merge(&points->pdata, &mesh->vdata, CD_MASK_PROP_ALL, points->totpoint);
+  }
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
 
