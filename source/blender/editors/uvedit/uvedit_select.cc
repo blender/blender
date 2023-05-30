@@ -112,7 +112,7 @@ void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm)
 {
-  BMEditSelection *ese = bm->selected.last;
+  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if (ese && ese->prev) {
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_VERT) && (ese_prev->htype == BM_FACE)) {
@@ -134,7 +134,7 @@ void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l)
 
 BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm)
 {
-  BMEditSelection *ese = bm->selected.last;
+  BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.last);
   if (ese && ese->prev) {
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_EDGE) && (ese_prev->htype == BM_FACE)) {
@@ -833,8 +833,8 @@ bool uv_find_nearest_edge(
       continue;
     }
     BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-      luv = BM_ELEM_CD_GET_VOID_P(l, offsets.uv);
-      luv_next = BM_ELEM_CD_GET_VOID_P(l->next, offsets.uv);
+      luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
+      luv_next = BM_ELEM_CD_GET_FLOAT_P(l->next, offsets.uv);
 
       float delta[2];
       closest_to_line_segment_v2(delta, co, luv, luv_next);
@@ -1098,7 +1098,9 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
   UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
 
   float co[2];
-  sub_v2_v2v2(co, (float[2]){UNPACK2(mval)}, offset);
+
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
+  sub_v2_v2v2(co, mval_fl, offset);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -1817,8 +1819,8 @@ static void uv_select_linked_multi(Scene *scene,
       continue;
     }
 
-    stack = MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack");
-    flag = MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag");
+    stack = static_cast<int *>(MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack"));
+    flag = static_cast<char *>(MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag"));
 
     if (hit == NULL) {
       /* Use existing selection */
@@ -2058,7 +2060,7 @@ static int uv_select_more_less(bContext *C, const bool select)
         EDBM_select_less(em, true);
       }
 
-      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
       continue;
     }
@@ -2158,7 +2160,7 @@ static int uv_select_more_less(bContext *C, const bool select)
           uvedit_deselect_flush(scene, em);
         }
       }
-      DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -2167,7 +2169,7 @@ static int uv_select_more_less(bContext *C, const bool select)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+static int uv_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   return uv_select_more_less(C, true);
 }
@@ -2185,7 +2187,7 @@ void UV_OT_select_more(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit_space_image;
 }
 
-static int uv_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+static int uv_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   return uv_select_more_less(C, false);
 }
@@ -2433,7 +2435,7 @@ static bool uv_mouse_select_multi(bContext *C,
                                   Object **objects,
                                   uint objects_len,
                                   const float co[2],
-                                  const struct SelectPick_Params *params)
+                                  const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ARegion *region = CTX_wm_region(C);
@@ -2658,7 +2660,7 @@ static bool uv_mouse_select_multi(bContext *C,
 
   return changed || found;
 }
-static bool uv_mouse_select(bContext *C, const float co[2], const struct SelectPick_Params *params)
+static bool uv_mouse_select(bContext *C, const float co[2], const SelectPick_Params *params)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2676,7 +2678,7 @@ static int uv_select_exec(bContext *C, wmOperator *op)
 
   RNA_float_get_array(op->ptr, "location", co);
 
-  struct SelectPick_Params params = {0};
+  SelectPick_Params params{};
   ED_select_pick_params_from_operator(op->ptr, &params);
 
   const bool changed = uv_mouse_select(C, co, &params);
@@ -3011,7 +3013,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
-    DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
@@ -3209,12 +3211,13 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             Object *obedit)
 {
   if (ts->uv_flag & UV_SYNC_SELECTION) {
-    DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
   else {
     Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-    BKE_mesh_batch_cache_dirty_tag(obedit_eval->data, BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
+    BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
+                                   BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     /* Only for region redraw. */
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
@@ -3269,8 +3272,8 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
       efa_vlist = BM_face_at_index(em->bm, vlist_iter->poly_index);
       /* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
 
-      l_other = BM_iter_at_index(
-          em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_poly_index);
+      l_other = static_cast<BMLoop *>(
+          BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_poly_index));
 
       uvedit_uv_select_set(scene, em->bm, l_other, select, false, offsets);
     }
@@ -3527,7 +3530,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rectf);
   UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
-  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
@@ -3653,10 +3656,9 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {
-              .ob = obedit,
-              .efa = efa,
-          };
+          UvNearestHit hit = {};
+          hit.ob = obedit;
+          hit.efa = efa;
           uv_select_linked_multi(scene, objects, objects_len, &hit, true, !select, false, false);
         }
       }
@@ -3739,7 +3741,8 @@ static bool uv_circle_select_is_edge_inside(const float uv_a[2],
       (uv_b[0] - offset[0]) * ellipse[0],
       (uv_b[1] - offset[1]) * ellipse[1],
   };
-  return dist_squared_to_line_segment_v2((const float[2]){0.0f, 0.0f}, co_a, co_b) < 1.0f;
+  const float co_zero[2] = {0.0f, 0.0f};
+  return dist_squared_to_line_segment_v2(co_zero, co_a, co_b) < 1.0f;
 }
 
 static int uv_circle_select_exec(bContext *C, wmOperator *op)
@@ -3788,8 +3791,9 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, ((View3D *)NULL), &objects_len);
 
-  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get(op->ptr, "mode"),
-                                              WM_gesture_is_modal_first(op->customdata));
+  const eSelectOp sel_op = ED_select_op_modal(
+      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
@@ -3868,10 +3872,9 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {
-              .ob = obedit,
-              .efa = efa,
-          };
+          UvNearestHit hit = {};
+          hit.ob = obedit;
+          hit.efa = efa;
           uv_select_linked_multi(scene, objects, objects_len, &hit, true, !select, false, false);
         }
       }
@@ -4101,10 +4104,9 @@ static bool do_lasso_select_mesh_uv(bContext *C,
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {
-              .ob = obedit,
-              .efa = efa,
-          };
+          UvNearestHit hit = {};
+          hit.ob = obedit;
+          hit.efa = efa;
           uv_select_linked_multi(scene, objects, objects_len, &hit, true, !select, false, false);
         }
       }
@@ -4136,7 +4138,7 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
   if (mcoords) {
-    const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+    const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
     bool changed = do_lasso_select_mesh_uv(C, mcoords, mcoords_len, sel_op);
     MEM_freeN((void *)mcoords);
 
@@ -4254,7 +4256,7 @@ void UV_OT_select_pinned(wmOperatorType *ot)
 
 BLI_INLINE uint overlap_hash(const void *overlap_v)
 {
-  const BVHTreeOverlap *overlap = overlap_v;
+  const BVHTreeOverlap *overlap = static_cast<const BVHTreeOverlap *>(overlap_v);
 
   /* Designed to treat (A,B) and (B,A) as the same. */
   int x = overlap->indexA;
@@ -4267,8 +4269,8 @@ BLI_INLINE uint overlap_hash(const void *overlap_v)
 
 BLI_INLINE bool overlap_cmp(const void *a_v, const void *b_v)
 {
-  const BVHTreeOverlap *a = a_v;
-  const BVHTreeOverlap *b = b_v;
+  const BVHTreeOverlap *a = static_cast<const BVHTreeOverlap *>(a_v);
+  const BVHTreeOverlap *b = static_cast<const BVHTreeOverlap *>(b_v);
   return !((a->indexA == b->indexA && a->indexB == b->indexB) ||
            (a->indexA == b->indexB && a->indexB == b->indexA));
 }
@@ -4358,16 +4360,18 @@ static int uv_select_overlap(bContext *C, const bool extend)
     }
   }
 
-  struct UVOverlapData *overlap_data = MEM_mallocN(sizeof(struct UVOverlapData) * uv_tri_len,
-                                                   "UvOverlapData");
+  UVOverlapData *overlap_data = static_cast<UVOverlapData *>(
+      MEM_mallocN(sizeof(UVOverlapData) * uv_tri_len, "UvOverlapData"));
   BVHTree *uv_tree = BLI_bvhtree_new(uv_tri_len, 0.0f, 4, 6);
 
   /* Use a global data index when inserting into the BVH. */
   int data_index = 0;
 
   int face_len_alloc = 3;
-  float(*uv_verts)[2] = MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords");
-  uint(*indices)[3] = MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris");
+  float(*uv_verts)[2] = static_cast<float(*)[2]>(
+      MEM_mallocN(sizeof(*uv_verts) * face_len_alloc, "UvOverlapCoords"));
+  uint(*indices)[3] = static_cast<uint(*)[3]>(
+      MEM_mallocN(sizeof(*indices) * (face_len_alloc - 2), "UvOverlapTris"));
 
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -4395,8 +4399,10 @@ static int uv_select_overlap(bContext *C, const bool extend)
       if (face_len_alloc < face_len) {
         MEM_freeN(uv_verts);
         MEM_freeN(indices);
-        uv_verts = MEM_mallocN(sizeof(*uv_verts) * face_len, "UvOverlapCoords");
-        indices = MEM_mallocN(sizeof(*indices) * tri_len, "UvOverlapTris");
+        uv_verts = static_cast<float(*)[2]>(
+            MEM_mallocN(sizeof(*uv_verts) * face_len, "UvOverlapCoords"));
+        indices = static_cast<uint(*)[3]>(
+            MEM_mallocN(sizeof(*indices) * tri_len, "UvOverlapTris"));
         face_len_alloc = face_len;
       }
 
@@ -4464,8 +4470,8 @@ static int uv_select_overlap(bContext *C, const bool extend)
         continue;
       }
 
-      const struct UVOverlapData *o_a = &overlap_data[overlap[i].indexA];
-      const struct UVOverlapData *o_b = &overlap_data[overlap[i].indexB];
+      const UVOverlapData *o_a = &overlap_data[overlap[i].indexA];
+      const UVOverlapData *o_b = &overlap_data[overlap[i].indexB];
       Object *obedit_a = objects[o_a->ob_index];
       Object *obedit_b = objects[o_b->ob_index];
       BMEditMesh *em_a = BKE_editmesh_from_object(obedit_a);
@@ -4678,7 +4684,7 @@ static float get_uv_face_needle(const eUVSelectSimilar type,
 }
 
 static float get_uv_island_needle(const eUVSelectSimilar type,
-                                  const struct FaceIsland *island,
+                                  const FaceIsland *island,
                                   const float ob_m3[3][3],
                                   const BMUVOffsets offsets)
 
@@ -4712,9 +4718,9 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -4824,9 +4830,9 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -4939,9 +4945,9 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
@@ -5031,7 +5037,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool uv_island_selected(const Scene *scene, struct FaceIsland *island)
+static bool uv_island_selected(const Scene *scene, FaceIsland *island)
 {
   BLI_assert(island && island->faces_len);
   return uvedit_face_select_test(scene, island->faces[0], island->offsets);
@@ -5044,15 +5050,16 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, ((View3D *)NULL), &objects_len);
 
-  ListBase *island_list_ptr = MEM_callocN(sizeof(*island_list_ptr) * objects_len, __func__);
+  ListBase *island_list_ptr = static_cast<ListBase *>(
+      MEM_callocN(sizeof(*island_list_ptr) * objects_len, __func__));
   int island_list_len = 0;
 
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
@@ -5070,8 +5077,8 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
         scene, em->bm, &island_list_ptr[ob_index], face_selected, false, false, aspect_y, offsets);
   }
 
-  struct FaceIsland **island_array = MEM_callocN(sizeof(*island_array) * island_list_len,
-                                                 __func__);
+  FaceIsland **island_array = static_cast<FaceIsland **>(
+      MEM_callocN(sizeof(*island_array) * island_list_len, __func__));
 
   int tree_index = 0;
   KDTree_1d *tree_1d = BLI_kdtree_1d_new(island_list_len);
@@ -5088,7 +5095,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
     copy_m3_m4(ob_m3, obedit->object_to_world);
 
     int index;
-    LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list_ptr[ob_index], index) {
+    LISTBASE_FOREACH_INDEX (FaceIsland *, island, &island_list_ptr[ob_index], index) {
       island_array[index] = island;
       if (!uv_island_selected(scene, island)) {
         continue;
@@ -5118,7 +5125,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     int index;
-    LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list_ptr[ob_index], index) {
+    LISTBASE_FOREACH_INDEX (FaceIsland *, island, &island_list_ptr[ob_index], index) {
       island_array[tot_island_index++] = island; /* To deallocate later. */
       if (uv_island_selected(scene, island)) {
         continue;
@@ -5211,9 +5218,9 @@ static EnumPropertyItem prop_similar_compare_types[] = {{SIM_CMP_EQ, "EQUAL", 0,
                                                         {0}};
 
 static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
-                                                            PointerRNA *UNUSED(ptr),
-                                                            PropertyRNA *UNUSED(prop),
-                                                            bool *UNUSED(r_free))
+                                                            PointerRNA * /*ptr*/,
+                                                            PropertyRNA * /*prop*/,
+                                                            bool * /*r_free*/)
 {
   const ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts) {
@@ -5269,7 +5276,7 @@ BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totface);
   int faces_len = 0;
-  BMFace **faces = MEM_mallocN(sizeof(*faces) * len_max, __func__);
+  BMFace **faces = static_cast<BMFace **>(MEM_mallocN(sizeof(*faces) * len_max, __func__));
 
   BMIter iter;
   BMFace *f;
@@ -5287,7 +5294,7 @@ BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, in
 finally:
   *r_faces_len = faces_len;
   if (faces_len != len_max) {
-    faces = MEM_reallocN(faces, sizeof(*faces) * faces_len);
+    faces = static_cast<BMFace **>(MEM_reallocN(faces, sizeof(*faces) * faces_len));
   }
   return faces;
 }
@@ -5299,7 +5306,7 @@ BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totloop);
   int edges_len = 0;
-  BMLoop **edges = MEM_mallocN(sizeof(*edges) * len_max, __func__);
+  BMLoop **edges = static_cast<BMLoop **>(MEM_mallocN(sizeof(*edges) * len_max, __func__));
 
   BMIter iter;
   BMFace *f;
@@ -5345,7 +5352,7 @@ BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, in
 finally:
   *r_edges_len = edges_len;
   if (edges_len != len_max) {
-    edges = MEM_reallocN(edges, sizeof(*edges) * edges_len);
+    edges = static_cast<BMLoop **>(MEM_reallocN(edges, sizeof(*edges) * edges_len));
   }
   return edges;
 }
@@ -5358,7 +5365,7 @@ BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totloop);
   int verts_len = 0;
-  BMLoop **verts = MEM_mallocN(sizeof(*verts) * len_max, __func__);
+  BMLoop **verts = static_cast<BMLoop **>(MEM_mallocN(sizeof(*verts) * len_max, __func__));
 
   BMIter iter;
   BMFace *f;
@@ -5403,7 +5410,7 @@ BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, in
 finally:
   *r_verts_len = verts_len;
   if (verts_len != len_max) {
-    verts = MEM_reallocN(verts, sizeof(*verts) * verts_len);
+    verts = static_cast<BMLoop **>(MEM_reallocN(verts, sizeof(*verts) * verts_len));
   }
   return verts;
 }
@@ -5435,7 +5442,8 @@ static void uv_isolate_selected_islands(const Scene *scene,
 
   int num_islands = elementmap->total_islands;
   /* Boolean array that tells if island with index i is completely selected or not. */
-  bool *is_island_not_selected = MEM_callocN(sizeof(bool) * (num_islands), __func__);
+  bool *is_island_not_selected = static_cast<bool *>(
+      MEM_callocN(sizeof(bool) * (num_islands), __func__));
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     BMLoop *l;
@@ -5586,7 +5594,7 @@ static int uv_select_mode_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int uv_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   const ToolSettings *ts = CTX_data_tool_settings(C);
   const SpaceImage *sima = CTX_wm_space_image(C);
@@ -5623,7 +5631,7 @@ void UV_OT_select_mode(wmOperatorType *ot)
   PropertyRNA *prop;
   ot->prop = prop = RNA_def_enum(
       ot->srna, "type", rna_enum_mesh_select_mode_uv_items, 0, "Type", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 /** \} */

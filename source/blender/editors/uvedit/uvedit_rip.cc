@@ -303,7 +303,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
                                             const float aspect_y,
                                             const int cd_loop_uv_offset)
 {
-  UVRipSingle *rip = MEM_callocN(sizeof(*rip), __func__);
+  UVRipSingle *rip = MEM_cnew<UVRipSingle>(__func__);
   const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
   rip->loops = BLI_gset_ptr_new(__func__);
 
@@ -393,7 +393,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
   else {
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, rip->loops) {
-      BMLoop *l = BLI_gsetIterator_getKey(&gs_iter);
+      BMLoop *l = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
       UL(l)->side = 0;
     }
 
@@ -556,7 +556,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                                           const float aspect_y,
                                           const int cd_loop_uv_offset)
 {
-  UVRipPairs *rip = MEM_callocN(sizeof(*rip), __func__);
+  UVRipPairs *rip = MEM_cnew<UVRipPairs>(__func__);
   rip->loops = BLI_gset_ptr_new(__func__);
 
   /* We can rely on this stack being small, as we're walking down two sides of an edge loop,
@@ -587,7 +587,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
   UL(l_init)->in_stack = true;
 
   BMLoop *l_step;
-  while ((l_step = BLI_SMALLSTACK_POP(stack))) {
+  while ((l_step = static_cast<BMLoop *>(BLI_SMALLSTACK_POP(stack)))) {
     int side = UL(l_step)->side;
     UL(l_step)->in_stack = false;
 
@@ -696,7 +696,7 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
   }
   GSetIterator gs_iter;
   GSET_ITER (gs_iter, rip->loops) {
-    BMLoop *l = BLI_gsetIterator_getKey(&gs_iter);
+    BMLoop *l = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
     int side = UL(l)->side;
     const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
     add_v2_v2(r_center, luv);
@@ -849,7 +849,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
             }
             GSetIterator gs_iter;
             GSET_ITER (gs_iter, rip->loops) {
-              BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
+              BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
                 uvedit_uv_select_disable(scene, bm, l_iter, offsets);
@@ -867,7 +867,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
           const int side_from_cursor = 0;
           GSetIterator gs_iter;
           GSET_ITER (gs_iter, rip->loops) {
-            BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
+            BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
               uvedit_uv_select_disable(scene, bm, l_iter, offsets);
@@ -922,7 +922,7 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
     if (uv_rip_object(scene, obedit, co, aspect_y)) {
       changed_multi = true;
       uvedit_live_unwrap_update(sima, scene, obedit);
-      DEG_id_tag_update(obedit->data, 0);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     }
   }
