@@ -379,6 +379,14 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
+if(WITH_VULKAN_METAL)
+  add_definitions(-DWITH_VULKAN_METAL)
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
