@@ -42,6 +42,7 @@ static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
   BKE_mesh_legacy_convert_loops_to_corners(&mesh);
   BKE_mesh_legacy_convert_polys_to_offsets(&mesh);
   BKE_mesh_legacy_convert_edges_to_generic(&mesh);
+  BKE_mesh_bevel_weight_layers_from_future(&mesh);
 }
 
 static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
