@@ -5,8 +5,6 @@
  * \ingroup pybmesh
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
 #include "BLI_sort.h"
 #include "BLI_string.h"
@@ -2788,7 +2786,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
       return NULL;
   }
 
-  BM_mesh_remap(bm, vert_idx, edge_idx, face_idx, NULL);
+  BM_mesh_remap(bm, vert_idx, edge_idx, face_idx);
 
   PyMem_FREE(elem_map_idx);
   PyMem_FREE(elem_idx);
@@ -4053,134 +4051,6 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
   }
 
   return ret;
-}
-
-void *BPy_bm_new_customdata_layout_pre(BMesh *bm, CustomData *cdata, char htype)
-{
-  if (!CustomData_has_layer(cdata, CD_BM_ELEM_PYPTR)) {
-    return NULL;
-  }
-
-  BLI_mempool *pool = NULL;
-  int num = 0;
-
-  switch (htype) {
-    case BM_VERT:
-      pool = bm->vpool;
-      num = bm->totvert;
-      break;
-    case BM_EDGE:
-      pool = bm->epool;
-      num = bm->totedge;
-      break;
-    case BM_LOOP:
-      pool = bm->fpool;
-      num = bm->totloop;
-      break;
-    case BM_FACE:
-      pool = bm->fpool;
-      num = bm->totface;
-      break;
-  }
-
-  void **ptrs = MEM_malloc_arrayN(num, sizeof(void *), __func__);
-
-  int cd_py = CustomData_get_offset(cdata, CD_BM_ELEM_PYPTR);
-
-  BMElem *elem;
-  BLI_mempool_iter iter;
-
-  int i = 0;
-
-  if (htype != BM_LOOP) {
-    BLI_mempool_iternew(pool, &iter);
-    while ((elem = BLI_mempool_iterstep(&iter))) {
-      ptrs[i++] = *((void **)BM_ELEM_CD_GET_VOID_P(elem, cd_py));
-    }
-  }
-  else {
-    BMFace *f;
-
-    BLI_mempool_iternew(pool, &iter);
-    while ((f = BLI_mempool_iterstep(&iter))) {
-      BMLoop *l = f->l_first;
-
-      do {
-        ptrs[i++] = *((void **)BM_ELEM_CD_GET_VOID_P(l, cd_py));
-      } while ((l = l->next) != f->l_first);
-    }
-  }
-
-  return ptrs;
-}
-
-void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype)
-{
-  /*
-   * Un-invalidate python pointers, which got invalidated when the customdata layout
-   * changed.
-   */
-
-  if (!state || !CustomData_has_layer(cdata, CD_BM_ELEM_PYPTR)) {
-    return;
-  }
-
-  BLI_mempool *pool = NULL;
-  void **ptrs = (void **)state;
-
-  switch (htype) {
-    case BM_VERT:
-      pool = bm->vpool;
-      break;
-    case BM_EDGE:
-      pool = bm->epool;
-      break;
-    case BM_LOOP:
-      pool = bm->fpool;
-      break;
-    case BM_FACE:
-      pool = bm->fpool;
-      break;
-  }
-
-  int cd_py = CustomData_get_offset(cdata, CD_BM_ELEM_PYPTR);
-
-  BMElem *elem;
-  BLI_mempool_iter iter;
-  int i = 0;
-
-  if (htype != BM_LOOP) {
-    BLI_mempool_iternew(pool, &iter);
-    while ((elem = BLI_mempool_iterstep(&iter))) {
-      void **ptr = BM_ELEM_CD_GET_VOID_P(elem, cd_py);
-
-      *ptr = ptrs[i++];
-      BPy_BMGeneric *bpy_ptr = (BPy_BMGeneric *)*ptr;
-
-      if (bpy_ptr) {
-        bpy_ptr->bm = bm;
-      }
-    }
-  }
-  else {
-    BMFace *f;
-
-    BLI_mempool_iternew(pool, &iter);
-    while ((f = BLI_mempool_iterstep(&iter))) {
-      BMLoop *l = f->l_first;
-
-      do {
-        void **ptr = BM_ELEM_CD_GET_VOID_P(l, cd_py);
-
-        *ptr = ptrs[i++];
-        BPy_BMGeneric *bpy_ptr = (BPy_BMGeneric *)*ptr;
-
-        if (bpy_ptr) {
-          bpy_ptr->bm = bm;
-        }
-      } while ((l = l->next) != f->l_first);
-    }
-  }
 }
 
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self)

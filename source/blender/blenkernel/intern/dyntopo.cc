@@ -874,7 +874,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
     BMLoop *l = f2->l_first;
     do {
-      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE);
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
     } while ((l = l->next) != f2->l_first);
   }
 
@@ -1070,7 +1070,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     BM_face_kill(pbvh->header.bm, f);
   }
 
-  const int mupdateflag = SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE;
+  const int mupdateflag = SCULPTFLAG_NEED_VALENCE;
 
   for (int i = 0; i < es.size(); i++) {
     BMEdge *e = es[i];
@@ -1225,7 +1225,7 @@ bool _check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 
     do {
       pbvh_boundary_update_bmesh(pbvh, l->v);
-      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT);
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
     } while ((l = l->next) != f->l_first);
     fs.append(f);
 
@@ -1660,7 +1660,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
 
   const int cd_vert_node = pbvh->cd_vert_node_offset;
 
-  int updateflag = SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE;
+  int updateflag = SCULPTFLAG_NEED_VALENCE;
 
   for (BMVert *v : ectx->used_verts) {
     if (bm_elem_is_free((BMElem *)v, BM_VERT)) {
@@ -2632,10 +2632,7 @@ static void pbvh_split_edges(
         l2->v->head.hflag &= ~SPLIT_TAG;
 
         pbvh_boundary_update_bmesh(pbvh, l2->v);
-        dyntopo_add_flag(pbvh,
-                         l2->v,
-                         SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT |
-                             SCULPTFLAG_NEED_TRIANGULATE);
+        dyntopo_add_flag(pbvh, l2->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
       } while ((l2 = l2->next) != l->f->l_first);
 
       l->f->head.hflag &= ~SPLIT_TAG;
@@ -2753,17 +2750,11 @@ static void pbvh_split_edges(
     newv->head.hflag |= SPLIT_TAG;
 
     pbvh_boundary_update_bmesh(pbvh, newv);
-    dyntopo_add_flag(pbvh,
-                     newv,
-                     SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT |
-                         SCULPTFLAG_NEED_TRIANGULATE);
+    dyntopo_add_flag(pbvh, newv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
 
     BMVert *otherv = e->v1 != newv ? e->v1 : e->v2;
     pbvh_boundary_update_bmesh(pbvh, e->v1 != newv ? e->v1 : e->v2);
-    dyntopo_add_flag(pbvh,
-                     otherv,
-                     SCULPTFLAG_NEED_DISK_SORT | SCULPTFLAG_NEED_VALENCE |
-                         SCULPTFLAG_NEED_TRIANGULATE);
+    dyntopo_add_flag(pbvh, otherv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
 
     BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 

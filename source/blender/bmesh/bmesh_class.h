@@ -10,9 +10,6 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_compiler_typecheck.h"
-#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +24,6 @@ struct BMFace;
 struct BMLoop;
 struct BMVert;
 struct BMesh;
-struct GSet;
 
 struct MLoopNorSpaceArray;
 
@@ -104,10 +100,6 @@ typedef struct BMVert {
    */
   struct BMEdge *e;
 } BMVert;
-
-#define BMVert_OFlag BMVert
-#define BMEdge_OFlag BMEdge
-#define BMFace_OFlag BMFace
 
 /* disk link structure, only used by edges */
 typedef struct BMDiskLink {
@@ -290,10 +282,6 @@ typedef struct BMFlagLayer {
 
 // #pragma GCC diagnostic ignored "-Wpadded"
 
-struct RangeTreeUInt;
-
-#define WITH_BM_ID_FREELIST
-
 typedef struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
@@ -379,40 +367,7 @@ typedef struct BMesh {
    * Doesn't hold a #PyObject reference, cleared when the last object is de-referenced.
    */
   void *py_handle;
-
-  struct {
-    int flag;
-#ifdef WITH_BM_ID_FREELIST
-    uint *freelist;
-    int freelist_len, freelist_size;
-    uint *free_ids, free_ids_size;
-
-    /* maps ids to their position within the freelist
-       only used if freelist is bigger then a certain size,
-       see FREELIST_HASHMAP_THRESHOLD_HIGH in bmesh_construct.c.*/
-    struct GHash *free_idx_map;
-#else
-    struct RangeTreeUInt *idtree;
-#endif
-    uint maxid;
-    struct BMElem **map;  // used if BM_NO_REUSE_IDS is false
-    struct GHash *ghash;  // used if BM_NO_REUSE_IDS is true
-    int map_size;
-    int cd_id_off[15];
-  } idmap;
-
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
-  struct BMeshAttrList *attr_list;
-#endif
 } BMesh;
-
-enum {
-  // firsst four bits are reserved for BM_VERT/EDGE/LOOP/FACE
-  BM_HAS_IDS = 1 << 4,
-  BM_HAS_ID_MAP = 1 << 5,
-  BM_NO_REUSE_IDS = 1 << 6,
-  BM_PERMANENT_IDS = 1 << 7
-};
 
 /** #BMHeader.htype (char) */
 enum {
@@ -711,10 +666,6 @@ extern "C" {
 #else
 #  define BM_OMP_LIMIT 10000
 #endif
-
-/* note does not check if ids are enabled for a given element type */
-#define BM_ELEM_GET_ID(bm, elem) \
-  BM_ELEM_CD_GET_INT(elem, bm->idmap.cd_id_off[(int)(elem)->head.htype])
 
 #ifdef __cplusplus
 }

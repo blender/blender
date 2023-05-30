@@ -1431,8 +1431,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   /* Create trim bmesh. */
   BMeshCreateParams params1 = {0};
-  params1.create_unique_ids = params1.id_map = params1.copy_all_layers = true;
-  params1.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
   BMesh *trimbm = BM_mesh_create(&allocsize, &params1);

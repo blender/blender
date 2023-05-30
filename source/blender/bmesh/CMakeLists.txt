@@ -13,7 +13,6 @@ set(INC
   ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../extern/rangetree
-  ../python/bmesh
 )
 
 set(INC_SYS
@@ -85,7 +84,6 @@ set(SRC
   intern/bmesh_marking.h
   intern/bmesh_mesh.cc
   intern/bmesh_mesh.h
-  intern/bmesh_mesh_convert_threaded.cc
   intern/bmesh_mesh_convert.cc
   intern/bmesh_mesh_convert.h
   intern/bmesh_mesh_debug.c
@@ -176,9 +174,8 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
-  extern_rangetree
 )
- 
+
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}

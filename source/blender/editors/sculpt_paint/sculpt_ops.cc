@@ -194,60 +194,6 @@ static bool sculpt_only_bmesh_poll(bContext *C)
   return false;
 }
 
-static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ss->pbvh;
-
-  if (!pbvh) {
-    return OPERATOR_CANCELLED;
-  }
-
-  switch (BKE_pbvh_type(pbvh)) {
-    case PBVH_BMESH:
-      SCULPT_undo_push_begin(ob, op);
-      SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_GEOMETRY);
-
-      BKE_pbvh_reorder_bmesh(ss->pbvh);
-
-      BKE_pbvh_bmesh_on_mesh_change(ss->pbvh);
-      BM_log_full_mesh(ss->bm, ss->bm_log);
-
-      ss->active_vertex.i = 0;
-      ss->active_face.i = 0;
-
-      BKE_pbvh_free(ss->pbvh);
-      ss->pbvh = nullptr;
-
-      /* Finish undo. */
-      SCULPT_undo_push_end(ob);
-
-      break;
-    case PBVH_FACES:
-      return OPERATOR_CANCELLED;
-    case PBVH_GRIDS:
-      return OPERATOR_CANCELLED;
-  }
-
-  /* Redraw. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, ND_DATA | NC_OBJECT | ND_DRAW, ob);
-
-  return OPERATOR_FINISHED;
-}
-static void SCULPT_OT_spatial_sort_mesh(wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "Spatially Sort Mesh";
-  ot->idname = "SCULPT_OT_spatial_sort_mesh";
-  ot->description = "Spatially sort mesh to improve memory coherency";
-
-  /* API callbacks. */
-  ot->exec = sculpt_spatial_sort_exec;
-  ot->poll = sculpt_only_bmesh_poll;
-}
-
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -281,16 +227,13 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
                    sd->symmetrize_direction,
                    dist,
                    true);
-#ifndef DYNTOPO_DYNAMIC_TESS
-      SCULPT_dynamic_topology_triangulate(ss, ss->bm);
-#endif
+
       /* Bisect operator flags edges (keep tags clean for edge queue). */
       BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
 
       BM_mesh_toolflags_set(ss->bm, false);
 
       BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
-      SCULT_dyntopo_flag_all_disk_sort(ss);
 
       /* De-duplicate element IDs. */
       BM_idmap_check_ids(ss->bm_idmap);
@@ -1364,7 +1307,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
   void sculpt_end_vis_object(bContext * C, SculptSession * ss, Object * ob, BMesh * bm);
 
   BMeshCreateParams params = {};
-  params.create_unique_ids = params.use_toolflags = false;
+  params.use_toolflags = false;
 
   Object *visob = sculpt_get_vis_object(C, ss, "rakevis");
   BMesh *visbm = BM_mesh_create(&bm_mesh_allocsize_default, &params);
@@ -1491,8 +1434,6 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
 
         float tanco[3];
         add_v3_v3v3(tanco, v2->co, dir2);
-
-        SCULPT_dyntopo_check_disk_sort(ss, BKE_pbvh_make_vref((intptr_t)v2));
 
         float lastdir3[3];
         float firstdir3[3];
@@ -2070,8 +2011,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_reset_brushes);
   WM_operatortype_append(SCULPT_OT_ipmask_filter);
-
-  WM_operatortype_append(SCULPT_OT_spatial_sort_mesh);
 
   WM_operatortype_append(SCULPT_OT_expand);
   WM_operatortype_append(SCULPT_OT_mask_from_cavity);

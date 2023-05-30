@@ -1245,7 +1245,6 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         InterpFace *iface = iface_array[BM_elem_index_get(es->l->f)];
         const int i_a = BM_elem_index_get(l_a_other);
         const int i_b = BM_elem_index_get(l_b_other);
-
         CustomData_bmesh_free_block_data(&bm->ldata, l_b->head.data);
         CustomData_bmesh_free_block_data(&bm->ldata, l_a->head.data);
         CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, iface->blocks_l[i_a], &l_b->head.data);

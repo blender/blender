@@ -290,62 +290,6 @@ static float *calc_boundary_tangent(SculptSession *ss, SculptBoundary *boundary)
     float no1[3];
     SCULPT_vertex_normal_get(ss, vertex, no1);
 
-#if 0
-    volatile int val = SCULPT_vertex_valence_get(ss, vertex);
-    float *ws = BLI_array_alloca(ws, val);
-    float *cot1 = BLI_array_alloca(cot1, val);
-    float *cot2 = BLI_array_alloca(cot2, val);
-    float *areas = BLI_array_alloca(areas, val);
-    float totarea;
-
-    SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
-
-    float(*cos)[3] = BLI_array_alloca(cos, val);
-    float *scalars = BLI_array_alloca(scalars, val);
-
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      scalars[ni.i] = boundary->boundary_dist[ni.index];
-      copy_v3_v3(cos[ni.i], SCULPT_vertex_co_get(ss, ni.vertex));
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-    for (int j1 = 0; j1 < val; j1++) {
-      int j2 = (j1 + 1) % val;
-
-      float *co2 = cos[j1];
-      float *co3 = cos[j2];
-      float dir2[3];
-      float dir3[3];
-
-      float f2 = scalars[j1];
-      float f3 = scalars[j2];
-
-      if (f2 == FLT_MAX || f1 == FLT_MAX) {
-        continue;
-      }
-
-      float du = f2 - f1;
-      float dv = f3 - f1;
-
-      sub_v3_v3v3(dir2, co2, co1);
-      sub_v3_v3v3(dir3, co3, co1);
-
-      mul_v3_fl(dir2, du);
-      mul_v3_fl(dir3, dv);
-
-      add_v3_v3(dir2, dir3);
-      // normalize_v3(dir2);
-
-      float w = 1.0;  // ws[j1];
-
-      madd_v3_v3v3fl(dir, dir, dir2, w);
-    }
-
-    normalize_v3(dir);
-    copy_v3_v3(tangents[i], dir);
-
-#else
-
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
       const float *co2 = SCULPT_vertex_co_get(ss, ni.vertex);
       float no2[3];
@@ -380,39 +324,9 @@ static float *calc_boundary_tangent(SculptSession *ss, SculptBoundary *boundary)
     negate_v3(dir);
 
     copy_v3_v3(tangents[i], dir);
-#endif
   }
 
   return (float *)tangents;
-}
-
-static void sculpt_boundary_cotan_init(SculptSession *ss, SculptBoundary *boundary)
-{
-  const int totvert = SCULPT_vertex_count_get(ss);
-  boundary->boundary_cotangents = MEM_cnew_array<StoredCotangentW>(totvert, "StoredCotangentW");
-  StoredCotangentW *cotw = boundary->boundary_cotangents;
-
-  for (int i = 0; i < totvert; i++, cotw++) {
-    if (boundary->boundary_dist[i] == FLT_MAX) {
-      cotw->length = 0;
-      cotw->weights = nullptr;
-      continue;
-    }
-
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-    const int val = SCULPT_vertex_valence_get(ss, vertex);
-
-    cotw->length = val;
-
-    if (val < MAX_STORED_COTANGENTW_EDGES) {
-      cotw->weights = cotw->static_weights;
-    }
-    else {
-      cotw->weights = (float *)MEM_malloc_arrayN(val, sizeof(*cotw->weights), "cotw->weights");
-    }
-
-    SCULPT_get_cotangents(ss, vertex, cotw->weights, nullptr, nullptr, nullptr, nullptr);
-  }
 }
 
 static void sculpt_boundary_indices_init(Object *ob,
@@ -465,54 +379,6 @@ static void sculpt_boundary_indices_init(Object *ob,
   boundary->boundary_dist = SCULPT_geodesic_distances_create(
       ob, boundary_verts, radius, boundary->boundary_closest, nullptr);
 
-  sculpt_boundary_cotan_init(ss, boundary);
-
-#if 0  // smooth geodesic scalar field
-  float *boundary_dist = MEM_calloc_arrayN(totvert, sizeof(float), "boundary_dist");
-
-  for (int iteration = 0; iteration < 4; iteration++) {
-    for (int i = 0; i < totvert; i++) {
-      if (boundary->boundary_dist[i] == FLT_MAX) {
-        boundary_dist[i] = FLT_MAX;
-        continue;
-      }
-
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
-      float tot = 0.0f;
-
-      StoredCotangentW *cotw = boundary->boundary_cotangents + i;
-
-      SculptVertexNeighborIter ni;
-      int j = 0;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        if (boundary->boundary_dist[ni.index] == FLT_MAX) {
-          j++;
-          continue;
-        }
-
-        const float w = cotw->weights[j];
-
-        boundary_dist[i] += boundary->boundary_dist[ni.index] * w;
-
-        tot += w;
-        j++;
-      }
-      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-      if (tot == 0.0f) {
-        boundary_dist[i] = FLT_MAX;
-      }
-      else {
-        boundary_dist[i] /= tot;
-      }
-    }
-
-    SWAP(float *, boundary_dist, boundary->boundary_dist);
-  }
-
-  MEM_SAFE_FREE(boundary_dist);
-#endif
-
   boundary->boundary_tangents = (float(*)[3])calc_boundary_tangent(ss, boundary);
 
 #if 1  // smooth geodesic tangent field
@@ -529,7 +395,6 @@ static void sculpt_boundary_indices_init(Object *ob,
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       float tot = 0.0f;
 
-      // StoredCotangentW *cotw = boundary->boundary_cotangents + i;
       float tan[3] = {0.0f, 0.0f, 0.0f};
 
       SculptVertexNeighborIter ni;
@@ -911,18 +776,6 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
   MEM_SAFE_FREE(boundary->slide.directions);
   MEM_SAFE_FREE(boundary->circle.origin);
   MEM_SAFE_FREE(boundary->circle.radius);
-
-  StoredCotangentW *cotw = boundary->boundary_cotangents;
-
-  if (cotw) {
-    for (int i = 0; i < boundary->sculpt_totvert; i++, cotw++) {
-      if (cotw->weights != cotw->static_weights) {
-        MEM_SAFE_FREE(cotw->weights);
-      }
-    }
-  }
-
-  MEM_SAFE_FREE(boundary->boundary_cotangents);
   MEM_SAFE_FREE(boundary);
 }
 
@@ -1787,8 +1640,6 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-
-  SCULPT_cotangents_begin(ob, ss);
 
   const float radius = ss->cache->radius;
   const float boundary_radius = brush ? radius * brush->boundary_offset : radius;

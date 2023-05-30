@@ -848,11 +848,6 @@ static void tri_3edge_subdivide(BMesh *bm,
     for (j = 0; j < i; j++) {
       e = connect_smallest_face(bm, lines[i][j], lines[i + 1][j + 1], &f_new);
 
-      if (!e) {
-        printf("%s: subdivide error;\n", __func__);
-        continue;
-      }
-
       BMO_edge_flag_enable(bm, e, ELE_INNER);
       BMO_face_flag_enable(bm, f_new, ELE_INNER);
 

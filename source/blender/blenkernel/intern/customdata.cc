@@ -4093,14 +4093,6 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
 
 void CustomData_bmesh_init_pool(CustomData *data, const int totelem, const char htype)
 {
-  CustomData_bmesh_init_pool_ex(data, totelem, htype, __func__);
-}
-
-void CustomData_bmesh_init_pool_ex(CustomData *data,
-                                   int totelem,
-                                   const char htype,
-                                   const char *memtag)
-{
   int chunksize;
 
   /* Dispose old pools before calling here to avoid leaks */

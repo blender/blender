@@ -155,25 +155,6 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   SCULPT_vertex_normal_get(ss, vertex, no);
   normal_covariance(nmat, no);
 
-#if 0
-    int val = SCULPT_vertex_valence_get(ss, vertex);
-    float *ws = (float *)BLI_array_alloca(ws, val);
-    float *cot1 = (float *)BLI_array_alloca(cot1, val);
-    float *cot2 = (float *)BLI_array_alloca(cot2, val);
-    float *areas = (float *)BLI_array_alloca(areas, val);
-    float totarea = 0.0f;
-
-    SCULPT_get_cotangents(ss, vertex, ws, cot1, cot2, areas, &totarea);
-
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
-      sub_v3_v3(no2, no);
-
-      normal_covariance(nmat2, no2);
-      madd_m3_m3m3fl(nmat, nmat, nmat2, ws[ni.i]);
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-#else
   /* TODO: review the math here. We're deriving the curvature
    * via an eigen decomposition of the weighted summed
    * normal covariance matrices of the surrounding topology.
@@ -196,7 +177,6 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
     madd_m3_m3m3fl(nmat, nmat, nmat2, 1.0f / ni.size);
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-#endif
 
   if (!useAccurateSolver || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
     /* Do simple power solve in one direction. */

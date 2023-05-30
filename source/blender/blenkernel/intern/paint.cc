@@ -2696,16 +2696,14 @@ extern "C" bool BKE_sculpt_init_flags_valence(Object *ob,
 
       BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
         *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flags) = SCULPTFLAG_NEED_VALENCE |
-                                                  SCULPTFLAG_NEED_TRIANGULATE |
-                                                  SCULPTFLAG_NEED_DISK_SORT;
+                                                  SCULPTFLAG_NEED_TRIANGULATE;
       }
     }
     else {
       uint8_t *flags = static_cast<uint8_t *>(ss->attrs.flags->data);
 
       for (int i = 0; i < totvert; i++) {
-        flags[i] = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE |
-                   SCULPTFLAG_NEED_DISK_SORT;
+        flags[i] = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE;
       }
     }
   }
@@ -3087,12 +3085,6 @@ BMesh *BKE_sculptsession_empty_bmesh_create()
   BMeshCreateParams params = {0};
 
   params.use_toolflags = false;
-  params.create_unique_ids = true;
-  params.id_elem_mask = BM_VERT | BM_EDGE | BM_FACE;
-  params.id_map = true;
-  params.temporary_ids = false;
-
-  params.no_reuse_ids = false;
 
   BMesh *bm = BM_mesh_create(&allocsize, &params);
 

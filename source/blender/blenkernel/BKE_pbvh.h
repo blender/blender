@@ -558,7 +558,6 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
-void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 
 /* if pbvh uses a split index buffer, will call BKE_pbvh_vert_tag_update_normal_triangulation;

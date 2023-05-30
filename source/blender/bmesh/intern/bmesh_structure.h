@@ -134,6 +134,4 @@ BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2) ATTR_WARN_UNU
     ATTR_NONNULL();
 bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-#define BM_DEFAULT_IDMAP_SIZE (1 << 12)
-
 #include "intern/bmesh_structure_inline.h"

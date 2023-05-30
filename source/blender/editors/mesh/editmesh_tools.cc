@@ -7091,7 +7091,7 @@ static void sort_bmelem_flag(bContext *C,
     }
   }
 
-  BM_mesh_remap(em->bm, map[0], map[1], NULL, map[2]);
+  BM_mesh_remap(em->bm, map[0], map[1], map[2]);
 
   EDBMUpdate_Params params{};
   params.calc_looptri = (totelem[2] != 0);

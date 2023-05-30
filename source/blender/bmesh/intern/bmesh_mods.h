@@ -2,8 +2,6 @@
 
 #pragma once
 
-struct BMTracer;
-
 /** \file
  * \ingroup bmesh
  */

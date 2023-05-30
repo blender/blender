@@ -37,7 +37,7 @@ using blender::float3;
 using blender::Vector;
 float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh);
 
-/* */
+#if 0
 static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
                                                      float result[3],
                                                      PBVHVertRef vertex)
@@ -80,6 +80,7 @@ static void SCULPT_neighbor_coors_average_for_detail(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   mul_v3_v3fl(result, pos_accum, 1.0f / neighbor_count);
 }
+#endif
 
 static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        float result[3],
@@ -291,7 +292,6 @@ void vec_transform(float r_dir2[3], float no[3], int bits)
 void SCULPT_get_normal_average(
     SculptSession *ss, float avg[3], PBVHVertRef vertex, bool weighted, bool use_original)
 {
-  float tot = 0.0f;
   int valence = SCULPT_vertex_valence_get(ss, vertex);
 
   float *areas = nullptr;

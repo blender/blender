@@ -1061,7 +1061,6 @@ static BMOpDefine bmo_extrude_face_region_def = {
   },
   /* slots_out */
   {{"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-   {"side_geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
    {{'\0'}},
   },
   bmo_extrude_face_region_exec,
@@ -1966,7 +1965,7 @@ static BMOpDefine bmo_offset_edgeloops_def = {
   },
   bmo_offset_edgeloops_exec,
   (BMO_OPTYPE_FLAG_NORMALS_CALC |
-   BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_UNTAN_MULTIRES),
+   BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
 /*

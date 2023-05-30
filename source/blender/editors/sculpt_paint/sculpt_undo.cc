@@ -85,7 +85,6 @@
 #include "bmesh_log.h"
 #include "sculpt_intern.hh"
 
-#define WHEN_GLOBAL_UNDO_WORKS
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
 //#define SCULPT_UNDO_DEBUG
 
@@ -734,8 +733,7 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
 
   *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                   SCULPTFLAG_NEED_VALENCE |
+  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
                                                    SCULPTFLAG_NEED_TRIANGULATE;
 }
 
@@ -753,8 +751,7 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                        SCULPTFLAG_NEED_VALENCE;
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE;
     *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   } while ((l = l->next) != f->l_first);
 
@@ -777,8 +774,7 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   do {
     *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                        SCULPTFLAG_NEED_VALENCE;
+    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE;
 
     if (f->len > 3) {
       *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_TRIANGULATE;
@@ -820,11 +816,9 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                       SCULPTFLAG_NEED_VALENCE |
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
                                                        SCULPTFLAG_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                       SCULPTFLAG_NEED_VALENCE |
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
                                                        SCULPTFLAG_NEED_TRIANGULATE;
 };
 ;
@@ -835,11 +829,9 @@ static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
   *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                       SCULPTFLAG_NEED_VALENCE |
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
                                                        SCULPTFLAG_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_DISK_SORT |
-                                                       SCULPTFLAG_NEED_VALENCE |
+  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
                                                        SCULPTFLAG_NEED_TRIANGULATE;
 }
 
@@ -1310,11 +1302,9 @@ static int sculpt_undo_bmesh_restore(
 {
   // handle transition from another undo type
 
-#ifdef WHEN_GLOBAL_UNDO_WORKS
   if (!ss->bm_log && ss->bm && unode->bm_entry) {  // && BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
   }
-#endif
 
   if (ss->bm_log && ss->bm &&
       !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
@@ -2965,11 +2955,6 @@ static void sculpt_undosys_step_decode(
          * (some) evaluated data. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
-#ifndef WHEN_GLOBAL_UNDO_WORKS
-        /* Don't add sculpt topology undo steps when reading back undo state.
-         * The undo steps must enter/exit for us. */
-        me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-#endif
         ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, nullptr, false);
       }
 

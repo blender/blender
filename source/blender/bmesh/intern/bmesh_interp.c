@@ -802,9 +802,6 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
   CustomData_bmesh_interp(&bm->vdata, blocks, w, NULL, f_src->len, v_dst->head.data);
 }
 
-void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype);
-void *BPy_bm_new_customdata_layout_pre(BMesh *bm, CustomData *cdata, char htype);
-
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
   BMIter iter;
@@ -825,8 +822,7 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
   if (data == &bm->vdata) {
     BMVert *eve;
 
-    CustomData_bmesh_init_pool_ex(data, bm->totvert, BM_VERT, __func__);
-    void *state = BPy_bm_new_customdata_layout_pre(bm, olddata, BM_VERT);
+    CustomData_bmesh_init_pool(data, bm->totvert, BM_VERT);
 
     BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
       block = NULL;
@@ -835,15 +831,11 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
       CustomData_bmesh_free_block(olddata, &eve->head.data);
       eve->head.data = block;
     }
-
-    BPy_bm_new_customdata_layout(bm, &bm->vdata, state, BM_VERT);
-    MEM_SAFE_FREE(state);
   }
   else if (data == &bm->edata) {
     BMEdge *eed;
 
-    CustomData_bmesh_init_pool_ex(data, bm->totedge, BM_EDGE, __func__);
-    void *state = BPy_bm_new_customdata_layout_pre(bm, olddata, BM_EDGE);
+    CustomData_bmesh_init_pool(data, bm->totedge, BM_EDGE);
 
     BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
       block = NULL;
@@ -852,17 +844,13 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
       CustomData_bmesh_free_block(olddata, &eed->head.data);
       eed->head.data = block;
     }
-
-    BPy_bm_new_customdata_layout(bm, &bm->edata, state, BM_EDGE);
-    MEM_SAFE_FREE(state);
   }
   else if (data == &bm->ldata) {
     BMIter liter;
     BMFace *efa;
     BMLoop *l;
 
-    CustomData_bmesh_init_pool_ex(data, bm->totloop, BM_LOOP, __func__);
-    void *state = BPy_bm_new_customdata_layout_pre(bm, olddata, BM_LOOP);
+    CustomData_bmesh_init_pool(data, bm->totloop, BM_LOOP);
 
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -873,15 +861,11 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
         l->head.data = block;
       }
     }
-
-    BPy_bm_new_customdata_layout(bm, &bm->ldata, state, BM_LOOP);
-    MEM_SAFE_FREE(state);
   }
   else if (data == &bm->pdata) {
     BMFace *efa;
 
-    CustomData_bmesh_init_pool_ex(data, bm->totface, BM_FACE, __func__);
-    void *state = BPy_bm_new_customdata_layout_pre(bm, olddata, BM_FACE);
+    CustomData_bmesh_init_pool(data, bm->totface, BM_FACE);
 
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       block = NULL;
@@ -890,9 +874,6 @@ static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
       CustomData_bmesh_free_block(olddata, &efa->head.data);
       efa->head.data = block;
     }
-
-    BPy_bm_new_customdata_layout(bm, &bm->pdata, state, BM_FACE);
-    MEM_SAFE_FREE(state);
   }
   else {
     /* should never reach this! */

@@ -28,7 +28,8 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE void *BM_iter_step(BMIter *it
  * it with the appropriate function pointers based
  * upon its type.
  */
-ATTR_NONNULL(1) BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
+ATTR_NONNULL(1)
+BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
   /* int argtype; */
   iter->itype = itype;

@@ -60,7 +60,14 @@ void BM_data_interp_from_edges(
  */
 void BM_data_interp_face_vert_edge(
     BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v, BMEdge *e, float fac);
+
+typedef struct BMCustomLayerReq {
+  int type;
+  const char *name;  /* Can be NULL. */
+  int flag;
+} BMCustomLayerReq;
 void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer);
+
 void BM_data_layer_add(BMesh *bm, CustomData *data, int type);
 void BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
 void BM_data_layer_ensure_named(BMesh *bm, CustomData *data, int type, const char *name);

@@ -406,10 +406,7 @@ inline void fix_mesh(PBVH *pbvh, BMesh *bm)
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     v->e = nullptr;
-    dyntopo_add_flag(pbvh,
-                     v,
-                     SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_DISK_SORT |
-                         SCULPTFLAG_NEED_TRIANGULATE);
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
   }
 
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {

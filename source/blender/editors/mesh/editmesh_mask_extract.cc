@@ -607,8 +607,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
           const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
 
-          const int updateflag = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE |
-                                 SCULPTFLAG_NEED_DISK_SORT;
+          const int updateflag = SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE;
 
           BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
             if (cd_boundary_flag != -1) {

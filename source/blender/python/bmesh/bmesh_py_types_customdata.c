@@ -68,8 +68,6 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_doc,
              "Generic float custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__int_doc,
              "Generic int custom-data layer.\n\ntype: :class:`BMLayerCollection`");
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__face_set_doc,
-             "Sculpt face set custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__float_vector_doc,
              "Generic 3D vector with float precision custom-data layer.\n\ntype: "
              ":class:`BMLayerCollection`");

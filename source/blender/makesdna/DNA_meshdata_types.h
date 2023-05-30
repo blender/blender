@@ -529,10 +529,9 @@ typedef struct MRecast {
 typedef enum eSculptFlag {
   SCULPTFLAG_VERT_FSET_HIDDEN = (1 << 1),
   SCULPTFLAG_NEED_TRIANGULATE = (1 << 2),
-  SCULPTFLAG_NEED_DISK_SORT = (1 << 3),
-  SCULPTFLAG_NEED_VALENCE = (1 << 4),
-  SCULPTFLAG_SPLIT_TEMP = (1 << 5),
-  SCULPTFLAG_PBVH_BOUNDARY = (1 << 6),
+  SCULPTFLAG_NEED_VALENCE = (1 << 3),
+  SCULPTFLAG_SPLIT_TEMP = (1 << 4),
+  SCULPTFLAG_PBVH_BOUNDARY = (1 << 5),
 } eSculptFlag;
 
 /* for internal bmesh toolflags api */

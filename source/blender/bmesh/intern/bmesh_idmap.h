@@ -4,13 +4,7 @@
 
 #include "bmesh.h"
 
-#ifndef WITH_BM_ID_FREELIST
-#  define WITH_BM_ID_FREELIST
-#endif
-
 //#define DEBUG_BM_IDMAP /* Debug idmap; note: disables mempool deallocation */
-
-#define USE_NEW_IDMAP
 
 #define BM_ID_NONE 0  //-1
 

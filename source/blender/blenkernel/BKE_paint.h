@@ -489,14 +489,6 @@ typedef struct SculptBoundaryPreviewEdge {
   PBVHVertRef v2;
 } SculptBoundaryPreviewEdge;
 
-#define MAX_STORED_COTANGENTW_EDGES 7
-
-typedef struct StoredCotangentW {
-  float static_weights[MAX_STORED_COTANGENTW_EDGES];
-  float *weights;
-  int length;
-} StoredCotangentW;
-
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *verts;
@@ -512,7 +504,6 @@ typedef struct SculptBoundary {
   float *boundary_dist;  // distances from verts to boundary
   float (*boundary_tangents)[3];
 
-  StoredCotangentW *boundary_cotangents;
   PBVHVertRef *boundary_closest;
   int sculpt_totvert;
 

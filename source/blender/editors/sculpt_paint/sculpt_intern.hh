@@ -2363,31 +2363,6 @@ void SCULPT_curvature_dir_get(SculptSession *ss,
 /** \name Cotangent API
  * \{ */
 
-bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, PBVHVertRef vertex);
-void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss);
-
-// call SCULPT_cotangents_begin in the main thread before any calls to this function
-void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
-                                   PBVHVertRef vertex,
-                                   float *r_ws,
-                                   float *r_cot1,
-                                   float *r_cot2,
-                                   float *r_area,
-                                   float *r_totarea);
-
-/** call SCULPT_cotangents_begin in the main thread before any calls to this function */
-void SCULPT_get_cotangents(SculptSession *ss,
-                           PBVHVertRef vertex,
-                           float *r_ws,
-                           float *r_cot1,
-                           float *r_cot2,
-                           float *r_area,
-                           float *r_totarea);
-
-/** call this in the main thread before any calls to SCULPT_get_cotangents */
-void SCULPT_cotangents_begin(struct Object *ob, SculptSession *ss);
-/** \} */
-
 void SCULPT_ensure_persistent_layers(SculptSession *ss, struct Object *ob);
 void SCULPT_ensure_epmap(SculptSession *ss);
 void SCULPT_ensure_vemap(SculptSession *ss);
