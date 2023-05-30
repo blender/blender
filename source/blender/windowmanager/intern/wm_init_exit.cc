@@ -472,15 +472,21 @@ void wm_exit_schedule_delayed(const bContext *C)
 
 void UV_clipboard_free();
 
-void WM_exit_ex(bContext *C, const bool do_python)
+void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actions)
 {
   wmWindowManager *wm = C ? CTX_wm_manager(C) : nullptr;
+
+  /* While nothing technically prevents saving user data in background mode,
+   * don't do this as not typically useful and more likely to cause problems
+   * if automated scripts happen to write changes to the preferences for e.g.
+   * Saving #BLENDER_QUIT_FILE is also not likely to be desired either. */
+  BLI_assert(G.background ? (do_user_exit_actions == false) : true);
 
   /* first wrap up running stuff, we assume only the active WM is running */
   /* modal handlers are on window level freed, others too? */
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
-    if (!G.background) {
+    if (do_user_exit_actions) {
       struct MemFile *undo_memfile = wm->undo_stack ?
                                          ED_undosys_stack_memfile_get_active(wm->undo_stack) :
                                          nullptr;
@@ -514,7 +520,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
     }
 
-    if (!G.background) {
+    if (do_user_exit_actions) {
       if ((U.pref_flag & USER_PREF_FLAG_SAVE) && ((G.f & G_FLAG_USERPREF_NO_SAVE_ON_EXIT) == 0)) {
         if (U.runtime.is_dirty) {
           BKE_blendfile_userdef_write_all(nullptr);
@@ -692,7 +698,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
 void WM_exit(bContext *C, const int exit_code)
 {
-  WM_exit_ex(C, true);
+  const bool do_user_exit_actions = G.background ? (exit_code == EXIT_SUCCESS) : false;
+  WM_exit_ex(C, true, do_user_exit_actions);
 
   printf("\nBlender quit\n");
 

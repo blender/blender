@@ -100,9 +100,17 @@ void WM_init_input_devices(void);
  */
 void WM_init(struct bContext *C, int argc, const char **argv);
 /**
+ * \param do_python: Free all data associated with Blender's Python integration.
+ * Also exit the Python interpreter (unless `WITH_PYTHON_MODULE` is enabled).
+ * \param do_user_exit_actions: When enabled perform actions associated with a user
+ * having been using Blender then exiting. Actions such as writing the auto-save
+ * and writing any changes to preferences.
+ * Set to false in background mode or when exiting because of failed command line argument parsing.
+ * In general automated actions where the user isn't making changes should pass in false too.
+ *
  * \note doesn't run exit() call #WM_exit() for that.
  */
-void WM_exit_ex(struct bContext *C, bool do_python);
+void WM_exit_ex(struct bContext *C, bool do_python, bool do_user_exit_actions);
 
 /**
  * \brief Main exit function to close Blender ordinarily.
@@ -111,6 +119,8 @@ void WM_exit_ex(struct bContext *C, bool do_python);
  *
  * \param exit_code: Passed to #exit, typically #EXIT_SUCCESS or #EXIT_FAILURE should be used.
  * With failure being used for an early exit when parsing command line arguments fails.
+ * Note that any exit-code besides #EXIT_SUCCESS calls #WM_exit_ex with its `do_user_exit_actions`
+ * argument set to false.
  */
 void WM_exit(struct bContext *C, int exit_code) ATTR_NORETURN;
 

@@ -594,7 +594,7 @@ int main(int argc,
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)
 {
-  WM_exit_ex((bContext *)evil_C, true);
+  WM_exit_ex((bContext *)evil_C, true, false);
   evil_C = NULL;
 }
 #endif
