@@ -3139,9 +3139,9 @@ static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX_LIBEXTRA];
-  filelist_file_get_full_path(files, file, str);
-  if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
+  char filepath[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, filepath);
+  if (BLI_delete_soft(filepath, r_error_message) != 0 || BLI_exists(filepath)) {
     return false;
   }
 

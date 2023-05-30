@@ -579,8 +579,8 @@ static void playanim_toscreen(
   if (picture && (g_WS.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) && (fontid != -1)) {
     int sizex, sizey;
     float fsizex_inv, fsizey_inv;
-    char str[32 + FILE_MAX];
-    SNPRINTF(str, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
+    char label[32 + FILE_MAX];
+    SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
 
     playanim_window_get_size(&sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
@@ -590,7 +590,7 @@ static void playanim_toscreen(
     BLF_enable(fontid, BLF_ASPECT);
     BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
     BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
-    BLF_draw(fontid, str, sizeof(str));
+    BLF_draw(fontid, label, sizeof(label));
   }
 
   if (ps->indicator) {

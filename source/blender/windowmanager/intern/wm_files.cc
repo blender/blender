@@ -2136,15 +2136,15 @@ void wm_autosave_delete(void)
   wm_autosave_location(filepath);
 
   if (BLI_exists(filepath)) {
-    char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+    char filepath_quit[FILE_MAX];
+    BLI_path_join(filepath_quit, sizeof(filepath_quit), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
     /* For global undo; remove temporarily saved file, otherwise rename. */
     if (U.uiflag & USER_GLOBALUNDO) {
       BLI_delete(filepath, false, false);
     }
     else {
-      BLI_rename_overwrite(filepath, str);
+      BLI_rename_overwrite(filepath, filepath_quit);
     }
   }
 }
