@@ -4,5 +4,9 @@ License: MIT
 Upstream version: 10.0.0 (a0b8a92, 2023 May 10)
 Local modifications:
 
-- Took only files needed for Blender: LICENSE, README and include/fmt
-  folder's core.h, format-inl.h, format.h
+- Took only files needed for Blender:
+  - LICENSE, README
+  - include/fmt: core.h, format-inl.h, format.h
+  - src/format.cc
+- CMakeLists.txt is not from fmtlib, but
+  made for Blender codebase
