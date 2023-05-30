@@ -5955,11 +5955,6 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
 
   depth = SCULPT_raycast_init(&vc, mval, ray_start, ray_end, ray_normal, original);
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
-    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
-  }
-
   bool hit = false;
   {
     SculptRaycastData srd;
