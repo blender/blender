@@ -108,8 +108,11 @@ void WM_exit_ex(struct bContext *C, bool do_python);
  * \brief Main exit function to close Blender ordinarily.
  * \note Use #wm_exit_schedule_delayed() to close Blender from an operator.
  * Might leak memory otherwise.
+ *
+ * \param exit_code: Passed to #exit, typically #EXIT_SUCCESS or #EXIT_FAILURE should be used.
+ * With failure being used for an early exit when parsing command line arguments fails.
  */
-void WM_exit(struct bContext *C) ATTR_NORETURN;
+void WM_exit(struct bContext *C, int exit_code) ATTR_NORETURN;
 
 void WM_main(struct bContext *C) ATTR_NORETURN;
 

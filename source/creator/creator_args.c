@@ -2271,9 +2271,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
 
     if (error_msg) {
       fprintf(stderr, "Error: %s, exiting! %s\n", error_msg, filepath);
-
-      G.is_break = true;
-      WM_exit(C);
+      WM_exit(C, EXIT_FAILURE);
       /* Unreachable, return for clarity. */
       return false;
     }

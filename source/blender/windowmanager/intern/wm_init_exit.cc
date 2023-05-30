@@ -450,10 +450,7 @@ static void wait_for_console_key(void)
 
 static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 {
-  /* Prevent a non-zero exit code (if escape was pressed by the user). */
-  G.is_break = false;
-
-  WM_exit(C);
+  WM_exit(C, EXIT_SUCCESS);
 
   UNUSED_VARS(event, userdata);
   return WM_UI_HANDLER_BREAK;
@@ -693,7 +690,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   CLG_exit();
 }
 
-void WM_exit(bContext *C)
+void WM_exit(bContext *C, const int exit_code)
 {
   WM_exit_ex(C, true);
 
@@ -707,7 +704,7 @@ void WM_exit(bContext *C)
   }
 #endif
 
-  exit(G.is_break == true);
+  exit(exit_code);
 }
 
 void WM_script_tag_reload(void)
