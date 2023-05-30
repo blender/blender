@@ -301,7 +301,7 @@ static void bake_simulation_job_startjob(void *customdata,
         }
         ModifierSimulationCache &sim_cache = *nmd.simulation_cache;
         const ModifierSimulationState *sim_state = sim_cache.get_state_at_exact_frame(frame);
-        if (sim_state == nullptr) {
+        if (sim_state == nullptr || sim_state->zone_states_.is_empty()) {
           continue;
         }
 
