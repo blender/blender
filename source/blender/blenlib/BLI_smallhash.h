@@ -25,14 +25,11 @@ typedef struct {
 #define SMSTACKSIZE 131
 typedef struct SmallHash {
   unsigned int nbuckets;
-  unsigned int nentries, nfreecells;
+  unsigned int nentries;
   unsigned int cursize;
 
   SmallHashEntry *buckets;
   SmallHashEntry buckets_stack[SMSTACKSIZE];
-
-  bool use_pointer_hash;
-  bool using_stack;
 } SmallHash;
 
 typedef struct {
@@ -40,9 +37,7 @@ typedef struct {
   unsigned int i;
 } SmallHashIter;
 
-int BLI_smallhash_memuse(SmallHash *sh);
-
-void BLI_smallhash_init_ex(SmallHash *sh, const unsigned int nentries_reserve) ATTR_NONNULL(1);
+void BLI_smallhash_init_ex(SmallHash *sh, unsigned int nentries_reserve) ATTR_NONNULL(1);
 void BLI_smallhash_init(SmallHash *sh) ATTR_NONNULL(1);
 /**
  * \note does *not* free *sh itself! only the direct data!
@@ -58,24 +53,21 @@ void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL
  */
 bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item) ATTR_NONNULL(1);
 bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
-void *BLI_smallhash_lookup(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void **BLI_smallhash_lookup_p(SmallHash *sh, uintptr_t key)
+void *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-bool BLI_smallhash_haskey(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
-int BLI_smallhash_len(SmallHash *sh) ATTR_NONNULL(1);
+void **BLI_smallhash_lookup_p(const SmallHash *sh, uintptr_t key)
+    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+bool BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
+int BLI_smallhash_len(const SmallHash *sh) ATTR_NONNULL(1);
 void *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
-void **BLI_smallhash_iternew_p(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /* void BLI_smallhash_print(SmallHash *sh); */ /* UNUSED */
-
-void BLI_smallhash_clear(SmallHash *sh, uintptr_t key);
-bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item);
-bool BLI_smallhash_remove_p(SmallHash *sh, uintptr_t key, void **val);
 
 #ifdef DEBUG
 /**

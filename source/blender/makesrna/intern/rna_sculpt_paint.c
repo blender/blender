@@ -1106,11 +1106,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Test if sculpt has persistent base (sculpt mode only)");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_NO_SELF);
   RNA_def_function_return(func, RNA_def_boolean(func, "has", 1, "Has persistent Base", ""));
-
-  func = RNA_def_function(srna, "debug_substep_undo", "rna_SCULPT_substep_undo");
-  RNA_def_function_ui_description(func, "Test function");
-  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
-  RNA_def_int(func, "dir", -1, -1, 1, "dir", "dir", -1, 1);
 }
 
 static void rna_def_uv_sculpt(BlenderRNA *brna)

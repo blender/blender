@@ -1275,7 +1275,6 @@ bool BLI_path_program_extensions_add_win32(char *program_name, const size_t prog
           if (type && (!S_ISDIR(type))) {
             retval = true;
             BLI_strncpy(program_name, filename, program_name_maxncpy);
-
             break;
           }
         }

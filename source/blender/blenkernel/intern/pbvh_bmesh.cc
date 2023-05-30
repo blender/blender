@@ -2655,8 +2655,6 @@ static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
   MEM_SAFE_FREE(tribuf->loops);
   MEM_SAFE_FREE(tribuf->edges);
 
-  BLI_smallhash_release(&tribuf->vertmap);
-
   tribuf->verts = nullptr;
   tribuf->tris = nullptr;
   tribuf->loops = nullptr;
@@ -2680,19 +2678,17 @@ void BKE_pbvh_bmesh_free_tris(PBVH * /*pbvh*/, PBVHNode *node)
 {
   if (node->tribuf) {
     pbvh_free_tribuf(node->tribuf);
-    MEM_freeN(node->tribuf);
+    MEM_delete<PBVHTriBuf>(node->tribuf);
     node->tribuf = nullptr;
   }
 
   if (node->tri_buffers) {
-    for (int i = 0; i < node->tot_tri_buffers; i++) {
-      pbvh_free_tribuf(node->tri_buffers + i);
+    for (PBVHTriBuf &tri : *node->tri_buffers) {
+      pbvh_free_tribuf(&tri);
     }
 
-    MEM_SAFE_FREE(node->tri_buffers);
-
+    MEM_delete<blender::Vector<PBVHTriBuf>>(node->tri_buffers);
     node->tri_buffers = nullptr;
-    node->tot_tri_buffers = 0;
   }
 }
 
@@ -2809,8 +2805,6 @@ static void pbvh_init_tribuf(PBVHNode *node, PBVHTriBuf *tribuf)
   tribuf->verts = nullptr;
   tribuf->tris = nullptr;
   tribuf->loops = nullptr;
-
-  BLI_smallhash_init_ex(&tribuf->vertmap, node->bm_unique_verts->length);
 }
 
 static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv)
@@ -2869,7 +2863,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     BKE_pbvh_bmesh_free_tris(pbvh, node);
   }
 
-  node->tribuf = MEM_cnew<PBVHTriBuf>("node->tribuf");
+  node->tribuf = MEM_new<PBVHTriBuf>("node->tribuf");
   pbvh_init_tribuf(node, node->tribuf);
 
   Vector<BMLoop *, 128> loops;
@@ -2939,25 +2933,20 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
         uintptr_t loopkey = tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv);
 
-        if (!BLI_smallhash_ensure_p(&node->tribuf->vertmap, loopkey, &val)) {
+        bool existed = node->tribuf->vertmap.add(loopkey, node->tribuf->totvert);
+        if (!existed) {
           PBVHVertRef sv = {(intptr_t)l->v};
-
           minmax_v3v3_v3(min, max, l->v->co);
-
-          *val = POINTER_FROM_INT(node->tribuf->totvert);
           pbvh_tribuf_add_vert(node->tribuf, sv, l);
         }
 
         tri->v[j] = (intptr_t)val[0];
         tri->l[j] = (intptr_t)l;
 
-        val = nullptr;
-        if (!BLI_smallhash_ensure_p(&mat_tribuf->vertmap, loopkey, &val)) {
+        existed = mat_tribuf->vertmap.add(loopkey, mat_tribuf->totvert);
+        if (!existed) {
           PBVHVertRef sv = {(intptr_t)l->v};
-
           minmax_v3v3_v3(min, max, l->v->co);
-
-          *val = POINTER_FROM_INT(mat_tribuf->totvert);
           pbvh_tribuf_add_vert(mat_tribuf, sv, l);
         }
 
@@ -3037,13 +3026,13 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       l->e->head.hflag |= edgeflag;
 
-      int v1 = POINTER_AS_INT(BLI_smallhash_lookup(&node->tribuf->vertmap, (uintptr_t)l->e->v1));
-      int v2 = POINTER_AS_INT(BLI_smallhash_lookup(&node->tribuf->vertmap, (uintptr_t)l->e->v2));
+      int v1 = node->tribuf->vertmap.lookup_default((uintptr_t)l->e->v1, 0);
+      int v2 = node->tribuf->vertmap.lookup_default((uintptr_t)l->e->v2, 0);
 
       pbvh_tribuf_add_edge(node->tribuf, v1, v2);
 
-      v1 = POINTER_AS_INT(BLI_smallhash_lookup(&mat_tribuf->vertmap, (uintptr_t)l->e->v1));
-      v2 = POINTER_AS_INT(BLI_smallhash_lookup(&mat_tribuf->vertmap, (uintptr_t)l->e->v2));
+      v1 = mat_tribuf->vertmap.lookup_default((uintptr_t)l->e->v1, 0);
+      v2 = mat_tribuf->vertmap.lookup_default((uintptr_t)l->e->v2, 0);
 
       pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
     } while ((l = l->next) != f->l_first);
@@ -3052,8 +3041,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   bm->elem_index_dirty |= BM_VERT;
 
-  node->tri_buffers = c_array_from_vector<PBVHTriBuf>(tribufs);
-  node->tot_tri_buffers = tribufs.size();
+  node->tri_buffers = new Vector<PBVHTriBuf>(tribufs);
 
   if (node->tribuf->totvert) {
     copy_v3_v3(node->tribuf->min, min);
@@ -4085,8 +4073,9 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
       continue;
     }
 
-    for (j = 0; j < node->tot_tri_buffers + 1; j++) {
-      PBVHTriBuf *tribuf = j == node->tot_tri_buffers ? node->tribuf : node->tri_buffers + j;
+    for (j = 0; j < node->tri_buffers->size() + 1; j++) {
+      PBVHTriBuf *tribuf = j == node->tri_buffers->size() ? node->tribuf :
+                                                            &((*node->tri_buffers)[j]);
 
       if (!tribuf) {
         break;

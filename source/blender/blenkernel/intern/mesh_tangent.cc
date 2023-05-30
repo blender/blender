@@ -25,7 +25,7 @@
 #include "BKE_mesh_tangent.h"
 #include "BKE_report.h"
 
-//#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h"
 
 #include "atomic_ops.h"
 #include "mikktspace.hh"

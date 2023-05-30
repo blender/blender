@@ -25,7 +25,6 @@
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
-#include "BLI_smallhash.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"

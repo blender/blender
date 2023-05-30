@@ -938,8 +938,8 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
 
       args->tribuf = node->tribuf;
-      args->tri_buffers = node->tri_buffers;
-      args->tot_tri_buffers = node->tot_tri_buffers;
+      args->tri_buffers = node->tri_buffers->data();
+      args->tot_tri_buffers = node->tri_buffers->size();
 
       args->show_orig = pbvh->show_orig;
       break;

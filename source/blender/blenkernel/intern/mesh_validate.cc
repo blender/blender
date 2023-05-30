@@ -696,11 +696,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       if ((p1_nv == p2_nv) && (memcmp(p1_v, p2_v, p1_nv * sizeof(*p1_v)) == 0)) {
         if (do_verbose) {
           /* TODO: convert list to string */
-          PRINT_ERR("\tPolys %u(len=%d) and %u use same vertices (%d",
-                    prev_sp->index,
-                    p1_nv,
-                    sp->index,
-                    *p1_v);
+          PRINT_ERR("\tPolys %u and %u use same vertices (%d", prev_sp->index, sp->index, *p1_v);
           for (j = 1; j < p1_nv; j++) {
             PRINT_ERR(", %d", p1_v[j]);
           }

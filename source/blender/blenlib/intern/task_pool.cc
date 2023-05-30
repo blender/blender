@@ -76,8 +76,7 @@ class Task {
     other.freedata = nullptr;
   }
 
-#if (defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10) || \
-    (defined(__clang__) && defined(WIN32))
+#if defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10
   Task(const Task &other)
       : pool(other.pool),
         run(other.run),

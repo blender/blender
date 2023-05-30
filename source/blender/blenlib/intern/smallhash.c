@@ -1,16 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2008 Blender Foundation */
 
-#ifdef __GNUC__
-/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#  pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-
-#ifdef __GNUC__
-/* I can't even *cast* signed ints in gcc's sign-conversion warning? gcc 10.3.0 -joeedh */
-#  pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-
 /** \file
  * \ingroup bli
  *
@@ -49,46 +39,20 @@
 
 #include "BLI_smallhash.h"
 
-#include "BLI_asan.h"
 #include "BLI_strict_flags.h"
 
-/* NOTE: copied from BLO_blend_defs.h, don't use here because we're in BLI. */
-#ifdef __BIG_ENDIAN__
-/* Big Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
-#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
-    ((int64_t)(a) << 56 | (int64_t)(b) << 48 | (int64_t)(c) << 40 | (int64_t)(d) << 32 | \
-     (int64_t)(e) << 24 | (int64_t)(f) << 16 | (int64_t)(g) << 8 | (h))
-#else
-/* Little Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
-#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
-    ((int64_t)(h) << 56 | (int64_t)(g) << 48 | (int64_t)(f) << 40 | (int64_t)(e) << 32 | \
-     (int64_t)(d) << 24 | (int64_t)(c) << 16 | (int64_t)(b) << 8 | (a))
-#endif
-
-#define SMHASH_KEY_UNUSED (uintptr_t)(MAKE_ID_8('s', 'm', 'h', 'k', 'u', 'n', 'u', 's'))
-#define SMHASH_CELL_FREE (void *)(MAKE_ID_8('s', 'm', 'h', 'c', 'f', 'r', 'e', 'e'))
-#define SMHASH_CELL_UNUSED (void *)(MAKE_ID_8('s', 'm', 'h', 'c', 'u', 'n', 'u', 's'))
-
-#define USE_REMOVE
+#define SMHASH_KEY_UNUSED ((uintptr_t)(UINTPTR_MAX - 0))
+#define SMHASH_CELL_FREE ((void *)(UINTPTR_MAX - 1))
+#define SMHASH_CELL_UNUSED ((void *)(UINTPTR_MAX - 2))
 
 /* typically this re-assigns 'h' */
 #define SMHASH_NEXT(h, hoff) \
-  (CHECK_TYPE_INLINE(&(h), uintptr_t *), \
-   CHECK_TYPE_INLINE(&(hoff), uintptr_t *), \
-   ((h) + (((hoff) = ((hoff)*3) + 1), (hoff))))
+  (CHECK_TYPE_INLINE(&(h), uint *), \
+   CHECK_TYPE_INLINE(&(hoff), uint *), \
+   ((h) + (((hoff) = ((hoff)*2) + 1), (hoff))))
 
-BLI_INLINE bool check_stack_move(SmallHash *sh)
-{
-  if (sh->using_stack && sh->buckets != sh->buckets_stack) {
-    sh->buckets = sh->buckets_stack;
-
-    return true;
-  }
-
-  return false;
-}
+/* nothing uses BLI_smallhash_remove yet */
+// #define USE_REMOVE
 
 BLI_INLINE bool smallhash_val_is_used(const void *val)
 {
@@ -102,45 +66,18 @@ BLI_INLINE bool smallhash_val_is_used(const void *val)
 extern const uint BLI_ghash_hash_sizes[];
 #define hashsizes BLI_ghash_hash_sizes
 
-int BLI_smallhash_memuse(SmallHash *sh)
+BLI_INLINE uint smallhash_key(const uintptr_t key)
 {
-  return (int)sh->nbuckets * (int)sizeof(SmallHashEntry) + (int)sizeof(SmallHash);
+  return (uint)key;
 }
 
-#if 0
-BLI_INLINE uintptr_t smallhash_key(const uintptr_t key)
-{
-#  if 1
-  return key;
-#  else
-  uintptr_t y = (size_t)key;
-  /* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
-   * excessive hash collisions for dicts and sets */
-
-  return (uintptr_t)(y >> 4) | ((uintptr_t)y << (sizeof(uintptr_t[8]) - 4));
-#  endif
-}
-#endif
-
-#ifdef _keyrot
-#  undef _keyrot
-#endif
-
-#define _keyrot(y) ((uintptr_t)(y) >> 4) | ((uintptr_t)(y) << (sizeof(uintptr_t[8]) - 4))
-#define smallhash_key(key) sh->use_pointer_hash ? _keyrot(key) : (key)
 /**
  * Check if the number of items in the smallhash is large enough to require more buckets.
  */
-BLI_INLINE bool smallhash_test_expand_buckets(const uint nentries,
-                                              const uint nbuckets,
-                                              const uint nfreecells)
+BLI_INLINE bool smallhash_test_expand_buckets(const uint nentries, const uint nbuckets)
 {
-  if (nfreecells < 3) {
-    return true;
-  }
-
   /* (approx * 1.5) */
-  return (nentries + (nentries >> 1)) > nbuckets || nfreecells < 3;
+  return (nentries + (nentries >> 1)) > nbuckets;
 }
 
 BLI_INLINE void smallhash_init_empty(SmallHash *sh)
@@ -158,26 +95,23 @@ BLI_INLINE void smallhash_init_empty(SmallHash *sh)
  */
 BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const uint nentries_reserve)
 {
-  while (smallhash_test_expand_buckets(nentries_reserve, sh->nbuckets, sh->nbuckets + 5)) {
+  while (smallhash_test_expand_buckets(nentries_reserve, sh->nbuckets)) {
     sh->nbuckets = hashsizes[++sh->cursize];
-    sh->nfreecells = sh->nbuckets;
   }
 }
 
-BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
+BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t key)
 {
-  check_stack_move(sh);
-
   SmallHashEntry *e;
-  uintptr_t h = smallhash_key(key);
-  uintptr_t hoff = 1;
+  uint h = smallhash_key(key);
+  uint hoff = 1;
 
   BLI_assert(key != SMHASH_KEY_UNUSED);
 
   /* NOTE: there are always more buckets than entries,
    * so we know there will always be a free bucket if the key isn't found. */
-  for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  for (e = &sh->buckets[h % sh->nbuckets]; e->val != SMHASH_CELL_FREE;
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets])
   {
     if (e->key == key) {
       /* should never happen because unused keys are zero'd */
@@ -191,14 +125,12 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(SmallHash *sh, const uintptr_t key)
 
 BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uintptr_t key)
 {
-  check_stack_move(sh);
-
   SmallHashEntry *e;
-  uintptr_t h = smallhash_key(key);
-  uintptr_t hoff = 1;
+  uint h = smallhash_key(key);
+  uint hoff = 1;
 
-  for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; smallhash_val_is_used(e->val);
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+  for (e = &sh->buckets[h % sh->nbuckets]; smallhash_val_is_used(e->val);
+       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets])
   {
     /* pass */
   }
@@ -208,8 +140,6 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uint
 
 BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const uint nbuckets)
 {
-  check_stack_move(sh);
-
   SmallHashEntry *buckets_old = sh->buckets;
   const uint nbuckets_old = sh->nbuckets;
   const bool was_alloc = (buckets_old != sh->buckets_stack);
@@ -225,28 +155,21 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const uint nbuckets)
   }
   else {
     sh->buckets = MEM_mallocN(sizeof(*sh->buckets) * nbuckets, __func__);
-    sh->using_stack = false;
   }
 
   sh->nbuckets = nbuckets;
-  sh->nfreecells = nbuckets;
-  sh->nentries = 0;
 
   smallhash_init_empty(sh);
 
   for (i = 0; i < nbuckets_old; i++) {
     if (smallhash_val_is_used(buckets_old[i].val)) {
       SmallHashEntry *e = smallhash_lookup_first_free(sh, buckets_old[i].key);
-
       e->key = buckets_old[i].key;
       e->val = buckets_old[i].val;
-
-      sh->nfreecells--;
-      sh->nentries++;
     }
   }
 
-  if (was_alloc && buckets_old) {
+  if (was_alloc) {
     MEM_freeN(buckets_old);
   }
 }
@@ -257,9 +180,7 @@ void BLI_smallhash_init_ex(SmallHash *sh, const uint nentries_reserve)
 
   sh->nentries = 0;
   sh->cursize = 2;
-  sh->using_stack = true;
   sh->nbuckets = hashsizes[sh->cursize];
-  sh->nfreecells = sh->nbuckets;
 
   sh->buckets = sh->buckets_stack;
 
@@ -268,8 +189,6 @@ void BLI_smallhash_init_ex(SmallHash *sh, const uint nentries_reserve)
 
     if (sh->nbuckets > SMSTACKSIZE) {
       sh->buckets = MEM_mallocN(sizeof(*sh->buckets) * sh->nbuckets, __func__);
-
-      sh->using_stack = false;
     }
   }
 
@@ -283,86 +202,24 @@ void BLI_smallhash_init(SmallHash *sh)
 
 void BLI_smallhash_release(SmallHash *sh)
 {
-  check_stack_move(sh);
-
-  if (sh->buckets && sh->buckets != sh->buckets_stack) {
+  if (sh->buckets != sh->buckets_stack) {
     MEM_freeN(sh->buckets);
   }
 }
 
-bool BLI_smallhash_ensure_p(SmallHash *sh, uintptr_t key, void ***item)
-{
-  check_stack_move(sh);
-
-  SmallHashEntry *e = NULL;
-  uintptr_t h = smallhash_key(key);
-  uintptr_t hoff = 1;
-
-  if (UNLIKELY(smallhash_test_expand_buckets(sh->nentries, sh->nbuckets, sh->nfreecells))) {
-    smallhash_resize_buckets(sh, hashsizes[++sh->cursize]);
-  }
-
-  BLI_assert(key != SMHASH_KEY_UNUSED);
-
-  /* NOTE: there are always more buckets than entries,
-   * so we know there will always be a free bucket if the key isn't found. */
-  for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
-  {
-    if (e->key == key) {
-      /* should never happen because unused keys are zero'd */
-      BLI_assert(e->val != SMHASH_CELL_UNUSED);
-      break;
-    }
-  }
-
-  bool ret;
-
-  if (e->val == SMHASH_CELL_FREE || e->val == SMHASH_CELL_UNUSED) {
-    sh->nentries++;
-
-    if (e->val == SMHASH_CELL_FREE) {
-      sh->nfreecells--;
-    }
-
-    ret = false;
-    e->val = NULL;
-  }
-  else {
-    ret = true;
-  }
-
-  e->key = key;
-
-  *item = &e->val;
-
-  return ret;
-}
-
 void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item)
 {
-  check_stack_move(sh);
-
   SmallHashEntry *e;
 
   BLI_assert(key != SMHASH_KEY_UNUSED);
   BLI_assert(smallhash_val_is_used(item));
   BLI_assert(BLI_smallhash_haskey(sh, key) == false);
 
-  if (UNLIKELY(smallhash_test_expand_buckets(sh->nentries, sh->nbuckets, sh->nfreecells))) {
+  if (UNLIKELY(smallhash_test_expand_buckets(++sh->nentries, sh->nbuckets))) {
     smallhash_resize_buckets(sh, hashsizes[++sh->cursize]);
   }
 
   e = smallhash_lookup_first_free(sh, key);
-
-  if (e->val == SMHASH_CELL_FREE) {
-    sh->nentries++;
-    sh->nfreecells--;
-  }
-  else if (e->val == SMHASH_CELL_UNUSED) {
-    sh->nentries++;
-  }
-
   e->key = key;
   e->val = item;
 }
@@ -382,47 +239,9 @@ bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
 #ifdef USE_REMOVE
 bool BLI_smallhash_remove(SmallHash *sh, uintptr_t key)
 {
-  check_stack_move(sh);
-
-  // SmallHashEntry *e = smallhash_lookup(sh, key);
-
-  SmallHashEntry *e;
-  uintptr_t h = smallhash_key(key);
-  uintptr_t hoff = 1;
-
-  for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e->val != SMHASH_CELL_FREE;
-       h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
-  {
-    if (e->key == key) {
-      /* should never happen because unused keys are zero'd */
-      BLI_assert(e->val != SMHASH_CELL_UNUSED);
-      break;
-    }
-  }
-
-  if (e && e->key == key) {
-    h = SMHASH_NEXT(h, hoff);
-    SmallHashEntry *e2 = &sh->buckets[h & sh->nbuckets];
-
-    e->key = SMHASH_KEY_UNUSED;
-    e->val = SMHASH_CELL_UNUSED;
-
-    sh->nentries--;
-
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-bool BLI_smallhash_remove_p(SmallHash *sh, uintptr_t key, void **val)
-{
   SmallHashEntry *e = smallhash_lookup(sh, key);
 
   if (e) {
-    *val = e->val;
-
     e->key = SMHASH_KEY_UNUSED;
     e->val = SMHASH_CELL_UNUSED;
     sh->nentries--;
@@ -435,42 +254,28 @@ bool BLI_smallhash_remove_p(SmallHash *sh, uintptr_t key, void **val)
 }
 #endif
 
-void *BLI_smallhash_lookup(SmallHash *sh, uintptr_t key)
+void *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key)
 {
   SmallHashEntry *e = smallhash_lookup(sh, key);
 
   return e ? e->val : NULL;
 }
 
-void **BLI_smallhash_lookup_p(SmallHash *sh, uintptr_t key)
+void **BLI_smallhash_lookup_p(const SmallHash *sh, uintptr_t key)
 {
   SmallHashEntry *e = smallhash_lookup(sh, key);
 
   return e ? &e->val : NULL;
 }
 
-void BLI_smallhash_clear(SmallHash *sh, uintptr_t key)
-{
-  check_stack_move(sh);
-
-  SmallHashEntry *e = sh->buckets;
-
-  for (uint i = 0; i < sh->nbuckets; i++, e++) {
-    e->key = SMHASH_KEY_UNUSED;
-    e->val = SMHASH_CELL_FREE;
-  }
-
-  sh->nentries = 0;
-}
-
-bool BLI_smallhash_haskey(SmallHash *sh, uintptr_t key)
+bool BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key)
 {
   SmallHashEntry *e = smallhash_lookup(sh, key);
 
   return (e != NULL);
 }
 
-int BLI_smallhash_len(SmallHash *sh)
+int BLI_smallhash_len(const SmallHash *sh)
 {
   return (int)sh->nentries;
 }
@@ -506,20 +311,16 @@ void **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)
   return e ? &e->val : NULL;
 }
 
-void *BLI_smallhash_iternew(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 {
-  check_stack_move(sh);
-
   iter->sh = sh;
   iter->i = 0;
 
   return BLI_smallhash_iternext(iter, key);
 }
 
-void **BLI_smallhash_iternew_p(SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
+void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key)
 {
-  check_stack_move(sh);
-
   iter->sh = sh;
   iter->i = 0;
 
@@ -578,11 +379,11 @@ double BLI_smallhash_calc_quality(SmallHash *sh)
     if (sh->buckets[i].key != SMHASH_KEY_UNUSED) {
       uint64_t count = 0;
       SmallHashEntry *e, *e_final = &sh->buckets[i];
-      uintptr_t h = smallhash_key(e_final->key);
-      uintptr_t hoff = 1;
+      uint h = smallhash_key(e_final->key);
+      uint hoff = 1;
 
-      for (e = &sh->buckets[h % (uintptr_t)sh->nbuckets]; e != e_final;
-           h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % (uintptr_t)sh->nbuckets])
+      for (e = &sh->buckets[h % sh->nbuckets]; e != e_final;
+           h = SMHASH_NEXT(h, hoff), e = &sh->buckets[h % sh->nbuckets])
       {
         count += 1;
       }

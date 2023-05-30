@@ -22,9 +22,7 @@ extern "C" {
 struct MemArena;
 typedef struct MemArena MemArena;
 
-int BLI_memarena_size(const struct MemArena *ma);
-
-struct MemArena *BLI_memarena_new(const size_t bufsize,
+struct MemArena *BLI_memarena_new(size_t bufsize,
                                   const char *name) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
     ATTR_NONNULL(2) ATTR_MALLOC;
 void BLI_memarena_free(struct MemArena *ma) ATTR_NONNULL(1);

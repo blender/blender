@@ -2,12 +2,13 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
-#include "BLI_offset_indices.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -131,9 +132,8 @@ struct PBVHNode {
   TableGSet *bm_unique_verts;
   TableGSet *bm_other_verts;
 
-  PBVHTriBuf *tribuf;       // all triangles
-  PBVHTriBuf *tri_buffers;  // tribuffers, one per material used
-  int tot_tri_buffers;
+  PBVHTriBuf *tribuf;  // all triangles
+  blender::Vector<PBVHTriBuf> *tri_buffers;
 
   int updategen;
 
@@ -304,7 +304,7 @@ struct PBVH {
 void BB_reset(BB *bb);
 void BB_zero(BB *bb);
 
-    /**
+/**
  * Expand the bounding box to include a new coordinate.
  */
 void BB_expand(BB *bb, const float co[3]);
@@ -466,7 +466,6 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 }
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
-//#define DEFRAGMENT_MEMORY
 void pbvh_bmesh_normals_update(PBVH *pbvh, blender::Span<PBVHNode *> nodes);
 
 /* pbvh_pixels.hh */

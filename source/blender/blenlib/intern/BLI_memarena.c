@@ -48,17 +48,6 @@ struct MemArena {
   bool use_calloc;
 };
 
-int BLI_memarena_size(const struct MemArena *ma)
-{
-  int ret = 0;
-
-  for (struct MemBuf *buf = ma->bufs; buf; buf = buf->next) {
-    ret += (int)ma->bufsize;
-  }
-
-  return ret;
-}
-
 static void memarena_buf_free_all(struct MemBuf *mb)
 {
   while (mb != NULL) {

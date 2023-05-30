@@ -86,7 +86,7 @@ static void curve_bevel_make_extrude_and_fill(const Curve *cu,
    * for #Curve.bevresol is 32. */
   float *quarter_coords_x = alloca(sizeof(float) * (cu->bevresol + 1));
   float *quarter_coords_y = alloca(sizeof(float) * (cu->bevresol + 1));
-  bevel_quarter_fill((Curve *)cu, quarter_coords_x, quarter_coords_y);
+  bevel_quarter_fill(cu, quarter_coords_x, quarter_coords_y);
 
   int nr;
   if (fill_type == FULL) {

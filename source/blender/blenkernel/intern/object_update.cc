@@ -265,8 +265,6 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_orig->transflag = object->transflag;
   object_orig->flag = object->flag;
 
-  // object_orig->cached_pbvh2 = object->cached_pbvh2;
-
   /* Copy back error messages from modifiers. */
   for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
                     *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
