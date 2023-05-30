@@ -288,7 +288,7 @@ static void wm_window_match_keep_current_wm(const bContext *C,
   bScreen *screen = nullptr;
 
   /* match oldwm to new dbase, only old files */
-  wm->initialized &= ~WM_WINDOW_IS_INIT;
+  wm->init_flag &= ~WM_INIT_FLAG_WINDOW;
 
   /* when loading without UI, no matching needed */
   if (load_ui && (screen = CTX_wm_screen(C))) {
@@ -383,7 +383,7 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
   oldwm->userconf = nullptr;
 
   /* ensure making new keymaps and set space types */
-  wm->initialized = 0;
+  wm->init_flag = 0;
   wm->winactive = nullptr;
 
   /* Clearing drawable of before deleting any context

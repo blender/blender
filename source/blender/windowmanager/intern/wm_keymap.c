@@ -348,7 +348,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
   WM_keyconfig_update(wm);
 
   STRNCPY(U.keyconfigstr, idname);
-  if (wm->initialized & WM_KEYCONFIG_IS_INIT) {
+  if (wm->init_flag & WM_INIT_FLAG_KEYCONFIG) {
     U.runtime.is_dirty = true;
   }
 
