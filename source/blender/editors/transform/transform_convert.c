@@ -328,6 +328,9 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
 
   /* check if pchan has ik-constraint */
   for (con = pchan->constraints.first; con; con = con->next) {
+    if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
+      continue;
+    }
     if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
       bKinematicConstraint *data = con->data;
 
@@ -552,7 +555,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
   if (list) {
     for (con = list->first; con; con = con->next) {
       /* only consider constraint if it is enabled, and has influence on result */
-      if ((con->flag & CONSTRAINT_DISABLE) == 0 && (con->enforce != 0.0f)) {
+      if ((con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) == 0 && (con->enforce != 0.0f)) {
         /* (affirmative) returns for specific constraints here... */
         /* constraints that require this regardless. */
         if (ELEM(con->type,
