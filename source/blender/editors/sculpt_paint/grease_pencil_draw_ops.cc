@@ -191,7 +191,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
 
   /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
   /* TODO: Call ED_paint_cursor_start(...) */
-  
+
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */

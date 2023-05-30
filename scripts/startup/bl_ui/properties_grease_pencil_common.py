@@ -501,7 +501,7 @@ class GreasePencilMaterialsPanel:
 
         is_view3d = (self.bl_space_type == 'VIEW_3D')
         is_grease_pencil_version3 = context.preferences.experimental.use_grease_pencil_version3
-        
+
         tool_settings = context.scene.tool_settings
         gpencil_paint = tool_settings.gpencil_paint
         brush = gpencil_paint.brush if gpencil_paint else None

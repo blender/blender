@@ -3104,7 +3104,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       ob_gpencil->actcol = actcol;
     }
     else if (U.experimental.use_grease_pencil_version3 && ob->type == OB_GPENCIL_LEGACY &&
-             target == OB_GREASE_PENCIL) {
+             target == OB_GREASE_PENCIL)
+    {
       ob->flag |= OB_DONE;
 
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);

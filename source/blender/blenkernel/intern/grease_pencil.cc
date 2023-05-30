@@ -1191,7 +1191,9 @@ void GreasePencil::free_drawing_array()
 /** \name Layer tree read/write functions
  * \{ */
 
-static void read_layer(BlendDataReader *reader, GreasePencilLayer *node, GreasePencilLayerTreeGroup *parent)
+static void read_layer(BlendDataReader *reader,
+                       GreasePencilLayer *node,
+                       GreasePencilLayerTreeGroup *parent)
 {
   BLO_read_data_address(reader, &node->base.name);
   node->base.parent = parent;
@@ -1214,7 +1216,9 @@ static void read_layer(BlendDataReader *reader, GreasePencilLayer *node, GreaseP
   }
 }
 
-static void read_layer_tree_group(BlendDataReader *reader, GreasePencilLayerTreeGroup *node, GreasePencilLayerTreeGroup *parent)
+static void read_layer_tree_group(BlendDataReader *reader,
+                                  GreasePencilLayerTreeGroup *node,
+                                  GreasePencilLayerTreeGroup *parent)
 {
   BLO_read_data_address(reader, &node->base.name);
   node->base.parent = parent;
