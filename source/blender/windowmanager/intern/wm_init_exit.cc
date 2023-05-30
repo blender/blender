@@ -494,17 +494,18 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);
         char filepath[FILE_MAX];
-        bool has_edited;
         const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
         BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
-        has_edited = ED_editors_flush_edits(bmain);
+        /* When true, the `undo_memfile` doesn't contain all information necessary
+         * for writing and up to date blend file. */
+        const bool is_memfile_outdated = ED_editors_flush_edits(bmain);
 
         BlendFileWriteParams blend_file_write_params{};
-        if ((has_edited &&
-             BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) ||
-            BLO_memfile_write_file(undo_memfile, filepath))
+        if (is_memfile_outdated ?
+                BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr) :
+                BLO_memfile_write_file(undo_memfile, filepath))
         {
           printf("Saved session recovery to \"%s\"\n", filepath);
         }
