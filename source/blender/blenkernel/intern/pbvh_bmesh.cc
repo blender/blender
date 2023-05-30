@@ -2868,7 +2868,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   Vector<BMLoop *, 128> loops;
   Vector<blender::uint3, 128> loops_idx;
-  Vector<PBVHTriBuf> tribufs;
+  Vector<PBVHTriBuf> *tribufs = MEM_new<Vector<PBVHTriBuf>>("PBVHTriBuf tribufs");
 
   node->flag &= ~PBVH_UpdateTris;
 
@@ -2896,11 +2896,11 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     if (mat_map[mat_nr] == -1) {
       PBVHTriBuf _tribuf = {0};
 
-      mat_map[mat_nr] = tribufs.size();
+      mat_map[mat_nr] = tribufs->size();
 
       pbvh_init_tribuf(node, &_tribuf);
       _tribuf.mat_nr = mat_nr;
-      tribufs.append(_tribuf);
+      tribufs->append(_tribuf);
     }
 
 #ifdef DYNTOPO_DYNAMIC_TESS
@@ -2913,7 +2913,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
     for (int i = 0; i < tottri; i++) {
       PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
-      PBVHTriBuf *mat_tribuf = &tribufs[mat_map[mat_nr]];
+      PBVHTriBuf *mat_tribuf = &(*tribufs)[mat_map[mat_nr]];
       PBVHTri *mat_tri = pbvh_tribuf_add_tri(mat_tribuf);
 
       tri->eflag = mat_tri->eflag = 0;
@@ -2932,25 +2932,28 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         }
 
         uintptr_t loopkey = tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv);
+        int &tri_v = node->tribuf->vertmap.lookup_or_add(loopkey, node->tribuf->totvert);
 
-        bool existed = node->tribuf->vertmap.add(loopkey, node->tribuf->totvert);
-        if (!existed) {
+        /* Newly added to the set? */
+        if (tri_v == node->tribuf->totvert) {
           PBVHVertRef sv = {(intptr_t)l->v};
           minmax_v3v3_v3(min, max, l->v->co);
           pbvh_tribuf_add_vert(node->tribuf, sv, l);
         }
 
-        tri->v[j] = (intptr_t)val[0];
+        tri->v[j] = (intptr_t)tri_v;
         tri->l[j] = (intptr_t)l;
 
-        existed = mat_tribuf->vertmap.add(loopkey, mat_tribuf->totvert);
-        if (!existed) {
+        int &mattri_v = mat_tribuf->vertmap.lookup_or_add(loopkey, mat_tribuf->totvert);
+
+        /* Newly added to the set? */
+        if (mattri_v == mat_tribuf->totvert) {
           PBVHVertRef sv = {(intptr_t)l->v};
           minmax_v3v3_v3(min, max, l->v->co);
           pbvh_tribuf_add_vert(mat_tribuf, sv, l);
         }
 
-        mat_tri->v[j] = (intptr_t)val[0];
+        mat_tri->v[j] = (intptr_t)mattri_v;
         mat_tri->l[j] = (intptr_t)l;
       }
 
@@ -3016,7 +3019,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     }
 
     int mat_nr = f->mat_nr;
-    PBVHTriBuf *mat_tribuf = &tribufs[mat_map[mat_nr]];
+    PBVHTriBuf *mat_tribuf = &(*tribufs)[mat_map[mat_nr]];
 
     BMLoop *l = f->l_first;
     do {
@@ -3041,7 +3044,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   bm->elem_index_dirty |= BM_VERT;
 
-  node->tri_buffers = new Vector<PBVHTriBuf>(tribufs);
+  node->tri_buffers = tribufs;
 
   if (node->tribuf->totvert) {
     copy_v3_v3(node->tribuf->min, min);
