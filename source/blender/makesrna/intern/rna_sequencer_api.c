@@ -255,7 +255,7 @@ static Sequence *rna_Sequences_new_image(ID *id,
   load_data.fit_method = fit_method;
   Sequence *seq = SEQ_add_image_strip(bmain, scene, seqbase, &load_data);
 
-  char dirpath[FILE_MAX], filename[FILE_MAX];
+  char dirpath[FILE_MAX], filename[FILE_MAXFILE];
   BLI_path_split_dir_file(file, dirpath, sizeof(dirpath), filename, sizeof(filename));
   SEQ_add_image_set_directory(seq, dirpath);
   SEQ_add_image_load_file(scene, seq, 0, filename);
