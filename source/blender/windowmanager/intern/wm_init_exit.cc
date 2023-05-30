@@ -450,6 +450,9 @@ static void wait_for_console_key(void)
 
 static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
 {
+  /* Prevent a non-zero exit code (if escape was pressed by the user). */
+  G.is_break = false;
+
   WM_exit(C);
 
   UNUSED_VARS(event, userdata);
