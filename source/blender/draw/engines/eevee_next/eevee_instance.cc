@@ -118,6 +118,7 @@ void Instance::begin_sync()
   main_view.sync();
   world.sync();
   film.sync();
+  render_buffers.sync();
   irradiance_cache.sync();
 }
 
@@ -211,13 +212,20 @@ void Instance::end_sync()
 
 void Instance::render_sync()
 {
+  /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
+
+  manager->begin_sync();
 
   begin_sync();
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
   end_sync();
 
+  manager->end_sync();
+
+  /* TODO: Remove old draw manager calls. */
   DRW_render_instance_buffer_finish();
+
   /* Also we weed to have a correct FBO bound for #DRW_hair_update */
   // GPU_framebuffer_bind();
   // DRW_hair_update();
@@ -279,6 +287,29 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
         RE_pass_set_buffer_data(rp, result);
         BLI_mutex_unlock(&render->update_render_passes_mutex);
       }
+    }
+  }
+
+  /* AOVs. */
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    if ((aov->flag & AOV_CONFLICT) != 0) {
+      continue;
+    }
+    RenderPass *rp = RE_pass_find_by_name(render_layer, aov->name, view_name);
+    if (!rp) {
+      continue;
+    }
+    float *result = film.read_aov(aov);
+
+    if (result) {
+      BLI_mutex_lock(&render->update_render_passes_mutex);
+      /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
+       * However, on some implementation, we need a buffer with a few extra bytes for the read to
+       * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
+      /* Avoid memcpy(), replace the pointer directly. */
+      MEM_SAFE_FREE(rp->rect);
+      rp->rect = result;
+      BLI_mutex_unlock(&render->update_render_passes_mutex);
     }
   }
 
