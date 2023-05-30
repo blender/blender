@@ -1081,8 +1081,8 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(
     blender::bke::greasepencil::LayerGroup &group, const blender::StringRefNull name)
 {
   using namespace blender;
-  StringRefNull checked_name;
   /* TODO: Check for name collisions and resolve them. */
+  /* StringRefNull checked_name; */
   return group.add_layer(name);
 }
 

@@ -63,10 +63,12 @@ template<class T> static inline const T *get_original(const T *id)
 
 /* Check whether the ID is suitable to be an input of the dependency graph. */
 /* TODO(sergey): Move the function and check to a more generic place. */
+#ifndef NDEBUG
 bool is_valid_input_id(const ID &id)
 {
   return (id.tag & LIB_TAG_LOCALIZED) || DEG_is_original_id(&id);
 }
+#endif
 
 }  // namespace
 
