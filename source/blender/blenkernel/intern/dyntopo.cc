@@ -3053,7 +3053,7 @@ static void pbvh_split_edges(
 }
 void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
-  pbvh->bm_detail_range = max_ff(detail_range, 0.1f);
+  pbvh->bm_detail_range = detail_range == 0.0f ? 0.4f : max_ff(detail_range, 0.1f);
   pbvh->bm_max_edge_len = detail_size;
   pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * pbvh->bm_detail_range;
 }
