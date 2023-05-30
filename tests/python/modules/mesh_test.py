@@ -43,6 +43,7 @@ class ModifierSpec:
     def __init__(self, modifier_name: str, modifier_type: str, modifier_parameters: dict, frame_end=0):
         """
         Constructs a modifier spec.
+
         :arg modifier_name: str - name of object modifier, e.g. "myFirstSubsurfModif"
         :arg modifier_type: str - type of object modifier, e.g. "SUBSURF"
         :arg modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"quality" : 4}
@@ -66,6 +67,7 @@ class ParticleSystemSpec:
     def __init__(self, modifier_name: str, modifier_type: str, modifier_parameters: dict, frame_end: int):
         """
         Constructs a particle system spec.
+
         :arg modifier_name: str - name of object modifier, e.g. "Particles"
         :arg modifier_type: str - type of object modifier, e.g. "PARTICLE_SYSTEM"
         :arg modifier_parameters: dict - {name : val} dictionary giving modifier parameters, e.g. {"seed" : 1}
@@ -97,6 +99,7 @@ class OperatorSpecEditMode:
     ):
         """
         Constructs an OperatorSpecEditMode. Raises ValueError if selec_mode is invalid.
+
         :arg operator_name: str - name of mesh operator from bpy.ops.mesh, e.g. "bevel" or "fill"
         :arg operator_parameters: dict - {name : val} dictionary containing operator parameters.
         :arg select_mode: str - mesh selection mode, must be either 'VERT', 'EDGE' or 'FACE'
@@ -143,7 +146,8 @@ class DeformModifierSpec:
 
     def __init__(self, frame_number: int, modifier_list: list, object_operator_spec: OperatorSpecObjectMode = None):
         """
-        Constructs a Deform Modifier spec (for user input)
+        Constructs a Deform Modifier spec (for user input).
+
         :arg frame_number: int - the frame at which animated keyframe is inserted
         :arg modifier_list: ModifierSpec - contains modifiers
         :arg object_operator_spec: OperatorSpecObjectMode - contains object operators
@@ -303,6 +307,7 @@ class MeshTest(ABC):
     def do_selection(self, mesh: bpy.types.Mesh, select_mode: str, selection, select_history: bool):
         """
         Do selection on a mesh.
+
         :arg mesh: bpy.types.Mesh - input mesh
         :arg: select_mode: str - selection mode. Must be 'VERT', 'EDGE' or 'FACE'
         :arg: selection: sequence - indices of selection.
@@ -367,6 +372,7 @@ class MeshTest(ABC):
     def compare_meshes(evaluated_object, expected_object, threshold):
         """
         Compares evaluated object mesh with expected object mesh.
+
         :arg evaluated_object: first object for comparison.
         :arg expected_object: second object for comparison.
         :arg threshold: exponent: To allow variations and accept difference to a certain degree.
@@ -541,6 +547,7 @@ class SpecMeshTest(MeshTest):
     def _add_modifier(self, test_object, modifier_spec: ModifierSpec):
         """
         Add modifier to object.
+
         :arg test_object: bpy.types.Object - Blender object to apply modifier on.
         :arg modifier_spec: ModifierSpec - ModifierSpec object with parameters
         """
@@ -646,6 +653,7 @@ class SpecMeshTest(MeshTest):
     def _apply_operator_edit_mode(self, test_object, operator: OperatorSpecEditMode):
         """
         Apply operator on test object.
+
         :arg test_object: bpy.types.Object - Blender object to apply operator on.
         :arg operator: OperatorSpecEditMode - OperatorSpecEditMode object with parameters.
         """
@@ -762,9 +770,9 @@ class RunTest:
     def __init__(self, tests, apply_modifiers=False, do_compare=False):
         """
         Construct a test suite.
+
         :arg tests: list - list of modifier or operator test cases. Each element in the list must contain the
-        following
-         in the correct order:
+        following in the correct order:
              0) test_name: str - unique test name
              1) test_object_name: bpy.Types.Object - test object
              2) expected_object_name: bpy.Types.Object - expected object
@@ -825,7 +833,8 @@ class RunTest:
 
     def run_test(self, test_name: str):
         """
-        Run a single test from self.tests list
+        Run a single test from self.tests list.
+
         :arg test_name: int - name of test
         :return: bool - True if test passed, False otherwise.
         """
