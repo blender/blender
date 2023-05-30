@@ -657,7 +657,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   BMIter iter;
   int i;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm_old);
-  struct BMeshCreateParams params = {};
+  struct BMeshCreateParams params = {0};
 
   params.use_toolflags = bm_old->use_toolflags;
 

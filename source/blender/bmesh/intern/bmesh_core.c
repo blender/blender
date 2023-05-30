@@ -2429,9 +2429,6 @@ ATTR_NO_OPT BMVert *bmesh_kernel_join_vert_kill_edge(
   BLI_array_staticdeclare(fs, 32);
   BLI_array_staticdeclare(deles, 32);
 
-  BMEdge **es = NULL;
-  BLI_array_staticdeclare(es, 32);
-
   BMVert *v_del = BM_edge_other_vert(e, v_conn);
   const int tag = _FLAG_WALK_ALT;  // using bmhead.api_flag here
   const int dup_tag = _FLAG_OVERLAP;
