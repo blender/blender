@@ -17,7 +17,7 @@
 </div>
 
 <a name="introduction" href="#introduction" ><h2>Introduction</h2></a>
-</a>
+
 
 <p>In this article I will describe the
  blend-file-format with a request to tool-makers to support blend-file. 
@@ -206,13 +206,11 @@ Nowadays, little-endian is the most commonly used.
 <p onclick="location.href='#example-endianess'" class="box-title">
 Endianness Example
 </p>
-<p>
 Writing the integer <code class="evidence">0x4A3B2C1Dh</code>, will be ordered:
 <ul>
 <li>in big endian as <code class="evidence">0x4Ah</code>, <code class="evidence">0x3Bh</code>, <code class="evidence">0x2Ch</code>, <code class="evidence">0x1Dh</code></li>
 <li>in little endian as <code class="evidence">0x1Dh</code>, <code class="evidence">0x2Ch</code>, <code class="evidence">0x3Bh</code>, <code class="evidence">0x4Ah</code></li>
 </ul>
-</p>
 </div>
 
 <p>
@@ -644,13 +642,12 @@ Let us look at <a href="#example-file-block-header">the file-block header we hav
 <li>the SDNA index is 150</li>
 <li>the file-block size is 1404 bytes</li>
 </ul>
-<p>
 Now note that:
 <ul>
 <li>the structure at index 150 in the DNA is a structure of type 'Scene' (counting from 0).</li>
 <li>the associated type ('Scene') in the DNA has the length of 1404 bytes.</li>
 </ul>
-</p>
+
 
 <p> 
 We can map the Scene structure on the data of the file-blocks. 
@@ -801,14 +798,13 @@ parts of the Scene-structure. Not all rows are described in the table as
 </tbody>
 </table>
 
-<p>
 We can now read the X and Y resolution of the Scene:
 <ul>
 <li>the X-resolution is located on offset 382 of the file-block-data and must be read as a 
 short.</li>
 <li>the Y-resolution is located on offset 384 and is also a short</li>
 </ul>
-</p>
+
 
 <div class="box">
 <p class="box-title">
