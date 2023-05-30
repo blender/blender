@@ -96,7 +96,7 @@ static const EnumPropertyItem DT_layer_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static void dt_add_vcol_layers(CustomData *cdata,
+static void dt_add_vcol_layers(const CustomData *cdata,
                                eCustomDataMask mask,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
@@ -179,13 +179,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     /* TODO */
   }
   else if (data_type == DT_TYPE_UV) {
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
-
-    CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-    cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-    Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
+    const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!me_eval) {
+      RNA_enum_item_end(&item, &totitem);
+      *r_free = true;
+      return item;
+    }
     int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
@@ -198,9 +199,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
   }
   else if (data_type & DT_TYPE_VCOL_ALL) {
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!me_eval) {
+      RNA_enum_item_end(&item, &totitem);
+      *r_free = true;
+      return item;
+    }
 
     CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
     if (data_type & (DT_TYPE_MPROPCOL_VERT)) {
@@ -216,8 +222,6 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP)) {
       cddata_masks.lmask |= CD_MASK_PROP_BYTE_COLOR;
     }
-
-    Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
       dt_add_vcol_layers(&me_eval->vdata, cddata_masks.vmask, &item, &totitem);
@@ -419,7 +423,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_src = ED_object_active_context(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   ListBase ctx_objects;
   CollectionPointerLink *ctx_ob_dst;
@@ -499,7 +502,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
       }
 
       if (BKE_object_data_transfer_mesh(depsgraph,
-                                        scene_eval,
                                         ob_src_eval,
                                         ob_dst,
                                         data_type,
@@ -828,7 +830,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_act = ED_object_active_context(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   DataTransferModifierData *dtmd;
 
   dtmd = (DataTransferModifierData *)edit_modifier_property_get(
@@ -849,7 +850,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
     Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
     BKE_object_data_transfer_layout(depsgraph,
-                                    scene_eval,
                                     ob_src_eval,
                                     ob_dst,
                                     dtmd->data_types,
@@ -887,7 +887,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
       Object *ob_dst = ctx_ob_dst->ptr.data;
       if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
         BKE_object_data_transfer_layout(depsgraph,
-                                        scene_eval,
                                         ob_src_eval,
                                         ob_dst,
                                         data_type,

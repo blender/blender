@@ -1347,16 +1347,22 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
-      Mesh *me_eval;
       int num_data, i;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-      Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      if (!ob_eval) {
+        RNA_enum_item_end(&item, &totitem);
+        *r_free = true;
+        return item;
+      }
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      if (!me_eval) {
+        RNA_enum_item_end(&item, &totitem);
+        *r_free = true;
+        return item;
+      }
 
-      CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
       num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
 
       RNA_enum_item_add_separator(&item, &totitem);
@@ -1380,21 +1386,25 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
                                ATTR_DOMAIN_CORNER;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-      Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      if (!ob_eval) {
+        RNA_enum_item_end(&item, &totitem);
+        *r_free = true;
+        return item;
+      }
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      if (!mesh_eval) {
+        RNA_enum_item_end(&item, &totitem);
+        *r_free = true;
+        return item;
+      }
 
-      CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      CustomData *cdata;
-
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-
+      const CustomData *cdata;
       if (domain == ATTR_DOMAIN_POINT) {
-        cddata_masks.vmask |= CD_MASK_COLOR_ALL;
-        cdata = &me_eval->vdata;
+        cdata = &mesh_eval->vdata;
       }
       else {
-        cddata_masks.lmask |= CD_MASK_COLOR_ALL;
-        cdata = &me_eval->ldata;
+        cdata = &mesh_eval->ldata;
       }
 
       eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};

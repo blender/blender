@@ -28,6 +28,7 @@
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -856,14 +857,8 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
   ED_view3d_init_mats_rv3d(ob, static_cast<RegionView3D *>(region->regiondata));
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-  CustomData_MeshMasks cddata_masks = scene->customdata_mask;
-  cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-  cddata_masks.emask |= CD_MASK_ORIGINDEX;
-  cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (data.is_init) {
     data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
 

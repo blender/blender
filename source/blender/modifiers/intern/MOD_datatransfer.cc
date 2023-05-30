@@ -152,7 +152,6 @@ static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me_mod)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
-  struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Mesh *result = me_mod;
   ReportList reports;
 
@@ -193,7 +192,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* NOTE: no islands precision for now here. */
   if (BKE_object_data_transfer_ex(ctx->depsgraph,
-                                  scene,
                                   ob_source,
                                   ctx->object,
                                   result,

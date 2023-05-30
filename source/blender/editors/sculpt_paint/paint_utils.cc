@@ -33,6 +33,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -261,8 +262,12 @@ static void imapaint_tri_weights(float matrix[4][4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(
-    Mesh *me_eval, Scene *scene, Object *ob_eval, uint faceindex, const int xy[2], float uv[2])
+static void imapaint_pick_uv(const Mesh *me_eval,
+                             Scene *scene,
+                             Object *ob_eval,
+                             uint faceindex,
+                             const int xy[2],
+                             float uv[2])
 {
   int i, findex;
   float p[2], w[3], absw, minabsw;
@@ -406,7 +411,7 @@ void paint_sample_color(
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.pmask |= CD_MASK_ORIGINDEX;
       Mesh *me = (Mesh *)ob->data;
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &cddata_masks);
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
           &me_eval->pdata, CD_PROP_INT32, "material_index");
 

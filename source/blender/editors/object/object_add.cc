@@ -3219,20 +3219,19 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* NOTE: get the mesh from the original, not from the copy in some
        * cases this doesn't give correct results (when MDEF is used for eg)
        */
-      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
-      me_eval = BKE_mesh_copy_for_eval(me_eval);
-      BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
-      Mesh *new_mesh = (Mesh *)newob->data;
-      BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
-
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      Mesh *new_mesh = mesh_eval ? BKE_mesh_copy_for_eval(mesh_eval) :
+                                   BKE_mesh_new_nomain(0, 0, 0, 0);
+      BKE_object_material_from_eval_data(bmain, newob, &new_mesh->id);
+      /* Anonymous attributes shouldn't be available on the applied geometry. */
+      new_mesh->attributes_for_write().remove_anonymous();
       if (do_merge_customdata) {
         BKE_mesh_merge_customdata_for_apply_modifier(new_mesh);
       }
 
-      /* Anonymous attributes shouldn't be available on the applied geometry. */
-      new_mesh->attributes_for_write().remove_anonymous();
+      Mesh *ob_data_mesh = (Mesh *)newob->data;
+      BKE_mesh_nomain_to_mesh(new_mesh, ob_data_mesh, newob);
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }

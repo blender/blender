@@ -140,7 +140,6 @@ enum {
  * from \a ob_src, to get (as much as possible) exact copy of source data layout.
  */
 void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
-                                     struct Scene *scene,
                                      struct Object *ob_src,
                                      struct Object *ob_dst,
                                      int data_types,
@@ -149,7 +148,6 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      const int tolayers_select[DT_MULTILAYER_INDEX_MAX]);
 
 bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
                                    struct Object *ob_src,
                                    struct Object *ob_dst,
                                    int data_types,
@@ -171,7 +169,6 @@ bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
                                    bool invert_vgroup,
                                    struct ReportList *reports);
 bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
-                                 struct Scene *scene,
                                  struct Object *ob_src,
                                  struct Object *ob_dst,
                                  struct Mesh *me_dst,
