@@ -50,6 +50,7 @@ namespace blender::bke::dyntopo {
 typedef struct TraceData {
   PBVH *pbvh;
   BMEdge *e;
+  SculptSession *ss;
 } TraceData;
 
 // copied from decimate modifier code
@@ -382,7 +383,7 @@ static void vert_ring_do(BMVert *v,
 }
 
 bool pbvh_bmesh_collapse_edge_uvs(
-    PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext * /*eq_ctx*/)
+    PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
 {
   bm_logstack_push();
 
@@ -418,19 +419,35 @@ bool pbvh_bmesh_collapse_edge_uvs(
 
   bool snap = !(boundflag2 & SCULPTVERT_ALL_CORNER);
 
-  /* snap customdata */
+  /* Snap non-UV attributes. */
   if (snap) {
+    /* Save a few attributes we don't want to snap. */
     int ni_conn = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset);
+    StrokeID stroke_id;
+    if (eq_ctx->ss->attrs.stroke_id) {
+      stroke_id = blender::bke::paint::vertex_attr_get<StrokeID>({(intptr_t)v_conn},
+                                                                 eq_ctx->ss->attrs.stroke_id);
+    }
 
     const float v_ws[2] = {0.5f, 0.5f};
     const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
 
     CustomData_bmesh_interp(
         &pbvh->header.bm->vdata, v_blocks, v_ws, nullptr, 2, v_conn->head.data);
+
+    /* Restore node index. */
     BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
+
+    /* Restore v_conn's stroke id.  This is needed to avoid a nasty
+     * bug in the layer brush that leads to an exploding mesh.
+     */
+    if (eq_ctx->ss->attrs.stroke_id) {
+      blender::bke::paint::vertex_attr_set<StrokeID>(
+          {(intptr_t)v_conn}, eq_ctx->ss->attrs.stroke_id, stroke_id);
+    }
   }
 
-  // deal with UVs
+  /* Deal with UVs. */
   if (e->l) {
     BMLoop *l = e->l;
 
@@ -562,6 +579,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   TraceData tdata;
 
+  tdata.ss = eq_ctx->ss;
   tdata.pbvh = pbvh;
   tdata.e = e;
 
@@ -597,6 +615,10 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     bm_logstack_pop();
     return nullptr;
   }
+
+  /* Make sure original data is initialized before we snap it. */
+  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
+  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
 
   bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
 
