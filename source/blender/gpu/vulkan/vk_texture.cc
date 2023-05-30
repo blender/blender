@@ -37,9 +37,41 @@ void VKTexture::init(VkImage vk_image, VkImageLayout layout)
   current_layout_ = layout;
 }
 
-void VKTexture::generate_mipmap() {}
+void VKTexture::generate_mipmap()
+{
+  NOT_YET_IMPLEMENTED
+}
 
-void VKTexture::copy_to(Texture * /*tex*/) {}
+void VKTexture::copy_to(Texture *tex)
+{
+  VKTexture *dst = unwrap(tex);
+  VKTexture *src = this;
+  BLI_assert(dst);
+  BLI_assert(src->w_ == dst->w_ && src->h_ == dst->h_ && src->d_ == dst->d_);
+  BLI_assert(src->format_ == dst->format_);
+  UNUSED_VARS_NDEBUG(src);
+
+  VKContext &context = *VKContext::get();
+  ensure_allocated();
+  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  dst->ensure_allocated();
+  dst->layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  VkImageCopy region = {};
+  region.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.srcSubresource.mipLevel = 0;
+  region.srcSubresource.layerCount = 1;
+  region.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.dstSubresource.mipLevel = 0;
+  region.dstSubresource.layerCount = 1;
+  region.extent.width = w_;
+  region.extent.height = max_ii(h_, 1);
+  region.extent.depth = max_ii(d_, 1);
+
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.copy(*dst, *this, Span<VkImageCopy>(&region, 1));
+  command_buffer.submit();
+}
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
@@ -60,9 +92,15 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
       vk_image_, current_layout_get(), clear_color, Span<VkImageSubresourceRange>(&range, 1));
 }
 
-void VKTexture::swizzle_set(const char /*swizzle_mask*/[4]) {}
+void VKTexture::swizzle_set(const char /*swizzle_mask*/[4])
+{
+  NOT_YET_IMPLEMENTED;
+}
 
-void VKTexture::mip_range_set(int /*min*/, int /*max*/) {}
+void VKTexture::mip_range_set(int /*min*/, int /*max*/)
+{
+  NOT_YET_IMPLEMENTED;
+}
 
 void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void *r_data)
 {
@@ -112,7 +150,7 @@ void VKTexture::update_sub(
     int mip, int offset[3], int extent_[3], eGPUDataFormat format, const void *data)
 {
   if (mip != 0) {
-    /* TODO: not implemented yet. */
+    NOT_YET_IMPLEMENTED;
     return;
   }
   if (!is_allocated()) {
@@ -165,6 +203,7 @@ void VKTexture::update_sub(int /*offset*/[3],
                            eGPUDataFormat /*format*/,
                            GPUPixelBuffer * /*pixbuf*/)
 {
+  NOT_YET_IMPLEMENTED;
 }
 
 /* TODO(fclem): Legacy. Should be removed at some point. */
@@ -185,6 +224,7 @@ bool VKTexture::init_internal()
 
 bool VKTexture::init_internal(GPUVertBuf * /*vbo*/)
 {
+  NOT_YET_IMPLEMENTED;
   return false;
 }
 
@@ -193,6 +233,7 @@ bool VKTexture::init_internal(GPUTexture * /*src*/,
                               int /*layer_offset*/,
                               bool /*use_stencil*/)
 {
+  NOT_YET_IMPLEMENTED;
   return false;
 }
 
@@ -382,6 +423,7 @@ void VKTexture::current_layout_set(const VkImageLayout new_layout)
 
 void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_layout)
 {
+  BLI_assert(is_allocated());
   const VkImageLayout current_layout = current_layout_get();
   if (current_layout == requested_layout) {
     return;
