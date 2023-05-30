@@ -1296,6 +1296,8 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
       &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
   const OperationKey collection_parameters_exit_key(
       &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+  const OperationKey collection_hierarchy_key(
+      &collection->id, NodeType::HIERARCHY, OperationCode::HIERARCHY);
 
   const OperationKey collection_light_linking_key(
       &collection->id, NodeType::PARAMETERS, OperationCode::LIGHT_LINKING_UPDATE);
@@ -1313,6 +1315,11 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
                "Collection Light Linking -> Exit",
                RELATION_CHECK_BEFORE_ADD);
 
+  add_relation(collection_hierarchy_key,
+               collection_light_linking_key,
+               "Collection Hierarchy -> Light Linking",
+               RELATION_CHECK_BEFORE_ADD);
+
   /* Order to ensure the emitter's light linking is only evaluated after the receiver collection.
    * This is because light linking runtime data is "cached" om the emitter object for the
    * simplicity of access, but the mask is allocated per collection bases (so that if two emitters
@@ -1320,19 +1327,6 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
   add_relation(collection_light_linking_key,
                emitter_light_linking_key,
                "Collection -> Object Light Linking");
-
-  /* Relation from the emitter to the receiving object.
-   * This allows the receiver to access emitter's bit mask. */
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, receiver) {
-    if (light_linking::can_link_to_emitter(*receiver)) {
-      const OperationKey receiver_light_linking_key(
-          &receiver->id, NodeType::SHADING, OperationCode::LIGHT_LINKING_UPDATE);
-      add_relation(emitter_light_linking_key,
-                   receiver_light_linking_key,
-                   "Emitter -> Receiver Light Linking");
-    }
-  }
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 void DepsgraphRelationBuilder::build_constraints(ID *id,

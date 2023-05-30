@@ -276,12 +276,4 @@ class Cache {
   LinkingData shadow_linking_{LIGHT_LINKING_BLOCKER};
 };
 
-/* Check whether object can be linked to an emitter without causing feedback loop. */
-inline bool can_link_to_emitter(const Object &object)
-{
-  return object.light_linking == nullptr ||
-         (object.light_linking->receiver_collection == nullptr &&
-          object.light_linking->blocker_collection == nullptr);
-}
-
 }  // namespace blender::deg::light_linking
