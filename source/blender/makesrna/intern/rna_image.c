@@ -1286,10 +1286,6 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Image Tiles", "Tiles of the image");
   rna_def_udim_tiles(brna, prop);
 
-  /*
-   * Image.has_data and Image.depth are temporary,
-   * Update import_obj.py when they are replaced (Arystan)
-   */
   prop = RNA_def_property(srna, "has_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Image_has_data_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
