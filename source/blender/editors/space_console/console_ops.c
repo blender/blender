@@ -1258,7 +1258,7 @@ static int console_selectword_invoke(bContext *C, wmOperator *UNUSED(op), const 
   if (console_line_column_from_index(sc, pos, &cl, &offset, &n)) {
     int sel[2] = {n, n};
 
-    BLI_str_cursor_step_bounds_utf8(cl->line, cl->len, n, &sel[0], &sel[1]);
+    BLI_str_cursor_step_bounds_utf8(cl->line, cl->len, n, &sel[1], &sel[0]);
 
     sel[0] = offset - sel[0];
     sel[1] = offset - sel[1];
