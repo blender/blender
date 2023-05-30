@@ -64,7 +64,7 @@ void VKTexture::swizzle_set(const char /*swizzle_mask*/[4]) {}
 
 void VKTexture::mip_range_set(int /*min*/, int /*max*/) {}
 
-void *VKTexture::read(int mip, eGPUDataFormat format)
+void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void *r_data)
 {
   VKContext &context = *VKContext::get();
   layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
@@ -72,20 +72,18 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKBuffer staging_buffer;
 
-  /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
-  int extent[3] = {1, 1, 1};
-  mip_size_get(mip, extent);
-  size_t sample_len = extent[0] * extent[1] * extent[2];
+  size_t sample_len = area[2] * area[3];
   size_t device_memory_size = sample_len * to_bytesize(format_);
-  size_t host_memory_size = sample_len * to_bytesize(format_, format);
 
   staging_buffer.create(
       device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
   VkBufferImageCopy region = {};
-  region.imageExtent.width = extent[0];
-  region.imageExtent.height = extent[1];
-  region.imageExtent.depth = extent[2];
+  region.imageOffset.x = area[0];
+  region.imageOffset.y = area[1];
+  region.imageExtent.width = area[2];
+  region.imageExtent.height = area[3];
+  region.imageExtent.depth = 1;
   region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
   region.imageSubresource.mipLevel = mip;
   region.imageSubresource.layerCount = 1;
@@ -94,8 +92,19 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
   command_buffer.copy(staging_buffer, *this, Span<VkBufferImageCopy>(&region, 1));
   command_buffer.submit();
 
+  convert_device_to_host(r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
+}
+
+void *VKTexture::read(int mip, eGPUDataFormat format)
+{
+  int mip_size[3] = {1, 1, 1};
+  mip_size_get(mip, mip_size);
+  size_t sample_len = mip_size[0] * mip_size[1];
+  size_t host_memory_size = sample_len * to_bytesize(format_, format);
+
   void *data = MEM_mallocN(host_memory_size, __func__);
-  convert_device_to_host(data, staging_buffer.mapped_memory_get(), sample_len, format, format_);
+  int area[4] = {0, 0, mip_size[0], mip_size[1]};
+  read_sub(mip, format, area, data);
   return data;
 }
 
