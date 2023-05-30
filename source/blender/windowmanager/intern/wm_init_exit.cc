@@ -713,7 +713,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
 void WM_exit(bContext *C, const int exit_code)
 {
-  const bool do_user_exit_actions = G.background ? (exit_code == EXIT_SUCCESS) : false;
+  const bool do_user_exit_actions = G.background ? false : (exit_code == EXIT_SUCCESS);
   WM_exit_ex(C, true, do_user_exit_actions);
 
   printf("\nBlender quit\n");
