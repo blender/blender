@@ -35,7 +35,7 @@ const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 static void bm_alloc_toolflags(BMesh *bm);
 
 static void bm_mempool_init_ex(const BMAllocTemplate *allocsize,
-                               const bool use_toolflags,
+                               const bool /*use_toolflags*/,
                                BLI_mempool **r_vpool,
                                BLI_mempool **r_epool,
                                BLI_mempool **r_lpool,
