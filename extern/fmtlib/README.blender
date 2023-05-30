@@ -1,7 +1,7 @@
 Project: {fmt}
 URL: https://github.com/fmtlib/fmt
 License: MIT
-Upstream version: 8.1.1 (b6f4cea)
+Upstream version: 10.0.0 (a0b8a92, 2023 May 10)
 Local modifications:
 
 - Took only files needed for Blender: LICENSE, README and include/fmt
