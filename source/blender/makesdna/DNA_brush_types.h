@@ -322,9 +322,6 @@ typedef struct Brush {
   float topology_rake_projection;
   int topology_rake_spacing;  // spacing for BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING
 
-  float vcol_boundary_factor;
-  float vcol_boundary_exponent;
-
   float crease_pinch_factor;
 
   float normal_radius_factor;

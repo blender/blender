@@ -321,11 +321,6 @@ typedef struct SculptPoseIKChain {
   SculptPoseIKChainSegment *segments;
   int tot_segments;
   float grab_delta_offset[3];
-  float bend_mat[4][4];
-  float bend_mat_inv[4][4];
-  float bend_factor;
-  float bend_limit;
-  float bend_upper_limit;
 } SculptPoseIKChain;
 
 /* Cloth Brush */
@@ -354,59 +349,6 @@ typedef enum eSculptClothConstraintType {
   /* Constraint that references the vertex position and its initial position. */
   SCULPT_CLOTH_CONSTRAINT_PIN = 3,
 } eSculptClothConstraintType;
-
-#define CLOTH_NO_POS_PTR
-
-typedef struct SculptClothConstraint {
-  signed char ctype, thread_nr;
-
-  /* Index in #SculptClothSimulation.node_state of the node from where this constraint was
-   * created. This constraints will only be used by the solver if the state is active. */
-  short node;
-
-  float strength;
-
-  /* Elements that are affected by the constraint. */
-  /* Element a should always be a mesh vertex
-   * with the index stored in elem_index_a as
-   * it is \
-   * always deformed. Element b could be
-   * another vertex of the same mesh or any
-   * other position \
-   * (arbitrary point, position for a previous
-   * state). In that case, elem_index_a and \
-   * elem_index_b should be the same to avoid
-   * affecting two different vertices when
-   * solving the \
-   * constraints. *elem_position points to the
-   * position which is owned by the element. */
-
-  struct {
-    int index;
-#ifndef CLOTH_NO_POS_PTR
-    float *position;
-#endif
-  } elems[];
-} SculptClothConstraint;
-
-#ifndef CLOTH_NO_POS_PTR
-#  define MAKE_CONSTRAINT_STRUCT(totelem) \
-    signed char ctype, thread_nr; \
-    short node; \
-    float strength; \
-    struct { \
-      int index; \
-      float *position; \
-    } elems[totelem]
-#else
-#  define MAKE_CONSTRAINT_STRUCT(totelem) \
-    signed char ctype, thread_nr; \
-    short node; \
-    float strength; \
-    struct { \
-      int index; \
-    } elems[totelem]
-#endif
 
 typedef struct SculptClothLengthConstraint {
   /* Elements that are affected by the constraint. */
@@ -467,9 +409,6 @@ typedef struct SculptClothSimulation {
 typedef struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
-
-  /* Indexed by vertex, stores the symmetrical topology vertex index found by symmetrize. */
-  int *symmetrize_map;
 } SculptVertexInfo;
 
 typedef struct SculptBoundaryEditInfo {
@@ -562,53 +501,6 @@ typedef struct SculptBoundary {
 
   int deform_target;
 } SculptBoundary;
-
-/* Array Brush. */
-typedef struct SculptArrayCopy {
-  int index;
-  int symm_pass;
-  float mat[4][4];
-  float imat[4][4];
-  float origin[3];
-} SculptArrayCopy;
-
-typedef struct ScultpArrayPathPoint {
-  float length;
-  float strength;
-  float co[3];
-  float orco[3];
-  float direction[3];
-} ScultpArrayPathPoint;
-
-typedef struct SculptArray {
-  SculptArrayCopy *copies[PAINT_SYMM_AREAS];
-  int num_copies;
-
-  struct {
-    ScultpArrayPathPoint *points;
-    int tot_points;
-    int capacity;
-    float total_length;
-  } path;
-
-  int mode;
-  float normal[3];
-  float direction[3];
-  float radial_angle;
-  float initial_radial_angle;
-
-  bool source_mat_valid;
-  float source_origin[3];
-  float source_mat[4][4];
-  float source_imat[4][4];
-  float (*orco)[3];
-
-  int *copy_index;
-  int *symmetry_pass;
-
-  float *smooth_strength;
-  struct SculptAttribute *scl_inst, *scl_sym;
-} SculptArray;
 
 typedef struct SculptFakeNeighbors {
   bool use_fake_neighbors;
@@ -919,9 +811,6 @@ struct SculptSession {
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
 
-  /* Array. */
-  SculptArray *array;
-
   /* Transform operator */
   float pivot_pos[3];
   float pivot_rot[4];
@@ -964,7 +853,7 @@ struct SculptSession {
    */
   char needs_flush_to_id;
 
-  bool fast_draw;  /* Hides facesets/masks and forces smooth to save GPU bandwidth. */
+  bool fast_draw; /* Hides facesets/masks and forces smooth to save GPU bandwidth. */
 
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.

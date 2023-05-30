@@ -203,13 +203,7 @@ bool BKE_brush_has_cube_tip(const struct Brush *brush, ePaintMode paint_mode);
 #define BKE_brush_tool_set(brush, p, tool) \
   { \
     CHECK_TYPE_ANY(brush, struct Brush *); \
-    char _old = *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset); \
     *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset) = tool; \
-    if ((p)->runtime.ob_mode == OB_MODE_SCULPT) { \
-      if (_old != tool) { \
-        BKE_brush_sculpt_reset(brush); \
-      } \
-    } \
   } \
   ((void)0)
 

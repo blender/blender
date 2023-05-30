@@ -648,14 +648,6 @@ int CustomData_name_max_length_calc(blender::StringRef name);
  */
 void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
-/* get unique layer name for a layer that doesn't currently exist */
-void CustomData_find_unique_layer_name(CustomData *data,
-                                       int type,
-                                       const char *name,
-                                       char *outname);
-
-/* try to find layer with name name; if it does not exist,
-   load the active layer name into outname*/
 void CustomData_validate_layer_name(const struct CustomData *data,
                                     eCustomDataType type,
                                     const char *name,
@@ -668,17 +660,6 @@ void CustomData_validate_layer_name(const struct CustomData *data,
 bool CustomData_verify_versions(struct CustomData *data, int index);
 
 /* BMesh specific custom-data stuff. */
-
-void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
-
-/**
- * Update active indices for active/render/clone/stencil custom data layers
- * based on indices from fdata layers
- * used by do_versions in `readfile.c` when creating pdata and ldata for pre-bmesh
- * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files.
- */
-void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata,
-                                                       struct CustomData *ldata);
 
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype);
 

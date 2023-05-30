@@ -88,12 +88,12 @@ ATOMIC_INLINE void atomic_store_uint64(uint64_t *p, uint64_t v)
 
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
-  return (uint32_t)InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
+  return (uint64_t)InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
 }
 
 ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x)
 {
-  return (uint32_t)InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
+  return (uint64_t)InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
 }
 
 /* Signed */

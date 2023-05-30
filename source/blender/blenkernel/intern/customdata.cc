@@ -2258,7 +2258,7 @@ void CustomData_regen_active_refs(CustomData *data)
     }
   }
 
-  /* explicitly flag active layers */
+  /* Explicitly flag active layers. */
   for (i = 0, j = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     CustomDataLayer *base = data->layers + data->typemap[layer->type];
@@ -2274,7 +2274,7 @@ void CustomData_regen_active_refs(CustomData *data)
     layer->active_rnd = n == base->active_rnd;
   }
 
-  /* handle case of base layers being active */
+  /* Handle case of base layers being active. */
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (data->typemap[i] == -1) {
       continue;
@@ -2288,8 +2288,9 @@ void CustomData_regen_active_refs(CustomData *data)
     base->active_rnd = !base->active_rnd;
   }
 
-  /* regenerate active refs */
-  /* set active n in base layer for all types */
+  /* Regenerate active refs,
+   * set active n in base layer for all types.
+   */
   for (i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = data->layers + i;
     CustomDataLayer *base = data->layers + data->typemap[layer->type];
@@ -2331,7 +2332,7 @@ void CustomData_regen_active_refs(CustomData *data)
   }
 }
 
-/* currently only used in BLI_assert */
+/* Currently only used in BLI_assert. */
 #ifndef NDEBUG
 static bool customdata_typemap_is_valid(const CustomData *data)
 {
@@ -2341,8 +2342,9 @@ static bool customdata_typemap_is_valid(const CustomData *data)
 }
 #endif
 
-/* copies all customdata layers without allocating data,
- * and without respect to type masks or NO_COPY/etc flags*/
+/* Copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags.
+ */
 void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
 {
   *dest = *source;
