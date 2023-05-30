@@ -1670,7 +1670,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         if path:
             col.prop(part, "display_step", text="Strand Steps")
         col.prop(part, "display_percentage", slider=True, text="Amount")
-        if part.display_method != 'RENDER':
+        if part.display_method != 'RENDER' or part.render_type == 'HALO':
             col.prop(part, "display_size", text="Size")
 
         if part.display_percentage != 100 and psys is not None:
