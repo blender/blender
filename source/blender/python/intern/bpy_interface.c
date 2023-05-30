@@ -459,14 +459,18 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   Py_DECREF(PyImport_ImportModule("threading"));
 #  endif
 
-#else
+#else /* WITH_PYTHON_MODULE */
   (void)argc;
   (void)argv;
 
-  /* must run before python initializes */
-  /* broken in py3.3, load explicitly below */
+  /* NOTE(ideasman42): unfortunately the `inittab` can only be used
+   * before Python has been initialized.
+   * When built as a Python module, Python will have been initialized
+   * and using the `inittab` isn't supported.
+   * So it's necessary to load all modules as soon as `bpy` is imported. */
   // PyImport_ExtendInittab(bpy_internal_modules);
-#endif
+
+#endif /* WITH_PYTHON_MODULE */
 
   bpy_intern_string_init();
 

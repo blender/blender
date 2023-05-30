@@ -46,4 +46,8 @@ set(LIB
   ${PYTHON_LIBRARIES}
 )
 
+if(WITH_PYTHON_MODULE)
+  add_definitions(-DWITH_PYTHON_MODULE)
+endif()
+
 blender_add_lib(bf_python_ext "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
