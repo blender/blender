@@ -541,9 +541,17 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
    *
    * Don't run this code when built as a Python module as this runs when Python is in the
    * process of shutting down, where running a snippet like this will crash, see #82675.
-   * Instead use the `atexit` module, installed by #BPY_python_start */
-  const char *imports[2] = {"addon_utils", nullptr};
-  BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
+   * Instead use the `atexit` module, installed by #BPY_python_start.
+   *
+   * Don't run this code when `C` is null because #pyrna_unregister_class
+   * passes in `CTX_data_main(C)` to un-registration functions.
+   * Further: `addon_utils.disable_all()` may call into functions that expect a valid context,
+   * supporting all these code-paths with a NULL context is quite involved for such a corner-case.
+   */
+  if (C) {
+    const char *imports[2] = {"addon_utils", nullptr};
+    BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
+  }
 #endif
 
   BLI_timer_free();
@@ -564,8 +572,6 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
     Main *bmain = CTX_data_main(C);
     ED_editors_exit(bmain, true);
   }
-
-  ED_undosys_type_free();
 
   free_openrecent();
 
@@ -601,7 +607,13 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
     BKE_image_free_unused_gpu_textures();
   }
 
-  BKE_blender_free(); /* blender.c, does entire library and spacetypes */
+  /* Frees the entire library (#G_MAIN) and space-types. */
+  BKE_blender_free();
+
+  /* Important this runs after #BKE_blender_free because the window manager may be allocated
+   * when `C` is null, holding references to undo steps which will fail to free if their types
+   * have been freed first. */
+  ED_undosys_type_free();
 
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
@@ -671,7 +683,9 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   wm_ghost_exit();
 
-  CTX_free(C);
+  if (C) {
+    CTX_free(C);
+  }
 
   GHOST_DisposeSystemPaths();
 

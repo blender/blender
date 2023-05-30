@@ -100,6 +100,13 @@ void WM_init_input_devices(void);
  */
 void WM_init(struct bContext *C, int argc, const char **argv);
 /**
+ * Main exit function (implementation).
+ *
+ * \note Unlike #WM_exit this does not call `exit()`,
+ * the caller is responsible for this.
+ *
+ * \param C: The context or null, a null context implies `do_user_exit_actions == false` &
+ * prevents some editor-exit operations from running.
  * \param do_python: Free all data associated with Blender's Python integration.
  * Also exit the Python interpreter (unless `WITH_PYTHON_MODULE` is enabled).
  * \param do_user_exit_actions: When enabled perform actions associated with a user
@@ -107,13 +114,12 @@ void WM_init(struct bContext *C, int argc, const char **argv);
  * and writing any changes to preferences.
  * Set to false in background mode or when exiting because of failed command line argument parsing.
  * In general automated actions where the user isn't making changes should pass in false too.
- *
- * \note doesn't run exit() call #WM_exit() for that.
  */
 void WM_exit_ex(struct bContext *C, bool do_python, bool do_user_exit_actions);
 
 /**
- * \brief Main exit function to close Blender ordinarily.
+ * Main exit function to close Blender ordinarily.
+ *
  * \note Use #wm_exit_schedule_delayed() to close Blender from an operator.
  * Might leak memory otherwise.
  *
