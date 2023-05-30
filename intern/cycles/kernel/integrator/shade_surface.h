@@ -222,7 +222,7 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
   }
 
   /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = light_group;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = light_group + 1;
 
 #ifdef __PATH_GUIDING__
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
@@ -351,7 +351,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const int light_group = ls.type != LIGHT_BACKGROUND ? ls.group :
                                                         kernel_data.background.lightgroup;
   IntegratorShadowState shadow_state = integrate_direct_light_shadow_init_common(
-      kg, state, &ray, bsdf_eval_sum(&bsdf_eval), mnee_vertex_count, light_group);
+      kg, state, &ray, bsdf_eval_sum(&bsdf_eval), light_group, mnee_vertex_count);
 
   if (is_transmission) {
 #ifdef __VOLUME__
