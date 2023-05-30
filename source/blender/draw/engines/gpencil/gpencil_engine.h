@@ -25,6 +25,7 @@ extern "C" {
 #include "gpencil_shader_shared.h"
 
 extern DrawEngineType draw_engine_gpencil_type;
+extern DrawEngineType draw_engine_gpencil_next_type;
 
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;

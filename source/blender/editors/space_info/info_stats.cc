@@ -186,7 +186,8 @@ static void stats_object(Object *ob,
     }
     case OB_CURVES:
     case OB_POINTCLOUD:
-    case OB_VOLUME: {
+    case OB_VOLUME:
+    case OB_GREASE_PENCIL: {
       break;
     }
   }

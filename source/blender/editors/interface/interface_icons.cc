@@ -2459,6 +2459,8 @@ int UI_icon_from_idcode(const int idcode)
     case ID_SIM:
       /* TODO: Use correct icon. */
       return ICON_PHYSICS;
+    case ID_GP:
+      return ICON_OUTLINER_DATA_GREASEPENCIL;
 
     /* No icons for these ID-types. */
     case ID_LI:

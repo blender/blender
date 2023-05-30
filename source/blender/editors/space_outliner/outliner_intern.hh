@@ -133,7 +133,8 @@ struct TreeElementIcon {
         ID_CV, \
         ID_PT, \
         ID_VO, \
-        ID_SIM) || /* Only in 'blendfile' mode ... :/ */ \
+        ID_SIM, \
+        ID_GP) || /* Only in 'blendfile' mode ... :/ */ \
    ELEM(GS((_id)->name), \
         ID_SCR, \
         ID_WM, \

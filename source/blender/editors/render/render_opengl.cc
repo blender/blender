@@ -636,6 +636,9 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
        * system that requires specific handling here. */
       gather_frames_to_render_for_grease_pencil(oglrender, (bGPdata *)id);
       break;
+    case ID_GP:
+      /* TODO: gather frames. */
+      break;
   }
 
   AnimData *adt = BKE_animdata_from_id(id);

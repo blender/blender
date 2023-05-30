@@ -53,6 +53,7 @@ set(SRC
   ../include/ED_gizmo_library.h
   ../include/ED_gizmo_utils.h
   ../include/ED_gpencil_legacy.h
+  ../include/ED_grease_pencil_draw.h
   ../include/ED_image.h
   ../include/ED_info.h
   ../include/ED_keyframes_draw.h

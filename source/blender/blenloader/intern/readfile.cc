@@ -2902,6 +2902,8 @@ static const char *dataname(short id_code)
       return "Data from VO";
     case ID_SIM:
       return "Data from SIM";
+    case ID_GP:
+      return "Data from GP";
   }
   return "Data from Lib Block";
 }

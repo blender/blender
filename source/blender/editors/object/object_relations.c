@@ -1916,6 +1916,11 @@ static void single_obdata_users(
                 ob->data,
                 BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
+          case OB_GREASE_PENCIL:
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
+            break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
             BLI_assert_msg(0, "This should never happen.");

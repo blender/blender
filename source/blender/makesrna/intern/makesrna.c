@@ -4523,6 +4523,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_dynamicpaint.c", NULL, RNA_def_dynamic_paint},
     {"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
     {"rna_gpencil_legacy.c", NULL, RNA_def_gpencil},
+    {"rna_grease_pencil.c", NULL, RNA_def_grease_pencil},
     {"rna_curves.c", NULL, RNA_def_curves},
     {"rna_image.c", "rna_image_api.c", RNA_def_image},
     {"rna_key.c", NULL, RNA_def_key},

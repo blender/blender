@@ -29,6 +29,7 @@ set(INC
   # For *_info.hh includes.
   ../compositor/realtime_compositor
   ../draw/engines/eevee_next
+  ../draw/engines/gpencil
   ../draw/engines/select
   ../draw/engines/workbench
   ../draw/intern

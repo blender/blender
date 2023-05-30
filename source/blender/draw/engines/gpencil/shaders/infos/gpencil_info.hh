@@ -2,6 +2,8 @@
 
 #include "gpu_shader_create_info.hh"
 
+#include "gpencil_defines.h"
+
 /* -------------------------------------------------------------------- */
 /** \name GPencil Object rendering
  * \{ */
@@ -26,8 +28,8 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .sampler(3, ImageType::FLOAT_2D, "gpStrokeTexture")
     .sampler(4, ImageType::DEPTH_2D, "gpSceneDepthTexture")
     .sampler(5, ImageType::FLOAT_2D, "gpMaskTexture")
-    .uniform_buf(4, "gpMaterial", "materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
-    .uniform_buf(3, "gpLight", "lights[GPENCIL_LIGHT_BUFFER_LEN]", Frequency::BATCH)
+    .uniform_buf(4, "gpMaterial", "gp_materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
+    .uniform_buf(3, "gpLight", "gp_lights[GPENCIL_LIGHT_BUFFER_LEN]", Frequency::BATCH)
     .push_constant(Type::VEC2, "viewportSize")
     /* Per Object */
     .push_constant(Type::VEC3, "gpNormal")
@@ -45,6 +47,39 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .fragment_source("gpencil_frag.glsl")
     .depth_write(DepthWrite::ANY)
     .additional_info("draw_gpencil");
+
+GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
+    .do_static_compilation(true)
+    .define("GP_LIGHT")
+    .typedef_source("gpencil_defines.h")
+    .sampler(GPENCIL_SCENE_DEPTH_TEX_SLOT, ImageType::DEPTH_2D, "gpSceneDepthTexture")
+    .sampler(GPENCIL_MASK_TEX_SLOT, ImageType::FLOAT_2D, "gpMaskTexture")
+    .sampler(GPENCIL_FILL_TEX_SLOT, ImageType::FLOAT_2D, "gpFillTexture")
+    .sampler(GPENCIL_STROKE_TEX_SLOT, ImageType::FLOAT_2D, "gpStrokeTexture")
+    .storage_buf(GPENCIL_OBJECT_SLOT, Qualifier::READ, "gpObject", "gp_object[]")
+    .storage_buf(GPENCIL_LAYER_SLOT, Qualifier::READ, "gpLayer", "gp_layer[]")
+    .storage_buf(GPENCIL_MATERIAL_SLOT, Qualifier::READ, "gpMaterial", "gp_materials[]")
+    .storage_buf(GPENCIL_LIGHT_SLOT, Qualifier::READ, "gpLight", "gp_lights[]")
+    .uniform_buf(GPENCIL_SCENE_SLOT, "gpScene", "gp_scene")
+    /* Per Scene */
+    .define("viewportSize", "gp_scene.render_size")
+    /* Per Object */
+    .define("gpNormal", "gp_object[resource_id].normal")
+    .define("gpStrokeOrder3d", "gp_object[resource_id].stroke_order3d")
+    .define("gpMaterialOffset", "gp_object[resource_id].material_offset")
+    /* Per Layer */
+    .define("layer_id", "gp_object[resource_id].layer_offset") /* TODO */
+    .define("gpVertexColorOpacity", "gp_layer[layer_id].vertex_color_opacity")
+    .define("gpLayerTint", "gp_layer[layer_id].tint")
+    .define("gpLayerOpacity", "gp_layer[layer_id].opacity")
+    .define("gpStrokeIndexOffset", "gp_layer[layer_id].stroke_index_offset")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "revealColor")
+    .vertex_out(gpencil_geometry_iface)
+    .vertex_source("gpencil_vert.glsl")
+    .fragment_source("gpencil_frag.glsl")
+    .additional_info("draw_gpencil_new")
+    .depth_write(DepthWrite::ANY);
 
 /** \} */
 

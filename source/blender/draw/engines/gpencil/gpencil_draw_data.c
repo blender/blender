@@ -233,6 +233,13 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
       mat_data->flag |= GP_FILL_HOLDOUT;
     }
 
+    if (gp_style->flag & GP_MATERIAL_STROKE_SHOW) {
+      mat_data->flag |= GP_SHOW_STROKE;
+    }
+    if (gp_style->flag & GP_MATERIAL_FILL_SHOW) {
+      mat_data->flag |= GP_SHOW_FILL;
+    }
+
     gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style, lighting_mode);
 
     /* Dots or Squares rotation. */
