@@ -14,6 +14,7 @@
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"
+#include "vk_vertex_buffer.hh"
 
 #include "BLI_math_vector.hh"
 
@@ -222,10 +223,29 @@ bool VKTexture::init_internal()
   return true;
 }
 
-bool VKTexture::init_internal(GPUVertBuf * /*vbo*/)
+bool VKTexture::init_internal(GPUVertBuf *vbo)
 {
-  NOT_YET_IMPLEMENTED;
-  return false;
+  if (!allocate()) {
+    return false;
+  }
+
+  VKVertexBuffer *vertex_buffer = unwrap(unwrap(vbo));
+
+  VkBufferImageCopy region = {};
+  region.imageExtent.width = w_;
+  region.imageExtent.height = 1;
+  region.imageExtent.depth = 1;
+  region.imageSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+  region.imageSubresource.mipLevel = 0;
+  region.imageSubresource.layerCount = 1;
+
+  VKContext &context = *VKContext::get();
+  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  command_buffer.copy(*this, vertex_buffer->buffer_, Span<VkBufferImageCopy>(&region, 1));
+  command_buffer.submit();
+
+  return true;
 }
 
 bool VKTexture::init_internal(GPUTexture * /*src*/,
