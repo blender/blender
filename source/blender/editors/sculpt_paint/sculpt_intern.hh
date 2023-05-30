@@ -319,6 +319,7 @@ struct SculptThreadedTaskData {
   float angle;
   float strength;
   bool smooth_mask;
+  bool smooth_origco;
   bool has_bm_orco;
 
   SculptProjectVector *spvc;
@@ -1212,7 +1213,7 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_co_set(SculptSession *ss, PBVHVertRef vertex, const float *co);
 void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
 const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex);
-const float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex);
+void SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]);
@@ -1915,7 +1916,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              PBVHVertRef vertex,
                                              float projection,
                                              float hard_corner_pin,
-                                             bool use_area_weights);
+                                             bool use_area_weights,
+                                             bool smooth_origco = false);
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
@@ -2465,3 +2467,8 @@ int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 int SCULPT_get_symmetry_pass(const struct SculptSession *ss);
 
 #define SCULPT_boundary_flag_update BKE_sculpt_boundary_flag_update
+
+/* Some tools need original coordinates to be smoothed during
+ * autosmooth.
+ */
+#define SCULPT_tool_needs_smooth_origco(tool) ELEM(tool, SCULPT_TOOL_DRAW_SHARP)

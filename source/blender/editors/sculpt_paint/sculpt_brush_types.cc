@@ -2882,6 +2882,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   bool modified = false;
 
+  const float projection = brush->autosmooth_projection;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float direction2[3];
 
@@ -2903,18 +2905,20 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     modified = true;
 
-    const float fade = bstrength *
-                       SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    vd.co,
-                                                    sqrtf(test.dist),
-                                                    vd.no,
-                                                    vd.fno,
-                                                    *vd.mask,
-                                                    vd.vertex,
-                                                    thread_id,
-                                                    &automask_data) *
-                       ss->cache->pressure;
+    float fade = SCULPT_brush_strength_factor(ss,
+                                              brush,
+                                              vd.co,
+                                              sqrtf(test.dist),
+                                              vd.no,
+                                              vd.fno,
+                                              *vd.mask,
+                                              vd.vertex,
+                                              thread_id,
+                                              &automask_data);
+
+    /* Make brush falloff less sharp. */
+    fade = sqrtf(fade);
+    fade *= bstrength;
 
     float oldco[3];
     float oldno[3];
@@ -2926,13 +2930,28 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     int cd_temp = data->scl->bmesh_cd_offset;
 
     SCULPT_bmesh_four_neighbor_average(
-        ss, avg, direction2, vd.bm_vert, 1.0f, hard_corner_pin, cd_temp, weighted, false);
+        ss, avg, direction2, vd.bm_vert, projection, hard_corner_pin, cd_temp, weighted, false);
 
     sub_v3_v3v3(val, avg, vd.co);
-
     madd_v3_v3v3fl(val, vd.co, val, fade);
-
     SCULPT_clip(sd, ss, vd.co, val);
+
+    if (data->smooth_origco) {
+      float origco_avg[3];
+
+      SCULPT_vertex_check_origdata(ss, vd.vertex);
+      SCULPT_bmesh_four_neighbor_average(ss,
+                                         origco_avg,
+                                         direction2,
+                                         vd.bm_vert,
+                                         projection,
+                                         hard_corner_pin,
+                                         cd_temp,
+                                         weighted,
+                                         true);
+      float *origco = blender::bke::paint::vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co);
+      interp_v3_v3v3(origco, origco, origco_avg, fade);
+    }
 
     if (do_reproject) {
       BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
@@ -2983,6 +3002,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
     data.nodes = nodes;
     data.strength = factor;
     data.scl = ss->attrs.rake_temp;
+    data.smooth_origco = SCULPT_tool_needs_smooth_origco(brush->sculpt_tool);
 
     if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
       BKE_pbvh_face_areas_begin(ss->pbvh);

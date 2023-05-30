@@ -19,6 +19,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
@@ -87,7 +88,8 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
                                                        float hard_corner_pin,
                                                        bool weighted,
                                                        eSculptBoundary bound_type,
-                                                       eSculptCorner corner_type)
+                                                       eSculptCorner corner_type,
+                                                       bool smooth_origco)
 {
   float3 avg(0.0f, 0.0f, 0.0f);
 
@@ -101,10 +103,18 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
 
+  const float *(*vertex_co_get)(SculptSession * ss,
+                                PBVHVertRef vertex) = smooth_origco ? SCULPT_vertex_origco_get :
+                                                                      SCULPT_vertex_co_get;
+  void (*vertex_no_get)(SculptSession * ss,
+                        PBVHVertRef vertex,
+                        float r_no[3]) = smooth_origco ? SCULPT_vertex_origno_get :
+                                                         SCULPT_vertex_normal_get;
+
   float *areas = nullptr;
   float3 no, co;
-  SCULPT_vertex_normal_get(ss, vertex, no);
-  co = SCULPT_vertex_co_get(ss, vertex);
+  vertex_no_get(ss, vertex, no);
+  co = vertex_co_get(ss, vertex);
 
   if (weighted) {
     const int valence = SCULPT_vertex_valence_get(ss, vertex);
@@ -141,19 +151,19 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       /* Handle smooth boundaries. */
       if (bool(is_boundary2 & smooth_types) != bool(is_boundary & smooth_types)) {
         /* Project to plane. */
-        float3 t1 = float3(SCULPT_vertex_co_get(ss, ni.vertex)) - co;
+        float3 t1 = float3(vertex_co_get(ss, ni.vertex)) - co;
 
         avg += (co + no * dot_v3v3(t1, no)) * w;
         total += w;
       }
       else if (is_boundary & is_boundary2) {
-        avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
+        avg += float3(vertex_co_get(ss, ni.vertex)) * w;
         total += w;
       }
     }
     else {
       /* Interior vertices use all neighbors. */
-      avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
+      avg += float3(vertex_co_get(ss, ni.vertex)) * w;
       total += w;
     }
   }
@@ -167,7 +177,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
       float w = weighted ? areas[ni.i] : 1.0f;
-      avg += float3(SCULPT_vertex_co_get(ss, ni.vertex)) * w;
+      avg += float3(vertex_co_get(ss, ni.vertex)) * w;
       total += w;
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -175,7 +185,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
   /* Avoid division by 0 when there are no neighbors. */
   if (total == 0) {
-    copy_v3_v3(result, SCULPT_vertex_co_get(ss, vertex));
+    copy_v3_v3(result, vertex_co_get(ss, vertex));
     return;
   }
 
@@ -198,7 +208,8 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              PBVHVertRef vertex,
                                              float projection,
                                              float hard_corner_pin,
-                                             bool use_area_weights)
+                                             bool use_area_weights,
+                                             bool smooth_origco)
 {
   eSculptBoundary bound_type = ss->smooth_boundary_flag;
   eSculptCorner corner_type;
@@ -211,8 +222,15 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     corner_type |= SCULPT_CORNER_FACE_SET;
   }
 
-  SCULPT_neighbor_coords_average_interior_ex(
-      ss, result, vertex, projection, hard_corner_pin, use_area_weights, bound_type, corner_type);
+  SCULPT_neighbor_coords_average_interior_ex(ss,
+                                             result,
+                                             vertex,
+                                             projection,
+                                             hard_corner_pin,
+                                             use_area_weights,
+                                             bound_type,
+                                             corner_type,
+                                             smooth_origco);
 }
 
 /* Compares four vectors seperated by 90 degrees around normal and picks the one closest
@@ -270,9 +288,56 @@ void vec_transform(float r_dir2[3], float no[3], int bits)
   }
 }
 
+void SCULPT_get_normal_average(
+    SculptSession *ss, float avg[3], PBVHVertRef vertex, bool weighted, bool use_original)
+{
+  float tot = 0.0f;
+  int valence = SCULPT_vertex_valence_get(ss, vertex);
+
+  float *areas = nullptr;
+
+  if (weighted) {
+    areas = (float *)BLI_array_alloca(areas, valence * 2);
+
+    BKE_pbvh_get_vert_face_areas(ss->pbvh, vertex, areas, valence);
+  }
+
+  int total = 0;
+  zero_v3(avg);
+
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    float w = weighted ? areas[ni.i] : 1.0f;
+    float no2[3];
+
+    if (!use_original) {
+      SCULPT_vertex_normal_get(ss, ni.vertex, no2);
+    }
+    else {
+      SCULPT_vertex_origno_get(ss, ni.vertex, no2);
+    }
+
+    madd_v3_v3fl(avg, no2, w);
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (total) {
+    normalize_v3(avg);
+  }
+  else {
+    if (!use_original) {
+      SCULPT_vertex_normal_get(ss, ni.vertex, avg);
+    }
+    else {
+      SCULPT_vertex_origno_get(ss, ni.vertex, avg);
+    }
+  }
+}
+
 void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float avg[3],
-                                        float direction[3],
+                                        float direction_in[3],
                                         BMVert *v,
                                         float projection,
                                         float hard_corner_pin,
@@ -297,13 +362,33 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float *origco = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_co->bmesh_cd_offset);
   float *origno = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_no->bmesh_cd_offset);
 
+  float direction[3];
+  copy_v3_v3(direction, direction_in);
+
   if (do_origco) {
+    /* Project direction into original normal's plane. */
     madd_v3_v3fl(direction, origno, -dot_v3v3(origno, direction));
     normalize_v3(direction);
   }
 
   float *co1 = do_origco ? origco : v->co;
   float *no1 = do_origco ? origno : v->no;
+
+#if 0
+  float no1[3];
+
+  float avg_no1[3];
+  copy_v3_v3(no1, do_origco ? origno : v->no);
+
+  if (G.debug_value != 893) {
+    SCULPT_get_normal_average(ss, avg_no1, vertex, weighted, do_origco);
+    interp_v3_v3v3(no1, no1, avg_no1, 1.0f);
+  }
+
+  /* Project direction into normal's plane. */
+  madd_v3_v3fl(direction, no1, -dot_v3v3(no1, direction));
+  normalize_v3(direction);
+#endif
 
   int valence = SCULPT_vertex_valence_get(ss, vertex);
 
@@ -390,7 +475,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       }
     }
 
-    closest_vec_to_perp(dir, dir2, no1, buckets, bucketw);  // field2[3]);
+    closest_vec_to_perp(dir, dir2, no1, buckets, bucketw);
 
     madd_v3_v3fl(dir3, dir2, dirw);
     totdir3 += dirw;
@@ -402,10 +487,11 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     float vec[3];
     sub_v3_v3v3(vec, co2, co1);
 
-    madd_v3_v3fl(vec, no1, -dot_v3v3(vec, no1) * projection);
+    /* Project into no1's plane. */
+    madd_v3_v3fl(vec, no1, -dot_v3v3(vec, no1) * 1.0f);
     normalize_v3(vec);
 
-    /* fac is a measure of how orthogonal or parallel the edge is
+    /* Fac is a measure of how orthogonal or parallel the edge is
      * relative to the direction. */
     float fac = dot_v3v3(vec, dir);
 
@@ -431,7 +517,6 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     add_v3_v3(avg, co1);
   }
   else {
-    // zero_v3(avg);
     copy_v3_v3(avg, co1);
   }
 
@@ -446,7 +531,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
   PBVH_CHECK_NAN(avg);
 
-  // do not update in do_origco
+  /* Do not update field when doing original coordinates. */
   if (do_origco) {
     return;
   }
@@ -497,7 +582,7 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
                                SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_FACE_SET;
 
   SCULPT_neighbor_coords_average_interior_ex(
-      ss, result, vertex, projection, hard_corner_pin, weighted, bound_type, corner_type);
+      ss, result, vertex, projection, hard_corner_pin, weighted, bound_type, corner_type, false);
 }
 
 float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
@@ -646,9 +731,9 @@ static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
   BLI_task_parallel_range(0, nodes.size(), &data, do_enhance_details_brush_task_cb_ex, &settings);
 }
 
-static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+                                                   const int n,
+                                                   const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
   SculptSession *ss = data->ob->sculpt;
@@ -715,7 +800,17 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
       float avg[3], val[3];
       SCULPT_neighbor_coords_average_interior(
-          ss, avg, vd.vertex, projection, hard_corner_pin, weighted);
+          ss, avg, vd.vertex, projection, hard_corner_pin, weighted, false);
+
+      if (data->smooth_origco) {
+        float origco_avg[3];
+
+        SCULPT_neighbor_coords_average_interior(
+            ss, origco_avg, vd.vertex, projection, hard_corner_pin, weighted, true);
+        float *origco = blender::bke::paint::vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co);
+        interp_v3_v3v3(origco, origco, origco_avg, fade);
+      }
+
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
@@ -798,6 +893,7 @@ void SCULPT_smooth(
     data.brush = brush;
     data.nodes = nodes;
     data.smooth_mask = smooth_mask;
+    data.smooth_origco = SCULPT_tool_needs_smooth_origco(brush->sculpt_tool);
     data.strength = strength;
 
     TaskParallelSettings settings;

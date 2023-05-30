@@ -179,9 +179,9 @@ const float *SCULPT_vertex_origco_get(SculptSession *ss, PBVHVertRef vertex)
   return vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 }
 
-const float *SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex)
+void SCULPT_vertex_origno_get(SculptSession *ss, PBVHVertRef vertex, float r_no[3])
 {
-  return vertex_attr_ptr<float>(vertex, ss->attrs.orig_no);
+  copy_v3_v3(r_no, vertex_attr_ptr<float>(vertex, ss->attrs.orig_no));
 }
 
 int SCULPT_vertex_count_get(const SculptSession *ss)
