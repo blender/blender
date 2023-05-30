@@ -145,7 +145,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
   /* Set App Id for the process so our console will be grouped on the Task Bar. */
   UTF16_ENCODE(BLENDER_WIN_APPID);
-  HRESULT result = SetCurrentProcessExplicitAppUserModelID(BLENDER_WIN_APPID_16);
+  SetCurrentProcessExplicitAppUserModelID(BLENDER_WIN_APPID_16);
   UTF16_UN_ENCODE(BLENDER_WIN_APPID);
 
   /* Check if current keyboard layout uses AltGr and save keylayout ID for
