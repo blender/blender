@@ -364,17 +364,18 @@ static void export_endjob(void *customdata)
 static void create_temp_path_for_usdz_export(const char *filepath,
                                              blender::io::usd::ExportJobData *job)
 {
-  char file[FILE_MAX];
-  BLI_path_split_file_part(filepath, file, FILE_MAX);
-  char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
+  char usdc_file[FILE_MAX];
+  STRNCPY(usdc_file, BLI_path_basename(filepath));
+
+  if (BLI_path_extension_check(usdc_file, ".usdz")) {
+    BLI_path_extension_replace(usdc_file, sizeof(usdc_file), ".usdc");
+  }
 
   char usdc_temp_filepath[FILE_MAX];
   BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file);
 
   STRNCPY(job->unarchived_filepath, usdc_temp_filepath);
   STRNCPY(job->usdz_filepath, filepath);
-
-  MEM_freeN(usdc_file);
 }
 
 static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *filepath)
