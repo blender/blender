@@ -1544,6 +1544,13 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
                     r_phis,
                     &final_extent);
 
+  /* Housekeeping. */
+  for (const int64_t i : aabbs.index_range()) {
+    UVAABBIsland *aabb = aabbs[i];
+    aabbs[i] = nullptr;
+    delete aabb;
+  }
+
   return get_aspect_scaled_extent(final_extent, params);
 }
 
