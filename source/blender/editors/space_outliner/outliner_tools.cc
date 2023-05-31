@@ -548,6 +548,36 @@ static const EnumPropertyItem prop_lib_op_selection_set[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static bool outliner_do_libdata_operation_selection_set_element(
+    bContext *C,
+    ReportList *reports,
+    Scene *scene,
+    TreeElement *element,
+    TreeStoreElem *tselem,
+    const bool has_parent_selected,
+    outliner_operation_fn operation_fn,
+    eOutlinerLibOpSelectionSet selection_set,
+    void *user_data)
+{
+  const bool do_selected = ELEM(selection_set,
+                                OUTLINER_LIB_SELECTIONSET_SELECTED,
+                                OUTLINER_LIB_LIB_SELECTIONSET_SELECTED_AND_CONTENT);
+  const bool do_content = ELEM(selection_set,
+                               OUTLINER_LIB_LIB_SELECTIONSET_CONTENT,
+                               OUTLINER_LIB_LIB_SELECTIONSET_SELECTED_AND_CONTENT);
+
+  const bool is_selected = tselem->flag & TSE_SELECTED;
+  if ((is_selected && do_selected) || (has_parent_selected && do_content)) {
+    if (((tselem->type == TSE_SOME_ID) && (element->idcode != 0)) ||
+        tselem->type == TSE_LAYER_COLLECTION)
+    {
+      TreeStoreElem *tsep = element->parent ? TREESTORE(element->parent) : nullptr;
+      operation_fn(C, reports, scene, element, tsep, tselem, user_data);
+    }
+  }
+  return is_selected;
+}
+
 static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         ReportList *reports,
                                                         Scene *scene,
@@ -558,27 +588,21 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         eOutlinerLibOpSelectionSet selection_set,
                                                         void *user_data)
 {
-  const bool do_selected = ELEM(selection_set,
-                                OUTLINER_LIB_SELECTIONSET_SELECTED,
-                                OUTLINER_LIB_LIB_SELECTIONSET_SELECTED_AND_CONTENT);
-  const bool do_content = ELEM(selection_set,
-                               OUTLINER_LIB_LIB_SELECTIONSET_CONTENT,
-                               OUTLINER_LIB_LIB_SELECTIONSET_SELECTED_AND_CONTENT);
-
   LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
     /* Get needed data out in case element gets freed. */
     TreeStoreElem *tselem = TREESTORE(element);
     const ListBase subtree = element->subtree;
 
-    bool is_selected = tselem->flag & TSE_SELECTED;
-    if ((is_selected && do_selected) || (has_parent_selected && do_content)) {
-      if (((tselem->type == TSE_SOME_ID) && (element->idcode != 0)) ||
-          tselem->type == TSE_LAYER_COLLECTION)
-      {
-        TreeStoreElem *tsep = element->parent ? TREESTORE(element->parent) : nullptr;
-        operation_fn(C, reports, scene, element, tsep, tselem, user_data);
-      }
-    }
+    const bool is_selected = outliner_do_libdata_operation_selection_set_element(
+        C,
+        reports,
+        scene,
+        element,
+        tselem,
+        has_parent_selected,
+        operation_fn,
+        selection_set,
+        user_data);
 
     /* Don't access element from now on, it may be freed. Note that the open/collapsed state may
      * also have been changed in the visitor callback. */
@@ -600,8 +624,40 @@ static void outliner_do_libdata_operation_selection_set(bContext *C,
                                                         SpaceOutliner *space_outliner,
                                                         outliner_operation_fn operation_fn,
                                                         eOutlinerLibOpSelectionSet selection_set,
-                                                        void *user_data)
+                                                        void *user_data,
+                                                        const bool do_active_element_first)
 {
+  if (do_active_element_first) {
+    TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->tree,
+                                                                  TSE_ACTIVE);
+    if (active_element != nullptr) {
+      TreeStoreElem *tselem = TREESTORE(active_element);
+      const ListBase subtree = active_element->subtree;
+
+      const bool is_selected = outliner_do_libdata_operation_selection_set_element(C,
+                                                                                   reports,
+                                                                                   scene,
+                                                                                   active_element,
+                                                                                   tselem,
+                                                                                   false,
+                                                                                   operation_fn,
+                                                                                   selection_set,
+                                                                                   user_data);
+
+      /* Don't access element from now on, it may be freed. Note that the open/collapsed state may
+       * also have been changed in the visitor callback. */
+      outliner_do_libdata_operation_selection_set(C,
+                                                  reports,
+                                                  scene,
+                                                  space_outliner,
+                                                  subtree,
+                                                  is_selected,
+                                                  operation_fn,
+                                                  selection_set,
+                                                  user_data);
+    }
+  }
+
   outliner_do_libdata_operation_selection_set(C,
                                               reports,
                                               scene,
@@ -1046,16 +1102,26 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   }
 
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_root_reference)) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "Could not create library override from data-block '%s', as it is not overridable",
-                id_root_reference->name);
+    if (ID_IS_LINKED(id_root_reference)) {
+      BKE_reportf(
+          reports,
+          RPT_WARNING,
+          "Could not create library override from data-block '%s', as it is not overridable",
+          id_root_reference->name);
+    }
+    /* Else it's a local ID, do not bother reporting this, as it gets annoyingly noisy then when
+     * operated e.g. on a hierarchy of liboverrides. */
     return;
   }
 
   BLI_assert(do_hierarchy);
   UNUSED_VARS_NDEBUG(do_hierarchy);
 
+  /* Only process a given ID once. Otherwise, all kind of weird things can happen if e.g. a
+   * selected sub-collection is part of more than one override hierarchies. */
+  if (data->selected_id_uid.contains(id_root_reference->session_uuid)) {
+    return;
+  }
   data->selected_id_uid.add(id_root_reference->session_uuid);
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
@@ -1806,7 +1872,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
           space_outliner,
           id_override_library_create_hierarchy_pre_process_fn,
           selection_set,
-          &override_data);
+          &override_data,
+          true);
 
       id_override_library_create_hierarchy_process(C, op->reports, override_data);
 
@@ -1821,7 +1888,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_reset_fn,
                                                   selection_set,
-                                                  &override_data);
+                                                  &override_data,
+                                                  false);
       ED_undo_push(C, "Reset Overridden Data");
       break;
     }
@@ -1832,7 +1900,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_clear_single_fn,
                                                   selection_set,
-                                                  nullptr);
+                                                  nullptr,
+                                                  false);
       ED_undo_push(C, "Clear Overridden Data");
       break;
     }
@@ -1846,7 +1915,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_resync_fn,
                                                   OUTLINER_LIB_SELECTIONSET_SELECTED,
-                                                  &override_data);
+                                                  &override_data,
+                                                  false);
 
       id_override_library_resync_hierarchy_process(C, op->reports, override_data);
 
@@ -1863,7 +1933,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_resync_fn,
                                                   OUTLINER_LIB_SELECTIONSET_SELECTED,
-                                                  &override_data);
+                                                  &override_data,
+                                                  false);
 
       id_override_library_resync_hierarchy_process(C, op->reports, override_data);
 
@@ -1879,7 +1950,8 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   space_outliner,
                                                   id_override_library_delete_hierarchy_fn,
                                                   OUTLINER_LIB_SELECTIONSET_SELECTED,
-                                                  &override_data);
+                                                  &override_data,
+                                                  false);
 
       id_override_library_delete_hierarchy_process(C, op->reports, override_data);
 
