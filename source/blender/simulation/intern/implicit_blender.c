@@ -364,8 +364,7 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
   float d;
 
   if ((d = det_fmatrix(from)) == 0) {
-    printf("can't build inverse");
-    exit(0);
+    // printf("can't build inverse");
   }
   for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) {

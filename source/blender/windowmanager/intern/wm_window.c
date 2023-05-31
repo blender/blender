@@ -1677,7 +1677,7 @@ void wm_ghost_init(bContext *C)
     /* GHOST will have reported the back-ends that failed to load. */
     fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
     /* This will leak memory, it's preferable to crashing. */
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 #if !(defined(WIN32) || defined(__APPLE__))
   g_system_backend_id = GHOST_SystemBackend();
