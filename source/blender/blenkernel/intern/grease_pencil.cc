@@ -495,13 +495,13 @@ LayerGroup::LayerGroup(const LayerGroup &other) : LayerGroup()
     switch (child->type) {
       case GP_LAYER_TREE_LEAF: {
         GreasePencilLayer *layer = reinterpret_cast<GreasePencilLayer *>(child);
-        Layer *dup_layer = new Layer(layer->wrap());
+        Layer *dup_layer = MEM_new<Layer>(__func__, layer->wrap());
         this->add_layer(dup_layer);
         break;
       }
       case GP_LAYER_TREE_GROUP: {
         GreasePencilLayerTreeGroup *group = reinterpret_cast<GreasePencilLayerTreeGroup *>(child);
-        LayerGroup *dup_group = new LayerGroup(group->wrap());
+        LayerGroup *dup_group = MEM_new<LayerGroup>(__func__, group->wrap());
         this->add_group(dup_group);
         break;
       }
@@ -517,12 +517,12 @@ LayerGroup::~LayerGroup()
     switch (child->type) {
       case GP_LAYER_TREE_LEAF: {
         GreasePencilLayer *layer = reinterpret_cast<GreasePencilLayer *>(child);
-        layer->wrap().~Layer();
+        MEM_delete(&layer->wrap());
         break;
       }
       case GP_LAYER_TREE_GROUP: {
         GreasePencilLayerTreeGroup *group = reinterpret_cast<GreasePencilLayerTreeGroup *>(child);
-        group->wrap().~LayerGroup();
+        MEM_delete(&group->wrap());
         break;
       }
     }
@@ -543,7 +543,7 @@ LayerGroup &LayerGroup::add_group(LayerGroup *group)
 
 LayerGroup &LayerGroup::add_group(StringRefNull name)
 {
-  LayerGroup *new_group = new LayerGroup(name);
+  LayerGroup *new_group = MEM_new<LayerGroup>(__func__, name);
   return this->add_group(new_group);
 }
 
@@ -558,7 +558,7 @@ Layer &LayerGroup::add_layer(Layer *layer)
 
 Layer &LayerGroup::add_layer(StringRefNull name)
 {
-  Layer *new_layer = new Layer(name);
+  Layer *new_layer = MEM_new<Layer>(__func__, name);
   return this->add_layer(new_layer);
 }
 
