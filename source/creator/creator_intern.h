@@ -67,7 +67,12 @@ enum {
   /** Currently use for audio devices. */
   ARG_PASS_SETTINGS_FORCE = 4,
 
-  /** Actions & fall back to loading blend file. */
+  /**
+   * Actions & fall back to loading blend file.
+   *
+   * \note arguments in the final pass must use #WM_exit instead of `exit()`  environment is
+   * properly shut-down (temporary directory deleted, etc).
+   */
   ARG_PASS_FINAL = 5,
 };
 
