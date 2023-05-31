@@ -601,7 +601,6 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   }
 
   BKE_blender_free(); /* blender.c, does entire library and spacetypes */
-                      //  BKE_material_copybuf_free();
 
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
@@ -609,6 +608,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
     DRW_subdiv_free();
   }
 
+  BKE_material_copybuf_free();
   ANIM_fcurves_copybuf_free();
   ANIM_drivers_copybuf_free();
   ANIM_driver_vars_copybuf_free();
