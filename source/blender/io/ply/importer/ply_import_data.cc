@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup ply
@@ -583,6 +585,7 @@ static const char *skip_element(PlyReadBuffer &file,
   if (header.type == PlyFormatType::ASCII) {
     for (int i = 0; i < element.count; i++) {
       Span<char> line = file.read_line();
+      (void)line;
     }
   }
   else {

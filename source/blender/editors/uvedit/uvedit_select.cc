@@ -1,13 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -81,7 +82,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             const ToolSettings *ts,
                                             Object *obedit);
 
-typedef enum {
+enum eUVSelectSimilar {
   UV_SSIM_AREA_UV = 1000,
   UV_SSIM_AREA_3D,
   UV_SSIM_FACE,
@@ -92,7 +93,7 @@ typedef enum {
   UV_SSIM_PIN,
   UV_SSIM_SIDES,
   UV_SSIM_WINDING,
-} eUVSelectSimilar;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Active Selection Tracking
@@ -765,7 +766,8 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
                                                                       BMVert *v_pivot,
                                                                       const BMUVOffsets offsets)
 {
-  BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_edge, offsets) == NULL);
+  BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_edge, offsets) ==
+             nullptr);
 
   BMLoop *l_step = l_edge;
   l_step = (l_step->v == v_pivot) ? l_step->prev : l_step->next;
@@ -781,7 +783,7 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
 
   if (l_step_last != nullptr) {
     BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_step_last, offsets) ==
-               NULL);
+               nullptr);
   }
 
   return l_step_last;
@@ -1802,7 +1804,7 @@ static void uv_select_linked_multi(Scene *scene,
 
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BLI_assert(active_uv_name != NULL);
+    BLI_assert(active_uv_name != nullptr);
     BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
     BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
     const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
@@ -2872,7 +2874,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend",
                          "Extend selection rather than clearing the existing selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2934,7 +2936,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend",
                          "Extend selection rather than clearing the existing selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -3078,13 +3080,13 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend",
                          "Extend selection rather than clearing the existing selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "deselect",
-                         0,
+                         false,
                          "Deselect",
                          "Deselect linked UV vertices rather than selecting them");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -3704,7 +3706,7 @@ void UV_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
+  RNA_def_boolean(ot->srna, "pinned", false, "Pinned", "Border select pinned UVs only");
 
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);

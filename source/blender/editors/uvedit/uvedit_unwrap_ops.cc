@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -103,7 +104,7 @@ static void modifier_unwrap_state(Object *obedit, const Scene *scene, bool *r_us
 static bool ED_uvedit_ensure_uvs(Object *obedit)
 {
   if (ED_uvedit_test(obedit)) {
-    return 1;
+    return true;
   }
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -116,7 +117,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
 
   /* Happens when there are no faces. */
   if (!ED_uvedit_test(obedit)) {
-    return 0;
+    return false;
   }
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -135,7 +136,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
     }
   }
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -547,8 +548,8 @@ static void texface_from_original_index(const Scene *scene,
   BMIter liter;
 
   *r_uv = nullptr;
-  *r_pin = 0;
-  *r_select = 1;
+  *r_pin = false;
+  *r_select = true;
 
   if (index == ORIGINDEX_NONE) {
     return;
@@ -1008,7 +1009,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "fill_holes",
-                  1,
+                  true,
                   "Fill Holes",
                   "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
@@ -1838,8 +1839,10 @@ void ED_uvedit_live_unwrap_end(short cancel)
 #define POLAR_ZX 0
 #define POLAR_ZY 1
 
-#define PINCH 0
-#define FAN 1
+enum {
+  PINCH = 0,
+  FAN = 1,
+};
 
 static void uv_map_transform_calc_bounds(BMEditMesh *em, float r_min[3], float r_max[3])
 {
@@ -2051,8 +2054,11 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
                "Align",
                "How to determine rotation around the pole");
   RNA_def_enum(ot->srna, "pole", pole_items, PINCH, "Pole", "How to handle faces at the poles");
-  RNA_def_boolean(
-      ot->srna, "seam", 0, "Preserve Seams", "Separate projections by islands isolated by seams");
+  RNA_def_boolean(ot->srna,
+                  "seam",
+                  false,
+                  "Preserve Seams",
+                  "Separate projections by islands isolated by seams");
 
   if (radius) {
     RNA_def_float(ot->srna,
@@ -2166,20 +2172,20 @@ static void uv_map_clip_correct_properties_ex(wmOperatorType *ot, bool clip_to_b
 {
   RNA_def_boolean(ot->srna,
                   "correct_aspect",
-                  1,
+                  true,
                   "Correct Aspect",
                   "Map UVs taking image aspect ratio into account");
   /* Optional, since not all unwrapping types need to be clipped. */
   if (clip_to_bounds) {
     RNA_def_boolean(ot->srna,
                     "clip_to_bounds",
-                    0,
+                    false,
                     "Clip to Bounds",
                     "Clip UV coordinates to bounds after unwrapping");
   }
   RNA_def_boolean(ot->srna,
                   "scale_to_bounds",
-                  0,
+                  false,
                   "Scale to Bounds",
                   "Scale UV coordinates to bounds after unwrapping");
 }
@@ -2575,13 +2581,13 @@ void UV_OT_unwrap(wmOperatorType *ot)
                "being somewhat slower)");
   RNA_def_boolean(ot->srna,
                   "fill_holes",
-                  1,
+                  true,
                   "Fill Holes",
                   "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
   RNA_def_boolean(ot->srna,
                   "correct_aspect",
-                  1,
+                  true,
                   "Correct Aspect",
                   "Map UVs taking image aspect ratio into account");
   RNA_def_boolean(
@@ -3139,7 +3145,7 @@ static bool uv_from_view_poll(bContext *C)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
   if (!ED_operator_uvmap(C)) {
-    return 0;
+    return false;
   }
 
   return (rv3d != nullptr);
@@ -3160,10 +3166,10 @@ void UV_OT_project_from_view(wmOperatorType *ot)
   ot->poll = uv_from_view_poll;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection");
+  RNA_def_boolean(ot->srna, "orthographic", false, "Orthographic", "Use orthographic projection");
   RNA_def_boolean(ot->srna,
                   "camera_bounds",
-                  1,
+                  true,
                   "Camera Bounds",
                   "Map UVs to the camera region taking resolution and aspect into account");
   uv_map_clip_correct_properties(ot);

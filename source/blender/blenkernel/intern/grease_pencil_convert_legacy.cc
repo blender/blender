@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -176,11 +177,9 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
 {
   using namespace blender::bke::greasepencil;
 
-  int num_layers = 0;
   int num_drawings = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd.layers) {
     num_drawings += BLI_listbase_count(&gpl->frames);
-    num_layers++;
   }
 
   grease_pencil.drawing_array_size = num_drawings;

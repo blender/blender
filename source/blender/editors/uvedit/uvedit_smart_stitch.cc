@@ -1,13 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,7 +59,7 @@
 /* ********************** smart stitch operator *********************** */
 
 /* object that stores display data for previewing before confirming stitching */
-typedef struct StitchPreviewer {
+struct StitchPreviewer {
   /* here we'll store the preview triangle indices of the mesh */
   float *preview_polys;
   /* uvs per polygon. */
@@ -76,7 +77,7 @@ typedef struct StitchPreviewer {
   /* ...and here we'll store the static island triangles */
   float *static_tris;
   uint num_static_tris;
-} StitchPreviewer;
+};
 
 struct IslandStitchData;
 
@@ -85,7 +86,7 @@ struct IslandStitchData;
  * that will move and take the mean displacement/rotation and apply it to all
  * elements of the island except from the stitchable.
  */
-typedef struct IslandStitchData {
+struct IslandStitchData {
   /* rotation can be used only for edges, for vertices there is no such notion */
   float rotation;
   float rotation_neg;
@@ -101,15 +102,15 @@ typedef struct IslandStitchData {
   char stitchableCandidate;
   /* if edge rotation is used, flag so that vertex rotation is not used */
   bool use_edge_rotation;
-} IslandStitchData;
+};
 
 /* just for averaging UVs */
-typedef struct UVVertAverage {
+struct UVVertAverage {
   float uv[2];
   ushort count;
-} UVVertAverage;
+};
 
-typedef struct UvEdge {
+struct UvEdge {
   /** index to uv buffer */
   uint uv1;
   uint uv2;
@@ -126,10 +127,10 @@ typedef struct UvEdge {
   UvEdge *next;
   /** point to first of common edges. Needed for iteration */
   UvEdge *first;
-} UvEdge;
+};
 
 /* stitch state object */
-typedef struct StitchState {
+struct StitchState {
   /** The `aspect[0] / aspect[1]`. */
   float aspect;
   /* object for editmesh */
@@ -165,10 +166,10 @@ typedef struct StitchState {
   uint *tris_per_island;
   /* preview data */
   StitchPreviewer *stitch_preview;
-} StitchState;
+};
 
 /* Stitch state container. */
-typedef struct StitchStateContainer {
+struct StitchStateContainer {
   /* clear seams of stitched edges after stitch */
   bool clear_seams;
   /* use limit flag */
@@ -192,20 +193,22 @@ typedef struct StitchStateContainer {
   StitchState **states;
 
   int active_object_index;
-} StitchStateContainer;
+};
 
-typedef struct PreviewPosition {
+struct PreviewPosition {
   int data_position;
   int polycount_position;
-} PreviewPosition;
+};
 /*
  * defines for UvElement/UcEdge flags
  */
-#define STITCH_SELECTED 1
-#define STITCH_STITCHABLE 2
-#define STITCH_PROCESSED 4
-#define STITCH_BOUNDARY 8
-#define STITCH_STITCHABLE_CANDIDATE 16
+enum {
+  STITCH_SELECTED = 1,
+  STITCH_STITCHABLE = 2,
+  STITCH_PROCESSED = 4,
+  STITCH_BOUNDARY = 8,
+  STITCH_STITCHABLE_CANDIDATE = 16,
+};
 
 #define STITCH_NO_PREVIEW -1
 
@@ -215,19 +218,19 @@ enum StitchModes {
 };
 
 /** #UvElement identification. */
-typedef struct UvElementID {
+struct UvElementID {
   int faceIndex;
   int elementIndex;
-} UvElementID;
+};
 
 /** #StitchState initialization. */
-typedef struct StitchStateInit {
+struct StitchStateInit {
   int uv_selected_count;
   UvElementID *to_select;
-} StitchStateInit;
+};
 
 /* constructor */
-static StitchPreviewer *stitch_preview_init(void)
+static StitchPreviewer *stitch_preview_init()
 {
   StitchPreviewer *stitch_preview;
 
@@ -316,7 +319,7 @@ static bool stitch_check_uvs_stitchable(const int cd_loop_uv_offset,
   float limit;
 
   if (element_iter == element) {
-    return 0;
+    return false;
   }
 
   limit = ssc->limit_dist;
@@ -330,11 +333,11 @@ static bool stitch_check_uvs_stitchable(const int cd_loop_uv_offset,
     float *luv_iter = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
     if (fabsf(luv[0] - luv_iter[0]) < limit && fabsf(luv[1] - luv_iter[1]) < limit) {
-      return 1;
+      return true;
     }
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static bool stitch_check_edges_stitchable(const int cd_loop_uv_offset,
@@ -346,7 +349,7 @@ static bool stitch_check_edges_stitchable(const int cd_loop_uv_offset,
   float limit;
 
   if (edge_iter == edge) {
-    return 0;
+    return false;
   }
 
   limit = ssc->limit_dist;
@@ -361,11 +364,11 @@ static bool stitch_check_edges_stitchable(const int cd_loop_uv_offset,
     if (fabsf(luv_orig1[0] - luv_iter1[0]) < limit && fabsf(luv_orig1[1] - luv_iter1[1]) < limit &&
         fabsf(luv_orig2[0] - luv_iter2[0]) < limit && fabsf(luv_orig2[1] - luv_iter2[1]) < limit)
     {
-      return 1;
+      return true;
     }
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static bool stitch_check_uvs_state_stitchable(const int cd_loop_uv_offset,
@@ -376,7 +379,7 @@ static bool stitch_check_uvs_state_stitchable(const int cd_loop_uv_offset,
   if ((ssc->snap_islands && element->island == element_iter->island) ||
       (!ssc->midpoints && element->island == element_iter->island))
   {
-    return 0;
+    return false;
   }
 
   return stitch_check_uvs_stitchable(cd_loop_uv_offset, element, element_iter, ssc);
@@ -391,7 +394,7 @@ static bool stitch_check_edges_state_stitchable(const int cd_loop_uv_offset,
   if ((ssc->snap_islands && edge->element->island == edge_iter->element->island) ||
       (!ssc->midpoints && edge->element->island == edge_iter->element->island))
   {
-    return 0;
+    return false;
   }
 
   return stitch_check_edges_stitchable(cd_loop_uv_offset, edge, edge_iter, ssc, state);
@@ -1503,9 +1506,9 @@ static bool uv_edge_compare(const void *a, const void *b)
   BLI_assert(edge2->uv1 < edge2->uv2);
 
   if ((edge1->uv1 == edge2->uv1) && (edge1->uv2 == edge2->uv2)) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 /* select all common edges */
@@ -2712,10 +2715,10 @@ void UV_OT_stitch(wmOperatorType *ot)
 
   /* properties */
   RNA_def_boolean(
-      ot->srna, "use_limit", 0, "Use Limit", "Stitch UVs within a specified limit distance");
+      ot->srna, "use_limit", false, "Use Limit", "Stitch UVs within a specified limit distance");
   RNA_def_boolean(ot->srna,
                   "snap_islands",
-                  1,
+                  true,
                   "Snap Islands",
                   "Snap islands together (on edge stitch mode, rotates the islands too)");
 
@@ -2748,10 +2751,10 @@ void UV_OT_stitch(wmOperatorType *ot)
               INT_MAX);
   RNA_def_boolean(ot->srna,
                   "midpoint_snap",
-                  0,
+                  false,
                   "Snap at Midpoint",
                   "UVs are stitched at midpoint instead of at static island");
-  RNA_def_boolean(ot->srna, "clear_seams", 1, "Clear Seams", "Clear seams of stitched edges");
+  RNA_def_boolean(ot->srna, "clear_seams", true, "Clear Seams", "Clear seams of stitched edges");
   RNA_def_enum(ot->srna,
                "mode",
                stitch_modes,

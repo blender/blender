@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 

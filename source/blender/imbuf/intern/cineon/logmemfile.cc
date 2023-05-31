@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Joseph Eagar <joeedh@gmail.com>. */
+/* SPDX-FileCopyrightText: 2006 Joseph Eagar <joeedh@gmail.com>.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbcineon

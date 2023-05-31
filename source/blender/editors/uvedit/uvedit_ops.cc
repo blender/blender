@@ -1,13 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -67,11 +68,11 @@ bool ED_uvedit_test(Object *obedit)
   int ret;
 
   if (!obedit) {
-    return 0;
+    return false;
   }
 
   if (obedit->type != OB_MESH) {
-    return 0;
+    return false;
   }
 
   em = BKE_editmesh_from_object(obedit);
@@ -352,7 +353,7 @@ bool ED_uvedit_center_from_pivot(
 /** \name Weld Align Operator
  * \{ */
 
-typedef enum eUVWeldAlign {
+enum eUVWeldAlign {
   UV_STRAIGHTEN,
   UV_STRAIGHTEN_X,
   UV_STRAIGHTEN_Y,
@@ -360,7 +361,7 @@ typedef enum eUVWeldAlign {
   UV_ALIGN_X,
   UV_ALIGN_Y,
   UV_WELD,
-} eUVWeldAlign;
+};
 
 static bool uvedit_uv_align_weld(Scene *scene,
                                  BMesh *bm,
@@ -402,11 +403,11 @@ static bool uvedit_uv_align_weld(Scene *scene,
 }
 
 /** Bitwise-or together, then choose loop with highest value. */
-typedef enum eUVEndPointPrecedence {
+enum eUVEndPointPrecedence {
   UVEP_INVALID = 0,
   UVEP_SELECTED = (1 << 0),
   UVEP_PINNED = (1 << 1), /* i.e. Pinned verts are preferred to selected. */
-} eUVEndPointPrecedence;
+};
 ENUM_OPERATORS(eUVEndPointPrecedence, UVEP_PINNED);
 
 static eUVEndPointPrecedence uvedit_line_update_get_precedence(const bool pinned)
@@ -962,8 +963,11 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
                 "Maximum distance between welded vertices",
                 0.0f,
                 1.0f);
-  RNA_def_boolean(
-      ot->srna, "use_unselected", 0, "Unselected", "Merge selected to other unselected vertices");
+  RNA_def_boolean(ot->srna,
+                  "use_unselected",
+                  false,
+                  "Unselected",
+                  "Merge selected to other unselected vertices");
 }
 
 /** \} */
@@ -1397,7 +1401,7 @@ static void UV_OT_pin(wmOperatorType *ot)
 
   /* properties */
   RNA_def_boolean(
-      ot->srna, "clear", 0, "Clear", "Clear pinning for the selection instead of setting it");
+      ot->srna, "clear", false, "Clear", "Clear pinning for the selection instead of setting it");
 }
 
 /** \} */
@@ -1588,7 +1592,8 @@ static void UV_OT_hide(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* props */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
+  RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected");
 }
 
 /** \} */
@@ -1907,8 +1912,8 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
   ot->exec = uv_seams_from_islands_exec;
   ot->poll = ED_operator_uvedit;
 
-  RNA_def_boolean(ot->srna, "mark_seams", 1, "Mark Seams", "Mark boundary edges as seams");
-  RNA_def_boolean(ot->srna, "mark_sharp", 0, "Mark Sharp", "Mark boundary edges as sharp");
+  RNA_def_boolean(ot->srna, "mark_seams", true, "Mark Seams", "Mark boundary edges as seams");
+  RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark boundary edges as sharp");
 }
 
 /** \} */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 

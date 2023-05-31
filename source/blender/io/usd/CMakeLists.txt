@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation
 
 # This suppresses the warning "This file includes at least one deprecated or antiquated
 # header which may be removed without further notice at a future date", which is caused

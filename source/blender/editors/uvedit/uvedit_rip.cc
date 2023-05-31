@@ -1,12 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -51,7 +53,7 @@
  * \{ */
 
 /** Unordered loop data, stored in #BMLoop.head.index. */
-typedef struct ULData {
+struct ULData {
   /** When the specified UV edge is selected. */
   uint is_select_edge : 1;
   /**
@@ -81,7 +83,7 @@ typedef struct ULData {
    * depending on the order of addition.
    */
   uint side_was_swapped : 1;
-} ULData;
+};
 
 /** Ensure this fits in an int (loop index). */
 BLI_STATIC_ASSERT(sizeof(ULData) <= sizeof(int), "");
@@ -279,10 +281,10 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
 /** \name UV Rip Single
  * \{ */
 
-typedef struct UVRipSingle {
+struct UVRipSingle {
   /** Walk around the selected UV point, store #BMLoop. */
   GSet *loops;
-} UVRipSingle;
+};
 
 /**
  * Handle single loop, the following cases:
@@ -431,10 +433,10 @@ static void uv_rip_single_free(UVRipSingle *rip)
 /** \name UV Rip Loop Pairs
  * \{ */
 
-typedef struct UVRipPairs {
+struct UVRipPairs {
   /** Walk along the UV selection, store #BMLoop. */
   GSet *loops;
-} UVRipPairs;
+};
 
 static void uv_rip_pairs_add(UVRipPairs *rip, BMLoop *l)
 {
