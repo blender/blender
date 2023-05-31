@@ -61,6 +61,37 @@ static void test_texture_read()
 }
 GPU_TEST(texture_read)
 
+static void test_texture_copy()
+{
+  const int SIZE = 128;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *src_tx = GPU_texture_create_2d("src", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  GPUTexture *dst_tx = GPU_texture_create_2d("dst", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+
+  const float4 color(0.0, 1.0f, 2.0f, 123.0f);
+  const float4 clear_color(0.0f);
+  GPU_texture_clear(src_tx, GPU_DATA_FLOAT, color);
+  GPU_texture_clear(dst_tx, GPU_DATA_FLOAT, clear_color);
+
+  GPU_texture_copy(dst_tx, src_tx);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  float4 *data = (float4 *)GPU_texture_read(dst_tx, GPU_DATA_FLOAT, 0);
+  for (int index : IndexRange(SIZE * SIZE)) {
+    EXPECT_EQ(color, data[index]);
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(src_tx);
+  GPU_texture_free(dst_tx);
+
+  GPU_render_end();
+}
+GPU_TEST(texture_copy)
+
 template<typename DataType> static DataType *generate_test_data(size_t data_len)
 {
   DataType *data = static_cast<DataType *>(MEM_mallocN(data_len * sizeof(DataType), __func__));

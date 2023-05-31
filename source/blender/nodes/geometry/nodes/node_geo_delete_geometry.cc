@@ -36,104 +36,40 @@ static void copy_data_based_on_map(const Span<T> src,
   });
 }
 
-/**
- * Copies the attributes with a domain in `domains` to `result_component`.
- */
-static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes,
-                            const bke::AttributeAccessor src_attributes,
-                            bke::MutableAttributeAccessor dst_attributes,
-                            const Span<eAttrDomain> domains)
-{
-  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
-    const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader attribute = src_attributes.lookup(attribute_id);
-    if (!attribute) {
-      continue;
-    }
-    /* Only copy if it is on a domain we want. */
-    if (!domains.contains(attribute.domain)) {
-      continue;
-    }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-    GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, attribute.domain, data_type);
-    if (!result_attribute) {
-      continue;
-    }
-    attribute.varray.materialize(result_attribute.span.data());
-    result_attribute.finish();
-  }
-}
-
-/**
- * For each attribute with a domain in `domains` it copies the parts of that attribute which lie in
- * the mask to `result_component`.
- */
-static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKind> &attributes,
-                                          const bke::AttributeAccessor src_attributes,
-                                          bke::MutableAttributeAccessor dst_attributes,
-                                          const eAttrDomain domain,
-                                          const IndexMask mask)
-{
-  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
-    const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader attribute = src_attributes.lookup(attribute_id);
-    if (!attribute) {
-      continue;
-    }
-    /* Only copy if it is on a domain we want. */
-    if (domain != attribute.domain) {
-      continue;
-    }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-    GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, attribute.domain, data_type);
-    if (!result_attribute) {
-      continue;
-    }
-
-    array_utils::gather(attribute.varray, mask, result_attribute.span);
-
-    result_attribute.finish();
-  }
-}
-
-static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind> &attributes,
-                                         const bke::AttributeAccessor src_attributes,
+static void copy_attributes_based_on_map(const bke::AttributeAccessor src_attributes,
                                          bke::MutableAttributeAccessor dst_attributes,
                                          const eAttrDomain domain,
+                                         const AnonymousAttributePropagationInfo &propagation_info,
+                                         const Set<std::string> &skip,
                                          const Span<int> index_map)
 {
-  for (MapItem<AttributeIDRef, AttributeKind> entry : attributes.items()) {
-    const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader attribute = src_attributes.lookup(attribute_id);
-    if (!attribute) {
-      continue;
+  src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (meta_data.domain != domain) {
+      return true;
     }
-    /* Only copy if it is on a domain we want. */
-    if (domain != attribute.domain) {
-      continue;
+    if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+      return true;
     }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
-    GSpanAttributeWriter result_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, attribute.domain, data_type);
-    if (!result_attribute) {
-      continue;
+    if (skip.contains(id.name())) {
+      return true;
     }
+    const GVArraySpan src = *src_attributes.lookup(id);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, meta_data.domain, meta_data.data_type);
 
-    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.span.typed<T>();
-      copy_data_based_on_map(span, index_map, out_span);
+      copy_data_based_on_map(src.typed<T>(), index_map, dst.span.typed<T>());
     });
-    result_attribute.finish();
-  }
+    dst.finish();
+    return true;
+  });
 }
 
-static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind> &attributes,
-                                        const bke::AttributeAccessor src_attributes,
+static void copy_face_corner_attributes(const bke::AttributeAccessor src_attributes,
                                         bke::MutableAttributeAccessor dst_attributes,
+                                        const AnonymousAttributePropagationInfo &propagation_info,
+                                        const Set<std::string> &skip,
                                         const int selected_loops_num,
                                         const Span<int> selected_poly_indices,
                                         const Mesh &mesh_in)
@@ -146,8 +82,13 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
       indices.append_unchecked(corner);
     }
   }
-  copy_attributes_based_on_mask(
-      attributes, src_attributes, dst_attributes, ATTR_DOMAIN_CORNER, IndexMask(indices));
+  IndexMaskMemory memory;
+  bke::gather_attributes(src_attributes,
+                         ATTR_DOMAIN_CORNER,
+                         propagation_info,
+                         skip,
+                         IndexMask::from_indices<int64_t>(indices, memory),
+                         dst_attributes);
 }
 
 static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh, Mesh &dst_mesh, Span<int> edge_map)
@@ -226,38 +167,6 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
   });
 }
 
-/* Only faces changed. */
-static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
-                                          Mesh &dst_mesh,
-                                          Span<int> masked_poly_indices,
-                                          Span<int> new_loop_starts)
-{
-  const OffsetIndices src_polys = src_mesh.polys();
-  const Span<int> src_corner_verts = src_mesh.corner_verts();
-  const Span<int> src_corner_edges = src_mesh.corner_edges();
-  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
-  MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
-  MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
-
-  threading::parallel_for(masked_poly_indices.index_range(), 512, [&](const IndexRange range) {
-    for (const int i_dst : range) {
-      const int i_src = masked_poly_indices[i_dst];
-      const IndexRange poly_src = src_polys[i_src];
-      const Span<int> src_poly_verts = src_corner_verts.slice(poly_src);
-      const Span<int> src_poly_edges = src_corner_edges.slice(poly_src);
-
-      dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
-      MutableSpan<int> dst_poly_verts = dst_corner_verts.slice(dst_poly_offsets[i_dst],
-                                                               poly_src.size());
-      MutableSpan<int> dst_poly_edges = dst_corner_edges.slice(dst_poly_offsets[i_dst],
-                                                               poly_src.size());
-
-      dst_poly_verts.copy_from(src_poly_verts);
-      dst_poly_edges.copy_from(src_poly_edges);
-    }
-  });
-}
-
 static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
                                           Span<int> vertex_map,
@@ -295,72 +204,70 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
   });
 }
 
-static void delete_curves_selection(GeometrySet &geometry_set,
-                                    const Field<bool> &selection_field,
-                                    const eAttrDomain selection_domain,
-                                    const bke::AnonymousAttributePropagationInfo &propagation_info)
+/** \return std::nullopt if the geometry should remain unchanged. */
+static std::optional<Curves *> separate_curves_selection(
+    const Curves &src_curves_id,
+    const Field<bool> &selection_field,
+    const eAttrDomain domain,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
-  const int domain_size = src_curves.attributes().domain_size(selection_domain);
-  const bke::CurvesFieldContext field_context{src_curves, selection_domain};
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  const int domain_size = src_curves.attributes().domain_size(domain);
+  const bke::CurvesFieldContext context{src_curves, domain};
+  fn::FieldEvaluator evaluator{context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  if (selection.is_empty()) {
-    return;
-  }
   if (selection.size() == domain_size) {
-    geometry_set.remove<CurveComponent>();
-    return;
+    return std::nullopt;
+  }
+  if (selection.is_empty()) {
+    return nullptr;
   }
 
-  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-  Curves &curves_id = *component.get_for_write();
-  bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  Curves *dst_curves_id = nullptr;
+  if (domain == ATTR_DOMAIN_POINT) {
+    bke::CurvesGeometry dst_curves = bke::curves_copy_point_selection(
+        src_curves, selection, propagation_info);
+    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+  }
+  else if (domain == ATTR_DOMAIN_CURVE) {
+    bke::CurvesGeometry dst_curves = bke::curves_copy_curve_selection(
+        src_curves, selection, propagation_info);
+    dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+  }
 
-  if (selection_domain == ATTR_DOMAIN_POINT) {
-    curves.remove_points(selection, propagation_info);
-  }
-  else if (selection_domain == ATTR_DOMAIN_CURVE) {
-    curves.remove_curves(selection, propagation_info);
-  }
+  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+  return dst_curves_id;
 }
 
-static void separate_point_cloud_selection(
-    GeometrySet &geometry_set,
+/** \return std::nullopt if the geometry should remain unchanged. */
+static std::optional<PointCloud *> separate_point_cloud_selection(
+    const PointCloud &src_pointcloud,
     const Field<bool> &selection_field,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const PointCloud &src_pointcloud = *geometry_set.get_pointcloud_for_read();
-
-  const bke::PointCloudFieldContext field_context{src_pointcloud};
-  fn::FieldEvaluator evaluator{field_context, src_pointcloud.totpoint};
+  const bke::PointCloudFieldContext context{src_pointcloud};
+  fn::FieldEvaluator evaluator{context, src_pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.size() == src_pointcloud.totpoint) {
+    return std::nullopt;
+  }
   if (selection.is_empty()) {
-    geometry_set.replace_pointcloud(nullptr);
-    return;
+    return nullptr;
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
-
-  Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_POINT_CLOUD},
-                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                                 false,
-                                                 propagation_info,
-                                                 attributes);
-
-  copy_attributes_based_on_mask(attributes,
-                                src_pointcloud.attributes(),
-                                pointcloud->attributes_for_write(),
-                                ATTR_DOMAIN_POINT,
-                                selection);
-  geometry_set.replace_pointcloud(pointcloud);
+  bke::gather_attributes(src_pointcloud.attributes(),
+                         ATTR_DOMAIN_POINT,
+                         propagation_info,
+                         {},
+                         selection,
+                         pointcloud->attributes_for_write());
+  return pointcloud;
 }
 
 static void delete_selected_instances(GeometrySet &geometry_set,
@@ -851,14 +758,9 @@ static void do_mesh_separation(GeometrySet &geometry_set,
   int selected_polys_num = 0;
   int selected_loops_num = 0;
 
-  Mesh *mesh_out;
+  IndexMaskMemory memory;
 
-  Map<AttributeIDRef, AttributeKind> attributes;
-  geometry_set.gather_attributes_for_propagation(
-      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, propagation_info, attributes);
-  attributes.remove(".edge_verts");
-  attributes.remove(".corner_vert");
-  attributes.remove(".corner_edge");
+  Mesh *mesh_out;
 
   switch (mode) {
     case GEO_NODE_DELETE_GEOMETRY_MODE_ALL: {
@@ -868,7 +770,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       Array<int> edge_map(mesh_in.totedge);
       int selected_edges_num = 0;
 
-      /* Fill all the maps based on the selection. */
       switch (domain) {
         case ATTR_DOMAIN_POINT:
           compute_selected_mesh_data_from_vertex_selection(mesh_in,
@@ -916,30 +817,32 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num,
                                                    selected_loops_num);
 
-      /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
 
-      /* Copy attributes. */
-      copy_attributes_based_on_map(attributes,
-                                   mesh_in.attributes(),
+      copy_attributes_based_on_map(mesh_in.attributes(),
                                    mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_POINT,
+                                   propagation_info,
+                                   {},
                                    vertex_map);
-      copy_attributes_based_on_map(attributes,
-                                   mesh_in.attributes(),
+      copy_attributes_based_on_map(mesh_in.attributes(),
                                    mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
+                                   propagation_info,
+                                   {".edge_verts"},
                                    edge_map);
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
-      copy_face_corner_attributes(attributes,
-                                  mesh_in.attributes(),
+      bke::gather_attributes(mesh_in.attributes(),
+                             ATTR_DOMAIN_FACE,
+                             propagation_info,
+                             {},
+                             IndexMask::from_indices(selected_poly_indices.as_span(), memory),
+                             mesh_out->attributes_for_write());
+      copy_face_corner_attributes(mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),
+                                  propagation_info,
+                                  {".corner_vert", ".corner_edge"},
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -949,7 +852,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       Array<int> edge_map(mesh_in.totedge);
       int selected_edges_num = 0;
 
-      /* Fill all the maps based on the selection. */
       switch (domain) {
         case ATTR_DOMAIN_POINT:
           compute_selected_mesh_data_from_vertex_selection_edge_face(mesh_in,
@@ -988,27 +890,31 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       mesh_out = BKE_mesh_new_nomain_from_template(
           &mesh_in, mesh_in.totvert, selected_edges_num, selected_polys_num, selected_loops_num);
 
-      /* Copy the selected parts of the mesh over to the new mesh. */
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
 
-      /* Copy attributes. */
-      copy_attributes(
-          attributes, mesh_in.attributes(), mesh_out->attributes_for_write(), {ATTR_DOMAIN_POINT});
-      copy_attributes_based_on_map(attributes,
-                                   mesh_in.attributes(),
+      bke::copy_attributes(mesh_in.attributes(),
+                           ATTR_DOMAIN_POINT,
+                           propagation_info,
+                           {},
+                           mesh_out->attributes_for_write());
+      copy_attributes_based_on_map(mesh_in.attributes(),
                                    mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
+                                   propagation_info,
+                                   {".edge_verts"},
                                    edge_map);
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
-      copy_face_corner_attributes(attributes,
-                                  mesh_in.attributes(),
+      bke::gather_attributes(mesh_in.attributes(),
+                             ATTR_DOMAIN_FACE,
+                             propagation_info,
+                             {},
+                             IndexMask::from_indices(selected_poly_indices.as_span(), memory),
+                             mesh_out->attributes_for_write());
+      copy_face_corner_attributes(mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),
+                                  propagation_info,
+                                  {".corner_vert", ".corner_edge"},
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1018,7 +924,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       break;
     }
     case GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE: {
-      /* Fill all the maps based on the selection. */
       switch (domain) {
         case ATTR_DOMAIN_POINT:
           compute_selected_polys_from_vertex_selection(mesh_in,
@@ -1051,23 +956,28 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       mesh_out = BKE_mesh_new_nomain_from_template(
           &mesh_in, mesh_in.totvert, mesh_in.totedge, selected_polys_num, selected_loops_num);
 
-      /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->edges_for_write().copy_from(mesh_in.edges());
-      copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
+      mesh_out->poly_offsets_for_write().drop_back(1).copy_from(new_loop_starts);
 
-      /* Copy attributes. */
-      copy_attributes(attributes,
-                      mesh_in.attributes(),
-                      mesh_out->attributes_for_write(),
-                      {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE});
-      copy_attributes_based_on_mask(attributes,
-                                    mesh_in.attributes(),
-                                    mesh_out->attributes_for_write(),
-                                    ATTR_DOMAIN_FACE,
-                                    IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
-      copy_face_corner_attributes(attributes,
-                                  mesh_in.attributes(),
+      bke::copy_attributes(mesh_in.attributes(),
+                           ATTR_DOMAIN_POINT,
+                           propagation_info,
+                           {},
+                           mesh_out->attributes_for_write());
+      bke::copy_attributes(mesh_in.attributes(),
+                           ATTR_DOMAIN_EDGE,
+                           propagation_info,
+                           {},
+                           mesh_out->attributes_for_write());
+      bke::gather_attributes(mesh_in.attributes(),
+                             ATTR_DOMAIN_FACE,
+                             propagation_info,
+                             {},
+                             IndexMask::from_indices(selected_poly_indices.as_span(), memory),
+                             mesh_out->attributes_for_write());
+      copy_face_corner_attributes(mesh_in.attributes(),
                                   mesh_out->attributes_for_write(),
+                                  propagation_info,
+                                  {},
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1111,36 +1021,42 @@ namespace blender::nodes {
 void separate_geometry(GeometrySet &geometry_set,
                        const eAttrDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
-                       const Field<bool> &selection_field,
+                       const Field<bool> &selection,
                        const AnonymousAttributePropagationInfo &propagation_info,
                        bool &r_is_error)
 {
   namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
 
   bool some_valid_domain = false;
-  if (geometry_set.has_pointcloud()) {
+  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
     if (domain == ATTR_DOMAIN_POINT) {
-      file_ns::separate_point_cloud_selection(geometry_set, selection_field, propagation_info);
+      std::optional<PointCloud *> dst_points = file_ns::separate_point_cloud_selection(
+          *points, selection, propagation_info);
+      if (dst_points) {
+        geometry_set.replace_pointcloud(*dst_points);
+      }
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
-      file_ns::separate_mesh_selection(
-          geometry_set, selection_field, domain, mode, propagation_info);
+      file_ns::separate_mesh_selection(geometry_set, selection, domain, mode, propagation_info);
       some_valid_domain = true;
     }
   }
-  if (geometry_set.has_curves()) {
+  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      file_ns::delete_curves_selection(
-          geometry_set, fn::invert_boolean_field(selection_field), domain, propagation_info);
+      std::optional<Curves *> dst_curves = file_ns::separate_curves_selection(
+          *curves_id, selection, domain, propagation_info);
+      if (dst_curves) {
+        geometry_set.replace_curves(*dst_curves);
+      }
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_instances()) {
     if (domain == ATTR_DOMAIN_INSTANCE) {
-      file_ns::delete_selected_instances(geometry_set, selection_field, propagation_info);
+      file_ns::delete_selected_instances(geometry_set, selection, propagation_info);
       some_valid_domain = true;
     }
   }

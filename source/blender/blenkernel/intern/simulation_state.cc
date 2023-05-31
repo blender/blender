@@ -37,19 +37,24 @@ StringSimulationStateItem::StringSimulationStateItem(std::string value) : value_
 {
 }
 
-void ModifierSimulationCache::try_discover_bake(const StringRefNull meta_dir,
-                                                const StringRefNull bdata_dir)
+void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bake_dir)
 {
   if (failed_finding_bake_) {
     return;
   }
-  if (!BLI_is_dir(meta_dir.c_str()) || !BLI_is_dir(bdata_dir.c_str())) {
+
+  char meta_dir[FILE_MAX];
+  BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir.c_str(), "meta");
+  char bdata_dir[FILE_MAX];
+  BLI_path_join(bdata_dir, sizeof(bdata_dir), absolute_bake_dir.c_str(), "bdata");
+
+  if (!BLI_is_dir(meta_dir) || !BLI_is_dir(bdata_dir)) {
     failed_finding_bake_ = true;
     return;
   }
 
   direntry *dir_entries = nullptr;
-  const int dir_entries_num = BLI_filelist_dir_contents(meta_dir.c_str(), &dir_entries);
+  const int dir_entries_num = BLI_filelist_dir_contents(meta_dir, &dir_entries);
   BLI_SCOPED_DEFER([&]() { BLI_filelist_free(dir_entries, dir_entries_num); });
 
   if (dir_entries_num == 0) {

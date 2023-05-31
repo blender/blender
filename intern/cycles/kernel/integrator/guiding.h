@@ -7,10 +7,6 @@
 #include "kernel/closure/bsdf.h"
 #include "kernel/film/write.h"
 
-#if OPENPGL_VERSION_MINOR >= 5
-#  define RIS_INCOMING_RADIANCE
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 /* Utilities. */
@@ -27,11 +23,7 @@ struct GuidingRISSample {
   float ris_pdf{0.0f};
   float ris_weight{0.0f};
 
-#ifdef RIS_INCOMING_RADIANCE
   float incoming_radiance_pdf{0.0f};
-#else
-  float cosine{0.0f};
-#endif
   BsdfEval bsdf_eval;
   float avg_bsdf_eval{0.0f};
   Spectrum eval{zero_spectrum()};
@@ -45,16 +37,9 @@ ccl_device_forceinline bool calculate_ris_target(ccl_private GuidingRISSample *r
   if (ris_sample->avg_bsdf_eval > 0.0f && ris_sample->bsdf_pdf > 1e-10f &&
       ris_sample->guide_pdf > 0.0f)
   {
-
-#  ifdef RIS_INCOMING_RADIANCE
     ris_sample->ris_target = (ris_sample->avg_bsdf_eval *
                               ((((1.0f - guiding_sampling_prob) * (1.0f / (pi_factor * M_PI_F))) +
                                 (guiding_sampling_prob * ris_sample->incoming_radiance_pdf))));
-#  else
-    ris_sample->ris_target = (ris_sample->avg_bsdf_eval / ris_sample->cosine *
-                              ((((1.0f - guiding_sampling_prob) * (1.0f / (pi_factor * M_PI_F))) +
-                                (guiding_sampling_prob * ris_sample->guide_pdf))));
-#  endif
     ris_sample->ris_pdf = (0.5f * (ris_sample->bsdf_pdf + ris_sample->guide_pdf));
     ris_sample->ris_weight = ris_sample->ris_target / ris_sample->ris_pdf;
     return true;
@@ -414,9 +399,8 @@ ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
 #endif
 }
 
-/* Records the scattered contribution of a next event estimation
- * (i.e., a direct light estimate scattered at the current path vertex
- * towards the previous vertex). */
+/* Records direct lighting from either next event estimation or a dedicated BSDF
+ * sampled shadow ray. */
 ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
                                                         IntegratorShadowState state)
 {
@@ -429,7 +413,22 @@ ccl_device_forceinline void guiding_record_direct_light(KernelGlobals kg,
                                           INTEGRATOR_STATE(state, shadow_path, unlit_throughput));
 
     const float3 Lo_rgb = spectrum_to_rgb(Lo);
-    openpgl::cpp::AddScatteredContribution(state->shadow_path.path_segment, guiding_vec3f(Lo_rgb));
+
+    const float mis_weight = INTEGRATOR_STATE(state, shadow_path, guiding_mis_weight);
+
+    if (mis_weight == 0.0f) {
+      /* Scattered contribution of a next event estimation (i.e., a direct light estimate
+       * scattered at the current path vertex towards the previous vertex). */
+      openpgl::cpp::AddScatteredContribution(state->shadow_path.path_segment,
+                                             guiding_vec3f(Lo_rgb));
+    }
+    else {
+      /* Dedicated shadow ray for BSDF sampled ray direction.
+       * The mis weight was already folded into the throughput, so need to divide it out. */
+      openpgl::cpp::SetDirectContribution(state->shadow_path.path_segment,
+                                          guiding_vec3f(Lo_rgb / mis_weight));
+      openpgl::cpp::SetMiWeight(state->shadow_path.path_segment, mis_weight);
+    }
   }
 #endif
 }
@@ -511,14 +510,8 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
                                               ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-#  if OPENPGL_VERSION_MINOR >= 5
   if (kg->opgl_surface_sampling_distribution->Init(
           kg->opgl_guiding_field, guiding_point3f(P), rand)) {
-#  else
-  if (kg->opgl_surface_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
-  {
-#  endif
     kg->opgl_surface_sampling_distribution->ApplyCosineProduct(guiding_point3f(N));
     return true;
   }
@@ -558,7 +551,7 @@ ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals
                                                                    IntegratorState state,
                                                                    const float3 wo)
 {
-#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4 && OPENPGL_VERSION_MINOR >= 5
+#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return kg->opgl_surface_sampling_distribution->IncomingRadiancePDF(guiding_vec3f(wo));
 #else
   return 0.0f;
@@ -580,14 +573,8 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
     return false;
   }
 
-#  if OPENPGL_VERSION_MINOR >= 5
   if (kg->opgl_volume_sampling_distribution->Init(
           kg->opgl_guiding_field, guiding_point3f(P), rand)) {
-#  else
-  if (kg->opgl_volume_sampling_distribution->Init(
-          kg->opgl_guiding_field, guiding_point3f(P), rand, true))
-  {
-#  endif
     kg->opgl_volume_sampling_distribution->ApplySingleLobeHenyeyGreensteinProduct(guiding_vec3f(D),
                                                                                   g);
     return true;

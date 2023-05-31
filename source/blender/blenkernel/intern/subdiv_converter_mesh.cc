@@ -12,7 +12,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -60,7 +59,7 @@ struct ConverterStorage {
   /* Indexed by vertex index from mesh, corresponds to whether this vertex has
    * infinite sharpness due to non-manifold topology.
    */
-  BLI_bitmap *infinite_sharp_vertices_map;
+  blender::BitVector<> infinite_sharp_vertices_map;
   /* Reverse mapping to above. */
   int *manifold_vertex_index_reverse;
   int *manifold_edge_index_reverse;
@@ -177,11 +176,11 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
     return true;
   }
 #endif
-  if (storage->infinite_sharp_vertices_map == nullptr) {
+  if (storage->infinite_sharp_vertices_map.is_empty()) {
     return false;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
-  return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map, vertex_index);
+  return storage->infinite_sharp_vertices_map[vertex_index];
 }
 
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
@@ -266,10 +265,9 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
   ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
   MEM_SAFE_FREE(user_data->loop_uv_indices);
   MEM_freeN(user_data->manifold_vertex_index);
-  MEM_SAFE_FREE(user_data->infinite_sharp_vertices_map);
   MEM_freeN(user_data->manifold_vertex_index_reverse);
   MEM_freeN(user_data->manifold_edge_index_reverse);
-  MEM_freeN(user_data);
+  MEM_delete(user_data);
 }
 
 static void init_functions(OpenSubdiv_Converter *converter)
@@ -368,17 +366,14 @@ static void initialize_manifold_indices(ConverterStorage *storage)
   /* Initialize infinite sharp mapping. */
   if (loose_edges.count > 0) {
     const Span<int2> edges = storage->edges;
-    storage->infinite_sharp_vertices_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+    storage->infinite_sharp_vertices_map.resize(mesh->totvert, false);
     for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
       if (loose_edges.is_loose_bits[edge_index]) {
         const int2 edge = edges[edge_index];
-        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[0]);
-        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[1]);
+        storage->infinite_sharp_vertices_map[edge[0]].set();
+        storage->infinite_sharp_vertices_map[edge[1]].set();
       }
     }
-  }
-  else {
-    storage->infinite_sharp_vertices_map = nullptr;
   }
 }
 

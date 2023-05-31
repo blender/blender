@@ -36,7 +36,7 @@ int64_t VKPixelBuffer::get_native_handle()
   return int64_t(buffer_.vk_handle());
 }
 
-uint VKPixelBuffer::get_size()
+size_t VKPixelBuffer::get_size()
 {
   return size_;
 }

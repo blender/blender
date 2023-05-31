@@ -317,8 +317,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
   else {
     /* Sample phase. */
     *phase_pdf = 0.0f;
-    label = volume_phase_sample(
-        sd, svc, rand_phase.x, rand_phase.y, &eval, wo, unguided_phase_pdf);
+    label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, unguided_phase_pdf);
 
     if (*unguided_phase_pdf != 0.0f) {
       bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
@@ -357,7 +356,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  int label = volume_phase_sample(sd, svc, rand_phase.x, rand_phase.y, &eval, wo, pdf);
+  int label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, pdf);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);

@@ -15,19 +15,19 @@ vec3 gpencil_lighting(void)
 {
   vec3 light_accum = vec3(0.0);
   for (int i = 0; i < GPENCIL_LIGHT_BUFFER_LEN; i++) {
-    if (lights[i]._color.x == -1.0) {
+    if (gp_lights[i]._color.x == -1.0) {
       break;
     }
-    vec3 L = lights[i]._position - gp_interp.pos;
+    vec3 L = gp_lights[i]._position - gp_interp.pos;
     float vis = 1.0;
-    gpLightType type = floatBitsToUint(lights[i]._type);
+    gpLightType type = floatBitsToUint(gp_lights[i]._type);
     /* Spot Attenuation. */
     if (type == GP_LIGHT_TYPE_SPOT) {
-      mat3 rot_scale = mat3(lights[i]._right, lights[i]._up, lights[i]._forward);
+      mat3 rot_scale = mat3(gp_lights[i]._right, gp_lights[i]._up, gp_lights[i]._forward);
       vec3 local_L = rot_scale * L;
       local_L /= abs(local_L.z);
       float ellipse = inversesqrt(length_squared(local_L));
-      vis *= smoothstep(0.0, 1.0, (ellipse - lights[i]._spot_size) / lights[i]._spot_blend);
+      vis *= smoothstep(0.0, 1.0, (ellipse - gp_lights[i]._spot_size) / gp_lights[i]._spot_blend);
       /* Also mask +Z cone. */
       vis *= step(0.0, local_L.z);
     }
@@ -37,7 +37,7 @@ vec3 gpencil_lighting(void)
       vis /= L_len_sqr;
     }
     else {
-      L = lights[i]._forward;
+      L = gp_lights[i]._forward;
       L_len_sqr = 1.0;
     }
     /* Lambertian falloff */
@@ -45,7 +45,7 @@ vec3 gpencil_lighting(void)
       L /= sqrt(L_len_sqr);
       vis *= clamp(dot(gpNormal, L), 0.0, 1.0);
     }
-    light_accum += vis * lights[i]._color;
+    light_accum += vis * gp_lights[i]._color;
   }
   /* Clamp to avoid NaNs. */
   return clamp(light_accum, 0.0, 1e10);
@@ -68,7 +68,7 @@ void main()
     bool radial = flag_test(gp_interp.mat_flag, GP_FILL_GRADIENT_RADIAL);
     float fac = clamp(radial ? length(gp_interp.uv * 2.0 - 1.0) : gp_interp.uv.x, 0.0, 1.0);
     uint matid = gp_interp.mat_flag >> GPENCIl_MATID_SHIFT;
-    col = mix(materials[matid].fill_color, materials[matid].fill_mix_color, fac);
+    col = mix(gp_materials[matid].fill_color, gp_materials[matid].fill_mix_color, fac);
   }
   else /* SOLID */ {
     col = vec4(1.0);

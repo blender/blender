@@ -20,7 +20,7 @@ you would pass ``{'active_object': object}`` to :class:`bpy.types.Context.temp_o
 # Remove all objects in scene rather than the selected ones.
 import bpy
 from bpy import context
-override = context.copy()
-override["selected_objects"] = list(context.scene.objects)
-with context.temp_override(**override):
+context_override = context.copy()
+context_override["selected_objects"] = list(context.scene.objects)
+with context.temp_override(**context_override):
     bpy.ops.object.delete()

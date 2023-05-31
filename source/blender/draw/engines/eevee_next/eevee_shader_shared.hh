@@ -217,7 +217,8 @@ struct FilmData {
   int2 offset;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent;
-  /** Sub-pixel offset applied to the window matrix.
+  /**
+   * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
    * NOTE: The origin is the center of the lower left film pixel of the area covered by a render
@@ -306,18 +307,7 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Render passes
- * \{ */
-
-enum eRenderPassLayerIndex : uint32_t {
-  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
-  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Arbitrary Output Variables
+/** \name RenderBuffers
  * \{ */
 
 /* Theoretical max is 128 as we are using texture array and VRAM usage.
@@ -325,10 +315,11 @@ enum eRenderPassLayerIndex : uint32_t {
  * If we find a way to avoid this we could bump this number up. */
 #define AOV_MAX 16
 
-/* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct AOVsInfoData {
-  uint hash_value[AOV_MAX];
-  uint hash_color[AOV_MAX];
+  /* Use uint4 to workaround std140 packing rules.
+   * Only the x value is used. */
+  uint4 hash_value[AOV_MAX];
+  uint4 hash_color[AOV_MAX];
   /* Length of used data. */
   uint color_len;
   uint value_len;
@@ -338,6 +329,25 @@ struct AOVsInfoData {
   bool1 display_is_value;
 };
 BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
+
+struct RenderBuffersInfoData {
+  AOVsInfoData aovs;
+  /* Color. */
+  int color_len;
+  int normal_id;
+  int diffuse_light_id;
+  int diffuse_color_id;
+  int specular_light_id;
+  int specular_color_id;
+  int volume_light_id;
+  int emission_id;
+  int environment_id;
+  /* Value */
+  int value_len;
+  int shadow_id;
+  int ambient_occlusion_id;
+};
+BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
 /** \} */
 
@@ -354,8 +364,8 @@ enum eVelocityStep : uint32_t {
 };
 
 struct VelocityObjectIndex {
-  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;
 
@@ -367,11 +377,11 @@ BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
   /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 len;
+  packed_int3 len;
 
   int _pad0;
 

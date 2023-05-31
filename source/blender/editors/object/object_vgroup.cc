@@ -1569,9 +1569,6 @@ static void vgroup_smooth_subset(Object *ob,
   BMesh *bm = em ? em->bm : nullptr;
   Mesh *me = em ? nullptr : static_cast<Mesh *>(ob->data);
 
-  MeshElemMap *emap;
-  int *emap_mem;
-
   float *weight_accum_prev;
   float *weight_accum_curr;
 
@@ -1585,15 +1582,16 @@ static void vgroup_smooth_subset(Object *ob,
   ED_vgroup_parray_alloc(static_cast<ID *>(ob->data), &dvert_array, &dvert_tot, false);
   vgroup_subset_weights.fill(0.0f);
 
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  blender::GroupedSpan<int> emap;
   if (bm) {
     BM_mesh_elem_table_ensure(bm, BM_VERT);
     BM_mesh_elem_index_ensure(bm, BM_VERT);
-
-    emap = nullptr;
-    emap_mem = nullptr;
   }
   else {
-    BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me->edges().data(), me->totvert, me->totedge);
+    emap = blender::bke::mesh::build_vert_to_edge_map(
+        me->edges(), me->totvert, vert_to_edge_offsets, vert_to_edge_indices);
   }
 
   weight_accum_prev = static_cast<float *>(
@@ -1639,8 +1637,8 @@ static void vgroup_smooth_subset(Object *ob,
     const blender::Span<int2> edges = me->edges();
     for (int i = 0; i < dvert_tot; i++) {
       if (IS_ME_VERT_WRITE(i)) {
-        for (int j = 0; j < emap[i].count; j++) {
-          const int2 &edge = edges[emap[i].indices[j]];
+        for (int j = 0; j < emap[i].size(); j++) {
+          const int2 &edge = edges[emap[i][j]];
           const int i_other = (edge[0] == i) ? edge[1] : edge[0];
           if (IS_ME_VERT_READ(i_other)) {
             STACK_PUSH(verts_used, i);
@@ -1718,8 +1716,8 @@ static void vgroup_smooth_subset(Object *ob,
           /* checked already */
           BLI_assert(IS_ME_VERT_WRITE(i));
 
-          for (j = 0; j < emap[i].count; j++) {
-            const int2 &edge = edges[emap[i].indices[j]];
+          for (j = 0; j < emap[i].size(); j++) {
+            const int2 &edge = edges[emap[i][j]];
             const int i_other = (edge[0] == i ? edge[1] : edge[0]);
             if (IS_ME_VERT_READ(i_other)) {
               WEIGHT_ACCUMULATE;
@@ -1753,14 +1751,6 @@ static void vgroup_smooth_subset(Object *ob,
   MEM_freeN(weight_accum_curr);
   MEM_freeN(weight_accum_prev);
   MEM_freeN(verts_used);
-
-  if (bm) {
-    /* pass */
-  }
-  else {
-    MEM_freeN(emap);
-    MEM_freeN(emap_mem);
-  }
 
   if (dvert_array) {
     MEM_freeN(dvert_array);

@@ -372,19 +372,6 @@ class GRAPH_MT_key_snap(Menu):
         layout.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
 
 
-class GRAPH_MT_slider(Menu):
-    bl_label = "Slider Operators"
-
-    def draw(self, _context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("graph.breakdown", text="Breakdown")
-        layout.operator("graph.blend_to_neighbor", text="Blend to Neighbor")
-        layout.operator("graph.blend_to_default", text="Blend to Default Value")
-        layout.operator("graph.ease", text="Ease")
-        layout.operator("graph.gaussian_smooth", text="Smooth")
-
-
 class GRAPH_MT_view_pie(Menu):
     bl_label = "View"
 
@@ -526,7 +513,6 @@ classes = (
     GRAPH_MT_key_snap,
     GRAPH_MT_key_smoothing,
     GRAPH_MT_key_blending,
-    GRAPH_MT_slider,
     GRAPH_MT_delete,
     GRAPH_MT_context_menu,
     GRAPH_MT_channel_context_menu,

@@ -2089,7 +2089,7 @@ static bool lib_override_library_resync(Main *bmain,
        * during a previous Blender session, in which case it became directly linked and a reference
        * to it was stored in the local .blend file. however, since that linked liboverride ID does
        * not actually exist in the original library file, on next file read it is lost and marked
-       * as missing ID.*/
+       * as missing ID. */
       if (id_override_old == nullptr && ID_IS_LINKED(id_override_new)) {
         id_override_old = lib_override_library_resync_search_missing_ids_data(missing_ids_data,
                                                                               id_override_new);
@@ -2188,6 +2188,25 @@ static bool lib_override_library_resync(Main *bmain,
     }
 
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old)) {
+      /* The remapping from old to new liboverrides above has a sad side effect on ShapeKeys. Since
+       * old liboverrides are also remapped, it means that the old liboverride owner of the shape
+       * key is also now pointing to the new liboverride shape key, not the old one. Since shape
+       * keys do not own their liboverride data, the old liboverride shape key user has to be
+       * restored to use the old liboverride shape-key, otherwise applying shape key override
+       * operations will be useless (would apply using the new, from linked data, liboverride,
+       * being effectively a no-op). */
+      Key **key_override_old_p = BKE_key_from_id_p(id_override_old);
+      if (key_override_old_p != nullptr && *key_override_old_p != nullptr) {
+        Key *key_linked_reference = BKE_key_from_id(id_override_new->override_library->reference);
+        BLI_assert(key_linked_reference != nullptr);
+        BLI_assert(key_linked_reference->id.newid == &(*key_override_old_p)->id);
+
+        Key *key_override_old = static_cast<Key *>(
+            BLI_ghash_lookup(linkedref_to_old_override, &key_linked_reference->id));
+        BLI_assert(key_override_old != nullptr);
+        *key_override_old_p = key_override_old;
+      }
+
       /* Apply rules on new override ID using old one as 'source' data. */
       /* Note that since we already remapped ID pointers in old override IDs to new ones, we
        * can also apply ID pointer override rules safely here. */
@@ -2220,6 +2239,12 @@ static bool lib_override_library_resync(Main *bmain,
                                 id_override_new->override_library,
                                 do_hierarchy_enforce ? RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS :
                                                        RNA_OVERRIDE_APPLY_FLAG_NOP);
+
+      /* Clear the old shape key pointer again, otherwise it won't make ID management code happy
+       * when freeing (at least from user count side of things).  */
+      if (key_override_old_p != nullptr) {
+        *key_override_old_p = nullptr;
+      }
     }
 
     BLI_linklist_prepend(&id_override_old_list, id_override_old);
@@ -2470,7 +2495,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     }
     else if (!is_in_partial_resync_hierarchy) {
       /* This ID is not tagged for resync, and is part of a loop where none of the other IDs are
-       * tagged for resync, nothing else to to. */
+       * tagged for resync, nothing else to do. */
       return;
     }
     /* This ID is not yet tagged for resync, but is part of a loop which is (partially) tagged
@@ -2642,8 +2667,8 @@ static bool lib_override_library_main_resync_id_skip_check(ID *id,
 /**
  * Clear 'unreachable' tag of existing liboverrides if they are using another reachable liboverride
  * (typical case: Mesh object which only relationship to the rest of the liboverride hierarchy is
- * though its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
- * object). Sadge.
+ * through its 'parent' pointer (i.e. rest of the hierarchy has no actual relationship to this mesh
+ * object).
  *
  * Logic and rational of this function are very similar to these of
  * #lib_override_hierarchy_dependencies_recursive_tag_from, but withing specific resync context.
@@ -3530,18 +3555,6 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
   BLI_freelistN(&op->operations);
 }
 
-bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *override,
-                                                         const char *rna_path)
-{
-  IDOverrideLibraryProperty *override_property = BKE_lib_override_library_property_find(override,
-                                                                                        rna_path);
-  if (override_property == nullptr) {
-    return false;
-  }
-  BKE_lib_override_library_property_delete(override, override_property);
-  return true;
-}
-
 bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *override,
                                                        const char *old_rna_path,
                                                        const char *new_rna_path)
@@ -3565,10 +3578,13 @@ bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *overri
   return true;
 }
 
-void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
-                                              IDOverrideLibraryProperty *override_property)
+static void lib_override_library_property_delete(IDOverrideLibrary *override,
+                                                 IDOverrideLibraryProperty *override_property,
+                                                 const bool do_runtime_updates)
 {
-  if (!ELEM(nullptr, override->runtime, override->runtime->rna_path_to_override_properties)) {
+  if (do_runtime_updates &&
+      !ELEM(nullptr, override->runtime, override->runtime->rna_path_to_override_properties))
+  {
     BLI_ghash_remove(override->runtime->rna_path_to_override_properties,
                      override_property->rna_path,
                      nullptr,
@@ -3576,6 +3592,29 @@ void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
   }
   lib_override_library_property_clear(override_property);
   BLI_freelinkN(&override->properties, override_property);
+}
+
+bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *override,
+                                                         const char *rna_path)
+{
+  /* Find the override property by its old RNA path. */
+  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
+  IDOverrideLibraryProperty *override_property = static_cast<IDOverrideLibraryProperty *>(
+      BLI_ghash_popkey(override_runtime, rna_path, nullptr));
+
+  if (override_property == nullptr) {
+    return false;
+  }
+
+  /* The key (rna_path) was already popped out of the runtime mapping above. */
+  lib_override_library_property_delete(override, override_property, false);
+  return true;
+}
+
+void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
+                                              IDOverrideLibraryProperty *override_property)
+{
+  lib_override_library_property_delete(override, override_property, true);
 }
 
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
@@ -4168,7 +4207,7 @@ void BKE_lib_override_library_main_operations_restore(Main *bmain, int *r_report
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!(!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+    if (!(!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) && id->override_library->runtime &&
           (id->override_library->runtime->tag & LIBOVERRIDE_TAG_NEEDS_RESTORE) != 0))
     {
       continue;
@@ -4415,10 +4454,20 @@ void BKE_lib_override_library_main_unused_cleanup(Main *bmain)
 
 static void lib_override_id_swap(Main *bmain, ID *id_local, ID *id_temp)
 {
+  /* Ensure ViewLayers are in sync in case a Scene is being swapped, and prevent any further resync
+   * during the swapping itself. */
+  if (GS(id_local->name) == ID_SCE) {
+    BKE_scene_view_layers_synced_ensure(reinterpret_cast<Scene *>(id_local));
+    BKE_scene_view_layers_synced_ensure(reinterpret_cast<Scene *>(id_temp));
+  }
+  BKE_layer_collection_resync_forbid();
+
   BKE_lib_id_swap(bmain, id_local, id_temp, true, 0);
   /* We need to keep these tags from temp ID into orig one.
    * ID swap does not swap most of ID data itself. */
   id_local->tag |= (id_temp->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC);
+
+  BKE_layer_collection_resync_allow();
 }
 
 void BKE_lib_override_library_update(Main *bmain, ID *local)

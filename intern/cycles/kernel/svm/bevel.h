@@ -188,6 +188,7 @@ ccl_device float3 svm_bevel(
     ray.self.prim = PRIM_NONE;
     ray.self.light_object = OBJECT_NONE;
     ray.self.light_prim = PRIM_NONE;
+    ray.self.light = LAMP_NONE;
 
     /* Intersect with the same object. if multiple intersections are found it
      * will use at most LOCAL_MAX_HITS hits, a random subset of all hits. */

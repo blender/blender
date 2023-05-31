@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 #include "MEM_guardedalloc.h"
 
@@ -65,6 +66,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -190,6 +192,8 @@ BLI_INLINE uchar f_to_char(const float val)
 /* to avoid locking in tile initialization */
 #define TILE_PENDING POINTER_FROM_INT(-1)
 
+struct ProjPaintState;
+
 /**
  * This is mainly a convenience struct used so we can keep an array of images we use -
  * their #ImBuf's, etc, in 1 array, When using threads this array is copied for each thread
@@ -217,7 +221,8 @@ struct ProjStrokeHandle {
   /* Support for painting from multiple views at once,
    * currently used to implement symmetry painting,
    * we can assume at least the first is set while painting. */
-  struct ProjPaintState *ps_views[8];
+  ProjPaintState *ps_views[8];
+
   int ps_views_tot;
   int symmetry_flags;
 
@@ -4065,26 +4070,11 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = ps->ob;
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-  if (scene_eval == nullptr || ob_eval == nullptr) {
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ps->me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  if (!ps->me_eval) {
     return false;
   }
-
-  CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
-  cddata_masks.fmask |= CD_MASK_MTFACE;
-  cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  if (ps->do_face_sel) {
-    cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-    cddata_masks.emask |= CD_MASK_ORIGINDEX;
-    cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-  }
-  ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
   if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;
@@ -5985,9 +5975,9 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
-  char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
+  char symmetry_flag_views[BOUNDED_ARRAY_TYPE_SIZE<decltype(ps_handle->ps_views)>()] = {0};
 
-  ps_handle = MEM_cnew<ProjStrokeHandle>("ProjStrokeHandle");
+  ps_handle = MEM_new<ProjStrokeHandle>("ProjStrokeHandle");
   ps_handle->scene = scene;
   ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
 

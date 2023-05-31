@@ -86,8 +86,9 @@ typedef struct PoseBlendData {
   char headerstr[UI_MAX_DRAW_STR];
 } PoseBlendData;
 
-/** Return the bAction that should be blended.
- * This is either pbd->act or pbd->act_flipped, depending on is_flipped.
+/**
+ * Return the bAction that should be blended.
+ * This is either `pbd->act` or `pbd->act_flipped`, depending on `is_flipped`.
  */
 static bAction *poselib_action_to_blend(PoseBlendData *pbd)
 {

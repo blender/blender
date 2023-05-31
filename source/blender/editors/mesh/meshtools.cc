@@ -1258,13 +1258,12 @@ bool ED_mesh_pick_face_vert(
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
   if (ED_mesh_pick_face(C, ob, mval, dist_px, &poly_index)) {
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    if (!me_eval) {
+      return false;
+    }
     ARegion *region = CTX_wm_region(C);
-
-    /* derived mesh to find deformed locations */
-    Mesh *me_eval = mesh_get_eval_final(
-        depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH_ORIGINDEX);
 
     int v_idx_best = ORIGINDEX_NONE;
 
@@ -1393,11 +1392,8 @@ bool ED_mesh_pick_vert(
     (*r_index)--;
   }
   else {
-    Scene *scene_eval = DEG_get_evaluated_scene(vc.depsgraph);
-    Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
-
-    /* derived mesh to find deformed locations */
-    Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+    const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     ARegion *region = vc.region;
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 

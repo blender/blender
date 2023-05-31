@@ -19,7 +19,7 @@ namespace blender::geometry {
  */
 bke::CurvesGeometry subdivide_curves(
     const bke::CurvesGeometry &src_curves,
-    IndexMask selection,
+    const IndexMask &selection,
     const VArray<int> &cuts,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 

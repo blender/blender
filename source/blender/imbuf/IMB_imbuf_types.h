@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "BLI_implicit_sharing.h"
+
 #include "DNA_vec_types.h" /* for rcti */
 
 #include "BLI_sys_types.h"
@@ -19,7 +21,7 @@ extern "C" {
  * Types needed for using the image buffer.
  *
  * Imbuf is external code, slightly adapted to live in the Blender
- * context. It requires an external jpeg module, and the avi-module
+ * context. It requires an external JPEG module, and the AVI-module
  * (also external code) in order to function correctly.
  *
  * This file contains types and some constants that go with them. Most
@@ -169,22 +171,31 @@ typedef enum ImBufOwnership {
   IB_TAKE_OWNERSHIP = 1,
 } ImBufOwnership;
 
-/* Different storage specialization. */
+/* Different storage specialization.
+ *
+ * Note on the implicit sharing
+ * ----------------------------
+ *
+ * The buffer allows implicitly sharing data with other users of such data. In this case the
+ * ownership is set to IB_DO_NOT_TAKE_OWNERSHIP. */
 /* TODO(sergey): Once everything is C++ replace with a template. */
 
 typedef struct ImBufIntBuffer {
   int *data;
   ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
 } ImBufIntBuffer;
 
 typedef struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
 } ImBufByteBuffer;
 
 typedef struct ImBufFloatBuffer {
   float *data;
   ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
 } ImBufFloatBuffer;
 
 /** \} */
@@ -212,13 +223,15 @@ typedef struct ImBuf {
 
   /* pixels */
 
-  /** Image pixel buffer (8bit representation):
+  /**
+   * Image pixel buffer (8bit representation):
    * - color space defaults to `sRGB`.
    * - alpha defaults to 'straight'.
    */
   ImBufByteBuffer byte_buffer;
 
-  /** Image pixel buffer (float representation):
+  /**
+   * Image pixel buffer (float representation):
    * - color space defaults to 'linear' (`rec709`).
    * - alpha defaults to 'premul'.
    * \note May need gamma correction to `sRGB` when generating 8bit representations.

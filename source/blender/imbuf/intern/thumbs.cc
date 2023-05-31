@@ -215,28 +215,18 @@ static bool thumbhash_from_path(const char * /*path*/, ThumbSource source, char 
 static bool uri_from_filename(const char *path, char *uri)
 {
   char orig_uri[URI_MAX];
-  const char *dirstart = path;
 
 #ifdef WIN32
-  {
-    char vol[3];
-
-    BLI_strncpy(orig_uri, "file:///", FILE_MAX);
-    if (strlen(path) < 2 && path[1] != ':') {
-      /* not a correct absolute path */
-      return 0;
-    }
-    /* on windows, using always uppercase drive/volume letter in uri */
-    vol[0] = uchar(toupper(path[0]));
-    vol[1] = ':';
-    vol[2] = '\0';
-    strcat(orig_uri, vol);
-    dirstart += 2;
+  if (strlen(path) < 2 && path[1] != ':') {
+    /* Not a correct absolute path. */
+    return 0;
   }
-  strcat(orig_uri, dirstart);
+  SNPRINTF(orig_uri, "file:///%s", path);
+  /* Always use an uppercase drive/volume letter in the URI. */
+  orig_uri[8] = char(toupper(orig_uri[8]));
   BLI_str_replace_char(orig_uri, '\\', '/');
 #else
-  SNPRINTF(orig_uri, "file://%s", dirstart);
+  SNPRINTF(orig_uri, "file://%s", path);
 #endif
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);

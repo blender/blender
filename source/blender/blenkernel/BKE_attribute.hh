@@ -919,4 +919,17 @@ inline const AnonymousAttributeID &AttributeIDRef::anonymous_id() const
   return *anonymous_id_;
 }
 
+void gather_attributes(AttributeAccessor src_attributes,
+                       eAttrDomain domain,
+                       const AnonymousAttributePropagationInfo &propagation_info,
+                       const Set<std::string> &skip,
+                       const IndexMask &selection,
+                       MutableAttributeAccessor dst_attributes);
+
+void copy_attributes(const AttributeAccessor src_attributes,
+                     const eAttrDomain domain,
+                     const AnonymousAttributePropagationInfo &propagation_info,
+                     const Set<std::string> &skip,
+                     MutableAttributeAccessor dst_attributes);
+
 }  // namespace blender::bke

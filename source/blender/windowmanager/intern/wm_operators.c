@@ -1561,7 +1561,8 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 /**
  * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
  *
- * \note operator menu needs undo flag enabled, for redo callback */
+ * \note operator menu needs undo flag enabled, for redo callback.
+ */
 static int wm_operator_props_popup_ex(bContext *C,
                                       wmOperator *op,
                                       const bool do_call,
@@ -3832,7 +3833,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
-/* circleselect-like modal operators */
+/* Circle-select-like modal operators. */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

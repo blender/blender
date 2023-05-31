@@ -647,7 +647,8 @@ bool BKE_id_can_be_asset(const struct ID *id);
  */
 struct ID *BKE_id_owner_get(struct ID *id);
 
-/** Check if that ID can be considered as editable from a high-level (editor) perspective.
+/**
+ * Check if that ID can be considered as editable from a high-level (editor) perspective.
  *
  * NOTE: This used to be done with a check on whether ID was linked or not, but now with system
  * overrides this is not enough anymore.

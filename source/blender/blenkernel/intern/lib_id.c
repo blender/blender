@@ -152,8 +152,10 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
 /**
  * This has to be called from each make_local_* func, we could call from BKE_lib_id_make_local()
  * but then the make local functions would not be self contained.
- * Also note that the id _must_ have a library - campbell */
-/* TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase. */
+ *
+ * NOTE(@ideasman42): that the id _must_ have a library.
+ * TODO: This can probably be replaced by an ID-level version of #BKE_bpath_relative_rebase.
+ */
 static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
   const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath_abs};
@@ -1346,14 +1348,18 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   ID *new_id = *r_newid;
   int flag = orig_flag;
 
-  const bool is_private_id_data = (id->flag & LIB_EMBEDDED_DATA) != 0;
+  const bool is_embedded_id = (id->flag & LIB_EMBEDDED_DATA) != 0;
 
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_LOCAL) == 0);
 
-  /* 'Private ID' data handling. */
-  if ((bmain != NULL) && is_private_id_data) {
+  /* Embedded ID handling.
+   *
+   * NOTE: This makes copying code of embedded IDs non-reentrant (i.e. copying an embedded ID as
+   * part of another embedded ID would not work properly). This is not an issue currently, but may
+   * need to be addressed in the future. */
+  if ((bmain != NULL) && is_embedded_id) {
     flag |= LIB_ID_CREATE_NO_MAIN;
   }
 
@@ -1390,6 +1396,11 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   }
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
+
+  /* 'Private ID' data handling. */
+  if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+    new_id->tag &= ~LIB_TAG_NO_MAIN;
+  }
 
   /* We do not want any handling of user-count in code duplicating the data here, we do that all
    * at once in id_copy_libmanagement_cb() at the end. */
@@ -1745,19 +1756,19 @@ static void library_make_local_copying_check(ID *id,
   BLI_gset_remove(loop_tags, id, NULL);
 }
 
-/* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
- * without actually making any check whether they were also indirectly used or not...
- *
- * Current version uses regular id_make_local callback, with advanced pre-processing step to
- * detect all cases of IDs currently indirectly used, but which will be used by local data only
- * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
- * hence all time lost afterwards to remove orphaned linked data-blocks. */
 void BKE_library_make_local(Main *bmain,
                             const Library *lib,
                             GHash *old_to_new_ids,
                             const bool untagged_only,
                             const bool set_fake)
 {
+  /* NOTE: Old (2.77) version was simply making (tagging) data-blocks as local,
+   * without actually making any check whether they were also indirectly used or not...
+   *
+   * Current version uses regular id_make_local callback, with advanced pre-processing step to
+   * detect all cases of IDs currently indirectly used, but which will be used by local data only
+   * once this function is finished.  This allows to avoid any unneeded duplication of IDs, and
+   * hence all time lost afterwards to remove orphaned linked data-blocks. */
 
   ListBase *lbarray[INDEX_ID_MAX];
 
@@ -1948,7 +1959,7 @@ void BKE_library_make_local(Main *bmain,
   /* This is probably more of a hack than something we should do here, but...
    * Issue is, the whole copying + remapping done in complex cases above may leave pose-channels
    * of armatures in complete invalid state (more precisely, the bone pointers of the
-   * pose-channels - very crappy cross-data-blocks relationship), se we tag it to be fully
+   * pose-channels - very crappy cross-data-blocks relationship), so we tag it to be fully
    * recomputed, but this does not seems to be enough in some cases, and evaluation code ends up
    * trying to evaluate a not-yet-updated armature object's deformations.
    * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */

@@ -552,7 +552,7 @@ static void write_render_color_output(struct RenderLayer *layer,
                                4,
                                0,
                                GPU_DATA_FLOAT,
-                               rp->rect);
+                               rp->buffer.data);
   }
 }
 
@@ -571,13 +571,13 @@ static void write_render_z_output(struct RenderLayer *layer,
                                BLI_rcti_size_x(rect),
                                BLI_rcti_size_y(rect),
                                GPU_DATA_FLOAT,
-                               rp->rect);
+                               rp->buffer.data);
 
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
     /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(nullptr)) {
-      for (float &z : MutableSpan(rp->rect, pix_num)) {
+      for (float &z : MutableSpan(rp->buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
         }
@@ -593,7 +593,7 @@ static void write_render_z_output(struct RenderLayer *layer,
       float far = DRW_view_far_distance_get(nullptr);
       float range = fabsf(far - near);
 
-      for (float &z : MutableSpan(rp->rect, pix_num)) {
+      for (float &z : MutableSpan(rp->buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
         }

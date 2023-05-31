@@ -649,12 +649,13 @@ typedef enum eActionGroup_Flag {
 
 /* Actions -------------------------------------- */
 
-/* Action - reusable F-Curve 'bag'  (act)
+/**
+ * Action - reusable F-Curve 'bag'  (act)
  *
- * This contains F-Curves that may affect settings from more than one ID blocktype and/or datablock
- * (i.e. sub-data linked/used directly to the ID block that the animation data is linked to),
- * but with the restriction that the other unrelated data (i.e. data that is not directly used or
- * linked to by the source ID block).
+ * This contains F-Curves that may affect settings from more than one ID block-type and/or
+ * data-block (i.e. sub-data linked/used directly to the ID block that the animation data is linked
+ * to), but with the restriction that the other unrelated data (i.e. data that is not directly used
+ * or linked to by the source ID block).
  *
  * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data),
  * that affects a group of related settings (as defined by the user).

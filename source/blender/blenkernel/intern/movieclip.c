@@ -601,14 +601,14 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
 
 static void movieclip_open_anim_file(MovieClip *clip)
 {
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
   if (!clip->anim) {
-    STRNCPY(str, clip->filepath);
-    BLI_path_abs(str, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
+    STRNCPY(filepath_abs, clip->filepath);
+    BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
 
     /* FIXME: make several stream accessible in image editor, too */
-    clip->anim = openanim(str, IB_rect, 0, clip->colorspace_settings.name);
+    clip->anim = openanim(filepath_abs, IB_rect, 0, clip->colorspace_settings.name);
 
     if (clip->anim) {
       if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
@@ -968,13 +968,13 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *filepath)
 {
   MovieClip *clip;
   int file;
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* exists? */
-  file = BLI_open(str, O_BINARY | O_RDONLY, 0);
+  file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     return NULL;
   }
@@ -1003,17 +1003,17 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *filepath)
 MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   MovieClip *clip;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-    STRNCPY(strtest, clip->filepath);
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &clip->id));
+    STRNCPY(filepath_test, clip->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &clip->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&clip->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;

@@ -95,7 +95,7 @@ void BLI_astar_solution_init(BLI_AStarGraph *as_graph,
                              void *custom_data);
 /**
  * Clear given solution's data, but does not release its memory.
- * Avoids having to recreate/allocate a memarena in loops, e.g.
+ * Avoids having to recreate/allocate a memory-arena in loops, e.g.
  *
  * \note This *has to be called* between each path solving.
  */

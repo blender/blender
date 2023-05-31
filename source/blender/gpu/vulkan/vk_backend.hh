@@ -36,7 +36,7 @@ class VKBackend : public GPUBackend {
  public:
   VKBackend()
   {
-    VKBackend::init_platform();
+    platform_init();
   }
 
   virtual ~VKBackend()
@@ -76,8 +76,6 @@ class VKBackend : public GPUBackend {
 
   shaderc::Compiler &get_shaderc_compiler();
 
-  static void capabilities_init();
-
   static VKBackend &get()
   {
     return *static_cast<VKBackend *>(GPUBackend::get());
@@ -88,8 +86,11 @@ class VKBackend : public GPUBackend {
     return device_;
   }
 
+  static void platform_init(const VKDevice &device);
+  static void capabilities_init(const VKDevice &device);
+
  private:
-  static void init_platform();
+  static void platform_init();
   static void platform_exit();
 
   /* These classes are allowed to modify the global device. */

@@ -322,7 +322,7 @@ void MTLImmediate::end()
             @autoreleasepool {
 
               id<MTLBuffer> index_buffer_mtl = nil;
-              uint32_t index_buffer_offset = 0;
+              uint64_t index_buffer_offset = 0;
 
               /* Region of scratch buffer used for topology emulation element data.
                * NOTE(Metal): We do not need to manually flush as the entire scratch

@@ -344,7 +344,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   Material *ma = ob->totcol ? BKE_object_material_get(ob, material_index + 1) : nullptr;
   COLLADASW::PrimitivesBase *primitive_list = create_primitive_list(is_triangulated, mSW);
 
-  /* sets count attribute in <polylist> */
+  /* sets count attribute in `<polylist>`. */
   primitive_list->setCount(polygon_count);
 
   /* sets material name */

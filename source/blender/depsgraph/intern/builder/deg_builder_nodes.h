@@ -139,6 +139,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                           OperationCode opcode,
                           const char *name = "",
                           int name_tag = -1);
+  bool has_operation_node(ID *id, NodeType comp_type, OperationCode opcode);
 
   OperationNode *find_operation_node(const ID *id,
                                      NodeType comp_type,
@@ -193,6 +194,10 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
+
+  virtual void build_object_light_linking(Object *object);
+  virtual void build_light_linking_collection(Collection *collection);
+
   virtual void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
   virtual void build_rigidbody(Scene *scene);
   virtual void build_particle_systems(Object *object, bool is_object_visible);
@@ -307,7 +312,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   int view_layer_index_;
   /* NOTE: Collection are possibly built recursively, so be careful when
    * setting the current state. */
-  Collection *collection_;
   /* Accumulated flag over the hierarchy of currently building collections.
    * Denotes whether all the hierarchy from parent of `collection_` to the
    * very root is visible (aka not restricted.). */

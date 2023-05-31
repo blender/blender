@@ -2622,6 +2622,10 @@ void uiTemplateAssetShelf(uiLayout *layout,
                           const struct bContext *C,
                           const struct AssetFilterSettings *filter_settings);
 
+void uiTemplateLightLinkingCollection(struct uiLayout *layout,
+                                      struct PointerRNA *ptr,
+                                      const char *propname);
+
 /**
  * \return: A RNA pointer for the operator properties.
  */

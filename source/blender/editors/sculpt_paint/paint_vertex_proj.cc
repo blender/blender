@@ -19,6 +19,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -79,12 +80,9 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph *depsgraph,
                                            Object *ob,
                                            VertProjHandle *vp_handle)
 {
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *me = static_cast<Mesh *>(ob->data);
-
-  CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * me->totvert);
   BKE_mesh_foreach_mapped_vert(
@@ -142,12 +140,10 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   VertProjUpdate vp_update = {vp_handle, region, mval_fl};
 
   Object *ob = vp_handle->ob;
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *me = static_cast<Mesh *>(ob->data);
 
-  CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH_ORIGINDEX;
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   /* quick sanity check - we shouldn't have to run this if there are no modifiers */
   BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);

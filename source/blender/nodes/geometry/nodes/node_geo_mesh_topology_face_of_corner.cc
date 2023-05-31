@@ -29,12 +29,12 @@ class CornerFaceIndexInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
-    return VArray<int>::ForContainer(bke::mesh_topology::build_loop_to_poly_map(mesh.polys()));
+    return VArray<int>::ForContainer(bke::mesh::build_loop_to_poly_map(mesh.polys()));
   }
 
   uint64_t hash() const final
@@ -57,13 +57,13 @@ class CornerIndexInFaceInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
     const OffsetIndices polys = mesh.polys();
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
     return VArray<int>::ForFunc(
         mesh.totloop, [polys, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {
           const int poly_i = loop_to_poly_map[corner_i];

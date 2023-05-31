@@ -1205,7 +1205,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                             offsets);
 
     /* Remove from linked list and append to blender::Vector. */
-    LISTBASE_FOREACH_MUTABLE (struct FaceIsland *, island, &island_list) {
+    LISTBASE_FOREACH_MUTABLE (FaceIsland *, island, &island_list) {
       BLI_remlink(&island_list, island);
       const bool pinned = island_has_pins(scene, island, params);
       if (ignore_pinned && pinned) {
@@ -1244,6 +1244,8 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     if ((selection_max_co[0] - selection_min_co[0]) * (selection_max_co[1] - selection_min_co[1]) >
         1e-40f)
     {
+      copy_v2_v2(params->udim_base_offset, selection_min_co);
+      params->target_extent = selection_max_co[1] - selection_min_co[1];
       params->target_aspect_y = (selection_max_co[0] - selection_min_co[0]) /
                                 (selection_max_co[1] - selection_min_co[1]);
     }
@@ -1342,20 +1344,6 @@ static void uvedit_pack_islands_multi(const Scene *scene,
 
     /* Perform the transformation. */
     island_uv_transform(island, matrix, pre_translate);
-
-    if (original_selection) {
-      const float rescale_x = (selection_max_co[0] - selection_min_co[0]) /
-                              params->target_aspect_y;
-      const float rescale_y = (selection_max_co[1] - selection_min_co[1]);
-      const float rescale = params->scale_to_fit ? std::min(rescale_x, rescale_y) : 1.0f;
-      matrix[0][0] = rescale;
-      matrix[0][1] = 0.0f;
-      matrix[1][0] = 0.0f;
-      matrix[1][1] = rescale;
-      pre_translate[0] = selection_min_co[0] / rescale;
-      pre_translate[1] = selection_min_co[1] / rescale;
-      island_uv_transform(island, matrix, pre_translate);
-    }
   }
 
   for (const int64_t i : pack_island_vector.index_range()) {
@@ -1412,7 +1400,9 @@ struct UVPackIslandsData {
 
 static void pack_islands_startjob(void *pidv, bool *stop, bool *do_update, float *progress)
 {
-  *progress = 0.02f;
+  if (progress != nullptr) {
+    *progress = 0.02f;
+  }
 
   UVPackIslandsData *pid = static_cast<UVPackIslandsData *>(pidv);
 
@@ -1429,8 +1419,12 @@ static void pack_islands_startjob(void *pidv, bool *stop, bool *do_update, float
                             !pid->use_job,
                             &pid->pack_island_params);
 
-  *progress = 0.99f;
-  *do_update = true;
+  if (progress != nullptr) {
+    *progress = 0.99f;
+  }
+  if (do_update != nullptr) {
+    *do_update = true;
+  }
 }
 
 static void pack_islands_endjob(void *pidv)
@@ -1507,7 +1501,8 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   }
 
   pack_island_params.setFromUnwrapOptions(options);
-  pack_island_params.rotate = RNA_boolean_get(op->ptr, "rotate");
+  pack_island_params.rotate_method = eUVPackIsland_RotationMethod(
+      RNA_enum_get(op->ptr, "rotate_method"));
   pack_island_params.scale_to_fit = RNA_boolean_get(op->ptr, "scale");
   pack_island_params.merge_overlap = RNA_boolean_get(op->ptr, "merge_overlap");
   pack_island_params.pin_method = eUVPackIsland_PinMethod(RNA_enum_get(op->ptr, "pin_method"));
@@ -1544,6 +1539,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 
   pack_islands_startjob(pid, nullptr, nullptr, nullptr);
   pack_islands_endjob(pid);
+  pack_islands_freejob(pid);
 
   MEM_freeN(pid);
   return OPERATOR_FINISHED;
@@ -1561,6 +1557,23 @@ static const EnumPropertyItem pack_margin_method_items[] = {
      0,
      "Fraction",
      "Specify a precise fraction of final UV output"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem pack_rotate_method_items[] = {
+    {ED_UVPACK_ROTATION_NONE, "NONE", 0, "No rotation", "No rotation is applied to the islands"},
+    RNA_ENUM_ITEM_SEPR,
+    {ED_UVPACK_ROTATION_AXIS_ALIGNED,
+     "AXIS_ALIGNED",
+     0,
+     "Axis-aligned",
+     "Rotated to a minimal rectangle, either vertical or horizontal"},
+    {ED_UVPACK_ROTATION_CARDINAL,
+     "CARDINAL",
+     0,
+     "Cardinal",
+     "Only 90 degree rotations are allowed"},
+    {ED_UVPACK_ROTATION_ANY, "ANY", 0, "Any", "Any angle is allowed for rotation"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1627,7 +1640,12 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
   /* properties */
   RNA_def_enum(ot->srna, "udim_source", pack_target, PACK_UDIM_SRC_CLOSEST, "Pack to", "");
-  RNA_def_boolean(ot->srna, "rotate", true, "Rotate", "Rotate islands for best fit");
+  RNA_def_enum(ot->srna,
+               "rotate_method",
+               pack_rotate_method_items,
+               ED_UVPACK_ROTATION_ANY,
+               "Rotation Method",
+               "");
   RNA_def_boolean(ot->srna, "scale", true, "Scale", "Scale islands to fill unit square");
   RNA_def_boolean(
       ot->srna, "merge_overlap", false, "Merge Overlapped", "Overlapping islands stick together");
@@ -2360,7 +2378,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
 
     blender::geometry::UVPackIsland_Params pack_island_params;
     pack_island_params.setFromUnwrapOptions(options);
-    pack_island_params.rotate = true;
+    pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
     pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
     pack_island_params.margin_method = ED_UVPACK_MARGIN_SCALED;
     pack_island_params.margin = scene->toolsettings->uvcalc_margin;
@@ -2502,7 +2520,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   blender::geometry::UVPackIsland_Params pack_island_params;
   pack_island_params.setFromUnwrapOptions(options);
-  pack_island_params.rotate = true;
+  pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
   pack_island_params.pin_method = ED_UVPACK_PIN_IGNORED;
   pack_island_params.margin_method = eUVPackIsland_MarginMethod(
       RNA_enum_get(op->ptr, "margin_method"));
@@ -2882,7 +2900,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
     blender::geometry::UVPackIsland_Params params;
-    params.rotate = true;
+    params.rotate_method = ED_UVPACK_ROTATION_ANY;
     params.only_selected_uvs = only_selected_uvs;
     params.only_selected_faces = true;
     params.correct_aspect = correct_aspect;
@@ -3322,7 +3340,8 @@ struct UV_FaceBranch {
   float branch;
 };
 
-/** Compute the sphere projection for a BMFace using #map_to_sphere and store on BMLoops.
+/**
+ * Compute the sphere projection for a BMFace using #map_to_sphere and store on BMLoops.
  *
  * Heuristics are used in #uv_map_mirror to improve winding.
  *
@@ -3871,7 +3890,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   /* Pack UVs. */
   blender::geometry::UVPackIsland_Params params;
-  params.rotate = true;
+  params.rotate_method = ED_UVPACK_ROTATION_ANY;
   params.only_selected_uvs = false;
   params.only_selected_faces = false;
   params.correct_aspect = false;

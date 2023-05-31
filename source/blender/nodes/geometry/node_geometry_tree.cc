@@ -20,6 +20,8 @@
 
 #include "UI_resources.h"
 
+#include "BLT_translation.h"
+
 #include "node_common.h"
 
 #include "node_geometry_register.hh"

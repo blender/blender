@@ -582,6 +582,7 @@ static void eevee_cryptomatte_extract_render_passes(
     const int pass_offset = pass * 2;
     SNPRINTF_RLEN(cryptomatte_pass_name, render_pass_name_format, pass);
     RenderPass *rp_object = RE_pass_find_by_name(rl, cryptomatte_pass_name, viewname);
+    float *rp_buffer_data = rp_object->buffer.data;
     for (int y = 0; y < rect_height; y++) {
       for (int x = 0; x < rect_width; x++) {
         const int accum_buffer_offset = (rect_offset_x + x +
@@ -589,15 +590,15 @@ static void eevee_cryptomatte_extract_render_passes(
                                             accum_pixel_stride +
                                         layer_index * layer_stride + pass_offset;
         const int render_pass_offset = (y * rect_width + x) * 4;
-        rp_object->rect[render_pass_offset] = accum_buffer[accum_buffer_offset].hash;
-        rp_object->rect[render_pass_offset + 1] = accum_buffer[accum_buffer_offset].weight;
+        rp_buffer_data[render_pass_offset] = accum_buffer[accum_buffer_offset].hash;
+        rp_buffer_data[render_pass_offset + 1] = accum_buffer[accum_buffer_offset].weight;
         if (levels_done + 1 < num_cryptomatte_levels) {
-          rp_object->rect[render_pass_offset + 2] = accum_buffer[accum_buffer_offset + 1].hash;
-          rp_object->rect[render_pass_offset + 3] = accum_buffer[accum_buffer_offset + 1].weight;
+          rp_buffer_data[render_pass_offset + 2] = accum_buffer[accum_buffer_offset + 1].hash;
+          rp_buffer_data[render_pass_offset + 3] = accum_buffer[accum_buffer_offset + 1].weight;
         }
         else {
-          rp_object->rect[render_pass_offset + 2] = 0.0f;
-          rp_object->rect[render_pass_offset + 3] = 0.0f;
+          rp_buffer_data[render_pass_offset + 2] = 0.0f;
+          rp_buffer_data[render_pass_offset + 3] = 0.0f;
         }
       }
     }

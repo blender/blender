@@ -608,19 +608,6 @@ void MTLFence::wait()
     return;
   }
 
-  /* Note(#106431 #106704): `sync_event` is a global cross-context synchronization primitive used
-   * to ensure GPU workloads execute in the correct order across contexts.
-   *
-   * To prevent unexpected GPU stalls, this needs to be reset when used along side explicit
-   * synchronization. Previously this was handled during frame boundaries, however, to eliminate
-   * situational flickering (#106704), only reset this during the cases where we are waiting on
-   * synchronization primitives. */
-  if (MTLCommandBufferManager::sync_event != nil) {
-    [MTLCommandBufferManager::sync_event release];
-    MTLCommandBufferManager::sync_event = nil;
-    MTLCommandBufferManager::event_signal_val = 0;
-  }
-
   if (signalled_) {
     MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);

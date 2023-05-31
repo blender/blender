@@ -311,7 +311,8 @@ void BKE_lib_override_library_property_delete(struct IDOverrideLibrary *override
 bool BKE_lib_override_library_property_search_and_delete(struct IDOverrideLibrary *override,
                                                          const char *rna_path);
 
-/** Change the RNA path of a library override on a property.
+/**
+ * Change the RNA path of a library override on a property.
  *
  * No-op if the property override cannot be found.
  *

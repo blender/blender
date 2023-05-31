@@ -790,6 +790,28 @@ class edit_generators:
 
             return edits
 
+    class remove_struct_qualifier(EditGenerator):
+        """
+        Remove redundant struct qualifiers:
+
+        Replace:
+          struct Foo
+        With:
+          Foo
+        """
+        @staticmethod
+        def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+            edits = []
+
+            # Remove `struct`
+            for match in re.finditer(r"\bstruct\b", data):
+                edits.append(Edit(
+                    span=match.span(),
+                    content=' ',
+                    content_fail=' __ALWAYS_FAIL__ ',
+                ))
+            return edits
+
     class remove_return_parens(EditGenerator):
         """
         Remove redundant parenthesis around return arguments:

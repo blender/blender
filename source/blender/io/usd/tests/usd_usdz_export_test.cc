@@ -25,7 +25,7 @@ namespace blender::io::usd {
 const StringRefNull usdz_export_test_filename = "usd/usdz_export_test.blend";
 char temp_dir[FILE_MAX];
 char temp_output_dir[FILE_MAX];
-char output_filename[FILE_MAX];
+char output_filepath[FILE_MAX];
 
 class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
  protected:
@@ -64,7 +64,7 @@ class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
     BLI_path_join(temp_output_dir, FILE_MAX, temp_base_dir, "usdz_test_output_dir");
     BLI_dir_create_recursive(temp_output_dir);
 
-    BLI_path_join(output_filename, FILE_MAX, temp_output_dir, "output_новый.usdz");
+    BLI_path_join(output_filepath, FILE_MAX, temp_output_dir, "output_новый.usdz");
   }
 
   virtual void TearDown() override
@@ -99,10 +99,10 @@ TEST_F(UsdUsdzExportTest, usdz_export)
 
   USDExportParams params{};
 
-  bool result = USD_export(context, output_filename, &params, false);
-  ASSERT_TRUE(result) << "usd export to " << output_filename << " failed.";
+  bool result = USD_export(context, output_filepath, &params, false);
+  ASSERT_TRUE(result) << "usd export to " << output_filepath << " failed.";
 
-  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filename);
+  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(output_filepath);
   ASSERT_TRUE(bool(stage)) << "unable to open stage for the exported usdz file.";
 
   std::string prim_name = pxr::TfMakeValidIdentifier("Cube");

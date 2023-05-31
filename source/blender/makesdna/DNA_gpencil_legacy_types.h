@@ -720,7 +720,8 @@ typedef struct bGPdata {
    * active frame and the one before it (0 = only the ghost itself).
    */
   short gstep;
-  /** Ghosts After: max number of ghost frames to show after
+  /**
+   * Ghosts After: max number of ghost frames to show after
    * active frame and the following it (0 = only the ghost itself).
    */
   short gstep_next;

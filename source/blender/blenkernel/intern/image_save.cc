@@ -738,7 +738,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   /* Compositing result. */
   if (rr->have_combined) {
     LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!rview->rectf) {
+      if (!rview->combined_buffer.data) {
         continue;
       }
 
@@ -756,10 +756,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
         continue;
       }
 
-      float *output_rect = (save_as_render) ?
-                               image_exr_from_scene_linear_to_output(
-                                   rview->rectf, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
-                               rview->rectf;
+      float *output_rect =
+          (save_as_render) ?
+              image_exr_from_scene_linear_to_output(
+                  rview->combined_buffer.data, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+              rview->combined_buffer.data;
 
       for (int a = 0; a < channels; a++) {
         char passname[EXR_PASS_MAXNAME];
@@ -781,9 +782,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
             exrhandle, layname, passname, viewname, 4, 4 * rr->rectx, output_rect + a, half_float);
       }
 
-      if (write_z && rview->rectz) {
+      if (write_z && rview->z_buffer.data) {
         const char *layname = (multi_layer) ? "Composite" : "";
-        IMB_exr_add_channel(exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->rectz, false);
+        IMB_exr_add_channel(
+            exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->z_buffer.data, false);
       }
     }
   }
@@ -825,8 +827,8 @@ bool BKE_image_render_write_exr(ReportList *reports,
       float *output_rect =
           (save_as_render && pass_RGBA) ?
               image_exr_from_scene_linear_to_output(
-                  rp->rect, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
-              rp->rect;
+                  rp->buffer.data, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
+              rp->buffer.data;
 
       for (int a = 0; a < std::min(channels, rp->channels); a++) {
         /* Save Combined as RGBA or RGB if single layer save. */

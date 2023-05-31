@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2023-02-05 22:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -2117,10 +2117,6 @@ msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
 
 
-msgid "Simulations"
-msgstr "Benzetimler"
-
-
 msgid "Sounds"
 msgstr "Sesler"
 
@@ -4087,38 +4083,6 @@ msgid "Eraser Stroke"
 msgstr "Silgi Vuruş"
 
 
-msgid "Smooth"
-msgstr "Pürüzsüz"
-
-
-msgid "Thickness"
-msgstr "Kalınlık"
-
-
-msgid "Randomize"
-msgstr "Rastgeleleştir"
-
-
-msgid "Grab"
-msgstr "Tut"
-
-
-msgid "Push"
-msgstr "İt"
-
-
-msgid "Twist"
-msgstr "Bük"
-
-
-msgid "Pinch"
-msgstr "Çimdikle"
-
-
-msgid "Clone"
-msgstr "Klonla"
-
-
 msgid "Draw"
 msgstr "Çiz"
 
@@ -4133,6 +4097,14 @@ msgstr "Bulaştır"
 
 msgid "Hardness"
 msgstr "Sertlik"
+
+
+msgid "Thickness"
+msgstr "Kalınlık"
+
+
+msgid "Smooth"
+msgstr "Pürüzsüz"
 
 
 msgid "Hue"
@@ -4347,6 +4319,10 @@ msgid "Grease Pencil"
 msgstr "Gres Kalemi"
 
 
+msgid "Simulations"
+msgstr "Benzetimler"
+
+
 msgid "Save"
 msgstr "Kaydet"
 
@@ -4467,6 +4443,14 @@ msgid "Box"
 msgstr "Kutu"
 
 
+msgid "Push"
+msgstr "İt"
+
+
+msgid "Grab"
+msgstr "Tut"
+
+
 msgid "Local"
 msgstr "Yerel"
 
@@ -4475,12 +4459,20 @@ msgid "Global"
 msgstr "Evrensel"
 
 
+msgid "Pinch"
+msgstr "Çimdikle"
+
+
 msgid "Erase"
 msgstr "Sil"
 
 
 msgid "The brush is used for erasing strokes"
 msgstr "Fırça, vuruşları silmek için kullanılır"
+
+
+msgid "Clone"
+msgstr "Klonla"
 
 
 msgid "Mask"
@@ -4723,6 +4715,10 @@ msgid "Halo"
 msgstr "Hale"
 
 
+msgid "Twist"
+msgstr "Bük"
+
+
 msgid "Sync Mode"
 msgstr "Eşzamanlama Kipi"
 
@@ -4881,6 +4877,10 @@ msgstr "Malzeme Kipi"
 
 msgid "Transfer"
 msgstr "Aktar"
+
+
+msgid "Randomize"
+msgstr "Rastgeleleştir"
 
 
 msgid "Deform Mode"
@@ -5578,10 +5578,6 @@ msgid "After"
 msgstr "Sonra"
 
 
-msgid "Out"
-msgstr "Çıkış"
-
-
 msgid "Not Set"
 msgstr "Ayarlı Değil"
 
@@ -5710,6 +5706,10 @@ msgstr "Çoklu-Boyama"
 
 msgid "Path Steps"
 msgstr "Yol Adımları"
+
+
+msgid "Out"
+msgstr "Çıkış"
 
 
 msgid "Hex"
@@ -6064,10 +6064,6 @@ msgid "Japanese (日本語)"
 msgstr "Japonca (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Hollandaca (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "İtalyanca (Italiano)"
 
@@ -6188,10 +6184,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "İbranice (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Estonca (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
 
@@ -6212,24 +6204,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Özbekçe Kiril (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Hintçe (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Vietnamca (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "Bask Dili (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "Kazakça (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

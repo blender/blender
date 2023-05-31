@@ -1384,8 +1384,9 @@ struct AutomaskingNodeData {
   bool have_orig_data;
 };
 
-/** Call before PBVH vertex iteration.
- * \param automask_data: pointer to an uninitialized AutomaskingNodeData struct.
+/**
+ * Call before PBVH vertex iteration.
+ * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
                                    const SculptSession *ss,

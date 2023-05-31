@@ -36,7 +36,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
     FieldEvaluator face_evaluator{face_context, mesh.totpoly};

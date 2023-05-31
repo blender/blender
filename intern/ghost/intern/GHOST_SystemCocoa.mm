@@ -429,8 +429,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
 #if 0
-  G.is_break = false; /* Let Cocoa perform the termination at the end. */
-  WM_exit(C);
+  WM_exit(C, EXIT_SUCCESS);
 #endif
 }
 

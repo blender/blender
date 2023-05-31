@@ -75,7 +75,7 @@ void MTLVertBuf::duplicate_data(VertBuf *dst_)
     BLI_assert(dst->vbo_ == nullptr);
 
     /* Allocate VBO for destination vertbuf. */
-    uint length = src->vbo_->get_size();
+    uint64_t length = src->vbo_->get_size();
     dst->vbo_ = MTLContext::get_global_memory_manager()->allocate(
         length, (dst->get_usage_type() != GPU_USAGE_DEVICE_ONLY));
     dst->alloc_size_ = length;
@@ -225,7 +225,7 @@ void MTLVertBuf::bind()
                sourceOffset:0
                    toBuffer:copy_new_buffer
           destinationOffset:0
-                       size:min_ii([copy_new_buffer length], [copy_prev_buffer length])];
+                       size:min_ulul([copy_new_buffer length], [copy_prev_buffer length])];
 
       /* Flush newly copied data back to host-side buffer, if one exists.
        * Ensures data and cache coherency for managed MTLBuffers. */
@@ -274,7 +274,7 @@ void MTLVertBuf::update_sub(uint start, uint len, const void *data)
   [scratch_allocation.metal_buffer
       didModifyRange:NSMakeRange(scratch_allocation.buffer_offset, len)];
   id<MTLBuffer> data_buffer = scratch_allocation.metal_buffer;
-  uint data_buffer_offset = scratch_allocation.buffer_offset;
+  uint64_t data_buffer_offset = scratch_allocation.buffer_offset;
 
   BLI_assert(vbo_ != nullptr && data != nullptr);
   BLI_assert((start + len) <= vbo_->get_size());

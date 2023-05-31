@@ -1286,8 +1286,8 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 
   /* could crash if trying to copy a string out of this range */
   if (len > ext_len) {
-    /* using frame_len here gives compile error (vla) */
-    char num[/* frame_len */ 6 + 1];
+    /* Using frame_len here gives compile error (VLA). */
+    char num[/*frame_len*/ 6 + 1];
     STRNCPY(num, filename + len - ext_len);
 
     return atoi(num);
@@ -1309,15 +1309,15 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : NULL;
-  const char *blendfilename = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
-                                  lib->filepath_abs :
-                                  blendfile_path;
+  const char *blendfile_path_lib = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
+                                       lib->filepath_abs :
+                                       blendfile_path;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {
     BLI_strncpy(dirname, pid->cache->path, MAX_PTCACHE_PATH);
 
     if (BLI_path_is_rel(dirname)) {
-      BLI_path_abs(dirname, blendfilename);
+      BLI_path_abs(dirname, blendfile_path_lib);
     }
 
     return BLI_path_slash_ensure(dirname, MAX_PTCACHE_PATH); /* new strlen() */
@@ -1325,14 +1325,14 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
 
-    BLI_path_split_file_part(blendfilename, file, sizeof(file));
+    BLI_path_split_file_part(blendfile_path_lib, file, sizeof(file));
     /* Remove the `.blend` extension. */
     BLI_path_extension_strip(file);
 
     /* Add blend file name to pointcache dir. */
     BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
 
-    BLI_path_abs(dirname, blendfilename);
+    BLI_path_abs(dirname, blendfile_path_lib);
     return BLI_path_slash_ensure(dirname, MAX_PTCACHE_PATH); /* new strlen() */
   }
 

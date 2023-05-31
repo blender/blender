@@ -243,7 +243,7 @@ static void test_shader_compute_ssbo()
   /* Check if compute has been done. */
   GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
-  /* Download the index buffer. */
+  /* Download the storage buffer. */
   uint32_t data[SIZE];
   GPU_storagebuf_read(ssbo, data);
   for (int index = 0; index < SIZE; index++) {

@@ -45,7 +45,8 @@ class AbstractViewItem;
 class AbstractViewItemDropTarget;
 class AbstractViewItemDragController;
 
-/** The view drop target can share logic with the view item drop target for now, so just an alias.
+/**
+ * The view drop target can share logic with the view item drop target for now, so just an alias.
  */
 using AbstractViewDropTarget = AbstractViewItemDropTarget;
 

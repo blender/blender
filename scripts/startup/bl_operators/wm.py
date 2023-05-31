@@ -1419,7 +1419,11 @@ class WM_OT_properties_edit(Operator):
                 return rna_custom_property_subtype_number_items
             case 'FLOAT_ARRAY':
                 return rna_custom_property_subtype_vector_items
-        return ()
+            case _:
+                # Needed so 'NONE' can always be assigned.
+                return (
+                    rna_custom_property_subtype_none_item,
+                )
 
     def property_type_update_cb(self, context):
         self.subtype = 'NONE'

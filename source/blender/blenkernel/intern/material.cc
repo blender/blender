@@ -24,6 +24,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -74,6 +75,8 @@
 #include "BLO_read_write.h"
 
 static CLG_LogRef LOG = {"bke.material"};
+
+static void material_clear_data(ID *id);
 
 static void material_init_data(ID *id)
 {
@@ -132,6 +135,26 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
   /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
 }
 
+/**
+ * Ensure pointers to allocated memory is cleared
+ * (the kind of data that would have to be copied).
+ *
+ * \note Keep in sync with #material_free_data.
+ * \note Doesn't handle animation data (`ma->adt`).
+ */
+static void material_clear_data(ID *id)
+{
+  Material *material = (Material *)id;
+
+  BLI_listbase_clear(&material->gpumaterial);
+  material->texpaintslot = nullptr;
+  material->gp_style = nullptr;
+  material->nodetree = nullptr;
+  material->preview = nullptr;
+
+  id->icon_id = 0;
+}
+
 static void material_free_data(ID *id)
 {
   Material *material = (Material *)id;
@@ -150,8 +173,9 @@ static void material_free_data(ID *id)
 
   MEM_SAFE_FREE(material->gp_style);
 
-  BKE_icon_id_delete((ID *)material);
   BKE_previewimg_free(&material->preview);
+
+  BKE_icon_id_delete((ID *)material);
 }
 
 static void material_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -353,6 +377,10 @@ Material ***BKE_object_material_array_p(Object *ob)
     Volume *volume = static_cast<Volume *>(ob->data);
     return &(volume->mat);
   }
+  if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    return &(grease_pencil->material_array);
+  }
   return nullptr;
 }
 
@@ -386,6 +414,10 @@ short *BKE_object_material_len_p(Object *ob)
     Volume *volume = static_cast<Volume *>(ob->data);
     return &(volume->totcol);
   }
+  if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    return &(grease_pencil->material_array_size);
+  }
   return nullptr;
 }
 
@@ -409,6 +441,8 @@ Material ***BKE_id_material_array_p(ID *id)
       return &(((PointCloud *)id)->mat);
     case ID_VO:
       return &(((Volume *)id)->mat);
+    case ID_GP:
+      return &(((GreasePencil *)id)->material_array);
     default:
       break;
   }
@@ -435,6 +469,8 @@ short *BKE_id_material_len_p(ID *id)
       return &(((PointCloud *)id)->totcol);
     case ID_VO:
       return &(((Volume *)id)->totcol);
+    case ID_GP:
+      return &(((GreasePencil *)id)->material_array_size);
     default:
       break;
   }
@@ -1285,11 +1321,9 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
     return false;
   }
 
-  /* take a mesh/curve/mball as starting point, remove 1 index,
-   * AND with all objects that share the ob->data
-   *
-   * after that check indices in mesh/curve/mball!!!
-   */
+  /* Take a mesh/curve/meta-ball as starting point, remove 1 index,
+   * AND with all objects that share the `ob->data`.
+   * After that check indices in mesh/curve/meta-ball! */
 
   totcolp = BKE_object_material_len_p(ob);
   matarar = BKE_object_material_array_p(ob);
@@ -1899,74 +1933,169 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
   }
 }
 
-/**
- * \brief copy/paste buffer, if we had a proper py api that would be better
- * \note matcopybuf.nodetree does _NOT_ use ID's
- * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
- */
+/* -------------------------------------------------------------------- */
+/** \name Material Copy/Paste
+ *
+ * As materials may reference other data, the clipboard only stores a subset of all possible data.
+ * The material and it's node-tree are stored and nothing else.
+ * Notably the following variables are *not* part of the clipboard.
+ *
+ * - The #ID (name, fake-user, custom-properties .. etc).
+ * - Animation data (#Material::adt, #bNodeTree::adt).
+ * - Texture paint slots (#Material::texpaintslot)
+ *   as this is cache and references other ID's.
+ * - Grease pencil style (#Material::gp_style)
+ *   could be supported but ID's and pointers would need to be handled carefully.
+ *
+ * When pasting, some data in the destination material is left as-is:
+ * - The #ID.
+ * - Animation data, with the exception that pasting a material without a node-tree
+ *   will clear the existing materials node-tree & its animation.
+ *   Note that applying existing animation to the pasted material might not make sense
+ *   and may reference data-paths that don't resolve (depending on the kind of material).
+ *   The user might need to clear the animation in this case.
+ *
+ * \{ */
+
 static Material matcopybuf;
 static short matcopied = 0;
 
 void BKE_material_copybuf_clear(void)
 {
+  if (matcopied) {
+    BKE_material_copybuf_free();
+  }
   matcopybuf = blender::dna::shallow_zero_initialize();
   matcopied = 0;
 }
 
+/**
+ * Some members should *never* be set, ensure this is always the case.
+ * Call at the beginning & end of functions that manipulate the clipboard.
+ */
+static void material_copybuf_assert_is_valid()
+{
+  BLI_assert(!matcopybuf.id.icon_id);
+  BLI_assert(!matcopybuf.id.py_instance);
+  BLI_assert(!matcopybuf.adt);
+  BLI_assert(!matcopybuf.preview);
+  if (matcopybuf.nodetree) {
+    BLI_assert(!matcopybuf.nodetree->id.py_instance);
+    BLI_assert(!matcopybuf.nodetree->adt);
+    BLI_assert(!matcopybuf.nodetree->owner_id);
+  }
+}
+
 void BKE_material_copybuf_free(void)
 {
-  if (matcopybuf.nodetree) {
-    ntreeFreeLocalTree(matcopybuf.nodetree);
-    BLI_assert(!matcopybuf.nodetree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-    MEM_freeN(matcopybuf.nodetree);
-    matcopybuf.nodetree = nullptr;
-  }
+  material_copybuf_assert_is_valid();
 
+  material_free_data(&matcopybuf.id);
   matcopied = 0;
 }
 
 void BKE_material_copybuf_copy(Main *bmain, Material *ma)
 {
+  material_copybuf_assert_is_valid();
+
   if (matcopied) {
     BKE_material_copybuf_free();
   }
 
   matcopybuf = blender::dna::shallow_copy(*ma);
 
+  /* Not essential, but we never want to use any ID values from the source,
+   * this ensures that never happens. */
+  memset(&matcopybuf.id, 0, sizeof(ID));
+
+  /* Ensure dangling pointers are never copied back into a material. */
+  material_clear_data(&matcopybuf.id);
+
+  /* Unhandled by materials generic data functions. */
+  matcopybuf.adt = nullptr;
+
   if (ma->nodetree != nullptr) {
+    /* Never copy animation data. */
+    struct {
+      AnimData *adt;
+    } backup;
+    backup.adt = ma->nodetree->adt;
+    ma->nodetree->adt = nullptr;
+
     matcopybuf.nodetree = blender::bke::ntreeCopyTree_ex(ma->nodetree, bmain, false);
+    matcopybuf.nodetree->owner_id = nullptr;
+
+    ma->nodetree->adt = backup.adt;
   }
 
-  matcopybuf.preview = nullptr;
-  BLI_listbase_clear(&matcopybuf.gpumaterial);
   /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
   matcopied = 1;
+
+  material_copybuf_assert_is_valid();
 }
 
-void BKE_material_copybuf_paste(Main *bmain, Material *ma)
+bool BKE_material_copybuf_paste(Main *bmain, Material *ma)
 {
-  ID id;
+  material_copybuf_assert_is_valid();
 
   if (matcopied == 0) {
-    return;
+    return false;
   }
 
-  /* Free gpu material before the ntree */
-  GPU_material_free(&ma->gpumaterial);
+  /* `matcopybuf` never has animation data, no need to check. */
+  const bool has_animdata = (ma->adt != nullptr || (ma->nodetree && ma->nodetree->adt));
+  const bool has_node_tree = (ma->nodetree || matcopybuf.nodetree);
 
-  if (ma->nodetree) {
-    ntreeFreeEmbeddedTree(ma->nodetree);
-    MEM_freeN(ma->nodetree);
+  AnimData *backup_nodetree_adt = nullptr;
+  if (ma->nodetree && matcopybuf.nodetree) {
+    /* Keep data to apply back to the new node-tree. */
+    std::swap(backup_nodetree_adt, ma->nodetree->adt);
   }
 
-  id = (ma->id);
-  *ma = blender::dna::shallow_copy(matcopybuf);
-  (ma->id) = id;
+  /* Handles freeing nodes and and other run-time data (previews) for e.g. */
+  material_free_data(&ma->id);
+
+  /* Copy from `matcopybuf` preserving some members.
+   * NOTE: animation data isn't stored in the clipboard, any existing animation will be left as-is.
+   * Any undesired animation will have to be manually cleared by the user. */
+  {
+    struct {
+      ID id;
+      AnimData *adt;
+    } backup;
+    backup.id = ma->id;
+    backup.adt = ma->adt;
+
+    *ma = blender::dna::shallow_copy(matcopybuf);
+
+    ma->id = backup.id;
+    ma->adt = backup.adt;
+  }
 
   if (matcopybuf.nodetree != nullptr) {
+    BLI_assert(matcopybuf.nodetree->adt == nullptr);
     ma->nodetree = blender::bke::ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
+    ma->nodetree->owner_id = &ma->id;
+
+    /* Restore animation pointer (if set). */
+    BLI_assert(ma->nodetree->adt == nullptr);
+    ma->nodetree->adt = backup_nodetree_adt;
   }
+
+  if (has_node_tree || has_animdata) {
+    /* Important to run this when the embedded tree if freed,
+     * otherwise the depsgraph holds a reference to the (now freed) `ma->nodetree`.
+     * Also run this when a new node-tree is set to ensure it's accounted for.
+     * This also applies to animation data which is likely to be stored in the depsgraph. */
+    DEG_relations_tag_update(bmain);
+  }
+
+  material_copybuf_assert_is_valid();
+
+  return true;
 }
+
+/** \} */
 
 void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
 {

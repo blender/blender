@@ -63,7 +63,7 @@ class GradientFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
 
@@ -75,62 +75,57 @@ class GradientFunction : public mf::MultiFunction {
 
     switch (gradient_type_) {
       case SHD_BLEND_LINEAR: {
-        for (int64_t i : mask) {
-          fac[i] = vector[i].x;
-        }
+        mask.foreach_index([&](const int64_t i) { fac[i] = vector[i].x; });
         break;
       }
       case SHD_BLEND_QUADRATIC: {
-        for (int64_t i : mask) {
+        mask.foreach_index([&](const int64_t i) {
           const float r = std::max(vector[i].x, 0.0f);
           fac[i] = r * r;
-        }
+        });
         break;
       }
       case SHD_BLEND_EASING: {
-        for (int64_t i : mask) {
+        mask.foreach_index([&](const int64_t i) {
           const float r = std::min(std::max(vector[i].x, 0.0f), 1.0f);
           const float t = r * r;
           fac[i] = (3.0f * t - 2.0f * t * r);
-        }
+        });
         break;
       }
       case SHD_BLEND_DIAGONAL: {
-        for (int64_t i : mask) {
-          fac[i] = (vector[i].x + vector[i].y) * 0.5f;
-        }
+        mask.foreach_index([&](const int64_t i) { fac[i] = (vector[i].x + vector[i].y) * 0.5f; });
         break;
       }
       case SHD_BLEND_RADIAL: {
-        for (int64_t i : mask) {
+        mask.foreach_index([&](const int64_t i) {
           fac[i] = atan2f(vector[i].y, vector[i].x) / (M_PI * 2.0f) + 0.5f;
-        }
+        });
         break;
       }
       case SHD_BLEND_QUADRATIC_SPHERE: {
-        for (int64_t i : mask) {
+        mask.foreach_index([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
           const float r = std::max(0.999999f - math::length(vector[i]), 0.0f);
           fac[i] = r * r;
-        }
+        });
         break;
       }
       case SHD_BLEND_SPHERICAL: {
-        for (int64_t i : mask) {
+        mask.foreach_index([&](const int64_t i) {
           /* Bias a little bit for the case where input is a unit length vector,
            * to get exactly zero instead of a small random value depending
            * on float precision. */
           fac[i] = std::max(0.999999f - math::length(vector[i]), 0.0f);
-        }
+        });
         break;
       }
     }
     if (compute_color) {
-      for (int64_t i : mask) {
-        r_color[i] = ColorGeometry4f(fac[i], fac[i], fac[i], 1.0f);
-      }
+      mask.foreach_index(
+          [&](const int64_t i) { r_color[i] = ColorGeometry4f(fac[i], fac[i], fac[i], 1.0f); });
     }
   }
 };

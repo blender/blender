@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
@@ -225,10 +226,18 @@ void RE_FreeRenderResult(RenderResult *rr)
   render_result_free(rr);
 }
 
+RenderBuffer *RE_RenderLayerGetPassBuffer(struct RenderLayer *rl,
+                                          const char *name,
+                                          const char *viewname)
+{
+  RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
+  return rpass ? &rpass->buffer : nullptr;
+}
+
 float *RE_RenderLayerGetPass(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
-  return rpass ? rpass->rect : nullptr;
+  return rpass ? rpass->buffer.data : nullptr;
 }
 
 RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
@@ -371,21 +380,31 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       render_result_views_shallowcopy(rr, re->result);
 
       RenderView *rv = static_cast<RenderView *>(rr->views.first);
-      rr->have_combined = (rv->rectf != nullptr);
+      rr->have_combined = (rv->combined_buffer.data != nullptr);
 
       /* single layer */
       RenderLayer *rl = render_get_single_layer(re, re->result);
 
+      /* The render result uses shallow initialization, and the caller is not expected to
+       * explicitly free it. So simply assign the buffers as a shallow copy here as well. */
+
       if (rl) {
-        if (rv->rectf == nullptr) {
+        if (rv->combined_buffer.data == nullptr) {
           LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-            rview->rectf = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, rview->name);
+            RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(
+                rl, RE_PASSNAME_COMBINED, rview->name);
+            if (buffer) {
+              rview->combined_buffer = *buffer;
+            }
           }
         }
 
-        if (rv->rectz == nullptr) {
+        if (rv->z_buffer.data == nullptr) {
           LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-            rview->rectz = RE_RenderLayerGetPass(rl, RE_PASSNAME_Z, rview->name);
+            RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_Z, rview->name);
+            if (buffer) {
+              rview->z_buffer = *buffer;
+            }
           }
         }
       }
@@ -424,22 +443,32 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 
       /* `scene.rd.actview` view. */
       rv = RE_RenderViewGetById(re->result, view_id);
-      rr->have_combined = (rv->rectf != nullptr);
+      rr->have_combined = (rv->combined_buffer.data != nullptr);
 
-      rr->rectf = rv->rectf;
-      rr->rectz = rv->rectz;
-      rr->rect32 = rv->rect32;
+      /* The render result uses shallow initialization, and the caller is not expected to
+       * explicitly free it. So simply assign the buffers as a shallow copy here as well.
+       *
+       * The thread safety is ensured via the  re->resultmutex. */
+      rr->combined_buffer = rv->combined_buffer;
+      rr->z_buffer = rv->z_buffer;
+      rr->byte_buffer = rv->byte_buffer;
 
       /* active layer */
       rl = render_get_single_layer(re, re->result);
 
       if (rl) {
-        if (rv->rectf == nullptr) {
-          rr->rectf = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, rv->name);
+        if (rv->combined_buffer.data == nullptr) {
+          RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_COMBINED, rv->name);
+          if (buffer) {
+            rr->combined_buffer = *buffer;
+          }
         }
 
-        if (rv->rectz == nullptr) {
-          rr->rectz = RE_RenderLayerGetPass(rl, RE_PASSNAME_Z, rv->name);
+        if (rv->z_buffer.data == nullptr) {
+          RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_Z, rv->name);
+          if (buffer) {
+            rr->z_buffer = *buffer;
+          }
         }
       }
 
@@ -1198,8 +1227,8 @@ static void renderresult_stampinfo(Render *re)
     BKE_image_stamp_buf(re->scene,
                         ob_camera_eval,
                         (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                        (uchar *)rres.rect32,
-                        rres.rectf,
+                        rres.byte_buffer.data,
+                        rres.combined_buffer.data,
                         rres.rectx,
                         rres.recty,
                         4);
@@ -2023,7 +2052,7 @@ static bool do_write_image_or_movie(Render *re,
   re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
-  printf(" Time: %s", filepath);
+  printf("Time: %s", filepath);
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
@@ -2166,92 +2195,140 @@ void RE_RenderAnim(Render *re,
 
   re->flag |= R_ANIMATION;
 
-  {
-    scene->r.subframe = 0.0f;
-    for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
-      char filepath[FILE_MAX];
+  scene->r.subframe = 0.0f;
+  for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
+    char filepath[FILE_MAX];
 
-      /* A feedback loop exists here -- render initialization requires updated
-       * render layers settings which could be animated, but scene evaluation for
-       * the frame happens later because it depends on what layers are visible to
-       * render engine.
-       *
-       * The idea here is to only evaluate animation data associated with the scene,
-       * which will make sure render layer settings are up-to-date, initialize the
-       * render database itself and then perform full scene update with only needed
-       * layers.
-       *                                                              -sergey-
-       */
-      {
-        float ctime = BKE_scene_ctime_get(scene);
-        AnimData *adt = BKE_animdata_from_id(&scene->id);
-        const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-            re->pipeline_depsgraph, ctime);
-        BKE_animsys_evaluate_animdata(&scene->id, adt, &anim_eval_context, ADT_RECALC_ALL, false);
+    /* A feedback loop exists here -- render initialization requires updated
+     * render layers settings which could be animated, but scene evaluation for
+     * the frame happens later because it depends on what layers are visible to
+     * render engine.
+     *
+     * The idea here is to only evaluate animation data associated with the scene,
+     * which will make sure render layer settings are up-to-date, initialize the
+     * render database itself and then perform full scene update with only needed
+     * layers.
+     *                                                              -sergey-
+     */
+    {
+      float ctime = BKE_scene_ctime_get(scene);
+      AnimData *adt = BKE_animdata_from_id(&scene->id);
+      const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+          re->pipeline_depsgraph, ctime);
+      BKE_animsys_evaluate_animdata(&scene->id, adt, &anim_eval_context, ADT_RECALC_ALL, false);
+    }
+
+    render_update_depsgraph(re);
+
+    /* Only border now, TODO(ton): camera lens. */
+    render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, true, false);
+
+    if (nfra != scene->r.cfra) {
+      /* Skip this frame, but could update for physics and particles system. */
+      continue;
+    }
+
+    nfra += tfra;
+
+    /* Touch/NoOverwrite options are only valid for image's */
+    if (is_movie == false && do_write_file) {
+      if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
+        BKE_image_path_from_imformat(filepath,
+                                     rd.pic,
+                                     BKE_main_blendfile_path(bmain),
+                                     scene->r.cfra,
+                                     &rd.im_format,
+                                     (rd.scemode & R_EXTENSION) != 0,
+                                     true,
+                                     nullptr);
       }
 
-      render_update_depsgraph(re);
-
-      /* Only border now, TODO(ton): camera lens. */
-      render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, true, false);
-
-      if (nfra != scene->r.cfra) {
-        /* Skip this frame, but could update for physics and particles system. */
-        continue;
-      }
-
-      nfra += tfra;
-
-      /* Touch/NoOverwrite options are only valid for image's */
-      if (is_movie == false && do_write_file) {
-        if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
-          BKE_image_path_from_imformat(filepath,
-                                       rd.pic,
-                                       BKE_main_blendfile_path(bmain),
-                                       scene->r.cfra,
-                                       &rd.im_format,
-                                       (rd.scemode & R_EXTENSION) != 0,
-                                       true,
-                                       nullptr);
+      if (rd.mode & R_NO_OVERWRITE) {
+        if (!is_multiview_name) {
+          if (BLI_exists(filepath)) {
+            printf("skipping existing frame \"%s\"\n", filepath);
+            totskipped++;
+            continue;
+          }
         }
+        else {
+          bool is_skip = false;
+          char filepath[FILE_MAX];
 
-        if (rd.mode & R_NO_OVERWRITE) {
-          if (!is_multiview_name) {
+          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+              continue;
+            }
+
+            BKE_scene_multiview_filepath_get(srv, filepath, filepath);
+
             if (BLI_exists(filepath)) {
-              printf("skipping existing frame \"%s\"\n", filepath);
-              totskipped++;
-              continue;
+              is_skip = true;
+              printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath, srv->name);
             }
           }
-          else {
-            bool is_skip = false;
-            char filepath[FILE_MAX];
 
-            LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-                continue;
-              }
+          if (is_skip) {
+            totskipped++;
+            continue;
+          }
+        }
+      }
 
-              BKE_scene_multiview_filepath_get(srv, filepath, filepath);
+      if (rd.mode & R_TOUCH) {
+        if (!is_multiview_name) {
+          if (!BLI_exists(filepath)) {
+            BLI_file_ensure_parent_dir_exists(filepath);
+            BLI_file_touch(filepath);
+          }
+        }
+        else {
+          char filepath_view[FILE_MAX];
 
-              if (BLI_exists(filepath)) {
-                is_skip = true;
-                printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath, srv->name);
-              }
+          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+              continue;
             }
 
-            if (is_skip) {
-              totskipped++;
-              continue;
+            BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
+
+            if (!BLI_exists(filepath_view)) {
+              BLI_file_ensure_parent_dir_exists(filepath_view);
+              BLI_file_touch(filepath_view);
             }
           }
         }
+      }
+    }
 
+    re->r.cfra = scene->r.cfra; /* weak.... */
+    re->r.subframe = scene->r.subframe;
+
+    /* run callbacks before rendering, before the scene is updated */
+    render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
+
+    do_render_full_pipeline(re);
+    totrendered++;
+
+    if (re->test_break(re->tbh) == 0) {
+      if (!G.is_break) {
+        if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
+          G.is_break = true;
+        }
+      }
+    }
+    else {
+      G.is_break = true;
+    }
+
+    if (G.is_break == true) {
+      /* remove touched file */
+      if (is_movie == false && do_write_file) {
         if (rd.mode & R_TOUCH) {
           if (!is_multiview_name) {
-            if (!BLI_exists(filepath)) {
-              BLI_file_ensure_parent_dir_exists(filepath);
-              BLI_file_touch(filepath);
+            if (BLI_file_size(filepath) == 0) {
+              /* BLI_exists(filepath) is implicit */
+              BLI_delete(filepath, false, false);
             }
           }
           else {
@@ -2264,72 +2341,22 @@ void RE_RenderAnim(Render *re,
 
               BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
 
-              if (!BLI_exists(filepath_view)) {
-                BLI_file_ensure_parent_dir_exists(filepath_view);
-                BLI_file_touch(filepath_view);
+              if (BLI_file_size(filepath_view) == 0) {
+                /* BLI_exists(filepath_view) is implicit */
+                BLI_delete(filepath_view, false, false);
               }
             }
           }
         }
       }
 
-      re->r.cfra = scene->r.cfra; /* weak.... */
-      re->r.subframe = scene->r.subframe;
+      break;
+    }
 
-      /* run callbacks before rendering, before the scene is updated */
-      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
-
-      do_render_full_pipeline(re);
-      totrendered++;
-
-      if (re->test_break(re->tbh) == 0) {
-        if (!G.is_break) {
-          if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
-            G.is_break = true;
-          }
-        }
-      }
-      else {
-        G.is_break = true;
-      }
-
-      if (G.is_break == true) {
-        /* remove touched file */
-        if (is_movie == false && do_write_file) {
-          if (rd.mode & R_TOUCH) {
-            if (!is_multiview_name) {
-              if (BLI_file_size(filepath) == 0) {
-                /* BLI_exists(filepath) is implicit */
-                BLI_delete(filepath, false, false);
-              }
-            }
-            else {
-              char filepath_view[FILE_MAX];
-
-              LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-                if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-                  continue;
-                }
-
-                BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
-
-                if (BLI_file_size(filepath_view) == 0) {
-                  /* BLI_exists(filepath_view) is implicit */
-                  BLI_delete(filepath_view, false, false);
-                }
-              }
-            }
-          }
-        }
-
-        break;
-      }
-
-      if (G.is_break == false) {
-        /* keep after file save */
-        render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
-        render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
-      }
+    if (G.is_break == false) {
+      /* keep after file save */
+      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
+      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
     }
   }
 
@@ -2464,7 +2491,9 @@ void RE_layer_load_from_file(
         IMB_float_from_rect(ibuf);
       }
 
-      memcpy(rpass->rect, ibuf->float_buffer.data, sizeof(float[4]) * layer->rectx * layer->recty);
+      memcpy(rpass->buffer.data,
+             ibuf->float_buffer.data,
+             sizeof(float[4]) * layer->rectx * layer->recty);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
@@ -2478,7 +2507,7 @@ void RE_layer_load_from_file(
         if (ibuf_clip) {
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
-          memcpy(rpass->rect,
+          memcpy(rpass->buffer.data,
                  ibuf_clip->float_buffer.data,
                  sizeof(float[4]) * layer->rectx * layer->recty);
           IMB_freeImBuf(ibuf_clip);
@@ -2605,9 +2634,9 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   /* Clear previous pass if exist or the new image will be over previous one. */
   RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
   if (rp) {
-    if (rp->rect) {
-      MEM_freeN(rp->rect);
-    }
+    rp->buffer.sharing_info->remove_user_and_delete_if_last();
+    rp->buffer.sharing_info = nullptr;
+
     BLI_freelinkN(&rl->passes, rp);
   }
   /* create a totally new pass */

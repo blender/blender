@@ -48,8 +48,10 @@ typedef struct View2D {
 
   /** Storage of current winx/winy values, set in UI_view2d_size_update. */
   short winx, winy;
-  /** Storage of previous winx/winy values encountered by UI_view2d_curRect_validate(),
-   * for keepaspect. */
+  /**
+   * Storage of previous winx/winy values encountered by #UI_view2d_curRect_validate(),
+   * for keep-aspect.
+   */
   short oldwinx, oldwiny;
 
   /** Pivot point for transforms (rotate and scale). */

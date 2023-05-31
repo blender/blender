@@ -1245,8 +1245,9 @@ typedef struct ShrinkwrapGpencilModifierData {
   /** Axis to project over. */
   char proj_axis;
 
-  /** If using projection over vertex normal this controls the level of subsurface that must be
-   * done before getting the vertex coordinates and normal
+  /**
+   * If using projection over vertex normal this controls the level of subsurface that must be
+   * done before getting the vertex coordinates and normal.
    */
   char subsurf_levels;
   char _pad[6];

@@ -51,6 +51,15 @@ void GPU_select_begin(GPUSelectResult *buffer,
                       eGPUSelectMode mode,
                       int oldhits);
 /**
+ * Initialize and provide buffer for results.
+ * Uses the new Select-Next engine if enabled.
+ */
+void GPU_select_begin_next(GPUSelectResult *buffer,
+                           const uint buffer_len,
+                           const struct rcti *input,
+                           eGPUSelectMode mode,
+                           int oldhits);
+/**
  * Loads a new selection id and ends previous query, if any.
  * In second pass of selection it also returns
  * if id has been hit on the first pass already.

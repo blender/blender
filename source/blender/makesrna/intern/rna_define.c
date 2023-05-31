@@ -528,7 +528,8 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 {
   int a = 0;
 
-  /** List is from:
+  /**
+   * List is from:
    * \code{.py}
    * ", ".join([
    *     '"%s"' % kw for kw in __import__("keyword").kwlist

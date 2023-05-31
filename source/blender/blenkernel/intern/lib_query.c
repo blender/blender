@@ -464,6 +464,8 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include
       return FILTER_ID_IM;
     case ID_GD_LEGACY:
       return FILTER_ID_MA;
+    case ID_GP:
+      return FILTER_ID_GP | FILTER_ID_MA;
     case ID_WS:
       return FILTER_ID_SCE;
     case ID_CV:

@@ -1352,8 +1352,8 @@ static bool image_memorypack_imbuf(
   ImagePackedFile *imapf;
   PackedFile *pf = MEM_cnew<PackedFile>("PackedFile");
 
-  pf->data = IMB_steal_encoded_buffer(ibuf);
   pf->size = ibuf->encoded_size;
+  pf->data = IMB_steal_encoded_buffer(ibuf);
 
   imapf = static_cast<ImagePackedFile *>(MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile"));
   STRNCPY(imapf->filepath, filepath);
@@ -3989,11 +3989,10 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
 
     if (rpass) {
       // printf("load from pass %s\n", rpass->name);
-      /* since we free  render results, we copy the rect */
       ibuf = IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
-      IMB_assign_float_buffer(
-          ibuf, static_cast<float *>(MEM_dupallocN(rpass->rect)), IB_TAKE_OWNERSHIP);
       ibuf->channels = rpass->channels;
+
+      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
 
@@ -4301,7 +4300,8 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
       image_init_after_load(ima, iuser, ibuf);
 
-      IMB_assign_float_buffer(ibuf, rpass->rect, IB_DO_NOT_TAKE_OWNERSHIP);
+      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
+
       ibuf->channels = rpass->channels;
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
@@ -4320,8 +4320,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 {
   Render *re;
   RenderView *rv;
-  float *rectf, *rectz;
-  uint *rect;
+  RenderBuffer *combined_buffer, *z_buffer;
+  RenderByteBuffer *byte_buffer;
   float dither;
   int channels, layer, pass;
   ImBuf *ibuf;
@@ -4355,7 +4355,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
     rres = *(slot->render);
-    rres.have_combined = ((RenderView *)rres.views.first)->rectf != nullptr;
+    rres.have_combined = ((RenderView *)rres.views.first)->combined_buffer.data != nullptr;
   }
 
   if (!(rres.rectx > 0 && rres.recty > 0)) {
@@ -4380,14 +4380,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   /* this gives active layer, composite or sequence result */
   if (rv == nullptr) {
-    rect = (uint *)rres.rect32;
-    rectf = rres.rectf;
-    rectz = rres.rectz;
+    byte_buffer = &rres.byte_buffer;
+    combined_buffer = &rres.combined_buffer;
+    z_buffer = &rres.z_buffer;
   }
   else {
-    rect = (uint *)rv->rect32;
-    rectf = rv->rectf;
-    rectz = rv->rectz;
+    byte_buffer = &rv->byte_buffer;
+    combined_buffer = &rv->combined_buffer;
+    z_buffer = &rv->z_buffer;
   }
 
   dither = iuser->scene->r.dither_intensity;
@@ -4396,13 +4396,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   if (rres.have_combined && layer == 0) {
     /* pass */
   }
-  else if (rect && layer == 0) {
+  else if (byte_buffer && byte_buffer->data && layer == 0) {
     /* rect32 is set when there's a Sequence pass, this pass seems
      * to have layer=0 (this is from image_buttons.c)
      * in this case we ignore float buffer, because it could have
      * hung from previous pass which was float
      */
-    rectf = nullptr;
+    combined_buffer = nullptr;
   }
   else if (rres.layers.first) {
     RenderLayer *rl = static_cast<RenderLayer *>(
@@ -4410,7 +4410,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     if (rl) {
       RenderPass *rpass = image_render_pass_get(rl, pass, actview, nullptr);
       if (rpass) {
-        rectf = rpass->rect;
+        combined_buffer = &rpass->buffer;
         if (pass != 0) {
           channels = rpass->channels;
           dither = 0.0f; /* don't dither passes */
@@ -4419,7 +4419,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
       for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass; rpass = rpass->next) {
         if (STREQ(rpass->name, RE_PASSNAME_Z) && rpass->view_id == actview) {
-          rectz = rpass->rect;
+          z_buffer = &rpass->buffer;
         }
       }
     }
@@ -4441,14 +4441,16 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    *
    * For other cases we need to be sure it stays to default byte buffer space.
    */
-  if (ibuf->byte_buffer.data != (uint8_t *)rect) {
+  if (ibuf->byte_buffer.data != byte_buffer->data) {
     const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
     IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
   }
 
   /* invalidate color managed buffers if render result changed */
   BLI_thread_lock(LOCK_COLORMANAGE);
-  if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->float_buffer.data != rectf) {
+  if (combined_buffer && (ibuf->x != rres.rectx || ibuf->y != rres.recty ||
+                          ibuf->float_buffer.data != combined_buffer->data))
+  {
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   }
 
@@ -4458,9 +4460,26 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   imb_freerectImBuf(ibuf);
 
-  IMB_assign_byte_buffer(ibuf, (uint8_t *)rect, IB_DO_NOT_TAKE_OWNERSHIP);
-  IMB_assign_float_buffer(ibuf, rectf, IB_DO_NOT_TAKE_OWNERSHIP);
-  IMB_assign_float_z_buffer(ibuf, rectz, IB_DO_NOT_TAKE_OWNERSHIP);
+  if (byte_buffer) {
+    IMB_assign_shared_byte_buffer(ibuf, byte_buffer->data, byte_buffer->sharing_info);
+  }
+  else {
+    IMB_assign_byte_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
+  }
+
+  if (combined_buffer) {
+    IMB_assign_shared_float_buffer(ibuf, combined_buffer->data, combined_buffer->sharing_info);
+  }
+  else {
+    IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
+  }
+
+  if (z_buffer) {
+    IMB_assign_shared_float_z_buffer(ibuf, z_buffer->data, z_buffer->sharing_info);
+  }
+  else {
+    IMB_assign_float_z_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
+  }
 
   /* TODO(sergey): Make this faster by either simply referencing the stamp
    * or by changing both ImBuf and RenderResult to use same data type to

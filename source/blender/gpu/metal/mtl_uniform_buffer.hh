@@ -47,7 +47,7 @@ class MTLUniformBuf : public UniformBuf {
   void clear_to_zero() override;
 
   id<MTLBuffer> get_metal_buffer();
-  int get_size();
+  size_t get_size();
   const char *get_name()
   {
     return name_;

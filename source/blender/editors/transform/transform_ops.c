@@ -420,28 +420,42 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
   t->context = NULL;
 
   /* Allow navigation while transforming. */
-  if (t->vod && (exit_code & OPERATOR_PASS_THROUGH) && ED_view3d_navigation_do(C, t->vod, event)) {
+  if (t->vod && (exit_code & OPERATOR_PASS_THROUGH)) {
     RegionView3D *rv3d = t->region->regiondata;
-    if (rv3d->rflag & RV3D_NAVIGATING) {
-      /* Do not update transform while navigating. This can be distracting. */
-      return OPERATOR_RUNNING_MODAL;
+    const bool is_navigating = (rv3d->rflag & RV3D_NAVIGATING) != 0;
+    if (ED_view3d_navigation_do(C, t->vod, event)) {
+      if (!is_navigating) {
+        /* Navigation has started. */
+
+        if (t->modifiers & MOD_PRECISION) {
+          /* WORKAROUND: Remove precision modification, it may have be unintentionally enabled. */
+          t->modifiers &= ~MOD_PRECISION;
+          t->mouse.precision = false;
+          transform_input_virtual_mval_reset(t);
+        }
+      }
+
+      if (rv3d->rflag & RV3D_NAVIGATING) {
+        /* Navigation is running. */
+
+        /* Do not update transform while navigating. This can be distracting. */
+        return OPERATOR_RUNNING_MODAL;
+      }
+
+      {
+        /* Navigation has ended. */
+
+        /* Make sure `t->mval` is up to date before calling #transformViewUpdate. */
+        copy_v2_v2_int(t->mval, event->mval);
+
+        /* Call before #applyMouseInput. */
+        tranformViewUpdate(t);
+
+        /* Mouse input is outdated. */
+        applyMouseInput(t, &t->mouse, t->mval, t->values);
+        t->redraw |= TREDRAW_HARD;
+      }
     }
-
-    if (t->modifiers & MOD_PRECISION) {
-      /* Remove Precision modifier, it may have be unintentionally enabled. */
-      t->modifiers &= ~MOD_PRECISION;
-      t->mouse.precision = 0;
-    }
-
-    /* Make sure `t->mval` is up to date before calling #transformViewUpdate. */
-    copy_v2_v2_int(t->mval, event->mval);
-
-    /* Call before #applyMouseInput. */
-    tranformViewUpdate(t);
-
-    /* Mouse input is outdated. */
-    applyMouseInput(t, &t->mouse, t->mval, t->values);
-    t->redraw |= TREDRAW_HARD;
   }
 
   transformApply(C, t);

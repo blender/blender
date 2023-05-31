@@ -31,6 +31,8 @@
 #include "BKE_effect.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -49,7 +51,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_light_linking.hh"
 #include "DEG_depsgraph_query.h"
+
+namespace deg = blender::deg;
 
 void BKE_object_eval_reset(Object *ob_eval)
 {
@@ -196,6 +201,9 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_VOLUME:
       BKE_volume_data_update(depsgraph, scene, ob);
       break;
+    case OB_GREASE_PENCIL:
+      BKE_grease_pencil_data_update(depsgraph, scene, ob);
+      break;
   }
 
   /* particles */
@@ -315,6 +323,10 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       break;
     case OB_VOLUME:
       BKE_volume_batch_cache_dirty_tag((struct Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
+      break;
+    case OB_GREASE_PENCIL:
+      BKE_grease_pencil_batch_cache_dirty_tag((struct GreasePencil *)ob->data,
+                                              BKE_GREASEPENCIL_BATCH_DIRTY_ALL);
       break;
     default:
       break;
@@ -440,4 +452,10 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
     BLI_assert(base_orig->object != nullptr);
     base_orig->flag = base->flag;
   }
+}
+
+void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+  deg::light_linking::eval_runtime_data(depsgraph, *object);
 }

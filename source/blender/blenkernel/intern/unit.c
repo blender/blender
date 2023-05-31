@@ -1113,7 +1113,7 @@ bool BKE_unit_replace_string(
   /* Apply the default unit on the whole expression, this allows to handle nasty cases like
    * '2+2in'. */
   if (SNPRINTF(str_tmp, "(%s)*%.9g", str, default_unit->scalar) < sizeof(str_tmp)) {
-    strncpy(str, str_tmp, str_maxncpy);
+    BLI_strncpy(str, str_tmp, str_maxncpy);
   }
   else {
     /* BLI_snprintf would not fit into str_tmp, can't do much in this case.
@@ -1190,8 +1190,13 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
         int len_name = 0;
 
         /* Copy everything before the unit. */
-        offset = (offset < str_maxncpy ? offset : str_maxncpy);
-        strncpy(str, orig_str, offset);
+        if (offset < str_maxncpy) {
+          memcpy(str, orig_str, offset);
+        }
+        else {
+          BLI_strncpy(str, orig_str, str_maxncpy);
+          offset = str_maxncpy;
+        }
 
         str += offset;
         orig_str += offset + strlen(unit->name_short);
@@ -1213,7 +1218,7 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
   }
 
   /* Finally copy the rest of the string. */
-  strncpy(str, orig_str, str_maxncpy);
+  BLI_strncpy(str, orig_str, str_maxncpy);
 }
 
 double BKE_unit_closest_scalar(double value, int system, int type)

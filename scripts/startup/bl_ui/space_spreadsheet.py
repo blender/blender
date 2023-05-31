@@ -103,7 +103,7 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         if obj.type == 'MESH':
             return obj.mode == 'EDIT'
         if obj.type == 'CURVES':
-            return obj.mode == 'SCULPT_CURVES'
+            return obj.mode in {'SCULPT_CURVES', 'EDIT'}
         return True
 
 

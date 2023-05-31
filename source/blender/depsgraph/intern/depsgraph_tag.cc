@@ -217,7 +217,11 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       *operation_code = OperationCode::NTREE_OUTPUT;
       break;
 
-    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_HIERARCHY:
+      *component_type = NodeType::HIERARCHY;
+      *operation_code = OperationCode::HIERARCHY;
+      break;
+
     case ID_RECALC_PROVISION_27:
     case ID_RECALC_PROVISION_28:
     case ID_RECALC_PROVISION_29:
@@ -589,6 +593,7 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:
+        case OB_GREASE_PENCIL:
           return NodeType::GEOMETRY;
         case OB_ARMATURE:
           return NodeType::EVAL_POSE;
@@ -615,6 +620,8 @@ NodeType geometry_tag_to_component(const ID *id)
       return NodeType::PARAMETERS;
     case ID_MSK:
       return NodeType::PARAMETERS;
+    case ID_GP:
+      return NodeType::GEOMETRY;
     default:
       break;
   }
@@ -749,7 +756,9 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
     case ID_RECALC_NTREE_OUTPUT:
       return "ID_RECALC_NTREE_OUTPUT";
 
-    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_HIERARCHY:
+      return "ID_RECALC_HIERARCHY";
+
     case ID_RECALC_PROVISION_27:
     case ID_RECALC_PROVISION_28:
     case ID_RECALC_PROVISION_29:

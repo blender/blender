@@ -77,6 +77,8 @@ enum class NodeType {
   /* Used by all operations which are updating object when something is
    * changed in view layer. */
   OBJECT_FROM_LAYER,
+  /* Hierarchy of objects and collections */
+  HIERARCHY,
   /* Audio-related evaluation. */
   AUDIO,
   ARMATURE,

@@ -59,7 +59,9 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -2788,8 +2790,16 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_GPENCIL_LEGACY,
      "GPENCIL",
      ICON_OUTLINER_OB_GREASEPENCIL,
+#ifdef WITH_GREASE_PENCIL_V3
+     "Grease Pencil (legacy)",
+#else
      "Grease Pencil",
+#endif
+#ifdef WITH_GREASE_PENCIL_V3
+     "Grease Pencil (legacy) from Curve or Mesh objects"},
+#else
      "Grease Pencil from Curve or Mesh objects"},
+#endif
 #ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
@@ -2798,6 +2808,13 @@ static const EnumPropertyItem convert_target_items[] = {
      "Point Cloud from Mesh objects"},
 #endif
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Curves", "Curves from evaluated curve data"},
+#ifdef WITH_GREASE_PENCIL_V3
+    {OB_GREASE_PENCIL,
+     "GREASEPENCIL",
+     ICON_OUTLINER_OB_GREASEPENCIL,
+     "Grease Pencil",
+     "Grease Pencil from Grease Pencil (legacy)"},
+#endif
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3086,6 +3103,31 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
       ob_gpencil->actcol = actcol;
     }
+    else if (U.experimental.use_grease_pencil_version3 && ob->type == OB_GPENCIL_LEGACY &&
+             target == OB_GREASE_PENCIL)
+    {
+      ob->flag |= OB_DONE;
+
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
+
+      if (keep_original) {
+        BLI_assert_unreachable();
+      }
+      else {
+        newob = ob;
+      }
+
+      GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
+          BKE_id_new(bmain, ID_GP, newob->id.name + 2));
+      newob->data = new_grease_pencil;
+      newob->type = OB_GREASE_PENCIL;
+
+      bke::greasepencil::convert::legacy_gpencil_to_grease_pencil(
+          *bmain, *new_grease_pencil, *gpd);
+
+      BKE_object_free_derived_caches(newob);
+      BKE_object_free_modifiers(newob, 0);
+    }
     else if (target == OB_CURVES) {
       ob->flag |= OB_DONE;
 
@@ -3177,20 +3219,19 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* NOTE: get the mesh from the original, not from the copy in some
        * cases this doesn't give correct results (when MDEF is used for eg)
        */
-      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
-      me_eval = BKE_mesh_copy_for_eval(me_eval);
-      BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
-      Mesh *new_mesh = (Mesh *)newob->data;
-      BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
-
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      Mesh *new_mesh = mesh_eval ? BKE_mesh_copy_for_eval(mesh_eval) :
+                                   BKE_mesh_new_nomain(0, 0, 0, 0);
+      BKE_object_material_from_eval_data(bmain, newob, &new_mesh->id);
+      /* Anonymous attributes shouldn't be available on the applied geometry. */
+      new_mesh->attributes_for_write().remove_anonymous();
       if (do_merge_customdata) {
         BKE_mesh_merge_customdata_for_apply_modifier(new_mesh);
       }
 
-      /* Anonymous attributes shouldn't be available on the applied geometry. */
-      new_mesh->attributes_for_write().remove_anonymous();
+      Mesh *ob_data_mesh = (Mesh *)newob->data;
+      BKE_mesh_nomain_to_mesh(new_mesh, ob_data_mesh, newob);
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }

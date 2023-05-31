@@ -85,14 +85,35 @@ const char *dirname(char *path);
 
 /* Windows utility functions. */
 
-bool BLI_windows_register_blend_extension(bool background);
+bool BLI_windows_is_store_install(void);
+bool BLI_windows_register_blend_extension(bool all_users);
+bool BLI_windows_unregister_blend_extension(bool all_users);
+
+/**
+ * Set the `root_dir` to the default root directory on MS-Windows,
+ * The string is guaranteed to be set with a length of 3 & null terminated,
+ * using a fall-back in case the root directory can't be found.
+ */
 void BLI_windows_get_default_root_dir(char root_dir[4]);
-int BLI_windows_get_executable_dir(char *str);
+int BLI_windows_get_executable_dir(char r_dirpath[/*FILE_MAXDIR*/]);
 
 /* ShellExecute Helpers. */
 
 bool BLI_windows_external_operation_supported(const char *filepath, const char *operation);
 bool BLI_windows_external_operation_execute(const char *filepath, const char *operation);
+
+/**
+ * Launch our own executable.
+ *
+ * \param parameters: application parameters separated by spaces.
+ * \param wait: whether to wait for the instance to exit.
+ * \param elevated: run as administrator. Will do UAC prompt.
+ * \param silent: Not show the launched program.
+ */
+bool BLI_windows_execute_self(const char *parameters,
+                              const bool wait,
+                              const bool elevated,
+                              const bool silent);
 
 #ifdef __cplusplus
 }

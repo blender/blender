@@ -19,7 +19,7 @@ class ProcedureExecutor : public MultiFunction {
  public:
   ProcedureExecutor(const Procedure &procedure);
 
-  void call(IndexMask mask, Params params, Context context) const override;
+  void call(const IndexMask &mask, Params params, Context context) const override;
 
  private:
   ExecutionHints get_execution_hints() const override;

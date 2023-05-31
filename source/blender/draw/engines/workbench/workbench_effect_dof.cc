@@ -122,10 +122,11 @@ void DofPass::init(const SceneState &scene_state)
   int2 half_res = scene_state.resolution / 2;
   half_res = {max_ii(half_res.x, 1), max_ii(half_res.y, 1)};
 
-  source_tx_.ensure_2d(GPU_RGBA16F, half_res, GPU_TEXTURE_USAGE_SHADER_READ, nullptr, 3);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+  source_tx_.ensure_2d(GPU_RGBA16F, half_res, usage, nullptr, 3);
   source_tx_.ensure_mip_views();
   source_tx_.filter_mode(true);
-  coc_halfres_tx_.ensure_2d(GPU_RG8, half_res, GPU_TEXTURE_USAGE_SHADER_READ, nullptr, 3);
+  coc_halfres_tx_.ensure_2d(GPU_RG8, half_res, usage, nullptr, 3);
   coc_halfres_tx_.ensure_mip_views();
   coc_halfres_tx_.filter_mode(true);
 

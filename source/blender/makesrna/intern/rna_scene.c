@@ -712,6 +712,7 @@ static const EnumPropertyItem snap_to_items[] = {
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
+#  include "BKE_simulation.h"
 #  include "BKE_unit.h"
 
 #  include "NOD_composite.h"
@@ -930,6 +931,8 @@ static void rna_Scene_fps_update(Main *bmain, Scene *UNUSED(active_scene), Point
    * however, changes in FPS actually modifies an original skip length,
    * so this we take care about here. */
   SEQ_sound_update_length(bmain, scene);
+  /* Reset simulation states because new frame interval doesn't apply anymore. */
+  BKE_simulation_reset_scene(scene);
 }
 
 static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -4247,7 +4250,7 @@ static void rna_def_statvis(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "sharp_min");
   RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
-  RNA_def_property_ui_text(prop, "Distort Min", "Minimum angle to display");
+  RNA_def_property_ui_text(prop, "Sharpness Min", "Minimum angle to display");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 
@@ -4255,7 +4258,7 @@ static void rna_def_statvis(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "sharp_max");
   RNA_def_property_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(180.0f), DEG2RADF(180.0f), 10, 3);
-  RNA_def_property_ui_text(prop, "Distort Max", "Maximum angle to display");
+  RNA_def_property_ui_text(prop, "Sharpness Max", "Maximum angle to display");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 }
@@ -5908,7 +5911,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 #  endif
 
 #  ifdef WITH_OPENJPEG
-  /* Jpeg 2000 */
+  /* JPEG 2000 */
   prop = RNA_def_property(srna, "use_jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_YCC);
   RNA_def_property_ui_text(
@@ -5917,18 +5920,18 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_jpeg2k_cinema_preset", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_CINE_PRESET);
-  RNA_def_property_ui_text(prop, "Cinema", "Use Openjpeg Cinema Preset");
+  RNA_def_property_ui_text(prop, "Cinema", "Use OpenJPEG Cinema Preset");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "use_jpeg2k_cinema_48", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_CINE_48);
-  RNA_def_property_ui_text(prop, "Cinema (48)", "Use Openjpeg Cinema Preset (48fps)");
+  RNA_def_property_ui_text(prop, "Cinema (48)", "Use OpenJPEG Cinema Preset (48fps)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "jpeg2k_codec", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "jp2_codec");
   RNA_def_property_enum_items(prop, jp2_codec_items);
-  RNA_def_property_ui_text(prop, "Codec", "Codec settings for Jpeg2000");
+  RNA_def_property_ui_text(prop, "Codec", "Codec settings for JPEG 2000");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #  endif
 
@@ -6257,7 +6260,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "audio_mixrate");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 8000, 192000);
-  RNA_def_property_ui_text(prop, "Samplerate", "Audio samplerate(samples/s)");
+  RNA_def_property_ui_text(prop, "Sample Rate", "Audio sample rate (samples/s)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "audio_channels", PROP_ENUM, PROP_NONE);

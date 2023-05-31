@@ -268,19 +268,18 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
     int number;
     size_t len = BLI_string_split_name_number(name, delim, left, &number);
     do {
-      /* add 1 to account for \0 */
-      const size_t numlen = SNPRINTF(numstr, "%c%03d", delim, ++number) + 1;
+      const size_t numlen = SNPRINTF(numstr, "%c%03d", delim, ++number);
 
       /* highly unlikely the string only has enough room for the number
        * but support anyway */
-      if ((len == 0) || (numlen >= name_maxncpy)) {
+      if (UNLIKELY((len == 0) || (numlen + 1 >= name_maxncpy))) {
         /* number is know not to be utf-8 */
         BLI_strncpy(tempname, numstr, name_maxncpy);
       }
       else {
         char *tempname_buf;
         tempname_buf = tempname + BLI_strncpy_utf8_rlen(tempname, left, name_maxncpy - numlen);
-        memcpy(tempname_buf, numstr, numlen);
+        memcpy(tempname_buf, numstr, numlen + 1);
       }
     } while (unique_check(arg, tempname));
 

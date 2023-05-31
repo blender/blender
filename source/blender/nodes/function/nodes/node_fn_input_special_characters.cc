@@ -24,15 +24,15 @@ class MF_SpecialCharacters : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     MutableSpan<std::string> lb = params.uninitialized_single_output<std::string>(0, "Line Break");
     MutableSpan<std::string> tab = params.uninitialized_single_output<std::string>(1, "Tab");
 
-    for (const int i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       new (&lb[i]) std::string("\n");
       new (&tab[i]) std::string("\t");
-    }
+    });
   }
 };
 

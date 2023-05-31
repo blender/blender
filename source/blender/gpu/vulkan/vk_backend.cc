@@ -17,6 +17,7 @@
 #include "vk_pixel_buffer.hh"
 #include "vk_query.hh"
 #include "vk_shader.hh"
+#include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
 #include "vk_uniform_buffer.hh"
@@ -26,29 +27,53 @@
 
 namespace blender::gpu {
 
-void VKBackend::init_platform()
+static eGPUOSType determine_os_type()
 {
-  BLI_assert(!GPG.initialized);
+#ifdef _WIN32
+  return GPU_OS_WIN;
+#elif defined(__APPLE__)
+  return GPU_OS_MAC;
+#else
+  return GPU_OS_UNIX;
+#endif
+}
 
-  eGPUDeviceType device = GPU_DEVICE_ANY;
-  eGPUOSType os = GPU_OS_ANY;
+void VKBackend::platform_init()
+{
+  GPG.init(GPU_DEVICE_ANY,
+           determine_os_type(),
+           GPU_DRIVER_ANY,
+           GPU_SUPPORT_LEVEL_SUPPORTED,
+           GPU_BACKEND_VULKAN,
+           "",
+           "",
+           "");
+}
+
+void VKBackend::platform_init(const VKDevice &device)
+{
+  const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
+
+  eGPUDeviceType device_type = device.device_type();
+  eGPUOSType os = determine_os_type();
   eGPUDriverType driver = GPU_DRIVER_ANY;
   eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
-#ifdef _WIN32
-  os = GPU_OS_WIN;
-#elif defined(__APPLE__)
-  os = GPU_OS_MAC;
-#else
-  os = GPU_OS_UNIX;
-#endif
+  std::string vendor_name = device.vendor_name();
+  std::string driver_version = device.driver_version();
 
-  GPG.init(device, os, driver, support_level, GPU_BACKEND_VULKAN, "", "", "");
+  GPG.init(device_type,
+           os,
+           driver,
+           support_level,
+           GPU_BACKEND_VULKAN,
+           vendor_name.c_str(),
+           properties.deviceName,
+           driver_version.c_str());
 }
 
 void VKBackend::platform_exit()
 {
-  BLI_assert(GPG.initialized);
   GPG.clear();
 }
 
@@ -64,6 +89,7 @@ void VKBackend::samplers_update() {}
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();
+  context.state_manager_get().apply_bindings();
   context.bind_compute_pipeline();
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   command_buffer.dispatch(groups_x_len, groups_y_len, groups_z_len);
@@ -147,10 +173,10 @@ shaderc::Compiler &VKBackend::get_shaderc_compiler()
   return shaderc_compiler_;
 }
 
-void VKBackend::capabilities_init()
+void VKBackend::capabilities_init(const VKDevice &device)
 {
-  const VkPhysicalDeviceLimits &limits =
-      VKBackend::get().device_get().physical_device_limits_get();
+  const VkPhysicalDeviceProperties &properties = device.physical_device_properties_get();
+  const VkPhysicalDeviceLimits &limits = properties.limits;
 
   /* Reset all capabilities from previous context. */
   GCaps = {};

@@ -410,40 +410,41 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
   const int cur_subdiv = tgpi->type == GP_STROKE_BOX ? tgpi->tot_edges - 1 : tgpi->tot_edges - 2;
 
   if (tgpi->type == GP_STROKE_LINE) {
-    BLI_strncpy(msg_str,
-                TIP_("Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to "
-                     "adjust subdivision number, Shift to align, Alt to center, E: extrude"),
-                UI_MAX_DRAW_STR);
+    BLI_strncpy(
+        msg_str,
+        TIP_("Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to "
+             "adjust subdivision number, Shift to align, Alt to center, E: extrude, G: grab"),
+        UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_POLYLINE) {
     BLI_strncpy(msg_str,
                 TIP_("Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to "
-                     "adjust subdivision number, Shift to align"),
+                     "adjust subdivision number, Shift to align, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_BOX) {
     BLI_strncpy(msg_str,
                 TIP_("Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- "
-                     "to adjust subdivision number, Shift to square, Alt to center"),
+                     "to adjust subdivision number, Shift to square, Alt to center, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_CIRCLE) {
     BLI_strncpy(msg_str,
                 TIP_("Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
-                     "number, Shift to square, Alt to center"),
+                     "number, Shift to square, Alt to center, G: grab"),
                 UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_ARC) {
     BLI_strncpy(
         msg_str,
         TIP_("Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, "
-             "Shift to square, Alt to center, M: Flip, E: extrude"),
+             "Shift to square, Alt to center, M: Flip, E: extrude, G: grab"),
         UI_MAX_DRAW_STR);
   }
   else if (tgpi->type == GP_STROKE_CURVE) {
     BLI_strncpy(msg_str,
                 TIP_("Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision "
-                     "number, Shift to square, Alt to center, E: extrude"),
+                     "number, Shift to square, Alt to center, E: extrude, G: grab"),
                 UI_MAX_DRAW_STR);
   }
 
@@ -1618,7 +1619,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
   copy_v2fl_v2i(tgpi->mval, event->mval);
 
   if (tgpi->flag == IN_MOVE) {
-
+    bool is_mouse_event = true;
     switch (event->type) {
       case MOUSEMOVE: {
         gpencil_primitive_move(tgpi, false);
@@ -1639,8 +1640,14 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
         }
         break;
       }
+      default: {
+        is_mouse_event = false; /* Prevent overwriting `tgpi->mvalo`. */
+        break;
+      }
     }
-    copy_v2_v2(tgpi->mvalo, tgpi->mval);
+    if (is_mouse_event) {
+      copy_v2_v2(tgpi->mvalo, tgpi->mval);
+    }
     return OPERATOR_RUNNING_MODAL;
   }
 

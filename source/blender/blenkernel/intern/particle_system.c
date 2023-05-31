@@ -4597,7 +4597,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     }
 
     for (dframe = -totframesback; dframe <= 0; dframe++) {
-      /* simulate each subframe */
+      /* Simulate each sub-frame. */
       dt_frac = psys->dt_frac;
       for (t_frac = dt_frac; t_frac <= 1.0f; t_frac += dt_frac) {
         sim->courant_num = 0.0f;

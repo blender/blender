@@ -24,7 +24,7 @@ EvaluateAtIndexInput::EvaluateAtIndexInput(Field<int> index_field,
 }
 
 GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
-                                                     const IndexMask mask) const
+                                                     const IndexMask &mask) const
 {
   const std::optional<AttributeAccessor> attributes = context.attributes();
   if (!attributes) {

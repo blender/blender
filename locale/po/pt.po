@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -2777,38 +2777,6 @@ msgid "Fill"
 msgstr "Preencher"
 
 
-msgid "Smooth"
-msgstr "Suavizar"
-
-
-msgid "Thickness"
-msgstr "Espessura"
-
-
-msgid "Randomize"
-msgstr "Aleatorizar"
-
-
-msgid "Grab"
-msgstr "Agarrar"
-
-
-msgid "Push"
-msgstr "Empurrar"
-
-
-msgid "Twist"
-msgstr "Torção"
-
-
-msgid "Pinch"
-msgstr "Pinçar"
-
-
-msgid "Clone"
-msgstr "Clonar"
-
-
 msgid "Draw"
 msgstr "Desenhar"
 
@@ -2825,8 +2793,16 @@ msgid "Input Samples"
 msgstr "Amostras de entrada"
 
 
+msgid "Thickness"
+msgstr "Espessura"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "Fator de tremulação para os novos traços."
+
+
+msgid "Smooth"
+msgstr "Suavizar"
 
 
 msgid "Iterations"
@@ -11161,22 +11137,6 @@ msgid "Gaussian"
 msgstr "Gaussiano"
 
 
-msgid "Deformation"
-msgstr "Deformação"
-
-
-msgid "Bend"
-msgstr "Conformar"
-
-
-msgid "Expand"
-msgstr "Expandir"
-
-
-msgid "Inflate"
-msgstr "Inflar"
-
-
 msgid "Loop"
 msgstr "Cíclico(a)"
 
@@ -11203,6 +11163,26 @@ msgstr "Imagem para a ferramenta de clonagem."
 
 msgid "Clone Offset"
 msgstr "Deslocamento para clone"
+
+
+msgid "Deformation"
+msgstr "Deformação"
+
+
+msgid "Push"
+msgstr "Empurrar"
+
+
+msgid "Inflate"
+msgstr "Inflar"
+
+
+msgid "Grab"
+msgstr "Agarrar"
+
+
+msgid "Expand"
+msgstr "Expandir"
 
 
 msgid "Snake Hook"
@@ -11255,6 +11235,10 @@ msgstr "Curva de decaimento editável."
 
 msgid "Comb"
 msgstr "Pentear"
+
+
+msgid "Pinch"
+msgstr "Pinçar"
 
 
 msgid "Puff"
@@ -11351,6 +11335,10 @@ msgstr "Ferramenta de pintura de imagem"
 
 msgid "Soften"
 msgstr "Atenuar"
+
+
+msgid "Clone"
+msgstr "Clonar"
 
 
 msgid "Mask"
@@ -13833,18 +13821,6 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "Modo de mesclagem para faces transparentes"
 
 
-msgid "Opaque"
-msgstr "Opaco"
-
-
-msgid "Alpha Clip"
-msgstr "Limite de corte de alfa"
-
-
-msgid "Alpha Blend"
-msgstr "Mesclagem de alfa"
-
-
 msgid "Render polygon transparent, depending on alpha channel of the texture"
 msgstr "Renderiza os polígonos transparentes, dependendo do canal alfa da textura."
 
@@ -13939,6 +13915,14 @@ msgstr "Vertentes de cabelo."
 
 msgid "Roughness"
 msgstr "Rugosidade"
+
+
+msgid "Opaque"
+msgstr "Opaco"
+
+
+msgid "Alpha Clip"
+msgstr "Limite de corte de alfa"
 
 
 msgid "Specular Color"
@@ -15675,6 +15659,10 @@ msgstr "Contagem de rastros"
 
 msgid "Number of trail particles"
 msgstr "Permite definir um número de partículas para a criação de rastros."
+
+
+msgid "Twist"
+msgstr "Torção"
 
 
 msgid "Absolute Path Time"
@@ -21931,6 +21919,10 @@ msgid "Seed for random if used"
 msgstr "Semente para aleatorização caso usado."
 
 
+msgid "Randomize"
+msgstr "Aleatorizar"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "Torna aleatória a escolha das arestas ou faces durante a construção."
 
@@ -22749,10 +22741,6 @@ msgstr "Modificador - Pintura dinâmica"
 
 msgid "Dynamic Paint modifier"
 msgstr "Modificador para criar pinturas dinâmicas."
-
-
-msgid "Canvas"
-msgstr "Lonas"
 
 
 msgid "EdgeSplit Modifier"
@@ -23575,12 +23563,13 @@ msgid "Rotate around the Z axis of the modifier space"
 msgstr "Rotaciona em torno do eixo Z do espaço do modificador."
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Conformar em arco"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "Conforma a malha sobre o eixo Z do espaço do modificador."
-
-
-msgid "Taper"
-msgstr "Afilador"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -28168,10 +28157,6 @@ msgid "Volume Scatter"
 msgstr "Espalhamento de volume"
 
 
-msgid "Pixel Size"
-msgstr "Tamanho do pixel"
-
-
 msgid "Use screen pixel size instead of world units"
 msgstr "Usa o tamanho do pixel na tela ao invés das unidades do ambiente (mundo)."
 
@@ -31794,6 +31779,10 @@ msgstr "Redimensionar"
 
 msgid "Skin Resize"
 msgstr "Redimensionar cobertura"
+
+
+msgid "Bend"
+msgstr "Conformar"
 
 
 msgid "Shrink/Fatten"
@@ -44453,11 +44442,6 @@ msgid "Transformation orientation"
 msgstr "Orientações de transformação."
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Conformar em arco"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "Conforma os itens selecionados entre o cursor 3D e o rato, em formato de arco."
 
@@ -47706,6 +47690,10 @@ msgid "Properties of image and texture painting mode"
 msgstr "Propriedades da imagem e modo de pintura de textura."
 
 
+msgid "Canvas"
+msgstr "Lonas"
+
+
 msgid "Image used as canvas"
 msgstr "A imagem usada como lona"
 
@@ -50786,6 +50774,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "Gradiente de cores usada para a visualização de peso dentro do modo de pintura de pesos de influência."
 
 
+msgid "Base"
+msgstr "Base"
+
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+
 msgid "ID Property Group"
 msgstr "Identificador de grupo de propriedades"
 
@@ -52090,6 +52086,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Proporção de aspecto vertical - para saída de pixeis anamórficos ou que não são exatamente quadrados."
 
 
+msgid "Pixel Size"
+msgstr "Tamanho do pixel"
+
+
 msgid "Resolution %"
 msgstr "Resolução %"
 
@@ -52896,10 +52896,6 @@ msgstr "Fonte da malha"
 
 msgid "Source of the mesh used to create collision shape"
 msgstr "Fonte da malha usada para criar formatos de colisão."
-
-
-msgid "Base"
-msgstr "Base"
 
 
 msgid "Base mesh"
@@ -58651,351 +58647,6 @@ msgid "Occlude objects with the environment color as they are further away"
 msgstr "Calcula a oclusão dos objetos com a cor do ambiente, como se eles estivessem distantes."
 
 
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Ação:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Animações:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Armações:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Identif. Blender:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Revoadas:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Pincéis:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Botões:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "Ficheiros de cache:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Câmaras:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Clipes:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Tecidos:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Linha de comando:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Restrições:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Curvas:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Rend. Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Pintura dinâmica:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Edição:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Exportar animações:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Exportar animações:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Exportar malhas:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Exportar cenas:"
-
-
-msgctxt "Operator"
-msgid "Export_shape:"
-msgstr "Exportar formatos:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "Ficheiros:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Fluidos:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Fontes:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Lápis de cera:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Gráfico:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Imagens:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Importar animações:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Importar curvas:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Importar malhas:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Importar cena:"
-
-
-msgctxt "Operator"
-msgid "Import_shape:"
-msgstr "Importar formatos:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Informações:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Treliças:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Marcadores:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Máscaras:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Materiais:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "Esferas-meta:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Malhas:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "Anim. não linear:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Nós:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Objetos:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Organizador:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Curvas de pintura:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Pintura:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Paletas:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Partículas:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "Bibl. de poses:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Poses:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "Cache de pontos:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Renderização:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Corpos rígidos:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Cenas:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Telas:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Scripts:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Escultura:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Edit. de sequências:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Sons:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Superfícies:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Texturas:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Textos:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Transformações:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Interf. de utilizador:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "UVs:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "Visualização 2D:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "Visualização 3D:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Gerenc. de janelas :"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "Ambiente:"
-
-
 msgid "Search"
 msgstr "Pesquisar"
 
@@ -59816,10 +59467,6 @@ msgid "Remove"
 msgstr "Remover"
 
 
-msgid "Out"
-msgstr "Saída"
-
-
 msgid "Control Rotation"
 msgstr "Controlar rotação"
 
@@ -60259,10 +59906,6 @@ msgstr "Passos automáticos"
 
 msgid "Refraction"
 msgstr "Refração"
-
-
-msgid "Temperature"
-msgstr "Temperatura"
 
 
 msgid "Paths:"
@@ -62035,10 +61678,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "Ficheiros totais %d | Alterados %d | Falhos %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "Caminho '%s' não pode se tornar relativo"
-
-
 msgid "Const"
 msgstr "Constante"
 
@@ -62648,6 +62287,10 @@ msgstr "Não é possível encontrar controlador para copiar, pois o caminho RNA 
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Não é possível colar controlador, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)"
+
+
+msgid "Out"
+msgstr "Saída"
 
 
 msgid "<Unknown Modifier>"
@@ -67498,10 +67141,6 @@ msgid "Japanese (日本語)"
 msgstr "Japonês (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Holandês (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Italiano (Italiano)"
 
@@ -67610,10 +67249,6 @@ msgid "Brazilian Portuguese (Português do Brasil)"
 msgstr "Português do Brasil (Português do Brasil)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Estoniano (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Esperanto (Esperanto)"
 
@@ -67632,14 +67267,6 @@ msgstr "Uzbeque (Oʻzbek)"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Uzbeque Cirílico (Ўзбек)"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Vietnamita (tiếng Việt)"
 
 
 msgid "Complete"

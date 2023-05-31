@@ -97,7 +97,7 @@ class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::AttributeAccessor attributes = *context.attributes();
 

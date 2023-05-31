@@ -35,7 +35,7 @@ static void set_normal_mode(bke::CurvesGeometry &curves,
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  curves.normal_mode_for_write().fill_indices(selection.indices(), mode);
+  index_mask::masked_fill<int8_t>(curves.normal_mode_for_write(), mode, selection);
   curves.tag_normals_changed();
 }
 

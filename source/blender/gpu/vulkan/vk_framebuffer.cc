@@ -232,8 +232,8 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType /*type*/,
 
 void VKFrameBuffer::read(eGPUFrameBufferBits plane,
                          eGPUDataFormat format,
-                         const int /*area*/[4],
-                         int channel_len,
+                         const int area[4],
+                         int /*channel_len*/,
                          int slot,
                          void *r_data)
 {
@@ -243,30 +243,19 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
       texture = unwrap(unwrap(attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex));
       break;
 
+    case GPU_DEPTH_BIT:
+      texture = unwrap(unwrap(attachments_[GPU_FB_DEPTH_ATTACHMENT].tex));
+      break;
+
     default:
       BLI_assert_unreachable();
       return;
   }
 
   BLI_assert_msg(texture,
-                 "Trying to read back color texture from framebuffer, but no color texture is "
-                 "available in requested slot.");
-  void *data = texture->read(0, format);
-
-  /*
-   * TODO:
-   * - Add support for area.
-   * - Add support for channel_len.
-   * Best option would be to add this to VKTexture so we don't over-allocate and reduce number of
-   * times copies are made.
-   */
-  BLI_assert(format == GPU_DATA_FLOAT);
-  BLI_assert(channel_len == 4);
-  int mip_size[3] = {1, 1, 1};
-  texture->mip_size_get(0, mip_size);
-  const size_t mem_size = mip_size[0] * mip_size[1] * mip_size[2] * sizeof(float) * channel_len;
-  memcpy(r_data, data, mem_size);
-  MEM_freeN(data);
+                 "Trying to read back texture from framebuffer, but no texture is available in "
+                 "requested slot.");
+  texture->read_sub(0, format, area, r_data);
 }
 
 /** \} */

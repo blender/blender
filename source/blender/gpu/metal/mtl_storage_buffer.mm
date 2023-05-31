@@ -296,7 +296,7 @@ id<MTLBuffer> MTLStorageBuf::get_metal_buffer()
   return source_buffer->get_metal_buffer();
 }
 
-int MTLStorageBuf::get_size()
+size_t MTLStorageBuf::get_size()
 {
   BLI_assert(this);
   return size_in_bytes_;

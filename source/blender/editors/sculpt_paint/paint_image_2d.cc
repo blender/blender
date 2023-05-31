@@ -690,7 +690,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
-  /* Adding 4 pixels of padding for brush antialiasing */
+  /* Adding 4 pixels of padding for brush anti-aliasing. */
   const int diameter = MAX2(1, size * 2) + 4;
 
   bool do_random = false;

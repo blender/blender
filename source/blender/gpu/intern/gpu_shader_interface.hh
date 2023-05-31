@@ -77,7 +77,7 @@ class ShaderInterface {
   ShaderInterface();
   virtual ~ShaderInterface();
 
-  void debug_print();
+  void debug_print() const;
 
   inline const ShaderInput *attr_get(const char *name) const
   {

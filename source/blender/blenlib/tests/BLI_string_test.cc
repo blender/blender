@@ -90,7 +90,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
 TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 {
   /* A UTF8 sequence that has a null byte before the sequence ends.
-   * Ensure the the UTF8 sequence does not step over the null byte. */
+   * Ensure the UTF8 sequence does not step over the null byte. */
 #define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
   { \
     char src[] = {__VA_ARGS__, 0}; \
@@ -118,6 +118,33 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
   STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
 
 #undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Concatinate
+ * \{ */
+
+TEST(string, StrCat)
+{
+#define STR_N_CAT(dst_init, dst_size, src, result_expect) \
+  { \
+    char dst[dst_size + 1] = dst_init; \
+    dst[dst_size] = 0xff; \
+    BLI_strncat(dst, src, dst_size); \
+    EXPECT_STREQ(dst, result_expect); \
+    EXPECT_EQ(dst[dst_size], 0xff); \
+  }
+
+  STR_N_CAT("", 1, "", "");
+  STR_N_CAT("", 1, "Y", "");
+  STR_N_CAT("", 2, "Y", "Y");
+  STR_N_CAT("", 2, "YZ", "Y");
+  STR_N_CAT("X", 2, "YZ", "X");
+  STR_N_CAT("ABC", 4, "XYZ", "ABC");
+  STR_N_CAT("ABC", 7, "XYZ", "ABCXYZ");
+#undef STR_N_CAT
 }
 
 /** \} */
@@ -1332,3 +1359,18 @@ TEST_F(StringEscape, Control)
 }
 
 /** \} */
+
+TEST(BLI_string, bounded_strcpy)
+{
+  {
+    char str[8];
+    STRNCPY(str, "Hello");
+    EXPECT_STREQ(str, "Hello");
+  }
+
+  {
+    char str[8];
+    STRNCPY(str, "Hello, World!");
+    EXPECT_STREQ(str, "Hello, ");
+  }
+}

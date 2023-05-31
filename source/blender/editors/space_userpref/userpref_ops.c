@@ -237,7 +237,10 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 static bool associate_blend_poll(bContext *C)
 {
 #ifdef WIN32
-  UNUSED_VARS(C);
+  if (BLI_windows_is_store_install()) {
+    CTX_wm_operator_poll_msg_set(C, "Not available for Microsoft Store installations");
+    return false;
+  }
   return true;
 #else
   CTX_wm_operator_poll_msg_set(C, "Windows-only operator");
@@ -248,8 +251,22 @@ static bool associate_blend_poll(bContext *C)
 static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 {
 #ifdef WIN32
+  if (BLI_windows_is_store_install()) {
+    BKE_report(
+        op->reports, RPT_ERROR, "Registration not possible from Microsoft Store installations");
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool all_users = (U.uiflag & USER_REGISTER_ALL_USERS);
+
   WM_cursor_wait(true);
-  if (BLI_windows_register_blend_extension(true)) {
+
+  if (all_users && BLI_windows_execute_self("--register-allusers", true, true, true)) {
+    BKE_report(op->reports, RPT_INFO, "File association registered");
+    WM_cursor_wait(false);
+    return OPERATOR_FINISHED;
+  }
+  else if (!all_users && BLI_windows_register_blend_extension(false)) {
     BKE_report(op->reports, RPT_INFO, "File association registered");
     WM_cursor_wait(false);
     return OPERATOR_FINISHED;
@@ -257,6 +274,7 @@ static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
   else {
     BKE_report(op->reports, RPT_ERROR, "Unable to register file association");
     WM_cursor_wait(false);
+    MessageBox(0, "Unable to register file association", "Blender", MB_OK | MB_ICONERROR);
     return OPERATOR_CANCELLED;
   }
 #else
@@ -278,6 +296,54 @@ static void PREFERENCES_OT_associate_blend(struct wmOperatorType *ot)
   ot->poll = associate_blend_poll;
 }
 
+static int unassociate_blend_exec(bContext *UNUSED(C), wmOperator *op)
+{
+#ifdef WIN32
+  if (BLI_windows_is_store_install()) {
+    BKE_report(
+        op->reports, RPT_ERROR, "Unregistration not possible from Microsoft Store installations");
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool all_users = (U.uiflag & USER_REGISTER_ALL_USERS);
+
+  WM_cursor_wait(true);
+
+  if (all_users && BLI_windows_execute_self("--unregister-allusers", true, true, true)) {
+    BKE_report(op->reports, RPT_INFO, "File association unregistered");
+    WM_cursor_wait(false);
+    return OPERATOR_FINISHED;
+  }
+  else if (!all_users && BLI_windows_unregister_blend_extension(false)) {
+    BKE_report(op->reports, RPT_INFO, "File association unregistered");
+    WM_cursor_wait(false);
+    return OPERATOR_FINISHED;
+  }
+  else {
+    BKE_report(op->reports, RPT_ERROR, "Unable to unregister file association");
+    WM_cursor_wait(false);
+    MessageBox(0, "Unable to unregister file association", "Blender", MB_OK | MB_ICONERROR);
+    return OPERATOR_CANCELLED;
+  }
+#else
+  UNUSED_VARS(op);
+  BLI_assert_unreachable();
+  return OPERATOR_CANCELLED;
+#endif
+}
+
+static void PREFERENCES_OT_unassociate_blend(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove File Association";
+  ot->description = "Remove this installation's associations with .blend files";
+  ot->idname = "PREFERENCES_OT_unassociate_blend";
+
+  /* api callbacks */
+  ot->exec = unassociate_blend_exec;
+  ot->poll = associate_blend_poll;
+}
+
 /** \} */
 
 void ED_operatortypes_userpref(void)
@@ -291,4 +357,5 @@ void ED_operatortypes_userpref(void)
   WM_operatortype_append(PREFERENCES_OT_asset_library_remove);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
+  WM_operatortype_append(PREFERENCES_OT_unassociate_blend);
 }

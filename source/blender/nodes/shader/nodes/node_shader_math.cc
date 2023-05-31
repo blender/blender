@@ -145,7 +145,7 @@ class ClampWrapperFunction : public mf::MultiFunction {
     this->set_signature(&fn.signature());
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context context) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context context) const override
   {
     fn_.call(mask, params, context);
 
@@ -154,10 +154,10 @@ class ClampWrapperFunction : public mf::MultiFunction {
     /* This has actually been initialized in the call above. */
     MutableSpan<float> results = params.uninitialized_single_output<float>(output_param_index);
 
-    for (const int i : mask) {
+    mask.foreach_index_optimized<int>([&](const int i) {
       float &value = results[i];
       CLAMP(value, 0.0f, 1.0f);
-    }
+    });
   }
 };
 

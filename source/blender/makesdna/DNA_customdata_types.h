@@ -137,15 +137,17 @@ typedef enum eCustomDataType {
                                   /*  CD_ID_MCOL          = 21, */
   /* CD_TEXTURE_MLOOPCOL = 22, */ /* UNUSED */
   CD_CLOTH_ORCO = 23,
-  /* CD_RECAST = 24, */ /* UNUSED */
+/* CD_RECAST = 24, */ /* UNUSED */
 
-  CD_MPOLY = 25,
 #ifdef DNA_DEPRECATED_ALLOW
+  CD_MPOLY = 25,
   CD_MLOOP = 26,
 #endif
   CD_SHAPE_KEYINDEX = 27,
   CD_SHAPEKEY = 28,
+#ifdef DNA_DEPRECATED_ALLOW
   CD_BWEIGHT = 29,
+#endif
   /** Subdivision sharpness data per edge or per vertex. */
   CD_CREASE = 30,
   CD_ORIGSPACE_MLOOP = 31,

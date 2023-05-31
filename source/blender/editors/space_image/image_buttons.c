@@ -127,10 +127,10 @@ static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
   RenderView *rv = RE_RenderViewGetById(rr, 0);
-  if (rv->rectf) {
+  if (rv->combined_buffer.data) {
     return IFACE_("Composite");
   }
-  if (rv->rect32) {
+  if (rv->byte_buffer.data) {
     return IFACE_("Sequence");
   }
   return NULL;
@@ -1253,8 +1253,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
-      const char *filename = BLI_path_slash_rfind(ibuf->filepath);
-      filename = (filename == NULL) ? ibuf->filepath : filename + 1;
+      const char *filename = BLI_path_basename(ibuf->filepath);
       SNPRINTF(str, TIP_("Frame %d: %s"), framenr, filename);
     }
     else {

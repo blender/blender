@@ -167,6 +167,8 @@ void Depsgraph::clear_id_nodes()
   id_nodes.clear();
   /* Clear physics relation caches. */
   clear_physics_relations(this);
+
+  light_linking_cache.clear();
 }
 
 Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *description, int flags)

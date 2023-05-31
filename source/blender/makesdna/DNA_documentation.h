@@ -18,7 +18,7 @@
  * - Function pointers:
  *
  *   Because of historical reasons, some function pointers were
- *   untyped. The parser/dna generator has been modified to explicitly
+ *   untyped. The parser/DNA generator has been modified to explicitly
  *   handle these special cases. Most pointers have been given proper
  *   proto's by now. DNA_space_types.h::Spacefile::returnfunc may still
  *   be badly defined. The reason for this is that it is called with

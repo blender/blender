@@ -950,7 +950,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     }
 
     if (bk_image->tile_number) {
-      char tmp[FILE_MAX];
+      char tmp[12];
       SNPRINTF(tmp, "%d", bk_image->tile_number);
       BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
     }

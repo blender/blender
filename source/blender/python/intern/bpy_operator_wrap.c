@@ -49,14 +49,25 @@ static void operator_properties_init(wmOperatorType *ot)
      * - campbell. */
     PyObject *py_class_dict = py_class->tp_dict;
     PyObject *bl_property = PyDict_GetItem(py_class_dict, bpy_intern_str_bl_property);
-    const char *prop_id;
-    bool prop_raise_error;
-
     if (bl_property) {
-      if (PyUnicode_Check(bl_property)) {
-        /* since the property is explicitly given, raise an error if its not found */
-        prop_id = PyUnicode_AsUTF8(bl_property);
-        prop_raise_error = true;
+      const char *prop_id = PyUnicode_AsUTF8(bl_property);
+      if (prop_id != NULL) {
+        PointerRNA ptr;
+        PropertyRNA *prop;
+
+        RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+        prop = RNA_struct_find_property(&ptr, prop_id);
+        if (prop) {
+          ot->prop = prop;
+        }
+        else {
+          PyErr_Format(
+              PyExc_ValueError, "%.200s.bl_property '%.200s' not found", ot->idname, prop_id);
+
+          /* this could be done cleaner, for now its OK */
+          PyErr_Print();
+          PyErr_Clear();
+        }
       }
       else {
         PyErr_Format(PyExc_ValueError,
@@ -67,35 +78,6 @@ static void operator_properties_init(wmOperatorType *ot)
         /* this could be done cleaner, for now its OK */
         PyErr_Print();
         PyErr_Clear();
-
-        prop_id = NULL;
-        prop_raise_error = false;
-      }
-    }
-    else {
-      /* fallback to hard-coded string (pre 2.66, could be deprecated) */
-      prop_id = "type";
-      prop_raise_error = false;
-    }
-
-    if (prop_id) {
-      PointerRNA ptr;
-      PropertyRNA *prop;
-
-      RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-      prop = RNA_struct_find_property(&ptr, prop_id);
-      if (prop) {
-        ot->prop = prop;
-      }
-      else {
-        if (prop_raise_error) {
-          PyErr_Format(
-              PyExc_ValueError, "%.200s.bl_property '%.200s' not found", ot->idname, prop_id);
-
-          /* this could be done cleaner, for now its OK */
-          PyErr_Print();
-          PyErr_Clear();
-        }
       }
     }
   }

@@ -1285,11 +1285,11 @@ bool ED_view3d_distance_set_from_location(struct RegionView3D *rv3d,
  */
 float ED_scene_grid_scale(const struct Scene *scene, const char **r_grid_unit);
 float ED_view3d_grid_scale(const struct Scene *scene,
-                           struct View3D *v3d,
+                           const struct View3D *v3d,
                            const char **r_grid_unit);
 void ED_view3d_grid_steps(const struct Scene *scene,
-                          struct View3D *v3d,
-                          struct RegionView3D *rv3d,
+                          const struct View3D *v3d,
+                          const struct RegionView3D *rv3d,
                           float r_grid_steps[8]);
 /**
  * Simulates the grid scale that is actually viewed.

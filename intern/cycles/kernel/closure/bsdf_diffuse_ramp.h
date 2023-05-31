@@ -67,8 +67,7 @@ ccl_device Spectrum bsdf_diffuse_ramp_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
                                         float3 Ng,
                                         float3 wi,
-                                        float randu,
-                                        float randv,
+                                        float2 rand,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *wo,
                                         ccl_private float *pdf)
@@ -77,7 +76,7 @@ ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
   float3 N = bsdf->N;
 
   // distribution over the hemisphere
-  sample_cos_hemisphere(N, randu, randv, wo, pdf);
+  sample_cos_hemisphere(N, rand, wo, pdf);
 
   if (dot(Ng, *wo) > 0.0f) {
     *eval = rgb_to_spectrum(bsdf_diffuse_ramp_get_color(bsdf->colors, *pdf * M_PI_F) * M_1_PI_F);

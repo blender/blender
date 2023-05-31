@@ -161,7 +161,7 @@ static const blender::CPPType *vdb_grid_type_to_cpp_type(const VolumeGridType gr
 template<typename GridT>
 void sample_grid(openvdb::GridBase::ConstPtr base_grid,
                  const Span<float3> positions,
-                 const IndexMask mask,
+                 const IndexMask &mask,
                  GMutableSpan dst,
                  const GeometryNodeSampleVolumeInterpolationMode interpolation_mode)
 {
@@ -229,7 +229,7 @@ class SampleVolumeFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float3> positions = params.readonly_single_input<float3>(0, "Position");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");

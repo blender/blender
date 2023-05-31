@@ -102,7 +102,7 @@ static float get_aspect_scaled_extent(const rctf &extent, const UVPackIsland_Par
 }
 
 /**
- * \return true iff `b` is a preferred layout over `a`, given the packing parameters supplied.
+ * \return true if `b` is a preferred layout over `a`, given the packing parameters supplied.
  */
 static bool is_larger(const rctf &a, const rctf &b, const UVPackIsland_Params &params)
 {
@@ -211,6 +211,12 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
   if (!can_rotate_(params)) {
     return; /* Nothing to do. */
   }
+  if (params.rotate_method == ED_UVPACK_ROTATION_CARDINAL) {
+    /* Arbitrary rotations are not allowed. */
+    return;
+  }
+  BLI_assert(params.rotate_method == ED_UVPACK_ROTATION_ANY ||
+             params.rotate_method == ED_UVPACK_ROTATION_AXIS_ALIGNED);
 
   /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an arbitrary
    * angle to minimize the area of the enclosing AABB. This angle is stored in the `pre_rotate_`
@@ -325,7 +331,7 @@ void PackIsland::place_(const float scale, const uv_phi phi)
 
 UVPackIsland_Params::UVPackIsland_Params()
 {
-  rotate = false;
+  rotate_method = ED_UVPACK_ROTATION_NONE;
   scale_to_fit = true;
   only_selected_uvs = false;
   only_selected_faces = false;
@@ -338,7 +344,8 @@ UVPackIsland_Params::UVPackIsland_Params()
   margin_method = ED_UVPACK_MARGIN_SCALED;
   udim_base_offset[0] = 0.0f;
   udim_base_offset[1] = 0.0f;
-  target_aspect_y = 1.0f;
+  target_extent = 1.0f;   /* Assume unit square. */
+  target_aspect_y = 1.0f; /* Assume unit square. */
   shape_method = ED_UVPACK_SHAPE_AABB;
   stop = nullptr;
   do_update = nullptr;
@@ -1095,8 +1102,8 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
   if (island_indices.size() == 0) {
     return false; /* Nothing to do. */
   }
-  if (!params.rotate) {
-    return false; /* Unable to rotate. */
+  if (params.rotate_method != ED_UVPACK_ROTATION_ANY) {
+    return false; /* Unable to rotate by arbitrary angle. */
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
     /* AABB margin calculations are not preserved under rotations. */
@@ -1234,17 +1241,19 @@ static int64_t pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
     }
 
     PackIsland *island = islands[island_indices[i]->index];
+    uv_phi phi; /* Create an identity transform. */
+
     if (!island->can_translate_(params)) {
-      uv_phi phi;
+      /* Move the pinned island into the correct coordinate system. */
       phi.translation = island->pivot_;
+      sub_v2_v2(phi.translation, params.udim_base_offset);
       phi.rotation = 0.0f;
       phis[island_indices[i]->index] = phi;
       i++;
-      placed_can_rotate = false;
-      continue;
+      placed_can_rotate = false; /* Further rotation will cause a translation. */
+      continue;                  /* `island` is now completed. */
     }
     const float island_scale = island->can_scale_(params) ? scale : 1.0f;
-    uv_phi phi;
 
     int max_90_multiple = 1;
     if (island->can_rotate_(params)) {
@@ -1485,6 +1494,9 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
       alpaca_cutoff = alpaca_cutoff_fast;
     }
   }
+
+  alpaca_cutoff = std::max(alpaca_cutoff, locked_island_count); /* ...TODO... */
+
   Span<UVAABBIsland *> slow_aabbs = aabbs.as_span().take_front(
       std::min(alpaca_cutoff, islands.size()));
   rctf extent = {0.0f, 1e30f, 0.0f, 1e30f};
@@ -1535,7 +1547,8 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   return get_aspect_scaled_extent(final_extent, params);
 }
 
-/** Find the optimal scale to pack islands into the unit square.
+/**
+ * Find the optimal scale to pack islands into the unit square.
  * returns largest scale that will pack `islands` into the unit square.
  */
 static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
@@ -1543,9 +1556,6 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
                                           const bool rescale_margin,
                                           const UVPackIsland_Params &params)
 {
-
-  /* TODO: Support Pack To Original Bounding Box */
-
   /*
    * Root finding using a combined search / modified-secant method.
    * First, use a robust search procedure to bracket the root within a factor of 10.
@@ -1618,7 +1628,8 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
     /* Evaluate our `f`. */
     blender::Array<uv_phi> *phis_target = (phis_low == &phis_a) ? &phis_b : &phis_a;
     const float margin = rescale_margin ? margin_fraction * scale : margin_fraction;
-    const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, *phis_target);
+    const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, *phis_target) /
+                         params.target_extent;
     const float value = sqrtf(max_uv) - 1.0f;
 
     if (value <= 0.0f) {
@@ -1878,7 +1889,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   blender::Array<uv_phi> phis(islands.size());
   const float scale = 1.0f;
   const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
-  const float result = can_scale_count > 0 ? 1.0f / max_uv : 1.0f;
+  const float result = can_scale_count > 0 ? params.target_extent / max_uv : 1.0f;
   for (const int64_t i : islands.index_range()) {
     BLI_assert(result == 1.0f || islands[i]->can_scale_(params));
     islands[i]->place_(scale, phis[i]);
@@ -1927,7 +1938,7 @@ void PackIsland::build_inverse_transformation(const float scale,
 
 bool PackIsland::can_rotate_(const UVPackIsland_Params &params) const
 {
-  if (!params.rotate) {
+  if (params.rotate_method == ED_UVPACK_ROTATION_NONE) {
     return false;
   }
   if (!pinned) {

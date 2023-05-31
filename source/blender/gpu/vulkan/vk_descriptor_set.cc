@@ -94,6 +94,15 @@ void VKDescriptorSetTracker::bind(VKTexture &texture,
   binding.vk_sampler = sampler.vk_handle();
 }
 
+void VKDescriptorSetTracker::bind(VKVertexBuffer &vertex_buffer,
+                                  const VKDescriptorSet::Location location)
+{
+  Binding &binding = ensure_location(location);
+  binding.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+  binding.vk_buffer_view = vertex_buffer.vk_buffer_view_get();
+  binding.buffer_size = vertex_buffer.size_alloc_get();
+}
+
 VKDescriptorSetTracker::Binding &VKDescriptorSetTracker::ensure_location(
     const VKDescriptorSet::Location location)
 {
@@ -115,8 +124,10 @@ void VKDescriptorSetTracker::update(VKContext &context)
   tracked_resource_for(context, !bindings_.is_empty());
   std::unique_ptr<VKDescriptorSet> &descriptor_set = active_descriptor_set();
   VkDescriptorSet vk_descriptor_set = descriptor_set->vk_handle();
+  BLI_assert(vk_descriptor_set != VK_NULL_HANDLE);
 
   Vector<VkDescriptorBufferInfo> buffer_infos;
+  buffer_infos.reserve(16);
   Vector<VkWriteDescriptorSet> descriptor_writes;
 
   for (const Binding &binding : bindings_) {
@@ -138,7 +149,22 @@ void VKDescriptorSetTracker::update(VKContext &context)
     descriptor_writes.append(write_descriptor);
   }
 
+  for (const Binding &binding : bindings_) {
+    if (!binding.is_texel_buffer()) {
+      continue;
+    }
+    VkWriteDescriptorSet write_descriptor = {};
+    write_descriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write_descriptor.dstSet = vk_descriptor_set;
+    write_descriptor.dstBinding = binding.location;
+    write_descriptor.descriptorCount = 1;
+    write_descriptor.descriptorType = binding.type;
+    write_descriptor.pTexelBufferView = &binding.vk_buffer_view;
+    descriptor_writes.append(write_descriptor);
+  }
+
   Vector<VkDescriptorImageInfo> image_infos;
+  image_infos.reserve(16);
   for (const Binding &binding : bindings_) {
     if (!binding.is_image()) {
       continue;
@@ -161,9 +187,6 @@ void VKDescriptorSetTracker::update(VKContext &context)
     descriptor_writes.append(write_descriptor);
   }
 
-  BLI_assert_msg(image_infos.size() + buffer_infos.size() == descriptor_writes.size(),
-                 "Not all changes have been converted to a write descriptor. Check "
-                 "`Binding::is_buffer` and `Binding::is_image`.");
   const VKDevice &device = VKBackend::get().device_get();
   vkUpdateDescriptorSets(
       device.device_get(), descriptor_writes.size(), descriptor_writes.data(), 0, nullptr);

@@ -1674,7 +1674,7 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
     /* Filter visible data. */
     rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_GPLAYER);
 
-    /* rearrange datablock's layers */
+    /* Rearrange data-block's layers. */
     rearrange_animchannel_islands(
         &gpd->layers, rearrange_func, mode, ANIMTYPE_GPLAYER, &anim_data_visible);
 
@@ -3950,6 +3950,8 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = animchannels_channel_select_keys_invoke;
   ot->poll = animedit_poll_channels_active;
+
+  ot->flag = OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

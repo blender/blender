@@ -580,7 +580,8 @@ struct UndoImageHandle {
   /** Each undo handle refers to a single image which may have multiple buffers. */
   UndoRefID_Image image_ref;
 
-  /** Each tile of a tiled image has its own UndoImageHandle.
+  /**
+   * Each tile of a tiled image has its own UndoImageHandle.
    * The tile number of this IUser is used to distinguish them.
    */
   ImageUser iuser;

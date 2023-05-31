@@ -280,7 +280,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   else if (STRPREFIX(opname, "MBALL_OT")) {
     km = WM_keymap_find_all(wm, "Metaball", 0, 0);
 
-    /* some mball operators are active in object mode too, like add-prim */
+    /* Some meta-ball operators are active in object mode too, like add-primitive. */
     if (km && !WM_keymap_poll((bContext *)C, km)) {
       km = WM_keymap_find_all(wm, "Object Mode", 0, 0);
     }

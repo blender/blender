@@ -30,7 +30,17 @@
 
 /* Set to 0 to allow devices that do not have the required features.
  * This allows development on OSX until we really needs these features. */
-#define STRICT_REQUIREMENTS 1
+#define STRICT_REQUIREMENTS true
+
+/*
+ * Should we only select surfaces that are known to be compatible. Or should we in case no
+ * compatible surfaces have been found select the first one.
+ *
+ * Currently we also select incompatible surfaces as Vulkan is still experimental.  Assuming we get
+ * reports of color differences between OpenGL and Vulkan to narrow down if there are other
+ * configurations we need to support.
+ */
+#define SELECT_COMPATIBLE_SURFACES_ONLY false
 
 using namespace std;
 
@@ -796,6 +806,49 @@ GHOST_TSuccess GHOST_ContextVK::createGraphicsCommandBuffers()
   return GHOST_kSuccess;
 }
 
+static bool surfaceFormatSupported(const VkSurfaceFormatKHR &surface_format)
+{
+  if (surface_format.colorSpace != VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+    return false;
+  }
+
+  if (surface_format.format == VK_FORMAT_R8G8B8A8_UNORM ||
+      surface_format.format == VK_FORMAT_B8G8R8A8_UNORM)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Select the surface format that we will use.
+ *
+ * We will select any 8bit UNORM surface.
+ */
+static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
+                                const VkSurfaceKHR surface,
+                                VkSurfaceFormatKHR &r_surfaceFormat)
+{
+  uint32_t format_count;
+  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, NULL);
+  vector<VkSurfaceFormatKHR> formats(format_count);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
+
+  for (VkSurfaceFormatKHR &format : formats) {
+    if (surfaceFormatSupported(format)) {
+      r_surfaceFormat = format;
+      return true;
+    }
+  }
+
+#if !SELECT_COMPATIBLE_SURFACES_ONLY
+  r_surfaceFormat = formats[0];
+#endif
+
+  return false;
+}
+
 GHOST_TSuccess GHOST_ContextVK::createSwapchain()
 {
   assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
@@ -803,13 +856,14 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
 
   VkPhysicalDevice physical_device = vulkan_device->physical_device;
 
-  uint32_t format_count;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &format_count, NULL);
-  vector<VkSurfaceFormatKHR> formats(format_count);
-  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, m_surface, &format_count, formats.data());
-
-  /* TODO choose appropriate format. */
-  VkSurfaceFormatKHR format = formats[0];
+  VkSurfaceFormatKHR format = {};
+#if SELECT_COMPATIBLE_SURFACES_ONLY
+  if (!selectSurfaceFormat(physical_device, m_surface, format)) {
+    return GHOST_kFailure;
+  }
+#else
+  selectSurfaceFormat(physical_device, m_surface, format);
+#endif
 
   VkPresentModeKHR present_mode;
   if (!selectPresentMode(physical_device, m_surface, &present_mode)) {
@@ -1066,9 +1120,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   /* According to the Vulkan specs, when `VK_KHR_portability_subset` is available it should be
    * enabled. See
    * https://vulkan.lunarg.com/doc/view/1.2.198.1/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451*/
-  if (device_extensions_support(vulkan_device->physical_device,
-                                {VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME}))
-  {
+  if (vulkan_device->extensions_support({VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME})) {
     extensions_device.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
   }
 #endif

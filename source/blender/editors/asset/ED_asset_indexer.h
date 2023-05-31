@@ -6,11 +6,11 @@
 
 #pragma once
 
+#include "ED_file_indexer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "ED_file_indexer.h"
 
 /**
  * File Indexer Service for indexing asset files.

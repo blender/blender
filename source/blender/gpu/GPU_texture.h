@@ -700,6 +700,13 @@ void GPU_texture_free(GPUTexture *texture);
  * \note If \a cube_as_array is true, then the created view will be a 2D array texture instead of a
  * cube-map texture or cube-map-array texture.
  *
+ * For Depth-Stencil texture view formats:
+ * \note If \a use_stencil is true, the texture is expected to be bound to a UINT sampler and will
+ * return the stencil value (in a range of [0..255]) as the first component.
+ * \note If \a use_stencil is false (default), the texture is expected to be bound to a DEPTH
+ * sampler and will return the normalized depth value (in a range of [0..1])  as the first
+ * component.
+ *
  * TODO(fclem): Target conversion (ex: Texture 2D as Texture 2D Array) is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
@@ -709,7 +716,8 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int mip_len,
                                     int layer_start,
                                     int layer_len,
-                                    bool cube_as_array);
+                                    bool cube_as_array,
+                                    bool use_stencil);
 
 /** \} */
 
@@ -908,16 +916,6 @@ void GPU_texture_extend_mode(GPUTexture *texture, GPUSamplerExtendMode extend_mo
  */
 void GPU_texture_swizzle_set(GPUTexture *texture, const char swizzle[4]);
 
-/**
- * Set a depth-stencil texture read mode.
- *
- * If \a use_stencil is true, the texture is expected to be bound to a UINT sampler and will return
- * the stencil value (in a range of [0..255]) as the first component.
- * If \a use_stencil is false, the texture is expected to be bound to a DEPTH sampler and will
- * return the normalized depth value (in a range of [0..1])  as the first component.
- */
-void GPU_texture_stencil_texture_mode_set(GPUTexture *texture, bool use_stencil);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1081,7 +1079,7 @@ typedef struct GPUPixelBuffer GPUPixelBuffer;
 /**
  * Creates a #GPUPixelBuffer object with \a byte_size worth of storage.
  */
-GPUPixelBuffer *GPU_pixel_buffer_create(uint byte_size);
+GPUPixelBuffer *GPU_pixel_buffer_create(size_t byte_size);
 
 /**
  * Free a #GPUPixelBuffer object.
@@ -1106,7 +1104,7 @@ void GPU_pixel_buffer_unmap(GPUPixelBuffer *pixel_buf);
 /**
  * Return size in bytes of the \a pix_buf .
  */
-uint GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
+size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 
 /**
  * Return the native handle of the \a pix_buf to use for graphic interoperability registration.

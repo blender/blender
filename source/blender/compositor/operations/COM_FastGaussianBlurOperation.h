@@ -53,7 +53,8 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
   /**
    * -1: re-mix with darker
    *  0: do nothing
-   *  1 re-mix with lighter */
+   *  1 re-mix with lighter.
+   */
   int overlay_;
 
  public:

@@ -498,17 +498,30 @@ ccl_device void light_tree_child_importance(KernelGlobals kg,
   }
 }
 
-ccl_device void sample_resevoir(const int current_index,
-                                const float current_weight,
-                                ccl_private int &selected_index,
-                                ccl_private float &selected_weight,
-                                ccl_private float &total_weight,
-                                ccl_private float &rand)
+ccl_device void sample_reservoir(const int current_index,
+                                 const float current_weight,
+                                 ccl_private int &selected_index,
+                                 ccl_private float &selected_weight,
+                                 ccl_private float &total_weight,
+                                 ccl_private float &rand)
 {
   if (current_weight == 0.0f) {
     return;
   }
   total_weight += current_weight;
+
+  /* When `-ffast-math` is used it is possible that the threshold is almost 1 but not quite.
+   * For this case we check the first assignment explicitly (instead of relying on the threshold to
+   * be 1, giving it certain probability). */
+  if (selected_index == -1) {
+    selected_index = current_index;
+    selected_weight = current_weight;
+    /* The threshold is expected to be 1 in this case with strict mathematics, so no need to divide
+     * the rand. In fact, division in such case could lead the rand to exceed 1 because of division
+     * by something smaller than 1. */
+    return;
+  }
+
   float thresh = current_weight / total_weight;
   if (rand <= thresh) {
     selected_index = current_index;
@@ -518,11 +531,13 @@ ccl_device void sample_resevoir(const int current_index,
   else {
     rand = (rand - thresh) / (1.0f - thresh);
   }
-  kernel_assert(rand >= 0.0f && rand <= 1.0f);
-  return;
+
+  /* Ensure the `rand` is always within 0..1 range, which could be violated above when
+   * `-ffast-math` is used. */
+  rand = saturatef(rand);
 }
 
-/* Pick an emitter from a leaf node using resevoir sampling, keep two reservoirs for upper and
+/* Pick an emitter from a leaf node using reservoir sampling, keep two reservoirs for upper and
  * lower bounds. */
 template<bool in_volume_segment>
 ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
@@ -540,7 +555,7 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
   const ccl_global KernelLightTreeNode *knode = &kernel_data_fetch(light_tree_nodes, *node_index);
   *node_index = -1;
 
-  /* Mark emitters with zero importance. Used for resevoir when total minimum importance = 0. */
+  /* Mark emitters with zero importance. Used for reservoir when total minimum importance = 0. */
   kernel_assert(knode->num_emitters <= sizeof(uint) * 8);
   uint has_importance = 0;
 
@@ -556,12 +571,12 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
     light_tree_emitter_importance<in_volume_segment>(
         kg, P, N_or_D, t, has_transmission, current_index, importance[0], importance[1]);
 
-    sample_resevoir(current_index,
-                    importance[!sample_max],
-                    selected_index,
-                    selected_importance[!sample_max],
-                    total_importance[!sample_max],
-                    rand);
+    sample_reservoir(current_index,
+                     importance[!sample_max],
+                     selected_index,
+                     selected_importance[!sample_max],
+                     total_importance[!sample_max],
+                     rand);
     if (selected_index == current_index) {
       selected_importance[sample_max] = importance[sample_max];
     }
@@ -583,13 +598,13 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
     else {
       selected_index = -1;
       for (int i = 0; i < knode->num_emitters; i++) {
-        int current_index = knode->inner.right_child + i;
-        sample_resevoir(current_index,
-                        float(has_importance & 1),
-                        selected_index,
-                        selected_importance[1],
-                        total_importance[1],
-                        rand);
+        int current_index = knode->leaf.first_emitter + i;
+        sample_reservoir(current_index,
+                         float(has_importance & 1),
+                         selected_index,
+                         selected_importance[1],
+                         total_importance[1],
+                         rand);
         has_importance >>= 1;
       }
 
@@ -656,15 +671,27 @@ ccl_device bool get_left_probability(KernelGlobals kg,
   return true;
 }
 
+ccl_device int light_tree_root_node_index(KernelGlobals kg, const int object_receiver)
+{
+  if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
+    const uint receiver_light_set =
+        (object_receiver != OBJECT_NONE) ?
+            kernel_data_fetch(objects, object_receiver).receiver_light_set :
+            0;
+    return kernel_data.light_link_sets[receiver_light_set].light_tree_root;
+  }
+
+  return 0;
+}
+
 template<bool in_volume_segment>
 ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           float randn,
-                                           const float randu,
-                                           const float randv,
+                                           const float3 rand,
                                            const float time,
                                            const float3 P,
                                            float3 N_or_D,
                                            float t,
+                                           const int object_receiver,
                                            const int shader_flags,
                                            const int bounce,
                                            const uint32_t path_flag,
@@ -678,8 +705,10 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
   float pdf_leaf = 1.0f;
   float pdf_selection = 1.0f;
   int selected_emitter = -1;
-  int object = 0;
-  int node_index = 0; /* Root node. */
+  int object_emitter = 0;
+  int node_index = light_tree_root_node_index(kg, object_receiver);
+  /* The first two dimensions of the Sobol sequence have better stratification. */
+  float rand_selection = rand.z;
 
   float3 local_P = P;
 
@@ -690,21 +719,20 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     if (is_leaf(knode)) {
       /* At a leaf node, we pick an emitter. */
       selected_emitter = light_tree_cluster_select_emitter<in_volume_segment>(
-          kg, randn, local_P, N_or_D, t, has_transmission, &node_index, &pdf_selection);
+          kg, rand_selection, local_P, N_or_D, t, has_transmission, &node_index, &pdf_selection);
 
       if (node_index < 0) {
         break;
       }
       else {
         /* Continue with the picked mesh light. */
-        object = kernel_data_fetch(light_tree_emitters, selected_emitter).mesh.object_id;
+        object_emitter = kernel_data_fetch(light_tree_emitters, selected_emitter).mesh.object_id;
         continue;
       }
     }
 
-    /* At an interior node, the left child is directly after the parent, while the right child is
-     * stored as the child index. */
-    const int left_index = node_index + 1;
+    /* Inner node. */
+    const int left_index = knode->inner.left_child;
     const int right_index = knode->inner.right_child;
 
     float left_prob;
@@ -717,7 +745,8 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
     float discard;
     float total_prob = left_prob;
     node_index = left_index;
-    sample_resevoir(right_index, 1.0f - left_prob, node_index, discard, total_prob, randn);
+    sample_reservoir(
+        right_index, 1.0f - left_prob, node_index, discard, total_prob, rand_selection);
     pdf_leaf *= (node_index == left_index) ? left_prob : (1.0f - left_prob);
   }
 
@@ -727,25 +756,39 @@ ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
 
   pdf_selection *= pdf_leaf;
 
-  return light_sample<in_volume_segment>(
-      kg, randu, randv, time, P, bounce, path_flag, selected_emitter, object, pdf_selection, ls);
+  return light_sample<in_volume_segment>(kg,
+                                         float3_to_float2(rand),
+                                         time,
+                                         P,
+                                         object_receiver,
+                                         bounce,
+                                         path_flag,
+                                         selected_emitter,
+                                         object_emitter,
+                                         pdf_selection,
+                                         ls);
 }
 
 /* We need to be able to find the probability of selecting a given light for MIS. */
-ccl_device float light_tree_pdf(
-    KernelGlobals kg, float3 P, float3 N, const int path_flag, const int object, const uint target)
+ccl_device float light_tree_pdf(KernelGlobals kg,
+                                float3 P,
+                                float3 N,
+                                const int path_flag,
+                                const int object_emitter,
+                                const uint index_emitter,
+                                const int object_receiver)
 {
   const bool has_transmission = (path_flag & PATH_RAY_MIS_HAD_TRANSMISSION);
 
   ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
-                                                                         target);
+                                                                         index_emitter);
   int root_index;
   uint bit_trail, target_emitter;
 
   if (is_triangle(kemitter)) {
     /* If the target is an emissive triangle, first traverse the top level tree to find the mesh
      * light emitter, then traverse the subtree. */
-    target_emitter = kernel_data_fetch(object_to_tree, object);
+    target_emitter = kernel_data_fetch(object_to_tree, object_emitter);
     ccl_global const KernelLightTreeEmitter *kmesh = &kernel_data_fetch(light_tree_emitters,
                                                                         target_emitter);
     root_index = kmesh->mesh.node_id;
@@ -759,11 +802,11 @@ ccl_device float light_tree_pdf(
   else {
     root_index = 0;
     bit_trail = kemitter->bit_trail;
-    target_emitter = target;
+    target_emitter = index_emitter;
   }
 
   float pdf = 1.0f;
-  int node_index = 0;
+  int node_index = light_tree_root_node_index(kg, object_receiver);
 
   /* Traverse the light tree until we reach the target leaf node. */
   while (true) {
@@ -802,11 +845,11 @@ ccl_device float light_tree_pdf(
       if (root_index) {
         /* Arrived at the mesh light. Continue with the subtree. */
         float unused;
-        light_tree_to_local_space<false>(kg, object, P, N, unused);
+        light_tree_to_local_space<false>(kg, object_emitter, P, N, unused);
 
         node_index = root_index;
         root_index = 0;
-        target_emitter = target;
+        target_emitter = index_emitter;
         bit_trail = kemitter->bit_trail;
         continue;
       }
@@ -815,8 +858,8 @@ ccl_device float light_tree_pdf(
       }
     }
 
-    /* Interior node. */
-    const int left_index = node_index + 1;
+    /* Inner node. */
+    const int left_index = knode->inner.left_child;
     const int right_index = knode->inner.right_child;
 
     float left_prob;
@@ -826,10 +869,12 @@ ccl_device float light_tree_pdf(
       return 0.0f;
     }
 
+    bit_trail >>= kernel_data_fetch(light_tree_nodes, node_index).bit_skip;
     const bool go_left = (bit_trail & 1) == 0;
     bit_trail >>= 1;
-    pdf *= go_left ? left_prob : (1.0f - left_prob);
+
     node_index = go_left ? left_index : right_index;
+    pdf *= go_left ? left_prob : (1.0f - left_prob);
 
     if (pdf == 0) {
       return 0.0f;

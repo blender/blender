@@ -34,6 +34,18 @@
 
 #include "console_intern.h"
 
+/* TODO: Text operations not yet supported for console:
+ * Mac KM_OSKEY-arrow to beginning/end of line
+ * Mac KM_OSKEY-backspace to start of line
+ * Mac KM_OSKEY-delete to end of line
+ * Text cursor insertion by mouse
+ * Mouse drag to select does not change text cursor position.
+ * Shift-ctrl-arrow to select word
+ * ctrl-x to copy to clipboard and delete.
+ * ctrl-a to select all
+ * ctrl-z，shift-crtrl-z undo/redo
+ */
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -1258,7 +1270,7 @@ static int console_selectword_invoke(bContext *C, wmOperator *UNUSED(op), const 
   if (console_line_column_from_index(sc, pos, &cl, &offset, &n)) {
     int sel[2] = {n, n};
 
-    BLI_str_cursor_step_bounds_utf8(cl->line, cl->len, n, &sel[0], &sel[1]);
+    BLI_str_cursor_step_bounds_utf8(cl->line, cl->len, n, &sel[1], &sel[0]);
 
     sel[0] = offset - sel[0];
     sel[1] = offset - sel[1];

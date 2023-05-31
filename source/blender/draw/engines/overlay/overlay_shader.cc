@@ -11,6 +11,8 @@
 
 #include "UI_resources.h"
 
+#include "gpu_shader_create_info.hh"
+
 #include "overlay_private.hh"
 
 struct OVERLAY_Shaders {

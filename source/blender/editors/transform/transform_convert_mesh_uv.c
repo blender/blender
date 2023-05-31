@@ -296,9 +296,9 @@ static void createTransUVs(bContext *C, TransInfo *t)
           countsel++;
 
           if (island_center) {
-            UvElement *element = BM_uv_element_get(elementmap, efa, l);
+            UvElement *element = BM_uv_element_get(elementmap, l);
 
-            if (element->flag == false) {
+            if (element && !element->flag) {
               float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
               add_v2_v2(island_center[element->island].co, luv);
               island_center[element->island].co_num++;
@@ -370,7 +370,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         }
 
         if (is_island_center) {
-          UvElement *element = BM_uv_element_get(elementmap, efa, l);
+          UvElement *element = BM_uv_element_get(elementmap, l);
           if (element) {
             center = island_center[element->island].co;
           }
