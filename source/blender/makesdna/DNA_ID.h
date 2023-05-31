@@ -1188,7 +1188,7 @@ typedef enum IDRecalcFlag {
  * required to address all remaining relationship cases.
  * See e.g. how #BKE_library_unused_linked_data_set_tag is doing this.
  */
-enum {
+typedef enum eID_Index {
   /* Special case: Library, should never ever depend on any other type. */
   INDEX_ID_LI = 0,
 
@@ -1268,8 +1268,9 @@ enum {
 
   /* Special values. */
   INDEX_ID_NULL,
-  INDEX_ID_MAX,
-};
+} eID_Index;
+
+#define INDEX_ID_MAX (INDEX_ID_NULL + 1)
 
 #ifdef __cplusplus
 }
