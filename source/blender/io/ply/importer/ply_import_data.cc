@@ -583,6 +583,7 @@ static const char *skip_element(PlyReadBuffer &file,
   if (header.type == PlyFormatType::ASCII) {
     for (int i = 0; i < element.count; i++) {
       Span<char> line = file.read_line();
+      (void)line;
     }
   }
   else {
