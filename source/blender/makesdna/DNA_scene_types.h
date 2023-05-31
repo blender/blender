@@ -2497,7 +2497,7 @@ typedef enum eSculptFlags {
   // SCULPT_SHOW_DIFFUSE = (1 << 9), /* deprecated */
 
   /** If set, the mesh will be drawn with smooth-shading in dynamic-topology mode. */
-  SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
+  SCULPT_FLAG_UNUSED_10 = (1 << 10),
 
   /** If set, dynamic-topology brushes will subdivide short edges. */
   SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12), /* deprecated. */
@@ -2513,10 +2513,10 @@ typedef enum eSculptFlags {
 
   /* Don't display face sets in viewport. */
   SCULPT_HIDE_FACE_SETS = (1 << 17),
-  SCULPT_DYNTOPO_FLAT_VCOL_SHADING = (1 << 18),
+  SCULPT_FLAG_UNUSED_8 = (1 << 18),
 
   /* Hides facesets/masks and forces indexed mode to save GPU bandwidth. */
-  SCULPT_FAST_DRAW = (1 << 20),
+  SCULPT_FLAG_UNUSED_20 = (1 << 20),
   SCULPT_DYNTOPO_ENABLED = (1 << 21),
 } eSculptFlags;
 

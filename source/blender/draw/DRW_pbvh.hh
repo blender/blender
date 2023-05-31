@@ -67,7 +67,7 @@ struct PBVH_GPU_Args {
   const int *looptri_polys;
   struct PBVHNode *node;
 
-  bool flat_vcol_shading;
+  /* Debug mode to show original coordinates instead of vertex positions. */
   bool show_orig;
 
   /* BMesh. */

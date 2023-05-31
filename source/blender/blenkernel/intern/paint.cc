@@ -1790,7 +1790,6 @@ static void sculpt_update_object(
 
   ss->depsgraph = depsgraph;
 
-  ss->bm_smooth_shading = scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING;
   ss->ignore_uvs = me->flag & ME_SCULPT_IGNORE_UVS;
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
@@ -1886,7 +1885,6 @@ static void sculpt_update_object(
       &me->pdata, CD_PROP_BOOL, ".hide_poly", me->totpoly);
 
   ss->subdiv_ccg = me_eval->runtime->subdiv_ccg;
-  ss->fast_draw = (scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0;
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   sculpt_check_face_areas(ob, pbvh);
@@ -2564,7 +2562,6 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
   BKE_pbvh_build_bmesh(pbvh,
                        BKE_object_get_original_mesh(ob),
                        ob->sculpt->bm,
-                       ob->sculpt->bm_smooth_shading,
                        ob->sculpt->bm_log,
                        ob->sculpt->bm_idmap,
                        ob->sculpt->attrs.dyntopo_node_id_vertex->bmesh_cd_offset,
@@ -2574,8 +2571,8 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool /*update_sculptver
                        ob->sculpt->attrs.flags ? ob->sculpt->attrs.flags->bmesh_cd_offset : -1,
                        ob->sculpt->attrs.valence ? ob->sculpt->attrs.valence->bmesh_cd_offset : -1,
                        ob->sculpt->attrs.orig_co ? ob->sculpt->attrs.orig_co->bmesh_cd_offset : -1,
-                       ob->sculpt->attrs.orig_no ? ob->sculpt->attrs.orig_no->bmesh_cd_offset : -1,
-                       ob->sculpt->fast_draw);
+                       ob->sculpt->attrs.orig_no ? ob->sculpt->attrs.orig_no->bmesh_cd_offset :
+                                                   -1);
 
   if (ob->sculpt->bm_log) {
     BKE_pbvh_set_bm_log(pbvh, ob->sculpt->bm_log);
@@ -2607,7 +2604,6 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   BKE_pbvh_build_mesh(pbvh, me);
   BKE_pbvh_sharp_limit_set(pbvh, ss->sharp_angle_limit);
-  BKE_pbvh_fast_draw_set(pbvh, ss->fast_draw);
 
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
@@ -2640,7 +2636,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        (void **)subdiv_ccg->grid_faces,
                        subdiv_ccg->grid_flag_mats,
                        subdiv_ccg->grid_hidden,
-                       ob->sculpt->fast_draw,
                        (float *)ss->attrs.face_areas->data,
                        base_mesh,
                        subdiv_ccg);
@@ -2820,10 +2815,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   sculpt_attribute_update_refs(ob);
 
-  if (pbvh) {
-    SCULPT_update_flat_vcol_shading(ob, scene);
-  }
-
   return pbvh;
 }
 
@@ -2838,19 +2829,6 @@ PBVH *BKE_object_sculpt_pbvh_get(Object *object)
 bool BKE_object_sculpt_use_dyntopo(const Object *object)
 {
   return object->sculpt && object->sculpt->bm;
-}
-
-void BKE_object_sculpt_dyntopo_smooth_shading_set(Object *object, const bool value)
-{
-  object->sculpt->bm_smooth_shading = value;
-}
-
-void BKE_object_sculpt_fast_draw_set(Object *object, const bool value)
-{
-  object->sculpt->fast_draw = value;
-  if (object->sculpt->pbvh) {
-    BKE_pbvh_fast_draw_set(object->sculpt->pbvh, value);
-  }
 }
 
 void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)

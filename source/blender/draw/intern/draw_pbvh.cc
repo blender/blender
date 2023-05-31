@@ -214,7 +214,7 @@ struct PBVHBatches {
         break;
       }
       case PBVH_BMESH: {
-        count = args->flat_vcol_shading ? args->tribuf->tottri * 6 : args->tribuf->tottri;
+        count = args->tribuf->tottri;
       }
     }
 
@@ -759,7 +759,7 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
-    auto foreach_bmesh_normal = [&](std::function<void(BMLoop * l)> callback) {
+    auto foreach_bmesh = [&](std::function<void(BMLoop * l)> callback) {
       for (int i : IndexRange(args->tribuf->tottri)) {
         PBVHTri *tri = args->tribuf->tris + i;
         BMFace *f = reinterpret_cast<BMFace *>(tri->f.i);
@@ -774,115 +774,7 @@ struct PBVHBatches {
       }
     };
 
-    BMVert v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12;
-
-    auto foreach_bmesh_flat_vcol = [&](std::function<void(BMLoop * l)> callback) {
-      for (int i : IndexRange(args->tribuf->tottri)) {
-        PBVHTri *tri = args->tribuf->tris + i;
-
-        BMFace *f = reinterpret_cast<BMFace *>(tri->f.i);
-
-        if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-
-        BMLoop *la = reinterpret_cast<BMLoop *>(tri->l[0]);
-        BMLoop *lb = reinterpret_cast<BMLoop *>(tri->l[1]);
-        BMLoop *lc = reinterpret_cast<BMLoop *>(tri->l[2]);
-
-        BMLoop l9 = *la, l1 = *la, l2 = *la;
-        BMLoop l3 = *lb, l4 = *lb, l5 = *lb;
-        BMLoop l6 = *lc, l7 = *lc, l8 = *lc;
-        BMLoop l10 = *la, l11 = *lb, l12 = *lc;
-
-        v9 = *la->v, v1 = *la->v, v2 = *la->v;
-        v3 = *lb->v, v4 = *lb->v, v5 = *lb->v;
-        v6 = *lc->v, v7 = *lc->v, v8 = *lc->v;
-        v10 = *la->v, v11 = *lb->v, v12 = *lc->v;
-
-        if (vbo.type == CD_PBVH_CO_TYPE) {
-          l1.v = &v1;
-          l2.v = &v2;
-          l3.v = &v3;
-          l4.v = &v4;
-          l5.v = &v5;
-          l6.v = &v6;
-          l7.v = &v7;
-          l8.v = &v8;
-          l9.v = &v9;
-          l10.v = &v10;
-          l11.v = &v11;
-          l12.v = &v12;
-
-          float3 cent = la->v->co;
-          cent += lb->v->co;
-          cent += lc->v->co;
-          cent *= 1.0f / 3.0f;
-
-          copy_v3_v3(v10.co, cent);
-          copy_v3_v3(v11.co, cent);
-          copy_v3_v3(v12.co, cent);
-
-          float3 cent1 = la->v->co;
-          cent1 += lb->v->co;
-          cent1 *= 0.5f;
-          copy_v3_v3(v2.co, cent1);
-          copy_v3_v3(v3.co, cent1);
-
-          float3 cent2 = lb->v->co;
-          cent2 += lc->v->co;
-          cent2 *= 0.5f;
-          copy_v3_v3(v5.co, cent2);
-          copy_v3_v3(v6.co, cent2);
-
-          float3 cent3 = lc->v->co;
-          cent3 += la->v->co;
-          cent3 *= 0.5f;
-          copy_v3_v3(v8.co, cent3);
-          copy_v3_v3(v9.co, cent3);
-        }
-
-        /*    v4
-              b
-           v3   v5
-          v2 cents v6
-          a          c
-        v1   v9  v8   v7
-        */
-        callback(&l7);
-        callback(&l8);
-        callback(&l6);
-        callback(&l8);
-        callback(&l12);
-        callback(&l6);
-
-        callback(&l1);
-        callback(&l2);
-        callback(&l9);
-        callback(&l2);
-        callback(&l10);
-        callback(&l9);
-
-        callback(&l4);
-        callback(&l5);
-        callback(&l3);
-        callback(&l5);
-        callback(&l11);
-        callback(&l3);
-      }
-    };
-
-    std::function<void(std::function<void(BMLoop *)>)> foreach_bmesh;
-
-    if (args->flat_vcol_shading) {
-      foreach_bmesh = foreach_bmesh_flat_vcol;
-    }
-    else {
-      foreach_bmesh = foreach_bmesh_normal;
-    }
-
-    faces_count = args->flat_vcol_shading ? args->tribuf->tottri * 6 : args->tribuf->tottri;
-    tris_count = faces_count;
+    faces_count = tris_count = args->tribuf->tottri;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);

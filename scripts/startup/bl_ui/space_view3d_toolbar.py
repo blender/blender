@@ -999,8 +999,6 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             expand=True
         )
 
-        col.prop(sculpt, "use_flat_vcol_shading")
-
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Remesh"

@@ -351,7 +351,6 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden,
-                          bool fast_draw,
                           float *face_areas,
                           struct Mesh *me,
                           struct SubdivCCG *subdiv_ccg);
@@ -361,7 +360,6 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct Mesh *me,
                           struct BMesh *bm,
-                          bool smooth_shading,
                           BMLog *log,
                           struct BMIdMap *idmap,
                           const int cd_vert_node_offset,
@@ -371,10 +369,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_flag,
                           const int cd_valence,
                           const int cd_origco,
-                          const int cd_origno,
-                          bool fast_draw);
+                          const int cd_origno);
 
-void BKE_pbvh_fast_draw_set(PBVH *pbvh, bool state);
 void BKE_pbvh_set_idmap(PBVH *pbvh, struct BMIdMap *idmap);
 
 void BKE_pbvh_update_offsets(PBVH *pbvh,
@@ -555,7 +551,6 @@ bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 /* if pbvh uses a split index buffer, will call BKE_pbvh_vert_tag_update_normal_triangulation;
    otherwise does nothing.  returns true if BKE_pbvh_vert_tag_update_normal_triangulation was
    called.*/
-bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_vert_tag_update_normal_triangulation(PBVHNode *node);
 void BKE_pbvh_node_mark_original_update(PBVHNode *node);
 void BKE_pbvh_vert_tag_update_normal_tri_area(PBVHNode *node);
@@ -945,9 +940,6 @@ int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value);
-
-void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
 
 void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state);
 bool BKE_pbvh_curvature_update_get(PBVHNode *node);
@@ -1012,107 +1004,15 @@ PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence);
 void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 
-#if 0
-typedef enum {
-  SCULPT_TEXTURE_UV = 1 << 0,  // per-uv
-  SCULPT_TEXTURE_GRIDS = 1<<1
-} SculptTextureType;
-
-typedef int TexLayerRef;
-
-/*
-Texture points are texels projected into 3d.
-*/
-typedef intptr_t TexPointRef;
-
-void *BKE_pbvh_get_tex_settings(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
-void *BKE_pbvh_get_tex_data(PBVH *pbvh, PBVHNode *node, TexPointRef vdm);
-
-typedef struct SculptTextureDef {
-  SculptTextureType type;
-  int settings_size;
-
-  void (*build_begin)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
-
-  void (*calc_bounds)(PBVH *pbvh, PBVHNode *node, float r_min[3], float r_max[3], TexLayerRef vdm);
-
-  /*vdms can cache data per node, which is freed to maintain memory limit.
-    they store cache in the same structure they return in buildNodeData.*/
-  void (*freeCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
-  void (*ensuredCachedData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
-
-  /*builds all data that isn't cached.*/
-  void *(*buildNodeData)(PBVH *pbvh, PBVHNode *node);
-  bool (*validate)(PBVH *pbvh, TexLayerRef vdm);
-
-  void (*setVertexCos)(PBVH *pbvh, PBVHNode *node, PBVHVertRef *verts, int totvert, TexLayerRef vdm);
-
-  void (*getPointsFromNode)(PBVH *pbvh,
-                            PBVHNode *node,
-                            TexLayerRef vdm,
-                            TexPointRef **r_ids,
-                            float ***r_cos,
-                            float ***r_nos,
-                            int *r_totpoint);
-  void (*releaseNodePoints)(
-      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, float **cos, float **nos);
-
-#  if 0
-  int (*getTrisFromNode)(PBVH *pbvh,
-                         PBVHNode *node,
-                         TexLayerRef vdm,
-                         TexPointRef *((*r_tris)[3]),
-                         TexPointRef **r_ids,
-                         int tottri,
-                         int totid);
-  void (*getTriInterpWeightsFromNode)(PBVH *pbvh,
-                                      PBVHNode *node,
-                                      TexLayerRef vdm,
-                                      float *((*r_tris)[3]),
-                                      SculptLoopRef ***r_src_loops,
-                                      int tottri,
-                                      int totloop);
-  int (*getTriCount)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm);
-#  endif
-
-  void (*getPointNeighbors)(PBVH *pbvh,
-                            PBVHNode *node,
-                            TexLayerRef vdm,
-                            TexPointRef id,
-                            TexPointRef **r_neighbor_ids,
-                            int *r_totneighbor,
-                            int maxneighbors,
-                            TexPointRef **r_duplicates_id,
-                            int r_totduplicate,
-                            int maxduplicates);
-  void (*getPointValence)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef id);
-  void (*freeNodeData)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, void *settings);
-
-  void (*getPointsFromIds)(
-      PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
-
-  /*displacement texture stuff*/
-  // can be tangent, object space displacement
-  void (*worldToDelta)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
-  void (*deltaToWorld)(PBVH *pbvh, PBVHNode *node, TexLayerRef vdm, TexPointRef *ids, int totid);
-} SculptDisplacementDef;
-
-typedef struct SculptLayerEntry {
-  char name[64];
-  int type;
-  void *settings;
-  float factor;
-  struct SculptLayerEntry *parent;
-} SculptLayerEntry;
-
-#endif
-
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex);
 
-#if 1
+/* Uncomment to enable PBVH NaN debugging. */
+//#define PBVH_CHECK_NANS
+
+#ifdef PBVH_CHECK_NANS
 #  include "atomic_ops.h"
 #  include <float.h>
 #  include <math.h>

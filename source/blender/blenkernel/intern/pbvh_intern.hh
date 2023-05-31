@@ -149,11 +149,7 @@ struct PBVHNode {
   int id;
 };
 
-typedef enum {
-  PBVH_DYNTOPO_SMOOTH_SHADING = 1,
-  PBVH_FAST_DRAW = 2,  // hides facesets/masks and forces smooth to save GPU bandwidth
-  PBVH_IGNORE_UVS = 4
-} PBVHFlags;
+typedef enum { PBVH_IGNORE_UVS = 1 } PBVHFlags;
 ENUM_OPERATORS(PBVHFlags, PBVH_IGNORE_UVS);
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
@@ -260,11 +256,10 @@ struct PBVH {
   BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
 
-  bool flat_vcol_shading;
-  bool need_full_render;  // used by pbvh drawing for PBVH_BMESH
+  bool need_full_render; /* Set by pbvh drawing for PBVH_BMESH. */
 
   int balance_counter;
-  int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
+  int stroke_id;
 
   bool is_cached;
 

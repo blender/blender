@@ -1019,10 +1019,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 #endif
   }
 
-  if (fast_draw) {
-    pbvh->flags |= PBVH_FAST_DRAW;
-  }
-
   MEM_freeN(prim_bbc);
 
   /* Clear the bitmap so it can be used as an update tag later on. */
@@ -3725,7 +3721,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
 bool BKE_pbvh_draw_mask(const PBVH *pbvh)
 {
-  return BKE_pbvh_has_mask(pbvh) && !(pbvh->flags & PBVH_FAST_DRAW);
+  return BKE_pbvh_has_mask(pbvh);
 }
 
 bool BKE_pbvh_has_mask(const PBVH *pbvh)
@@ -3745,10 +3741,6 @@ bool BKE_pbvh_has_mask(const PBVH *pbvh)
 
 bool BKE_pbvh_draw_face_sets(PBVH *pbvh)
 {
-  if (pbvh->flags & PBVH_FAST_DRAW) {
-    return false;
-  }
-
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
     case PBVH_FACES:
@@ -4324,38 +4316,9 @@ ProxyVertArray *BKE_pbvh_get_proxyarrays(PBVH *pbvh, PBVHNode *node)
 
 #endif
 
-/* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
-   scene and ob are allowd to be NULL (in which case nothing is done).
-*/
-void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
-{
-  if (!scene || !ob || !ob->sculpt || !ob->sculpt->pbvh) {
-    return;
-  }
-
-  if (ob->sculpt->pbvh) {
-    bool flat_vcol_shading = ((scene->toolsettings->sculpt->flags &
-                               SCULPT_DYNTOPO_FLAT_VCOL_SHADING) != 0);
-
-    BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
-  }
-}
-
 PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
 {
   return pbvh->nodes + node;
-}
-
-bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node)
-{
-  bool split_indexed = pbvh->header.bm &&
-                       (pbvh->flags & (PBVH_DYNTOPO_SMOOTH_SHADING | PBVH_FAST_DRAW));
-
-  if (split_indexed) {
-    BKE_pbvh_vert_tag_update_normal_triangulation(node);
-  }
-
-  return split_indexed;
 }
 
 void BKE_pbvh_vert_tag_update_normal_triangulation(PBVHNode *node)

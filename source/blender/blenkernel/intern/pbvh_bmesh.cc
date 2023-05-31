@@ -2395,7 +2395,6 @@ void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           Mesh *me,
                           BMesh *bm,
-                          bool smooth_shading,
                           BMLog *log,
                           BMIdMap *idmap,
                           const int cd_vert_node_offset,
@@ -2405,8 +2404,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int /*cd_flag_offset*/,
                           const int /*cd_valence_offset*/,
                           const int cd_origco,
-                          const int cd_origno,
-                          bool fast_draw)
+                          const int cd_origno)
 {
   // coalese_pbvh(pbvh, bm);
 
@@ -2429,8 +2427,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->mesh = me;
 
-  smooth_shading |= fast_draw;
-
   pbvh->header.bm = bm;
 
   blender::bke::dyntopo::detail_size_set(pbvh, 0.75f, 0.4f);
@@ -2452,14 +2448,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   BMIter iter;
   BMVert *v;
-
-  if (smooth_shading) {
-    pbvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
-  }
-
-  if (fast_draw) {
-    pbvh->flags |= PBVH_FAST_DRAW;
-  }
 
   /* bounding box array of all faces, no need to recalculate every time */
   BBC *bbc_array = MEM_cnew_array<BBC>(bm->totface, "BBC");

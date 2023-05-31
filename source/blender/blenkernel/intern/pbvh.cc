@@ -870,7 +870,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   }
   args->polys = pbvh->polys;
   args->mlooptri = pbvh->looptri;
-  args->flat_vcol_shading = pbvh->flat_vcol_shading;
   args->updategen = node->updategen;
 
   if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
@@ -1046,16 +1045,6 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   pbvh->pdata = &mesh->pdata;
 }
 
-void BKE_pbvh_fast_draw_set(PBVH *pbvh, bool state)
-{
-  if (state) {
-    pbvh->flags |= PBVH_FAST_DRAW;
-  }
-  else {
-    pbvh->flags &= ~PBVH_FAST_DRAW;
-  }
-}
-
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 {
   BBC *prim_bbc = nullptr;
@@ -1152,7 +1141,6 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           void **gridfaces,
                           DMFlagMat *flagmats,
                           BLI_bitmap **grid_hidden,
-                          bool fast_draw,
                           float *face_areas,
                           Mesh *me,
                           SubdivCCG *subdiv_ccg)
@@ -1225,10 +1213,6 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 #ifdef TEST_PBVH_FACE_SPLIT
     test_face_boundaries(pbvh);
 #endif
-  }
-
-  if (fast_draw) {
-    pbvh->flags |= PBVH_FAST_DRAW;
   }
 
   MEM_freeN(prim_bbc);
@@ -1578,7 +1562,6 @@ struct PBVHUpdateData {
 
   int flag = 0;
   bool show_sculpt_face_sets = false;
-  bool flat_vcol_shading = false;
   PBVHAttrReq *attrs = nullptr;
   int attrs_num = 0;
 
@@ -1859,23 +1842,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 }
 
-void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value)
-{
-  if (value != pbvh->flat_vcol_shading) {
-    for (int i = 0; i < pbvh->totnode; i++) {
-      PBVHNode *node = pbvh->nodes + i;
-
-      if (!(node->flag & PBVH_Leaf)) {
-        continue;
-      }
-
-      BKE_pbvh_node_mark_rebuild_draw(node);
-    }
-  }
-
-  pbvh->flat_vcol_shading = value;
-}
-
 void pbvh_free_draw_buffers(PBVH * /* pbvh */, PBVHNode *node)
 {
   if (node->draw_batches) {
@@ -1924,7 +1890,6 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, Mesh *me, Span<PBVHNode *> node
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data(pbvh, nodes);
   data.mesh = me;
-  data.flat_vcol_shading = pbvh->flat_vcol_shading;
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
@@ -3684,7 +3649,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
 bool BKE_pbvh_draw_mask(const PBVH *pbvh)
 {
-  return BKE_pbvh_has_mask(pbvh) && !(pbvh->flags & PBVH_FAST_DRAW);
+  return BKE_pbvh_has_mask(pbvh);
 }
 
 bool BKE_pbvh_has_mask(const PBVH *pbvh)
@@ -3704,10 +3669,6 @@ bool BKE_pbvh_has_mask(const PBVH *pbvh)
 
 bool BKE_pbvh_draw_face_sets(PBVH *pbvh)
 {
-  if (pbvh->flags & PBVH_FAST_DRAW) {
-    return false;
-  }
-
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
     case PBVH_FACES:
@@ -3831,38 +3792,9 @@ PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i)
   return pbvh->nodes + node_i;
 }
 
-/* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
-   scene and ob are allowd to be nullptr (in which case nothing is done).
-*/
-void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
-{
-  if (!scene || !ob || !ob->sculpt || !ob->sculpt->pbvh) {
-    return;
-  }
-
-  if (ob->sculpt->pbvh) {
-    bool flat_vcol_shading = ((scene->toolsettings->sculpt->flags &
-                               SCULPT_DYNTOPO_FLAT_VCOL_SHADING) != 0);
-
-    BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
-  }
-}
-
 PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node)
 {
   return pbvh->nodes + node;
-}
-
-bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node)
-{
-  bool split_indexed = pbvh->header.bm &&
-                       (pbvh->flags & (PBVH_DYNTOPO_SMOOTH_SHADING | PBVH_FAST_DRAW));
-
-  if (split_indexed) {
-    BKE_pbvh_vert_tag_update_normal_triangulation(node);
-  }
-
-  return split_indexed;
 }
 
 void BKE_pbvh_vert_tag_update_normal_triangulation(PBVHNode *node)

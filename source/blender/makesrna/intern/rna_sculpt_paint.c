@@ -373,8 +373,6 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
   return brush->ob_mode & mode;
 }
 
-void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene);
-
 static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
@@ -383,15 +381,6 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
-    if (ob->sculpt) {
-      SCULPT_update_flat_vcol_shading(ob, scene);
-
-      BKE_object_sculpt_fast_draw_set(
-          ob, ((scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0));
-      BKE_object_sculpt_dyntopo_smooth_shading_set(
-          ob, ((scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) != 0));
-    }
-
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
   }
@@ -923,36 +912,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
                            "Maximum edge length for dynamic topology sculpting (as divisor "
                            "of Blender unit - higher value means smaller edge length)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
-  prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_SMOOTH_SHADING);
-  RNA_def_property_ui_text(prop,
-                           "Smooth Shading",
-                           "Show faces in dynamic-topology mode with smooth "
-                           "shading rather than flat shaded");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
-
-  prop = RNA_def_property(srna, "use_fast_draw", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_FAST_DRAW);
-  RNA_def_property_ui_text(prop,
-                           "Fast Draw Mode",
-                           "Forces smooth shading"
-                           "and disables drawing of masks and face sets"
-                           "to speed up drawing. Useful for posing"
-                           "high-poly meshes.");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
-
-  prop = RNA_def_property(srna, "use_flat_vcol_shading", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_FLAT_VCOL_SHADING);
-  RNA_def_property_ui_text(
-      prop,
-      "Draw Color Cells",
-      "Draw vertex colors in flat cells instead of smoothly interpolating."
-      "For debugging purposes only, does not effect rendering in eevee or cycles");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
   const EnumPropertyItem *entry = rna_enum_brush_automasking_flag_items;
   do {

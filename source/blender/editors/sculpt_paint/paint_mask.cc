@@ -1533,7 +1533,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
     BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
                          sculpt_mesh,
                          sgcontext->ss->bm,
-                         sgcontext->ss->bm_smooth_shading,
                          sgcontext->ss->bm_log,
                          sgcontext->ss->bm_idmap,
                          sgcontext->ss->cd_vert_node_offset,
@@ -1543,8 +1542,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->attrs.flags->bmesh_cd_offset,
                          sgcontext->ss->attrs.valence->bmesh_cd_offset,
                          sgcontext->ss->attrs.orig_co->bmesh_cd_offset,
-                         sgcontext->ss->attrs.orig_no->bmesh_cd_offset,
-                         sgcontext->ss->fast_draw);
+                         sgcontext->ss->attrs.orig_no->bmesh_cd_offset);
   }
   else {  // save result to mesh
     BMeshToMeshParams params = {0};
