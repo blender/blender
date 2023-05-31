@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 1995 Free Software Foundation, Inc.
+/* SPDX-FileCopyrightText: 1995 Free Software Foundation, Inc.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>. */
 
 /** \file

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Use a define instead of `#pragma once` because of `BLI_utildefines.h` */
 #ifndef __BLI_MEMORY_UTILS_H__

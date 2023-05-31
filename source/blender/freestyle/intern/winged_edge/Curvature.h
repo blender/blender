@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is:
  *     GTS - Library for the manipulation of triangulated surfaces
  *     Copyright 1999 Stephane Popinet
