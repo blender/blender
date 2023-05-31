@@ -371,6 +371,19 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     normalize_v3(direction);
   }
 
+  eSculptBoundary boundary_mask = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
+                                  SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SEAM |
+                                  SCULPT_BOUNDARY_UV;
+  eSculptBoundary boundary = SCULPT_vertex_is_boundary(ss, vertex, boundary_mask);
+
+  eSculptCorner corner_mask = eSculptCorner(int(boundary) << SCULPT_CORNER_BIT_SHIFT);
+  eSculptCorner corner = SCULPT_vertex_is_corner(ss, vertex, corner_mask);
+
+  eSculptBoundary smooth_mask = SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
+  if (!ss->hard_edge_mode) {
+    smooth_mask |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
   float *co1 = do_origco ? origco : v->co;
   float *no1 = do_origco ? origno : v->no;
 
@@ -451,14 +464,12 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       co2 = BM_ELEM_CD_PTR<float *>(v_other, ss->attrs.orig_co->bmesh_cd_offset);
     }
 
-    eSculptBoundary bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
-                            SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
-
-    int bound = SCULPT_edge_is_boundary(ss, BKE_pbvh_make_eref(intptr_t(e)), bflag);
+    eSculptBoundary boundary2 = SCULPT_edge_is_boundary(
+        ss, BKE_pbvh_make_eref(intptr_t(e)), boundary_mask);
     float dirw = 1.0f;
 
     /* Add to cross field. */
-    if (bound) {
+    if (boundary2 != SCULPT_BOUNDARY_NONE) {
       had_bound = true;
 
       sub_v3_v3v3(dir2, co2, co1);
@@ -480,10 +491,26 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     madd_v3_v3fl(dir3, dir2, dirw);
     totdir3 += dirw;
 
-    if (had_bound) {
-      tot_co = 0.0f;
+    if (boundary2) {
+      float fac = weighted ? areas[area_i] : 1.0f;
+
+      madd_v3_v3fl(avg_co, co2, fac);
+      tot_co += fac;
+      continue;
+    } else if (boundary != SCULPT_BOUNDARY_NONE) {
+      if (boundary & smooth_mask) {
+        float fac = weighted ? areas[area_i] : 1.0f;
+        float vec[3], co3[3];
+
+        sub_v3_v3v3(vec, co2, co1);
+        copy_v3_v3(co3, co1);
+        madd_v3_v3fl(co3, no1, dot_v3v3(vec, no1));
+        madd_v3_v3fl(avg_co, co3, fac);
+        tot_co += fac;
+      }
       continue;
     }
+
     float vec[3];
     sub_v3_v3v3(vec, co2, co1);
 
@@ -525,7 +552,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     corner_type |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (SCULPT_vertex_is_corner(ss, vertex, corner_type)) {
+  if (corner != SCULPT_CORNER_NONE) {
     interp_v3_v3v3(avg, avg, SCULPT_vertex_co_get(ss, vertex), hard_corner_pin);
   }
 

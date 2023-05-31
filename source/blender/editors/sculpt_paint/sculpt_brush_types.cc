@@ -2831,9 +2831,7 @@ static void update_curvatures_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
 
-  if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
-  }
+  BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
 
   if (brush->flag2 & BRUSH_CURVATURE_RAKE) {
     SCULPT_curvature_begin(ss, data->nodes[n], true);
@@ -2877,8 +2875,6 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
-  bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
-
   PBVHVertexIter vd;
   bool modified = false;
 
@@ -2917,7 +2913,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                               &automask_data);
 
     /* Make brush falloff less sharp. */
-    fade = sqrtf(fade);
+    fade = powf(fade, 1.0f / 3.0f);
     fade *= bstrength;
 
     float oldco[3];
@@ -2930,7 +2926,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     int cd_temp = data->scl->bmesh_cd_offset;
 
     SCULPT_bmesh_four_neighbor_average(
-        ss, avg, direction2, vd.bm_vert, projection, hard_corner_pin, cd_temp, weighted, false);
+        ss, avg, direction2, vd.bm_vert, projection, hard_corner_pin, cd_temp, true, false);
 
     sub_v3_v3v3(val, avg, vd.co);
     madd_v3_v3v3fl(val, vd.co, val, fade);
@@ -2947,7 +2943,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                          projection,
                                          hard_corner_pin,
                                          cd_temp,
-                                         weighted,
+                                         true,
                                          true);
       float *origco = blender::bke::paint::vertex_attr_ptr<float>(vd.vertex, ss->attrs.orig_co);
       interp_v3_v3v3(origco, origco, origco_avg, fade);
@@ -3004,9 +3000,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
     data.scl = ss->attrs.rake_temp;
     data.smooth_origco = SCULPT_tool_needs_smooth_origco(brush->sculpt_tool);
 
-    if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-      BKE_pbvh_face_areas_begin(ss->pbvh);
-    }
+    BKE_pbvh_face_areas_begin(ss->pbvh);
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
