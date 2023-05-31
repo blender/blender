@@ -337,7 +337,7 @@ UVPackIsland_Params::UVPackIsland_Params()
   only_selected_faces = false;
   use_seams = false;
   correct_aspect = false;
-  pin_method = ED_UVPACK_PIN_DEFAULT;
+  pin_method = ED_UVPACK_PIN_PACK;
   pin_unselected = false;
   merge_overlap = false;
   margin = 0.001f;
@@ -1985,7 +1985,6 @@ bool PackIsland::can_translate_(const UVPackIsland_Params &params) const
   }
   switch (params.pin_method) {
     case ED_UVPACK_PIN_LOCK_ALL:
-    case ED_UVPACK_PIN_LOCK_TRANSLATION:
       return false;
     default:
       return true;
