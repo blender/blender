@@ -2105,8 +2105,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     if (error_msg) {
       fprintf(stderr, "Error: %s, exiting! %s\n", error_msg, filepath);
 
-      G.is_break = true;
-      WM_exit(C);
+      WM_exit(C, EXIT_FAILURE);
       /* Unreachable, return for clarity. */
       return -1;
     }
