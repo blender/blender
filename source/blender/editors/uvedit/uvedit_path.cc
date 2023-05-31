@@ -6,9 +6,9 @@
  * \note The logic in this file closely follows editmesh_path.c
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_linklist.h"
 #include "DNA_windowmanager_types.h"
