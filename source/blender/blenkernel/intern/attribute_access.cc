@@ -6,7 +6,6 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
@@ -57,9 +56,6 @@ const char *no_procedural_access_message = N_(
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
-  if (G.debug_value == 892) {
-    return true;
-  }
   if (attribute_name.startswith(".corner")) {
     return false;
   }
