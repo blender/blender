@@ -307,25 +307,27 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
     final_buf = std::move(orig_buf);
   }
 
-  bool ok = false;
+  bool write_ok = false;
+  bool close_ok = false;
   if (ctx.flags & IB_mem) {
-    /* This memory proxy must remain alive for the full duration of the write. */
+    /* This memory proxy must remain alive until the ImageOutput is finally closed. */
     ImBufMemWriter writer(ctx.ibuf);
 
     imb_addencodedbufferImBuf(ctx.ibuf);
     out->set_ioproxy(&writer);
     if (out->open("", file_spec)) {
-      ok = final_buf.write(out.get());
+      write_ok = final_buf.write(out.get());
+      close_ok = out->close();
     }
   }
   else {
     if (out->open(filepath, file_spec)) {
-      ok = final_buf.write(out.get());
+      write_ok = final_buf.write(out.get());
+      close_ok = out->close();
     }
   }
 
-  out->close();
-  return ok;
+  return write_ok && close_ok;
 }
 
 WriteContext imb_create_write_context(const char *file_format,
