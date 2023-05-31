@@ -712,6 +712,7 @@ static const EnumPropertyItem snap_to_items[] = {
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
+#  include "BKE_simulation.h"
 #  include "BKE_unit.h"
 
 #  include "NOD_composite.h"
@@ -930,6 +931,8 @@ static void rna_Scene_fps_update(Main *bmain, Scene *UNUSED(active_scene), Point
    * however, changes in FPS actually modifies an original skip length,
    * so this we take care about here. */
   SEQ_sound_update_length(bmain, scene);
+  /* Reset simulation states because new frame interval doesn't apply anymore. */
+  BKE_simulation_reset_scene(scene);
 }
 
 static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
