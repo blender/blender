@@ -1205,7 +1205,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                             offsets);
 
     /* Remove from linked list and append to blender::Vector. */
-    LISTBASE_FOREACH_MUTABLE (struct FaceIsland *, island, &island_list) {
+    LISTBASE_FOREACH_MUTABLE (FaceIsland *, island, &island_list) {
       BLI_remlink(&island_list, island);
       const bool pinned = island_has_pins(scene, island, params);
       if (ignore_pinned && pinned) {

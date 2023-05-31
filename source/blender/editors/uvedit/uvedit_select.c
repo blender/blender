@@ -1119,10 +1119,7 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
  * have multiple UVs split out.
  * \{ */
 
-BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
-                                       struct Object *obedit,
-                                       struct BMVert *v,
-                                       const float co[2])
+BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, const float co[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -1147,10 +1144,7 @@ BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
   return l_found;
 }
 
-BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
-                                       struct Object *obedit,
-                                       struct BMEdge *e,
-                                       const float co[2])
+BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
@@ -3318,7 +3312,7 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
     uint efa_index;
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
+    UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
@@ -3407,7 +3401,7 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
     uint efa_index;
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
+    UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
@@ -3463,7 +3457,7 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
     bm_clear_uv_vert_selection(scene, em->bm, offsets);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-    struct UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
+    UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
     if (vmap == NULL) {
       return;
     }
