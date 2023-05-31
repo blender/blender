@@ -140,6 +140,7 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
  * (the kind of data that would have to be copied).
  *
  * \note Keep in sync with #material_free_data.
+ * \note Doesn't handle animation data (`ma->adt`).
  */
 static void material_clear_data(ID *id)
 {
@@ -1932,11 +1933,30 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
   }
 }
 
-/**
- * \brief copy/paste buffer, if we had a proper py api that would be better
- * \note matcopybuf.nodetree does _NOT_ use ID's
- * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
- */
+/* -------------------------------------------------------------------- */
+/** \name Material Copy/Paste
+ *
+ * As materials may reference other data, the clipboard only stores a subset of all possible data.
+ * The material and it's node-tree are stored and nothing else.
+ * Notably the following variables are *not* part of the clipboard.
+ *
+ * - The #ID (name, fake-user, custom-properties .. etc).
+ * - Animation data (#Material::adt, #bNodeTree::adt).
+ * - Texture paint slots (#Material::texpaintslot)
+ *   as this is cache and references other ID's.
+ * - Grease pencil style (#Material::gp_style)
+ *   could be supported but ID's and pointers would need to be handled carefully.
+ *
+ * When pasting, some data in the destination material is left as-is:
+ * - The #ID.
+ * - Animation data, with the exception that pasting a material without a node-tree
+ *   will clear the existing materials node-tree & its animation.
+ *   Note that applying existing animation to the pasted material might not make sense
+ *   and may reference data-paths that don't resolve (depending on the kind of material).
+ *   The user might need to clear the animation in this case.
+ *
+ * \{ */
+
 static Material matcopybuf;
 static short matcopied = 0;
 
@@ -1949,18 +1969,35 @@ void BKE_material_copybuf_clear(void)
   matcopied = 0;
 }
 
+/**
+ * Some members should *never* be set, ensure this is always the case.
+ * Call at the beginning & end of functions that manipulate the clipboard.
+ */
+static void material_copybuf_assert_is_valid()
+{
+  BLI_assert(!matcopybuf.id.icon_id);
+  BLI_assert(!matcopybuf.id.py_instance);
+  BLI_assert(!matcopybuf.adt);
+  BLI_assert(!matcopybuf.preview);
+  if (matcopybuf.nodetree) {
+    BLI_assert(!matcopybuf.nodetree->id.py_instance);
+    BLI_assert(!matcopybuf.nodetree->adt);
+    BLI_assert(!matcopybuf.nodetree->owner_id);
+  }
+}
+
 void BKE_material_copybuf_free(void)
 {
-  BLI_assert(matcopybuf.id.icon_id == 0);
-  if (matcopybuf.nodetree) {
-    BLI_assert(!matcopybuf.nodetree->id.py_instance); /* Or call #BKE_libblock_free_data_py. */
-  }
+  material_copybuf_assert_is_valid();
+
   material_free_data(&matcopybuf.id);
   matcopied = 0;
 }
 
 void BKE_material_copybuf_copy(Main *bmain, Material *ma)
 {
+  material_copybuf_assert_is_valid();
+
   if (matcopied) {
     BKE_material_copybuf_free();
   }
@@ -1974,42 +2011,91 @@ void BKE_material_copybuf_copy(Main *bmain, Material *ma)
   /* Ensure dangling pointers are never copied back into a material. */
   material_clear_data(&matcopybuf.id);
 
+  /* Unhandled by materials generic data functions. */
+  matcopybuf.adt = nullptr;
+
   if (ma->nodetree != nullptr) {
+    /* Never copy animation data. */
+    struct {
+      AnimData *adt;
+    } backup;
+    backup.adt = ma->nodetree->adt;
+    ma->nodetree->adt = nullptr;
+
     matcopybuf.nodetree = blender::bke::ntreeCopyTree_ex(ma->nodetree, bmain, false);
+    matcopybuf.nodetree->owner_id = nullptr;
+
+    ma->nodetree->adt = backup.adt;
   }
 
   /* TODO: Duplicate Engine Settings and set runtime to nullptr. */
   matcopied = 1;
+
+  material_copybuf_assert_is_valid();
 }
 
-void BKE_material_copybuf_paste(Main *bmain, Material *ma)
+bool BKE_material_copybuf_paste(Main *bmain, Material *ma)
 {
-  ID id;
+  material_copybuf_assert_is_valid();
 
   if (matcopied == 0) {
-    return;
+    return false;
   }
 
+  /* `matcopybuf` never has animation data, no need to check. */
+  const bool has_animdata = (ma->adt != nullptr || (ma->nodetree && ma->nodetree->adt));
   const bool has_node_tree = (ma->nodetree || matcopybuf.nodetree);
+
+  AnimData *backup_nodetree_adt = nullptr;
+  if (ma->nodetree && matcopybuf.nodetree) {
+    /* Keep data to apply back to the new node-tree. */
+    std::swap(backup_nodetree_adt, ma->nodetree->adt);
+  }
 
   /* Handles freeing nodes and and other run-time data (previews) for e.g. */
   material_free_data(&ma->id);
 
-  id = (ma->id);
-  *ma = blender::dna::shallow_copy(matcopybuf);
-  (ma->id) = id;
+  /* Copy from `matcopybuf` preserving some members.
+   * NOTE: animation data isn't stored in the clipboard, any existing animation will be left as-is.
+   * Any undesired animation will have to be manually cleared by the user. */
+  {
+    struct {
+      ID id;
+      AnimData *adt;
+    } backup;
+    backup.id = ma->id;
+    backup.adt = ma->adt;
+
+    *ma = blender::dna::shallow_copy(matcopybuf);
+
+    ma->id = backup.id;
+    ma->adt = backup.adt;
+  }
 
   if (matcopybuf.nodetree != nullptr) {
+    BLI_assert(matcopybuf.nodetree->adt == nullptr);
     ma->nodetree = blender::bke::ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
+    ma->nodetree->owner_id = &ma->id;
+
+    /* Restore animation pointer (if set). */
+    BLI_assert(ma->nodetree->adt == nullptr);
+    ma->nodetree->adt = backup_nodetree_adt;
   }
 
-  if (has_node_tree) {
+  if (has_node_tree || has_animdata) {
     /* Important to run this when the embedded tree if freed,
      * otherwise the depsgraph holds a reference to the (now freed) `ma->nodetree`.
-     * Also run this when a new node-tree is set to ensure it's accounted for. */
+     * Also run this when a new node-tree is set to ensure it's accounted for.
+     * This also applies to animation data which is likely to be stored in the depsgraph. */
     DEG_relations_tag_update(bmain);
   }
+
+  material_copybuf_assert_is_valid();
+
+  return true;
 }
+
+/** \} */
 
 void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
 {
