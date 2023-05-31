@@ -543,7 +543,7 @@ static int arg_handle_print_version(int UNUSED(argc),
                                     void *UNUSED(data))
 {
   print_version_full();
-  exit(0);
+  exit(EXIT_SUCCESS);
   BLI_assert_unreachable();
   return 0;
 }
@@ -816,7 +816,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   print_help(ba, false);
 
-  exit(0);
+  exit(EXIT_SUCCESS);
   BLI_assert_unreachable();
 
   return 0;
@@ -1381,7 +1381,7 @@ static int arg_handle_env_system_set(int argc, const char **argv, void *UNUSED(d
 
   if (argc < 2) {
     fprintf(stderr, "%s requires one argument\n", argv[0]);
-    exit(1);
+    exit(EXIT_FAILURE);
     BLI_assert_unreachable();
   }
 
@@ -1428,7 +1428,7 @@ static int arg_handle_playback_mode(int argc, const char **argv, void *UNUSED(da
     /* This function knows to skip this argument ('-a'). */
     WM_main_playanim(argc, argv);
 
-    exit(0);
+    exit(EXIT_SUCCESS);
   }
 
   return -2;
