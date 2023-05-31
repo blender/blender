@@ -253,7 +253,7 @@ static void image_panel_uv(const bContext *C, Panel *panel)
   uiBlock *block;
 
   block = uiLayoutAbsoluteBlock(panel->layout);
-  UI_block_func_handle_set(block, do_uvedit_vertex, NULL);
+  UI_block_func_handle_set(block, do_uvedit_vertex, nullptr);
 
   uvedit_vertex_buttons(C, block);
 }

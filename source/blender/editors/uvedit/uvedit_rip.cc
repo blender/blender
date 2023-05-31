@@ -100,7 +100,7 @@ BLI_INLINE ULData *UL(BMLoop *l)
 static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
                                                                 const int cd_loop_uv_offset)
 {
-  BMLoop *l_other = NULL;
+  BMLoop *l_other = nullptr;
   BMLoop *l_iter = l_src->radial_next;
   if (l_iter != l_src) {
     do {
@@ -108,12 +108,12 @@ static BMLoop *bm_loop_find_other_radial_loop_with_visible_face(BMLoop *l_src,
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset))
       {
         /* Check UVs are contiguous. */
-        if (l_other == NULL) {
+        if (l_other == nullptr) {
           l_other = l_iter;
         }
         else {
           /* Only use when there is a single alternative. */
-          l_other = NULL;
+          l_other = nullptr;
           break;
         }
       }
@@ -127,7 +127,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
                                                              const int cd_loop_uv_offset)
 {
   BLI_assert(BM_vert_in_edge(l_src->e, v_src));
-  BMLoop *l_other = NULL;
+  BMLoop *l_other = nullptr;
   BMLoop *l_iter = l_src->radial_next;
   if (l_iter != l_src) {
     do {
@@ -135,18 +135,18 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
           BM_loop_uv_share_edge_check(l_src, l_iter, cd_loop_uv_offset))
       {
         /* Check UVs are contiguous. */
-        if (l_other == NULL) {
+        if (l_other == nullptr) {
           l_other = l_iter;
         }
         else {
           /* Only use when there is a single alternative. */
-          l_other = NULL;
+          l_other = nullptr;
           break;
         }
       }
     } while ((l_iter = l_iter->radial_next) != l_src);
   }
-  if (l_other != NULL) {
+  if (l_other != nullptr) {
     if (l_other->v == v_src) {
       /* do nothing. */
     }
@@ -178,7 +178,7 @@ static BMLoop *bm_vert_step_fan_loop_uv(BMLoop *l, BMEdge **e_step, const int cd
   }
   else {
     BLI_assert_unreachable();
-    return NULL;
+    return nullptr;
   }
 
   *e_step = l_next->e;
@@ -309,8 +309,8 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 
   /* Track the closest loop, start walking from this so in the event we have multiple
    * disconnected fans, we can rip away loops connected to this one. */
-  BMLoop *l_init = NULL;
-  BMLoop *l_init_edge = NULL;
+  BMLoop *l_init = nullptr;
+  BMLoop *l_init_edge = nullptr;
   float corner_angle_best = FLT_MAX;
   float edge_angle_best = FLT_MAX;
   int edge_index_best = 0; /* -1 or +1 (never center). */
@@ -373,7 +373,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
     BMEdge *e_prev = i ? l_init->e : l_init->prev->e;
     BMLoop *l_iter = l_init;
     while (((l_iter = bm_vert_step_fan_loop_uv(l_iter, &e_prev, cd_loop_uv_offset)) != l_init) &&
-           (l_iter != NULL) && (UL(l_iter)->side == 0))
+           (l_iter != nullptr) && (UL(l_iter)->side == 0))
     {
       uv_fan_count_contiguous += 1;
       /* Keep. */
@@ -421,7 +421,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 
 static void uv_rip_single_free(UVRipSingle *rip)
 {
-  BLI_gset_free(rip->loops, NULL);
+  BLI_gset_free(rip->loops, nullptr);
   MEM_freeN(rip);
 }
 
@@ -451,7 +451,7 @@ static void uv_rip_pairs_remove(UVRipPairs *rip, BMLoop *l)
   BLI_assert(BLI_gset_haskey(rip->loops, l));
   BLI_assert(ul->in_rip_pairs == true);
   ul->in_rip_pairs = false;
-  BLI_gset_remove(rip->loops, l, NULL);
+  BLI_gset_remove(rip->loops, l, nullptr);
 }
 
 /**
@@ -599,7 +599,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
     if (UL(l_step)->is_select_edge) {
       BMLoop *l_other = bm_loop_find_other_radial_loop_with_visible_face(l_step,
                                                                          cd_loop_uv_offset);
-      if (l_other != NULL) {
+      if (l_other != nullptr) {
         if (!UL(l_other)->in_rip_pairs && !UL(l_other)->in_stack) {
           BLI_SMALLSTACK_PUSH(stack, l_other);
           UL(l_other)->in_stack = true;
@@ -675,7 +675,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
 
 static void uv_rip_pairs_free(UVRipPairs *rip)
 {
-  BLI_gset_free(rip->loops, NULL);
+  BLI_gset_free(rip->loops, nullptr);
   MEM_freeN(rip);
 }
 
@@ -914,7 +914,7 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -967,7 +967,7 @@ void UV_OT_rip(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",

@@ -120,7 +120,7 @@ BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm)
       return BM_face_vert_share_loop((BMFace *)ese_prev->ele, (BMVert *)ese->ele);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l)
@@ -142,7 +142,7 @@ BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm)
       return BM_face_edge_share_loop((BMFace *)ese_prev->ele, (BMEdge *)ese->ele);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -738,7 +738,7 @@ static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(const Scene 
                                                                     const BMUVOffsets offsets)
 {
   BLI_assert(offsets.uv >= 0);
-  BMLoop *l_other = NULL;
+  BMLoop *l_other = nullptr;
   BMLoop *l_iter = l_src->radial_next;
   if (l_iter != l_src) {
     do {
@@ -746,12 +746,12 @@ static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(const Scene 
           BM_loop_uv_share_edge_check(l_src, l_iter, offsets.uv))
       {
         /* Check UVs are contiguous. */
-        if (l_other == NULL) {
+        if (l_other == nullptr) {
           l_other = l_iter;
         }
         else {
           /* Only use when there is a single alternative. */
-          l_other = NULL;
+          l_other = nullptr;
           break;
         }
       }
@@ -769,7 +769,7 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
 
   BMLoop *l_step = l_edge;
   l_step = (l_step->v == v_pivot) ? l_step->prev : l_step->next;
-  BMLoop *l_step_last = NULL;
+  BMLoop *l_step_last = nullptr;
   do {
     BLI_assert(BM_vert_in_edge(l_step->e, v_pivot));
     l_step_last = l_step;
@@ -777,9 +777,9 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
     if (l_step) {
       l_step = (l_step->v == v_pivot) ? l_step->prev : l_step->next;
     }
-  } while (l_step != NULL);
+  } while (l_step != nullptr);
 
-  if (l_step_last != NULL) {
+  if (l_step_last != nullptr) {
     BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_step_last, offsets) ==
                NULL);
   }
@@ -1048,7 +1048,7 @@ static bool uvedit_nearest_uv(const Scene *scene,
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMIter iter;
   BMFace *efa;
-  const float *uv_best = NULL;
+  const float *uv_best = nullptr;
   float dist_best = *dist_sq;
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
   BLI_assert(offsets.uv >= 0);
@@ -1074,7 +1074,7 @@ static bool uvedit_nearest_uv(const Scene *scene,
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  if (uv_best != NULL) {
+  if (uv_best != nullptr) {
     copy_v2_v2(r_uv, uv_best);
     *dist_sq = dist_best;
     return true;
@@ -1128,7 +1128,7 @@ BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, 
 
   BMIter liter;
   BMLoop *l;
-  BMLoop *l_found = NULL;
+  BMLoop *l_found = nullptr;
   float dist_best_sq = FLT_MAX;
 
   BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
@@ -1153,7 +1153,7 @@ BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, 
 
   BMIter eiter;
   BMLoop *l;
-  BMLoop *l_found = NULL;
+  BMLoop *l_found = nullptr;
   float dist_best_sq = FLT_MAX;
 
   BM_ITER_ELEM (l, &eiter, e, BM_LOOPS_OF_EDGE) {
@@ -1384,7 +1384,7 @@ static BMLoop *bm_select_edgeloop_double_side_next(const Scene *scene,
       return (l_step_over->v == v_from_next) ? l_step_over->prev : l_step_over->next;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static BMLoop *bm_select_edgeloop_single_side_next(const Scene *scene,
@@ -1427,7 +1427,7 @@ static void uv_select_edgeloop_double_side_tag(const Scene *scene,
     /* Disable since we start from the same edge. */
     BM_elem_flag_disable(l_step_pair[0], BM_ELEM_TAG);
     BM_elem_flag_disable(l_step_pair[1], BM_ELEM_TAG);
-    while ((l_step_pair[0] != NULL) && (l_step_pair[1] != NULL)) {
+    while ((l_step_pair[0] != nullptr) && (l_step_pair[1] != nullptr)) {
       if (!uvedit_face_visible_test(scene, l_step_pair[0]->f) ||
           !uvedit_face_visible_test(scene, l_step_pair[1]->f) ||
           /* Check loops have not diverged. */
@@ -1483,16 +1483,17 @@ static void uv_select_edgeloop_single_side_tag(const Scene *scene,
     BMVert *v_from = side ? l_step->e->v1 : l_step->e->v2;
     /* Disable since we start from the same edge. */
     BM_elem_flag_disable(l_step, BM_ELEM_TAG);
-    while (l_step != NULL) {
+    while (l_step != nullptr) {
 
       if (!uvedit_face_visible_test(scene, l_step->f) ||
           /* Check the boundary is still a boundary. */
-          (uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_step, offsets) != NULL))
+          (uvedit_loop_find_other_radial_loop_with_visible_face(scene, l_step, offsets) !=
+           nullptr))
       {
         break;
       }
 
-      if (r_count_by_select != NULL) {
+      if (r_count_by_select != nullptr) {
         r_count_by_select[uvedit_edge_select_test(scene, l_step, offsets)] += 1;
         /* Early exit when mixed could be optional if needed. */
         if (r_count_by_select[0] && r_count_by_select[1]) {
@@ -1550,7 +1551,7 @@ static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
 
   /* Tag all loops that are part of the edge loop (select after).
    * This is done so we can */
-  if (l_init_pair[1] == NULL) {
+  if (l_init_pair[1] == nullptr) {
     int count_by_select[2];
     /* If the loops selected toggle the boundaries. */
     uv_select_edgeloop_single_side_tag(
@@ -1567,8 +1568,8 @@ static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
     }
   }
 
-  if (l_init_pair[1] == NULL) {
-    uv_select_edgeloop_single_side_tag(scene, em, l_init_pair[0], offsets, boundary_mode, NULL);
+  if (l_init_pair[1] == nullptr) {
+    uv_select_edgeloop_single_side_tag(scene, em, l_init_pair[0], offsets, boundary_mode, nullptr);
   }
   else {
     uv_select_edgeloop_double_side_tag(scene, em, l_init_pair, offsets);
@@ -1653,7 +1654,7 @@ static int uv_select_faceloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
             scene, l_step_opposite, offsets);
       }
       else {
-        l_step = NULL;
+        l_step = nullptr;
       }
 
       /* Break iteration when `l_step`:
@@ -1738,13 +1739,13 @@ static int uv_select_edgering(Scene *scene, Object *obedit, UvNearestHit *hit, c
         BMLoop *l_step_opposite = l_step->next->next;
         l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
             scene, l_step_opposite, offsets);
-        if (l_step == NULL) {
+        if (l_step == nullptr) {
           /* Ensure we touch the opposite edge if we can't walk over it. */
           l_step = l_step_opposite;
         }
       }
       else {
-        l_step = NULL;
+        l_step = nullptr;
       }
 
       /* Break iteration when `l_step`:
@@ -1815,14 +1816,14 @@ static void uv_select_linked_multi(Scene *scene,
      * Better solve this by having a delimit option for select-linked operator,
      * keeping island-select working as is. */
     UvVertMap *vmap = BM_uv_vert_map_create(em->bm, !uv_sync_select);
-    if (vmap == NULL) {
+    if (vmap == nullptr) {
       continue;
     }
 
     stack = static_cast<int *>(MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack"));
     flag = static_cast<char *>(MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag"));
 
-    if (hit == NULL) {
+    if (hit == nullptr) {
       /* Use existing selection */
       BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
         if (uvedit_face_visible_test(scene, efa)) {
@@ -2016,7 +2017,7 @@ const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -2037,7 +2038,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   const bool is_uv_face_selectmode = (ts->uv_selectmode == UV_SELECT_FACE);
 
@@ -2382,7 +2383,7 @@ static void uv_select_all_perform_multi(const Scene *scene,
                                         const uint objects_len,
                                         int action)
 {
-  uv_select_all_perform_multi_ex(scene, objects, objects_len, action, NULL);
+  uv_select_all_perform_multi_ex(scene, objects, objects_len, action, nullptr);
 }
 
 static int uv_select_all_exec(bContext *C, wmOperator *op)
@@ -2396,7 +2397,7 @@ static int uv_select_all_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   uv_select_all_perform_multi(scene, objects, objects_len, action);
 
@@ -2539,7 +2540,7 @@ static bool uv_mouse_select_multi(bContext *C,
     else {
       /* Vertex or island. For island (if we were using #uv_find_nearest_face_multi_ex, see above),
        * `hit.l` is NULL, use `hit.efa` instead. */
-      if (hit.l != NULL) {
+      if (hit.l != nullptr) {
         is_selected = uvedit_uv_select_test(scene, hit.l, offsets);
       }
       else {
@@ -2666,7 +2667,7 @@ static bool uv_mouse_select(bContext *C, const float co[2], const SelectPick_Par
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
   bool changed = uv_mouse_select_multi(C, objects, objects_len, co, params);
   MEM_freeN(objects);
   return changed;
@@ -2725,7 +2726,7 @@ void UV_OT_select(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",
@@ -2819,7 +2820,7 @@ static int uv_mouse_select_loop_generic(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
   int ret = uv_mouse_select_loop_generic_multi(C, objects, objects_len, co, extend, loop_type);
   MEM_freeN(objects);
   return ret;
@@ -2879,7 +2880,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",
@@ -2941,7 +2942,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",
@@ -2976,7 +2977,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   if (pick) {
     float co[2];
@@ -3002,7 +3003,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
   }
 
   uv_select_linked_multi(
-      scene, objects, objects_len, pick ? &hit : NULL, extend, deselect, false, select_faces);
+      scene, objects, objects_len, pick ? &hit : nullptr, extend, deselect, false, select_faces);
 
   /* weak!, but works */
   Object **objects_free = objects;
@@ -3024,7 +3025,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
 static int uv_select_linked_exec(bContext *C, wmOperator *op)
 {
-  return uv_select_linked_internal(C, op, NULL, false);
+  return uv_select_linked_internal(C, op, nullptr, false);
 }
 
 void UV_OT_select_linked(wmOperatorType *ot)
@@ -3055,7 +3056,7 @@ static int uv_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
 static int uv_select_linked_pick_exec(bContext *C, wmOperator *op)
 {
-  return uv_select_linked_internal(C, op, NULL, true);
+  return uv_select_linked_internal(C, op, nullptr, true);
 }
 
 void UV_OT_select_linked_pick(wmOperatorType *ot)
@@ -3091,7 +3092,7 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
       ot->srna,
       "location",
       2,
-      NULL,
+      nullptr,
       -FLT_MAX,
       FLT_MAX,
       "Location",
@@ -3133,7 +3134,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -3184,7 +3185,7 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       changed_multi = true;
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
+      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, nullptr);
       uv_select_tag_update_for_object(depsgraph, ts, obedit);
     }
   }
@@ -3242,7 +3243,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
                                                          const bool select,
                                                          const BMUVOffsets offsets)
 {
-  UvMapVert *start_vlist = NULL, *vlist_iter;
+  UvMapVert *start_vlist = nullptr, *vlist_iter;
   BMFace *efa_vlist;
 
   uvedit_uv_select_set(scene, em->bm, l, select, false, offsets);
@@ -3316,7 +3317,7 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
-    if (vmap == NULL) {
+    if (vmap == nullptr) {
       return;
     }
 
@@ -3405,7 +3406,7 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
-    if (vmap == NULL) {
+    if (vmap == nullptr) {
       return;
     }
 
@@ -3461,7 +3462,7 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     UvVertMap *vmap = BM_uv_vert_map_create(em->bm, false);
-    if (vmap == NULL) {
+    if (vmap == nullptr) {
       return;
     }
     BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
@@ -3540,7 +3541,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   if (use_pre_deselect) {
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
@@ -3789,7 +3790,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   const eSelectOp sel_op = ED_select_op_modal(
       eSelectOp(RNA_enum_get(op->ptr, "mode")),
@@ -3998,7 +3999,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   if (use_pre_deselect) {
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
@@ -4196,7 +4197,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -4335,7 +4336,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   /* Calculate maximum number of tree nodes and prepare initial selection. */
   uint uv_tri_len = 0;
@@ -4441,22 +4442,22 @@ static int uv_select_overlap(bContext *C, const bool extend)
       }
 
       BLI_memarena_clear(arena);
-      BLI_heap_clear(heap, NULL);
+      BLI_heap_clear(heap, nullptr);
     }
   }
   BLI_assert(data_index == uv_tri_len);
 
   BLI_memarena_free(arena);
-  BLI_heap_free(heap, NULL);
+  BLI_heap_free(heap, nullptr);
   MEM_freeN(uv_verts);
   MEM_freeN(indices);
 
   BLI_bvhtree_balance(uv_tree);
 
   uint tree_overlap_len;
-  BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(uv_tree, &tree_overlap_len, NULL, NULL);
+  BVHTreeOverlap *overlap = BLI_bvhtree_overlap_self(uv_tree, &tree_overlap_len, nullptr, nullptr);
 
-  if (overlap != NULL) {
+  if (overlap != nullptr) {
     GSet *overlap_set = BLI_gset_new_ex(overlap_hash, overlap_cmp, __func__, tree_overlap_len);
 
     for (int i = 0; i < tree_overlap_len; i++) {
@@ -4502,7 +4503,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
       }
     }
 
-    BLI_gset_free(overlap_set, NULL);
+    BLI_gset_free(overlap_set, nullptr);
     MEM_freeN(overlap);
   }
 
@@ -4724,7 +4725,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   int max_verts_selected_all = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -4774,7 +4775,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != NULL) {
+  if (tree_1d != nullptr) {
     BLI_kdtree_1d_deduplicate(tree_1d);
     BLI_kdtree_1d_balance(tree_1d);
   }
@@ -4836,7 +4837,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   int max_edges_selected_all = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -4889,7 +4890,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != NULL) {
+  if (tree_1d != nullptr) {
     BLI_kdtree_1d_deduplicate(tree_1d);
     BLI_kdtree_1d_balance(tree_1d);
   }
@@ -4951,7 +4952,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   int max_faces_selected_all = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -4992,7 +4993,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != NULL) {
+  if (tree_1d != nullptr) {
     BLI_kdtree_1d_deduplicate(tree_1d);
     BLI_kdtree_1d_balance(tree_1d);
   }
@@ -5056,7 +5057,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   ListBase *island_list_ptr = static_cast<ListBase *>(
       MEM_callocN(sizeof(*island_list_ptr) * objects_len, __func__));
@@ -5107,7 +5108,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (tree_1d != NULL) {
+  if (tree_1d != nullptr) {
     BLI_kdtree_1d_deduplicate(tree_1d);
     BLI_kdtree_1d_balance(tree_1d);
   }
@@ -5434,7 +5435,7 @@ static void uv_isolate_selected_islands(const Scene *scene,
   BMFace *efa;
   BMIter iter, liter;
   UvElementMap *elementmap = BM_uv_element_map_create(em->bm, scene, false, false, true, true);
-  if (elementmap == NULL) {
+  if (elementmap == nullptr) {
     return;
   }
   BLI_assert(offsets.select_vert >= 0);
@@ -5560,7 +5561,7 @@ void ED_uvedit_selectmode_clean_multi(bContext *C)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)nullptr), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -5589,7 +5590,7 @@ static int uv_select_mode_exec(bContext *C, wmOperator *op)
   ED_uvedit_selectmode_clean_multi(C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
-  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   return OPERATOR_FINISHED;
 }

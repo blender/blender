@@ -180,7 +180,7 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
   params.aspect_y = aspect_y;
   params.cd_loop_uv_offset = offsets.uv;
 
-  LinkNode *path = NULL;
+  LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
   if (l_src != l_dst) {
@@ -224,7 +224,7 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
       }
     } while ((void)depth++, (node = node->next));
 
-    BLI_linklist_free(path, NULL);
+    BLI_linklist_free(path, nullptr);
     flush = all_set ? -1 : 1;
   }
   else {
@@ -299,7 +299,7 @@ static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
   params.aspect_y = aspect_y;
   params.cd_loop_uv_offset = offsets.uv;
 
-  LinkNode *path = NULL;
+  LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
   if (l_src != l_dst) {
@@ -343,7 +343,7 @@ static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
       }
     } while ((void)depth++, (node = node->next));
 
-    BLI_linklist_free(path, NULL);
+    BLI_linklist_free(path, nullptr);
     flush = all_set ? -1 : 1;
   }
   else {
@@ -414,7 +414,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
   params.aspect_y = aspect_y;
   params.cd_loop_uv_offset = offsets.uv;
 
-  LinkNode *path = NULL;
+  LinkNode *path = nullptr;
   bool is_path_ordered = false;
 
   if (f_src != f_dst) {
@@ -458,7 +458,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
       }
     } while ((void)depth++, (node = node->next));
 
-    BLI_linklist_free(path, NULL);
+    BLI_linklist_free(path, nullptr);
     flush = all_set ? -1 : 1;
   }
   else {
@@ -495,7 +495,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
   bool ok = false;
   int flush = 0;
 
-  if (ELEM(NULL, ele_src, ele_dst) || (ele_src->head.htype != ele_dst->head.htype)) {
+  if (ELEM(nullptr, ele_src, ele_dst) || (ele_src->head.htype != ele_dst->head.htype)) {
     /* pass */
   }
   else if (ele_src->head.htype == BM_FACE) {
@@ -563,7 +563,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, NULL, &objects_len);
+      scene, view_layer, nullptr, &objects_len);
 
   float co[2];
 
@@ -571,7 +571,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
-  BMElem *ele_src = NULL, *ele_dst = NULL;
+  BMElem *ele_src = nullptr, *ele_dst = nullptr;
 
   /* Detect the hit. */
   UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
@@ -610,20 +610,20 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     }
     else if (uv_selectmode & UV_SELECT_EDGE) {
       /* Edge selection. */
-      BMLoop *l_src = NULL;
+      BMLoop *l_src = nullptr;
       if (ts->uv_flag & UV_SYNC_SELECTION) {
         BMEdge *e_src = BM_mesh_active_edge_get(bm);
-        if (e_src != NULL) {
+        if (e_src != nullptr) {
           l_src = uv_find_nearest_loop_from_edge(scene, obedit, e_src, co);
         }
       }
       else {
         l_src = ED_uvedit_active_edge_loop_get(bm);
-        if (l_src != NULL) {
+        if (l_src != nullptr) {
           if (!uvedit_uv_select_test(scene, l_src, offsets) &&
               !uvedit_uv_select_test(scene, l_src->next, offsets))
           {
-            l_src = NULL;
+            l_src = nullptr;
           }
           ele_src = (BMElem *)l_src;
         }
@@ -633,18 +633,18 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     }
     else {
       /* Vertex selection. */
-      BMLoop *l_src = NULL;
+      BMLoop *l_src = nullptr;
       if (ts->uv_flag & UV_SYNC_SELECTION) {
         BMVert *v_src = BM_mesh_active_vert_get(bm);
-        if (v_src != NULL) {
+        if (v_src != nullptr) {
           l_src = uv_find_nearest_loop_from_vert(scene, obedit, v_src, co);
         }
       }
       else {
         l_src = ED_uvedit_active_vert_loop_get(bm);
-        if (l_src != NULL) {
+        if (l_src != nullptr) {
           if (!uvedit_uv_select_test(scene, l_src, offsets)) {
-            l_src = NULL;
+            l_src = nullptr;
           }
         }
       }
@@ -700,7 +700,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
   }
 
   Object *obedit = ED_object_in_mode_from_index(scene, view_layer, OB_MODE_EDIT, object_index);
-  if (obedit == NULL) {
+  if (obedit == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -804,7 +804,7 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, NULL, &objects_len);
+      scene, view_layer, nullptr, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -812,11 +812,11 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
 
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
 
-    BMElem *ele_src = NULL, *ele_dst = NULL;
+    BMElem *ele_src = nullptr, *ele_dst = nullptr;
 
     /* Find 2x elements. */
     {
-      BMElem **ele_array = NULL;
+      BMElem **ele_array = nullptr;
       int ele_array_len = 0;
       if (uv_selectmode & UV_SELECT_FACE) {
         ele_array = (BMElem **)ED_uvedit_selected_faces(scene, bm, 3, &ele_array_len);
