@@ -1690,7 +1690,7 @@ bool blf_font_size(FontBLF *font, float size)
       font->ft_size->generic.finalizer = blf_size_finalizer;
     }
     else {
-      if (FT_Set_Char_Size(font->face, 0, (FT_F26Dot6)ft_size, BLF_DPI, BLF_DPI) != FT_Err_Ok) {
+      if (FT_Set_Char_Size(font->face, 0, ft_size, BLF_DPI, BLF_DPI) != FT_Err_Ok) {
         return false;
       }
       font->ft_size = font->face->size;
