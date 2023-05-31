@@ -114,6 +114,7 @@ void register_geometry_nodes()
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_sdf_volume();
   register_node_type_geo_mesh_to_volume();
+  register_node_type_geo_mesh_topology_corners_of_edge();
   register_node_type_geo_mesh_topology_corners_of_face();
   register_node_type_geo_mesh_topology_corners_of_vertex();
   register_node_type_geo_mesh_topology_edges_of_corner();

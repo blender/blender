@@ -111,6 +111,7 @@ void register_node_type_geo_mesh_to_curve();
 void register_node_type_geo_mesh_to_points();
 void register_node_type_geo_mesh_to_sdf_volume();
 void register_node_type_geo_mesh_to_volume();
+void register_node_type_geo_mesh_topology_corners_of_edge();
 void register_node_type_geo_mesh_topology_corners_of_face();
 void register_node_type_geo_mesh_topology_corners_of_vertex();
 void register_node_type_geo_mesh_topology_edges_of_corner();
