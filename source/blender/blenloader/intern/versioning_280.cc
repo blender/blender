@@ -3053,7 +3053,10 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
                 MEM_callocN(sizeof(ARegion), "navigation bar for properties"));
             ARegion *region_header = nullptr;
 
-            LISTBASE_FOREACH (ARegion *, region_header, regionbase) {
+            for (region_header = static_cast<ARegion *>(regionbase->first);
+                 region_header != nullptr;
+                 region_header = static_cast<ARegion *>(region_header->next))
+            {
               if (region_header->regiontype == RGN_TYPE_HEADER) {
                 break;
               }
