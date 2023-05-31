@@ -505,6 +505,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
         sub_v3_v3v3(vec, co2, co1);
         copy_v3_v3(co3, co1);
         madd_v3_v3fl(co3, no1, dot_v3v3(vec, no1));
+        
         madd_v3_v3fl(avg_co, co3, fac);
         tot_co += fac;
       }

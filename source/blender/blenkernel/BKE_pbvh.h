@@ -142,7 +142,7 @@ typedef struct PBVHTriBuf {
   int verts_size, edges_size, tris_size;
 
 #ifdef __cplusplus
-  blender::Map<uintptr_t, int> vertmap;
+  blender::Map<void *, int> vertmap;
 #else
   void *vertmap;
 #endif

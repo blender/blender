@@ -37,8 +37,6 @@ static void bm_idmap_debug_check_init(BMesh *bm)
 
 static void idmap_log_message(const char *fmt, ...)
 {
-  char msg[64];
-
   va_list args;
   va_start(args, fmt);
   vprintf(fmt, args);
@@ -94,6 +92,7 @@ static const char elem_names[9][16] = {
     "face",       // 8
 };
 
+#ifdef DEBUG_BM_IDMAP
 static const char *get_type_name(char htype)
 {
   if (htype <= 0 || htype >= 9) {
@@ -102,6 +101,7 @@ static const char *get_type_name(char htype)
 
   return elem_names[int(htype)];
 }
+#endif
 
 template<typename T> static constexpr char get_elem_type()
 {

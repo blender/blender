@@ -2923,7 +2923,6 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         BMLoop *l = loops[loops_idx[i][j]];
         BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
 
-        void **val = nullptr;
         BMEdge *e = BM_edge_exists(l->v, l2->v);
 
         if (e) {
@@ -2931,7 +2930,9 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
           mat_tri->eflag |= 1 << j;
         }
 
-        uintptr_t loopkey = tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv);
+        void *loopkey = reinterpret_cast<void *>(
+            tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+
         int &tri_v = node->tribuf->vertmap.lookup_or_add(loopkey, node->tribuf->totvert);
 
         /* Newly added to the set? */
@@ -3029,13 +3030,13 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       l->e->head.hflag |= edgeflag;
 
-      int v1 = node->tribuf->vertmap.lookup_default((uintptr_t)l->e->v1, 0);
-      int v2 = node->tribuf->vertmap.lookup_default((uintptr_t)l->e->v2, 0);
+      int v1 = node->tribuf->vertmap.lookup_default((void *)l->e->v1, 0);
+      int v2 = node->tribuf->vertmap.lookup_default((void *)l->e->v2, 0);
 
       pbvh_tribuf_add_edge(node->tribuf, v1, v2);
 
-      v1 = mat_tribuf->vertmap.lookup_default((uintptr_t)l->e->v1, 0);
-      v2 = mat_tribuf->vertmap.lookup_default((uintptr_t)l->e->v2, 0);
+      v1 = mat_tribuf->vertmap.lookup_default((void *)l->e->v1, 0);
+      v2 = mat_tribuf->vertmap.lookup_default((void *)l->e->v2, 0);
 
       pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
     } while ((l = l->next) != f->l_first);
