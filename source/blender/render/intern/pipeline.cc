@@ -2195,92 +2195,140 @@ void RE_RenderAnim(Render *re,
 
   re->flag |= R_ANIMATION;
 
-  {
-    scene->r.subframe = 0.0f;
-    for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
-      char filepath[FILE_MAX];
+  scene->r.subframe = 0.0f;
+  for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
+    char filepath[FILE_MAX];
 
-      /* A feedback loop exists here -- render initialization requires updated
-       * render layers settings which could be animated, but scene evaluation for
-       * the frame happens later because it depends on what layers are visible to
-       * render engine.
-       *
-       * The idea here is to only evaluate animation data associated with the scene,
-       * which will make sure render layer settings are up-to-date, initialize the
-       * render database itself and then perform full scene update with only needed
-       * layers.
-       *                                                              -sergey-
-       */
-      {
-        float ctime = BKE_scene_ctime_get(scene);
-        AnimData *adt = BKE_animdata_from_id(&scene->id);
-        const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-            re->pipeline_depsgraph, ctime);
-        BKE_animsys_evaluate_animdata(&scene->id, adt, &anim_eval_context, ADT_RECALC_ALL, false);
+    /* A feedback loop exists here -- render initialization requires updated
+     * render layers settings which could be animated, but scene evaluation for
+     * the frame happens later because it depends on what layers are visible to
+     * render engine.
+     *
+     * The idea here is to only evaluate animation data associated with the scene,
+     * which will make sure render layer settings are up-to-date, initialize the
+     * render database itself and then perform full scene update with only needed
+     * layers.
+     *                                                              -sergey-
+     */
+    {
+      float ctime = BKE_scene_ctime_get(scene);
+      AnimData *adt = BKE_animdata_from_id(&scene->id);
+      const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+          re->pipeline_depsgraph, ctime);
+      BKE_animsys_evaluate_animdata(&scene->id, adt, &anim_eval_context, ADT_RECALC_ALL, false);
+    }
+
+    render_update_depsgraph(re);
+
+    /* Only border now, TODO(ton): camera lens. */
+    render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, true, false);
+
+    if (nfra != scene->r.cfra) {
+      /* Skip this frame, but could update for physics and particles system. */
+      continue;
+    }
+
+    nfra += tfra;
+
+    /* Touch/NoOverwrite options are only valid for image's */
+    if (is_movie == false && do_write_file) {
+      if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
+        BKE_image_path_from_imformat(filepath,
+                                     rd.pic,
+                                     BKE_main_blendfile_path(bmain),
+                                     scene->r.cfra,
+                                     &rd.im_format,
+                                     (rd.scemode & R_EXTENSION) != 0,
+                                     true,
+                                     nullptr);
       }
 
-      render_update_depsgraph(re);
-
-      /* Only border now, TODO(ton): camera lens. */
-      render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, true, false);
-
-      if (nfra != scene->r.cfra) {
-        /* Skip this frame, but could update for physics and particles system. */
-        continue;
-      }
-
-      nfra += tfra;
-
-      /* Touch/NoOverwrite options are only valid for image's */
-      if (is_movie == false && do_write_file) {
-        if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
-          BKE_image_path_from_imformat(filepath,
-                                       rd.pic,
-                                       BKE_main_blendfile_path(bmain),
-                                       scene->r.cfra,
-                                       &rd.im_format,
-                                       (rd.scemode & R_EXTENSION) != 0,
-                                       true,
-                                       nullptr);
+      if (rd.mode & R_NO_OVERWRITE) {
+        if (!is_multiview_name) {
+          if (BLI_exists(filepath)) {
+            printf("skipping existing frame \"%s\"\n", filepath);
+            totskipped++;
+            continue;
+          }
         }
+        else {
+          bool is_skip = false;
+          char filepath[FILE_MAX];
 
-        if (rd.mode & R_NO_OVERWRITE) {
-          if (!is_multiview_name) {
+          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+              continue;
+            }
+
+            BKE_scene_multiview_filepath_get(srv, filepath, filepath);
+
             if (BLI_exists(filepath)) {
-              printf("skipping existing frame \"%s\"\n", filepath);
-              totskipped++;
-              continue;
+              is_skip = true;
+              printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath, srv->name);
             }
           }
-          else {
-            bool is_skip = false;
-            char filepath[FILE_MAX];
 
-            LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-              if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-                continue;
-              }
+          if (is_skip) {
+            totskipped++;
+            continue;
+          }
+        }
+      }
 
-              BKE_scene_multiview_filepath_get(srv, filepath, filepath);
+      if (rd.mode & R_TOUCH) {
+        if (!is_multiview_name) {
+          if (!BLI_exists(filepath)) {
+            BLI_file_ensure_parent_dir_exists(filepath);
+            BLI_file_touch(filepath);
+          }
+        }
+        else {
+          char filepath_view[FILE_MAX];
 
-              if (BLI_exists(filepath)) {
-                is_skip = true;
-                printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath, srv->name);
-              }
+          LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
+            if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
+              continue;
             }
 
-            if (is_skip) {
-              totskipped++;
-              continue;
+            BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
+
+            if (!BLI_exists(filepath_view)) {
+              BLI_file_ensure_parent_dir_exists(filepath_view);
+              BLI_file_touch(filepath_view);
             }
           }
         }
+      }
+    }
 
+    re->r.cfra = scene->r.cfra; /* weak.... */
+    re->r.subframe = scene->r.subframe;
+
+    /* run callbacks before rendering, before the scene is updated */
+    render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
+
+    do_render_full_pipeline(re);
+    totrendered++;
+
+    if (re->test_break(re->tbh) == 0) {
+      if (!G.is_break) {
+        if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
+          G.is_break = true;
+        }
+      }
+    }
+    else {
+      G.is_break = true;
+    }
+
+    if (G.is_break == true) {
+      /* remove touched file */
+      if (is_movie == false && do_write_file) {
         if (rd.mode & R_TOUCH) {
           if (!is_multiview_name) {
-            if (!BLI_exists(filepath)) {
-              BLI_file_ensure_parent_dir_exists(filepath);
-              BLI_file_touch(filepath);
+            if (BLI_file_size(filepath) == 0) {
+              /* BLI_exists(filepath) is implicit */
+              BLI_delete(filepath, false, false);
             }
           }
           else {
@@ -2293,72 +2341,22 @@ void RE_RenderAnim(Render *re,
 
               BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
 
-              if (!BLI_exists(filepath_view)) {
-                BLI_file_ensure_parent_dir_exists(filepath_view);
-                BLI_file_touch(filepath_view);
+              if (BLI_file_size(filepath_view) == 0) {
+                /* BLI_exists(filepath_view) is implicit */
+                BLI_delete(filepath_view, false, false);
               }
             }
           }
         }
       }
 
-      re->r.cfra = scene->r.cfra; /* weak.... */
-      re->r.subframe = scene->r.subframe;
+      break;
+    }
 
-      /* run callbacks before rendering, before the scene is updated */
-      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
-
-      do_render_full_pipeline(re);
-      totrendered++;
-
-      if (re->test_break(re->tbh) == 0) {
-        if (!G.is_break) {
-          if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
-            G.is_break = true;
-          }
-        }
-      }
-      else {
-        G.is_break = true;
-      }
-
-      if (G.is_break == true) {
-        /* remove touched file */
-        if (is_movie == false && do_write_file) {
-          if (rd.mode & R_TOUCH) {
-            if (!is_multiview_name) {
-              if (BLI_file_size(filepath) == 0) {
-                /* BLI_exists(filepath) is implicit */
-                BLI_delete(filepath, false, false);
-              }
-            }
-            else {
-              char filepath_view[FILE_MAX];
-
-              LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-                if (!BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-                  continue;
-                }
-
-                BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
-
-                if (BLI_file_size(filepath_view) == 0) {
-                  /* BLI_exists(filepath_view) is implicit */
-                  BLI_delete(filepath_view, false, false);
-                }
-              }
-            }
-          }
-        }
-
-        break;
-      }
-
-      if (G.is_break == false) {
-        /* keep after file save */
-        render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
-        render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
-      }
+    if (G.is_break == false) {
+      /* keep after file save */
+      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
+      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
     }
   }
 

@@ -579,8 +579,8 @@ static void playanim_toscreen(
   if (picture && (g_WS.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) && (fontid != -1)) {
     int sizex, sizey;
     float fsizex_inv, fsizey_inv;
-    char str[32 + FILE_MAX];
-    SNPRINTF(str, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
+    char label[32 + FILE_MAX];
+    SNPRINTF(label, "%s | %.2f frames/s", picture->filepath, fstep / swaptime);
 
     playanim_window_get_size(&sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
@@ -590,7 +590,7 @@ static void playanim_toscreen(
     BLF_enable(fontid, BLF_ASPECT);
     BLF_aspect(fontid, fsizex_inv, fsizey_inv, 1.0f);
     BLF_position(fontid, 10.0f * fsizex_inv, 10.0f * fsizey_inv, 0.0f);
-    BLF_draw(fontid, str, sizeof(str));
+    BLF_draw(fontid, label, sizeof(label));
   }
 
   if (ps->indicator) {
@@ -1507,7 +1507,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
   else {
     printf("%s: no filepath argument given\n", __func__);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   if (IMB_isanim(filepath)) {
@@ -1522,7 +1522,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
   else if (!IMB_ispic(filepath)) {
     printf("%s: '%s' not an image file\n", __func__, filepath);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   if (ibuf == NULL) {
@@ -1532,7 +1532,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   if (ibuf == NULL) {
     printf("%s: '%s' couldn't open\n", __func__, filepath);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   {
@@ -1547,7 +1547,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       /* GHOST will have reported the back-ends that failed to load. */
       fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
       /* This will leak memory, it's preferable to crashing. */
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
@@ -1708,7 +1708,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       } /* else delete */
       else {
         printf("error: can't play this image type\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
       }
 
       if (ps.once) {

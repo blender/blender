@@ -111,6 +111,18 @@ class VKFrameBuffer : public FrameBuffer {
     return vk_image_;
   }
 
+  /**
+   * Is this framebuffer immutable?
+   *
+   * Framebuffers that are owned by GHOST are immutable and
+   * don't have any attachments assigned. It should be assumed that there is a single color texture
+   * in slot 0.
+   */
+  bool is_immutable() const
+  {
+    return immutable_;
+  }
+
  private:
   void update_attachments();
   void render_pass_free();

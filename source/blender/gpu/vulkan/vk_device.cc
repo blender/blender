@@ -87,7 +87,8 @@ void VKDevice::init_descriptor_pools()
 
 constexpr int32_t PCI_ID_NVIDIA = 0x10de;
 constexpr int32_t PCI_ID_INTEL = 0x8086;
-constexpr int32_t PCI_ID_AMD = 0x1022;
+constexpr int32_t PCI_ID_AMD = 0x1002;
+constexpr int32_t PCI_ID_ATI = 0x1022;
 
 eGPUDeviceType VKDevice::device_type() const
 {
@@ -103,6 +104,7 @@ eGPUDeviceType VKDevice::device_type() const
     case PCI_ID_INTEL:
       return GPU_DEVICE_INTEL;
     case PCI_ID_AMD:
+    case PCI_ID_ATI:
       return GPU_DEVICE_ATI;
     default:
       break;

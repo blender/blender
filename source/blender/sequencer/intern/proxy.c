@@ -314,37 +314,53 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
 }
 
 /**
- * Returns whether the file this context would read from even exist,
- * if not, don't create the context
+ * Cache the result of #BKE_scene_multiview_view_prefix_get.
  */
-static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, const int view_id)
+typedef struct MultiViewPrefixVars {
+  char prefix[FILE_MAX];
+  const char *ext;
+} MultiViewPrefixVars;
+
+/**
+ * Returns whether the file this context would read from even exist,
+ * if not, don't create the context.
+ *
+ * \param prefix_vars: Stores prefix variables for reuse,
+ * these variables are for internal use, the caller must not depend on them.
+ *
+ * \note This function must first a `view_id` of zero, to initialize `prefix_vars`
+ * for use with other views.
+ */
+static bool seq_proxy_multiview_context_invalid(Sequence *seq,
+                                                Scene *scene,
+                                                const int view_id,
+                                                MultiViewPrefixVars *prefix_vars)
 {
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
     return false;
   }
 
   if ((seq->type == SEQ_TYPE_IMAGE) && (seq->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-    static char prefix[FILE_MAX];
-    static const char *ext = NULL;
-    char str[FILE_MAX];
+    char filepath[FILE_MAX];
 
     if (view_id == 0) {
+      /* Clear on first use. */
+      prefix_vars->prefix[0] = '\0';
+      prefix_vars->ext = NULL;
+
       char path[FILE_MAX];
       BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
       BLI_path_abs(path, BKE_main_blendfile_path_from_global());
-      BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
-    }
-    else {
-      prefix[0] = '\0';
+      BKE_scene_multiview_view_prefix_get(scene, path, prefix_vars->prefix, &prefix_vars->ext);
     }
 
-    if (prefix[0] == '\0') {
+    if (prefix_vars->prefix[0] == '\0') {
       return view_id != 0;
     }
 
-    seq_multiview_name(scene, view_id, prefix, ext, str, FILE_MAX);
+    seq_multiview_name(scene, view_id, prefix_vars->prefix, prefix_vars->ext, filepath, FILE_MAX);
 
-    if (BLI_access(str, R_OK) == 0) {
+    if (BLI_access(filepath, R_OK) == 0) {
       return false;
     }
 
@@ -425,8 +441,9 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 
   num_files = seq_proxy_context_count(seq, scene);
 
+  MultiViewPrefixVars prefix_vars; /* Initialized by #seq_proxy_multiview_context_invalid. */
   for (i = 0; i < num_files; i++) {
-    if (seq_proxy_multiview_context_invalid(seq, scene, i)) {
+    if (seq_proxy_multiview_context_invalid(seq, scene, i, &prefix_vars)) {
       continue;
     }
 

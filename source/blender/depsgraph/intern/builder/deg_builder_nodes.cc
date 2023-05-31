@@ -63,6 +63,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -618,6 +619,7 @@ void DepsgraphNodeBuilder::build_id(ID *id)
     case ID_CV:
     case ID_PT:
     case ID_VO:
+    case ID_GP:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -968,6 +970,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
+    case OB_GREASE_PENCIL:
       build_object_data_geometry(object);
       break;
     case OB_ARMATURE:
@@ -1737,6 +1740,11 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
                                    [obdata_cow](::Depsgraph *depsgraph) {
                                      BKE_volume_eval_geometry(depsgraph, (Volume *)obdata_cow);
                                    });
+      op_node->set_as_entry();
+      break;
+    }
+    case ID_GP: {
+      op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       op_node->set_as_entry();
       break;
     }

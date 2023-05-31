@@ -1,4 +1,8 @@
+
 ## fast_float number parsing library: 4x faster than strtod
+[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/fast_float.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:fast_float)
+[![VS17-CI](https://github.com/fastfloat/fast_float/actions/workflows/vs17-ci.yml/badge.svg)](https://github.com/fastfloat/fast_float/actions/workflows/vs17-ci.yml)
+[![Ubuntu 22.04 CI (GCC 11)](https://github.com/fastfloat/fast_float/actions/workflows/ubuntu22.yml/badge.svg)](https://github.com/fastfloat/fast_float/actions/workflows/ubuntu22.yml)
 
 The fast_float library provides fast header-only implementations for the C++ from_chars
 functions for `float` and `double` types.  These functions convert ASCII strings representing
@@ -90,6 +94,24 @@ consteval double parse(std::string_view input) {
 // merely returns 3.1415.
 constexpr double constexptest() {
   return parse("3.1415 input");
+}
+```
+
+## Non-ASCII Inputs
+
+We also support UTF-16 and UTF-32 inputs, as well as ASCII/UTF-8, as in the following example:
+
+``` C++
+#include "fast_float/fast_float.h"
+#include <iostream>
+
+int main() {
+    const std::u16string input =  u"3.1416 xyz ";
+    double result;
+    auto answer = fast_float::from_chars(input.data(), input.data()+input.size(), result);
+    if(answer.ec != std::errc()) { std::cerr << "parsing failure\n"; return EXIT_FAILURE; }
+    std::cout << "parsed the number " << result << std::endl;
+    return EXIT_SUCCESS;
 }
 ```
 
@@ -189,11 +211,11 @@ It can parse random floating-point numbers at a speed of 1 GB/s on some systems.
 $ ./build/benchmarks/benchmark
 # parsing random integers in the range [0,1)
 volume = 2.09808 MB
-netlib                                  :   271.18 MB/s (+/- 1.2 %)    12.93 Mfloat/s 
-doubleconversion                        :   225.35 MB/s (+/- 1.2 %)    10.74 Mfloat/s 
-strtod                                  :   190.94 MB/s (+/- 1.6 %)     9.10 Mfloat/s 
-abseil                                  :   430.45 MB/s (+/- 2.2 %)    20.52 Mfloat/s 
-fastfloat                               :  1042.38 MB/s (+/- 9.9 %)    49.68 Mfloat/s 
+netlib                                  :   271.18 MB/s (+/- 1.2 %)    12.93 Mfloat/s
+doubleconversion                        :   225.35 MB/s (+/- 1.2 %)    10.74 Mfloat/s
+strtod                                  :   190.94 MB/s (+/- 1.6 %)     9.10 Mfloat/s
+abseil                                  :   430.45 MB/s (+/- 2.2 %)    20.52 Mfloat/s
+fastfloat                               :  1042.38 MB/s (+/- 9.9 %)    49.68 Mfloat/s
 ```
 
 See https://github.com/lemire/simple_fastfloat_benchmark for our benchmarking code.
@@ -257,7 +279,7 @@ under the Apache 2.0 license.
 
 <sup>
 Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
-2.0</a> or <a href="LICENSE-MIT">MIT license</a> at your option.
+2.0</a> or <a href="LICENSE-MIT">MIT license</a> or <a href="LICENSE-BOOST">BOOST license</a> .
 </sup>
 
 <br>
@@ -265,5 +287,5 @@ Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
 <sub>
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in this repository by you, as defined in the Apache-2.0 license,
-shall be dual licensed as above, without any additional terms or conditions.
+shall be triple licensed as above, without any additional terms or conditions.
 </sub>

@@ -355,12 +355,12 @@ static int text_open_exec(bContext *C, wmOperator *op)
   Text *text;
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   const bool internal = RNA_boolean_get(op->ptr, "internal");
 
-  RNA_string_get(op->ptr, "filepath", str);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  text = BKE_text_load_ex(bmain, str, BKE_main_blendfile_path(bmain), internal);
+  text = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), internal);
 
   if (!text) {
     if (op->customdata) {
@@ -703,18 +703,18 @@ static int text_save_as_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Text *text = CTX_data_edit_text(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!text) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", str);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   if (text->filepath) {
     MEM_freeN(text->filepath);
   }
-  text->filepath = BLI_strdup(str);
+  text->filepath = BLI_strdup(filepath);
   text->flags &= ~TXT_ISMEM;
 
   txt_write_file(bmain, text, op->reports);
@@ -729,23 +729,23 @@ static int text_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 {
   Main *bmain = CTX_data_main(C);
   Text *text = CTX_data_edit_text(C);
-  const char *str;
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return text_save_as_exec(C, op);
   }
 
+  const char *filepath;
   if (text->filepath) {
-    str = text->filepath;
+    filepath = text->filepath;
   }
   else if (text->flags & TXT_ISMEM) {
-    str = text->id.name + 2;
+    filepath = text->id.name + 2;
   }
   else {
-    str = BKE_main_blendfile_path(bmain);
+    filepath = BKE_main_blendfile_path(bmain);
   }
 
-  RNA_string_set(op->ptr, "filepath", str);
+  RNA_string_set(op->ptr, "filepath", filepath);
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;

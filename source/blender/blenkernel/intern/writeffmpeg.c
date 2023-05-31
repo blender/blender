@@ -103,7 +103,7 @@ typedef struct FFMpegContext {
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
 static void ffmpeg_filepath_get(FFMpegContext *context,
-                                char string[FILE_MAX],
+                                char filepath[FILE_MAX],
                                 const struct RenderData *rd,
                                 bool preview,
                                 const char *suffix);

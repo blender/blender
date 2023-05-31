@@ -91,7 +91,7 @@ std::unique_ptr<VKDescriptorSet> VKDescriptorPools::allocate(
   VkDescriptorSet vk_descriptor_set = VK_NULL_HANDLE;
   VkResult result = vkAllocateDescriptorSets(vk_device_, &allocate_info, &vk_descriptor_set);
 
-  if (result == VK_ERROR_OUT_OF_POOL_MEMORY) {
+  if (ELEM(result, VK_ERROR_OUT_OF_POOL_MEMORY, VK_ERROR_FRAGMENTED_POOL)) {
     if (is_last_pool_active()) {
       add_new_pool();
       activate_last_pool();

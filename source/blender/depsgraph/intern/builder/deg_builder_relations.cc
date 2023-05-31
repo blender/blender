@@ -564,6 +564,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_PT:
     case ID_VO:
     case ID_GD_LEGACY:
+    case ID_GP:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -972,7 +973,8 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
-    case OB_VOLUME: {
+    case OB_VOLUME:
+    case OB_GREASE_PENCIL: {
       build_object_data_geometry(object);
       /* TODO(sergey): Only for until we support granular
        * update of curves. */
@@ -1294,6 +1296,8 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
       &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
   const OperationKey collection_parameters_exit_key(
       &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+  const OperationKey collection_hierarchy_key(
+      &collection->id, NodeType::HIERARCHY, OperationCode::HIERARCHY);
 
   const OperationKey collection_light_linking_key(
       &collection->id, NodeType::PARAMETERS, OperationCode::LIGHT_LINKING_UPDATE);
@@ -1311,6 +1315,11 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
                "Collection Light Linking -> Exit",
                RELATION_CHECK_BEFORE_ADD);
 
+  add_relation(collection_hierarchy_key,
+               collection_light_linking_key,
+               "Collection Hierarchy -> Light Linking",
+               RELATION_CHECK_BEFORE_ADD);
+
   /* Order to ensure the emitter's light linking is only evaluated after the receiver collection.
    * This is because light linking runtime data is "cached" om the emitter object for the
    * simplicity of access, but the mask is allocated per collection bases (so that if two emitters
@@ -1318,19 +1327,6 @@ void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
   add_relation(collection_light_linking_key,
                emitter_light_linking_key,
                "Collection -> Object Light Linking");
-
-  /* Relation from the emitter to the receiving object.
-   * This allows the receiver to access emitter's bit mask. */
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, receiver) {
-    if (light_linking::can_link_to_emitter(*receiver)) {
-      const OperationKey receiver_light_linking_key(
-          &receiver->id, NodeType::SHADING, OperationCode::LIGHT_LINKING_UPDATE);
-      add_relation(emitter_light_linking_key,
-                   receiver_light_linking_key,
-                   "Emitter -> Receiver Light Linking");
-    }
-  }
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 void DepsgraphRelationBuilder::build_constraints(ID *id,
@@ -2653,6 +2649,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
+    case ID_GP:
+      break;
     default:
       BLI_assert_msg(0, "Should not happen");
       break;

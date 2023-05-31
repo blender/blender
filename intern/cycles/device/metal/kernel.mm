@@ -681,7 +681,7 @@ void MetalKernelPipeline::compile()
     __block bool compilation_finished = false;
     __block string error_str;
 
-    if (loading_existing_archive) {
+    if (loading_existing_archive || !DebugFlags().metal.use_async_pso_creation) {
       /* Use the blocking variant of newComputePipelineStateWithDescriptor if an archive exists on
        * disk. It should load almost instantaneously, and will fail gracefully when loading a
        * corrupt archive (unlike the async variant). */
@@ -694,29 +694,6 @@ void MetalKernelPipeline::compile()
       error_str = err ? err : "nil";
     }
     else {
-      /* TODO / MetalRT workaround:
-       * Workaround for a crash when addComputePipelineFunctionsWithDescriptor is called *after*
-       * newComputePipelineStateWithDescriptor with linked functions (i.e. with MetalRT enabled).
-       * Ideally we would like to call newComputePipelineStateWithDescriptor (async) first so we
-       * can bail out if needed, but we can stop the crash by flipping the order when there are
-       * linked functions. However when addComputePipelineFunctionsWithDescriptor is called first
-       * it will block while it builds the pipeline, offering no way of bailing out. */
-      auto addComputePipelineFunctionsWithDescriptor = [&]() {
-        if (creating_new_archive && ShaderCache::running) {
-          NSError *error;
-          if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
-                                                            error:&error])
-          {
-            NSString *errStr = [error localizedDescription];
-            metal_printf("Failed to add PSO to archive:\n%s\n",
-                         errStr ? [errStr UTF8String] : "nil");
-          }
-        }
-      };
-      if (linked_functions) {
-        addComputePipelineFunctionsWithDescriptor();
-      }
-
       /* Use the async variant of newComputePipelineStateWithDescriptor if no archive exists on
        * disk. This allows us to respond to app shutdown. */
       [mtlDevice
@@ -744,10 +721,16 @@ void MetalKernelPipeline::compile()
       while (ShaderCache::running && !compilation_finished) {
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }
+    }
 
-      /* Add pipeline into the new archive (unless we did it earlier). */
-      if (pipeline && !linked_functions) {
-        addComputePipelineFunctionsWithDescriptor();
+    if (creating_new_archive && pipeline) {
+      /* Add pipeline into the new archive. */
+      NSError *error;
+      if (![archive addComputePipelineFunctionsWithDescriptor:computePipelineStateDescriptor
+                                                        error:&error])
+      {
+        NSString *errStr = [error localizedDescription];
+        metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
       }
     }
 

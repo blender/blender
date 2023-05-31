@@ -703,7 +703,15 @@ static std::pair<int, LightTreeMeasure> light_tree_specialize_nodes_flatten(
     }
 
     assert(first_emitter != -1);
-    new_node.make_leaf(first_emitter, num_emitters);
+
+    /* Preserve the type of the node, so that the kernel can do proper decision when sampling node
+     * with multiple distant lights in it. */
+    if (node->is_leaf()) {
+      new_node.make_leaf(first_emitter, num_emitters);
+    }
+    else {
+      new_node.make_distant(first_emitter, num_emitters);
+    }
   }
   else {
     assert(node->is_inner());

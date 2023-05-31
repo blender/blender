@@ -402,10 +402,10 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
     if (prefix[0] != '\0') {
       for (i = 0; i < totfiles; i++) {
-        char str[FILE_MAX];
+        char filepath[FILE_MAX];
 
-        seq_multiview_name(scene, i, prefix, ext, str, FILE_MAX);
-        anim_arr[j] = openanim(str, IB_rect, 0, colorspace);
+        seq_multiview_name(scene, i, prefix, ext, filepath, sizeof(filepath));
+        anim_arr[j] = openanim(filepath, IB_rect, 0, colorspace);
 
         if (anim_arr[j]) {
           seq_anim_add_suffix(scene, anim_arr[j], i);
@@ -571,10 +571,10 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
             struct anim *anim;
-            char str[FILE_MAX];
+            char filepath[FILE_MAX];
 
-            seq_multiview_name(scene, i, prefix, ext, str, FILE_MAX);
-            anim = openanim(str,
+            seq_multiview_name(scene, i, prefix, ext, filepath, sizeof(filepath));
+            anim = openanim(filepath,
                             IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                             seq->streamindex,
                             seq->strip->colorspace_settings.name);

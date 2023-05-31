@@ -58,6 +58,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_io_common
+  extern_fmtlib
 )
 
 if(WITH_TBB)

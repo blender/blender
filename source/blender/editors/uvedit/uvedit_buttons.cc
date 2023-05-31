@@ -5,8 +5,8 @@
  * \ingroup eduv
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -198,7 +198,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
   MEM_freeN(objects);
 }
 
-static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
+static void do_uvedit_vertex(bContext *C, void * /*arg*/, int event)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
@@ -238,7 +238,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 
 /* Panels */
 
-static bool image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool image_panel_uv_poll(const bContext *C, PanelType * /*pt*/)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   if (sima->mode != SI_MODE_UV) {
@@ -253,16 +253,15 @@ static void image_panel_uv(const bContext *C, Panel *panel)
   uiBlock *block;
 
   block = uiLayoutAbsoluteBlock(panel->layout);
-  UI_block_func_handle_set(block, do_uvedit_vertex, NULL);
+  UI_block_func_handle_set(block, do_uvedit_vertex, nullptr);
 
   uvedit_vertex_buttons(C, block);
 }
 
 void ED_uvedit_buttons_register(ARegionType *art)
 {
-  PanelType *pt;
+  PanelType *pt = MEM_cnew<PanelType>(__func__);
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
   strcpy(pt->idname, "IMAGE_PT_uv");
   strcpy(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */
   /* Could be 'Item' matching 3D view, avoid new tab for two buttons. */

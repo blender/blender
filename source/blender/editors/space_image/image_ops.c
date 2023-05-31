@@ -1736,23 +1736,23 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!sima->image) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", str);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  /* we can't do much if the str is longer than FILE_MAX :/ */
-  STRNCPY(sima->image->filepath, str);
+  /* we can't do much if the filepath is longer than FILE_MAX :/ */
+  STRNCPY(sima->image->filepath, filepath);
 
   if (sima->image->source == IMA_SRC_GENERATED) {
     sima->image->source = IMA_SRC_FILE;
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
   }
 
-  if (BLI_path_extension_check_array(str, imb_ext_movie)) {
+  if (BLI_path_extension_check_array(filepath, imb_ext_movie)) {
     sima->image->source = IMA_SRC_MOVIE;
   }
   else {

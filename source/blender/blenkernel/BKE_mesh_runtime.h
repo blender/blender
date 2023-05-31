@@ -77,11 +77,6 @@ eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh);
  * They should also be renamed to use conventions from BKE, not old DerivedMesh.cc.
  * For now keep the names similar to avoid confusion. */
 
-struct Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                                 const struct Scene *scene,
-                                 struct Object *ob,
-                                 const struct CustomData_MeshMasks *dataMask);
-
 struct Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,

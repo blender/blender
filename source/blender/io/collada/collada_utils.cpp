@@ -211,8 +211,7 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
                        bool apply_modifiers,
                        bool triangulate)
 {
-  CustomData_MeshMasks mask = CD_MASK_MESH;
-  Mesh *tmpmesh = nullptr;
+  const Mesh *tmpmesh = nullptr;
   if (apply_modifiers) {
 #if 0 /* Not supported by new system currently... */
     switch (export_mesh_type) {
@@ -227,22 +226,21 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
     }
 #else
     Depsgraph *depsgraph = blender_context.get_depsgraph();
-    Scene *scene_eval = blender_context.get_evaluated_scene();
-    Object *ob_eval = blender_context.get_evaluated_object(ob);
-    tmpmesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &mask);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    tmpmesh = BKE_object_get_evaluated_mesh(ob_eval);
 #endif
   }
   else {
     tmpmesh = (Mesh *)ob->data;
   }
 
-  tmpmesh = (Mesh *)BKE_id_copy_ex(nullptr, &tmpmesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  Mesh *mesh = BKE_mesh_copy_for_eval(tmpmesh);
 
   if (triangulate) {
-    bc_triangulate_mesh(tmpmesh);
+    bc_triangulate_mesh(mesh);
   }
-  BKE_mesh_tessface_ensure(tmpmesh);
-  return tmpmesh;
+  BKE_mesh_tessface_ensure(mesh);
+  return mesh;
 }
 
 Object *bc_get_assigned_armature(Object *ob)

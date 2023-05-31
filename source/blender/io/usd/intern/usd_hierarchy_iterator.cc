@@ -129,6 +129,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
     case OB_LATTICE:
     case OB_ARMATURE:
     case OB_GPENCIL_LEGACY:
+    case OB_GREASE_PENCIL:
     case OB_POINTCLOUD:
       return nullptr;
     case OB_TYPE_MAX:

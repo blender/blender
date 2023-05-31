@@ -15,12 +15,16 @@ namespace blender::gpu {
 
 class VKVertexBuffer : public VertBuf {
   VKBuffer buffer_;
+  bool should_unbind_ = false;
+  /** When a vertex buffer is used as a UNIFORM_TEXEL_BUFFER the buffer requires a buffer view. */
+  VkBufferView vk_buffer_view_ = VK_NULL_HANDLE;
 
  public:
   ~VKVertexBuffer();
 
   void bind_as_ssbo(uint binding) override;
   void bind_as_texture(uint binding) override;
+  void bind(uint binding);
   void wrap_handle(uint64_t handle) override;
 
   void update_sub(uint start, uint len, const void *data) override;
@@ -30,6 +34,12 @@ class VKVertexBuffer : public VertBuf {
   {
     BLI_assert(buffer_.is_allocated());
     return buffer_.vk_handle();
+  }
+
+  VkBufferView vk_buffer_view_get() const
+  {
+    BLI_assert(vk_buffer_view_ != VK_NULL_HANDLE);
+    return vk_buffer_view_;
   }
 
  protected:
@@ -42,6 +52,9 @@ class VKVertexBuffer : public VertBuf {
  private:
   void allocate();
   void *convert() const;
+
+  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture.*/
+  friend class VKTexture;
 };
 
 static inline VKVertexBuffer *unwrap(VertBuf *vertex_buffer)

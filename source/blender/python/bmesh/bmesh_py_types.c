@@ -18,6 +18,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1079,7 +1080,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   Object *ob, *ob_eval;
   struct Depsgraph *depsgraph;
   struct Scene *scene_eval;
-  Mesh *me_eval;
+  const Mesh *me_eval;
   BMesh *bm;
   bool use_cage = false;
   bool use_fnorm = true;
@@ -1134,7 +1135,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
       me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
     }
     else {
-      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
+      me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     }
   }
 
@@ -1155,7 +1156,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
                      }));
 
   if (need_free) {
-    BKE_id_free(NULL, me_eval);
+    BKE_id_free(NULL, (Mesh *)me_eval);
   }
 
   Py_RETURN_NONE;

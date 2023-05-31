@@ -244,6 +244,9 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
                                           const fn::Field<int> &count_field,
                                           const ResampleCurvesOutputAttributeIDs &output_ids)
 {
+  if (src_curves.curves_range().is_empty()) {
+    return {};
+  }
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
   const VArray<bool> curves_cyclic = src_curves.cyclic();
@@ -407,6 +410,9 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
                                      const fn::Field<bool> &selection_field,
                                      const ResampleCurvesOutputAttributeIDs &output_ids)
 {
+  if (src_curves.curves_range().is_empty()) {
+    return {};
+  }
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const OffsetIndices src_evaluated_points_by_curve = src_curves.evaluated_points_by_curve();
   const Span<float3> evaluated_positions = src_curves.evaluated_positions();

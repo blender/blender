@@ -260,7 +260,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       pipeline_type == MAT_PIPE_FORWARD)
   {
     /* Opaque forward do support AOVs and render pass if not using transparency. */
-    info.additional_info("eevee_aov_out");
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
   }

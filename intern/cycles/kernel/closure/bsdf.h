@@ -655,7 +655,7 @@ ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
    * extra overhead though. */
 #if defined(__SVM__) || defined(__OSL__)
   if (CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
-    albedo *= microfacet_fresnel((ccl_private const MicrofacetBsdf *)sc, sd->wi, sc->N, false);
+    albedo *= bsdf_microfacet_estimate_fresnel(sd, (ccl_private const MicrofacetBsdf *)sc);
   }
   else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
     albedo *= ((ccl_private const PrincipledSheenBsdf *)sc)->avg_value;

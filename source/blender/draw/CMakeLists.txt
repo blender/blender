@@ -72,7 +72,8 @@ set(SRC
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
-  intern/draw_cache_impl_gpencil.cc
+  intern/draw_cache_impl_gpencil_legacy.cc
+  intern/draw_cache_impl_grease_pencil.cc
   intern/draw_cache_impl_lattice.c
   intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_particles.c
@@ -186,9 +187,11 @@ set(SRC
   engines/gpencil/gpencil_cache_utils.c
   engines/gpencil/gpencil_draw_data.c
   engines/gpencil/gpencil_engine.c
+  engines/gpencil/gpencil_engine.cc
   engines/gpencil/gpencil_engine.h
   engines/gpencil/gpencil_render.c
   engines/gpencil/gpencil_shader.c
+  engines/gpencil/gpencil_shader.cc
   engines/gpencil/gpencil_shader_fx.c
   engines/select/select_draw_utils.c
   engines/select/select_engine.c

@@ -180,7 +180,10 @@ void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
 void BKE_material_copybuf_clear(void);
 void BKE_material_copybuf_free(void);
 void BKE_material_copybuf_copy(struct Main *bmain, struct Material *ma);
-void BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
+/**
+ * \return true when the material was modified.
+ */
+bool BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 
 /** \} */
 

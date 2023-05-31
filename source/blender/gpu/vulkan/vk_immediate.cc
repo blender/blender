@@ -9,6 +9,7 @@
 
 #include "vk_immediate.hh"
 #include "vk_data_conversion.hh"
+#include "vk_state_manager.hh"
 
 namespace blender::gpu {
 
@@ -47,7 +48,9 @@ void VKImmediate::end()
 
   VKContext &context = *VKContext::get();
   BLI_assert(context.shader == unwrap(shader));
-  context.state_manager->apply_state();
+  VKStateManager &state_manager = context.state_manager_get();
+  state_manager.apply_state();
+  state_manager.apply_bindings();
   vertex_attributes_.update_bindings(*this);
   context.bind_graphics_pipeline(prim_type, vertex_attributes_);
   vertex_attributes_.bind(context);

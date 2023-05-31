@@ -55,6 +55,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_io_common
+  extern_fmtlib
 )
 
 blender_add_lib(bf_ply "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

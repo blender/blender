@@ -1184,6 +1184,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_EDIT_LATTICE;
       case OB_CURVES:
         return CTX_MODE_EDIT_CURVES;
+      case OB_GREASE_PENCIL:
+        return CTX_MODE_EDIT_GPENCIL;
     }
   }
   else {

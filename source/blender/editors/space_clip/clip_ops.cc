@@ -184,7 +184,7 @@ static int open_exec(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
   MovieClip *clip = nullptr;
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!RNA_collection_is_empty(op->ptr, "files")) {
     PointerRNA fileptr;
@@ -201,7 +201,7 @@ static int open_exec(bContext *C, wmOperator *op)
     RNA_property_collection_lookup_int(op->ptr, prop, 0, &fileptr);
     RNA_string_get(&fileptr, "name", file_only);
 
-    BLI_path_join(str, sizeof(str), dir_only, file_only);
+    BLI_path_join(filepath, sizeof(filepath), dir_only, file_only);
   }
   else {
     BKE_report(op->reports, RPT_ERROR, "No files selected to be opened");
@@ -213,7 +213,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
   errno = 0;
 
-  clip = BKE_movieclip_file_add_exists(bmain, str);
+  clip = BKE_movieclip_file_add_exists(bmain, filepath);
 
   if (!clip) {
     if (op->customdata) {
@@ -223,7 +223,7 @@ static int open_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
-                str,
+                filepath,
                 errno ? strerror(errno) : TIP_("unsupported movie clip format"));
 
     return OPERATOR_CANCELLED;

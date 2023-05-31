@@ -66,6 +66,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -4078,26 +4079,11 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = ps->ob;
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-  if (scene_eval == nullptr || ob_eval == nullptr) {
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ps->me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  if (!ps->me_eval) {
     return false;
   }
-
-  CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
-  cddata_masks.fmask |= CD_MASK_MTFACE;
-  cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  if (ps->do_face_sel) {
-    cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-    cddata_masks.emask |= CD_MASK_ORIGINDEX;
-    cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-  }
-  ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
   if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;

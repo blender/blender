@@ -379,7 +379,9 @@ static void get_vertexcos__mapFunc(void *user_data,
   }
 }
 
-void BKE_mesh_foreach_mapped_vert_coords_get(Mesh *me_eval, float (*r_cos)[3], const int totcos)
+void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *me_eval,
+                                             float (*r_cos)[3],
+                                             const int totcos)
 {
   MappedVCosData user_data;
   memset(r_cos, 0, sizeof(*r_cos) * totcos);

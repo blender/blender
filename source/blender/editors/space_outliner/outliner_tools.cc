@@ -165,6 +165,7 @@ static void get_element_operation_type(
       case ID_PT:
       case ID_VO:
       case ID_SIM:
+      case ID_GP:
         is_standard_id = true;
         break;
       case ID_WM:
