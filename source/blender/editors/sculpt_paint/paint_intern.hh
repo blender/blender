@@ -369,6 +369,7 @@ void PAINT_OT_face_select_all(wmOperatorType *ot);
 void PAINT_OT_face_select_more(wmOperatorType *ot);
 void PAINT_OT_face_select_less(wmOperatorType *ot);
 void PAINT_OT_face_select_hide(wmOperatorType *ot);
+void PAINT_OT_face_select_loop(wmOperatorType *ot);
 
 void PAINT_OT_face_vert_reveal(wmOperatorType *ot);
 
