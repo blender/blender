@@ -1606,7 +1606,7 @@ static const EnumPropertyItem pinned_islands_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void uv_pack_islands_ui(bContext *C, wmOperator *op)
+static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
