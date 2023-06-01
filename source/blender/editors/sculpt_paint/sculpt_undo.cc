@@ -85,6 +85,8 @@
 #include "bmesh_log.h"
 #include "sculpt_intern.hh"
 
+using blender::bke::dyntopo::DyntopoSet;
+
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
 //#define SCULPT_UNDO_DEBUG
 
@@ -784,9 +786,9 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
     if (ni_l < 0 && ni >= 0) {
       BM_ELEM_CD_SET_INT(l->v, ni_l, ni);
-      TableGSet *bm_unique_verts = BKE_pbvh_bmesh_node_unique_verts(node);
+      DyntopoSet<BMVert> *bm_unique_verts = BKE_pbvh_bmesh_node_unique_verts(node);
 
-      BLI_table_gset_add(bm_unique_verts, l->v);
+      bm_unique_verts->add(l->v);
     }
   } while ((l = l->next) != f->l_first);
 
@@ -2279,8 +2281,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         break;
 
       case SCULPT_UNDO_HIDDEN: {
-        TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
-        BMFace *f;
+        DyntopoSet<BMFace> *faces = BKE_pbvh_bmesh_node_faces(node);
 
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           bm_logstack_push();
@@ -2289,10 +2290,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         }
         BKE_pbvh_vertex_iter_end;
 
-        TGSET_ITER (f, faces) {
+        for (BMFace *f : *faces) {
           BM_log_face_modified(ss->bm, ss->bm_log, f);
         }
-        TGSET_ITER_END
         break;
       }
 
@@ -2319,25 +2319,21 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
           BKE_pbvh_vertex_iter_end;
         }
         else if (domain == ATTR_DOMAIN_CORNER) {
-          TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
-          BMFace *f;
+          DyntopoSet<BMFace> *faces = BKE_pbvh_bmesh_node_faces(node);
 
-          TGSET_ITER (f, faces) {
+          for (BMFace *f : *faces) {
             BM_log_face_modified(ss->bm, ss->bm_log, f);
           }
-          TGSET_ITER_END
         }
 
         break;
       }
       case SCULPT_UNDO_FACE_SETS: {
-        TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
-        BMFace *f;
+        DyntopoSet<BMFace> *faces = BKE_pbvh_bmesh_node_faces(node);
 
-        TGSET_ITER (f, faces) {
+        for (BMFace *f : *faces) {
           BM_log_face_modified(ss->bm, ss->bm_log, f);
         }
-        TGSET_ITER_END
 
         break;
       }

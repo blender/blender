@@ -69,6 +69,7 @@ using blender::OffsetIndices;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::bke::dyntopo::DyntopoSet;
 
 #define LEAF_LIMIT 10000
 
@@ -187,7 +188,7 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
       return true;
     }
 
-    return bool(node->bm_faces ? node->bm_faces->length : node->totprim);
+    return bool(node->bm_faces ? node->bm_faces->size() : node->totprim);
   };
 
   if (!(updateflag & (PBVH_UpdateBB | PBVH_UpdateOriginalBB))) {
@@ -930,10 +931,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->vdata = &args->bm->vdata;
       args->ldata = &args->bm->ldata;
       args->pdata = &args->bm->pdata;
-      args->bm_faces = node->bm_faces;
-      args->bm_other_verts = node->bm_other_verts;
-      args->bm_unique_vert = node->bm_unique_verts;
-      args->totprim = BLI_table_gset_len(node->bm_faces);
+      args->totprim = node->bm_faces->size();
       args->cd_mask_layer = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
 
       args->tribuf = node->tribuf;
@@ -1253,13 +1251,13 @@ void BKE_pbvh_free(PBVH *pbvh)
         MEM_freeN((void *)node->face_vert_indices);
       }
       if (node->bm_faces) {
-        BLI_table_gset_free(node->bm_faces, nullptr);
+        MEM_delete<DyntopoSet<BMFace>>(node->bm_faces);
       }
       if (node->bm_unique_verts) {
-        BLI_table_gset_free(node->bm_unique_verts, nullptr);
+        MEM_delete<DyntopoSet<BMVert>>(node->bm_unique_verts);
       }
       if (node->bm_other_verts) {
-        BLI_table_gset_free(node->bm_other_verts, nullptr);
+        MEM_delete<DyntopoSet<BMVert>>(node->bm_other_verts);
       }
 
       if (node->tribuf || node->tri_buffers) {
@@ -1402,8 +1400,8 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
     if (isnan(ff) || !isfinite(ff)) {
       printf("%s: nan! totf: %d totv: %d\n",
              __func__,
-             node->bm_faces ? node->bm_faces->length : 0,
-             node->bm_unique_verts ? node->bm_unique_verts->length : 0);
+             node->bm_faces ? node->bm_faces->size() : 0,
+             node->bm_unique_verts ? node->bm_unique_verts->size() : 0);
     }
 
     if (iter->scb && !iter->scb(node, iter->search_data)) {
@@ -2029,28 +2027,19 @@ static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
 
 static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
 {
-  TableGSet *unique, *other;
-
-  unique = BKE_pbvh_bmesh_node_unique_verts(node);
-  other = BKE_pbvh_bmesh_node_other_verts(node);
-
-  BMVert *v;
-
-  TGSET_ITER (v, unique) {
+  for (BMVert *v : *node->bm_unique_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
-  TGSET_ITER_END
 
-  TGSET_ITER (v, other) {
+  for (BMVert *v : *node->bm_other_verts) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
-  TGSET_ITER_END
 
   BKE_pbvh_node_fully_hidden_set(node, true);
 }
@@ -2446,9 +2435,9 @@ void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int 
 
       pbvh_bmesh_check_other_verts(node);
 
-      tot = BLI_table_gset_len(node->bm_unique_verts);
+      tot = node->bm_unique_verts->size();
       if (r_totvert) {
-        *r_totvert = tot + BLI_table_gset_len(node->bm_other_verts);
+        *r_totvert = tot + node->bm_other_verts->size();
       }
       if (r_uniquevert) {
         *r_uniquevert = tot;
@@ -3623,9 +3612,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->vert_positions = nullptr;
 
     vi->bi = 0;
-    vi->bm_cur_set = node->bm_unique_verts;
+    vi->bm_cur_set = 0;
     vi->bm_unique_verts = node->bm_unique_verts;
     vi->bm_other_verts = node->bm_other_verts;
+    vi->bm_iter = node->bm_unique_verts->begin();
+    vi->bm_iter_end = node->bm_unique_verts->end();
+
     vi->bm_vdata = &pbvh->header.bm->vdata;
     vi->bm_vert = nullptr;
 
@@ -3883,14 +3875,12 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
     case PBVH_GRIDS:
       break;
     case PBVH_BMESH: {
-      BMFace *f;
       const int cd_face_area = pbvh->cd_face_area;
 
-      TGSET_ITER (f, node->bm_faces) {
+      for (BMFace *f : *node->bm_faces) {
         float *areabuf = (float *)BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
         areabuf[cur_i] = 0.0f;
       }
-      TGSET_ITER_END;
 
       for (int i = 0; i < node->tribuf->tottri; i++) {
         PBVHTri *tri = node->tribuf->tris + i;
@@ -3904,7 +3894,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         areabuf[cur_i] += area_tri_v3(v1->co, v2->co, v3->co);
       }
 
-      TGSET_ITER (f, node->bm_faces) {
+      for (BMFace *f : *node->bm_faces) {
         float *areabuf = (float *)BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
 
         /* sanity check on read side of read write buffer */
@@ -3912,7 +3902,6 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
           areabuf[cur_i ^ 1] = areabuf[cur_i];
         }
       }
-      TGSET_ITER_END;
 
       break;
     }
@@ -4221,7 +4210,7 @@ void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno)
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
-                                const float (*vert_positions)[3],
+                                const float (*/*vert_positions*/)[3],
                                 const int2 * /*medge*/,
                                 const int *corner_verts,
                                 const int *corner_edges,
@@ -4486,19 +4475,14 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
   switch (fd->pbvh_type_) {
     case PBVH_BMESH: {
       if (do_step) {
-        fd->bm_faces_iter_++;
+        ++fd->bm_iter_;
       }
 
-      while (fd->bm_faces_iter_ < fd->bm_faces_->cur && !fd->bm_faces_->elems[fd->bm_faces_iter_])
-      {
-        fd->bm_faces_iter_++;
-      }
-
-      if (fd->bm_faces_iter_ >= fd->bm_faces_->cur) {
+      if (fd->bm_iter_ == fd->bm_iter_end_) {
         return;
       }
 
-      BMFace *f = (BMFace *)fd->bm_faces_->elems[fd->bm_faces_iter_];
+      BMFace *f = *fd->bm_iter_;
       fd->face.i = (intptr_t)f;
       fd->index = f->head.index;
 
@@ -4609,8 +4593,8 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->cd_face_set_ = CustomData_get_offset_named(
           &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-      fd->bm_faces_iter_ = 0;
-      fd->bm_faces_ = node->bm_faces;
+      fd->bm_iter_ = node->bm_faces->begin();
+      fd->bm_iter_end_ = node->bm_faces->end();
       break;
   }
 
@@ -4633,7 +4617,7 @@ bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd)
     case PBVH_GRIDS:
       return fd->prim_index_ >= fd->node_->totprim;
     case PBVH_BMESH:
-      return fd->bm_faces_iter_ >= fd->bm_faces_->cur;
+      return fd->bm_iter_ == fd->bm_iter_end_;
     default:
       BLI_assert_unreachable();
       return true;

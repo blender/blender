@@ -7,6 +7,10 @@
  * \brief A BVH for high poly meshes.
  */
 
+#ifdef __cplusplus
+#  include "BKE_dyntopo_set.hh"
+#endif
+
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
@@ -41,7 +45,6 @@ struct Scene;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
-struct TableGSet;
 struct DMFlagMat;
 struct IsectRayPrecalc;
 struct MLoopTri;
@@ -125,6 +128,7 @@ typedef struct PBVHFaceRef {
 
 #define PBVH_REF_NONE -1LL
 
+#ifdef __cplusplus
 typedef struct PBVHTri {
   int v[3];       // references into PBVHTriBuf->verts
   int eflag;      // bitmask of which edges in the tri are real edges in the mesh
@@ -141,17 +145,21 @@ typedef struct PBVHTriBuf {
   int totvert, totedge, tottri;
   int verts_size, edges_size, tris_size;
 
-#ifdef __cplusplus
+#  ifdef __cplusplus
   blender::Map<void *, int> vertmap;
-#else
+#  else
   void *vertmap;
-#endif
+#  endif
 
   // private field
   intptr_t *loops;
   int totloop, mat_nr;
   float min[3], max[3];
 } PBVHTriBuf;
+#else
+struct PBVHTri;
+struct PBVHTriBuf;
+#endif
 
 typedef struct {
   float (*co)[3];
@@ -609,9 +617,11 @@ bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
  */
 bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 
-struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
-struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
-struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+#ifdef __cplusplus
+blender::bke::dyntopo::DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
+blender::bke::dyntopo::DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
+blender::bke::dyntopo::DyntopoSet<BMFace> *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+#endif
 
 void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh, bool report);
 void BKE_pbvh_bmesh_mark_node_regen(PBVH *pbvh, PBVHNode *node);
@@ -658,6 +668,7 @@ bool BKE_pbvh_is_deformed(PBVH *pbvh);
 #define PBVH_ITER_ALL 0
 #define PBVH_ITER_UNIQUE 1
 
+#ifdef __cplusplus
 typedef struct PBVHVertexIter {
   /* iteration */
   int g;
@@ -689,8 +700,9 @@ typedef struct PBVHVertexIter {
 
   /* bmesh */
   int bi;
-  struct TableGSet *bm_cur_set;
-  struct TableGSet *bm_unique_verts, *bm_other_verts;
+  int bm_cur_set;
+  blender::bke::dyntopo::DyntopoSet<BMVert> *bm_unique_verts, *bm_other_verts;
+  blender::bke::dyntopo::DyntopoSet<BMVert>::iterator bm_iter, bm_iter_end;
 
   struct CustomData *bm_vdata;
   int cd_vert_mask_offset;
@@ -705,8 +717,11 @@ typedef struct PBVHVertexIter {
   float *mask;
   bool visible;
 } PBVHVertexIter;
+#else
+struct PBVHVertexIter;
+#endif
 
-void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode);
+void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, struct PBVHVertexIter *vi, int mode);
 
 #define BKE_pbvh_vertex_iter_begin(pbvh, node, vi, mode) \
   pbvh_vertex_iter_init(pbvh, node, &vi, mode); \
@@ -755,27 +770,21 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
         } \
         else { \
-          BMVert *bv = NULL; \
-          while (!bv) { \
-            if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_cur_set->cur) { \
-              if (vi.bm_cur_set != vi.bm_other_verts && mode != PBVH_ITER_UNIQUE) { \
-                vi.bm_cur_set = vi.bm_other_verts; \
-                vi.bi = 0; \
-                if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_other_verts->cur) { \
-                  break; \
-                } \
-              } \
-              else { \
-                break; \
+          if (vi.bm_iter == vi.bm_iter_end) { \
+            if (vi.bm_cur_set == 0 && mode == PBVH_ITER_ALL) { \
+              vi.bm_cur_set = 1; \
+              vi.bm_iter = vi.bm_other_verts->begin(); \
+              vi.bm_iter_end = vi.bm_other_verts->end(); \
+              if (vi.bm_iter == vi.bm_iter_end) { \
+                continue; \
               } \
             } \
             else { \
-              bv = (BMVert *)vi.bm_cur_set->elems[vi.bi++]; \
+              continue; \
             } \
           } \
-          if (!bv) { \
-            continue; \
-          } \
+          BMVert *bv = *vi.bm_iter; \
+          ++vi.bm_iter; \
           vi.bm_vert = bv; \
           vi.vertex.i = (intptr_t)bv; \
           vi.index = BM_elem_index_get(vi.bm_vert); \
@@ -808,7 +817,8 @@ PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int idx);
 
 #define PBVH_FACE_ITER_VERTS_RESERVED 8
 
-typedef struct PBVHFaceIter {
+#ifdef __cplusplus
+struct PBVHFaceIter {
   PBVHFaceRef face;
   int index;
   bool *hide;
@@ -822,8 +832,7 @@ typedef struct PBVHFaceIter {
   const PBVHNode *node_;
   PBVHType pbvh_type_;
   int verts_size_;
-  int bm_faces_iter_;
-  const struct TableGSet *bm_faces_;
+  blender::bke::dyntopo::DyntopoSet<BMFace>::iterator bm_iter_, bm_iter_end_;
   int cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
@@ -836,12 +845,14 @@ typedef struct PBVHFaceIter {
   CCGKey subdiv_key_;
 
   int last_poly_index_;
-} PBVHFaceIter;
+};
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);
 void BKE_pbvh_face_iter_step(PBVHFaceIter *fd);
 bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd);
 void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
+
+#endif
 
 /**
  * Iterate over faces inside a #PBVHNode. These are either base mesh faces
@@ -943,7 +954,7 @@ bool BKE_pbvh_curvature_update_get(PBVHNode *node);
 int BKE_pbvh_get_totnodes(PBVH *pbvh);
 
 bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
-PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
+struct PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 
 /*recalculates boundary flags for *all* vertices.  used by

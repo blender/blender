@@ -70,8 +70,6 @@ struct PBVH_GPU_Args {
   /* Debug mode to show original coordinates instead of vertex positions. */
   bool show_orig;
 
-  /* BMesh. */
-  struct TableGSet *bm_unique_vert, *bm_other_verts, *bm_faces;
   int cd_mask_layer;
   struct PBVHTriBuf *tribuf, *tri_buffers;
   int tot_tri_buffers, updategen;

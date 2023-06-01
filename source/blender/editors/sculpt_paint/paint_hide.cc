@@ -45,6 +45,7 @@
 #include "sculpt_intern.hh"
 
 using blender::Vector;
+using blender::bke::dyntopo::DyntopoSet;
 
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
@@ -196,15 +197,14 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          TableGSet *verts,
+                                          DyntopoSet<BMVert> *verts,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
 {
-  BMVert *v;
-  TGSET_ITER (v, verts) {
+  for (BMVert *v : *verts) {
     float *vmask = static_cast<float *>(
         CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK));
 
@@ -223,14 +223,11 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
       (*any_visible) = true;
     }
   }
-  TGSET_ITER_END
 }
 
-static void partialvis_update_bmesh_faces(TableGSet *faces)
+static void partialvis_update_bmesh_faces(DyntopoSet<BMFace> *faces)
 {
-  BMFace *f;
-
-  TGSET_ITER (f, faces) {
+  for (BMFace *f : *faces) {
     bool hidden = false;
 
     BMLoop *l = f->l_first;
@@ -245,7 +242,6 @@ static void partialvis_update_bmesh_faces(TableGSet *faces)
       BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
     }
   }
-  TGSET_ITER_END
 }
 
 static void partialvis_update_bmesh(Object *ob,
@@ -256,7 +252,9 @@ static void partialvis_update_bmesh(Object *ob,
                                     float planes[4][4])
 {
   BMesh *bm;
-  TableGSet *unique, *other, *faces;
+  DyntopoSet<BMVert> *unique, *other;
+  DyntopoSet<BMFace> *faces;
+
   bool any_changed = false, any_visible = false;
 
   bm = BKE_pbvh_get_bmesh(pbvh);

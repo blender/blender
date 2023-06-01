@@ -684,8 +684,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
  * so randomly skip bits of it.
  */
 #ifdef CLEAR_TAGS_IN_THREAD
-  BMFace *f;
-  TGSET_ITER (f, node->bm_faces) {
+  for (BMFace *f : *node->bm_faces) {
     BMLoop *l = f->l_first;
 
     /* Note that f itself is owned by this node. */
@@ -711,7 +710,6 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
       l = l->next;
     } while (l != f->l_first);
   }
-  TGSET_ITER_END
 #endif
 
   PBVHTriBuf *tribuf = node->tribuf;
@@ -1311,9 +1309,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       continue;
     }
 
-    BMFace *f;
-
-    TGSET_ITER (f, node->bm_faces) {
+    for (BMFace *f : *node->bm_faces) {
       BMLoop *l = f->l_first;
       do {
         l->e->head.hflag &= ~BM_ELEM_TAG;
@@ -1321,7 +1317,6 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
         l->f->head.hflag &= ~(BM_ELEM_TAG | BM_ELEM_TAG_ALT);
       } while ((l = l->next) != f->l_first);
     }
-    TGSET_ITER_END;
   }
 #endif
 
@@ -1404,9 +1399,7 @@ static void short_edge_queue_task_cb_local(void *__restrict userdata,
   PBVHNode *node = tdata->node;
   EdgeQueueContext *eq_ctx = tdata->eq_ctx;
 
-  BMFace *f;
-
-  TGSET_ITER (f, node->bm_faces) {
+  for (BMFace *f : *node->bm_faces) {
 #ifdef USE_EDGEQUEUE_FRONTFACE
     if (eq_ctx->use_view_normal) {
       if (dot_v3v3(f->no, eq_ctx->view_normal) < 0.0f) {
@@ -1425,7 +1418,6 @@ static void short_edge_queue_task_cb_local(void *__restrict userdata,
       } while ((l = l->next) != f->l_first);
     }
   }
-  TGSET_ITER_END
 }
 
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
@@ -1975,13 +1967,11 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
   eq_ctx->used_verts.clear();
 
   for (const PBVHNode &node : Span<PBVHNode>(pbvh->nodes, pbvh->totnode)) {
-    BMVert *v;
-
     if (!(node.flag & PBVH_Leaf) || !(node.flag & PBVH_UpdateTopology)) {
       continue;
     }
 
-    TGSET_ITER (v, node.bm_unique_verts) {
+    for (BMVert *v : *node.bm_unique_verts) {
       if (dyntopo_test_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE)) {
         BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)v});
       }
@@ -1993,7 +1983,6 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
         edge_queue_insert_val34_vert(eq_ctx, v);
       }
     }
-    TGSET_ITER_END;
   }
 
   BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
@@ -2822,7 +2811,7 @@ static void pbvh_split_edges(
 
       node->flag |= (PBVHNodeFlags)node_updateflag;
 
-      BLI_table_gset_add(node->bm_unique_verts, newv);
+      node->bm_unique_verts->add(newv);
 
       BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, ni);
       // BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, -1);
@@ -2980,7 +2969,7 @@ static void pbvh_split_edges(
 
           node->flag |= (PBVHNodeFlags)node_updateflag;
 
-          BLI_table_gset_add(node->bm_faces, newf);
+          node->bm_faces->add(newf);
           BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, ni);
         }
         else {

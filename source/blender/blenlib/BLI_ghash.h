@@ -162,22 +162,7 @@ void *BLI_ghash_lookup_default(const GHash *gh,
  */
 void **BLI_ghash_lookup_p(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 /**
- * Lookup a pointer to the value of \a key in \a gh.
- *
- * \param key: The key to lookup.
- * \param r_key: Pointer to variable to store the key as stored in the ghash
- * \param r_val: Similar to BLI_ghash_ensure_p, pointer to the ghash pointer
- * that stores the value
- *
- * \returns true if the value was found
- *
- * \note This has 2 main benefits over #BLI_ghash_lookup.
- * - The value can be modified in-place without further function calls (faster).
- * - The key as stored in the ghash is returned in r_key
- */
-bool BLI_ghash_lookup_p_ex(GHash *gh, const void *key, void **r_key, void ***r_val);
-
-/** Ensure \a key is exists in \a gh.
+ * Ensure \a key is exists in \a gh.
  *
  * This handles the common situation where the caller needs ensure a key is added to \a gh,
  * constructing a new value in the case the key isn't found.
@@ -353,73 +338,6 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
  * \{ */
 
 typedef struct GSet GSet;
-
-typedef struct TableGSet {
-  void *ptr_to_idx;
-  void **elems;
-  int size, length;
-  int cur;
-} TableGSet;
-
-TableGSet *BLI_table_gset_new(const char *info);
-TableGSet *BLI_table_gset_new_ex(const char *info, int size);
-void BLI_table_gset_free(TableGSet *ts, GHashKeyFreeFP freefp);
-void BLI_table_gset_insert(TableGSet *ts, void *elem);
-bool BLI_table_gset_add(TableGSet *ts, void *elem);
-void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp);
-bool BLI_table_gset_haskey(TableGSet *ts, void *elem);
-
-int BLI_table_gset_len(TableGSet *ts);
-
-#ifdef __cplusplus
-#  define TGSET_ITER(v, ts) \
-    { \
-      int _i1; \
-      for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
-        if (!(ts)->elems[_i1]) \
-          continue; \
-        v = static_cast<decltype(v)>((ts)->elems[_i1]);
-#else
-#  define TGSET_ITER(v, ts) \
-    { \
-      int _i1; \
-      for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
-        if (!(ts)->elems[_i1]) \
-          continue; \
-        v = (ts)->elems[_i1];
-#endif
-
-#define TGSET_ITER_END \
-  } \
-  }
-
-#define TGSET_ITER_INDEX(v, ts, index) \
-  { \
-    int _i1; \
-    index = -1; \
-    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
-      if (!(ts)->elems[_i1]) \
-        continue; \
-      v = static_cast<decltype(v)>((ts)->elems[_i1]); \
-      index++;
-
-#define TGSET_ITER_INDEX_END \
-  } \
-  }
-
-#define TGSET_FOREACH_BEGIN(type, v, ts) \
-  { \
-    type v; \
-    int _i1; \
-    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
-      if (!(ts)->elems[_i1]) \
-        continue; \
-      v = (type)(ts)->elems[_i1];
-
-#define TGSET_FOREACH_END() \
-  } \
-  } \
-  while (0)
 
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;

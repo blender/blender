@@ -380,6 +380,7 @@ set(SRC
   BKE_duplilist.h
   BKE_dynamicpaint.h
   BKE_dyntopo.hh
+  BKE_dyntopo_set.hh
   BKE_editlattice.h
   BKE_editmesh.h
   BKE_editmesh_bvh.h

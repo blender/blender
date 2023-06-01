@@ -128,9 +128,8 @@ struct PBVHNode {
   /* GSet of pointers to the BMFaces used by this node.
    * NOTE: PBVH_BMESH only.
    */
-  TableGSet *bm_faces;
-  TableGSet *bm_unique_verts;
-  TableGSet *bm_other_verts;
+  blender::bke::dyntopo::DyntopoSet<BMVert> *bm_unique_verts, *bm_other_verts;
+  blender::bke::dyntopo::DyntopoSet<BMFace> *bm_faces;
 
   PBVHTriBuf *tribuf;  // all triangles
   blender::Vector<PBVHTriBuf> *tri_buffers;
