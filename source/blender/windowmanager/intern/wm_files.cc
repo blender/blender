@@ -3438,6 +3438,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
   ot->check = wm_save_mainfile_check;
+  ot->get_description = wm_save_mainfile_get_description;
   /* Omit window poll so this can work in background mode. */
 
   PropertyRNA *prop;
