@@ -4,11 +4,12 @@
 
 #include <optional>
 
+#include "BLI_index_mask.hh"
+
 #include "BKE_attribute.h"
 
 struct Mesh;
 namespace blender {
-class IndexMask;
 namespace fn {
 template<typename T> class Field;
 }

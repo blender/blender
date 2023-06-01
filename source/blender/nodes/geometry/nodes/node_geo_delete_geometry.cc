@@ -5,18 +5,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "BLI_array.hh"
-#include "BLI_array_utils.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
-#include "BKE_customdata.h"
 #include "BKE_instances.hh"
-#include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
 #include "GEO_mesh_copy_selection.hh"

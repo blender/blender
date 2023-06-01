@@ -181,6 +181,22 @@ static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
   return mesh;
 }
 
+static void copy_loose_vert_hint(const Mesh &src, Mesh &dst)
+{
+  const auto &src_cache = src.runtime->loose_verts_cache;
+  if (src_cache.is_cached() && src_cache.data().count == 0) {
+    dst.tag_loose_verts_none();
+  }
+}
+
+static void copy_loose_edge_hint(const Mesh &src, Mesh &dst)
+{
+  const auto &src_cache = src.runtime->loose_edges_cache;
+  if (src_cache.is_cached() && src_cache.data().count == 0) {
+    dst.tag_loose_edges_none();
+  }
+}
+
 std::optional<Mesh *> mesh_copy_selection(
     const Mesh &src_mesh,
     const fn::Field<bool> &selection_field,
@@ -322,6 +338,14 @@ std::optional<Mesh *> mesh_copy_selection(
                                               dst_attributes);
       });
 
+  if (selection_domain == ATTR_DOMAIN_EDGE) {
+    copy_loose_vert_hint(src_mesh, *dst_mesh);
+  }
+  else if (selection_domain == ATTR_DOMAIN_FACE) {
+    copy_loose_vert_hint(src_mesh, *dst_mesh);
+    copy_loose_edge_hint(src_mesh, *dst_mesh);
+  }
+
   return dst_mesh;
 }
 
@@ -423,6 +447,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
 
   /* Positions are not changed by the operation, so the bounds are the same. */
   dst_mesh->runtime->bounds_cache = src_mesh.runtime->bounds_cache;
+  copy_loose_vert_hint(src_mesh, *dst_mesh);
   return dst_mesh;
 }
 
@@ -488,6 +513,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
 
   /* Positions are not changed by the operation, so the bounds are the same. */
   dst_mesh->runtime->bounds_cache = src_mesh.runtime->bounds_cache;
+  copy_loose_vert_hint(src_mesh, *dst_mesh);
   return dst_mesh;
 }
 
