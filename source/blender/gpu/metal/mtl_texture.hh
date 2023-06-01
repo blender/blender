@@ -575,7 +575,9 @@ inline MTLTextureUsage mtl_usage_from_gpu(eGPUTextureUsage usage)
   if (usage == GPU_TEXTURE_USAGE_GENERAL) {
     return MTLTextureUsageUnknown;
   }
-  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+  /* Host read implies general read support, as the compute-based host read routine requires
+   * reading of texture data. */
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ || usage & GPU_TEXTURE_USAGE_HOST_READ) {
     mtl_usage = mtl_usage | MTLTextureUsageShaderRead;
   }
   if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
