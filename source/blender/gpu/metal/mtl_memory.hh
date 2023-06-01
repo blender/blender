@@ -3,6 +3,7 @@
 #pragma once
 
 #include <atomic>
+#include <ctime>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -231,17 +232,20 @@ class MTLCircularBuffer {
 struct MTLBufferHandle {
   gpu::MTLBuffer *buffer;
   uint64_t buffer_size;
+  time_t insert_time;
 
   inline MTLBufferHandle(gpu::MTLBuffer *buf)
   {
     this->buffer = buf;
     this->buffer_size = this->buffer->get_size();
+    this->insert_time = std::time(nullptr);
   }
 
   inline MTLBufferHandle(uint64_t compare_size)
   {
     this->buffer = nullptr;
     this->buffer_size = compare_size;
+    this->insert_time = 0;
   }
 };
 
@@ -354,7 +358,6 @@ class MTLBufferPool {
 
   /* Debug statistics. */
   std::atomic<int> per_frame_allocation_count_;
-  std::atomic<int64_t> allocations_in_pool_;
   std::atomic<int64_t> buffers_in_pool_;
 #endif
 
@@ -399,6 +402,7 @@ class MTLBufferPool {
   /* MTLBuffer::free() can be called from separate threads, due to usage within animation
    * system/worker threads. */
   std::atomic<MTLSafeFreeList *> current_free_list_;
+  std::atomic<int64_t> allocations_in_pool_;
 
  public:
   void init(id<MTLDevice> device);
