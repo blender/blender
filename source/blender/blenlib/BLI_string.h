@@ -437,6 +437,15 @@ void BLI_str_rstrip(char *str) ATTR_NONNULL(1);
 int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL(1);
 
 /**
+ * Strip trailing digits.
+ *   ABC123 -> ABC
+ *
+ * \param str:
+ * \return The number of digits stripped.
+ */
+int BLI_str_rstrip_digits(char *str) ATTR_NONNULL();
+
+/**
  * Return index of a string in a string array.
  *
  * \param str: The string to find.

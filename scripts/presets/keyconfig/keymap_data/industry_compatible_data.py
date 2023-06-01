@@ -188,6 +188,7 @@ def km_window(params):
         ("wm.open_mainfile", {"type": 'O', "value": 'PRESS', "ctrl": True}, None),
         ("wm.save_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True}, None),
         ("wm.save_as_mainfile", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("wm.save_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, {"properties": [("incremental", True)]}),
         ("wm.quit_blender", {"type": 'Q', "value": 'PRESS', "ctrl": True}, None),
 
         # Quick menu and toolbar
