@@ -7,8 +7,6 @@
  * \brief Simple API to draw debug shapes in the viewport.
  */
 
-#define DRAW_DEBUG
-
 #include "BKE_object.h"
 #include "BLI_link_utils.h"
 #include "BLI_math_matrix.hh"
