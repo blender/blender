@@ -20,6 +20,7 @@
 
 #include "../outliner_intern.hh"
 #include "common.hh"
+#include "tree_element_id_curve.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_mesh.hh"
 #include "tree_element_id_scene.hh"
@@ -42,8 +43,9 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
       return std::make_unique<TreeElementIDScene>(legacy_te, (Scene &)id);
     case ID_ME:
       return std::make_unique<TreeElementIDMesh>(legacy_te, (Mesh &)id);
-    case ID_OB:
     case ID_CU_LEGACY:
+      return std::make_unique<TreeElementIDCurve>(legacy_te, (Curve &)id);
+    case ID_OB:
     case ID_MB:
     case ID_MA:
     case ID_TE:
