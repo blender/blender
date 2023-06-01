@@ -1240,6 +1240,7 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
 
 void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
 {
+  /* Original model created by Matias Mendiola. */
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
