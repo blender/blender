@@ -18,7 +18,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_asan.h"
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
 #include "BLI_compiler_attrs.h"
@@ -74,8 +73,6 @@ using blender::Vector;
 
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
-
-#define BM_ASAN_PAD 32
 
 /* ensure typemap size is ok */
 BLI_STATIC_ASSERT(BOUNDED_ARRAY_TYPE_SIZE<decltype(CustomData::typemap)>() == CD_NUMTYPES,
@@ -2801,16 +2798,8 @@ static void customData_update_offsets(CustomData *data)
         size += 8 - (size & 7);
       }
 
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
-
       layer->offset = offset;
       offset += size;
-
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
     }
   }
 
@@ -2829,10 +2818,6 @@ static void customData_update_offsets(CustomData *data)
         continue;
       }
 
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
-
       donemap[j] = true;
 
       int align2 = aligns[i] - (offset % aligns[i]);
@@ -2842,10 +2827,6 @@ static void customData_update_offsets(CustomData *data)
 
       layer->offset = offset;
       offset += size;
-
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
     }
   }
 
@@ -2856,35 +2837,6 @@ static void customData_update_offsets(CustomData *data)
   data->totsize = offset;
 
   CustomData_update_typemap(data);
-}
-
-void CustomData_bmesh_asan_poison(const CustomData *data, void *block)
-{
-#ifdef WITH_ASAN
-  if (!block) {
-    return;
-  }
-
-  char *ptr = (char *)block;
-
-  BLI_asan_unpoison(block, data->totsize);
-
-  for (int i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = data->layers + i;
-    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer->type));
-
-    BLI_asan_poison((ptr + layer->offset - BM_ASAN_PAD), BM_ASAN_PAD);
-    BLI_asan_poison((ptr + layer->offset + typeInfo->size), BM_ASAN_PAD);
-  }
-#endif
-}
-
-void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block)
-{
-  if (!block) {
-    return;
-  }
-  BLI_asan_unpoison(block, data->totsize);
 }
 
 /* to use when we're in the middle of modifying layers */
@@ -4223,8 +4175,6 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
     return;
   }
 
-  CustomData_bmesh_asan_unpoison(data, *block);
-
   for (int i = 0; i < data->totlayer; i++) {
     const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(data->layers[i].type));
 
@@ -4235,7 +4185,6 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   }
 
   if (data->totsize) {
-    CustomData_bmesh_asan_unpoison(data, *block);
     BLI_mempool_free(data->pool, *block);
   }
 
@@ -4247,8 +4196,6 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
   if (block == nullptr) {
     return;
   }
-
-  CustomData_bmesh_asan_unpoison(data, block);
 
   for (int i = 0; i < data->totlayer; i++) {
     const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(data->layers[i].type));
@@ -4263,8 +4210,6 @@ void CustomData_bmesh_free_block_data(CustomData *data, void *block)
       memset(POINTER_OFFSET(block, data->layers[i].offset), 0, typeInfo->size);
     }
   }
-
-  CustomData_bmesh_asan_poison(data, block);
 }
 
 void CustomData_bmesh_alloc_block(CustomData *data, void **block)
@@ -4275,8 +4220,6 @@ void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 
   if (data->totsize > 0) {
     *block = BLI_mempool_alloc(data->pool);
-
-    CustomData_bmesh_asan_poison(data, *block);
 
     /*clear toolflags pointer when created for the first time*/
     int cd_tflags = data->typemap[CD_TOOLFLAGS];
@@ -4303,8 +4246,6 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
     return;
   }
 
-  CustomData_bmesh_asan_unpoison(data, block);
-
   for (int i = 0; i < data->totlayer; i++) {
     if ((CD_TYPE_AS_MASK(data->layers[i].type) & mask_exclude) == 0) {
       const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(data->layers[i].type));
@@ -4315,8 +4256,6 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
       memset(POINTER_OFFSET(block, offset), 0, typeInfo->size);
     }
   }
-
-  CustomData_bmesh_asan_poison(data, block);
 }
 
 void CustomData_data_set_default_value(const CustomData *data,
@@ -4360,9 +4299,6 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 
 void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2, int cd_id)
 {
-  CustomData_bmesh_asan_unpoison(data, *block1);
-  CustomData_bmesh_asan_unpoison(data, *block2);
-
   std::swap(*block1, *block2);
 
   int cd_toolflags = data->typemap[CD_TOOLFLAGS];
@@ -4384,9 +4320,6 @@ void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **b
       std::swap(*id1, *id2);
     }
   }
-
-  CustomData_bmesh_asan_poison(data, *block1);
-  CustomData_bmesh_asan_poison(data, *block2);
 }
 
 void CustomData_bmesh_swap_data(CustomData *source,
@@ -4402,9 +4335,7 @@ void CustomData_bmesh_swap_data(CustomData *source,
     CustomData_bmesh_alloc_block(dest, dest_block);
 
     if (*dest_block) {
-      CustomData_bmesh_asan_unpoison(dest, *dest_block);
       memset(*dest_block, 0, dest->totsize);
-      CustomData_bmesh_asan_poison(dest, *dest_block);
 
       CustomData_bmesh_set_default(dest, dest_block);
     }
@@ -4488,9 +4419,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     CustomData_bmesh_alloc_block(dest, dest_block);
 
     if (*dest_block) {
-      CustomData_bmesh_asan_unpoison(dest, *dest_block);
       memset(*dest_block, 0, dest->totsize);
-      CustomData_bmesh_asan_poison(dest, *dest_block);
 
       was_new = true;
     }

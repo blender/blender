@@ -711,7 +711,6 @@ struct BMLogEntry {
   void free_logvert(BMLogVert *lv)
   {
     if (lv->customdata) {
-      CustomData_bmesh_asan_unpoison(&vdata, lv->customdata);
       BLI_mempool_free(vdata.pool, lv->customdata);
     }
 
@@ -751,7 +750,6 @@ struct BMLogEntry {
   void free_logedge(BMesh * /*bm*/, BMLogEdge *le)
   {
     if (le->customdata) {
-      CustomData_bmesh_asan_unpoison(&edata, le->customdata);
       BLI_mempool_free(edata.pool, le->customdata);
     }
 
@@ -808,13 +806,11 @@ struct BMLogEntry {
   {
     if (lf->loop_customdata[0]) {
       for (int i = 0; i < lf->verts.size(); i++) {
-        CustomData_bmesh_asan_unpoison(&ldata, lf->loop_customdata[i]);
         BLI_mempool_free(ldata.pool, lf->loop_customdata[i]);
       }
     }
 
     if (lf->customdata) {
-      CustomData_bmesh_asan_unpoison(&pdata, lf->customdata);
       BLI_mempool_free(pdata.pool, lf->customdata);
     }
 
@@ -1270,10 +1266,6 @@ void BMLogSetDiff::swap_verts(BMesh *bm,
 
   const int cd_id = entry->idmap->cd_id_off[BM_VERT];
 
-  if (old_customdata) {
-    CustomData_bmesh_asan_unpoison(&bm->vdata, old_customdata);
-  }
-
   for (BMLogVert *lv : verts.values()) {
     BMVert *v = entry->get_elem_from_id<BMVert>(bm, lv->id);
 
@@ -1283,9 +1275,7 @@ void BMLogSetDiff::swap_verts(BMesh *bm,
     }
 
     if (old_customdata) {
-      CustomData_bmesh_asan_unpoison(&bm->vdata, v->head.data);
       memcpy(old_customdata, v->head.data, bm->vdata.totsize);
-      CustomData_bmesh_asan_poison(&bm->vdata, v->head.data);
     }
 
     entry->swap_logvert(bm, lv->id, v, lv);
@@ -1407,10 +1397,6 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
 {
   void *old_customdata = entry->edata.pool ? BLI_mempool_alloc(bm->edata.pool) : nullptr;
 
-  if (old_customdata) {
-    CustomData_bmesh_asan_unpoison(&bm->edata, old_customdata);
-  }
-
   for (BMLogEdge *le : edges.values()) {
     BMEdge *e = entry->get_elem_from_id(bm, le->id);
 
@@ -1420,9 +1406,7 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
     }
 
     if (old_customdata) {
-      CustomData_bmesh_asan_unpoison(&bm->edata, e->head.data);
       memcpy(old_customdata, e->head.data, bm->edata.totsize);
-      CustomData_bmesh_asan_poison(&bm->edata, e->head.data);
     }
 
     entry->swap_logedge(bm, le->id, e, le);
@@ -1521,10 +1505,6 @@ void BMLogSetDiff::swap_faces(BMesh *bm,
 
   const int cd_id = entry->idmap->cd_id_off[BM_FACE];
 
-  if (old_customdata) {
-    CustomData_bmesh_asan_unpoison(&bm->pdata, old_customdata);
-  }
-
   for (BMLogFace *lf : faces.values()) {
     BMFace *f = entry->get_elem_from_id<BMFace>(bm, lf->id);
 
@@ -1534,9 +1514,7 @@ void BMLogSetDiff::swap_faces(BMesh *bm,
     }
 
     if (old_customdata) {
-      CustomData_bmesh_asan_unpoison(&bm->pdata, f->head.data);
       memcpy(old_customdata, f->head.data, bm->pdata.totsize);
-      CustomData_bmesh_asan_poison(&bm->pdata, f->head.data);
     }
 
     entry->swap_logface(bm, lf->id, f, lf);

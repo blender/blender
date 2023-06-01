@@ -832,9 +832,6 @@ void CustomData_mark_temporary_nocopy(struct CustomData *data);
 
 void CustomData_regen_active_refs(CustomData *data);
 
-void CustomData_bmesh_asan_poison(const CustomData *data, void *block);
-void CustomData_bmesh_asan_unpoison(const CustomData *data, void *block);
-
 #ifndef NDEBUG
 struct DynStr;
 /** Use to inspect mesh data when debugging. */
