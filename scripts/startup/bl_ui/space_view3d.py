@@ -2311,6 +2311,7 @@ class VIEW3D_MT_grease_pencil_add(Menu):
         layout = self.layout
         layout.operator("object.grease_pencil_add", text="Empty", icon='EMPTY_AXIS').type = 'EMPTY'
         layout.operator("object.grease_pencil_add", text="Stroke", icon='STROKE').type = 'STROKE'
+        layout.operator("object.grease_pencil_add", text="Suzanne", icon='MONKEY').type = 'MONKEY'
 
 
 class VIEW3D_MT_add(Menu):
