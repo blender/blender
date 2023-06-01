@@ -111,8 +111,7 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
  */
 static int lib_id_load_custom_preview_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  PointerRNA idptr = CTX_data_pointer_get(C, "id");
-  op->customdata = idptr.data;
+  op->customdata = lib_id_load_custom_preview_id_get(C, op);
   return WM_operator_filesel(C, op, event);
 }
 
