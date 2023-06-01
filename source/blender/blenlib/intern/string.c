@@ -1058,6 +1058,17 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
   return totstrip;
 }
 
+int BLI_str_rstrip_digits(char *str)
+{
+  int totstrip = 0;
+  int str_len = strlen(str);
+  while (str_len > 0 && isdigit(str[--str_len])) {
+    str[str_len] = '\0';
+    totstrip++;
+  }
+  return totstrip;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

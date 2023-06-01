@@ -610,6 +610,7 @@ def km_window(params):
         ("wm.open_mainfile", {"type": 'O', "value": 'PRESS', "ctrl": True}, None),
         ("wm.save_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True}, None),
         ("wm.save_as_mainfile", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True}, None),
+        ("wm.save_mainfile", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, {"properties": [("incremental", True)]}),
         ("wm.quit_blender", {"type": 'Q', "value": 'PRESS', "ctrl": True}, None),
 
         # Quick menu and toolbar
@@ -4597,7 +4598,7 @@ def km_pose(params):
         ("armature.layers_show_all", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True}, None),
         ("armature.armature_layers", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("pose.bone_layers", {"type": 'M', "value": 'PRESS'}, None),
-        ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("anim.keyframe_insert_menu", {"type": 'I', "value": 'PRESS'}, None),
         ("anim.keyframe_delete_v3d", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("anim.keying_set_active_set", {"type": 'I', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
@@ -5526,7 +5527,7 @@ def km_armature(params):
         ("armature.bone_layers", {"type": 'M', "value": 'PRESS'}, None),
         # Special transforms.
         op_tool_optional(
-            ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
             (op_tool_cycle, "builtin.bone_size"), params),
         op_tool_optional(
             ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},

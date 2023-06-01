@@ -3258,6 +3258,31 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (RNA_boolean_get(op->ptr, "incremental")) {
+    char head[FILE_MAXFILE], tail[FILE_MAXFILE];
+    ushort digits;
+    int num = BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &digits);
+    /* Numbers greater than INT_MAX return 0, resulting in always appending "1" to the name. */
+    if (num == 0 && digits == 0) {
+      /* This does nothing if there are no numbers at the end of the head. */
+      BLI_str_rstrip_digits(head);
+    }
+
+    const int tries_limit = 1000;
+    int tries = 0;
+    bool in_use = true;
+    do {
+      num++;
+      tries++;
+      BLI_path_sequence_encode(filepath, sizeof(filepath), head, tail, digits, num);
+      in_use = BLI_exists(filepath);
+    } while (in_use && tries < tries_limit && num < INT_MAX);
+    if (in_use) {
+      BKE_report(op->reports, RPT_ERROR, "Unable to find an available incremented file name");
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   const int fileflags_orig = G.fileflags;
   int fileflags = G.fileflags;
 
@@ -3392,6 +3417,18 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   return ret;
 }
 
+static char *wm_save_mainfile_get_description(bContext * /*C*/,
+                                              wmOperatorType * /*ot*/,
+                                              PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "incremental")) {
+    return BLI_strdup(
+        TIP_("Save the current Blender file with a numerically incremented name that does not "
+             "overwrite any existing files"));
+  }
+  return nullptr;
+}
+
 void WM_OT_save_mainfile(wmOperatorType *ot)
 {
   ot->name = "Save Blender File";
@@ -3419,6 +3456,14 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                   "Remap relative paths when saving to a different directory");
 
   prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+
+  prop = RNA_def_boolean(ot->srna,
+                         "incremental",
+                         false,
+                         "Incremental",
+                         "Save the current Blender file with a numerically incremented name that "
+                         "does not overwrite any existing files");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 

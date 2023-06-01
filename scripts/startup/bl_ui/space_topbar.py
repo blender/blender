@@ -283,6 +283,10 @@ class TOPBAR_MT_file(Menu):
         layout.operator_context = 'EXEC_AREA' if context.blend_data.is_saved else 'INVOKE_AREA'
         layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
 
+        sub = layout.row()
+        sub.enabled = context.blend_data.is_saved
+        sub.operator("wm.save_mainfile", text="Save Incremental").incremental = True
+
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")
         layout.operator_context = 'INVOKE_AREA'
