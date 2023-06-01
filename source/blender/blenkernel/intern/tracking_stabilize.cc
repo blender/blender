@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1356,10 +1357,10 @@ ImBuf *BKE_tracking_stabilize_frame(
 
   /* Allocate frame for stabilization result, copy alpha mode and color-space. */
   ibuf_flags = 0;
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     ibuf_flags |= IB_rect;
   }
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     ibuf_flags |= IB_rectfloat;
   }
 
@@ -1402,7 +1403,7 @@ ImBuf *BKE_tracking_stabilize_frame(
   BLI_task_parallel_range(
       0, tmpibuf->y, &data, tracking_stabilize_frame_interpolation_cb, &settings);
 
-  if (tmpibuf->rect_float) {
+  if (tmpibuf->float_buffer.data) {
     tmpibuf->userflags |= IB_RECT_INVALID;
   }
 

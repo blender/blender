@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -435,7 +436,7 @@ static void file_draw_preview(const FileDirEntry *file,
                                 imb->y,
                                 GPU_RGBA8,
                                 true,
-                                imb->rect,
+                                imb->byte_buffer.data,
                                 scale,
                                 scale,
                                 1.0f,

@@ -1,216 +1,287 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
+#include "BLI_array.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_rand.hh"
+#include "BLI_set.hh"
+#include "BLI_strict_flags.h"
+#include "BLI_timeit.hh"
+
 #include "testing/testing.h"
 
-namespace blender::tests {
+namespace blender::index_mask::tests {
+
+TEST(index_mask, IndicesToMask)
+{
+  IndexMaskMemory memory;
+  Array<int> data = {
+      5, 100, 16383, 16384, 16385, 20000, 20001, 50000, 50001, 50002, 100000, 101000};
+  IndexMask mask = IndexMask::from_indices<int>(data, memory);
+
+  EXPECT_EQ(mask.first(), 5);
+  EXPECT_EQ(mask.last(), 101000);
+  EXPECT_EQ(mask.min_array_size(), 101001);
+}
+
+TEST(index_mask, FromBits)
+{
+  IndexMaskMemory memory;
+  const uint64_t bits =
+      0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'1111'0010'0000;
+  const IndexMask mask = IndexMask::from_bits(BitSpan(&bits, IndexRange(2, 40)), memory);
+  Array<int> indices(5);
+  mask.to_indices<int>(indices);
+  EXPECT_EQ(indices[0], 3);
+  EXPECT_EQ(indices[1], 6);
+  EXPECT_EQ(indices[2], 7);
+  EXPECT_EQ(indices[3], 8);
+  EXPECT_EQ(indices[4], 9);
+}
+
+TEST(index_mask, FromSize)
+{
+  {
+    const IndexMask mask(5);
+    Vector<IndexMaskSegment> segments;
+    mask.foreach_segment([&](const IndexMaskSegment segment) { segments.append(segment); });
+    EXPECT_EQ(segments.size(), 1);
+    EXPECT_EQ(segments[0].size(), 5);
+    EXPECT_EQ(mask.first(), 0);
+    EXPECT_EQ(mask.last(), 4);
+    EXPECT_EQ(mask.min_array_size(), 5);
+  }
+  {
+    const IndexMask mask(max_segment_size);
+    Vector<IndexMaskSegment> segments;
+    mask.foreach_segment([&](const IndexMaskSegment segment) { segments.append(segment); });
+    EXPECT_EQ(segments.size(), 1);
+    EXPECT_EQ(segments[0].size(), max_segment_size);
+    EXPECT_EQ(mask.first(), 0);
+    EXPECT_EQ(mask.last(), max_segment_size - 1);
+    EXPECT_EQ(mask.min_array_size(), max_segment_size);
+  }
+}
 
 TEST(index_mask, DefaultConstructor)
 {
   IndexMask mask;
-  EXPECT_EQ(mask.min_array_size(), 0);
   EXPECT_EQ(mask.size(), 0);
+  EXPECT_EQ(mask.min_array_size(), 0);
 }
 
-TEST(index_mask, ArrayConstructor)
+TEST(index_mask, ForeachRange)
 {
-  [](IndexMask mask) {
-    EXPECT_EQ(mask.size(), 4);
-    EXPECT_EQ(mask.min_array_size(), 8);
-    EXPECT_FALSE(mask.is_range());
-    EXPECT_EQ(mask[0], 3);
-    EXPECT_EQ(mask[1], 5);
-    EXPECT_EQ(mask[2], 6);
-    EXPECT_EQ(mask[3], 7);
-  }({3, 5, 6, 7});
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({2, 3, 4, 10, 40, 41}, memory);
+  Vector<IndexRange> ranges;
+  mask.foreach_range([&](const IndexRange range) { ranges.append(range); });
+
+  EXPECT_EQ(ranges.size(), 3);
+  EXPECT_EQ(ranges[0], IndexRange(2, 3));
+  EXPECT_EQ(ranges[1], IndexRange(10, 1));
+  EXPECT_EQ(ranges[2], IndexRange(40, 2));
 }
 
-TEST(index_mask, RangeConstructor)
+TEST(index_mask, ToRange)
 {
-  IndexMask mask = IndexRange(3, 5);
-  EXPECT_EQ(mask.size(), 5);
-  EXPECT_EQ(mask.min_array_size(), 8);
-  EXPECT_EQ(mask.last(), 7);
-  EXPECT_TRUE(mask.is_range());
-  EXPECT_EQ(mask.as_range().first(), 3);
-  EXPECT_EQ(mask.as_range().last(), 7);
-  Span<int64_t> indices = mask.indices();
-  EXPECT_EQ(indices[0], 3);
-  EXPECT_EQ(indices[1], 4);
-  EXPECT_EQ(indices[2], 5);
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({4, 5, 6, 7}, memory);
+    EXPECT_TRUE(mask.to_range().has_value());
+    EXPECT_EQ(*mask.to_range(), IndexRange(4, 4));
+  }
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({}, memory);
+    EXPECT_TRUE(mask.to_range().has_value());
+    EXPECT_EQ(*mask.to_range(), IndexRange());
+  }
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({0, 1, 3, 4}, memory);
+    EXPECT_FALSE(mask.to_range().has_value());
+  }
+  {
+    const IndexRange range{16000, 40000};
+    const IndexMask mask{range};
+    EXPECT_TRUE(mask.to_range().has_value());
+    EXPECT_EQ(*mask.to_range(), range);
+  }
 }
 
-TEST(index_mask, SliceAndOffset)
+TEST(index_mask, FromRange)
 {
+  const auto test_range = [](const IndexRange range) {
+    const IndexMask mask = range;
+    EXPECT_EQ(mask.to_range(), range);
+  };
+
+  test_range({0, 0});
+  test_range({0, 10});
+  test_range({0, 16384});
+  test_range({16320, 64});
+  test_range({16384, 64});
+  test_range({0, 100000});
+  test_range({100000, 100000});
+  test_range({688064, 64});
+}
+
+TEST(index_mask, FromPredicate)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexRange range{20'000, 50'000};
+    const IndexMask mask = IndexMask::from_predicate(
+        IndexRange(100'000), GrainSize(1024), memory, [&](const int64_t i) {
+          return range.contains(i);
+        });
+    EXPECT_EQ(mask.to_range(), range);
+  }
+  {
+    const Vector<int64_t> indices = {0, 500, 20'000, 50'000};
+    const IndexMask mask = IndexMask::from_predicate(
+        IndexRange(100'000), GrainSize(1024), memory, [&](const int64_t i) {
+          return indices.contains(i);
+        });
+    EXPECT_EQ(mask.size(), indices.size());
+    Vector<int64_t> new_indices(mask.size());
+    mask.to_indices<int64_t>(new_indices);
+    EXPECT_EQ(indices, new_indices);
+  }
+}
+
+TEST(index_mask, IndexIteratorConversionFuzzy)
+{
+  RandomNumberGenerator rng;
+
   Vector<int64_t> indices;
-  {
-    IndexMask mask{IndexRange(10)};
-    IndexMask new_mask = mask.slice_and_offset(IndexRange(3, 5), indices);
-    EXPECT_TRUE(new_mask.is_range());
-    EXPECT_EQ(new_mask.size(), 5);
-    EXPECT_EQ(new_mask[0], 0);
-    EXPECT_EQ(new_mask[1], 1);
+  indices.append(5);
+  for ([[maybe_unused]] const int64_t i : IndexRange(1000)) {
+    for ([[maybe_unused]] const int64_t j :
+         IndexRange(indices.last() + 1 + rng.get_int32(1000), rng.get_int32(64)))
+    {
+      indices.append(j);
+    }
   }
-  {
-    Vector<int64_t> original_indices = {2, 3, 5, 7, 8, 9, 10};
-    IndexMask mask{original_indices.as_span()};
-    IndexMask new_mask = mask.slice_and_offset(IndexRange(1, 4), indices);
-    EXPECT_FALSE(new_mask.is_range());
-    EXPECT_EQ(new_mask.size(), 4);
-    EXPECT_EQ(new_mask[0], 0);
-    EXPECT_EQ(new_mask[1], 2);
-    EXPECT_EQ(new_mask[2], 4);
-    EXPECT_EQ(new_mask[3], 5);
-  }
-}
 
-TEST(index_mask, ExtractRanges)
-{
-  {
-    Vector<int64_t> indices = {1, 2, 3, 5, 7, 8};
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), 3);
-    EXPECT_EQ(ranges[0], IndexRange(1, 3));
-    EXPECT_EQ(ranges[1], IndexRange(5, 1));
-    EXPECT_EQ(ranges[2], IndexRange(7, 2));
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int64_t>(indices, memory);
+  EXPECT_EQ(mask.size(), indices.size());
+
+  for ([[maybe_unused]] const int64_t _ : IndexRange(100)) {
+    const int64_t index = rng.get_int32(int(indices.size()));
+    const RawMaskIterator it = mask.index_to_iterator(index);
+    EXPECT_EQ(mask[it], indices[index]);
+    const int64_t new_index = mask.iterator_to_index(it);
+    EXPECT_EQ(index, new_index);
   }
-  {
-    Vector<int64_t> indices;
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), 0);
+
+  for ([[maybe_unused]] const int64_t _ : IndexRange(100)) {
+    const int64_t start = rng.get_int32(int(indices.size() - 1));
+    const int64_t size = 1 + rng.get_int32(int(indices.size() - start - 1));
+    const IndexMask sub_mask = mask.slice(start, size);
+    const int64_t index = rng.get_int32(int(sub_mask.size()));
+    const RawMaskIterator it = sub_mask.index_to_iterator(index);
+    EXPECT_EQ(sub_mask[it], indices[start + index]);
+    const int64_t new_index = sub_mask.iterator_to_index(it);
+    EXPECT_EQ(index, new_index);
   }
-  {
-    Vector<int64_t> indices = {5, 6, 7, 8, 9, 10};
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), 1);
-    EXPECT_EQ(ranges[0], IndexRange(5, 6));
-  }
-  {
-    Vector<int64_t> indices = {1, 3, 6, 8};
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), 4);
-    EXPECT_EQ(ranges[0], IndexRange(1, 1));
-    EXPECT_EQ(ranges[1], IndexRange(3, 1));
-    EXPECT_EQ(ranges[2], IndexRange(6, 1));
-    EXPECT_EQ(ranges[3], IndexRange(8, 1));
-  }
-  {
-    Vector<int64_t> indices;
-    IndexRange range1{4, 10};
-    IndexRange range2{20, 30};
-    IndexRange range3{100, 1};
-    IndexRange range4{150, 100};
-    for (const IndexRange &range : {range1, range2, range3, range4}) {
-      for (const int64_t i : range) {
-        indices.append(i);
+
+  for ([[maybe_unused]] const int64_t _ : IndexRange(100)) {
+    const int64_t index = rng.get_int32(int(indices.size() - 1000));
+    for (const int64_t offset : {0, 1, 2, 100, 500}) {
+      const int64_t index_to_search = indices[index] + offset;
+      const bool contained = std::binary_search(indices.begin(), indices.end(), index_to_search);
+      const std::optional<RawMaskIterator> it = mask.find(index_to_search);
+      EXPECT_EQ(contained, it.has_value());
+      if (contained) {
+        EXPECT_EQ(index_to_search, mask[*it]);
       }
     }
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), 4);
-    EXPECT_EQ(ranges[0], range1);
-    EXPECT_EQ(ranges[1], range2);
-    EXPECT_EQ(ranges[2], range3);
-    EXPECT_EQ(ranges[3], range4);
+  }
+}
+
+TEST(index_mask, FromPredicateFuzzy)
+{
+  RandomNumberGenerator rng;
+  Set<int> values;
+
+  for ([[maybe_unused]] const int64_t _ : IndexRange(10000)) {
+    values.add(rng.get_int32(100'000));
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      IndexRange(110'000), GrainSize(1024), memory, [&](const int64_t i) {
+        return values.contains(int(i));
+      });
+  EXPECT_EQ(mask.size(), values.size());
+  for (const int index : values) {
+    EXPECT_TRUE(mask.contains(index));
+  }
+  mask.foreach_index([&](const int64_t index, const int64_t pos) {
+    EXPECT_TRUE(values.contains(int(index)));
+    EXPECT_EQ(index, mask[pos]);
+  });
+}
+
+TEST(index_mask, Complement)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask(0);
+    const IndexMask complement = mask.complement(IndexRange(100), memory);
+    EXPECT_EQ(100 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
   }
   {
-    const int64_t max_test_range_size = 50;
-    Vector<int64_t> indices;
-    int64_t offset = 0;
-    for (const int64_t range_size : IndexRange(1, max_test_range_size)) {
-      for (const int i : IndexRange(range_size)) {
-        indices.append(offset + i);
-      }
-      offset += range_size + 1;
+    const IndexMask mask(10000);
+    const IndexMask complement = mask.complement(IndexRange(10000), memory);
+    EXPECT_EQ(10000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+  {
+    const IndexMask mask(IndexRange(100, 900));
+    const IndexMask complement = mask.complement(IndexRange(1000), memory);
+    EXPECT_EQ(1000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+  {
+    const IndexMask mask(IndexRange(0, 900));
+    const IndexMask complement = mask.complement(IndexRange(1000), memory);
+    EXPECT_EQ(1000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+}
+
+TEST(index_mask, ComplementFuzzy)
+{
+  RandomNumberGenerator rng;
+
+  const int64_t mask_size = 100;
+  const int64_t iter_num = 100;
+  const int64_t universe_size = 110;
+
+  for (const int64_t iter : IndexRange(iter_num)) {
+    Set<int> values;
+    for ([[maybe_unused]] const int64_t _ : IndexRange(iter)) {
+      values.add(rng.get_int32(mask_size));
     }
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges();
-    EXPECT_EQ(ranges.size(), max_test_range_size);
-    for (const int64_t range_size : IndexRange(1, max_test_range_size)) {
-      const IndexRange range = ranges[range_size - 1];
-      EXPECT_EQ(range.size(), range_size);
-    }
+    IndexMaskMemory memory;
+    const IndexMask mask = IndexMask::from_predicate(
+        IndexRange(mask_size), GrainSize(1024), memory, [&](const int64_t i) {
+          return values.contains(int(i));
+        });
+
+    const IndexMask complement = mask.complement(IndexRange(universe_size), memory);
+    EXPECT_EQ(universe_size - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
   }
 }
 
-TEST(index_mask, Invert)
-{
-  {
-    Vector<int64_t> indices;
-    Vector<int64_t> new_indices;
-    IndexMask inverted_mask = IndexMask(indices).invert(IndexRange(10), new_indices);
-    EXPECT_EQ(inverted_mask.size(), 10);
-    EXPECT_TRUE(new_indices.is_empty());
-  }
-  {
-    Vector<int64_t> indices = {3, 4, 5, 6};
-    Vector<int64_t> new_indices;
-    IndexMask inverted_mask = IndexMask(indices).invert(IndexRange(3, 4), new_indices);
-    EXPECT_TRUE(inverted_mask.is_empty());
-  }
-  {
-    Vector<int64_t> indices = {5};
-    Vector<int64_t> new_indices;
-    IndexMask inverted_mask = IndexMask(indices).invert(IndexRange(10), new_indices);
-    EXPECT_EQ(inverted_mask.size(), 9);
-    EXPECT_EQ(inverted_mask.indices(), Span<int64_t>({0, 1, 2, 3, 4, 6, 7, 8, 9}));
-  }
-  {
-    Vector<int64_t> indices = {0, 1, 2, 6, 7, 9};
-    Vector<int64_t> new_indices;
-    IndexMask inverted_mask = IndexMask(indices).invert(IndexRange(10), new_indices);
-    EXPECT_EQ(inverted_mask.size(), 4);
-    EXPECT_EQ(inverted_mask.indices(), Span<int64_t>({3, 4, 5, 8}));
-  }
-}
-
-TEST(index_mask, ExtractRangesInvert)
-{
-  {
-    Vector<int64_t> indices;
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges_invert(IndexRange(10), nullptr);
-    EXPECT_EQ(ranges.size(), 1);
-    EXPECT_EQ(ranges[0], IndexRange(10));
-  }
-  {
-    Vector<int64_t> indices = {1, 2, 3, 6, 7};
-    Vector<int64_t> skip_amounts;
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges_invert(IndexRange(10),
-                                                                         &skip_amounts);
-    EXPECT_EQ(ranges.size(), 3);
-    EXPECT_EQ(ranges[0], IndexRange(0, 1));
-    EXPECT_EQ(ranges[1], IndexRange(4, 2));
-    EXPECT_EQ(ranges[2], IndexRange(8, 2));
-    EXPECT_EQ(skip_amounts[0], 0);
-    EXPECT_EQ(skip_amounts[1], 3);
-    EXPECT_EQ(skip_amounts[2], 5);
-  }
-  {
-    Vector<int64_t> indices = {0, 1, 2, 3, 4};
-    Vector<int64_t> skip_amounts;
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges_invert(IndexRange(5),
-                                                                         &skip_amounts);
-    EXPECT_TRUE(ranges.is_empty());
-    EXPECT_TRUE(skip_amounts.is_empty());
-  }
-  {
-    Vector<int64_t> indices = {5, 6, 7, 10, 11};
-    Vector<int64_t> skip_amounts;
-    Vector<IndexRange> ranges = IndexMask(indices).extract_ranges_invert(IndexRange(5, 20),
-                                                                         &skip_amounts);
-    EXPECT_EQ(ranges.size(), 2);
-    EXPECT_EQ(ranges[0], IndexRange(8, 2));
-    EXPECT_EQ(ranges[1], IndexRange(12, 13));
-    EXPECT_EQ(skip_amounts[0], 3);
-    EXPECT_EQ(skip_amounts[1], 5);
-  }
-}
-
-TEST(index_mask, ContainedIn)
-{
-  EXPECT_TRUE(IndexMask({3, 4, 5}).contained_in(IndexRange(10)));
-  EXPECT_TRUE(IndexMask().contained_in(IndexRange(5, 0)));
-  EXPECT_FALSE(IndexMask({3}).contained_in(IndexRange(3)));
-  EXPECT_FALSE(IndexMask({4, 5, 6}).contained_in(IndexRange(5, 10)));
-  EXPECT_FALSE(IndexMask({5, 6}).contained_in(IndexRange()));
-}
-
-}  // namespace blender::tests
+}  // namespace blender::index_mask::tests

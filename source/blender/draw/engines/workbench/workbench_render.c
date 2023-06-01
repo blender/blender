@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -105,6 +106,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
 
   if ((view_layer->passflag & SCE_PASS_Z) != 0) {
     RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+    float *rp_buffer_data = rp->buffer.data;
 
     GPU_framebuffer_bind(dfbl->default_fb);
     GPU_framebuffer_read_depth(dfbl->default_fb,
@@ -113,7 +115,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
                                BLI_rcti_size_x(rect),
                                BLI_rcti_size_y(rect),
                                GPU_DATA_FLOAT,
-                               rp->rect);
+                               rp_buffer_data);
 
     float winmat[4][4];
     DRW_view_winmat_get(NULL, winmat, false);
@@ -123,12 +125,12 @@ static void workbench_render_result_z(struct RenderLayer *rl,
     /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(NULL)) {
       for (int i = 0; i < pix_num; i++) {
-        if (rp->rect[i] == 1.0f) {
-          rp->rect[i] = 1e10f; /* Background */
+        if (rp_buffer_data[i] == 1.0f) {
+          rp_buffer_data[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-          rp->rect[i] = winmat[3][2] / (rp->rect[i] + winmat[2][2]);
+          rp_buffer_data[i] = rp_buffer_data[i] * 2.0f - 1.0f;
+          rp_buffer_data[i] = winmat[3][2] / (rp_buffer_data[i] + winmat[2][2]);
         }
       }
     }
@@ -139,11 +141,11 @@ static void workbench_render_result_z(struct RenderLayer *rl,
       float range = fabsf(far - near);
 
       for (int i = 0; i < pix_num; i++) {
-        if (rp->rect[i] == 1.0f) {
-          rp->rect[i] = 1e10f; /* Background */
+        if (rp_buffer_data[i] == 1.0f) {
+          rp_buffer_data[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = rp->rect[i] * range - near;
+          rp_buffer_data[i] = rp_buffer_data[i] * range - near;
         }
       }
     }
@@ -208,7 +210,7 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
                              4,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->rect);
+                             rp->buffer.data);
 
   workbench_render_result_z(render_layer, viewname, rect);
 }

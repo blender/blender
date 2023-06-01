@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -324,7 +325,7 @@ static bool paint_brush_update(bContext *C,
     if (brush->mtex.tex && brush->mtex.tex->type == TEX_IMAGE && brush->mtex.tex->ima) {
       ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(
           brush->mtex.tex->ima, &brush->mtex.tex->iuser, nullptr);
-      if (tex_ibuf && tex_ibuf->rect_float == nullptr) {
+      if (tex_ibuf && tex_ibuf->float_buffer.data == nullptr) {
         ups->do_linear_conversion = true;
         ups->colorspace = tex_ibuf->rect_colorspace;
       }
@@ -1509,7 +1510,6 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
     }
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
-    BLI_assert((stroke->stroke_started & ~1) == 0); /* 0/1 */
 
     if (stroke->stroke_started) {
       if (br->flag & BRUSH_AIRBRUSH) {

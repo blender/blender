@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -266,7 +268,7 @@ CurveLengthFieldInput::CurveLengthFieldInput()
 
 GVArray CurveLengthFieldInput::get_varray_for_context(const CurvesGeometry &curves,
                                                       const eAttrDomain domain,
-                                                      const IndexMask /*mask*/) const
+                                                      const IndexMask & /*mask*/) const
 {
   return construct_curve_length_gvarray(curves, domain);
 }

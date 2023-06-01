@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -785,24 +787,6 @@ PyTypeObject BPyGPUShader_Type = {
 /** \name gpu.shader Module API
  * \{ */
 
-static int pyc_parse_buitinshader_w_backward_compatibility(PyObject *o, void *p)
-{
-  struct PyC_StringEnum *e = p;
-  const char *value = PyUnicode_AsUTF8(o);
-  if (value && ELEM(value[0], u'2', u'3')) {
-    /* Deprecated enums that start with "3D_" or "2D_". */
-    value += 3;
-    for (int i = 0; e->items[i].id; i++) {
-      if (STREQ(e->items[i].id, value)) {
-        e->value_found = e->items[i].value;
-        return 1;
-      }
-    }
-  }
-
-  return PyC_ParseStringEnum(o, p);
-}
-
 PyDoc_STRVAR(pygpu_shader_unbind_doc,
              ".. function:: unbind()\n"
              "\n"
@@ -851,7 +835,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
-                                        pyc_parse_buitinshader_w_backward_compatibility,
+                                        PyC_ParseStringEnum,
                                         &pygpu_bultinshader,
                                         PyC_ParseStringEnum,
                                         &pygpu_config))

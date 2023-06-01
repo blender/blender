@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 set(INC
   ../../intern/clog
@@ -49,6 +50,7 @@ if(WITH_LIBMV)
 endif()
 
 if(WITH_CYCLES)
+  add_definitions(-DWITH_CYCLES)
   if(WITH_CYCLES_LOGGING)
     list(APPEND INC ../../intern/cycles/blender)
     add_definitions(-DWITH_CYCLES_LOGGING)
@@ -334,11 +336,15 @@ endif()
 
 
 set(BLENDER_TEXT_FILES
-  ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
   # Generate this file:
   # `${CMAKE_SOURCE_DIR}/release/text/readme.html`
 )
 
+if(WITH_INSTALL_COPYRIGHT)
+  list(APPEND BLENDER_TEXT_FILES
+    ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Platform specific target destinations
@@ -1710,7 +1716,21 @@ if(\n\
   ($\{BLENDER_BIN\} IS_NEWER_THAN $\{MANPAGE_OUT\}) OR\n\
   ($\{MANPAGE_GEN\} IS_NEWER_THAN $\{MANPAGE_OUT\})\n\
 )\n\
-  execute_process(COMMAND $\{MANPAGE_GEN\} --blender $\{BLENDER_BIN\} --output $\{MANPAGE_OUT\})\n\
+  set(ENV{ASAN_OPTIONS} \"$ENV{ASAN_OPTIONS}:\
+exitcode=0:\
+check_initialization_order=0:\
+strict_init_order=0:\
+detect_leaks=0\"\n\
+  )\n\
+  execute_process(\n\
+    OUTPUT_QUIET\n\
+    COMMAND $\{BLENDER_BIN\}\n\
+    --background\n\
+    --factory-startup\n\
+    --python $\{MANPAGE_GEN\}\n\
+    --\n\
+    --output $\{MANPAGE_OUT\}\n\
+  )\n\
 endif()\n\
 "
         DEPENDS blender

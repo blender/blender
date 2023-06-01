@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -96,6 +98,7 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
 RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
 RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
+RNA_MAIN_LISTBASE_FUNCS_DEF(grease_pencils)
 RNA_MAIN_LISTBASE_FUNCS_DEF(hair_curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(images)
 RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
@@ -332,9 +335,20 @@ void RNA_def_main(BlenderRNA *brna)
       {"grease_pencils",
        "GreasePencil",
        "rna_Main_gpencils_begin",
+#  ifdef WITH_GREASE_PENCIL_V3
        "Grease Pencil (legacy)",
        "Grease Pencil (legacy) data-blocks",
-       RNA_def_main_gpencil},
+#  else
+       "Grease Pencil",
+       "Grease Pencil data-blocks",
+#  endif
+       RNA_def_main_gpencil_legacy},
+      {"grease_pencils_v3",
+       "GreasePencilv3",
+       "rna_Main_grease_pencils_begin",
+       "Grease Pencil",
+       "Grease Pencil data-blocks",
+       RNA_def_main_grease_pencil},
       {"movieclips",
        "MovieClip",
        "rna_Main_movieclips_begin",

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -631,10 +633,11 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
-    char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dirpath, seq->strip->stripdata->filename);
-    BLI_path_abs(str, BKE_main_blendfile_path(bmain));
-    seq->sound = BKE_sound_new_file(bmain, str);
+    char filepath_abs[FILE_MAX];
+    BLI_path_join(
+        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
   }
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
@@ -996,8 +999,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     for (me = bmain->meshes.first; me; me = me->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(&me->vdata, CD_MVERT, me->totvert);
@@ -1008,8 +1011,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (lt = bmain->lattices.first; lt; lt = lt->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
@@ -1020,8 +1023,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) &&
-          key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) && key->refkey)
+      {
         data = key->refkey->data;
 
         for (nu = cu->nurb.first; nu; nu = nu->next) {

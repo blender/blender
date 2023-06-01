@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -254,7 +256,8 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil (legacy)", ""},
+    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -324,6 +327,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_global.h"
 #  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.h"
+#  include "BKE_light_linking.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh_wrapper.h"
@@ -601,6 +605,8 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_LightProbe;
     case OB_GPENCIL_LEGACY:
       return &RNA_GreasePencil;
+    case OB_GREASE_PENCIL:
+      return &RNA_GreasePencilv3;
     case OB_CURVES:
       return &RNA_Curves;
     case OB_POINTCLOUD:
@@ -1147,7 +1153,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
   if (ob->type == OB_GPENCIL_LEGACY) {
-    /* notifying material property in topbar */
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
@@ -2356,6 +2362,62 @@ void rna_Object_lightgroup_set(PointerRNA *ptr, const char *value)
   BKE_lightgroup_membership_set(&((Object *)ptr->owner_id)->lightgroup, value);
 }
 
+static PointerRNA rna_Object_light_linking_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_ObjectLightLinking, ptr->data);
+}
+
+static char *rna_ObjectLightLinking_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("light_linking");
+}
+
+static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  PointerRNA collection_ptr;
+  RNA_id_pointer_create((ID *)BKE_light_linking_collection_get(object, LIGHT_LINKING_RECEIVER),
+                        &collection_ptr);
+  return collection_ptr;
+}
+
+static void rna_LightLinking_receiver_collection_set(PointerRNA *ptr,
+                                                     PointerRNA value,
+                                                     struct ReportList *UNUSED(reports))
+{
+  Object *object = (Object *)ptr->owner_id;
+  Collection *new_collection = (Collection *)value.data;
+
+  BKE_light_linking_collection_assign_only(object, new_collection, LIGHT_LINKING_RECEIVER);
+}
+
+static PointerRNA rna_LightLinking_blocker_collection_get(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  PointerRNA collection_ptr;
+  RNA_id_pointer_create((ID *)BKE_light_linking_collection_get(object, LIGHT_LINKING_BLOCKER),
+                        &collection_ptr);
+  return collection_ptr;
+}
+
+static void rna_LightLinking_blocker_collection_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *UNUSED(reports))
+{
+  Object *object = (Object *)ptr->owner_id;
+  Collection *new_collection = (Collection *)value.data;
+
+  BKE_light_linking_collection_assign_only(object, new_collection, LIGHT_LINKING_BLOCKER);
+}
+
+static void rna_LightLinking_collection_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SHADING);
+
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->owner_id);
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -3316,6 +3378,7 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
   RNA_def_property_float_sdna(prop, NULL, "rot");
   RNA_def_property_editable_array_func(prop, "rna_Object_rotation_euler_editable");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
@@ -3363,6 +3426,7 @@ static void rna_def_object(BlenderRNA *brna)
       prop,
       "Delta Rotation (Euler)",
       "Extra rotation added to the rotation of the object (when using Euler rotations)");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
   prop = RNA_def_property(srna, "delta_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
@@ -3639,7 +3703,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_ui_text(
-      prop, "Color", "Object color and alpha, used when faces have the ObColor mode enabled");
+      prop, "Color", "Object color and alpha, used when the Object Color mode is enabled");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* physics */
@@ -3796,14 +3860,14 @@ static void rna_def_object(BlenderRNA *brna)
   /* shape keys */
   prop = RNA_def_property(srna, "show_only_shape_key", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-  RNA_def_property_ui_text(prop, "Shape Key Lock", "Only show the active shape at full strength");
+  RNA_def_property_ui_text(prop, "Shape Key Lock", "Only show the active shape key at full value");
   RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
   RNA_def_property_update(prop, 0, "rna_Object_internal_update_data");
 
   prop = RNA_def_property(srna, "use_shape_key_edit_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_EDIT_MODE);
   RNA_def_property_ui_text(
-      prop, "Shape Key Edit Mode", "Apply shape keys in edit mode (for meshes only)");
+      prop, "Shape Key Edit Mode", "Display shape keys in edit mode (for meshes only)");
   RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
   RNA_def_property_update(prop, 0, "rna_Object_internal_update_data");
 
@@ -3891,6 +3955,13 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Lightgroup", "Lightgroup that the object belongs to");
 
+  /* Light Linking. */
+  prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ObjectLightLinking");
+  RNA_def_property_pointer_funcs(prop, "rna_Object_light_linking_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings");
+
   RNA_define_lib_overridable(false);
 
   /* anim */
@@ -3900,6 +3971,44 @@ static void rna_def_object(BlenderRNA *brna)
   rna_def_motionpath_common(srna);
 
   RNA_api_object(srna);
+}
+
+static void rna_def_object_light_linking(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ObjectLightLinking", NULL);
+  RNA_def_struct_ui_text(srna, "Object Light Linking", "");
+  RNA_def_struct_sdna(srna, "Object");
+  RNA_def_struct_nested(brna, srna, "Object");
+  RNA_def_struct_path_func(srna, "rna_ObjectLightLinking_path");
+
+  prop = RNA_def_property(srna, "receiver_collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_LightLinking_receiver_collection_get",
+                                 "rna_LightLinking_receiver_collection_set",
+                                 NULL,
+                                 NULL);
+  RNA_def_property_ui_text(prop,
+                           "Receiver Collection",
+                           "Collection which defines light linking relation of this emitter");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
+
+  prop = RNA_def_property(srna, "blocker_collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_LightLinking_blocker_collection_get",
+                                 "rna_LightLinking_blocker_collection_set",
+                                 NULL,
+                                 NULL);
+  RNA_def_property_ui_text(prop,
+                           "Blocker Collection",
+                           "Collection which defines objects which block light from this emitter");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
 }
 
 void RNA_def_object(BlenderRNA *brna)
@@ -3912,6 +4021,7 @@ void RNA_def_object(BlenderRNA *brna)
   rna_def_material_slot(brna);
   rna_def_object_display(brna);
   rna_def_object_lineart(brna);
+  rna_def_object_light_linking(brna);
   RNA_define_animate_sdna(true);
 }
 

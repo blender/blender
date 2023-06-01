@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -20,6 +22,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 
 #include "CLG_log.h"
@@ -63,9 +66,11 @@ bool ABCHairWriter::check_is_animated(const HierarchyContext & /*context*/) cons
 
 void ABCHairWriter::do_write(HierarchyContext &context)
 {
-  Scene *scene_eval = DEG_get_evaluated_scene(args_.depsgraph);
-  Mesh *mesh = mesh_get_eval_final(args_.depsgraph, scene_eval, context.object, &CD_MASK_MESH);
-  BKE_mesh_tessface_ensure(mesh);
+  const Mesh *mesh = BKE_object_get_evaluated_mesh(context.object);
+  if (!mesh) {
+    return;
+  }
+  BKE_mesh_tessface_ensure(const_cast<Mesh *>(mesh));
 
   std::vector<Imath::V3f> verts;
   std::vector<int32_t> hvertices;
@@ -78,11 +83,13 @@ void ABCHairWriter::do_write(HierarchyContext &context)
     bool export_children = psys->childcache && part->childtype != 0;
 
     if (!export_children || part->draw & PART_DRAW_PARENT) {
-      write_hair_sample(context, mesh, verts, norm_values, uv_values, hvertices);
+      write_hair_sample(
+          context, const_cast<Mesh *>(mesh), verts, norm_values, uv_values, hvertices);
     }
 
     if (export_children) {
-      write_hair_child_sample(context, mesh, verts, norm_values, uv_values, hvertices);
+      write_hair_child_sample(
+          context, const_cast<Mesh *>(mesh), verts, norm_values, uv_values, hvertices);
     }
   }
 

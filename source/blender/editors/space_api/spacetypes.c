@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spapi
@@ -34,6 +35,7 @@
 #include "ED_geometry.h"
 #include "ED_gizmo_library.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil_draw.h"
 #include "ED_lattice.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
@@ -92,6 +94,7 @@ void ED_spacetypes_init(void)
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();
   ED_operatortypes_asset();
+  ED_operatortypes_grease_pencil_draw();
   ED_operatortypes_gpencil();
   ED_operatortypes_object();
   ED_operatortypes_lattice();

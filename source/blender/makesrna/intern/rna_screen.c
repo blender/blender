@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -576,7 +578,7 @@ static void rna_def_screen(BlenderRNA *brna)
   PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "Screen", "ID");
-  RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
+  RNA_def_struct_sdna(srna, "Screen"); /* Actually #bScreen but for 2.5 the DNA is patched! */
   RNA_def_struct_ui_text(
       srna, "Screen", "Screen data-block, defining the layout of areas in a window");
   RNA_def_struct_ui_icon(srna, ICON_WORKSPACE);
@@ -665,6 +667,11 @@ static void rna_def_screen(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_play_clip_editors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "redraws_flag", TIME_CLIPS);
   RNA_def_property_ui_text(prop, "Clip Editors", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Screen_redraw_update");
+
+  prop = RNA_def_property(srna, "use_play_spreadsheet_editors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "redraws_flag", TIME_SPREADSHEETS);
+  RNA_def_property_ui_text(prop, "Spreadsheet Editors", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, "rna_Screen_redraw_update");
 }
 

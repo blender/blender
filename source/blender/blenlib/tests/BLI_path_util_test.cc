@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -117,6 +119,10 @@ TEST(path_util, Normalize_UnbalancedAbsolute)
   NORMALIZE("/a/b/c/../../../../../d", "/d");
   NORMALIZE("/a/b/c/../../../../d", "/d");
   NORMALIZE("/a/b/c/../../../d", "/d");
+
+  /* Use a longer path as it may hit corner cases. */
+  NORMALIZE("/home/username/Downloads/../../../../../Users/Example/Desktop/test.jpg",
+            "/Users/Example/Desktop/test.jpg");
 }
 
 /* #BLI_path_normalize: with relative paths that result in leading "../". */

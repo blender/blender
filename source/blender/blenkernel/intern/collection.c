@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -518,7 +520,7 @@ void BKE_collection_add_from_collection(Main *bmain,
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
+    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
         collection_find_child(collection, collection_src))
     {
       collection_child_add(collection, collection_dst, 0, true);
@@ -970,7 +972,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
   if (object->instance_collection) {
     Collection *dup_collection = object->instance_collection;
     if ((dup_collection->id.tag & LIB_TAG_DOIT) == 0) {
-      /* Cycle already exists in collections, let's prevent further crappyness */
+      /* Cycle already exists in collections, let's prevent further creepiness. */
       return true;
     }
     /* flag the object to identify cyclic dependencies in further dupli collections */
@@ -1307,8 +1309,8 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
+  /* Cyclic dependency check. */
   if (ob->instance_collection) {
-    /* Cyclic dependency check. */
     if ((ob->instance_collection == collection) ||
         collection_find_child_recursive(ob->instance_collection, collection))
     {
@@ -1402,7 +1404,7 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     BKE_main_collection_sync(bmain);
   }
 
-  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
 
   return true;
 }
@@ -1470,7 +1472,7 @@ bool BKE_collection_object_remove(Main *bmain,
     BKE_main_collection_sync(bmain);
   }
 
-  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
 
   return true;
 }

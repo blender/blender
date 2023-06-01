@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -2741,9 +2742,12 @@ static void file_expand_directory(bContext *C)
                                                  BKE_appdir_folder_default_or_root());
     }
     else if (params->dir[0] == '~') {
+      /* While path handling expansion typically doesn't support home directory expansion
+       * in Blender, this is a convenience to be able to type in a single character.
+       * Even though this is a UNIX convention, it's harmless to expand on WIN32 as well. */
       char tmpstr[sizeof(params->dir) - 1];
       STRNCPY(tmpstr, params->dir + 1);
-      BLI_path_join(params->dir, sizeof(params->dir), BKE_appdir_folder_default_or_root(), tmpstr);
+      BLI_path_join(params->dir, sizeof(params->dir), BKE_appdir_folder_home(), tmpstr);
     }
 
     else if (params->dir[0] == '\0')
@@ -2756,9 +2760,9 @@ static void file_expand_directory(bContext *C)
     {
       BLI_windows_get_default_root_dir(params->dir);
     }
-    /* change "C:" --> "C:\", #28102. */
-    else if ((isalpha(params->dir[0]) && (params->dir[1] == ':')) && (params->dir[2] == '\0')) {
-      params->dir[2] = '\\';
+    /* Change `C:` --> `C:\`, #28102. */
+    else if (BLI_path_is_win32_drive_only(params->dir)) {
+      params->dir[2] = SEP;
       params->dir[3] = '\0';
     }
     else if (BLI_path_is_unc(params->dir)) {
@@ -3136,9 +3140,9 @@ static bool file_delete_single(const struct FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {
-  char str[FILE_MAX_LIBEXTRA];
-  filelist_file_get_full_path(files, file, str);
-  if (BLI_delete_soft(str, r_error_message) != 0 || BLI_exists(str)) {
+  char filepath[FILE_MAX_LIBEXTRA];
+  filelist_file_get_full_path(files, file, filepath);
+  if (BLI_delete_soft(filepath, r_error_message) != 0 || BLI_exists(filepath)) {
     return false;
   }
 

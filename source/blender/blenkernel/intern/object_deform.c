@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -257,7 +259,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
     BKE_object_defgroup_active_index_set(ob, active_index - 1);
   }
 
-  /* remove all dverts */
+  /* Remove all deform-verts. */
   if (BLI_listbase_is_empty(defbase)) {
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
@@ -404,8 +406,8 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
       dg = next_dg;
     }
   }
-  else { /* defbase is empty... */
-    /* remove all dverts */
+  else { /* `defbase` is empty. */
+    /* Remove all deform-verts. */
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
       CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);

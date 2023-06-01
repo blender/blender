@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editor/io
@@ -106,7 +107,7 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
@@ -117,8 +118,8 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
   }
   View3D *v3d = get_invoke_view3d(C);
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   const bool use_fill = RNA_boolean_get(op->ptr, "use_fill");
   const bool use_norm_thickness = RNA_boolean_get(op->ptr, "use_normalized_thickness");
@@ -149,7 +150,7 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
 
   /* Do export. */
   WM_cursor_wait(true);
-  const bool done = gpencil_io_export(filename, &params);
+  const bool done = gpencil_io_export(filepath, &params);
   WM_cursor_wait(false);
 
   if (!done) {
@@ -261,7 +262,7 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
@@ -272,8 +273,8 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
   }
   View3D *v3d = get_invoke_view3d(C);
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   const bool use_fill = RNA_boolean_get(op->ptr, "use_fill");
   const bool use_norm_thickness = RNA_boolean_get(op->ptr, "use_normalized_thickness");
@@ -302,7 +303,7 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
 
   /* Do export. */
   WM_cursor_wait(true);
-  const bool done = gpencil_io_export(filename, &params);
+  const bool done = gpencil_io_export(filepath, &params);
   WM_cursor_wait(false);
 
   if (!done) {

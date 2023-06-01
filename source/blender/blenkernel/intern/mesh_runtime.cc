@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -190,7 +191,7 @@ void Mesh::tag_loose_verts_none() const
   try_tag_verts_no_face_none(*this);
 }
 
-void Mesh::loose_edges_tag_none() const
+void Mesh::tag_loose_edges_none() const
 {
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
@@ -314,9 +315,21 @@ void BKE_mesh_tag_edges_split(struct Mesh *mesh)
   free_bvh_cache(*mesh->runtime);
   reset_normals(*mesh->runtime);
   free_subdiv_ccg(*mesh->runtime);
-  mesh->runtime->loose_edges_cache.tag_dirty();
-  mesh->runtime->loose_verts_cache.tag_dirty();
-  mesh->runtime->verts_no_face_cache.tag_dirty();
+  if (mesh->runtime->loose_edges_cache.is_cached() &&
+      mesh->runtime->loose_edges_cache.data().count != 0)
+  {
+    mesh->runtime->loose_edges_cache.tag_dirty();
+  }
+  if (mesh->runtime->loose_verts_cache.is_cached() &&
+      mesh->runtime->loose_verts_cache.data().count != 0)
+  {
+    mesh->runtime->loose_verts_cache.tag_dirty();
+  }
+  if (mesh->runtime->verts_no_face_cache.is_cached() &&
+      mesh->runtime->verts_no_face_cache.data().count != 0)
+  {
+    mesh->runtime->verts_no_face_cache.tag_dirty();
+  }
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   if (mesh->runtime->shrinkwrap_data) {

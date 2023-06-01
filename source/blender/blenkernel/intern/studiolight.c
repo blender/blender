@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006-2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -484,7 +485,7 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
                                                              1,
                                                              GPU_RGBA16F,
                                                              GPU_TEXTURE_USAGE_SHADER_READ,
-                                                             ibuf->rect_float);
+                                                             ibuf->float_buffer.data);
     GPUTexture *tex = sl->equirect_radiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
@@ -498,7 +499,7 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
   ImBuf *ibuf = sli->ibuf;
   float *gpu_matcap_3components = MEM_callocN(sizeof(float[3]) * ibuf->x * ibuf->y, __func__);
 
-  const float(*offset4)[4] = (const float(*)[4])ibuf->rect_float;
+  const float(*offset4)[4] = (const float(*)[4])ibuf->float_buffer.data;
   float(*offset3)[3] = (float(*)[3])gpu_matcap_3components;
   for (int i = 0; i < ibuf->x * ibuf->y; i++, offset4++, offset3++) {
     copy_v3_v3(*offset3, *offset4);
@@ -545,7 +546,7 @@ static void studiolight_create_equirect_irradiance_gputexture(StudioLight *sl)
                                                                1,
                                                                GPU_RGBA16F,
                                                                GPU_TEXTURE_USAGE_SHADER_READ,
-                                                               ibuf->rect_float);
+                                                               ibuf->float_buffer.data);
     GPUTexture *tex = sl->equirect_irradiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
@@ -681,7 +682,7 @@ static void studiolight_spherical_harmonics_calculate_coefficients(StudioLight *
 
   for (int face = 0; face < 6; face++) {
     ITER_PIXELS (float,
-                 sl->radiance_cubemap_buffers[face]->rect_float,
+                 sl->radiance_cubemap_buffers[face]->float_buffer.data,
                  4,
                  STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
                  STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)
@@ -976,7 +977,7 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(ImBuf *radiance_bu
   float accum[3] = {0.0f, 0.0f, 0.0f};
   float accum_weight = 0.00001f;
   ITER_PIXELS (float,
-               radiance_buffer->rect_float,
+               radiance_buffer->float_buffer.data,
                4,
                STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE,
                STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE)

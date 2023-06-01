@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -59,7 +61,7 @@ template<typename T> class SharedCache {
   }
 
   /** Retrieve the cached data. */
-  const T &data()
+  const T &data() const
   {
     BLI_assert(cache_->mutex.is_cached());
     return cache_->data;

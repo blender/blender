@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -93,7 +95,8 @@ typedef struct BPathForeachPathData {
   /** ID owning the path being processed. */
   struct ID *owner_id;
 
-  /** IDTypeInfo callbacks are responsible to set this boolean if they modified one or more  paths.
+  /**
+   * IDTypeInfo callbacks are responsible to set this boolean if they modified one or more paths.
    */
   bool is_path_modified;
 } BPathForeachPathData;

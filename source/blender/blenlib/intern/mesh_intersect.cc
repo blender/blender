@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -1583,7 +1585,8 @@ struct CDT_data {
   Vector<bool> is_reversed;
   /** Result of running CDT on input with (vert, edge, face). */
   CDT_result<mpq_class> cdt_out;
-  /** To speed up get_cdt_edge_orig, sometimes populate this map from vertex pair to output edge.
+  /**
+   * To speed up get_cdt_edge_orig, sometimes populate this map from vertex pair to output edge.
    */
   Map<std::pair<int, int>, int> verts_to_edge;
   int proj_axis;

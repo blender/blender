@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -445,9 +446,9 @@ static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
   RetimeHandleMoveGizmo *gizmo = (RetimeHandleMoveGizmo *)gz;
   const View2D *v2d = UI_view2d_fromcontext(C);
 
-  /* TODO: This is hardcoded behavior, same as preselect gizmos in 3D view.
+  /* TODO: This is hard-coded behavior, same as pre-select gizmos in 3D view.
    * Better solution would be to check operator keymap and display this information in status bar
-   * and tooltip. */
+   * and tool-tip. */
   wmEvent *event = CTX_wm_window(C)->eventstate;
   gizmo->create_transition_operation = (event->modifier & KM_SHIFT) != 0;
 

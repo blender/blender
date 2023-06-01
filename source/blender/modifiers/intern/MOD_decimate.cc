@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -224,7 +225,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int decimate_type = RNA_enum_get(ptr, "decimate_type");
   char count_info[64];
-  snprintf(count_info, 32, TIP_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
+  SNPRINTF(count_info, TIP_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
 
   uiItemR(layout, ptr, "decimate_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 

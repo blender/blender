@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -271,7 +272,7 @@ static void eevee_render_color_result(RenderLayer *rl,
                              num_channels,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->rect);
+                             rp->buffer.data);
 }
 
 static void eevee_render_result_combined(RenderLayer *rl,

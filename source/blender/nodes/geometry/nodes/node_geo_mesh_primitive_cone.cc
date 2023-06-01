@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -724,7 +726,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   calculate_selection_outputs(config, attribute_outputs, mesh->attributes_for_write());
 
   mesh->tag_loose_verts_none();
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
   mesh->bounds_set_eager(calculate_bounds_cylinder(config));
 
   return mesh;

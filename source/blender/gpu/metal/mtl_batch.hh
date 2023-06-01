@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -92,7 +94,7 @@ class MTLBatch : public Batch {
   /* Returns an initialized RenderComandEncoder for drawing if all is good.
    * Otherwise, nil. */
   id<MTLRenderCommandEncoder> bind(uint v_count);
-  void unbind();
+  void unbind(id<MTLRenderCommandEncoder> rec);
 
   /* Convenience getters. */
   MTLIndexBuf *elem_() const

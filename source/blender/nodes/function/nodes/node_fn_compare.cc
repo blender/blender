@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cmath>
 
@@ -6,6 +8,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+
+#include "BLT_translation.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -23,20 +27,22 @@ NODE_STORAGE_FUNCS(NodeFunctionCompare)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("A").min(-10000.0f).max(10000.0f).translation_context(
+      BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Float>("B").min(-10000.0f).max(10000.0f).translation_context(
+      BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Int>("A", "A_INT");
-  b.add_input<decl::Int>("B", "B_INT");
+  b.add_input<decl::Int>("A", "A_INT").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Int>("B", "B_INT").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Vector>("A", "A_VEC3");
-  b.add_input<decl::Vector>("B", "B_VEC3");
+  b.add_input<decl::Vector>("A", "A_VEC3").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Vector>("B", "B_VEC3").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::Color>("A", "A_COL");
-  b.add_input<decl::Color>("B", "B_COL");
+  b.add_input<decl::Color>("A", "A_COL").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Color>("B", "B_COL").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
-  b.add_input<decl::String>("A", "A_STR");
-  b.add_input<decl::String>("B", "B_STR");
+  b.add_input<decl::String>("A", "A_STR").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::String>("B", "B_STR").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
   b.add_input<decl::Float>("C").default_value(0.9f);
   b.add_input<decl::Float>("Angle").default_value(0.0872665f).subtype(PROP_ANGLE);

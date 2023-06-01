@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,7 +25,7 @@ namespace blender::geometry {
  * avoid copying the input. Otherwise returns the new mesh with merged geometry.
  */
 std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
-                                                 IndexMask selection,
+                                                 const IndexMask &selection,
                                                  float merge_distance);
 
 /**

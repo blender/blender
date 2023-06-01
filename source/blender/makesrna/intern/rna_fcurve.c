@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -536,7 +538,7 @@ static void rna_FKeyframe_ctrlpoint_ui_set(PointerRNA *ptr, const float *values)
   const float frame_delta = values[0] - bezt->vec[1][0];
   const float value_delta = values[1] - bezt->vec[1][1];
 
-  /** To match the behavior of transforming the keyframe Co using the Graph Editor
+  /* To match the behavior of transforming the keyframe Co using the Graph Editor
    * (transform_convert_graph.c) flushTransGraphData(), we will also move the handles by
    * the same amount as the Co delta. */
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -892,7 +893,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   }
   data->sep_string = but->item_sep_string;
 
-  /* adds subwindow */
+  /* Adds sub-window. */
   ED_region_floating_init(region);
 
   /* notify change and redraw */

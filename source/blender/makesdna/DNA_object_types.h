@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -29,6 +30,7 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
+struct Collection;
 struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
@@ -247,6 +249,61 @@ enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_INTERSECTION_PRIORITY = (1 << 1),
 };
 
+/* Evaluated light linking state needed for the render engines integration. */
+typedef struct LightLinkingRuntime {
+
+  /* For objects that emit light: a bitmask of light sets this emitter is part of for the light
+   * linking.
+   * A light set is a combination of emitters used by one or more receiver objects.
+   *
+   * If there is no light linking in the scene or if the emitter does not specify light linking all
+   * bits are set.
+   *
+   * NOTE: There can only be 64 light sets in a scene. */
+  uint64_t light_set_membership;
+
+  /* For objects that emit light: a bitmask of light sets this emitter is part of for the shadow
+   * linking.
+   * A light set is a combination of emitters from which a blocked object does not cast a shadow.
+   *
+   * If there is no shadow linking in the scene or if the emitter does not specify shadow linking
+   * all bits are set.
+   *
+   * NOTE: There can only be 64 light sets in a scene. */
+  uint64_t shadow_set_membership;
+
+  /* For receiver objects: the index of the light set from which this object receives light.
+   *
+   * If there is no light linking in the scene or the receiver is not linked to any light this is
+   * assigned zero. */
+  uint8_t receiver_light_set;
+
+  /* For blocker objects: the index of the light set from which this object casts shadow from.
+   *
+   * If there is no shadow in the scene or the blocker is not linked to any emitter this is
+   * assigned zero. */
+  uint8_t blocker_shadow_set;
+
+  uint8_t _pad[6];
+} LightLinkingRuntime;
+
+typedef struct LightLinking {
+  /* Collections which contains objects (possibly via nested collection indirection) which defines
+   * the light linking relation: such as whether objects are included or excluded from being lit by
+   * this emitter (receiver_collection), or whether they block light from this emitter
+   * (blocker_collection).
+   *
+   * If the collection is a null pointer then all objects from the current scene are receiving
+   * light from this emitter, and nothing is excluded from receiving the light and shadows.
+   *
+   * The emitter in this context is assumed to be either object of lamp type, or objects with
+   * surface which has emissive shader. */
+  struct Collection *receiver_collection;
+  struct Collection *blocker_collection;
+
+  LightLinkingRuntime runtime;
+} LightLinking;
+
 typedef struct Object {
   DNA_DEFINE_CXX_METHODS(Object)
 
@@ -260,9 +317,9 @@ typedef struct Object {
 
   short type; /* #ObjectType */
   short partype;
-  /** Can be vertexnrs. */
+  /** Can be vertex indices. */
   int par1, par2, par3;
-  /** String describing subobject info, MAX_ID_NAME-2. */
+  /** String describing sub-object info, `MAX_ID_NAME - 2`. */
   char parsubstr[64];
   struct Object *parent, *track;
   /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */
@@ -447,13 +504,14 @@ typedef struct Object {
 
   ObjectLineArt lineart;
 
-  /** Lightgroup membership information. */
+  /** Light-group membership information. */
   struct LightgroupMembership *lightgroup;
+
+  /** Light linking information. */
+  LightLinking *light_linking;
 
   /** Irradiance caches baked for this object (light-probes only). */
   struct LightProbeObjectCache *lightprobe_cache;
-
-  void *_pad9;
 
   /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;
@@ -515,7 +573,6 @@ typedef enum ObjectType {
 
   OB_ARMATURE = 25,
 
-  /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
   OB_GPENCIL_LEGACY = 26,
 
   OB_CURVES = 27,
@@ -524,6 +581,8 @@ typedef enum ObjectType {
 
   OB_VOLUME = 29,
 
+  OB_GREASE_PENCIL = 30,
+
   /* Keep last. */
   OB_TYPE_MAX,
 } ObjectType;
@@ -531,7 +590,7 @@ typedef enum ObjectType {
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || \
-   ((_type) >= OB_GPENCIL_LEGACY && (_type) <= OB_VOLUME))
+   ((_type) >= OB_GPENCIL_LEGACY && (_type) <= OB_GREASE_PENCIL))
 /** Does the object have some render-able geometry (unlike empties, cameras, etc.). True for
  * #OB_CURVES_LEGACY, since these often evaluate to objects with geometry. */
 #define OB_TYPE_IS_GEOMETRY(_type) \
@@ -544,7 +603,8 @@ typedef enum ObjectType {
         OB_CURVES_LEGACY, \
         OB_CURVES, \
         OB_POINTCLOUD, \
-        OB_VOLUME))
+        OB_VOLUME, \
+        OB_GREASE_PENCIL))
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL_LEGACY))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, \
@@ -555,13 +615,14 @@ typedef enum ObjectType {
         OB_MBALL, \
         OB_LATTICE, \
         OB_ARMATURE, \
-        OB_CURVES))
+        OB_CURVES, \
+        OB_GREASE_PENCIL))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
 #define OB_DATA_SUPPORT_EDITMODE(_type) \
-  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV))
+  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV, ID_GP))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
@@ -578,7 +639,8 @@ typedef enum ObjectType {
         ID_AR, \
         ID_CV, \
         ID_PT, \
-        ID_VO))
+        ID_VO, \
+        ID_GP))
 
 #define OB_DATA_SUPPORT_ID_CASE \
   ID_ME: \
@@ -593,7 +655,8 @@ typedef enum ObjectType {
   case ID_AR: \
   case ID_CV: \
   case ID_PT: \
-  case ID_VO
+  case ID_VO: \
+  case ID_GP
 
 /** #Object.partype: first 4 bits: type. */
 enum {

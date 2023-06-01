@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -142,7 +143,7 @@ VKStateManager &VKContext::state_manager_get()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Framebuffer
+/** \name Frame-buffer
  * \{ */
 
 void VKContext::activate_framebuffer(VKFrameBuffer &framebuffer)

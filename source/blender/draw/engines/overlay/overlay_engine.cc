@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -20,10 +21,19 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 
+#include "GPU_capabilities.h"
+
 #include "DNA_space_types.h"
+
+#include "draw_manager.hh"
+#include "overlay_next_instance.hh"
 
 #include "overlay_engine.h"
 #include "overlay_private.hh"
+
+using namespace blender::draw;
+
+using Instance = blender::draw::overlay::Instance;
 
 /* -------------------------------------------------------------------- */
 /** \name Engine Callbacks
@@ -46,8 +56,7 @@ static void OVERLAY_engine_init(void *vedata)
 
   /* Allocate instance. */
   if (data->instance == nullptr) {
-    data->instance = static_cast<OVERLAY_Instance *>(
-        MEM_callocN(sizeof(*data->instance), __func__));
+    data->instance = new Instance(select::SelectionType::DISABLED);
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
@@ -332,7 +341,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                 OB_GPENCIL_LEGACY,
                                 OB_CURVES,
                                 OB_POINTCLOUD,
-                                OB_VOLUME);
+                                OB_VOLUME,
+                                OB_GREASE_PENCIL);
   const bool draw_surface = (ob->dt >= OB_WIRE) && (renderable || (ob->dt == OB_WIRE));
   const bool draw_facing = draw_surface && (pd->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
                            !is_select;
@@ -729,17 +739,17 @@ static void OVERLAY_draw_scene(void *vedata)
 static void OVERLAY_engine_free()
 {
   OVERLAY_shader_free();
+  overlay::ShaderModule::module_free();
 }
 
 static void OVERLAY_instance_free(void *instance_)
 {
-  OVERLAY_Instance *instance = (OVERLAY_Instance *)instance_;
-  DRW_UBO_FREE_SAFE(instance->grid_ubo);
-  MEM_freeN(instance);
+  auto *instance = (Instance *)instance_;
+  if (instance != nullptr) {
+    delete instance;
+  }
 }
-
 /** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Engine Type
  * \{ */

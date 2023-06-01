@@ -491,11 +491,24 @@ void Scene::update_kernel_features()
     else if (geom->is_pointcloud()) {
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;
     }
+    if (object->has_light_linking()) {
+      kernel_features |= KERNEL_FEATURE_LIGHT_LINKING;
+    }
+    if (object->has_shadow_linking()) {
+      kernel_features |= KERNEL_FEATURE_SHADOW_LINKING;
+    }
   }
 
   foreach (Light *light, lights) {
     if (light->get_use_caustics()) {
       has_caustics_light = true;
+    }
+
+    if (light->has_light_linking()) {
+      kernel_features |= KERNEL_FEATURE_LIGHT_LINKING;
+    }
+    if (light->has_shadow_linking()) {
+      kernel_features |= KERNEL_FEATURE_SHADOW_LINKING;
     }
   }
 

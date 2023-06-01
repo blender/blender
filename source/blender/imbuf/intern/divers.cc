@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -696,12 +697,12 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 void IMB_rect_from_float(ImBuf *ibuf)
 {
   /* verify we have a float buffer */
-  if (ibuf->rect_float == nullptr) {
+  if (ibuf->float_buffer.data == nullptr) {
     return;
   }
 
   /* create byte rect if it didn't exist yet */
-  if (ibuf->rect == nullptr) {
+  if (ibuf->byte_buffer.data == nullptr) {
     if (imb_addrectImBuf(ibuf) == 0) {
       return;
     }
@@ -716,7 +717,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
                                       COLOR_ROLE_DEFAULT_BYTE) :
                                   ibuf->rect_colorspace->name;
 
-  float *buffer = static_cast<float *>(MEM_dupallocN(ibuf->rect_float));
+  float *buffer = static_cast<float *>(MEM_dupallocN(ibuf->float_buffer.data));
 
   /* first make float buffer in byte space */
   const bool predivide = IMB_alpha_affects_rgb(ibuf);
@@ -729,7 +730,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
   }
 
   /* convert float to byte */
-  IMB_buffer_byte_from_float((uchar *)ibuf->rect,
+  IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
                              buffer,
                              ibuf->channels,
                              ibuf->dither,
@@ -751,9 +752,10 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
                             const struct ImBuf *src,
                             const rcti *region_to_update)
 {
-  BLI_assert_msg(dst->rect_float != nullptr,
+  BLI_assert_msg(dst->float_buffer.data != nullptr,
                  "Destination buffer should have a float buffer assigned.");
-  BLI_assert_msg(src->rect != nullptr, "Source buffer should have a byte buffer assigned.");
+  BLI_assert_msg(src->byte_buffer.data != nullptr,
+                 "Source buffer should have a byte buffer assigned.");
   BLI_assert_msg(dst->x == src->x, "Source and destination buffer should have the same dimension");
   BLI_assert_msg(dst->y == src->y, "Source and destination buffer should have the same dimension");
   BLI_assert_msg(dst->channels = 4, "Destination buffer should have 4 channels.");
@@ -766,9 +768,9 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
   BLI_assert_msg(region_to_update->ymax <= dst->y,
                  "Region to update should be clipped to the given buffers.");
 
-  float *rect_float = dst->rect_float;
+  float *rect_float = dst->float_buffer.data;
   rect_float += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
-  uchar *rect = (uchar *)src->rect;
+  uchar *rect = src->byte_buffer.data;
   rect += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
   const int region_width = BLI_rcti_size_x(region_to_update);
   const int region_height = BLI_rcti_size_y(region_to_update);
@@ -804,10 +806,8 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
 
 void IMB_float_from_rect(ImBuf *ibuf)
 {
-  float *rect_float;
-
   /* verify if we byte and float buffers */
-  if (ibuf->rect == nullptr) {
+  if (ibuf->byte_buffer.data == nullptr) {
     return;
   }
 
@@ -815,7 +815,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
    * so work-in-progress color space conversion doesn't
    * interfere with other parts of blender
    */
-  rect_float = ibuf->rect_float;
+  float *rect_float = ibuf->float_buffer.data;
   if (rect_float == nullptr) {
     const size_t size = IMB_get_rect_len(ibuf) * sizeof(float[4]);
     rect_float = static_cast<float *>(MEM_callocN(size, "IMB_float_from_rect"));
@@ -825,9 +825,8 @@ void IMB_float_from_rect(ImBuf *ibuf)
     }
 
     ibuf->channels = 4;
-    ibuf->rect_float = rect_float;
-    ibuf->mall |= IB_rectfloat;
-    ibuf->flags |= IB_rectfloat;
+
+    IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
   }
 
   rcti region_to_update;
@@ -843,8 +842,8 @@ void IMB_float_from_rect(ImBuf *ibuf)
 
 void IMB_color_to_bw(ImBuf *ibuf)
 {
-  float *rct_fl = ibuf->rect_float;
-  uchar *rct = (uchar *)ibuf->rect;
+  float *rct_fl = ibuf->float_buffer.data;
+  uchar *rct = ibuf->byte_buffer.data;
   size_t i;
 
   if (rct_fl) {
@@ -889,8 +888,8 @@ void IMB_buffer_float_premultiply(float *buf, int width, int height)
 void IMB_saturation(ImBuf *ibuf, float sat)
 {
   size_t i;
-  uchar *rct = (uchar *)ibuf->rect;
-  float *rct_fl = ibuf->rect_float;
+  uchar *rct = ibuf->byte_buffer.data;
+  float *rct_fl = ibuf->float_buffer.data;
   float hsv[3];
 
   if (rct) {

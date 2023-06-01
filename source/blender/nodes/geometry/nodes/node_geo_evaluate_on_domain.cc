@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -97,7 +99,7 @@ class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::AttributeAccessor attributes = *context.attributes();
 

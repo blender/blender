@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -97,6 +98,7 @@ template<typename T> VkObjectType to_vk_object_type(T /*vk_obj*/)
   return VK_OBJECT_TYPE_UNKNOWN;
 }
 
-#define NOT_YET_IMPLEMENTED printf("%s not implemented yet\n", __func__);
+#define NOT_YET_IMPLEMENTED \
+  printf("%s:%d `%s` not implemented yet\n", __FILE__, __LINE__, __func__);
 
 }  // namespace blender::gpu

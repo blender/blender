@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -1060,7 +1061,8 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->rect_float == NULL && (retval & TEX_RGB) && scene_color_manage) {
+        if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
+            scene_color_manage) {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 
@@ -1105,7 +1107,8 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->rect_float == NULL && (retval & TEX_RGB) && scene_color_manage) {
+        if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
+            scene_color_manage) {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 

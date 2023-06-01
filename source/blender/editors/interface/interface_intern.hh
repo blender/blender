@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -237,7 +238,8 @@ struct uiBut {
   /* RNA data */
   PointerRNA rnapoin = {};
   PropertyRNA *rnaprop = nullptr;
-  int rnaindex = 0;
+  /** The index (arrays only), otherwise set to -1. */
+  int rnaindex = -1;
 
   /* Operator data */
   wmOperatorType *optype = nullptr;
@@ -324,7 +326,8 @@ struct uiButSearch : public uiBut {
   bool results_are_suggestions = false;
 };
 
-/** Derived struct for #UI_BTYPE_DECORATOR
+/**
+ * Derived struct for #UI_BTYPE_DECORATOR
  * Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects.
  */
 struct uiButDecorator : public uiBut {

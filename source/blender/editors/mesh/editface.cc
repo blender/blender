@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -10,7 +12,9 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
+#include "BLI_vector_set.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -345,6 +349,177 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
   select_poly.finish();
 
   paintface_select_linked_faces(*me, indices, select);
+  paintface_flush_flags(C, ob, true, false);
+}
+
+static int find_closest_edge_in_poly(ARegion *region,
+                                     blender::Span<blender::int2> edges,
+                                     blender::Span<int> poly_edges,
+                                     blender::Span<blender::float3> vert_positions,
+                                     const int mval[2])
+{
+  using namespace blender;
+  int closest_edge_index;
+
+  const float2 mval_f = {float(mval[0]), float(mval[1])};
+  float min_distance = FLT_MAX;
+  for (const int i : poly_edges) {
+    float2 screen_coordinate;
+    const int2 edge = edges[i];
+    const float3 edge_vert_average = math::midpoint(vert_positions[edge[0]],
+                                                    vert_positions[edge[1]]);
+    eV3DProjStatus status = ED_view3d_project_float_object(
+        region, edge_vert_average, screen_coordinate, V3D_PROJ_TEST_CLIP_DEFAULT);
+    if (status != V3D_PROJ_RET_OK) {
+      continue;
+    }
+    const float distance = math::distance_squared(mval_f, screen_coordinate);
+    if (distance < min_distance) {
+      min_distance = distance;
+      closest_edge_index = i;
+    }
+  }
+  return closest_edge_index;
+}
+
+static int get_opposing_edge_index(const blender::IndexRange poly,
+                                   const blender::Span<int> corner_edges,
+                                   const int current_edge_index)
+{
+  const int index_in_poly = corner_edges.slice(poly).first_index(current_edge_index);
+  /* Assumes that edge index of opposing face edge is always off by 2 on quads. */
+  if (index_in_poly >= 2) {
+    return corner_edges[poly[index_in_poly - 2]];
+  }
+  /* Cannot be out of bounds because of the preceding if statement: if i < 2 then i+2 < 4. */
+  return corner_edges[poly[index_in_poly + 2]];
+}
+
+/**
+ * Follow quads around the mesh by finding opposing edges.
+ * \return True if the search has looped back on itself, finding the same index twice.
+ */
+static bool follow_face_loop(const int poly_start_index,
+                             const int edge_start_index,
+                             const blender::OffsetIndices<int> polys,
+                             const blender::VArray<bool> &hide_poly,
+                             const blender::Span<int> corner_edges,
+                             const blender::GroupedSpan<int> edge_to_poly_map,
+                             blender::VectorSet<int> &r_loop_polys)
+{
+  using namespace blender;
+  int current_poly_index = poly_start_index;
+  int current_edge_index = edge_start_index;
+
+  while (current_edge_index > 0) {
+    int next_poly_index = -1;
+
+    for (const int poly_index : edge_to_poly_map[current_edge_index]) {
+      if (poly_index != current_poly_index) {
+        next_poly_index = poly_index;
+        break;
+      }
+    }
+
+    /* Edge might only have 1 poly connected. */
+    if (next_poly_index == -1) {
+      return false;
+    }
+
+    /* Only works on quads. */
+    if (polys[next_poly_index].size() != 4) {
+      return false;
+    }
+
+    /* Happens if we looped around the mesh. */
+    if (r_loop_polys.contains(next_poly_index)) {
+      return true;
+    }
+
+    /* Hidden polygons stop selection. */
+    if (hide_poly[next_poly_index]) {
+      return false;
+    }
+
+    r_loop_polys.add(next_poly_index);
+
+    const IndexRange next_poly = polys[next_poly_index];
+    current_edge_index = get_opposing_edge_index(next_poly, corner_edges, current_edge_index);
+    current_poly_index = next_poly_index;
+  }
+  return false;
+}
+
+void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const bool select)
+{
+  using namespace blender;
+
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  ED_view3d_select_id_validate(&vc);
+
+  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  if (!ob_eval) {
+    return;
+  }
+
+  uint poly_pick_index = uint(-1);
+  if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &poly_pick_index)) {
+    return;
+  }
+
+  ARegion *region = CTX_wm_region(C);
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  ED_view3d_init_mats_rv3d(ob_eval, rv3d);
+
+  Mesh *mesh = BKE_mesh_from_object(ob);
+  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<float3> verts = mesh->vert_positions();
+  const OffsetIndices polys = mesh->polys();
+  const Span<int2> edges = mesh->edges();
+
+  const IndexRange poly = polys[poly_pick_index];
+  const int closest_edge_index = find_closest_edge_in_poly(
+      region, edges, corner_edges.slice(poly), verts, mval);
+
+  Array<int> edge_to_poly_offsets;
+  Array<int> edge_to_poly_indices;
+  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
+      polys, corner_edges, mesh->totedge, edge_to_poly_offsets, edge_to_poly_indices);
+
+  VectorSet<int> polys_to_select;
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  const Span<int> polys_to_closest_edge = edge_to_poly_map[closest_edge_index];
+  const bool traced_full_loop = follow_face_loop(polys_to_closest_edge[0],
+                                                 closest_edge_index,
+                                                 polys,
+                                                 hide_poly,
+                                                 corner_edges,
+                                                 edge_to_poly_map,
+                                                 polys_to_select);
+
+  if (!traced_full_loop) {
+    /* Trace the other way. */
+    follow_face_loop(polys_to_closest_edge[1],
+                     closest_edge_index,
+                     polys,
+                     hide_poly,
+                     corner_edges,
+                     edge_to_poly_map,
+                     polys_to_select);
+  }
+
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+
+  select_poly.span.fill_indices(polys_to_select.as_span(), select);
+
+  select_poly.finish();
   paintface_flush_flags(C, ob, true, false);
 }
 
@@ -795,10 +970,12 @@ void paintvert_select_more(Mesh *mesh, const bool face_step)
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int2> edges = mesh->edges();
 
-  Array<Vector<int, 2>> edge_to_face_map;
+  Array<int> edge_to_face_offsets;
+  Array<int> edge_to_face_indices;
+  GroupedSpan<int> edge_to_face_map;
   if (face_step) {
-    edge_to_face_map = bke::mesh_topology::build_edge_to_poly_map(
-        polys, corner_edges, mesh->totedge);
+    edge_to_face_map = bke::mesh::build_edge_to_poly_map(
+        polys, corner_edges, mesh->totedge, edge_to_face_offsets, edge_to_face_indices);
   }
 
   /* Need a copy of the selected verts that we can read from and is not modified. */
@@ -851,15 +1028,12 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int2> edges = mesh->edges();
 
-  MeshElemMap *edge_poly_map;
-  int *edge_poly_mem = nullptr;
+  GroupedSpan<int> edge_to_poly_map;
+  Array<int> edge_to_poly_offsets;
+  Array<int> edge_to_poly_indices;
   if (face_step) {
-    BKE_mesh_edge_poly_map_create(&edge_poly_map,
-                                  &edge_poly_mem,
-                                  edges.size(),
-                                  polys,
-                                  corner_edges.data(),
-                                  corner_edges.size());
+    edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
+        polys, corner_edges, edges.size(), edge_to_poly_offsets, edge_to_poly_indices);
   }
 
   /* Need a copy of the selected verts that we can read from and is not modified. */
@@ -879,8 +1053,7 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
     if (!face_step) {
       continue;
     }
-    const Span<int> neighbor_polys(edge_poly_map[i].indices, edge_poly_map[i].count);
-    for (const int poly_i : neighbor_polys) {
+    for (const int poly_i : edge_to_poly_map[i]) {
       if (hide_poly[poly_i]) {
         continue;
       }
@@ -889,10 +1062,6 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
         select_vert.span[vert] = false;
       }
     }
-  }
-  if (edge_poly_mem) {
-    MEM_freeN(edge_poly_map);
-    MEM_freeN(edge_poly_mem);
   }
   select_vert.finish();
 }

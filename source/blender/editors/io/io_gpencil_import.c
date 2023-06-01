@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editor/io
@@ -68,7 +69,7 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false) ||
       !RNA_struct_find_property(op->ptr, "directory"))
   {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 

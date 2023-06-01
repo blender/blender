@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -317,8 +318,8 @@ static void extract_range_iter_loose_edge_bm(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
-  const int ledge_index = data->loose_elems[iter];
-  const BMEdge *eed = ((const BMEdge **)data->elems)[ledge_index];
+  const int loose_edge_i = data->loose_elems[iter];
+  const BMEdge *eed = ((const BMEdge **)data->elems)[loose_edge_i];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_loose_edge_bm(
         mr, eed, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
@@ -333,8 +334,8 @@ static void extract_range_iter_loose_edge_mesh(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
-  const int ledge_index = data->loose_elems[iter];
-  const int2 edge = ((const int2 *)data->elems)[ledge_index];
+  const int loose_edge_i = data->loose_elems[iter];
+  const int2 edge = ((const int2 *)data->elems)[loose_edge_i];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_loose_edge_mesh(
         mr, edge, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
@@ -349,8 +350,8 @@ static void extract_range_iter_loose_vert_bm(void *__restrict userdata,
 
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
-  const int lvert_index = data->loose_elems[iter];
-  const BMVert *eve = ((const BMVert **)data->elems)[lvert_index];
+  const int loose_vert_i = data->loose_elems[iter];
+  const BMVert *eve = ((const BMVert **)data->elems)[loose_vert_i];
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_loose_vert_bm(
         mr, eve, iter, POINTER_OFFSET(extract_data, run_data.data_offset));

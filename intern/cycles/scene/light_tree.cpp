@@ -77,6 +77,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
 LightTreeEmitter::LightTreeEmitter(Object *object, int object_id) : object_id(object_id)
 {
   centroid = object->bounds.center();
+  light_set_membership = object->get_light_set_membership();
 }
 
 LightTreeEmitter::LightTreeEmitter(Scene *scene,
@@ -138,6 +139,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     for (int i = 0; i < 3; i++) {
       measure.bbox.grow(vertices[i]);
     }
+
+    light_set_membership = object->get_light_set_membership();
   }
   else {
     assert(is_light());
@@ -216,6 +219,20 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     /* Use absolute value of energy so lights with negative strength are properly supported in the
      * light tree. */
     measure.energy = fabsf(average(strength));
+
+    light_set_membership = lamp->get_light_set_membership();
+  }
+}
+
+static void sort_leaf(const int start, const int end, LightTreeEmitter *emitters)
+{
+  /* Sort primitive by light link mask so that specialized trees can use a subset of these. */
+  if (end > start) {
+    std::sort(emitters + start,
+              emitters + end,
+              [](const LightTreeEmitter &a, const LightTreeEmitter &b) {
+                return a.light_set_membership < b.light_set_membership;
+              });
   }
 }
 
@@ -278,6 +295,8 @@ LightTree::LightTree(Scene *scene,
     if (progress_.get_cancel()) {
       return;
     }
+
+    light_link_receiver_used |= (uint64_t(1) << object->get_receiver_light_set());
 
     if (!object->usable_as_light()) {
       object_id++;
@@ -390,7 +409,20 @@ LightTreeNode *LightTree::build(Scene *scene, DeviceScene *dscene)
   for (int i = 0; i < num_distant_lights; i++) {
     root_->get_inner().children[right]->add(distant_lights_[i]);
   }
+
+  sort_leaf(0, num_distant_lights, distant_lights_.data());
   root_->get_inner().children[right]->make_distant(num_local_lights, num_distant_lights);
+
+  root_->measure = root_->get_inner().children[left]->measure +
+                   root_->get_inner().children[right]->measure;
+  root_->light_link = root_->get_inner().children[left]->light_link +
+                      root_->get_inner().children[right]->light_link;
+
+  /* Root nodes are never meant to be be shared, even if the local and distant lights are from the
+   * same light linking set. Attempting to sharing it will make it so the specialized tree will
+   * try to use the same root as the default tree. */
+  root_->light_link.shareable = false;
+
   std::move(distant_lights_.begin(), distant_lights_.end(), std::back_inserter(emitters_));
 
   return root_.get();
@@ -421,7 +453,7 @@ void LightTree::recursive_build(const Child child,
   /* Find the best place to split the emitters into 2 nodes.
    * If the best split cost is no better than making a leaf node, make a leaf instead. */
   int split_dim = -1, middle;
-  if (should_split(emitters, start, middle, end, node->measure, split_dim)) {
+  if (should_split(emitters, start, middle, end, node->measure, node->light_link, split_dim)) {
 
     if (split_dim != -1) {
       /* Partition the emitters between start and end based on the centroids.  */
@@ -453,6 +485,7 @@ void LightTree::recursive_build(const Child child,
     }
   }
   else {
+    sort_leaf(start, end, emitters);
     node->make_leaf(start, end - start);
   }
 }
@@ -462,13 +495,15 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
                              int &middle,
                              const int end,
                              LightTreeMeasure &measure,
+                             LightTreeLightLink &light_link,
                              int &split_dim)
 {
   const int num_emitters = end - start;
   if (num_emitters < 2) {
     if (num_emitters) {
       /* Do not try to split if there is only one emitter. */
-      measure = (emitters + start)->measure;
+      measure = emitters[start].measure;
+      light_link = LightTreeLightLink(emitters[start].light_set_membership);
     }
     return false;
   }
@@ -519,6 +554,7 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
     if (dim == 0) {
       /* Calculate node measure by summing up the bucket measure. */
       measure = left_buckets.back().measure + buckets.back().measure;
+      light_link = left_buckets.back().light_link + buckets.back().light_link;
 
       /* Degenerate case with co-located emitters. */
       if (is_zero(centroid_bbox.size())) {
@@ -569,7 +605,14 @@ __forceinline LightTreeMeasure operator+(const LightTreeMeasure &a, const LightT
 
 LightTreeBucket operator+(const LightTreeBucket &a, const LightTreeBucket &b)
 {
-  return LightTreeBucket(a.measure + b.measure, a.count + b.count);
+  return LightTreeBucket(a.measure + b.measure, a.light_link + b.light_link, a.count + b.count);
+}
+
+LightTreeLightLink operator+(const LightTreeLightLink &a, const LightTreeLightLink &b)
+{
+  LightTreeLightLink c(a);
+  c.add(b);
+  return c;
 }
 
 CCL_NAMESPACE_END

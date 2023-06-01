@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <numeric>
 
@@ -53,6 +54,13 @@ pxr::UsdGeomCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_
 
   if (is_cyclic) {
     basis_curves.CreateWrapAttr(pxr::VtValue(pxr::UsdGeomTokens->periodic));
+  }
+  else if (curve_basis == pxr::VtValue(pxr::UsdGeomTokens->catmullRom)) {
+    /* In Blender the first and last points are treated as endpoints. The pinned attribute tells
+     * the client that to evaluate or render the curve, it must effectively add 'phantom
+     * points' at the beginning and end of every curve in a batch. These phantom points are
+     * injected to ensure that the interpolated curve begins at P[0] and ends at P[n-1]. */
+    basis_curves.CreateWrapAttr(pxr::VtValue(pxr::UsdGeomTokens->pinned));
   }
   else {
     basis_curves.CreateWrapAttr(pxr::VtValue(pxr::UsdGeomTokens->nonperiodic));
@@ -296,7 +304,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
     Array<float> temp_knots(knots_num);
     bke::curves::nurbs::calculate_knots(tot_points, mode, order, is_cyclic, temp_knots);
 
-    /* Knots should be the concatentation of all batched curves.
+    /* Knots should be the concatenation of all batched curves.
      * https://graphics.pixar.com/usd/dev/api/class_usd_geom_nurbs_curves.html#details */
     for (int i_knot = 0; i_knot < knots_num; i_knot++) {
       knots.push_back(double(temp_knots[i_knot]));

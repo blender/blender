@@ -443,7 +443,7 @@ class ConvertNode : public ShaderNode {
   };
   ustring value_string;
 
-  static const int MAX_TYPE = 12;
+  static const int MAX_TYPE = 13;
   static bool register_types();
   static Node *create(const NodeType *type);
   static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
@@ -493,27 +493,6 @@ class BsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, surface_mix_weight)
-};
-
-class AnisotropicBsdfNode : public BsdfNode {
- public:
-  SHADER_NODE_CLASS(AnisotropicBsdfNode)
-
-  NODE_SOCKET_API(float3, tangent)
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, anisotropy)
-  NODE_SOCKET_API(float, rotation)
-  NODE_SOCKET_API(ClosureType, distribution)
-
-  ClosureType get_closure_type()
-  {
-    return distribution;
-  }
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
-  {
-    return true;
-  }
 };
 
 class DiffuseBsdfNode : public BsdfNode {
@@ -624,12 +603,23 @@ class GlossyBsdfNode : public BsdfNode {
     return distribution;
   }
 
+  NODE_SOCKET_API(float3, tangent)
   NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(float, anisotropy)
+  NODE_SOCKET_API(float, rotation)
   NODE_SOCKET_API(ClosureType, distribution)
+
+  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  bool has_attribute_dependency()
+  {
+    return true;
+  }
 
  private:
   float roughness_orig;
   ClosureType distribution_orig;
+
+  bool is_isotropic();
 };
 
 class GlassBsdfNode : public BsdfNode {

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <array>
 
@@ -214,13 +216,13 @@ TEST(bit_span, InPlaceOr)
 
 TEST(bit_span, InPlaceAnd)
 {
-  std::array<uint64_t, 100> data_1;
+  std::array<uint64_t, 100> data_1{};
   MutableBitSpan span_1(data_1.data(), data_1.size() * BitsPerInt);
   for (const int i : span_1.index_range()) {
     span_1[i].set(i % 2 == 0);
   }
 
-  std::array<uint64_t, 100> data_2;
+  std::array<uint64_t, 100> data_2{};
   MutableBitSpan span_2(data_2.data(), data_2.size() * BitsPerInt);
   for (const int i : span_2.index_range()) {
     span_2[i].set(i % 2 != 0);

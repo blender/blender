@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Peter Schlaile <peter [at] schlaile [dot] de>. */
+/* SPDX-FileCopyrightText: 2011 Peter Schlaile <peter [at] schlaile [dot] de>.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -428,7 +429,7 @@ static bool get_proxy_filepath(struct anim *anim,
   return true;
 }
 
-static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc, char *filepath)
+static void get_tc_filepath(struct anim *anim, IMB_Timecode_Type tc, char *filepath)
 {
   char index_dir[FILE_MAXDIR];
   int i = IMB_timecode_to_array_index(tc);
@@ -939,7 +940,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
     if (tcs_in_use & tc_types[i]) {
       char filepath[FILE_MAX];
 
-      get_tc_filename(anim, tc_types[i], filepath);
+      get_tc_filepath(anim, tc_types[i], filepath);
 
       context->indexer[i] = IMB_index_builder_create(filepath);
       if (!context->indexer[i]) {
@@ -1392,10 +1393,9 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 
         IMB_convert_rgba_to_abgr(s_ibuf);
 
-        AVI_write_frame(context->proxy_ctx[i], pos, AVI_FORMAT_RGB32, s_ibuf->rect, x * y * 4);
-
         /* note that libavi free's the buffer... */
-        s_ibuf->rect = nullptr;
+        uint8_t *rect = IMB_steal_byte_buffer(s_ibuf);
+        AVI_write_frame(context->proxy_ctx[i], pos, AVI_FORMAT_RGB32, rect, x * y * 4);
 
         IMB_freeImBuf(s_ibuf);
       }
@@ -1429,17 +1429,17 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
     for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
       IMB_Proxy_Size proxy_size = proxy_sizes[i];
       if (proxy_size & proxy_sizes_to_build) {
-        char filename[FILE_MAX];
-        if (get_proxy_filepath(anim, proxy_size, filename, false) == false) {
+        char filepath[FILE_MAX];
+        if (get_proxy_filepath(anim, proxy_size, filepath, false) == false) {
           return nullptr;
         }
-        void **filename_key_p;
-        if (!BLI_gset_ensure_p_ex(file_list, filename, &filename_key_p)) {
-          *filename_key_p = BLI_strdup(filename);
+        void **filepath_key_p;
+        if (!BLI_gset_ensure_p_ex(file_list, filepath, &filepath_key_p)) {
+          *filepath_key_p = BLI_strdup(filepath);
         }
         else {
           proxy_sizes_to_build &= ~int(proxy_size);
-          printf("Proxy: %s already registered for generation, skipping\n", filename);
+          printf("Proxy: %s already registered for generation, skipping\n", filepath);
         }
       }
     }
@@ -1452,11 +1452,11 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
       for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
         IMB_Proxy_Size proxy_size = proxy_sizes[i];
         if (proxy_size & built_proxies) {
-          char filename[FILE_MAX];
-          if (get_proxy_filepath(anim, proxy_size, filename, false) == false) {
+          char filepath[FILE_MAX];
+          if (get_proxy_filepath(anim, proxy_size, filepath, false) == false) {
             return nullptr;
           }
-          printf("Skipping proxy: %s\n", filename);
+          printf("Skipping proxy: %s\n", filepath);
         }
       }
     }
@@ -1616,7 +1616,7 @@ struct anim_index *IMB_anim_open_index(struct anim *anim, IMB_Timecode_Type tc)
     return nullptr;
   }
 
-  get_tc_filename(anim, tc, filepath);
+  get_tc_filepath(anim, tc, filepath);
 
   anim->curr_idx[i] = IMB_indexer_open(filepath);
 
@@ -1643,9 +1643,9 @@ int IMB_anim_proxy_get_existing(struct anim *anim)
   int i;
   for (i = 0; i < num_proxy_sizes; i++) {
     IMB_Proxy_Size proxy_size = proxy_sizes[i];
-    char filename[FILE_MAX];
-    get_proxy_filepath(anim, proxy_size, filename, false);
-    if (BLI_exists(filename)) {
+    char filepath[FILE_MAX];
+    get_proxy_filepath(anim, proxy_size, filepath, false);
+    if (BLI_exists(filepath)) {
       existing |= int(proxy_size);
     }
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -105,19 +106,19 @@ class ColorBandFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
     MutableSpan<ColorGeometry4f> colors = params.uninitialized_single_output<ColorGeometry4f>(
         1, "Color");
     MutableSpan<float> alphas = params.uninitialized_single_output<float>(2, "Alpha");
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       ColorGeometry4f color;
       BKE_colorband_evaluate(&color_band_, values[i], color);
       colors[i] = color;
       alphas[i] = color.a;
-    }
+    });
   }
 };
 

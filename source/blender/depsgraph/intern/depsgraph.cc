@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -167,6 +168,8 @@ void Depsgraph::clear_id_nodes()
   id_nodes.clear();
   /* Clear physics relation caches. */
   clear_physics_relations(this);
+
+  light_linking_cache.clear();
 }
 
 Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *description, int flags)

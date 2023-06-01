@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
@@ -37,7 +39,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const IndexRange corner_range(mesh.totloop);
     const OffsetIndices polys = mesh.polys();
@@ -50,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
 
     Array<int> offset_corners(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -1384,8 +1385,9 @@ struct AutomaskingNodeData {
   bool have_orig_data;
 };
 
-/** Call before PBVH vertex iteration.
- * \param automask_data: pointer to an uninitialized AutomaskingNodeData struct.
+/**
+ * Call before PBVH vertex iteration.
+ * \param automask_data: pointer to an uninitialized #AutomaskingNodeData struct.
  */
 void SCULPT_automasking_node_begin(Object *ob,
                                    const SculptSession *ss,

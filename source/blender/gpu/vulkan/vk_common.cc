@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -654,7 +655,7 @@ template<typename T> void copy_color(T dst[4], const T *src)
 
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data)
 {
-  VkClearColorValue result = {0.0f};
+  VkClearColorValue result = {{0.0f}};
   switch (format) {
     case GPU_DATA_FLOAT: {
       const float *float_data = static_cast<const float *>(data);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -1670,7 +1671,7 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
     return false;
   }
 
-  /* TODO: add more spacetypes */
+  /* TODO: add more space-types. */
   if (!ELEM(area->spacetype, SPACE_VIEW3D)) {
     return false;
   }

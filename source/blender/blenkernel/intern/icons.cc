@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006-2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -555,7 +556,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   if (do_preview) {
     prv->w[ICON_SIZE_PREVIEW] = thumb->x;
     prv->h[ICON_SIZE_PREVIEW] = thumb->y;
-    prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->rect);
+    prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
     prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   if (do_icon) {
@@ -574,7 +575,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     IMB_scaleImBuf(thumb, icon_w, icon_h);
     prv->w[ICON_SIZE_ICON] = icon_w;
     prv->h[ICON_SIZE_ICON] = icon_h;
-    prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->rect);
+    prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
     prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   IMB_freeImBuf(thumb);
@@ -591,7 +592,7 @@ ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
   if (w > 0 && h > 0 && rect) {
     /* first allocate imbuf for copying preview into it */
     ima = IMB_allocImBuf(w, h, 32, IB_rect);
-    memcpy(ima->rect, rect, w * h * sizeof(*ima->rect));
+    memcpy(ima->byte_buffer.data, rect, w * h * sizeof(uint8_t) * 4);
   }
 
   return ima;
@@ -748,7 +749,7 @@ static int icon_gplayer_color_ensure_create_icon(bGPDlayer *gpl)
   BLI_assert(BLI_thread_is_main());
 
   /* NOTE: The color previews for GP Layers don't really need
-   * to be "rendered" to image per se (as it will just be a plain
+   * to be "rendered" to image per-se (as it will just be a plain
    * colored rectangle), we need to define icon data here so that
    * we can store a pointer to the layer data in icon->obj.
    */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -2618,6 +2619,10 @@ void uiTemplateAssetView(struct uiLayout *layout,
                          struct PointerRNA *r_activate_op_properties,
                          const char *drag_opname,
                          struct PointerRNA *r_drag_op_properties);
+
+void uiTemplateLightLinkingCollection(struct uiLayout *layout,
+                                      struct PointerRNA *ptr,
+                                      const char *propname);
 
 /**
  * \return: A RNA pointer for the operator properties.

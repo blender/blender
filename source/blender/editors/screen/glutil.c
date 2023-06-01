@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -430,7 +431,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
   bool need_fallback = true;
 
   /* Early out */
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL) {
     return;
   }
 
@@ -449,7 +450,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
     state.do_shader_unbind = false;
     immDrawPixelsTexSetupAttributes(&state);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (ibuf->float_colorspace) {
         ok = IMB_colormanagement_setup_glsl_draw_from_space(
             view_settings, display_settings, ibuf->float_colorspace, ibuf->dither, true, false);
@@ -465,7 +466,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
     }
 
     if (ok) {
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         eGPUTextureFormat format = 0;
 
         if (ibuf->channels == 3) {
@@ -486,7 +487,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
                                          ibuf->y,
                                          format,
                                          use_filter,
-                                         ibuf->rect_float,
+                                         ibuf->float_buffer.data,
                                          clip_min_x,
                                          clip_min_y,
                                          clip_max_x,
@@ -496,7 +497,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
                                          NULL);
         }
       }
-      else if (ibuf->rect) {
+      else if (ibuf->byte_buffer.data) {
         /* ibuf->rect is always RGBA */
         immDrawPixelsTexTiled_clipping(&state,
                                        x,
@@ -505,7 +506,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
                                        ibuf->y,
                                        GPU_RGBA8,
                                        use_filter,
-                                       ibuf->rect,
+                                       ibuf->byte_buffer.data,
                                        clip_min_x,
                                        clip_min_y,
                                        clip_max_x,
@@ -618,7 +619,7 @@ int ED_draw_imbuf_method(ImBuf *ibuf)
     /* Use faster GLSL when CPU to GPU transfer is unlikely to be a bottleneck,
      * otherwise do color management on CPU side. */
     const size_t threshold = sizeof(float[4]) * 2048 * 2048;
-    const size_t data_size = (ibuf->rect_float) ? sizeof(float) : sizeof(uchar);
+    const size_t data_size = (ibuf->float_buffer.data) ? sizeof(float) : sizeof(uchar);
     const size_t size = ibuf->x * ibuf->y * ibuf->channels * data_size;
 
     return (size > threshold) ? IMAGE_DRAW_METHOD_2DTEXTURE : IMAGE_DRAW_METHOD_GLSL;

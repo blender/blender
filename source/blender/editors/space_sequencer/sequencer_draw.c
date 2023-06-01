@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -1762,8 +1763,8 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
     *r_glsl_used = false;
     display_buffer = NULL;
   }
-  else if (ibuf->rect_float) {
-    display_buffer = ibuf->rect_float;
+  else if (ibuf->float_buffer.data) {
+    display_buffer = ibuf->float_buffer.data;
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
@@ -1787,8 +1788,8 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
       *r_glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
     }
   }
-  else if (ibuf->rect) {
-    display_buffer = ibuf->rect;
+  else if (ibuf->byte_buffer.data) {
+    display_buffer = ibuf->byte_buffer.data;
 
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
         C, ibuf->rect_colorspace, ibuf->dither, false);
@@ -1799,7 +1800,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
 
   /* There is data to be displayed, but GLSL is not initialized
    * properly, in this case we fallback to CPU-based display transform. */
-  if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
+  if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;
     *r_data = GPU_DATA_UBYTE;
@@ -1896,11 +1897,11 @@ static void sequencer_draw_display_buffer(const bContext *C,
   if (scope) {
     ibuf = scope;
 
-    if (ibuf->rect_float && ibuf->rect == NULL) {
+    if (ibuf->float_buffer.data && ibuf->byte_buffer.data == NULL) {
       IMB_rect_from_float(ibuf);
     }
 
-    display_buffer = (uchar *)ibuf->rect;
+    display_buffer = ibuf->byte_buffer.data;
     format = GPU_RGBA8;
     data = GPU_DATA_UBYTE;
   }
@@ -1992,7 +1993,7 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
         if (!scopes->zebra_ibuf) {
           ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 
-          if (display_ibuf->rect_float) {
+          if (display_ibuf->float_buffer.data) {
             IMB_colormanagement_imbuf_make_display_space(
                 display_ibuf, &scene->view_settings, &scene->display_settings);
           }

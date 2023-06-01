@@ -480,11 +480,11 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
 
   /* GPU debug markers. */
   if (G.debug & G_DEBUG_GPU) {
-    [rec pushDebugGroup:[NSString stringWithFormat:@"batch_bind%@(shader: %s)",
+    [rec pushDebugGroup:[NSString stringWithFormat:@"Draw Commands%@ (GPUShader: %s)",
                                                    this->elem ? @"(indexed)" : @"",
                                                    active_shader_->get_interface()->get_name()]];
     [rec insertDebugSignpost:[NSString
-                                 stringWithFormat:@"batch_bind%@(shader: %s)",
+                                 stringWithFormat:@"Draw Commands %@ (GPUShader: %s)",
                                                   this->elem ? @"(indexed)" : @"",
                                                   active_shader_->get_interface()->get_name()]];
   }
@@ -557,10 +557,6 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
   if (!ctx->ensure_render_pipeline_state(mtl_prim_type)) {
     MTL_LOG_ERROR("Failed to prepare and apply render pipeline state.\n");
     BLI_assert(false);
-
-    if (G.debug & G_DEBUG_GPU) {
-      [rec popDebugGroup];
-    }
     return nil;
   }
 
@@ -584,15 +580,17 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
     rps.bind_vertex_buffer(mtl_buffer, 0, i);
   }
 
-  if (G.debug & G_DEBUG_GPU) {
-    [rec popDebugGroup];
-  }
-
   /* Return Render Command Encoder used with setup. */
   return rec;
 }
 
-void MTLBatch::unbind() {}
+void MTLBatch::unbind(id<MTLRenderCommandEncoder> rec)
+{
+  /* Pop bind debug group. */
+  if (G.debug & G_DEBUG_GPU) {
+    [rec popDebugGroup];
+  }
+}
 
 void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int &num_buffers)
 {
@@ -754,6 +752,8 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   id<MTLRenderCommandEncoder> rec = this->bind(v_count);
   if (rec == nil) {
+    /* End of draw. */
+    this->unbind(rec);
     return;
   }
 
@@ -885,7 +885,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
   }
 
   /* End of draw. */
-  this->unbind();
+  this->unbind(rec);
 }
 
 void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
@@ -895,6 +895,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   id<MTLRenderCommandEncoder> rec = this->bind(0);
   if (rec == nil) {
     printf("Failed to open Render Command encoder for DRAW INDIRECT\n");
+
+    /* End of draw. */
+    this->unbind(rec);
     return;
   }
 
@@ -902,6 +905,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
    * NOTE: Add support? */
   if (active_shader_->get_uses_ssbo_vertex_fetch()) {
     printf("Draw indirect for SSBO vertex fetch disabled\n");
+
+    /* End of draw. */
+    this->unbind(rec);
     return;
   }
 
@@ -911,6 +917,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
 
   if (mtl_needs_topology_emulation(this->prim_type)) {
     BLI_assert_msg(false, "Metal Topology emulation unsupported for draw indirect.\n");
+
+    /* End of draw. */
+    this->unbind(rec);
     return;
   }
 
@@ -920,6 +929,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   BLI_assert(mtl_indirect_buf != nil);
   if (mtl_indirect_buf == nil) {
     MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.\n");
+
+    /* End of draw. */
+    this->unbind(rec);
     return;
   }
 
@@ -963,7 +975,7 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   }
 
   /* End of draw. */
-  this->unbind();
+  this->unbind(rec);
 }
 
 /** \} */

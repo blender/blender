@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -2624,18 +2626,22 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   int half = side / 2;
 
   BKE_curvemapping_init(br->curve);
-  im->rect_float = (float *)MEM_callocN(sizeof(float) * side * side, "radial control rect");
+
+  float *rect_float = (float *)MEM_callocN(sizeof(float) * side * side, "radial control rect");
+  IMB_assign_float_buffer(im, rect_float, IB_DO_NOT_TAKE_OWNERSHIP);
+
   im->x = im->y = side;
 
-  const bool have_texture = brush_gen_texture(br, side, secondary, im->rect_float);
+  const bool have_texture = brush_gen_texture(br, side, secondary, im->float_buffer.data);
 
   if (display_gradient || have_texture) {
     for (int i = 0; i < side; i++) {
       for (int j = 0; j < side; j++) {
         const float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
         const float strength = BKE_brush_curve_strength_clamped(br, magn, half);
-        im->rect_float[i * side + j] = (have_texture) ? im->rect_float[i * side + j] * strength :
-                                                        strength;
+        im->float_buffer.data[i * side + j] = (have_texture) ?
+                                                  im->float_buffer.data[i * side + j] * strength :
+                                                  strength;
       }
     }
   }

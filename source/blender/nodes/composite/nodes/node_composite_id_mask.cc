@@ -1,13 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
  */
 
 #include <cmath>
-
-#include "BLT_translation.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

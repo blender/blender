@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -19,7 +21,7 @@ struct CustomData_MeshMasks;
 struct MemArena;
 struct Mesh;
 
-/* Generic ways to map some geometry elements from a source mesh to a dest one. */
+/* Generic ways to map some geometry elements from a source mesh to a destination one. */
 
 typedef struct MeshPairRemapItem {
   int sources_num;
@@ -33,7 +35,7 @@ typedef struct MeshPairRemapItem {
 /* All mapping computing func return this. */
 typedef struct MeshPairRemap {
   int items_num;
-  MeshPairRemapItem *items; /* array, one item per dest element. */
+  MeshPairRemapItem *items; /* Array, one item per destination element. */
 
   struct MemArena *mem; /* memory arena, internal use only. */
 } MeshPairRemap;
@@ -89,7 +91,7 @@ enum {
   /* ***** Target's edges ***** */
   MREMAP_MODE_EDGE = 1 << 25,
 
-  /* Source edge which both vertices are nearest of dest ones. */
+  /* Source edge which both vertices are nearest of destination ones. */
   MREMAP_MODE_EDGE_VERT_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_VERT | MREMAP_USE_NEAREST,
 
   /* Nearest source edge (using mid-point). */
@@ -98,7 +100,7 @@ enum {
   /* Nearest edge of nearest poly (using mid-point). */
   MREMAP_MODE_EDGE_POLY_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
 
-  /* Cast a set of rays from along dest edge,
+  /* Cast a set of rays from along destination edge,
    * interpolating its vertices' normals, and use hit source edges. */
   MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ = MREMAP_MODE_EDGE | MREMAP_USE_VERT | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
@@ -131,10 +133,10 @@ enum {
 
   /* Nearest source poly. */
   MREMAP_MODE_POLY_NEAREST = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
-  /* Source poly from best normal-matching dest poly. */
+  /* Source poly from best normal-matching destination poly. */
   MREMAP_MODE_POLY_NOR = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORMAL,
 
-  /* Project dest poly onto source mesh using its normal,
+  /* Project destination poly onto source mesh using its normal,
    * and use interpolation of all intersecting source polys. */
   MREMAP_MODE_POLY_POLYINTERP_PNORPROJ = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,

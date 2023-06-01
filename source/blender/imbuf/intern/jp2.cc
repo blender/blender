@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -450,7 +452,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   if (use_float) {
-    float *rect_float = ibuf->rect_float;
+    float *rect_float = ibuf->float_buffer.data;
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
@@ -503,7 +505,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     }
   }
   else {
-    uchar *rect_uchar = (uchar *)ibuf->rect;
+    uchar *rect_uchar = ibuf->byte_buffer.data;
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
@@ -907,8 +909,8 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
 
   /* set image data */
-  rect_uchar = (uchar *)ibuf->rect;
-  rect_float = ibuf->rect_float;
+  rect_uchar = ibuf->byte_buffer.data;
+  rect_float = ibuf->float_buffer.data;
 
   /* set the destination channels */
   r = image->comps[0].data;
@@ -1206,7 +1208,7 @@ bool imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t *stream, int /*flags*/
 
   /* compression ratio */
   /* invert range, from 10-100, 100-1
-   * Where jpeg see's 1 and highest quality (lossless) and 100 is very low quality. */
+   * Where JPEG see's 1 and highest quality (lossless) and 100 is very low quality. */
   parameters.tcp_rates[0] = ((100 - quality) / 90.0f * 99.0f) + 1;
 
   parameters.tcp_numlayers = 1; /* only one resolution */

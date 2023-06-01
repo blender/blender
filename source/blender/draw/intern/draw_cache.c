@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -6,6 +8,7 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -3298,6 +3301,8 @@ void drw_batch_cache_validate(Object *ob)
     case OB_VOLUME:
       DRW_volume_batch_cache_validate((Volume *)ob->data);
       break;
+    case OB_GREASE_PENCIL:
+      DRW_grease_pencil_batch_cache_validate((GreasePencil *)ob->data);
     default:
       break;
   }

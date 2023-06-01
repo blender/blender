@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -44,7 +45,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
  * This is a complete set of layout rules, the 'state' of the Layout
  * Engine. Multiple styles are possible, defined via C or Python. Styles
  * get a name, and will typically get activated per region type, like
- * "Header", or "Listview" or "Toolbar". Properties of Style definitions
+ * `Header`, or `Listview` or `Toolbar`. Properties of Style definitions
  * are:
  *
  * - default column properties, internal spacing, aligning, min/max width

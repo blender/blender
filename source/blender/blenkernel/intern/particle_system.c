@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -4597,7 +4598,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     }
 
     for (dframe = -totframesback; dframe <= 0; dframe++) {
-      /* simulate each subframe */
+      /* Simulate each sub-frame. */
       dt_frac = psys->dt_frac;
       for (t_frac = dt_frac; t_frac <= 1.0f; t_frac += dt_frac) {
         sim->courant_num = 0.0f;

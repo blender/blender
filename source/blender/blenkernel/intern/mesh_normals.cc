@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -819,7 +820,7 @@ void edges_sharp_from_angle_set(const OffsetIndices<int> polys,
   Array<int2> edge_to_loops(sharp_edges.size(), int2(0));
 
   /* Simple mapping from a loop to its polygon index. */
-  const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map(polys);
+  const Array<int> loop_to_poly = build_loop_to_poly_map(polys);
 
   mesh_edges_sharp_tag(polys,
                        corner_verts,
@@ -1318,7 +1319,7 @@ void normals_calc_loop(const Span<float3> vert_positions,
   Span<int> loop_to_poly;
   Array<int> local_loop_to_poly_map;
   if (loop_to_poly_map.is_empty()) {
-    local_loop_to_poly_map = mesh_topology::build_loop_to_poly_map(polys);
+    local_loop_to_poly_map = build_loop_to_poly_map(polys);
     loop_to_poly = local_loop_to_poly_map;
   }
   else {
@@ -1419,11 +1420,8 @@ static void reverse_index_array(const Span<int> item_indices,
                                 Array<int> &r_reverse_indices)
 {
   r_offsets = Array<int>(items_num + 1, 0);
-  for (const int index : item_indices) {
-    r_offsets[index]++;
-  }
+  offset_indices::build_reverse_offsets(item_indices, r_offsets);
 
-  offset_indices::accumulate_counts_to_offsets(r_offsets);
   r_reverse_indices.reinitialize(r_offsets.last());
 
   Array<int> count_per_item(items_num, 0);
@@ -1465,7 +1463,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
   CornerNormalSpaceArray lnors_spacearr;
   BitVector<> done_loops(corner_verts.size(), false);
   Array<float3> loop_normals(corner_verts.size());
-  const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map(polys);
+  const Array<int> loop_to_poly = build_loop_to_poly_map(polys);
   /* In this case we always consider split nors as ON,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;

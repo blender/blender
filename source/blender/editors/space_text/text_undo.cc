@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sptext
@@ -209,7 +211,7 @@ static void text_undosys_step_decode(struct bContext *C,
     st->text = text;
   }
   text_update_cursor_moved(C);
-  text_drawcache_tag_update(st, 1);
+  text_drawcache_tag_update(st, true);
   WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 }
 

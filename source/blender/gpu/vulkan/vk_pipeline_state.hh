@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -12,6 +13,7 @@
 #include "BLI_vector.hh"
 
 namespace blender::gpu {
+class VKFrameBuffer;
 
 class VKPipelineStateManager {
  private:
@@ -20,6 +22,7 @@ class VKPipelineStateManager {
 
  public:
   VkPipelineColorBlendStateCreateInfo pipeline_color_blend_state;
+  VkPipelineColorBlendAttachmentState color_blend_attachment_template;
   Vector<VkPipelineColorBlendAttachmentState> color_blend_attachments;
   VkPipelineRasterizationStateCreateInfo rasterization_state;
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state;
@@ -28,6 +31,8 @@ class VKPipelineStateManager {
 
   void set_state(const GPUState &state, const GPUStateMutable &mutable_state);
   void force_state(const GPUState &state, const GPUStateMutable &mutable_state);
+
+  void finalize_color_blend_state(const VKFrameBuffer &framebuffer);
 
  private:
   void set_blend(eGPUBlend blend);

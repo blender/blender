@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -131,8 +132,9 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
 }
 
 /**
- * \note RNA_struct_property_is_set_ex is used here because we want
- *       the previously used settings to be used here rather than overriding them */
+ * \note #RNA_struct_property_is_set_ex is used here because we want
+ * the previously used settings to be used here rather than overriding them.
+ */
 static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 {
   BLI_assert(sfile->browse_mode == FILE_BROWSE_MODE_FILES);

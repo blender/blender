@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editor/io
@@ -127,12 +128,12 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 static int wm_usd_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   eUSDOperatorOptions *options = (eUSDOperatorOptions *)op->customdata;
   const bool as_background_job = (options != NULL && options->as_background_job);
@@ -175,7 +176,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.root_prim_path, root_prim_path);
 
-  bool ok = USD_export(C, filename, &params, as_background_job);
+  bool ok = USD_export(C, filepath, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -383,12 +384,12 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   eUSDOperatorOptions *options = (eUSDOperatorOptions *)op->customdata;
   const bool as_background_job = (options != NULL && options->as_background_job);
@@ -496,7 +497,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
-  const bool ok = USD_import(C, filename, &params, as_background_job);
+  const bool ok = USD_import(C, filepath, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

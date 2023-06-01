@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -98,7 +100,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void get_closest_mesh_looptris(const Mesh &mesh,
                                       const VArray<float3> &positions,
-                                      const IndexMask mask,
+                                      const IndexMask &mask,
                                       const MutableSpan<int> r_looptri_indices,
                                       const MutableSpan<float> r_distances_sq,
                                       const MutableSpan<float3> r_positions)
@@ -129,7 +131,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
     MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");

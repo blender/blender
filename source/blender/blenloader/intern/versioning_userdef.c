@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -543,7 +545,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     userdef->flag &= ~(USER_FLAG_UNUSED_4);
 
-    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_UIFLAG_UNUSED_22);
+    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_REGISTER_ALL_USERS);
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
@@ -825,6 +827,12 @@ void blo_do_versions_userdef(UserDef *userdef)
     LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
       asset_library->flag |= ASSET_LIBRARY_RELATIVE_PATH;
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(400, 4)) {
+    /* obj and ply python addons were removed. */
+    BKE_addon_remove_safe(&userdef->addons, "io_mesh_ply");
+    BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
   }
 
   /**

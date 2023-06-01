@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -294,7 +296,7 @@ template<typename T> class SimpleMixer {
   /**
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
-  SimpleMixer(MutableSpan<T> buffer, const IndexMask mask, T default_value = {})
+  SimpleMixer(MutableSpan<T> buffer, const IndexMask &mask, T default_value = {})
       : buffer_(buffer), default_value_(default_value), total_weights_(buffer.size(), 0.0f)
   {
     BLI_STATIC_ASSERT(std::is_trivial_v<T>, "");
@@ -327,7 +329,7 @@ template<typename T> class SimpleMixer {
     this->finalize(IndexMask(buffer_.size()));
   }
 
-  void finalize(const IndexMask mask)
+  void finalize(const IndexMask &mask)
   {
     mask.foreach_index([&](const int64_t i) {
       const float weight = total_weights_[i];
@@ -365,7 +367,7 @@ class BooleanPropagationMixer {
   /**
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
-  BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask mask) : buffer_(buffer)
+  BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask &mask) : buffer_(buffer)
   {
     mask.foreach_index([&](const int64_t i) { buffer_[i] = false; });
   }
@@ -391,7 +393,7 @@ class BooleanPropagationMixer {
    */
   void finalize() {}
 
-  void finalize(const IndexMask /*mask*/) {}
+  void finalize(const IndexMask & /*mask*/) {}
 };
 
 /**
@@ -421,7 +423,7 @@ class SimpleMixerWithAccumulationType {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   SimpleMixerWithAccumulationType(MutableSpan<T> buffer,
-                                  const IndexMask mask,
+                                  const IndexMask &mask,
                                   T default_value = {})
       : buffer_(buffer), default_value_(default_value), accumulation_buffer_(buffer.size())
   {
@@ -449,7 +451,7 @@ class SimpleMixerWithAccumulationType {
     this->finalize(buffer_.index_range());
   }
 
-  void finalize(const IndexMask mask)
+  void finalize(const IndexMask &mask)
   {
     mask.foreach_index([&](const int64_t i) {
       const Item &item = accumulation_buffer_[i];
@@ -478,12 +480,12 @@ class ColorGeometry4fMixer {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
-                       IndexMask mask,
+                       const IndexMask &mask,
                        ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
   void set(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void finalize();
-  void finalize(IndexMask mask);
+  void finalize(const IndexMask &mask);
 };
 
 class ColorGeometry4bMixer {
@@ -500,12 +502,12 @@ class ColorGeometry4bMixer {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
-                       IndexMask mask,
+                       const IndexMask &mask,
                        ColorGeometry4b default_color = ColorGeometry4b(0, 0, 0, 255));
   void set(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void finalize();
-  void finalize(IndexMask mask);
+  void finalize(const IndexMask &mask);
 };
 
 template<typename T> struct DefaultMixerStruct {

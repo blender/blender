@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -32,10 +33,6 @@ static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat,
 {
   if (!in[3].link) {
     GPU_link(mat, "world_normals_get", &in[3].link);
-  }
-
-  if (node->custom1 == SHD_GLOSSY_SHARP) {
-    GPU_link(mat, "set_value_zero", &in[1].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_REFRACT);

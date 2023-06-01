@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 #include "BLI_disjoint_set.hh"
@@ -71,22 +73,13 @@ struct AttributeOutputs {
 static void save_selection_as_attribute(Mesh &mesh,
                                         const AnonymousAttributeID *id,
                                         const eAttrDomain domain,
-                                        const IndexMask selection)
+                                        const IndexMask &selection)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   BLI_assert(!attributes.contains(id));
 
   SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(id, domain);
-  /* Rely on the new attribute being zeroed by default. */
-  BLI_assert(!attribute.span.as_span().contains(true));
-
-  if (selection.is_range()) {
-    attribute.span.slice(selection.as_range()).fill(true);
-  }
-  else {
-    attribute.span.fill_indices(selection.indices(), true);
-  }
-
+  selection.to_bools(attribute.span);
   attribute.finish();
 }
 
@@ -120,7 +113,6 @@ static void expand_mesh(Mesh &mesh,
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
     CustomData_free_layers(&mesh.vdata, CD_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_BWEIGHT, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
     CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
@@ -129,7 +121,6 @@ static void expand_mesh(Mesh &mesh,
     CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
-    CustomData_free_layers(&mesh.edata, CD_BWEIGHT, mesh.totedge);
     CustomData_free_layers(&mesh.edata, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
@@ -339,7 +330,12 @@ static void extrude_mesh_vertices(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_EDGE, new_edge_range);
   }
 
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
   BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
 }
 
 static void fill_quad_consistent_direction(const Span<int> other_poly_verts,
@@ -401,6 +397,21 @@ static VectorSet<int> vert_indices_from_edges(const Mesh &mesh, const Span<T> ed
   return vert_indices;
 }
 
+static void tag_mesh_added_faces(Mesh &mesh)
+{
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
+  const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
+                                  mesh.runtime->loose_edges_cache.data().count == 0;
+  BKE_mesh_runtime_clear_cache(&mesh);
+  if (no_loose_vert_hint) {
+    mesh.tag_loose_verts_none();
+  }
+  if (no_loose_edge_hint) {
+    mesh.tag_loose_edges_none();
+  }
+}
+
 static void extrude_mesh_edges(Mesh &mesh,
                                const Field<bool> &selection_field,
                                const Field<float3> &offset_field,
@@ -423,8 +434,10 @@ static void extrude_mesh_edges(Mesh &mesh,
     return;
   }
 
-  const Array<Vector<int, 2>> edge_to_poly_map = bke::mesh_topology::build_edge_to_poly_map(
-      orig_polys, mesh.corner_edges(), mesh.totedge);
+  Array<int> edge_to_poly_offsets;
+  Array<int> edge_to_poly_indices;
+  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
+      orig_polys, mesh.corner_edges(), mesh.totedge, edge_to_poly_offsets, edge_to_poly_indices);
 
   /* Find the offsets on the vertex domain for translation. This must be done before the mesh's
    * custom data layers are reallocated, in case the virtual array references one of them. */
@@ -432,16 +445,19 @@ static void extrude_mesh_edges(Mesh &mesh,
   if (!edge_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
     bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
-    for (const int i_edge : edge_selection) {
+    edge_selection.foreach_index([&](const int i_edge) {
       const int2 &edge = orig_edges[i_edge];
       const float3 offset = edge_offsets[i_edge];
       mixer.mix_in(edge[0], offset);
       mixer.mix_in(edge[1], offset);
-    }
+    });
     mixer.finalize();
   }
 
-  const VectorSet<int> new_vert_indices = vert_indices_from_edges(mesh, edge_selection.indices());
+  Vector<int> edge_selection_indices(edge_selection.size());
+  edge_selection.to_indices(edge_selection_indices.as_mutable_span());
+  const VectorSet<int> new_vert_indices = vert_indices_from_edges<int>(mesh,
+                                                                       edge_selection_indices);
 
   const IndexRange new_vert_range{orig_vert_size, new_vert_indices.size()};
   /* The extruded edges connect the original and duplicate edges. */
@@ -561,7 +577,7 @@ static void extrude_mesh_edges(Mesh &mesh,
          * original edge. */
         copy_with_mixing(
             attribute.span,
-            [&](const int i) { return edge_to_poly_map[edge_selection[i]].as_span(); },
+            [&](const int i) { return edge_to_poly_map[edge_selection[i]]; },
             attribute.span.slice(new_poly_range));
         break;
       }
@@ -679,7 +695,7 @@ static void extrude_mesh_edges(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 /**
@@ -709,10 +725,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     return;
   }
 
-  Array<bool> poly_selection_array(orig_polys.size(), false);
-  for (const int i_poly : poly_selection) {
-    poly_selection_array[i_poly] = true;
-  }
+  Array<bool> poly_selection_array(orig_polys.size());
+  poly_selection.to_bools(poly_selection_array);
 
   /* Mix the offsets from the face domain to the vertex domain. Evaluate on the face domain above
    * in order to be consistent with the selection, and to use the face normals rather than vertex
@@ -721,28 +735,30 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   if (!poly_position_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
     bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
-    for (const int i_poly : poly_selection) {
+    poly_selection.foreach_index([&](const int i_poly) {
       const float3 offset = poly_position_offsets[i_poly];
       for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
         mixer.mix_in(vert, offset);
       }
-    }
+    });
     mixer.finalize();
   }
 
   /* All of the faces (selected and deselected) connected to each edge. */
-  const Array<Vector<int, 2>> edge_to_poly_map = bke::mesh_topology::build_edge_to_poly_map(
-      orig_polys, mesh.corner_edges(), orig_edges.size());
+  Array<int> edge_to_poly_offsets;
+  Array<int> edge_to_poly_indices;
+  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
+      orig_polys, mesh.corner_edges(), mesh.totedge, edge_to_poly_offsets, edge_to_poly_indices);
 
   /* All vertices that are connected to the selected polygons.
    * Start the size at one vert per poly to reduce unnecessary reallocation. */
   VectorSet<int> all_selected_verts;
   all_selected_verts.reserve(orig_polys.size());
-  for (const int i_poly : poly_selection) {
+  poly_selection.foreach_index([&](const int i_poly) {
     for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
       all_selected_verts.add(vert);
     }
-  }
+  });
 
   /* Edges inside of an extruded region that are also attached to deselected edges. They must be
    * duplicated in order to leave the old edge attached to the unchanged deselected faces. */
@@ -876,7 +892,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* Connect the selected faces to the extruded or duplicated edges and the new vertices. */
-  for (const int i_poly : poly_selection) {
+  poly_selection.foreach_index([&](const int i_poly) {
     for (const int corner : polys[i_poly]) {
       const int i_new_vert = new_vert_indices.index_of_try(corner_verts[corner]);
       if (i_new_vert != -1) {
@@ -893,7 +909,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
         corner_edges[corner] = new_inner_edge_range[i_new_inner_edge];
       }
     }
-  }
+  });
 
   /* Create the faces on the sides of extruded regions. */
   for (const int i : boundary_edge_indices.index_range()) {
@@ -1090,7 +1106,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void extrude_individual_mesh_faces(
@@ -1374,7 +1390,7 @@ static void extrude_individual_mesh_faces(
         mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
   }
 
-  BKE_mesh_runtime_clear_cache(&mesh);
+  tag_mesh_added_faces(mesh);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

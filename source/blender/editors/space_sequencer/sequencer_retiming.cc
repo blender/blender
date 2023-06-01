@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -216,7 +217,7 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
       const bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
       const bool prev_handle_is_transition = SEQ_retiming_handle_is_transition_type(handle - 1);
 
-      /* When working with transiton, change handles when moving past pivot point. */
+      /* When working with transition, change handles when moving past pivot point. */
       if (handle_is_transition || prev_handle_is_transition) {
         SeqRetimingHandle *transition_start, *transition_end;
         if (handle_is_transition) {

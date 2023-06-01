@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -471,9 +472,9 @@ void multires_force_sculpt_rebuild(Object *object)
     object->sculpt->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-
-  MEM_SAFE_FREE(ss->pmap_mem);
+  ss->vert_to_poly_indices = {};
+  ss->vert_to_poly_offsets = {};
+  ss->pmap = {};
 }
 
 void multires_force_external_reload(Object *object)

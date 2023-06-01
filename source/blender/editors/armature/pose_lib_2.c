@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -86,8 +87,9 @@ typedef struct PoseBlendData {
   char headerstr[UI_MAX_DRAW_STR];
 } PoseBlendData;
 
-/** Return the bAction that should be blended.
- * This is either pbd->act or pbd->act_flipped, depending on is_flipped.
+/**
+ * Return the bAction that should be blended.
+ * This is either `pbd->act` or `pbd->act_flipped`, depending on `is_flipped`.
  */
 static bAction *poselib_action_to_blend(PoseBlendData *pbd)
 {

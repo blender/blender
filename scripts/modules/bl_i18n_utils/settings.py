@@ -68,7 +68,7 @@ LANGUAGES = (
     (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR"),
     # Using the utf8 flipped form of Hebrew (עִבְרִית)).
     (33, "Hebrew (תירִבְעִ)", "he_IL"),
-    (34, "Estonian (Eestlane)", "et_EE"),
+    (34, "Estonian (Eesti keel)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
     (36, "Spanish from Spain (Español de España)", "es_ES"),
     (37, "Amharic (አማርኛ)", "am_ET"),
@@ -206,7 +206,7 @@ _str_base = (
             r"(?:(?!<\\)(?:\\\\)*\\(?=(?P={_}2)))|"
             # The most common case.
             ".(?!(?P={_}2))"
-        ")+.)"  # Don't forget the last char!
+        ")*.)"  # Don't forget the last char!
     "(?P={_}2)"  # And closing quote.
 )
 str_clean_re = _str_base.format(_="g", capt="P<clean>")
@@ -257,7 +257,8 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
     # Node socket declarations: contextless names
-    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)").format(it)
+    tuple((r"\.{}<decl::.*?>\(\s*" + _msg_re + r"(?:,[^),]+)*\s*\)"
+           r"(?![^;]*\.translation_context\()").format(it)
           for it in ("add_input", "add_output")) +
 
     # Node socket declarations: names with contexts

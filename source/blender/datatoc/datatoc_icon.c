@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup datatoc
@@ -34,22 +36,22 @@
 /* -------------------------------------------------------------------- */
 /* Utility functions */
 
-static int path_ensure_slash(char *string)
+static int path_ensure_slash(char *path)
 {
-  int len = strlen(string);
-  if (len == 0 || string[len - 1] != SEP) {
-    string[len] = SEP;
-    string[len + 1] = '\0';
+  int len = strlen(path);
+  if (len == 0 || path[len - 1] != SEP) {
+    path[len] = SEP;
+    path[len + 1] = '\0';
     return len + 1;
   }
   return len;
 }
 
-static bool path_test_extension(const char *str, const char *ext)
+static bool path_test_extension(const char *filepath, const char *ext)
 {
-  const size_t a = strlen(str);
+  const size_t a = strlen(filepath);
   const size_t b = strlen(ext);
-  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, str + a - b) == 0);
+  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, filepath + a - b) == 0);
 }
 
 static void endian_switch_uint32(uint *val)
@@ -58,10 +60,10 @@ static void endian_switch_uint32(uint *val)
   *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
-static const char *path_slash_rfind(const char *string)
+static const char *path_slash_rfind(const char *path)
 {
-  const char *const lfslash = strrchr(string, '/');
-  const char *const lbslash = strrchr(string, '\\');
+  const char *const lfslash = strrchr(path, '/');
+  const char *const lbslash = strrchr(path, '\\');
 
   if (!lfslash) {
     return lbslash;

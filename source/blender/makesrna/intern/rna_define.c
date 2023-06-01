@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -528,7 +530,8 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 {
   int a = 0;
 
-  /** List is from:
+  /**
+   * List is from:
    * \code{.py}
    * ", ".join([
    *     '"%s"' % kw for kw in __import__("keyword").kwlist

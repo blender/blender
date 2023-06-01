@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -94,6 +95,9 @@ void txt_sel_clear(struct Text *text);
 void txt_sel_line(struct Text *text);
 void txt_sel_set(struct Text *text, int startl, int startc, int endl, int endc);
 char *txt_sel_to_buf(const struct Text *text, size_t *r_buf_strlen);
+/**
+ * \param in_buffer: UTF8 encoded text, invalid UTF8 byte-sequences are handled gracefully.
+ */
 void txt_insert_buf(struct Text *text, const char *in_buffer, int in_buffer_len)
     ATTR_NONNULL(1, 2);
 void txt_split_curline(struct Text *text);

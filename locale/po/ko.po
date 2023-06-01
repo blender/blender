@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -3159,38 +3159,6 @@ msgid "Eraser Stroke"
 msgstr "지우게 스트로크"
 
 
-msgid "Smooth"
-msgstr "스무스"
-
-
-msgid "Thickness"
-msgstr "두께"
-
-
-msgid "Randomize"
-msgstr "랜덤화"
-
-
-msgid "Grab"
-msgstr "잡기"
-
-
-msgid "Push"
-msgstr "밀기"
-
-
-msgid "Twist"
-msgstr "비틀기"
-
-
-msgid "Pinch"
-msgstr "핀치"
-
-
-msgid "Clone"
-msgstr "클론"
-
-
 msgid "Draw"
 msgstr "그리기"
 
@@ -3215,8 +3183,16 @@ msgid "Material used for strokes drawn using this brush"
 msgstr "이 브러시를 사용하여 그려진 스트로크에 사용되는 매테리얼"
 
 
+msgid "Thickness"
+msgstr "두께"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "새 스트로크를 위한 지터 팩터"
+
+
+msgid "Smooth"
+msgstr "스무스"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -14726,24 +14702,8 @@ msgid "Gaussian"
 msgstr "가우시안"
 
 
-msgid "Deformation"
-msgstr "변형"
-
-
 msgid "Deformation type that is used in the brush"
 msgstr "브러시에 사용되는 변형 유형"
-
-
-msgid "Bend"
-msgstr "굽히기"
-
-
-msgid "Expand"
-msgstr "확장"
-
-
-msgid "Inflate"
-msgstr "팽창"
 
 
 msgid "Loop"
@@ -14772,6 +14732,26 @@ msgstr "클론 도구에 대한 이미지"
 
 msgid "Clone Offset"
 msgstr "클론 오프셋"
+
+
+msgid "Deformation"
+msgstr "변형"
+
+
+msgid "Push"
+msgstr "밀기"
+
+
+msgid "Inflate"
+msgstr "팽창"
+
+
+msgid "Grab"
+msgstr "잡기"
+
+
+msgid "Expand"
+msgstr "확장"
 
 
 msgid "Snake Hook"
@@ -14840,6 +14820,10 @@ msgstr "편집 가능한 커브 감소"
 
 msgid "Comb"
 msgstr "빗"
+
+
+msgid "Pinch"
+msgstr "핀치"
 
 
 msgid "Puff"
@@ -15004,6 +14988,10 @@ msgstr "이미지 페인트 도구"
 
 msgid "Soften"
 msgstr "부드럽게"
+
+
+msgid "Clone"
+msgstr "클론"
 
 
 msgid "Mask"
@@ -18392,32 +18380,16 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "투명 페이스에 대한 혼합 모드"
 
 
-msgid "Opaque"
-msgstr "불투명"
-
-
 msgid "Render surface without transparency"
 msgstr "투명도가없는 표면을 렌더"
-
-
-msgid "Alpha Clip"
-msgstr "알파 클립"
 
 
 msgid "Use the alpha threshold to clip the visibility (binary visibility)"
 msgstr "알파 임계 값을 사용하여 가시성을 클립합니다 (바이널리 가시성)"
 
 
-msgid "Alpha Hashed"
-msgstr "알파 해시드"
-
-
 msgid "Use noise to dither the binary visibility (works well with multi-samples)"
 msgstr "바이너리 가시성을 떨어트리기 위해 노이즈를 사용 (다중 샘플에서 잘 작동 함)"
-
-
-msgid "Alpha Blend"
-msgstr "알파 혼합"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -18556,8 +18528,20 @@ msgid "Material will cast no shadow"
 msgstr "매테리얼은 섀도우를 캐스트하지 않습니다"
 
 
+msgid "Opaque"
+msgstr "불투명"
+
+
 msgid "Material will cast shadows without transparency"
 msgstr "투명도가없는 매테리얼로 섀도우가 생깁니다"
+
+
+msgid "Alpha Clip"
+msgstr "알파 클립"
+
+
+msgid "Alpha Hashed"
+msgstr "알파 해시드"
 
 
 msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
@@ -20697,6 +20681,10 @@ msgstr "트레일 개수"
 
 msgid "Number of trail particles"
 msgstr "트레일 파티클의 수"
+
+
+msgid "Twist"
+msgstr "비틀기"
 
 
 msgid "Number of turns around parent along the strand"
@@ -26133,10 +26121,6 @@ msgid "Color for filling region bounded by each stroke"
 msgstr "각 스트로크에 의해 경계가 채워진 채우기 지역의 컬러"
 
 
-msgid "Fill Style"
-msgstr "채우기 스타일"
-
-
 msgid "Select style used to fill strokes"
 msgstr "스트로크를 채우는 데 사용되는 스타일을 선택"
 
@@ -26243,10 +26227,6 @@ msgstr "스트로크를 표시"
 
 msgid "Show stroke lines of this material"
 msgstr "이 메테리얼의 스트로크를 표시"
-
-
-msgid "Stroke Style"
-msgstr "스트로크 스타일"
 
 
 msgid "Select style used to draw strokes"
@@ -28192,6 +28172,10 @@ msgid "Seed for random if used"
 msgstr "사용하는 경우 랜덤에 대한 씨드"
 
 
+msgid "Randomize"
+msgstr "랜덤화"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "빌드하는 동안 페이스 또는 에지를 랜덤화"
 
@@ -29018,10 +29002,6 @@ msgstr "다이나믹 페인트 모디파이어"
 
 msgid "Dynamic Paint modifier"
 msgstr "다이나믹 페인트 모디파이어"
-
-
-msgid "Canvas"
-msgstr "캔버스"
 
 
 msgid "EdgeSplit Modifier"
@@ -30013,16 +29993,22 @@ msgid "Deform around local axis"
 msgstr "로컬 축을 중심으로 변형"
 
 
+msgctxt "Operator"
+msgid "Twist"
+msgstr "비틀기"
+
+
 msgid "Rotate around the Z axis of the modifier space"
 msgstr "모디파이어 공간의 Z 축 주위에 회전"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "굽히기"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "모디파이어 공간의 Z축을 넘어메쉬를 굽히기"
-
-
-msgid "Taper"
-msgstr "테이퍼"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -35274,10 +35260,6 @@ msgid "Volume Scatter"
 msgstr "볼륨 산란"
 
 
-msgid "Pixel Size"
-msgstr "픽셀 크기"
-
-
 msgid "Use screen pixel size instead of world units"
 msgstr "월드 단위 대신 스크린 픽셀 크기를 사용"
 
@@ -39255,6 +39237,10 @@ msgstr "크기 조정"
 
 msgid "Skin Resize"
 msgstr "스킨 크기 조정"
+
+
+msgid "Bend"
+msgstr "굽히기"
 
 
 msgid "Shrink/Fatten"
@@ -55775,11 +55761,6 @@ msgid "Transformation orientation"
 msgstr "변환 오리엔테이션"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "굽히기"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "3D 커서 및 마우스 사이에 선택한 항목을 굽히기"
 
@@ -60012,6 +59993,10 @@ msgid "Properties of image and texture painting mode"
 msgstr "이미지 및 텍스처 페인팅 모드의 속성"
 
 
+msgid "Canvas"
+msgstr "캔버스"
+
+
 msgid "Image used as canvas"
 msgstr "캔버스로 사용된 이미지"
 
@@ -61749,11 +61734,6 @@ msgstr "두께"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "강도"
-
-
-msgctxt "Operator"
-msgid "Twist"
-msgstr "비틀기"
 
 
 msgctxt "Operator"
@@ -64625,6 +64605,14 @@ msgid "Color range used for weight visualization in weight painting mode"
 msgstr "웨이트 페인트 모드에서 웨이트 시각화를 위해 사용된 컬러 범위"
 
 
+msgid "Base"
+msgstr "베이스"
+
+
+msgid "Temperature"
+msgstr "온도"
+
+
 msgid "ID Property Group"
 msgstr "ID 속성 그룹"
 
@@ -66457,6 +66445,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "수직 화면 비율 - 아나모픽 또는 비정방 픽셀 출력에 대해"
 
 
+msgid "Pixel Size"
+msgstr "픽셀 크기"
+
+
 msgid "Pixel size for viewport rendering"
 msgstr "뷰포트 렌더링을 위한 픽셀 크기"
 
@@ -67419,10 +67411,6 @@ msgstr "메쉬 소스"
 
 msgid "Source of the mesh used to create collision shape"
 msgstr "충돌 셰이프를 만드는 데 사용되는 메쉬의 소스"
-
-
-msgid "Base"
-msgstr "베이스"
 
 
 msgid "Base mesh"
@@ -75597,381 +75585,6 @@ msgid "WorkSpace UI Tags"
 msgstr "작업공간 UI 테그"
 
 
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Action:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Anim:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Armature:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Blender_id:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Boid:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Brush:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Buttons:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "Cachefile:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Camera:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Clip:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Cloth:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Collection:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Console:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Constraint:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Curve:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Dpaint:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Ed:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Export_animation:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Export_anim:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Export_mesh:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Export_scene:"
-
-
-msgctxt "Operator"
-msgid "Export_shape:"
-msgstr "Export_shape:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "File:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Fluid:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Font:"
-
-
-msgctxt "Operator"
-msgid "Gizmogroup:"
-msgstr "Gizmogroup:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Gpencil:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Graph:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Image:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Import_anim:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Import_curve:"
-
-
-msgctxt "Operator"
-msgid "Import_image:"
-msgstr "Import_image:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Import_mesh:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Import_scene:"
-
-
-msgctxt "Operator"
-msgid "Import_shape:"
-msgstr "Import_shape:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Info:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Lattice:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Marker:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Mask:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Material:"
-
-
-msgctxt "Operator"
-msgid "Mathvis:"
-msgstr "Mathvis:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "Mball:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Mesh:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "Nla:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Node:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Object:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Outliner:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Paintcurve:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Paint:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Palette:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Particle:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "PoseLib:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Pose:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Preferences:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "Ptcache:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Render:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Rigidbody:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Scene:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Screen:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Script:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Sculpt:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Sequencer:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Sound:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Surface:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Texture:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Text:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Transform:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Ui:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "Uv:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "View2d:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "View3d:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Wm:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Workspace:"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "World:"
-
-
 msgid "Search"
 msgstr "검색"
 
@@ -77136,10 +76749,6 @@ msgstr "커브 In X"
 
 msgid "Curve Out X"
 msgstr "커브 Out X"
-
-
-msgid "Out"
-msgstr "Out"
 
 
 msgid "Start Handle"
@@ -78398,10 +78007,6 @@ msgstr "렌더 엔진"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "큐브맵 만 베이크"
-
-
-msgid "Temperature"
-msgstr "온도"
 
 
 msgid "General Override"
@@ -81845,10 +81450,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "전체 파일 %d | 바뀜 %d | 실패됨 %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "경로 '%s'는 상대적으로 만들 수 없습니다"
-
-
 msgid "Scene Collection"
 msgstr "씬 컬렉션"
 
@@ -82574,6 +82175,10 @@ msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 복사할 드라
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "주어진 ID에 대해 RNA 경로가 유효하지 않으므로 드라이버를 붙여 넣을 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "Out"
+msgstr "Out"
 
 
 msgid "<Unknown Modifier>"
@@ -88909,10 +88514,6 @@ msgid "Japanese (日本語)"
 msgstr "일본어 (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "네덜란드어 (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "이탈리아어 (Italiano)"
 
@@ -89021,10 +88622,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "히브리어 (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "에스토니아어 (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "에스페란토어 (Esperanto)"
 
@@ -89045,24 +88642,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "우즈베크어 키릴문자 (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "힌디어 (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "베트남 (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "바스크어 (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "하우사(하우사어)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "카자흐어 (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -19,7 +21,7 @@ class ProcedureExecutor : public MultiFunction {
  public:
   ProcedureExecutor(const Procedure &procedure);
 
-  void call(IndexMask mask, Params params, Context context) const override;
+  void call(const IndexMask &mask, Params params, Context context) const override;
 
  private:
   ExecutionHints get_execution_hints() const override;

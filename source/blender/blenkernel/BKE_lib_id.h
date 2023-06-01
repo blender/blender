@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -311,10 +312,11 @@ void BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
 /**
  * Like BKE_id_delete, but with extra corner-case options.
  *
- * \param extra_remapping_flags Additional `ID_REMAP_` flags to pass to remapping code when
+ * \param extra_remapping_flags: Additional `ID_REMAP_` flags to pass to remapping code when
  * ensuring that deleted IDs are not used by any other ID in given `bmain`. Typical example would
  * be e.g. `ID_REMAP_FORCE_UI_POINTERS`, required when default UI-handling callbacks of remapping
- * code won't be working (e.g. from readfile code). */
+ * code won't be working (e.g. from readfile code).
+ */
 void BKE_id_delete_ex(struct Main *bmain, void *idv, const int extra_remapping_flags)
     ATTR_NONNULL(1, 2);
 /**
@@ -646,7 +648,8 @@ bool BKE_id_can_be_asset(const struct ID *id);
  */
 struct ID *BKE_id_owner_get(struct ID *id);
 
-/** Check if that ID can be considered as editable from a high-level (editor) perspective.
+/**
+ * Check if that ID can be considered as editable from a high-level (editor) perspective.
  *
  * NOTE: This used to be done with a check on whether ID was linked or not, but now with system
  * overrides this is not enough anymore.

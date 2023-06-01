@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -33,9 +34,9 @@ class VKFrameBuffer : public FrameBuffer {
 
   /**
    * Should we flip the viewport to match Blenders coordinate system. We flip the viewport for
-   * offscreen framebuffers.
+   * off-screen frame-buffers.
    *
-   * When two framebuffers are blitted we also check if the coordinate system should be flipped
+   * When two frame-buffers are blitted we also check if the coordinate system should be flipped
    * during blitting.
    */
   bool flip_viewport_ = false;
@@ -109,6 +110,18 @@ class VKFrameBuffer : public FrameBuffer {
   {
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
+  }
+
+  /**
+   * Is this framebuffer immutable?
+   *
+   * Framebuffers that are owned by GHOST are immutable and
+   * don't have any attachments assigned. It should be assumed that there is a single color texture
+   * in slot 0.
+   */
+  bool is_immutable() const
+  {
+    return immutable_;
   }
 
  private:

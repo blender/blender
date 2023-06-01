@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -454,7 +455,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     mr->vert_crease_ofs = CustomData_get_offset(&mr->bm->vdata, CD_CREASE);
     mr->edge_crease_ofs = CustomData_get_offset(&mr->bm->edata, CD_CREASE);
-    mr->bweight_ofs = CustomData_get_offset(&mr->bm->edata, CD_BWEIGHT);
+    mr->bweight_ofs = CustomData_get_offset_named(
+        &mr->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE
     mr->freestyle_edge_ofs = CustomData_get_offset(&mr->bm->edata, CD_FREESTYLE_EDGE);
     mr->freestyle_face_ofs = CustomData_get_offset(&mr->bm->pdata, CD_FREESTYLE_FACE);

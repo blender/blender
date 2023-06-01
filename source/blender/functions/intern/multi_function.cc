@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "FN_multi_function.hh"
 
@@ -35,7 +37,7 @@ static bool supports_threading_by_slicing_params(const MultiFunction &fn)
   return true;
 }
 
-static int64_t compute_grain_size(const ExecutionHints &hints, const IndexMask mask)
+static int64_t compute_grain_size(const ExecutionHints &hints, const IndexMask &mask)
 {
   int64_t grain_size = hints.min_grain_size;
   if (hints.uniform_execution_time) {
@@ -111,7 +113,7 @@ static void add_sliced_parameters(const Signature &signature,
   }
 }
 
-void MultiFunction::call_auto(IndexMask mask, Params params, Context context) const
+void MultiFunction::call_auto(const IndexMask &mask, Params params, Context context) const
 {
   if (mask.is_empty()) {
     return;
@@ -148,10 +150,11 @@ void MultiFunction::call_auto(IndexMask mask, Params params, Context context) co
         const int64_t input_slice_size = sliced_mask.last() - input_slice_start + 1;
         const IndexRange input_slice_range{input_slice_start, input_slice_size};
 
-        Vector<int64_t> offset_mask_indices;
-        const IndexMask offset_mask = mask.slice_and_offset(sub_range, offset_mask_indices);
+        IndexMaskMemory memory;
+        const int64_t offset = -input_slice_start;
+        const IndexMask offset_mask = mask.slice_and_offset(sub_range, offset, memory);
 
-        ParamsBuilder sliced_params{*this, offset_mask.min_array_size()};
+        ParamsBuilder sliced_params{*this, &offset_mask};
         add_sliced_parameters(*signature_ref_, params, input_slice_range, sliced_params);
         this->call(offset_mask, sliced_params, context);
       });

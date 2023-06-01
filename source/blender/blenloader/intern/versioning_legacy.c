@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -841,7 +842,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 223) {
     VFont *vf;
     for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
-      if (STREQ(vf->filepath + strlen(vf->filepath) - 6, ".Bfont")) {
+      if (BLI_str_endswith(vf->filepath, ".Bfont")) {
         strcpy(vf->filepath, FO_BUILTIN_NAME);
       }
     }
@@ -1076,7 +1077,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 230) {
     bScreen *screen;
 
-    /* new variable blockscale, for panels in any area */
+    /* New variable block-scale, for panels in any area. */
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -12,7 +14,6 @@
 
 struct PBVHGPUFormat;
 struct MLoopTri;
-struct MeshElemMap;
 
 /* Axis-aligned bounding box */
 struct BB {
@@ -206,7 +207,7 @@ struct PBVH {
   BMLog *bm_log;
   SubdivCCG *subdiv_ccg;
 
-  const MeshElemMap *pmap;
+  blender::GroupedSpan<int> pmap;
 
   CustomDataLayer *color_layer;
   eAttrDomain color_domain;

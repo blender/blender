@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -137,15 +138,17 @@ typedef enum eCustomDataType {
                                   /*  CD_ID_MCOL          = 21, */
   /* CD_TEXTURE_MLOOPCOL = 22, */ /* UNUSED */
   CD_CLOTH_ORCO = 23,
-  /* CD_RECAST = 24, */ /* UNUSED */
+/* CD_RECAST = 24, */ /* UNUSED */
 
-  CD_MPOLY = 25,
 #ifdef DNA_DEPRECATED_ALLOW
+  CD_MPOLY = 25,
   CD_MLOOP = 26,
 #endif
   CD_SHAPE_KEYINDEX = 27,
   CD_SHAPEKEY = 28,
+#ifdef DNA_DEPRECATED_ALLOW
   CD_BWEIGHT = 29,
+#endif
   /** Subdivision sharpness data per edge or per vertex. */
   CD_CREASE = 30,
   CD_ORIGSPACE_MLOOP = 31,
@@ -201,7 +204,6 @@ typedef enum eCustomDataType {
 
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY (1 << CD_SHAPEKEY)
-#define CD_MASK_BWEIGHT (1 << CD_BWEIGHT)
 #define CD_MASK_CREASE (1 << CD_CREASE)
 #define CD_MASK_ORIGSPACE_MLOOP (1LL << CD_ORIGSPACE_MLOOP)
 #define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)

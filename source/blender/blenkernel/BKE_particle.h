@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -1014,7 +1015,7 @@ static bool modifier_apply_obdata(
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Curve *curve = static_cast<Curve *>(ob->data);
     Curve *curve_eval = static_cast<Curve *>(object_eval->data);
-    ModifierEvalContext mectx = {depsgraph, object_eval, (ModifierApplyFlag)0};
+    ModifierEvalContext mectx = {depsgraph, object_eval, ModifierApplyFlag(0)};
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
@@ -1040,7 +1041,7 @@ static bool modifier_apply_obdata(
   else if (ob->type == OB_LATTICE) {
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Lattice *lattice = static_cast<Lattice *>(ob->data);
-    ModifierEvalContext mectx = {depsgraph, object_eval, (ModifierApplyFlag)0};
+    ModifierEvalContext mectx = {depsgraph, object_eval, ModifierApplyFlag(0)};
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
@@ -1068,7 +1069,7 @@ static bool modifier_apply_obdata(
     geometry_set.get_component_for_write<CurveComponent>().replace(
         &curves, GeometryOwnershipType::ReadOnly);
 
-    ModifierEvalContext mectx = {depsgraph, ob, (ModifierApplyFlag)0};
+    ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
     mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
     if (!geometry_set.has_curves()) {
       BKE_report(reports, RPT_ERROR, "Evaluated geometry from modifier does not contain curves");
@@ -1096,7 +1097,7 @@ static bool modifier_apply_obdata(
     geometry_set.get_component_for_write<PointCloudComponent>().replace(
         &points, GeometryOwnershipType::ReadOnly);
 
-    ModifierEvalContext mectx = {depsgraph, ob, (ModifierApplyFlag)0};
+    ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
     mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
     if (!geometry_set.has_pointcloud()) {
       BKE_report(
@@ -2900,12 +2901,12 @@ static void skin_armature_bone_create(Object *skin_ob,
                                       const blender::int2 *edges,
                                       bArmature *arm,
                                       BLI_bitmap *edges_visited,
-                                      const MeshElemMap *emap,
+                                      const blender::GroupedSpan<int> emap,
                                       EditBone *parent_bone,
                                       int parent_v)
 {
-  for (int i = 0; i < emap[parent_v].count; i++) {
-    int endx = emap[parent_v].indices[i];
+  for (int i = 0; i < emap[parent_v].size(); i++) {
+    int endx = emap[parent_v][i];
     const blender::int2 &edge = edges[endx];
 
     /* ignore edge if already visited */
@@ -2967,9 +2968,11 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&me->vdata, CD_MVERT_SKIN, me->totvert));
-  int *emap_mem;
-  MeshElemMap *emap;
-  BKE_mesh_vert_edge_map_create(&emap, &emap_mem, me_edges.data(), me->totvert, me->totedge);
+
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  const blender::GroupedSpan<int> emap = blender::bke::mesh::build_vert_to_edge_map(
+      me_edges, me->totvert, vert_to_edge_offsets, vert_to_edge_indices);
 
   BLI_bitmap *edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 
@@ -2982,7 +2985,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
       /* Unless the skin root has just one adjacent edge, create
        * a fake root bone (have it going off in the Y direction
        * (arbitrary) */
-      if (emap[v].count > 1) {
+      if (emap[v].size() > 1) {
         bone = ED_armature_ebone_add(arm, "Bone");
 
         copy_v3_v3(bone->head, me_positions[v]);
@@ -2992,7 +2995,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
         bone->rad_head = bone->rad_tail = 0.25;
       }
 
-      if (emap[v].count >= 1) {
+      if (emap[v].size() >= 1) {
         skin_armature_bone_create(
             skin_ob, positions_eval, me_edges.data(), arm, edges_visited, emap, bone, v);
       }
@@ -3000,8 +3003,6 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   }
 
   MEM_freeN(edges_visited);
-  MEM_freeN(emap);
-  MEM_freeN(emap_mem);
 
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);

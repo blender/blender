@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -98,7 +99,7 @@ typedef struct FileData {
   /**
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
    * typically from value in `bhead->old` to address in memory where the ID was read.
-   * Used during liblinking process (see #lib_link_all).
+   * Used during library-linking process (see #lib_link_all).
    */
   struct OldNewMap *libmap;
 
@@ -115,7 +116,7 @@ typedef struct FileData {
   /** Used for undo. */
   ListBase *old_mainlist;
   /**
-   * IDMap using uuids as keys of all the old IDs in the old bmain. Used during undo to find a
+   * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
   struct IDNameLib_Map *old_idmap_uuid;
 
@@ -234,6 +235,7 @@ void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_290(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_400(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
 /**

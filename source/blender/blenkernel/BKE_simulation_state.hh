@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -162,7 +164,9 @@ class ModifierSimulationCache {
   CacheState cache_state_ = CacheState::Valid;
   bool failed_finding_bake_ = false;
 
-  void try_discover_bake(StringRefNull meta_dir, StringRefNull bdata_dir);
+  float last_fps_ = 0.0f;
+
+  void try_discover_bake(StringRefNull absolute_bake_dir);
 
   bool has_state_at_frame(const SubFrame &frame) const;
   bool has_states() const;

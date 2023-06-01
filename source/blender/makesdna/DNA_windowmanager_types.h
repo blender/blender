@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -139,7 +140,8 @@ typedef struct wmWindowManager {
   ListBase windows;
 
   /** Set on file read. */
-  short initialized;
+  uint8_t init_flag;
+  char _pad0[1];
   /** Indicator whether data was saved. */
   short file_saved;
   /** Operator stack depth to avoid nested undo pushes. */
@@ -204,10 +206,10 @@ typedef struct wmWindowManager {
   //#endif
 } wmWindowManager;
 
-/** #wmWindowManager.initialized */
+/** #wmWindowManager.init_flag */
 enum {
-  WM_WINDOW_IS_INIT = (1 << 0),
-  WM_KEYCONFIG_IS_INIT = (1 << 1),
+  WM_INIT_FLAG_WINDOW = (1 << 0),
+  WM_INIT_FLAG_KEYCONFIG = (1 << 1),
 };
 
 /** #wmWindowManager.outliner_sync_select_dirty */

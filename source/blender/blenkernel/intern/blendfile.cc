@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -442,6 +444,9 @@ static void setup_app_data(bContext *C,
    * linked libraries. */
   if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 1)) {
     BKE_lib_override_library_main_proxy_convert(bmain, reports);
+    /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
+     * #107847 to be properly fixed. */
+    BKE_main_namemap_validate_and_fix(bmain);
   }
 
   if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 3)) {
@@ -746,12 +751,10 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
     const char *addons[] = {
         "io_anim_bvh",
         "io_curve_svg",
-        "io_mesh_ply",
         "io_mesh_stl",
         "io_mesh_uv_layout",
         "io_scene_fbx",
         "io_scene_gltf2",
-        "io_scene_obj",
         "io_scene_x3d",
         "cycles",
         "pose_library",

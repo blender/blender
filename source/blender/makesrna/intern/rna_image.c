@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -553,7 +555,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
   if (!ibuf) {
     planes = 0;
   }
-  else if (ibuf->rect_float) {
+  else if (ibuf->float_buffer.data) {
     planes = ibuf->planes * 4;
   }
   else {
@@ -619,12 +621,12 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
   if (ibuf) {
     size = ibuf->x * ibuf->y * ibuf->channels;
 
-    if (ibuf->rect_float) {
-      memcpy(values, ibuf->rect_float, sizeof(float) * size);
+    if (ibuf->float_buffer.data) {
+      memcpy(values, ibuf->float_buffer.data, sizeof(float) * size);
     }
     else {
       for (i = 0; i < size; i++) {
-        values[i] = ((uchar *)ibuf->rect)[i] * (1.0f / 255.0f);
+        values[i] = ibuf->byte_buffer.data[i] * (1.0f / 255.0f);
       }
     }
   }
@@ -644,12 +646,12 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
   if (ibuf) {
     size = ibuf->x * ibuf->y * ibuf->channels;
 
-    if (ibuf->rect_float) {
-      memcpy(ibuf->rect_float, values, sizeof(float) * size);
+    if (ibuf->float_buffer.data) {
+      memcpy(ibuf->float_buffer.data, values, sizeof(float) * size);
     }
     else {
       for (i = 0; i < size; i++) {
-        ((uchar *)ibuf->rect)[i] = unit_float_to_uchar_clamp(values[i]);
+        ibuf->byte_buffer.data[i] = unit_float_to_uchar_clamp(values[i]);
       }
     }
 
@@ -695,7 +697,7 @@ static bool rna_Image_is_float_get(PointerRNA *ptr)
 
   ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
   if (ibuf) {
-    is_float = ibuf->rect_float != NULL;
+    is_float = ibuf->float_buffer.data != NULL;
   }
 
   BKE_image_release_ibuf(im, ibuf, lock);
@@ -1286,10 +1288,6 @@ static void rna_def_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Image Tiles", "Tiles of the image");
   rna_def_udim_tiles(brna, prop);
 
-  /*
-   * Image.has_data and Image.depth are temporary,
-   * Update import_obj.py when they are replaced (Arystan)
-   */
   prop = RNA_def_property(srna, "has_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_Image_has_data_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

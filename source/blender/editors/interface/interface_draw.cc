@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -301,7 +302,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
                         ibuf->y,
                         GPU_RGBA8,
                         false,
-                        ibuf->rect,
+                        ibuf->byte_buffer.data,
                         1.0f,
                         1.0f,
                         col);
@@ -2053,11 +2054,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                                                  height,
                                                  scopes->track_pos);
     if (tmpibuf) {
-      if (tmpibuf->rect_float) {
+      if (tmpibuf->float_buffer.data) {
         IMB_rect_from_float(tmpibuf);
       }
 
-      if (tmpibuf->rect) {
+      if (tmpibuf->byte_buffer.data) {
         scopes->track_preview = tmpibuf;
       }
       else {
@@ -2095,7 +2096,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                             drawibuf->y,
                             GPU_RGBA8,
                             true,
-                            drawibuf->rect,
+                            drawibuf->byte_buffer.data,
                             1.0f,
                             1.0f,
                             nullptr);

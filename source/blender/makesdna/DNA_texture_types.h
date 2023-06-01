@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -187,14 +188,17 @@ typedef struct Tex {
 
   float cropxmin, cropymin, cropxmax, cropymax;
   int texfilter;
-  int afmax; /* anisotropic filter maximum value, ewa -> max eccentricity, feline -> max probes */
+  /** Anisotropic filter maximum value, EWA -> max eccentricity, feline -> max probes. */
+  int afmax;
   short xrepeat, yrepeat;
   short extend;
 
-  /* variables disabled, moved to struct iuser */
+  /* Variables only used for versioning, moved to struct member `iuser`. */
   short _pad0;
-  int len;
-  int frames, offset, sfra;
+  int len DNA_DEPRECATED;
+  int frames DNA_DEPRECATED;
+  int offset DNA_DEPRECATED;
+  int sfra DNA_DEPRECATED;
 
   float checkerdist, nabla;
   char _pad1[4];

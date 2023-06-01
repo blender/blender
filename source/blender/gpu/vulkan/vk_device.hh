@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -29,7 +30,7 @@ class VKDevice : public NonCopyable {
   VKDescriptorPools descriptor_pools_;
 
   /** Limits of the device linked to this context. */
-  VkPhysicalDeviceLimits vk_physical_device_limits_;
+  VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
@@ -40,9 +41,9 @@ class VKDevice : public NonCopyable {
     return vk_physical_device_;
   }
 
-  const VkPhysicalDeviceLimits &physical_device_limits_get() const
+  const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
-    return vk_physical_device_limits_;
+    return vk_physical_device_properties_;
   }
 
   VkInstance instance_get() const
@@ -89,9 +90,13 @@ class VKDevice : public NonCopyable {
   void init(void *ghost_context);
   void deinit();
 
+  eGPUDeviceType device_type() const;
+  eGPUDriverType driver_type() const;
+  std::string vendor_name() const;
+  std::string driver_version() const;
+
  private:
-  void init_physical_device_limits();
-  void init_capabilities();
+  void init_physical_device_properties();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_descriptor_pools();

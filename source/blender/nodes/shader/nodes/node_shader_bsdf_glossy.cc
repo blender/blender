@@ -1,7 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 namespace blender::nodes::node_shader_bsdf_glossy_cc {
 
@@ -13,9 +17,21 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Anisotropy").default_value(0.0f).min(-1.0f).max(1.0f);
+  b.add_input<decl::Float>("Rotation")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>("Normal").hide_value();
+  b.add_input<decl::Vector>("Tangent").hide_value();
   b.add_input<decl::Float>("Weight").unavailable();
   b.add_output<decl::Shader>("BSDF");
+}
+
+static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_glossy(bNodeTree * /*ntree*/, bNode *node)
@@ -29,12 +45,8 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,
                                        GPUNodeStack *in,
                                        GPUNodeStack *out)
 {
-  if (!in[2].link) {
-    GPU_link(mat, "world_normals_get", &in[2].link);
-  }
-
-  if (node->custom1 == SHD_GLOSSY_SHARP) {
-    GPU_link(mat, "set_value_zero", &in[1].link);
+  if (!in[4].link) {
+    GPU_link(mat, "world_normals_get", &in[4].link);
   }
 
   GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
@@ -56,9 +68,14 @@ void register_node_type_sh_bsdf_glossy()
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
+  ntype.draw_buttons = file_ns::node_shader_buts_glossy;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_glossy;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glossy;
 
   nodeRegisterType(&ntype);
+
+  /* Needed to preserve API compatibility with older versions which had separate
+   * Glossy and Anisotropic nodes. */
+  nodeRegisterAlias(&ntype, "ShaderNodeBsdfGlossy");
 }

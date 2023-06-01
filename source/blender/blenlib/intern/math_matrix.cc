@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -222,7 +223,8 @@ MatBase<T, Size, Size> pseudo_invert(const MatBase<T, Size, Size> &mat, T epsilo
     using VectorT = Eigen::Matrix<T, Size, 1>;
     /* Blender and Eigen matrices are both column-major by default.
      * Since our matrix is squared, we can use thinU/V. */
-    /** WORKAROUND:
+    /**
+     * WORKAROUND:
      * (ComputeThinU | ComputeThinV) must be set as runtime parameters in Eigen < 3.4.0.
      * But this requires the matrix type to be dynamic to avoid an assert.
      */
@@ -282,9 +284,9 @@ static void polar_decompose(const MatBase<T, 3, 3> &mat3,
     using VectorT = Eigen::Matrix<T, 3, 1>;
     /* Blender and Eigen matrices are both column-major by default.
      * Since our matrix is squared, we can use thinU/V. */
-    /** WORKAROUND:
-     * (ComputeThinU | ComputeThinV) must be set as runtime parameters in Eigen < 3.4.0.
-     * But this requires the matrix type to be dynamic to avoid an assert.
+    /**
+     * WORKAROUND: (ComputeThinU | ComputeThinV) must be set as runtime parameters in
+     * Eigen < 3.4.0. But this requires the matrix type to be dynamic to avoid an assert.
      */
     using MatrixDynamicT = Eigen::Matrix<T, Dynamic, Dynamic>;
     JacobiSVD<MatrixDynamicT, NoQRPreconditioner> svd(

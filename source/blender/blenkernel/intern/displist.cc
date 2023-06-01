@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -571,7 +572,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
     required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
   }
 
-  ModifierApplyFlag apply_flag = (ModifierApplyFlag)0;
+  ModifierApplyFlag apply_flag = ModifierApplyFlag(0);
   if (editmode) {
     apply_flag = MOD_APPLY_USECACHE;
   }
@@ -695,18 +696,16 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
   const bool use_cache = !for_render;
 
-  ModifierApplyFlag apply_flag = for_render ? MOD_APPLY_RENDER : (ModifierApplyFlag)0;
+  ModifierApplyFlag apply_flag = for_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
   ModifierMode required_mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (editmode) {
-    required_mode = (ModifierMode)(int(required_mode) | eModifierMode_Editmode);
+    required_mode = ModifierMode(int(required_mode) | eModifierMode_Editmode);
   }
 
   const ModifierEvalContext mectx_deform = {
-      depsgraph, ob, editmode ? (ModifierApplyFlag)(apply_flag | MOD_APPLY_USECACHE) : apply_flag};
+      depsgraph, ob, editmode ? (apply_flag | MOD_APPLY_USECACHE) : apply_flag};
   const ModifierEvalContext mectx_apply = {
-      depsgraph,
-      ob,
-      use_cache ? (ModifierApplyFlag)(apply_flag | MOD_APPLY_USECACHE) : apply_flag};
+      depsgraph, ob, use_cache ? (apply_flag | MOD_APPLY_USECACHE) : apply_flag};
 
   ModifierData *pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 

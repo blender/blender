@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
@@ -135,7 +137,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float2> sample_uvs = params.readonly_single_input<float2>(0, "Sample UV");
     MutableSpan<bool> is_valid = params.uninitialized_single_output_if_required<bool>(1,
@@ -145,7 +147,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
     MutableSpan<float3> bary_weights = params.uninitialized_single_output_if_required<float3>(
         3, "Barycentric Weights");
 
-    for (const int i : mask) {
+    mask.foreach_index([&](const int i) {
       const ReverseUVSampler::Result result = reverse_uv_sampler_->sample(sample_uvs[i]);
       if (!is_valid.is_empty()) {
         is_valid[i] = result.type == ReverseUVSampler::ResultType::Ok;
@@ -156,7 +158,7 @@ class ReverseUVSampleFunction : public mf::MultiFunction {
       if (!bary_weights.is_empty()) {
         bary_weights[i] = result.bary_weights;
       }
-    }
+    });
   }
 
  private:

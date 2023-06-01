@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -171,6 +172,7 @@ void VKCommandBuffer::copy(VKBuffer &dst_buffer,
                          regions.size(),
                          regions.data());
 }
+
 void VKCommandBuffer::copy(VKTexture &dst_texture,
                            VKBuffer &src_buffer,
                            Span<VkBufferImageCopy> regions)
@@ -183,6 +185,21 @@ void VKCommandBuffer::copy(VKTexture &dst_texture,
                          regions.size(),
                          regions.data());
 }
+
+void VKCommandBuffer::copy(VKTexture &dst_texture,
+                           VKTexture &src_texture,
+                           Span<VkImageCopy> regions)
+{
+  ensure_no_active_framebuffer();
+  vkCmdCopyImage(vk_command_buffer_,
+                 src_texture.vk_image_handle(),
+                 src_texture.current_layout_get(),
+                 dst_texture.vk_image_handle(),
+                 dst_texture.current_layout_get(),
+                 regions.size(),
+                 regions.data());
+}
+
 void VKCommandBuffer::blit(VKTexture &dst_texture,
                            VKTexture &src_buffer,
                            Span<VkImageBlit> regions)

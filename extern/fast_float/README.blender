@@ -1,7 +1,7 @@
 Project: fast_float
 URL: https://github.com/fastfloat/fast_float
 License: MIT
-Upstream version: 4.0.0 (fbd5bd7, 2023 Mar 31)
+Upstream version: 5.0.0 (f5a3e77, 2023 May 25)
 Local modifications:
 
 - Took only the fast_float.h header and the license/readme files

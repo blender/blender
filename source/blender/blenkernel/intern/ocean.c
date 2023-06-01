@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1124,28 +1125,28 @@ static void cache_filepath(
     char *filepath, const char *dirname, const char *relbase, int frame, int type)
 {
   char cachepath[FILE_MAX];
-  const char *fname;
+  const char *filename;
 
   switch (type) {
     case CACHE_TYPE_FOAM:
-      fname = "foam_";
+      filename = "foam_";
       break;
     case CACHE_TYPE_NORMAL:
-      fname = "normal_";
+      filename = "normal_";
       break;
     case CACHE_TYPE_SPRAY:
-      fname = "spray_";
+      filename = "spray_";
       break;
     case CACHE_TYPE_SPRAY_INVERSE:
-      fname = "spray_inverse_";
+      filename = "spray_inverse_";
       break;
     case CACHE_TYPE_DISPLACE:
     default:
-      fname = "disp_";
+      filename = "disp_";
       break;
   }
 
-  BLI_path_join(cachepath, sizeof(cachepath), dirname, fname);
+  BLI_path_join(cachepath, sizeof(cachepath), dirname, filename);
 
   BKE_image_path_from_imtype(
       filepath, cachepath, relbase, frame, R_IMF_IMTYPE_OPENEXR, true, true, "");
@@ -1286,23 +1287,23 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
   j = j % res_y;
 
   if (och->ibufs_disp[f]) {
-    copy_v3_v3(ocr->disp, &och->ibufs_disp[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->disp, &och->ibufs_disp[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_foam[f]) {
-    ocr->foam = och->ibufs_foam[f]->rect_float[4 * (res_x * j + i)];
+    ocr->foam = och->ibufs_foam[f]->float_buffer.data[4 * (res_x * j + i)];
   }
 
   if (och->ibufs_spray[f]) {
-    copy_v3_v3(ocr->Eplus, &och->ibufs_spray[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->Eplus, &och->ibufs_spray[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_spray_inverse[f]) {
-    copy_v3_v3(ocr->Eminus, &och->ibufs_spray_inverse[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->Eminus, &och->ibufs_spray_inverse[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_norm[f]) {
-    copy_v3_v3(ocr->normal, &och->ibufs_norm[f]->rect_float[4 * (res_x * j + i)]);
+    copy_v3_v3(ocr->normal, &och->ibufs_norm[f]->float_buffer.data[4 * (res_x * j + i)]);
   }
 }
 
@@ -1435,7 +1436,7 @@ void BKE_ocean_bake(struct Ocean *o,
         BKE_ocean_eval_ij(o, &ocr, x, y);
 
         /* add to the image */
-        rgb_to_rgba_unit_alpha(&ibuf_disp->rect_float[4 * (res_x * y + x)], ocr.disp);
+        rgb_to_rgba_unit_alpha(&ibuf_disp->float_buffer.data[4 * (res_x * y + x)], ocr.disp);
 
         if (o->_do_jacobian) {
           /* TODO(@ideasman42): cleanup unused code. */
@@ -1454,7 +1455,7 @@ void BKE_ocean_bake(struct Ocean *o,
 
           // pr = pr * och->foam_fade; /* overall fade */
 
-          /* Remember ocean coord sys is Y up!
+          /* Remember ocean coord system is Y up!
            * break up the foam where height (Y) is low (wave valley),
            * and X and Z displacement is greatest. */
 
@@ -1478,18 +1479,19 @@ void BKE_ocean_bake(struct Ocean *o,
 
           // foam_result = min_ff(foam_result, 1.0f);
 
-          value_to_rgba_unit_alpha(&ibuf_foam->rect_float[4 * (res_x * y + x)], foam_result);
+          value_to_rgba_unit_alpha(&ibuf_foam->float_buffer.data[4 * (res_x * y + x)],
+                                   foam_result);
 
           /* spray map baking */
           if (o->_do_spray) {
-            rgb_to_rgba_unit_alpha(&ibuf_spray->rect_float[4 * (res_x * y + x)], ocr.Eplus);
-            rgb_to_rgba_unit_alpha(&ibuf_spray_inverse->rect_float[4 * (res_x * y + x)],
+            rgb_to_rgba_unit_alpha(&ibuf_spray->float_buffer.data[4 * (res_x * y + x)], ocr.Eplus);
+            rgb_to_rgba_unit_alpha(&ibuf_spray_inverse->float_buffer.data[4 * (res_x * y + x)],
                                    ocr.Eminus);
           }
         }
 
         if (o->_do_normals) {
-          rgb_to_rgba_unit_alpha(&ibuf_normal->rect_float[4 * (res_x * y + x)], ocr.normal);
+          rgb_to_rgba_unit_alpha(&ibuf_normal->float_buffer.data[4 * (res_x * y + x)], ocr.normal);
         }
       }
     }

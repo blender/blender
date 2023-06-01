@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -756,7 +757,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 static int pose_copy_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   /* Sanity checking. */
   if (ELEM(NULL, ob, ob->pose)) {
     BKE_report(op->reports, RPT_ERROR, "No pose to copy");
@@ -788,8 +789,8 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
    * existing on its own.
    */
   BKE_copybuffer_copy_tag_ID(&ob_copy.id);
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
-  BKE_copybuffer_copy_end(temp_bmain, str, op->reports);
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_pose.blend");
+  BKE_copybuffer_copy_end(temp_bmain, filepath, op->reports);
   /* We clear the lists so no datablocks gets freed,
    * This is required because objects in temp bmain shares same pointers
    * as the real ones.
@@ -840,12 +841,12 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   }
 
   /* Read copy buffer .blend file. */
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   Main *tmp_bmain = BKE_main_new();
   STRNCPY(tmp_bmain->filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");
-  if (!BKE_copybuffer_read(tmp_bmain, str, op->reports, FILTER_ID_OB)) {
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_pose.blend");
+  if (!BKE_copybuffer_read(tmp_bmain, filepath, op->reports, FILTER_ID_OB)) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
     BKE_main_free(tmp_bmain);
     return OPERATOR_CANCELLED;

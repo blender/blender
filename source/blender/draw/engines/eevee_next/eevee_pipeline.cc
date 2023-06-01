@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -34,21 +35,15 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.material_set(manager, gpumat);
   world_ps_.push_constant("world_opacity_fade", inst_.film.background_opacity_get());
   world_ps_.bind_texture("utility_tx", inst_.pipelines.utility_tx);
-  /* AOVs. */
-  world_ps_.bind_image("aov_color_img", &rbufs.aov_color_tx);
-  world_ps_.bind_image("aov_value_img", &rbufs.aov_value_tx);
-  world_ps_.bind_ssbo("aov_buf", &inst_.film.aovs_info);
-  /* RenderPasses. Cleared by background (even if bad practice). */
-  world_ps_.bind_image("rp_normal_img", &rbufs.normal_tx);
-  world_ps_.bind_image("rp_light_img", &rbufs.light_tx);
-  world_ps_.bind_image("rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-  world_ps_.bind_image("rp_specular_color_img", &rbufs.specular_color_tx);
-  world_ps_.bind_image("rp_emission_img", &rbufs.emission_tx);
+  /* RenderPasses & AOVs. Cleared by background (even if bad practice). */
+  world_ps_.bind_image("rp_color_img", &rbufs.rp_color_tx);
+  world_ps_.bind_image("rp_value_img", &rbufs.rp_value_tx);
   world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
   /* Required by validation layers. */
   inst_.cryptomatte.bind_resources(&world_ps_);
 
   world_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+  world_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
   world_ps_.draw(DRW_cache_fullscreen_quad_get(), handle);
   /* To allow opaque pass rendering over it. */
@@ -140,24 +135,16 @@ void ForwardPipeline::sync()
 
     {
       /* Common resources. */
-
-      /* RenderPasses. */
-      opaque_ps_.bind_image(RBUFS_NORMAL_SLOT, &inst_.render_buffers.normal_tx);
-      opaque_ps_.bind_image(RBUFS_LIGHT_SLOT, &inst_.render_buffers.light_tx);
-      opaque_ps_.bind_image(RBUFS_DIFF_COLOR_SLOT, &inst_.render_buffers.diffuse_color_tx);
-      opaque_ps_.bind_image(RBUFS_SPEC_COLOR_SLOT, &inst_.render_buffers.specular_color_tx);
-      opaque_ps_.bind_image(RBUFS_EMISSION_SLOT, &inst_.render_buffers.emission_tx);
-      /* AOVs. */
-      opaque_ps_.bind_image(RBUFS_AOV_COLOR_SLOT, &inst_.render_buffers.aov_color_tx);
-      opaque_ps_.bind_image(RBUFS_AOV_VALUE_SLOT, &inst_.render_buffers.aov_value_tx);
+      /* RenderPasses & AOVs. */
+      opaque_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      opaque_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       /* Cryptomatte. */
       opaque_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-      /* Storage Buffer. */
-      opaque_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
       /* Textures. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
       /* Uniform Buffer. */
       opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+      opaque_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.shadows.bind_resources(&opaque_ps_);
@@ -293,7 +280,7 @@ void DeferredLayer::begin_sync()
 
       /* Textures. */
       prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buf. */
+      /* Uniform Buffer. */
       prepass_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
       inst_.velocity.bind_resources(&prepass_ps_);
@@ -327,23 +314,17 @@ void DeferredLayer::begin_sync()
       /* G-buffer. */
       gbuffer_ps_.bind_image(GBUF_CLOSURE_SLOT, &inst_.gbuffer.closure_tx);
       gbuffer_ps_.bind_image(GBUF_COLOR_SLOT, &inst_.gbuffer.color_tx);
-      /* RenderPasses. */
-      gbuffer_ps_.bind_image(RBUFS_NORMAL_SLOT, &inst_.render_buffers.normal_tx);
-      /* TODO(fclem): Pack all render pass into the same texture. */
-      // gbuffer_ps_.bind_image(RBUFS_DIFF_COLOR_SLOT, &inst_.render_buffers.diffuse_color_tx);
-      gbuffer_ps_.bind_image(RBUFS_SPEC_COLOR_SLOT, &inst_.render_buffers.specular_color_tx);
-      gbuffer_ps_.bind_image(RBUFS_EMISSION_SLOT, &inst_.render_buffers.emission_tx);
-      /* AOVs. */
-      gbuffer_ps_.bind_image(RBUFS_AOV_COLOR_SLOT, &inst_.render_buffers.aov_color_tx);
-      gbuffer_ps_.bind_image(RBUFS_AOV_VALUE_SLOT, &inst_.render_buffers.aov_value_tx);
+      /* RenderPasses & AOVs. */
+      gbuffer_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+      gbuffer_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
       /* Cryptomatte. */
       gbuffer_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
-      /* Storage Buf. */
-      gbuffer_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
+      /* Storage Buffer. */
       /* Textures. */
       gbuffer_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      /* Uniform Buf. */
+      /* Uniform Buffer. */
       gbuffer_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+      gbuffer_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
       inst_.sampling.bind_resources(&gbuffer_ps_);
       inst_.cryptomatte.bind_resources(&gbuffer_ps_);
@@ -380,8 +361,10 @@ void DeferredLayer::end_sync()
     eval_light_ps_.bind_texture("gbuffer_closure_tx", &inst_.gbuffer.closure_tx);
     eval_light_ps_.bind_texture("gbuffer_color_tx", &inst_.gbuffer.color_tx);
     eval_light_ps_.push_constant("is_last_eval_pass", is_last_eval_pass);
-    eval_light_ps_.bind_image(RBUFS_LIGHT_SLOT, &inst_.render_buffers.light_tx);
+    eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
+    eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
     eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    eval_light_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
     inst_.lights.bind_resources(&eval_light_ps_);
     inst_.shadows.bind_resources(&eval_light_ps_);

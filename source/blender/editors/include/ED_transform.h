@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -125,8 +126,9 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_CURSOR_EDIT (1 << 16)
 #define P_CLNOR_INVALIDATE (1 << 17)
 #define P_VIEW2D_EDGE_PAN (1 << 18)
+#define P_VIEW3D_NAVIGATION (1 << 19)
 /* For properties performed when confirming the transformation. */
-#define P_POST_TRANSFORM (1 << 19)
+#define P_POST_TRANSFORM (1 << 20)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

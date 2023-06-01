@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -117,11 +118,11 @@ static void run_configured_detector(MovieTracking *tracking,
 {
   struct libmv_Features *features = nullptr;
 
-  if (ibuf->rect_float) {
-    features = libmv_detectFeaturesFloat(ibuf->rect_float, ibuf->x, ibuf->y, 4, options);
+  if (ibuf->float_buffer.data) {
+    features = libmv_detectFeaturesFloat(ibuf->float_buffer.data, ibuf->x, ibuf->y, 4, options);
   }
-  else if (ibuf->rect) {
-    features = libmv_detectFeaturesByte((uchar *)ibuf->rect, ibuf->x, ibuf->y, 4, options);
+  else if (ibuf->byte_buffer.data) {
+    features = libmv_detectFeaturesByte(ibuf->byte_buffer.data, ibuf->x, ibuf->y, 4, options);
   }
 
   if (features != nullptr) {

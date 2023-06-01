@@ -1390,9 +1390,15 @@ bool MTLShader::bake_compute_pipeline_state(MTLContext *ctx)
     }
 
     /* Compile PSO. */
+    MTLComputePipelineDescriptor *desc = [[MTLComputePipelineDescriptor alloc] init];
+    desc.maxTotalThreadsPerThreadgroup = 1024;
+    desc.computeFunction = compute_function;
+
     id<MTLComputePipelineState> pso = [ctx->device
-        newComputePipelineStateWithFunction:compute_function
-                                      error:&error];
+        newComputePipelineStateWithDescriptor:desc
+                                      options:MTLPipelineOptionNone
+                                   reflection:nullptr
+                                        error:&error];
 
     if (error) {
       NSLog(@"Failed to create PSO for compute shader: %s error %@\n", this->name, error);

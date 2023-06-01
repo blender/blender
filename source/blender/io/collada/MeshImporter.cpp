@@ -281,7 +281,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
     const char *type_str = bc_primTypeToStr(type);
 
-    /* OpenCollada passes POLYGONS type for <polylist> */
+    /* OpenCollada passes POLYGONS type for `<polylist>`. */
     if (ELEM(type, COLLADAFW::MeshPrimitive::POLYLIST, COLLADAFW::MeshPrimitive::POLYGONS)) {
 
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
@@ -553,7 +553,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_copy_layout(&mesh->edata, &edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
   CustomData_copy_data(&mesh->edata, &edata, 0, 0, mesh->totedge);
 
-  if (!CustomData_get_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
+  if (!CustomData_has_layer_named(&edata, CD_PROP_INT32_2D, ".edge_verts")) {
     CustomData_add_layer_named(&edata, CD_PROP_INT32_2D, CD_CONSTRUCT, totedge, ".edge_verts");
   }
 
@@ -636,7 +636,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
     int collada_meshtype = mp->getPrimitiveType();
 
-    /* since we cannot set poly->mat_nr here, we store a portion of me->mpoly in Primitive */
+    /* Since we cannot set `poly->mat_nr` here, we store a portion of `me->mpoly` in Primitive. */
     Primitive prim = {poly_index, &material_indices[poly_index], 0};
 
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
@@ -637,12 +638,11 @@ static void apply_watertight_check(PBVH *pbvh, Image *image, ImageUser *image_us
         int pixel_offset = pixel_row.start_image_coordinate.y * image_buffer->x +
                            pixel_row.start_image_coordinate.x;
         for (int x = 0; x < pixel_row.num_pixels; x++) {
-          if (image_buffer->rect_float) {
-            copy_v4_fl(&image_buffer->rect_float[pixel_offset * 4], 1.0);
+          if (image_buffer->float_buffer.data) {
+            copy_v4_fl(&image_buffer->float_buffer.data[pixel_offset * 4], 1.0);
           }
-          if (image_buffer->rect) {
-            uint8_t *dest = static_cast<uint8_t *>(
-                static_cast<void *>(&image_buffer->rect[pixel_offset]));
+          if (image_buffer->byte_buffer.data) {
+            uint8_t *dest = &image_buffer->byte_buffer.data[pixel_offset * 4];
             copy_v4_uchar(dest, 255);
           }
           pixel_offset += 1;

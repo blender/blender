@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -199,7 +201,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
                 shapekey->from);
     /* NOTE: also need to remap UI data ID pointers here, since `bmain` is not the current
      * `G_MAIN`, default UI-handling remapping callback (defined by call to
-     * `BKE_library_callback_remap_editor_id_reference_set`) won't work on exoected data here. */
+     * `BKE_library_callback_remap_editor_id_reference_set`) won't work on expected data here. */
     BKE_id_delete_ex(bmain, shapekey, ID_REMAP_FORCE_UI_POINTERS);
   }
 

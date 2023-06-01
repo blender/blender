@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -1518,11 +1519,6 @@ typedef struct NodeGeometryRaycast {
 
   /* eCustomDataType. */
   int8_t data_type;
-
-  /* Deprecated input types in new Ray-cast node. Can be removed when legacy nodes are no longer
-   * supported. */
-  uint8_t input_type_ray_direction;
-  uint8_t input_type_ray_length;
 } NodeGeometryRaycast;
 
 typedef struct NodeGeometryCurveFill {
@@ -1698,7 +1694,7 @@ typedef struct NodeShaderMix {
 
 /* glossy distributions */
 #define SHD_GLOSSY_BECKMANN 0
-#define SHD_GLOSSY_SHARP 1
+#define SHD_GLOSSY_SHARP_DEPRECATED 1 /* deprecated */
 #define SHD_GLOSSY_GGX 2
 #define SHD_GLOSSY_ASHIKHMIN_SHIRLEY 3
 #define SHD_GLOSSY_MULTI_GGX 4
@@ -2436,10 +2432,6 @@ typedef enum GeometryNodeDeleteGeometryMode {
   GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE = 1,
   GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
 } GeometryNodeDeleteGeometryMode;
-
-typedef enum GeometryNodeRealizeInstancesFlag {
-  GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR = (1 << 0),
-} GeometryNodeRealizeInstancesFlag;
 
 typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,

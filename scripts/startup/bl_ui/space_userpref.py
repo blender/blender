@@ -638,11 +638,16 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         return sys.platform[:3] == "win"
 
     def draw_centered(self, _context, layout):
-        layout.label(text="Make this installation your default Blender")
-        split = layout.split(factor=0.4)
-        split.alignment = 'RIGHT'
-        split.label(text="")
-        split.operator("preferences.associate_blend", text="Make Default")
+        if _context.preferences.system.is_microsoft_store_install:
+            layout.label(text="Microsoft Store installation.")
+            layout.label(text="Use Windows 'Default Apps' to associate with blend files.")
+        else:
+            layout.label(text="Open blend files with this Blender version")
+            split = layout.split(factor=0.5)
+            split.alignment = 'LEFT'
+            split.operator("preferences.associate_blend", text="Register")
+            split.operator("preferences.unassociate_blend", text="Unregister")
+            layout.prop(bpy.context.preferences.system, "register_all_users", text="For All Users")
 
 
 class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
@@ -2091,9 +2096,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         split.label(text="  " + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    tot_row = bool(info["doc_url"]) + bool(user_addon)
-
-                    if tot_row:
+                    if info["doc_url"] or info.get("tracker_url"):
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Internet:")
                         sub = split.row()
@@ -2117,10 +2120,13 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                             )
                             props.type = 'BUG_ADDON'
                             props.id = addon_info
-                        if user_addon:
-                            sub.operator(
-                                "preferences.addon_remove", text="Remove", icon='CANCEL',
-                            ).module = mod.__name__
+
+                    if user_addon:
+                        split = colsub.row().split(factor=0.15)
+                        split.label(text="User:")
+                        split.operator(
+                            "preferences.addon_remove", text="Remove", icon='CANCEL',
+                        ).module = mod.__name__
 
                     # Show addon user preferences
                     if is_enabled:
@@ -2392,6 +2398,8 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_full_frame_compositor"}, ("blender/blender/issues/88150", "#88150")),
                 ({"property": "enable_eevee_next"}, ("blender/blender/issues/93220", "#93220")),
                 ({"property": "enable_workbench_next"}, ("blender/blender/issues/101619", "#101619")),
+                ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/40", "Grease Pencil 3.0")),
+                ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
             ),
         )
 

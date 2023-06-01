@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -251,13 +253,14 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
 #define MAX_DIR_RECURSE 16
 #define FILESIZE_INVALID_DIRECTORY -1
 
-/** Find the given filename recursively in the given search directory and its sub-directories.
+/**
+ * Find the given filename recursively in the given search directory and its sub-directories.
  *
  * \note Use the biggest matching file found, so that thumbnails don't get used by mistake.
  *
  * \param search_directory: Directory to search in.
  * \param filename_src: Search for this filename.
- * \param r_filename_new: The path of the new found file will be copied here, caller must
+ * \param r_filepath_new: The path of the new found file will be copied here, caller must
  *                        initialize as empty string.
  * \param r_filesize: Size of the file, `FILESIZE_INVALID_DIRECTORY` if search directory could not
  *                    be opened.
@@ -267,7 +270,7 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
  */
 static bool missing_files_find__recursive(const char *search_directory,
                                           const char *filename_src,
-                                          char r_filename_new[FILE_MAX],
+                                          char r_filepath_new[FILE_MAX],
                                           int64_t *r_filesize,
                                           int *r_recurse_depth)
 {
@@ -306,7 +309,7 @@ static bool missing_files_find__recursive(const char *search_directory,
         size = status.st_size;
         if ((size > 0) && (size > *r_filesize)) { /* Find the biggest matching file. */
           *r_filesize = size;
-          BLI_strncpy(r_filename_new, path, FILE_MAX);
+          BLI_strncpy(r_filepath_new, path, FILE_MAX);
           found = true;
         }
       }
@@ -315,7 +318,7 @@ static bool missing_files_find__recursive(const char *search_directory,
       if (*r_recurse_depth <= MAX_DIR_RECURSE) {
         (*r_recurse_depth)++;
         found |= missing_files_find__recursive(
-            path, filename_src, r_filename_new, r_filesize, r_recurse_depth);
+            path, filename_src, r_filepath_new, r_filesize, r_recurse_depth);
         (*r_recurse_depth)--;
       }
     }
@@ -337,7 +340,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                                                const char *path_src)
 {
   BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
-  char filename_new[FILE_MAX];
+  char filepath_new[FILE_MAX];
 
   int64_t filesize = FILESIZE_INVALID_DIRECTORY;
   int recurse_depth = 0;
@@ -347,10 +350,10 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false;
   }
 
-  filename_new[0] = '\0';
+  filepath_new[0] = '\0';
 
   is_found = missing_files_find__recursive(
-      data->searchdir, BLI_path_basename(path_src), filename_new, &filesize, &recurse_depth);
+      data->searchdir, BLI_path_basename(path_src), filepath_new, &filesize, &recurse_depth);
 
   if (filesize == FILESIZE_INVALID_DIRECTORY) {
     BKE_reportf(data->reports,
@@ -370,7 +373,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
 
   bool was_relative = BLI_path_is_rel(path_dst);
 
-  BLI_strncpy(path_dst, filename_new, FILE_MAX);
+  BLI_strncpy(path_dst, filepath_new, FILE_MAX);
 
   /* Keep the path relative if the previous one was relative. */
   if (was_relative) {

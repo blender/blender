@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -286,8 +287,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
 int BKE_packedfile_write_to_file(ReportList *reports,
                                  const char *ref_file_name,
                                  const char *filepath_rel,
-                                 PackedFile *pf,
-                                 const bool guimode)
+                                 PackedFile *pf)
 {
   int file, number;
   int ret_value = RET_OK;
@@ -295,9 +295,6 @@ int BKE_packedfile_write_to_file(ReportList *reports,
   char filepath[FILE_MAX];
   char filepath_temp[FILE_MAX];
   /*      void *data; */
-
-  if (guimode) {
-  }  // XXX  waitcursor(1);
 
   STRNCPY(filepath, filepath_rel);
   BLI_path_abs(filepath, ref_file_name);
@@ -349,9 +346,6 @@ int BKE_packedfile_write_to_file(ReportList *reports,
       }
     }
   }
-
-  if (guimode) {
-  }  // XXX waitcursor(0);
 
   return ret_value;
 }
@@ -441,7 +435,7 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
         ATTR_FALLTHROUGH;
       }
       case PF_WRITE_LOCAL:
-        if (BKE_packedfile_write_to_file(reports, ref_file_name, local_name, pf, 1) == RET_OK) {
+        if (BKE_packedfile_write_to_file(reports, ref_file_name, local_name, pf) == RET_OK) {
           temp = local_name;
         }
         break;
@@ -461,7 +455,7 @@ char *BKE_packedfile_unpack_to_file(ReportList *reports,
         ATTR_FALLTHROUGH;
       }
       case PF_WRITE_ORIGINAL:
-        if (BKE_packedfile_write_to_file(reports, ref_file_name, abs_name, pf, 1) == RET_OK) {
+        if (BKE_packedfile_write_to_file(reports, ref_file_name, abs_name, pf) == RET_OK) {
           temp = abs_name;
         }
         break;

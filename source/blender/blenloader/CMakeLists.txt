@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -42,7 +43,7 @@ set(SRC
   intern/versioning_250.c
   intern/versioning_260.c
   intern/versioning_270.c
-  intern/versioning_280.c
+  intern/versioning_280.cc
   intern/versioning_290.cc
   intern/versioning_300.cc
   intern/versioning_400.cc

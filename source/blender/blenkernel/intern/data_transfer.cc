@@ -1,11 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
  */
-
-#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -34,9 +33,9 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
-#include "data_transfer_intern.h"
+#include "DEG_depsgraph_query.h"
 
-static CLG_LogRef LOG = {"bke.data_transfer"};
+#include "data_transfer_intern.h"
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)
@@ -193,7 +192,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SKIN:
       return CD_MVERT_SKIN;
     case DT_TYPE_BWEIGHT_VERT:
-      return CD_BWEIGHT;
+      return CD_FAKE_BWEIGHT;
 
     case DT_TYPE_SHARP_EDGE:
       return CD_FAKE_SHARP;
@@ -202,7 +201,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_CREASE:
       return CD_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
-      return CD_BWEIGHT;
+      return CD_FAKE_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
       return CD_FREESTYLE_EDGE;
 
@@ -611,7 +610,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
   bool *data_dst_to_delete = nullptr;
 
   if (!use_layers_src) {
-    /* No source at all, we can only delete all dest if requested... */
+    /* No source at all, we can only delete all destination if requested. */
     if (use_delete) {
       idx_dst = tot_dst;
       while (idx_dst--) {
@@ -977,6 +976,24 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
        * since we can't access them from mesh vertices :/ */
       return false;
     }
+    if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
+      if (!CustomData_get_layer_named(&me_dst->vdata, CD_PROP_FLOAT, "bevel_weight_vert")) {
+        CustomData_add_layer_named(
+            &me_dst->vdata, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totvert, "bevel_weight_vert");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->vdata, CD_PROP_FLOAT, "bevel_weight_vert"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->vdata, CD_PROP_FLOAT, "bevel_weight_vert", me_dst->totvert),
+          interp,
+          interp_data);
+      return true;
+    }
   }
   else if (elem_type == ME_EDGE) {
     if (!(cddata_type & CD_FAKE)) { /* Unused for edges, currently... */
@@ -1004,7 +1021,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, ".uv_seam")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, ".uv_seam");
       }
@@ -1022,7 +1039,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
+      if (!CustomData_has_layer_named(&me_dst->edata, CD_PROP_BOOL, "sharp_edge")) {
         CustomData_add_layer_named(
             &me_dst->edata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totedge, "sharp_edge");
       }
@@ -1039,6 +1056,25 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           interp_data);
       return true;
     }
+    if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
+      if (!CustomData_get_layer_named(&me_dst->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+        CustomData_add_layer_named(
+            &me_dst->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "bevel_weight_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_FLOAT,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edata, CD_PROP_FLOAT, "bevel_weight_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edata, CD_PROP_FLOAT, "bevel_weight_edge", me_dst->totedge),
+          interp,
+          interp_data);
+      return true;
+    }
+
     return false;
   }
   else if (elem_type == ME_LOOP) {
@@ -1110,7 +1146,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
-      if (!CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
+      if (!CustomData_has_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
         CustomData_add_layer_named(
             &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totpoly, "sharp_face");
       }
@@ -1135,7 +1171,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
 }
 
 void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
-                                     Scene *scene,
                                      Object *ob_src,
                                      Object *ob_dst,
                                      const int data_types,
@@ -1143,20 +1178,17 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                      const int tolayers_select[DT_MULTILAYER_INDEX_MAX])
 {
-  Mesh *me_src;
   Mesh *me_dst;
 
   const bool use_create = true; /* We always create needed layers here. */
-
-  CustomData_MeshMasks me_src_mask = CD_MASK_BAREMESH;
 
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   me_dst = static_cast<Mesh *>(ob_dst->data);
 
   /* Get source evaluated mesh. */
-  BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
-  me_src = mesh_get_eval_final(depsgraph, scene, ob_src, &me_src_mask);
+  const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+  const Mesh *me_src = BKE_object_get_evaluated_mesh(ob_src_eval);
   if (!me_src) {
     return;
   }
@@ -1283,7 +1315,6 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
 }
 
 bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
-                                 Scene *scene,
                                  Object *ob_src,
                                  Object *ob_dst,
                                  Mesh *me_dst,
@@ -1330,8 +1361,6 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
   const bool use_delete = false; /* We never delete data layers from destination here. */
 
-  CustomData_MeshMasks me_src_mask = CD_MASK_BAREMESH;
-
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
@@ -1353,21 +1382,12 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   }
 
   /* Get source evaluated mesh. */
-  BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
-  BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-      map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, &me_src_mask);
   if (is_modifier) {
     me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src);
-
-    if (me_src == nullptr ||
-        !CustomData_MeshMasks_are_matching(&ob_src->runtime.last_data_mask, &me_src_mask))
-    {
-      CLOG_WARN(&LOG, "Data Transfer: source mesh data is not ready - dependency cycle?");
-      return changed;
-    }
   }
   else {
-    me_src = mesh_get_eval_final(depsgraph, scene, ob_src, &me_src_mask);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    me_src = BKE_object_get_evaluated_mesh(ob_eval);
   }
   if (!me_src) {
     return changed;
@@ -1384,7 +1404,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   }
 
   /* Check all possible data types.
-   * Note item mappings and dest mix weights are cached. */
+   * Note item mappings and destination mix weights are cached. */
   for (int i = 0; i < DT_TYPE_MAX; i++) {
     const int dtdata_type = 1 << i;
     int cddata_type;
@@ -1790,7 +1810,6 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 }
 
 bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
-                                   Scene *scene,
                                    Object *ob_src,
                                    Object *ob_dst,
                                    const int data_types,
@@ -1813,7 +1832,6 @@ bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
                                    ReportList *reports)
 {
   return BKE_object_data_transfer_ex(depsgraph,
-                                     scene,
                                      ob_src,
                                      ob_dst,
                                      nullptr,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -334,6 +336,9 @@ struct VolumeGrid {
       }
       catch (const openvdb::IoError &e) {
         entry->error_msg = e.what();
+      }
+      catch (...) {
+        entry->error_msg = "Unknown error reading VDB file";
       }
     });
 
@@ -879,7 +884,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
 
   try {
     /* Disable delay loading and file copying, this has poor performance
-     * on network drivers. */
+     * on network drives. */
     const bool delay_load = false;
     file.setCopyMaxBytes(0);
     file.open(delay_load);
@@ -888,6 +893,10 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   }
   catch (const openvdb::IoError &e) {
     grids.error_msg = e.what();
+    CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
+  }
+  catch (...) {
+    grids.error_msg = "Unknown error reading VDB file";
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
   }
 
@@ -957,6 +966,10 @@ bool BKE_volume_save(const Volume *volume,
   }
   catch (const openvdb::IoError &e) {
     BKE_reportf(reports, RPT_ERROR, "Could not write volume: %s", e.what());
+    return false;
+  }
+  catch (...) {
+    BKE_reportf(reports, RPT_ERROR, "Could not write volume: Unknown error writing VDB file");
     return false;
   }
 

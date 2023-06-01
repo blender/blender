@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -1561,7 +1562,8 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 /**
  * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
  *
- * \note operator menu needs undo flag enabled, for redo callback */
+ * \note operator menu needs undo flag enabled, for redo callback.
+ */
 static int wm_operator_props_popup_ex(bContext *C,
                                       wmOperator *op,
                                       const bool do_call,
@@ -2311,12 +2313,12 @@ static void radial_control_set_tex(RadialControl *rc)
                                             GPU_R8,
                                             GPU_TEXTURE_USAGE_SHADER_READ |
                                                 GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                                            ibuf->rect_float);
+                                            ibuf->float_buffer.data);
 
         GPU_texture_filter_mode(rc->texture, true);
         GPU_texture_swizzle_set(rc->texture, "111r");
 
-        MEM_freeN(ibuf->rect_float);
+        MEM_freeN(ibuf->float_buffer.data);
         MEM_freeN(ibuf);
       }
       break;
@@ -3832,7 +3834,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
-/* circleselect-like modal operators */
+/* Circle-select-like modal operators. */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

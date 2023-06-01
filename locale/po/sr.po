@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1367,34 +1367,6 @@ msgid "Fill"
 msgstr "Испуна"
 
 
-msgid "Smooth"
-msgstr "Умекшано"
-
-
-msgid "Thickness"
-msgstr "Дебљина"
-
-
-msgid "Randomize"
-msgstr "Насумично"
-
-
-msgid "Grab"
-msgstr "Повлачење"
-
-
-msgid "Push"
-msgstr "Поставља запамћену позу"
-
-
-msgid "Pinch"
-msgstr "Штипање"
-
-
-msgid "Clone"
-msgstr "Клинирање"
-
-
 msgid "Draw"
 msgstr "Цртај"
 
@@ -1409,6 +1381,14 @@ msgstr "Замазивање"
 
 msgid "Input Samples"
 msgstr "Улазни узорци"
+
+
+msgid "Thickness"
+msgstr "Дебљина"
+
+
+msgid "Smooth"
+msgstr "Умекшано"
 
 
 msgid "Iterations"
@@ -5378,22 +5358,6 @@ msgid "Box"
 msgstr "Кутија"
 
 
-msgid "Deformation"
-msgstr "Деформација"
-
-
-msgid "Bend"
-msgstr "Савијање"
-
-
-msgid "Expand"
-msgstr "Прошири"
-
-
-msgid "Inflate"
-msgstr "Надувати"
-
-
 msgid "Loop"
 msgstr "Петље"
 
@@ -5404,6 +5368,26 @@ msgstr "X алфа"
 
 msgid "Clone Image"
 msgstr "Клонирај слој"
+
+
+msgid "Deformation"
+msgstr "Деформација"
+
+
+msgid "Push"
+msgstr "Поставља запамћену позу"
+
+
+msgid "Inflate"
+msgstr "Надувати"
+
+
+msgid "Grab"
+msgstr "Повлачење"
+
+
+msgid "Expand"
+msgstr "Прошири"
 
 
 msgid "Snake Hook"
@@ -5438,6 +5422,10 @@ msgid "Comb"
 msgstr "Чешаљ"
 
 
+msgid "Pinch"
+msgstr "Штипање"
+
+
 msgid "Fill Threshold"
 msgstr "Праг испуне"
 
@@ -5464,6 +5452,10 @@ msgstr "Алатке бојења слике"
 
 msgid "Soften"
 msgstr "Умекшање"
+
+
+msgid "Clone"
+msgstr "Клинирање"
 
 
 msgid "Mask"
@@ -6618,10 +6610,6 @@ msgid "Collection of layers which defines this mask"
 msgstr "Збирка слојева који одређују ову маску"
 
 
-msgid "Opaque"
-msgstr "Непровидно"
-
-
 msgid "Diffuse Color"
 msgstr "Дифузна боја"
 
@@ -6672,6 +6660,10 @@ msgstr "Нити косе"
 
 msgid "Roughness"
 msgstr "Храпавост"
+
+
+msgid "Opaque"
+msgstr "Непровидно"
 
 
 msgid "Texture Slot Images"
@@ -9951,6 +9943,10 @@ msgid "Start frame of the effect"
 msgstr "Почетни кадар ефекта"
 
 
+msgid "Randomize"
+msgstr "Насумично"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "Насумично стварај странице и ивице"
 
@@ -10089,10 +10085,6 @@ msgstr "Модификатор динамичког бојења"
 
 msgid "Dynamic Paint modifier"
 msgstr "Модификатор динамичког бојења"
-
-
-msgid "Canvas"
-msgstr "Платно"
 
 
 msgid "Split Angle"
@@ -10441,6 +10433,11 @@ msgstr "Развуци V"
 
 msgid "Angle of deformation"
 msgstr "Угао деформације"
+
+
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Савијање"
 
 
 msgid "Limits"
@@ -12076,10 +12073,6 @@ msgstr "Претвори из"
 
 msgid "Convert To"
 msgstr "Претвори у"
-
-
-msgid "Pixel Size"
-msgstr "Величина пиксела"
 
 
 msgid "Texture Node"
@@ -13844,6 +13837,10 @@ msgstr "Увећање"
 
 msgid "Skin Resize"
 msgstr "Увећање коже"
+
+
+msgid "Bend"
+msgstr "Савијање"
 
 
 msgid "Shrink/Fatten"
@@ -19513,11 +19510,6 @@ msgid "Constraint Axis"
 msgstr "Ограничења оса"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Савијање"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "Савија изабране ставке између 3Д курсора и миша"
 
@@ -20757,6 +20749,10 @@ msgstr "Симетрично Y"
 
 msgid "Symmetry Z"
 msgstr "Симетрично Z"
+
+
+msgid "Canvas"
+msgstr "Платно"
 
 
 msgid "Dither"
@@ -22155,6 +22151,14 @@ msgid "Translate Tooltips"
 msgstr "Преводи описе"
 
 
+msgid "Base"
+msgstr "Основа"
+
+
+msgid "Temperature"
+msgstr "Температура"
+
+
 msgid "Group of ID properties"
 msgstr "Својства течности:"
 
@@ -22443,6 +22447,10 @@ msgid "Line thickness mode for Freestyle line drawing"
 msgstr "Режим дебљине линије при слободоручном исцртавању линије"
 
 
+msgid "Pixel Size"
+msgstr "Величина пиксела"
+
+
 msgid "Resolution %"
 msgstr "Резолуција %"
 
@@ -22637,10 +22645,6 @@ msgstr "Биоскопски"
 
 msgid "Linear Damping"
 msgstr "Линеарно"
-
-
-msgid "Base"
-msgstr "Основа"
 
 
 msgid "All modifiers"
@@ -25106,10 +25110,6 @@ msgid "Remove"
 msgstr "Уклони"
 
 
-msgid "Out"
-msgstr "Ван"
-
-
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "Додај слику"
@@ -25327,10 +25327,6 @@ msgstr "Велика слова"
 
 msgid "Auto-Step"
 msgstr "Аутоматско корачање"
-
-
-msgid "Temperature"
-msgstr "Температура"
 
 
 msgid "Paths:"
@@ -26500,6 +26496,10 @@ msgstr "Основно"
 
 msgid "Scene not found"
 msgstr "Брзина звука"
+
+
+msgid "Out"
+msgstr "Ван"
 
 
 msgid "<Unknown Modifier>"
@@ -28086,10 +28086,6 @@ msgid "Japanese (日本語)"
 msgstr "Јапански (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Холандски (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Италијански (Italiano)"
 
@@ -28198,10 +28194,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Хебрејски (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Естонски (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Есперанто (Esperanto)"
 
@@ -28220,14 +28212,6 @@ msgstr "Узбечки (Oʻzbek)"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Узбечка ћирилица (Ўзбек)"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Индијски (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Вијетнамски (tiếng Việt)"
 
 
 msgid "Complete"

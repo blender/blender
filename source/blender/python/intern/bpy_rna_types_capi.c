@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -111,7 +113,8 @@ PyDoc_STRVAR(pyrna_WindowManager_clipboard_doc, "Clipboard text storage.\n\n:typ
 static PyObject *pyrna_WindowManager_clipboard_get(PyObject *UNUSED(self), void *UNUSED(flag))
 {
   int text_len = 0;
-  char *text = WM_clipboard_text_get(false, &text_len);
+  /* No need for UTF8 validation as #PyC_UnicodeFromBytesAndSize handles invalid byte sequences. */
+  char *text = WM_clipboard_text_get(false, false, &text_len);
   PyObject *result = PyC_UnicodeFromBytesAndSize(text ? text : "", text_len);
   if (text != NULL) {
     MEM_freeN(text);

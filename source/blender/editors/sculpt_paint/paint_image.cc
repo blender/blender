@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -814,6 +815,12 @@ static void paint_init_pivot_curves(Object *ob, float location[3])
   interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
 }
 
+static void paint_init_pivot_grease_pencil(Object *ob, float location[3])
+{
+  const BoundBox *bbox = BKE_object_boundbox_get(ob);
+  interp_v3_v3v3(location, bbox->vec[0], bbox->vec[6], 0.5f);
+}
+
 void paint_init_pivot(Object *ob, Scene *scene)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -825,6 +832,9 @@ void paint_init_pivot(Object *ob, Scene *scene)
       break;
     case OB_CURVES:
       paint_init_pivot_curves(ob, location);
+      break;
+    case OB_GREASE_PENCIL:
+      paint_init_pivot_grease_pencil(ob, location);
       break;
     default:
       BLI_assert_unreachable();

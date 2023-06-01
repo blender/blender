@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -2766,16 +2767,20 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 /** \name Material Paste Operator
  * \{ */
 
-static int paste_material_exec(bContext *C, wmOperator * /*op*/)
+static int paste_material_exec(bContext *C, wmOperator *op)
 {
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
   if (ma == nullptr) {
+    BKE_report(op->reports, RPT_WARNING, "Cannot paste without a material");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_material_copybuf_paste(CTX_data_main(C), ma);
+  if (!BKE_material_copybuf_paste(CTX_data_main(C), ma)) {
+    BKE_report(op->reports, RPT_WARNING, "No material in the internal clipboard to paste");
+    return OPERATOR_CANCELLED;
+  }
 
   DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);

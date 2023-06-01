@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -114,12 +115,12 @@ static void pixel_at_index(const ImBuf *ibuf, const int32_t idx, float r_col[4])
 {
   BLI_assert(idx < (ibuf->x * ibuf->y));
 
-  if (ibuf->rect_float) {
-    const float *frgba = &ibuf->rect_float[idx * 4];
+  if (ibuf->float_buffer.data) {
+    const float *frgba = &ibuf->float_buffer.data[idx * 4];
     copy_v4_v4(r_col, frgba);
   }
   else {
-    uchar *cp = (uchar *)(ibuf->rect + idx);
+    uchar *cp = ibuf->byte_buffer.data + 4 * idx;
     r_col[0] = (float)cp[0] / 255.0f;
     r_col[1] = (float)cp[1] / 255.0f;
     r_col[2] = (float)cp[2] / 255.0f;

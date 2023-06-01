@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnla
@@ -571,7 +572,6 @@ static void nla_fmodifier_panel_id(void *fcm_link, char *r_name)
 {
   FModifier *fcm = (FModifier *)fcm_link;
   eFModifier_Types type = fcm->type;
-  snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_", NLA_FMODIFIER_PANEL_PREFIX);
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
   BLI_snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_%s", NLA_FMODIFIER_PANEL_PREFIX, fmi->name);
 }

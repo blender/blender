@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -644,7 +646,12 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
 static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
-  return BLI_sprintfN("%s - %s", tip, dyn_tooltip);
+  std::string tooltip_string = dyn_tooltip;
+  if (tip && tip[0]) {
+    tooltip_string += '\n';
+    tooltip_string += tip;
+  }
+  return BLI_strdupn(tooltip_string.c_str(), tooltip_string.size());
 }
 
 /**
@@ -745,6 +752,9 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       int i = 0;
       if (input_data->dataptr.data && input_data->prop) {
+
+        const bool editable = (RNA_property_flag(input_data->prop) & PROP_EDITABLE);
+
         /* create list items */
         for (i = visual_info.start_idx; i < visual_info.end_idx; i++) {
           PointerRNA *itemptr = &items->item_vec[i].item;
@@ -775,7 +785,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                org_i,
                                0,
                                0,
-                               TIP_("Double click to rename"));
+                               editable ? TIP_("Double click to rename") : "");
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname))) {
             UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);

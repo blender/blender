@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -314,6 +315,9 @@ void CustomData_free_layers(struct CustomData *data, eCustomDataType type, int t
  * Returns true if a layer with the specified type exists.
  */
 bool CustomData_has_layer(const struct CustomData *data, eCustomDataType type);
+bool CustomData_has_layer_named(const struct CustomData *data,
+                                eCustomDataType type,
+                                const char *name);
 
 /**
  * Returns the number of layers with this type.
@@ -700,6 +704,8 @@ enum {
                  CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
 
   CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
+
+  CD_FAKE_BWEIGHT = CD_FAKE | 300, /* UV seam flag for edges. */
 };
 
 enum {

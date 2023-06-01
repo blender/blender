@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -1245,7 +1247,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       uiItemMenuF(layout,
                   IFACE_("Navigation Bar"),
                   ICON_NONE,
-                  ED_screens_navigation_bar_tools_menu_create,
+                  ED_screens_region_flip_menu_create,
                   nullptr);
     }
     else if (region->regiontype == RGN_TYPE_FOOTER) {

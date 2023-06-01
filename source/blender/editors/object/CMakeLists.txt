@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -45,6 +47,7 @@ set(SRC
   object_facemap_ops.c
   object_gpencil_modifier.c
   object_hook.c
+  object_light_linking_ops.cc
   object_modes.cc
   object_modifier.cc
   object_ops.c
@@ -67,6 +70,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_editor_mesh
+  bf_editor_grease_pencil
   bf_render
   bf_windowmanager
 )
@@ -79,6 +83,7 @@ endif()
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_POINT_CLOUD)
+  add_definitions(-DWITH_GREASE_PENCIL_V3)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -567,9 +568,10 @@ typedef enum eItasc_Flags {
   ITASC_INITIAL_REITERATION = (1 << 1),
   ITASC_REITERATION = (1 << 2),
   ITASC_SIMULATION = (1 << 3),
-
-  /* Set this flag to always translate root bones (i.e. bones without a parent) to (0, 0, 0).
-   * This was the pre-3.6 behaviour, and this flag was introduced for backward compatibility. */
+  /**
+   * Set this flag to always translate root bones (i.e. bones without a parent) to (0, 0, 0).
+   * This was the pre-3.6 behavior, and this flag was introduced for backward compatibility.
+   */
   ITASC_TRANSLATE_ROOT_BONES = (1 << 4),
 } eItasc_Flags;
 
@@ -648,12 +650,13 @@ typedef enum eActionGroup_Flag {
 
 /* Actions -------------------------------------- */
 
-/* Action - reusable F-Curve 'bag'  (act)
+/**
+ * Action - reusable F-Curve 'bag'  (act)
  *
- * This contains F-Curves that may affect settings from more than one ID blocktype and/or datablock
- * (i.e. sub-data linked/used directly to the ID block that the animation data is linked to),
- * but with the restriction that the other unrelated data (i.e. data that is not directly used or
- * linked to by the source ID block).
+ * This contains F-Curves that may affect settings from more than one ID block-type and/or
+ * data-block (i.e. sub-data linked/used directly to the ID block that the animation data is linked
+ * to), but with the restriction that the other unrelated data (i.e. data that is not directly used
+ * or linked to by the source ID block).
  *
  * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data),
  * that affects a group of related settings (as defined by the user).

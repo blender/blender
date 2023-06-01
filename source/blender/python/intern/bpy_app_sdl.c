@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -122,8 +124,8 @@ PyObject *BPY_app_sdl_struct(void)
   /* prevent user from creating new instances */
   BlenderAppSDLType.tp_init = NULL;
   BlenderAppSDLType.tp_new = NULL;
-  BlenderAppSDLType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
+  /* Without this we can't do `set(sys.modules)` #29635. */
+  BlenderAppSDLType.tp_hash = (hashfunc)_Py_HashPointer;
 
   return ret;
 }

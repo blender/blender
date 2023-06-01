@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 by Bastien Montagne. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 by Bastien Montagne. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -212,7 +213,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     /* Get vgroup idx from its name. */
 
     /* Proceed only if vgroup is valid, else use constant factor. */
-    /* Get actual dverts (ie vertex group data). */
+    /* Get actual deform-verts (ie vertex group data). */
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
         CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT));
     /* Proceed only if vgroup is valid, else assume factor = O. */

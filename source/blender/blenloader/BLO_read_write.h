@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -162,8 +164,8 @@ void blo_write_id_struct(BlendWriter *writer,
  *
  * Required for writing properly embedded IDs currently.
  *
- * \note: Once there is a better generic handling of embedded IDs, this may go back to private code
- * in writefile.c
+ * \note Once there is a better generic handling of embedded IDs,
+ * this may go back to private code in `writefile.c`.
  */
 typedef struct BLO_Write_IDBuffer BLO_Write_IDBuffer;
 
@@ -271,12 +273,15 @@ struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
  * However, now only pointers to ID data blocks are updated.
  * \{ */
 
-/** Search for the new address of given `id`, during liblinking part of blendfile reading process.
+/**
+ * Search for the new address of given `id`,
+ * during library linking part of blend-file reading process.
  *
- * \param self_id the ID owner of the given `id` pointer. Note that it may be an embedded ID.
- * \param do_linked_only If `true`, only return found pointer if it is a linked ID. Used to
- * preventlinked data to point to local IDs.
- * \return the new address of the given ID pointer, or null if not found. */
+ * \param self_id: the ID owner of the given `id` pointer. Note that it may be an embedded ID.
+ * \param do_linked_only: If `true`, only return found pointer if it is a linked ID. Used to
+ * prevent linked data to point to local IDs.
+ * \return the new address of the given ID pointer, or null if not found.
+ */
 ID *BLO_read_get_new_id_address(BlendLibReader *reader,
                                 struct ID *self_id,
                                 const bool do_linked_only,

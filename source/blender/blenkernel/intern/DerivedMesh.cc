@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -632,12 +633,10 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm) && !use_render;
 
   /* Modifier evaluation contexts for different types of modifiers. */
-  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : (ModifierApplyFlag)0;
-  ModifierApplyFlag apply_cache = use_cache ? MOD_APPLY_USECACHE : (ModifierApplyFlag)0;
-  const ModifierEvalContext mectx = {
-      depsgraph, ob, (ModifierApplyFlag)(apply_render | apply_cache)};
-  const ModifierEvalContext mectx_orco = {
-      depsgraph, ob, (ModifierApplyFlag)(apply_render | MOD_APPLY_ORCO)};
+  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
+  ModifierApplyFlag apply_cache = use_cache ? MOD_APPLY_USECACHE : ModifierApplyFlag(0);
+  const ModifierEvalContext mectx = {depsgraph, ob, apply_render | apply_cache};
+  const ModifierEvalContext mectx_orco = {depsgraph, ob, apply_render | MOD_APPLY_ORCO};
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
@@ -1166,9 +1165,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   /* Modifier evaluation contexts for different types of modifiers. */
-  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : (ModifierApplyFlag)0;
-  const ModifierEvalContext mectx = {
-      depsgraph, ob, (ModifierApplyFlag)(MOD_APPLY_USECACHE | apply_render)};
+  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
+  const ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE | apply_render};
   const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
@@ -1644,40 +1642,6 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
 }
 
 /***/
-
-Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                          const Scene *scene,
-                          Object *ob,
-                          const CustomData_MeshMasks *dataMask)
-{
-  /* This function isn't thread-safe and can't be used during evaluation. */
-  BLI_assert(DEG_is_evaluating(depsgraph) == false);
-
-  /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g #58150. */
-  BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
-  /* if there's no evaluated mesh or the last data mask used doesn't include
-   * the data we need, rebuild the derived mesh
-   */
-  bool need_mapping;
-  CustomData_MeshMasks cddata_masks = *dataMask;
-  object_get_datamask(depsgraph, ob, &cddata_masks, &need_mapping);
-
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  if ((mesh_eval == nullptr) ||
-      !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
-      (need_mapping && !ob->runtime.last_need_mapping))
-  {
-    CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
-
-    makeDerivedMesh(depsgraph, scene, ob, dataMask);
-
-    mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  }
-
-  return mesh_eval;
-}
 
 Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                            const Scene *scene,

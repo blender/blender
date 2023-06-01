@@ -1,11 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurves
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_index_mask_ops.hh"
 #include "BLI_lasso_2d.h"
 #include "BLI_rand.hh"
 #include "BLI_rect.h"
@@ -22,7 +23,7 @@
 namespace blender::ed::curves {
 
 static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
-                                          Vector<int64_t> &r_indices)
+                                          IndexMaskMemory &memory)
 {
   const IndexRange curves_range = curves.curves_range();
   const bke::AttributeAccessor attributes = curves.attributes();
@@ -40,8 +41,8 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
       return selection.get_internal_single() ? IndexMask(curves_range) : IndexMask();
     }
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    return index_mask_ops::find_indices_based_on_predicate(
-        curves_range, 512, r_indices, [&](const int64_t curve_i) {
+    return IndexMask::from_predicate(
+        curves_range, GrainSize(512), memory, [&](const int64_t curve_i) {
           const IndexRange points = points_by_curve[curve_i];
           /* The curve is selected if any of its points are selected. */
           Array<bool, 32> point_selection(points.size());
@@ -51,28 +52,25 @@ static IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves,
   }
   const VArray<bool> selection = *attributes.lookup_or_default<bool>(
       ".selection", ATTR_DOMAIN_CURVE, true);
-  return index_mask_ops::find_indices_from_virtual_array(curves_range, selection, 2048, r_indices);
+  return IndexMask::from_bools(curves_range, selection, memory);
 }
 
-IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices)
+IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  return retrieve_selected_curves(curves, r_indices);
+  return retrieve_selected_curves(curves, memory);
 }
 
-IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, Vector<int64_t> &r_indices)
+IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
 {
-  return index_mask_ops::find_indices_from_virtual_array(
-      curves.points_range(),
-      *curves.attributes().lookup_or_default<bool>(".selection", ATTR_DOMAIN_POINT, true),
-      2048,
-      r_indices);
+  return IndexMask::from_bools(
+      *curves.attributes().lookup_or_default<bool>(".selection", ATTR_DOMAIN_POINT, true), memory);
 }
 
-IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_indices)
+IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  return retrieve_selected_points(curves, r_indices);
+  return retrieve_selected_points(curves, memory);
 }
 
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,

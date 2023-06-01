@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -193,17 +194,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
       RenderView *rv_del = rv->next;
       BLI_remlink(&rr->views, rv_del);
 
-      if (rv_del->rectf) {
-        MEM_freeN(rv_del->rectf);
-      }
-
-      if (rv_del->rectz) {
-        MEM_freeN(rv_del->rectz);
-      }
-
-      if (rv_del->rect32) {
-        MEM_freeN(rv_del->rect32);
-      }
+      RE_RenderBuffer_data_free(&rv_del->combined_buffer);
+      RE_RenderBuffer_data_free(&rv_del->z_buffer);
+      RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
 
       MEM_freeN(rv_del);
     }
@@ -227,17 +220,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
         BLI_remlink(&rr->views, rv_del);
 
-        if (rv_del->rectf) {
-          MEM_freeN(rv_del->rectf);
-        }
-
-        if (rv_del->rectz) {
-          MEM_freeN(rv_del->rectz);
-        }
-
-        if (rv_del->rect32) {
-          MEM_freeN(rv_del->rect32);
-        }
+        RE_RenderBuffer_data_free(&rv_del->combined_buffer);
+        RE_RenderBuffer_data_free(&rv_del->z_buffer);
+        RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
 
         MEM_freeN(rv_del);
       }
@@ -301,7 +286,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
        * TODO(sergey): In the case of output to float container (EXR)
        * it actually makes sense to keep float buffer instead.
        */
-      if (ibuf_result->rect_float != nullptr) {
+      if (ibuf_result->float_buffer.data != nullptr) {
         IMB_rect_from_float(ibuf_result);
         imb_freerectfloatImBuf(ibuf_result);
       }
@@ -315,7 +300,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     if (gpd) {
       int i;
       uchar *gp_rect;
-      uchar *render_rect = (uchar *)ibuf_result->rect;
+      uchar *render_rect = ibuf_result->byte_buffer.data;
 
       DRW_opengl_context_enable();
       GPU_offscreen_bind(oglrender->ofs, true);
@@ -404,11 +389,11 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
       float *rectf = nullptr;
       uchar *rect = nullptr;
-      if (ibuf_result->rect_float) {
-        rectf = ibuf_result->rect_float;
+      if (ibuf_result->float_buffer.data) {
+        rectf = ibuf_result->float_buffer.data;
       }
       else {
-        rect = (uchar *)ibuf_result->rect;
+        rect = ibuf_result->byte_buffer.data;
       }
       BKE_image_stamp_buf(scene, camera, nullptr, rect, rectf, rr->rectx, rr->recty, 4);
     }
@@ -651,6 +636,9 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
       /* In addition to regular ID's animdata, GreasePencil uses a specific frame-based animation
        * system that requires specific handling here. */
       gather_frames_to_render_for_grease_pencil(oglrender, (bGPdata *)id);
+      break;
+    case ID_GP:
+      /* TODO: gather frames. */
       break;
   }
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_MemoryBuffer.h"
 
@@ -342,12 +343,12 @@ void MemoryBuffer::copy_from(const ImBuf *src,
                              const int to_channel_offset,
                              const bool ensure_linear_space)
 {
-  if (src->rect_float) {
-    const MemoryBuffer mem_buf(src->rect_float, src->channels, src->x, src->y, false);
+  if (src->float_buffer.data) {
+    const MemoryBuffer mem_buf(src->float_buffer.data, src->channels, src->x, src->y, false);
     copy_from(&mem_buf, area, channel_offset, elem_size, to_x, to_y, to_channel_offset);
   }
-  else if (src->rect) {
-    const uchar *uc_buf = (uchar *)src->rect;
+  else if (src->byte_buffer.data) {
+    const uchar *uc_buf = src->byte_buffer.data;
     const int elem_stride = src->channels;
     const int row_stride = elem_stride * src->x;
     copy_from(uc_buf,

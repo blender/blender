@@ -10,10 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Background Light */
 
-ccl_device float3 background_map_sample(KernelGlobals kg,
-                                        float randu,
-                                        float randv,
-                                        ccl_private float *pdf)
+ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_private float *pdf)
 {
   /* for the following, the CDF values are actually a pair of floats, with the
    * function value as X and the actual CDF as Y.  The last entry's function
@@ -30,7 +27,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg,
     int step = count >> 1;
     int middle = first + step;
 
-    if (kernel_data_fetch(light_background_marginal_cdf, middle).y < randv) {
+    if (kernel_data_fetch(light_background_marginal_cdf, middle).y < rand.y) {
       first = middle + 1;
       count -= step + 1;
     }
@@ -46,7 +43,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg,
   float2 cdf_last_v = kernel_data_fetch(light_background_marginal_cdf, res_y);
 
   /* importance-sampled V direction */
-  float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, randv);
+  float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, rand.y);
   float v = (index_v + dv) / res_y;
 
   /* This is basically std::lower_bound as used by PBRT. */
@@ -57,7 +54,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg,
     int middle = first + step;
 
     if (kernel_data_fetch(light_background_conditional_cdf, index_v * cdf_width + middle).y <
-        randu) {
+        rand.x) {
       first = middle + 1;
       count -= step + 1;
     }
@@ -76,7 +73,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg,
                                         index_v * cdf_width + res_x);
 
   /* importance-sampled U direction */
-  float du = inverse_lerp(cdf_u.y, cdf_next_u.y, randu);
+  float du = inverse_lerp(cdf_u.y, cdf_next_u.y, rand.x);
   float u = (index_u + du) / res_x;
 
   /* compute pdf */
@@ -198,7 +195,7 @@ ccl_device_inline float background_portal_pdf(
     }
     else {
       portal_pdf += area_light_rect_sample(
-          P, &lightpos, axis_u, len_u, axis_v, len_v, 0.0f, 0.0f, false);
+          P, &lightpos, axis_u, len_u, axis_v, len_v, zero_float2(), false);
     }
   }
 
@@ -223,16 +220,15 @@ ccl_device int background_num_possible_portals(KernelGlobals kg, float3 P)
 
 ccl_device float3 background_portal_sample(KernelGlobals kg,
                                            float3 P,
-                                           float randu,
-                                           float randv,
+                                           float2 rand,
                                            int num_possible,
                                            ccl_private int *sampled_portal,
                                            ccl_private float *pdf)
 {
-  /* Pick a portal, then re-normalize randv. */
-  randv *= num_possible;
-  int portal = (int)randv;
-  randv -= portal;
+  /* Pick a portal, then re-normalize rand.y. */
+  rand.y *= num_possible;
+  int portal = (int)rand.y;
+  rand.y -= portal;
 
   /* TODO(sergey): Some smarter way of finding portal to sample
    * is welcome.
@@ -255,14 +251,13 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
 
       float3 D;
       if (is_round) {
-        lightpos += ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, randu, randv);
+        lightpos += ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, rand);
         float t;
         D = normalize_len(lightpos - P, &t);
         *pdf = fabsf(klight->area.invarea) * lamp_light_pdf(dir, -D, t);
       }
       else {
-        *pdf = area_light_rect_sample(
-            P, &lightpos, axis_u, len_u, axis_v, len_v, randu, randv, true);
+        *pdf = area_light_rect_sample(P, &lightpos, axis_u, len_u, axis_v, len_v, rand, true);
         D = normalize(lightpos - P);
       }
 
@@ -278,14 +273,13 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
 }
 
 ccl_device_inline float3 background_sun_sample(KernelGlobals kg,
-                                               float randu,
-                                               float randv,
+                                               float2 rand,
                                                ccl_private float *pdf)
 {
   float3 D;
   const float3 N = float4_to_float3(kernel_data.background.sun);
   const float angle = kernel_data.background.sun.w;
-  sample_uniform_cone(N, angle, randu, randv, &D, pdf);
+  sample_uniform_cone(N, angle, rand, &D, pdf);
   return D;
 }
 
@@ -296,8 +290,10 @@ ccl_device_inline float background_sun_pdf(KernelGlobals kg, float3 D)
   return pdf_uniform_cone(N, D, angle);
 }
 
-ccl_device_inline float3 background_light_sample(
-    KernelGlobals kg, float3 P, float randu, float randv, ccl_private float *pdf)
+ccl_device_inline float3 background_light_sample(KernelGlobals kg,
+                                                 float3 P,
+                                                 float2 rand,
+                                                 ccl_private float *pdf)
 {
   float portal_method_pdf = kernel_data.background.portal_weight;
   float sun_method_pdf = kernel_data.background.sun_weight;
@@ -316,7 +312,7 @@ ccl_device_inline float3 background_light_sample(
   if (pdf_fac == 0.0f) {
     /* Use uniform as a fallback if we can't use any strategy. */
     *pdf = 1.0f / M_4PI_F;
-    return sample_uniform_sphere(randu, randv);
+    return sample_uniform_sphere(rand);
   }
 
   pdf_fac = 1.0f / pdf_fac;
@@ -325,23 +321,23 @@ ccl_device_inline float3 background_light_sample(
   map_method_pdf *= pdf_fac;
 
   /* We have 100% in total and split it between the three categories.
-   * Therefore, we pick portals if randu is between 0 and portal_method_pdf,
-   * sun if randu is between portal_method_pdf and (portal_method_pdf + sun_method_pdf)
-   * and map if randu is between (portal_method_pdf + sun_method_pdf) and 1. */
+   * Therefore, we pick portals if rand.x is between 0 and portal_method_pdf,
+   * sun if rand.x is between portal_method_pdf and (portal_method_pdf + sun_method_pdf)
+   * and map if rand.x is between (portal_method_pdf + sun_method_pdf) and 1. */
   float sun_method_cdf = portal_method_pdf + sun_method_pdf;
 
   int method = 0;
   float3 D;
-  if (randu < portal_method_pdf) {
+  if (rand.x < portal_method_pdf) {
     method = 0;
-    /* Rescale randu. */
+    /* Rescale rand.x. */
     if (portal_method_pdf != 1.0f) {
-      randu /= portal_method_pdf;
+      rand.x /= portal_method_pdf;
     }
 
     /* Sample a portal. */
     int portal;
-    D = background_portal_sample(kg, P, randu, randv, num_portals, &portal, pdf);
+    D = background_portal_sample(kg, P, rand, num_portals, &portal, pdf);
     if (num_portals > 1) {
       /* Ignore the chosen portal, its pdf is already included. */
       *pdf += background_portal_pdf(kg, P, D, portal, NULL);
@@ -353,14 +349,14 @@ ccl_device_inline float3 background_light_sample(
     }
     *pdf *= portal_method_pdf;
   }
-  else if (randu < sun_method_cdf) {
+  else if (rand.x < sun_method_cdf) {
     method = 1;
-    /* Rescale randu. */
+    /* Rescale rand.x. */
     if (sun_method_pdf != 1.0f) {
-      randu = (randu - portal_method_pdf) / sun_method_pdf;
+      rand.x = (rand.x - portal_method_pdf) / sun_method_pdf;
     }
 
-    D = background_sun_sample(kg, randu, randv, pdf);
+    D = background_sun_sample(kg, rand, pdf);
 
     /* Skip MIS if this is the only method. */
     if (sun_method_pdf == 1.0f) {
@@ -370,12 +366,12 @@ ccl_device_inline float3 background_light_sample(
   }
   else {
     method = 2;
-    /* Rescale randu. */
+    /* Rescale rand.x. */
     if (map_method_pdf != 1.0f) {
-      randu = (randu - sun_method_cdf) / map_method_pdf;
+      rand.x = (rand.x - sun_method_cdf) / map_method_pdf;
     }
 
-    D = background_map_sample(kg, randu, randv, pdf);
+    D = background_map_sample(kg, rand, pdf);
 
     /* Skip MIS if this is the only method. */
     if (map_method_pdf == 1.0f) {

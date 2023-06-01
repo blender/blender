@@ -752,19 +752,15 @@ float Camera::world_to_raster_size(float3 P)
       /* No differentials, just use from directly ahead. */
       camera_sample_panorama(&kernel_camera,
                              kernel_camera_motion.data(),
-                             0.5f * full_width,
-                             0.5f * full_height,
-                             0.0f,
-                             0.0f,
+                             0.5f * make_float2(full_width, full_height),
+                             zero_float2(),
                              &ray);
     }
 #else
     camera_sample_panorama(&kernel_camera,
                            kernel_camera_motion.data(),
-                           0.5f * full_width,
-                           0.5f * full_height,
-                           0.0f,
-                           0.0f,
+                           0.5f * make_float2(full_width, full_height),
+                           zero_float2(),
                            &ray);
 #endif
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -2675,6 +2676,16 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
   Main *newmain;
 
+  /* Make sure we have full path in lib->filepath_abs */
+  /* NOTE: Since existing libraries are searched by their absolute path, this has to be generated
+   * before the lookup below. Otherwise, in case the stored absolute filepath is not 'correct' (may
+   * be empty, or have been stored in a different 'relative path context'), the comparison below
+   * will always fail, leading to creating duplicates IDs of a same library. */
+  /* TODO: May be worth checking whether comparison below could use `lib->filepath` instead? */
+  STRNCPY(lib->filepath_abs, lib->filepath);
+  BLI_path_abs(lib->filepath_abs, fd->relabase);
+  BLI_path_normalize(lib->filepath_abs);
+
   /* check if the library was already read */
   for (newmain = static_cast<Main *>(fd->mainlist->first); newmain; newmain = newmain->next) {
     if (newmain->curlib) {
@@ -2704,11 +2715,6 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
       }
     }
   }
-
-  /* Make sure we have full path in lib->filepath_abs */
-  STRNCPY(lib->filepath_abs, lib->filepath);
-  BLI_path_abs(lib->filepath_abs, fd->relabase);
-  BLI_path_normalize(lib->filepath_abs);
 
   //  printf("direct_link_library: filepath %s\n", lib->filepath);
   //  printf("direct_link_library: filepath_abs %s\n", lib->filepath_abs);
@@ -2898,6 +2904,8 @@ static const char *dataname(short id_code)
       return "Data from VO";
     case ID_SIM:
       return "Data from SIM";
+    case ID_GP:
+      return "Data from GP";
   }
   return "Data from Lib Block";
 }
@@ -3574,6 +3582,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
     do_versions_after_linking_300(fd, main);
   }
   if (!main->is_read_invalid) {
+    do_versions_after_linking_400(fd, main);
+  }
+  if (!main->is_read_invalid) {
     do_versions_after_linking_cycles(main);
   }
 
@@ -3963,14 +3974,29 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
+    /* Must happen before applying liboverrides, as this process may fully invalidate e.g. view
+     * layer pointers in case a Scene is a liboverride. */
+    link_global(fd, bfd);
+
     /* Now that all our data-blocks are loaded,
      * we can re-generate overrides from their references. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
       /* Do not apply in undo case! */
       fd->reports->duration.lib_overrides = PIL_check_seconds_timer();
 
+      std::string cur_view_layer_name = bfd->cur_view_layer != nullptr ?
+                                            bfd->cur_view_layer->name :
+                                            "";
+
       BKE_lib_override_library_main_validate(bfd->main, fd->reports->reports);
       BKE_lib_override_library_main_update(bfd->main);
+
+      /* In case the current scene is a liboverride, while the ID pointer itself remains valid,
+       * above update of liboverrides will have completely invalidated its old content, so the
+       * current view-layer needs to be searched for again. */
+      if (bfd->cur_view_layer != nullptr) {
+        bfd->cur_view_layer = BKE_view_layer_find(bfd->curscene, cur_view_layer_name.c_str());
+      }
 
       /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
        * `BKE_lib_override_library_main_update`, see #103062.
@@ -3985,8 +4011,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Make all relative paths, relative to the open blend file. */
     fix_relpaths_library(fd->relabase, bfd->main);
-
-    link_global(fd, bfd); /* as last */
   }
 
   fd->mainlist = nullptr; /* Safety, this is local variable, shall not be used afterward. */

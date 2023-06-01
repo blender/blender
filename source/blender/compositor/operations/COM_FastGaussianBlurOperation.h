@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -53,7 +54,8 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
   /**
    * -1: re-mix with darker
    *  0: do nothing
-   *  1 re-mix with lighter */
+   *  1 re-mix with lighter.
+   */
   int overlay_;
 
  public:

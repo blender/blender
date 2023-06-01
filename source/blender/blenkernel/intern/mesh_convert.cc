@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -34,6 +36,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -508,10 +511,15 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
 void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
-  /* make new mesh data from the original copy */
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  if (!ob_eval) {
+    return;
+  }
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_eval);
+  if (!me_eval) {
+    return;
+  }
+
   ListBase nurblist = {nullptr, nullptr};
 
   BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 0);
@@ -531,24 +539,23 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
   }
 }
 
-void BKE_pointcloud_from_mesh(const Mesh *me, PointCloud *pointcloud)
-{
-  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
-  pointcloud->totpoint = me->totvert;
-  CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, me->totvert);
-}
-
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  if (!ob_eval) {
+    return;
+  }
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  if (!mesh_eval) {
+    return;
+  }
 
   PointCloud *pointcloud = (PointCloud *)BKE_pointcloud_add(bmain, ob->id.name + 2);
 
-  BKE_pointcloud_from_mesh(me_eval, pointcloud);
+  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
+  pointcloud->totpoint = mesh_eval->totvert;
+  CustomData_merge(&mesh_eval->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->totvert);
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 
@@ -559,27 +566,24 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   BKE_object_free_derived_caches(ob);
 }
 
-void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
-{
-  me->totvert = pointcloud->totpoint;
-  CustomData_merge(&pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, pointcloud->totpoint);
-}
-
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
 
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  PointCloud *pointcloud_eval = (PointCloud *)ob_eval->runtime.data_eval;
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(*ob_eval);
 
-  Mesh *me = BKE_mesh_add(bmain, ob->id.name + 2);
+  Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
-  BKE_mesh_from_pointcloud(pointcloud_eval, me);
+  if (const PointCloud *points = geometry.get_pointcloud_for_read()) {
+    mesh->totvert = points->totpoint;
+    CustomData_merge(&points->pdata, &mesh->vdata, CD_MASK_PROP_ALL, points->totpoint);
+  }
 
-  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)me);
+  BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
 
   id_us_min(&((PointCloud *)ob->data)->id);
-  ob->data = me;
+  ob->data = mesh;
   ob->type = OB_MESH;
 
   BKE_object_free_derived_caches(ob);

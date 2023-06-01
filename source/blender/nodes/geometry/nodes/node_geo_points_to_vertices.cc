@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 
@@ -80,7 +82,7 @@ static void geometry_set_points_to_vertices(
     }
   }
 
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
 
   geometry_set.replace_mesh(mesh);
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});

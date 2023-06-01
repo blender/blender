@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -86,7 +88,7 @@ void normals_calc_poly_vert(Span<float3> vert_positions,
  * \{ */
 
 /**
- * Combined with the automatically calculated face corner normal, this gives a dimentional
+ * Combined with the automatically calculated face corner normal, this gives a dimensional
  * coordinate space used to convert normals between the "custom normal" #short2 representation and
  * a regular #float3 format.
  */

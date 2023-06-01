@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -1142,7 +1143,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
      * A symmetrizable selection contains selected ebones of the input direction
      * and unique selected bones with an unique flippable name.
      *
-     * Storing temp ptrs to mirrored unselected ebones. */
+     * Storing temp pointers to mirrored unselected ebones. */
     for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
       if (!(EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED))) {
         /* Skipping invisible selected bones. */
@@ -1508,12 +1509,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             if (flipbone && forked_iter) { /* only set if mirror edit */
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {
-                if (a == 0) {
-                  strcat(newbone->name, "_L");
-                }
-                else {
-                  strcat(newbone->name, "_R");
-                }
+                BLI_strncat(newbone->name, (a == 0) ? "_L" : "_R", sizeof(newbone->name));
               }
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);

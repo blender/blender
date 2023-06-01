@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -11,6 +12,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 #include "MEM_guardedalloc.h"
 
@@ -65,6 +67,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -190,6 +193,8 @@ BLI_INLINE uchar f_to_char(const float val)
 /* to avoid locking in tile initialization */
 #define TILE_PENDING POINTER_FROM_INT(-1)
 
+struct ProjPaintState;
+
 /**
  * This is mainly a convenience struct used so we can keep an array of images we use -
  * their #ImBuf's, etc, in 1 array, When using threads this array is copied for each thread
@@ -217,7 +222,8 @@ struct ProjStrokeHandle {
   /* Support for painting from multiple views at once,
    * currently used to implement symmetry painting,
    * we can assume at least the first is set while painting. */
-  struct ProjPaintState *ps_views[8];
+  ProjPaintState *ps_views[8];
+
   int ps_views_tot;
   int symmetry_flags;
 
@@ -761,7 +767,7 @@ static bool project_paint_PickColor(
     float x, y;
     uvco_to_wrapped_pxco(uv, ibuf->x, ibuf->y, &x, &y);
 
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       if (rgba_fp) {
         bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_fp, x, y);
       }
@@ -792,21 +798,21 @@ static bool project_paint_PickColor(
     yi = mod_i(int(uv[1] * ibuf->y), ibuf->y);
 
     if (rgba) {
-      if (ibuf->rect_float) {
-        const float *rgba_tmp_fp = ibuf->rect_float + (xi + yi * ibuf->x * 4);
+      if (ibuf->float_buffer.data) {
+        const float *rgba_tmp_fp = ibuf->float_buffer.data + (xi + yi * ibuf->x * 4);
         premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
       }
       else {
-        *((uint *)rgba) = *(uint *)(((char *)ibuf->rect) + ((xi + yi * ibuf->x) * 4));
+        *((uint *)rgba) = *(uint *)(((char *)ibuf->byte_buffer.data) + ((xi + yi * ibuf->x) * 4));
       }
     }
 
     if (rgba_fp) {
-      if (ibuf->rect_float) {
-        copy_v4_v4(rgba_fp, (ibuf->rect_float + ((xi + yi * ibuf->x) * 4)));
+      if (ibuf->float_buffer.data) {
+        copy_v4_v4(rgba_fp, (ibuf->float_buffer.data + ((xi + yi * ibuf->x) * 4)));
       }
       else {
-        uchar *tmp_ch = ((uchar *)ibuf->rect) + ((xi + yi * ibuf->x) * 4);
+        uchar *tmp_ch = ibuf->byte_buffer.data + ((xi + yi * ibuf->x) * 4);
         straight_uchar_to_premul_float(rgba_fp, tmp_ch);
       }
     }
@@ -1653,7 +1659,7 @@ static void project_face_pixel(const float *lt_tri_uv[3],
   /* use */
   uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
 
-  if (ibuf_other->rect_float) { /* from float to float */
+  if (ibuf_other->float_buffer.data) { /* from float to float */
     bilinear_interpolation_color_wrap(ibuf_other, nullptr, rgba_f, x, y);
   }
   else { /* from char to float */
@@ -1686,7 +1692,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
 
       project_face_pixel(lt_other_tri_uv, ibuf_other, w, rgba_ub, rgba_f);
 
-      if (ibuf_other->rect_float) { /* from float to float */
+      if (ibuf_other->float_buffer.data) { /* from float to float */
         mask = ((rgba_f[0] + rgba_f[1] + rgba_f[2]) * (1.0f / 3.0f)) * rgba_f[3];
       }
       else { /* from char to float */
@@ -1928,13 +1934,13 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
   projPixel->valid = projima->valid[tile_index];
 
-  if (ibuf->rect_float) {
-    projPixel->pixel.f_pt = ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
+  if (ibuf->float_buffer.data) {
+    projPixel->pixel.f_pt = ibuf->float_buffer.data + ((x_px + y_px * ibuf->x) * 4);
     projPixel->origColor.f_pt = (float *)projima->undoRect[tile_index] + 4 * tile_offset;
     zero_v4(projPixel->newColor.f);
   }
   else {
-    projPixel->pixel.ch_pt = (uchar *)(ibuf->rect + (x_px + y_px * ibuf->x));
+    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x) * 4;
     projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
     projPixel->newColor.uint_ = 0;
   }
@@ -1976,8 +1982,8 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
         /* #BKE_image_acquire_ibuf - TODO: this may be slow. */
 
-        if (ibuf->rect_float) {
-          if (ibuf_other->rect_float) { /* from float to float */
+        if (ibuf->float_buffer.data) {
+          if (ibuf_other->float_buffer.data) { /* from float to float */
             project_face_pixel(
                 lt_other_tri_uv, ibuf_other, w, nullptr, ((ProjPixelClone *)projPixel)->clonepx.f);
           }
@@ -1995,7 +2001,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
           }
         }
         else {
-          if (ibuf_other->rect_float) { /* float to char */
+          if (ibuf_other->float_buffer.data) { /* float to char */
             float rgba[4];
             project_face_pixel(lt_other_tri_uv, ibuf_other, w, nullptr, rgba);
             premul_to_straight_v4(rgba);
@@ -2019,7 +2025,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
         BKE_image_release_ibuf(other_tpage, ibuf_other, nullptr);
       }
       else {
-        if (ibuf->rect_float) {
+        if (ibuf->float_buffer.data) {
           ((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
         }
         else {
@@ -2033,7 +2039,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
 
       /* no need to initialize the bucket, we're only checking buckets faces and for this
        * the faces are already initialized in project_paint_delayed_face_init(...) */
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         if (!project_paint_PickColor(
                 ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, nullptr, true)) {
           /* zero alpha - ignore */
@@ -2051,7 +2057,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
   }
 
 #ifdef PROJ_DEBUG_PAINT
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     projPixel->pixel.f_pt[0] = 0;
   }
   else {
@@ -4065,26 +4071,11 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = ps->ob;
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-  if (scene_eval == nullptr || ob_eval == nullptr) {
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ps->me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  if (!ps->me_eval) {
     return false;
   }
-
-  CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
-  cddata_masks.fmask |= CD_MASK_MTFACE;
-  cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  if (ps->do_face_sel) {
-    cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-    cddata_masks.emask |= CD_MASK_ORIGINDEX;
-    cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-  }
-  ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
   if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;
@@ -5302,7 +5293,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
           last_projIma = projImages + last_index;
 
           last_projIma->touch = true;
-          is_floatbuf = (last_projIma->ibuf->rect_float != nullptr);
+          is_floatbuf = (last_projIma->ibuf->float_buffer.data != nullptr);
         }
         /* end copy */
 
@@ -5395,7 +5386,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
         }
         else {
           if (is_floatbuf) {
-            BLI_assert(ps->reproject_ibuf->rect_float != nullptr);
+            BLI_assert(ps->reproject_ibuf->float_buffer.data != nullptr);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         nullptr,
@@ -5412,7 +5403,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
             }
           }
           else {
-            BLI_assert(ps->reproject_ibuf->rect != nullptr);
+            BLI_assert(ps->reproject_ibuf->byte_buffer.data != nullptr);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         projPixel->newColor.ch,
@@ -5529,7 +5520,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
                 last_projIma = projImages + last_index;
 
                 last_projIma->touch = true;
-                is_floatbuf = (last_projIma->ibuf->rect_float != nullptr);
+                is_floatbuf = (last_projIma->ibuf->float_buffer.data != nullptr);
               }
               /* end copy */
 
@@ -5669,20 +5660,20 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
     bool uchar_dest = false;
     /* Check if the destination images are float or uchar. */
     for (i = 0; i < ps->image_tot; i++) {
-      if (ps->projImages[i].ibuf->rect != nullptr) {
+      if (ps->projImages[i].ibuf->byte_buffer.data != nullptr) {
         uchar_dest = true;
       }
-      if (ps->projImages[i].ibuf->rect_float != nullptr) {
+      if (ps->projImages[i].ibuf->float_buffer.data != nullptr) {
         float_dest = true;
       }
     }
 
     /* Generate missing data if needed. */
-    if (float_dest && ps->reproject_ibuf->rect_float == nullptr) {
+    if (float_dest && ps->reproject_ibuf->float_buffer.data == nullptr) {
       IMB_float_from_rect(ps->reproject_ibuf);
       ps->reproject_ibuf_free_float = true;
     }
-    if (uchar_dest && ps->reproject_ibuf->rect == nullptr) {
+    if (uchar_dest && ps->reproject_ibuf->byte_buffer.data == nullptr) {
       IMB_rect_from_float(ps->reproject_ibuf);
       ps->reproject_ibuf_free_uchar = true;
     }
@@ -5985,9 +5976,9 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
-  char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
+  char symmetry_flag_views[BOUNDED_ARRAY_TYPE_SIZE<decltype(ps_handle->ps_views)>()] = {0};
 
-  ps_handle = MEM_cnew<ProjStrokeHandle>("ProjStrokeHandle");
+  ps_handle = MEM_new<ProjStrokeHandle>("ProjStrokeHandle");
   ps_handle->scene = scene;
   ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
 
@@ -6163,7 +6154,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   ps.reproject_ibuf = BKE_image_acquire_ibuf(image, nullptr, nullptr);
 
   if ((ps.reproject_ibuf == nullptr) ||
-      ((ps.reproject_ibuf->rect || ps.reproject_ibuf->rect_float) == false))
+      ((ps.reproject_ibuf->byte_buffer.data || ps.reproject_ibuf->float_buffer.data) == false))
   {
     BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
     return OPERATOR_CANCELLED;

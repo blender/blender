@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd.h"
 #include "usd_common.h"
@@ -103,8 +104,10 @@ static bool prim_path_valid(const char *path)
   return true;
 }
 
-/* Perform validation of export parameter settings. Returns
- * true if the paramters are valid; returns false otherwise. */
+/**
+ * Perform validation of export parameter settings.
+ * \return true if the parameters are valid; returns false otherwise.
+ */
 static bool export_params_valid(const USDExportParams &params)
 {
   bool valid = true;
@@ -362,17 +365,18 @@ static void export_endjob(void *customdata)
 static void create_temp_path_for_usdz_export(const char *filepath,
                                              blender::io::usd::ExportJobData *job)
 {
-  char file[FILE_MAX];
-  BLI_path_split_file_part(filepath, file, FILE_MAX);
-  char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
+  char usdc_file[FILE_MAX];
+  STRNCPY(usdc_file, BLI_path_basename(filepath));
+
+  if (BLI_path_extension_check(usdc_file, ".usdz")) {
+    BLI_path_extension_replace(usdc_file, sizeof(usdc_file), ".usdc");
+  }
 
   char usdc_temp_filepath[FILE_MAX];
   BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file);
 
-  BLI_strncpy(job->unarchived_filepath, usdc_temp_filepath, strlen(usdc_temp_filepath) + 1);
-  BLI_strncpy(job->usdz_filepath, filepath, strlen(filepath) + 1);
-
-  MEM_freeN(usdc_file);
+  STRNCPY(job->unarchived_filepath, usdc_temp_filepath);
+  STRNCPY(job->usdz_filepath, filepath);
 }
 
 static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *filepath)

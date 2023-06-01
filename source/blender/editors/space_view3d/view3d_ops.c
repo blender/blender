@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -45,7 +46,7 @@
 static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   int num_copied = 0;
 
   BKE_copybuffer_copy_begin(bmain);
@@ -59,8 +60,8 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
-  BKE_copybuffer_copy_end(bmain, str, op->reports);
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
+  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected object(s)", num_copied);
 
@@ -81,7 +82,7 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
 
 static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 {
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   short flag = 0;
 
   if (RNA_boolean_get(op->ptr, "autoselect")) {
@@ -91,9 +92,9 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
     flag |= FILE_ACTIVE_COLLECTION;
   }
 
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
 
-  const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, FILTER_ID_OB);
+  const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, FILTER_ID_OB);
   if (num_pasted == 0) {
     BKE_report(op->reports, RPT_INFO, "No objects to paste");
     return OPERATOR_CANCELLED;

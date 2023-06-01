@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -385,7 +386,7 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
       return nullptr;
     }
 
-    return (uchar *)cache_ibuf->rect;
+    return (uchar *)cache_ibuf->byte_buffer.data;
   }
 
   return nullptr;
@@ -412,10 +413,7 @@ static void colormanage_cache_put(ImBuf *ibuf,
 
   /* buffer itself */
   cache_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, 0);
-  cache_ibuf->rect = (uint *)display_buffer;
-
-  cache_ibuf->mall |= IB_rect;
-  cache_ibuf->flags |= IB_rect;
+  IMB_assign_byte_buffer(cache_ibuf, display_buffer, IB_TAKE_OWNERSHIP);
 
   /* Store data which is needed to check whether cached buffer
    * could be used for color managed display settings. */
@@ -1050,15 +1048,15 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
     return;
   }
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     const char *to_colorspace = global_role_scene_linear;
     const bool predivide = IMB_alpha_affects_rgb(ibuf);
 
-    if (ibuf->rect) {
+    if (ibuf->byte_buffer.data) {
       imb_freerectImBuf(ibuf);
     }
 
-    IMB_colormanagement_transform(ibuf->rect_float,
+    IMB_colormanagement_transform(ibuf->float_buffer.data,
                                   ibuf->x,
                                   ibuf->y,
                                   ibuf->channels,
@@ -1751,7 +1749,7 @@ static void colormanage_display_buffer_process_ex(
    * this would save byte -> float -> byte conversions making display buffer
    * computation noticeable faster
    */
-  if (ibuf->rect_float == nullptr && ibuf->rect_colorspace) {
+  if (ibuf->float_buffer.data == nullptr && ibuf->rect_colorspace) {
     skip_transform = is_ibuf_rect_in_display_space(ibuf, view_settings, display_settings);
   }
 
@@ -1760,8 +1758,8 @@ static void colormanage_display_buffer_process_ex(
   }
 
   display_buffer_apply_threaded(ibuf,
-                                ibuf->rect_float,
-                                (uchar *)ibuf->rect,
+                                ibuf->float_buffer.data,
+                                ibuf->byte_buffer.data,
                                 display_buffer,
                                 display_buffer_byte,
                                 cm_processor);
@@ -2193,12 +2191,13 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
 {
   /* Byte buffer storage, only for sRGB, scene linear and data texture since other
    * color space conversions can't be done on the GPU. */
-  BLI_assert(ibuf->rect && ibuf->rect_float == nullptr);
+  BLI_assert(ibuf->byte_buffer.data);
+  BLI_assert(ibuf->float_buffer.data == nullptr);
   BLI_assert(IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
              IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->rect_colorspace));
 
-  const uchar *in_buffer = (uchar *)ibuf->rect;
+  const uchar *in_buffer = ibuf->byte_buffer.data;
   const bool use_premultiply = IMB_alpha_affects_rgb(ibuf) && store_premultiplied;
 
   for (int y = 0; y < height; y++) {
@@ -2275,9 +2274,9 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
 {
   /* Float texture are stored in scene linear color space, with premultiplied
    * alpha depending on the image alpha mode. */
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     /* Float source buffer. */
-    const float *in_buffer = ibuf->rect_float;
+    const float *in_buffer = ibuf->float_buffer.data;
     const int in_channels = ibuf->channels;
     const bool use_unpremultiply = IMB_alpha_affects_rgb(ibuf) && !store_premultiplied;
 
@@ -2320,7 +2319,7 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
   }
   else {
     /* Byte source buffer. */
-    const uchar *in_buffer = (uchar *)ibuf->rect;
+    const uchar *in_buffer = ibuf->byte_buffer.data;
     const bool use_premultiply = IMB_alpha_affects_rgb(ibuf) && store_premultiplied;
 
     OCIO_ConstCPUProcessorRcPtr *processor = (ibuf->rect_colorspace) ?
@@ -2458,12 +2457,12 @@ static void colormanagement_imbuf_make_display_space(
     const ColorManagedDisplaySettings *display_settings,
     bool make_byte)
 {
-  if (!ibuf->rect && make_byte) {
+  if (!ibuf->byte_buffer.data && make_byte) {
     imb_addrectImBuf(ibuf);
   }
 
   colormanage_display_buffer_process_ex(
-      ibuf, ibuf->rect_float, (uchar *)ibuf->rect, view_settings, display_settings);
+      ibuf, ibuf->float_buffer.data, ibuf->byte_buffer.data, view_settings, display_settings);
 }
 
 void IMB_colormanagement_imbuf_make_display_space(
@@ -2491,15 +2490,8 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
   /* Render pipeline is constructing image buffer itself,
    * but it's re-using byte and float buffers from render result make copy of this buffers
    * here sine this buffers would be transformed to other color space here. */
-  if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
-    ibuf->rect = static_cast<uint *>(MEM_dupallocN(ibuf->rect));
-    ibuf->mall |= IB_rect;
-  }
-
-  if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
-    ibuf->rect_float = static_cast<float *>(MEM_dupallocN(ibuf->rect_float));
-    ibuf->mall |= IB_rectfloat;
-  }
+  IMB_make_writable_byte_buffer(ibuf);
+  IMB_make_writable_float_buffer(ibuf);
 
   return ibuf;
 }
@@ -2512,7 +2504,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
   ImBuf *colormanaged_ibuf = ibuf;
 
   /* Update byte buffer if exists but invalid. */
-  if (ibuf->rect_float && ibuf->rect &&
+  if (ibuf->float_buffer.data && ibuf->byte_buffer.data &&
       (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0)
   {
     IMB_rect_from_float(ibuf);
@@ -2545,14 +2537,14 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
     colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
-    if (colormanaged_ibuf->rect_float && colormanaged_ibuf->channels == 4) {
+    if (colormanaged_ibuf->float_buffer.data && colormanaged_ibuf->channels == 4) {
       IMB_alpha_under_color_float(
-          colormanaged_ibuf->rect_float, colormanaged_ibuf->x, colormanaged_ibuf->y, color);
+          colormanaged_ibuf->float_buffer.data, colormanaged_ibuf->x, colormanaged_ibuf->y, color);
     }
 
-    if (colormanaged_ibuf->rect) {
+    if (colormanaged_ibuf->byte_buffer.data) {
       IMB_alpha_under_color_byte(
-          (uchar *)colormanaged_ibuf->rect, colormanaged_ibuf->x, colormanaged_ibuf->y, color);
+          colormanaged_ibuf->byte_buffer.data, colormanaged_ibuf->x, colormanaged_ibuf->y, color);
     }
   }
 
@@ -2565,7 +2557,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                              &image_format->display_settings,
                                              byte_output);
 
-    if (colormanaged_ibuf->rect_float) {
+    if (colormanaged_ibuf->float_buffer.data) {
       /* Float buffer isn't linear anymore,
        * image format write callback should check for this flag and assume
        * no space conversion should happen if ibuf->float_colorspace != nullptr. */
@@ -2580,20 +2572,19 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     /* Linear render or regular file output: conversion between two color spaces. */
 
     /* Detect which color space we need to convert between. */
-    const char *from_colorspace = (ibuf->rect_float && !(byte_output && ibuf->rect)) ?
-                                      /* From float buffer. */
-                                      (ibuf->float_colorspace) ? ibuf->float_colorspace->name :
-                                                                 global_role_scene_linear :
-                                      /* From byte buffer. */
-                                      (ibuf->rect_colorspace) ? ibuf->rect_colorspace->name :
-                                                                global_role_default_byte;
+    const char *from_colorspace =
+        (ibuf->float_buffer.data && !(byte_output && ibuf->byte_buffer.data)) ?
+            /* From float buffer. */
+            (ibuf->float_colorspace) ? ibuf->float_colorspace->name : global_role_scene_linear :
+            /* From byte buffer. */
+            (ibuf->rect_colorspace) ? ibuf->rect_colorspace->name : global_role_default_byte;
 
     const char *to_colorspace = image_format->linear_colorspace_settings.name;
 
     /* TODO: can we check with OCIO if color spaces are the same but have different names? */
     if (to_colorspace[0] == '\0' || STREQ(from_colorspace, to_colorspace)) {
       /* No conversion needed, but may still need to allocate byte buffer for output. */
-      if (byte_output && !ibuf->rect) {
+      if (byte_output && !ibuf->byte_buffer.data) {
         ibuf->rect_colorspace = ibuf->float_colorspace;
         IMB_rect_from_float(ibuf);
       }
@@ -2605,9 +2596,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
       if (byte_output) {
         colormanaged_ibuf->rect_colorspace = colormanage_colorspace_get_named(to_colorspace);
 
-        if (colormanaged_ibuf->rect) {
+        if (colormanaged_ibuf->byte_buffer.data) {
           /* Byte to byte. */
-          IMB_colormanagement_transform_byte_threaded((uchar *)colormanaged_ibuf->rect,
+          IMB_colormanagement_transform_byte_threaded(colormanaged_ibuf->byte_buffer.data,
                                                       colormanaged_ibuf->x,
                                                       colormanaged_ibuf->y,
                                                       colormanaged_ibuf->channels,
@@ -2620,7 +2611,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
         }
       }
       else {
-        if (!colormanaged_ibuf->rect_float) {
+        if (!colormanaged_ibuf->float_buffer.data) {
           /* Byte to float. */
           IMB_float_from_rect(colormanaged_ibuf);
           imb_freerectImBuf(colormanaged_ibuf);
@@ -2629,9 +2620,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
           from_colorspace = global_role_scene_linear;
         }
 
-        if (colormanaged_ibuf->rect_float) {
+        if (colormanaged_ibuf->float_buffer.data) {
           /* Float to float. */
-          IMB_colormanagement_transform(colormanaged_ibuf->rect_float,
+          IMB_colormanagement_transform(colormanaged_ibuf->float_buffer.data,
                                         colormanaged_ibuf->x,
                                         colormanaged_ibuf->y,
                                         colormanaged_ibuf->channels,
@@ -2685,9 +2676,9 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   /* early out: no float buffer and byte buffer is already in display space,
    * let's just use if
    */
-  if (ibuf->rect_float == nullptr && ibuf->rect_colorspace && ibuf->channels == 4) {
+  if (ibuf->float_buffer.data == nullptr && ibuf->rect_colorspace && ibuf->channels == 4) {
     if (is_ibuf_rect_in_display_space(ibuf, applied_view_settings, display_settings)) {
-      return (uchar *)ibuf->rect;
+      return ibuf->byte_buffer.data;
     }
   }
 
@@ -2697,8 +2688,8 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
   if (ibuf->invalid_rect.xmin != ibuf->invalid_rect.xmax) {
     if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0) {
       IMB_partial_display_buffer_update_threaded(ibuf,
-                                                 ibuf->rect_float,
-                                                 (uchar *)ibuf->rect,
+                                                 ibuf->float_buffer.data,
+                                                 ibuf->byte_buffer.data,
                                                  ibuf->x,
                                                  0,
                                                  0,

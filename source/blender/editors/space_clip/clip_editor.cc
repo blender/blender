@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -243,7 +244,7 @@ ImBuf *ED_space_clip_get_buffer(const SpaceClip *sc)
 
     ibuf = BKE_movieclip_get_postprocessed_ibuf(sc->clip, &sc->user, sc->postproc_flag);
 
-    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+    if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       return ibuf;
     }
 
@@ -266,7 +267,7 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
     ibuf = BKE_movieclip_get_stable_ibuf(
         sc->clip, &sc->user, loc, scale, angle, sc->postproc_flag);
 
-    if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+    if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       return ibuf;
     }
 
@@ -323,13 +324,13 @@ bool ED_space_clip_color_sample(const SpaceClip *sc,
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
 
-    if (ibuf->rect_float) {
-      fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+    if (ibuf->float_buffer.data) {
+      fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
       copy_v3_v3(r_col, fp);
       ret = true;
     }
-    else if (ibuf->rect) {
-      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+    else if (ibuf->byte_buffer.data) {
+      cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
       IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
       ret = true;

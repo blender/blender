@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -186,7 +187,7 @@ static void bias_tangent_normal_pixels(
   BLI_assert(channels >= 3);
 
   for (int y = 0; y < height; y++) {
-    float *pixels = rect + ((size_t)stride) * y * channels;
+    float *pixels = rect + size_t(stride) * y * channels;
     for (int x = 0; x < width; x++, pixels += channels) {
       if (fabsf(pixels[0] - 0.5f) < 1.0f / 255.0f) {
         pixels[0] = 0.5f + 1e-5f;
@@ -233,7 +234,7 @@ static bool write_internal_bake_pixels(Image *image,
     RE_bake_mask_fill(pixel_array, pixels_num, mask_buffer);
   }
 
-  is_float = (ibuf->rect_float != nullptr);
+  is_float = (ibuf->float_buffer.data != nullptr);
 
   /* colormanagement conversions */
   if (!is_noncolor) {
@@ -262,7 +263,7 @@ static bool write_internal_bake_pixels(Image *image,
   /* populates the ImBuf */
   if (is_clear) {
     if (is_float) {
-      IMB_buffer_float_from_float(ibuf->rect_float,
+      IMB_buffer_float_from_float(ibuf->float_buffer.data,
                                   buffer,
                                   ibuf->channels,
                                   IB_PROFILE_LINEAR_RGB,
@@ -274,7 +275,7 @@ static bool write_internal_bake_pixels(Image *image,
                                   ibuf->x);
     }
     else {
-      IMB_buffer_byte_from_float((uchar *)ibuf->rect,
+      IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
                                  buffer,
                                  ibuf->channels,
                                  ibuf->dither,
@@ -289,7 +290,7 @@ static bool write_internal_bake_pixels(Image *image,
   }
   else {
     if (is_float) {
-      IMB_buffer_float_from_float_mask(ibuf->rect_float,
+      IMB_buffer_float_from_float_mask(ibuf->float_buffer.data,
                                        buffer,
                                        ibuf->channels,
                                        ibuf->x,
@@ -299,7 +300,7 @@ static bool write_internal_bake_pixels(Image *image,
                                        mask_buffer);
     }
     else {
-      IMB_buffer_byte_from_float_mask((uchar *)ibuf->rect,
+      IMB_buffer_byte_from_float_mask(ibuf->byte_buffer.data,
                                       buffer,
                                       ibuf->channels,
                                       ibuf->dither,
@@ -320,7 +321,7 @@ static bool write_internal_bake_pixels(Image *image,
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(image, ibuf);
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     ibuf->userflags |= IB_RECT_INVALID;
   }
 
@@ -382,7 +383,7 @@ static bool write_external_bake_pixels(const char *filepath,
 
   /* populates the ImBuf */
   if (is_float) {
-    IMB_buffer_float_from_float(ibuf->rect_float,
+    IMB_buffer_float_from_float(ibuf->float_buffer.data,
                                 buffer,
                                 ibuf->channels,
                                 IB_PROFILE_LINEAR_RGB,
@@ -406,7 +407,7 @@ static bool write_external_bake_pixels(const char *filepath,
       bias_tangent_normal_pixels(buffer, ibuf->channels, ibuf->x, ibuf->y, ibuf->x);
     }
 
-    IMB_buffer_byte_from_float((uchar *)ibuf->rect,
+    IMB_buffer_byte_from_float(ibuf->byte_buffer.data,
                                buffer,
                                ibuf->channels,
                                ibuf->dither,
@@ -950,7 +951,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     }
 
     if (bk_image->tile_number) {
-      char tmp[FILE_MAX];
+      char tmp[12];
       SNPRINTF(tmp, "%d", bk_image->tile_number);
       BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
     }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -60,6 +61,7 @@
 #    define bool3 bvec3
 #    define bool4 bvec4
 #    define packed_float3 vec3
+#    define packed_int3 int3
 #  endif
 
 #else /* C / C++ */
@@ -85,6 +87,7 @@ using bool2 = blender::int2;
 using bool3 = blender::int3;
 using bool4 = blender::int4;
 using packed_float3 = blender::float3;
+using packed_int3 = blender::int3;
 
 #  else /* C */
 typedef float float2[2];
@@ -102,6 +105,7 @@ typedef int bool2[2];
 typedef int bool3[2];
 typedef int bool4[4];
 typedef float3 packed_float3;
+typedef int3 packed_int3;
 #  endif
 
 #endif

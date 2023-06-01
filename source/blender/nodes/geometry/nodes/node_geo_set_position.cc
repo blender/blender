@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DEG_depsgraph_query.h"
 
@@ -26,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void set_computed_position_and_offset(GeometryComponent &component,
                                              const VArray<float3> &in_positions,
                                              const VArray<float3> &in_offsets,
-                                             const IndexMask selection)
+                                             const IndexMask &selection)
 {
   MutableAttributeAccessor attributes = *component.attributes_for_write();
 
@@ -45,7 +47,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       }
     }
   }
-  const int grain_size = 10000;
+  const GrainSize grain_size{10000};
 
   switch (component.type()) {
     case GEO_COMPONENT_TYPE_CURVE: {
@@ -62,16 +64,13 @@ static void set_computed_position_and_offset(GeometryComponent &component,
         MutableVArraySpan<float3> out_positions_span = positions.varray;
         devirtualize_varray2(
             in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
-              threading::parallel_for(
-                  selection.index_range(), grain_size, [&](const IndexRange range) {
-                    for (const int i : selection.slice(range)) {
-                      const float3 new_position = in_positions[i] + in_offsets[i];
-                      const float3 delta = new_position - out_positions_span[i];
-                      handle_right_attribute.span[i] += delta;
-                      handle_left_attribute.span[i] += delta;
-                      out_positions_span[i] = new_position;
-                    }
-                  });
+              selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
+                const float3 new_position = in_positions[i] + in_offsets[i];
+                const float3 delta = new_position - out_positions_span[i];
+                handle_right_attribute.span[i] += delta;
+                handle_left_attribute.span[i] += delta;
+                out_positions_span[i] = new_position;
+              });
             });
 
         out_positions_span.save();
@@ -90,23 +89,16 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       MutableVArraySpan<float3> out_positions_span = positions.varray;
       if (positions_are_original) {
         devirtualize_varray(in_offsets, [&](const auto in_offsets) {
-          threading::parallel_for(
-              selection.index_range(), grain_size, [&](const IndexRange range) {
-                for (const int i : selection.slice(range)) {
-                  out_positions_span[i] += in_offsets[i];
-                }
-              });
+          selection.foreach_index_optimized<int>(
+              grain_size, [&](const int i) { out_positions_span[i] += in_offsets[i]; });
         });
       }
       else {
         devirtualize_varray2(
             in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
-              threading::parallel_for(
-                  selection.index_range(), grain_size, [&](const IndexRange range) {
-                    for (const int i : selection.slice(range)) {
-                      out_positions_span[i] = in_positions[i] + in_offsets[i];
-                    }
-                  });
+              selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
+                out_positions_span[i] = in_positions[i] + in_offsets[i];
+              });
             });
       }
       out_positions_span.save();

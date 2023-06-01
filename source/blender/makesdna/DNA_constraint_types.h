@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -425,7 +426,7 @@ typedef struct bChildOfConstraint {
   char _pad[4];
   /** Parent-inverse matrix to use. */
   float invmat[4][4];
-  /** String to specify a subobject target, MAX_ID_NAME-2. */
+  /** String to specify a sub-object target, `MAX_ID_NAME - 2`. */
   char subtarget[64];
 } bChildOfConstraint;
 

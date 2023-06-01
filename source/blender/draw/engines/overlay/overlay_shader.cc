@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -10,6 +11,8 @@
 #include "GPU_shader.h"
 
 #include "UI_resources.h"
+
+#include "gpu_shader_create_info.hh"
 
 #include "overlay_private.hh"
 

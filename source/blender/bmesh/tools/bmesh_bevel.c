@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -336,6 +338,8 @@ typedef struct BevelParams {
   float pro_super_r;
   /** Bevel amount affected by weights on edges or verts. */
   bool use_weights;
+  int bweight_offset_vert;
+  int bweight_offset_edge;
   /** Should bevel prefer to slide along edges rather than keep widths spec? */
   bool loop_slide;
   /** Should offsets be limited by collisions? */
@@ -1279,9 +1283,12 @@ static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
         d5 = bp->offset * BM_edge_calc_length(e5.e) / 100.0f;
       }
       if (bp->use_weights) {
-        CustomData *cd = &bp->bm->edata;
-        e1_wt = BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT);
-        e2_wt = BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT);
+        e1_wt = bp->bweight_offset_edge == -1 ?
+                    0.0f :
+                    BM_ELEM_CD_GET_FLOAT(e1->e, bp->bweight_offset_edge);
+        e2_wt = bp->bweight_offset_edge == -1 ?
+                    0.0f :
+                    BM_ELEM_CD_GET_FLOAT(e2->e, bp->bweight_offset_edge);
       }
       else {
         e1_wt = 1.0f;
@@ -1607,9 +1614,10 @@ static bool offset_on_edge_between(BevelParams *bp,
     if (bp->offset_type == BEVEL_AMT_PERCENT) {
       float wt = 1.0;
       if (bp->use_weights) {
-        CustomData *cd = &bp->bm->edata;
-        wt = 0.5f * (BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT) +
-                     BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT));
+        wt = bp->bweight_offset_edge == -1 ?
+                 0.0f :
+                 0.5f * (BM_ELEM_CD_GET_FLOAT(e1->e, bp->bweight_offset_edge) +
+                         BM_ELEM_CD_GET_FLOAT(e2->e, bp->bweight_offset_edge));
       }
       interp_v3_v3v3(meetco, v->co, v2->co, wt * bp->offset / 100.0f);
     }
@@ -6441,7 +6449,8 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
       bv->offset *= weight;
     }
     else if (bp->use_weights) {
-      weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+      weight = bp->bweight_offset_vert == -1 ? 0.0f :
+                                               BM_ELEM_CD_GET_FLOAT(v, bp->bweight_offset_vert);
       bv->offset *= weight;
     }
     /* Find center axis. NOTE: Don't use vert normal, can give unwanted results. */
@@ -6521,7 +6530,9 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         e->offset_r_spec = e->offset_l_spec;
       }
       if (bp->use_weights) {
-        weight = BM_elem_float_data_get(&bm->edata, e->e, CD_BWEIGHT);
+        weight = bp->bweight_offset_edge == -1 ?
+                     0.0f :
+                     BM_ELEM_CD_GET_FLOAT(e->e, bp->bweight_offset_edge);
         e->offset_l_spec *= weight;
         e->offset_r_spec *= weight;
       }
@@ -7755,6 +7766,10 @@ void BM_mesh_bevel(BMesh *bm,
       .pro_super_r = -logf(2.0) / logf(sqrtf(profile)), /* Convert to superellipse exponent. */
       .affect_type = affect_type,
       .use_weights = use_weights,
+      .bweight_offset_vert = CustomData_get_offset_named(
+          &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert"),
+      .bweight_offset_edge = CustomData_get_offset_named(
+          &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge"),
       .loop_slide = loop_slide,
       .limit_offset = limit_offset,
       .offset_adjust = (bp.affect_type != BEVEL_AFFECT_VERTICES) &&

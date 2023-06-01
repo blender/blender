@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -696,6 +697,8 @@ static int acf_object_icon(bAnimListElem *ale)
     case OB_EMPTY:
       return ICON_OUTLINER_OB_EMPTY;
     case OB_GPENCIL_LEGACY:
+      return ICON_OUTLINER_OB_GREASEPENCIL;
+    case OB_GREASE_PENCIL:
       return ICON_OUTLINER_OB_GREASEPENCIL;
     default:
       return ICON_OBJECT_DATA;

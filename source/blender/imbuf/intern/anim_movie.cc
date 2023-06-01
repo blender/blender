@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -482,7 +483,9 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
     }
 
     for (y = 0; y < anim->y; y++) {
-      memcpy(&(ibuf->rect)[((anim->y - y) - 1) * anim->x], &tmp[y * anim->x], anim->x * 4);
+      memcpy(&(ibuf->byte_buffer.data)[((anim->y - y) - 1) * anim->x],
+             &tmp[y * anim->x],
+             anim->x * 4);
     }
 
     MEM_freeN(tmp);
@@ -764,7 +767,7 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-  /* Try do detect if input has 0-255 YCbCR range (JFIF Jpeg MotionJpeg) */
+  /* Try do detect if input has 0-255 YCbCR range (JFIF, JPEG, Motion-JPEG). */
   if (!sws_getColorspaceDetails(anim->img_convert_ctx,
                                 (int **)&inv_table,
                                 &srcRange,
@@ -909,8 +912,14 @@ static void ffmpeg_postprocess(struct anim *anim, AVFrame *input)
   const int src_linesize[4] = {-anim->pFrameRGB->linesize[0], 0, 0, 0};
   int dst_size = av_image_get_buffer_size(
       AVPixelFormat(anim->pFrameRGB->format), anim->pFrameRGB->width, anim->pFrameRGB->height, 1);
-  av_image_copy_to_buffer(
-      (uint8_t *)ibuf->rect, dst_size, src, src_linesize, AV_PIX_FMT_RGBA, anim->x, anim->y, 1);
+  av_image_copy_to_buffer((uint8_t *)ibuf->byte_buffer.data,
+                          dst_size,
+                          src,
+                          src_linesize,
+                          AV_PIX_FMT_RGBA,
+                          anim->x,
+                          anim->y,
+                          1);
   if (filter_y) {
     IMB_filtery(ibuf);
   }
@@ -947,7 +956,7 @@ static AVFrame *ffmpeg_frame_by_pts_get(struct anim *anim, int64_t pts_to_search
 
   const bool backup_frame_ready = anim->pFrame_backup_complete;
   const int64_t recent_start = av_get_pts_from_frame(anim->pFrame);
-  const int64_t recent_end = recent_start + anim->pFrame->pkt_duration;
+  const int64_t recent_end = recent_start + av_get_frame_duration_in_pts_units(anim->pFrame);
   const int64_t backup_start = backup_frame_ready ? av_get_pts_from_frame(anim->pFrame_backup) : 0;
 
   AVFrame *best_frame = nullptr;
@@ -1156,7 +1165,7 @@ static bool ffmpeg_is_first_frame_decode(struct anim *anim)
 static void ffmpeg_scan_log(struct anim *anim, int64_t pts_to_search)
 {
   int64_t frame_pts_start = av_get_pts_from_frame(anim->pFrame);
-  int64_t frame_pts_end = frame_pts_start + anim->pFrame->pkt_duration;
+  int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->pFrame);
   av_log(anim->pFormatCtx,
          AV_LOG_DEBUG,
          "  SCAN WHILE: PTS range %" PRId64 " - %" PRId64 " in search of %" PRId64 "\n",
@@ -1459,9 +1468,11 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   }
 
   anim->cur_frame_final = IMB_allocImBuf(anim->x, anim->y, planes, 0);
-  anim->cur_frame_final->rect = static_cast<uint *>(
+
+  /* Allocate the storage explicitly to ensure the memory is aligned. */
+  uint8_t *buffer_data = static_cast<uint8_t *>(
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
-  anim->cur_frame_final->mall |= IB_rect;
+  IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
   anim->cur_frame_final->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 

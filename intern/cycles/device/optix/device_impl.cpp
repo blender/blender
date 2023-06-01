@@ -421,6 +421,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   group_descs[PG_RGEN_INTERSECT_VOLUME_STACK].raygen.module = optix_module;
   group_descs[PG_RGEN_INTERSECT_VOLUME_STACK].raygen.entryFunctionName =
       "__raygen__kernel_optix_integrator_intersect_volume_stack";
+  group_descs[PG_RGEN_INTERSECT_DEDICATED_LIGHT].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+  group_descs[PG_RGEN_INTERSECT_DEDICATED_LIGHT].raygen.module = optix_module;
+  group_descs[PG_RGEN_INTERSECT_DEDICATED_LIGHT].raygen.entryFunctionName =
+      "__raygen__kernel_optix_integrator_intersect_dedicated_light";
   group_descs[PG_MISS].kind = OPTIX_PROGRAM_GROUP_KIND_MISS;
   group_descs[PG_MISS].miss.module = optix_module;
   group_descs[PG_MISS].miss.entryFunctionName = "__miss__kernel_optix_miss";
@@ -547,6 +551,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_SHADE_SHADOW].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_SHADOW].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_shadow";
+    group_descs[PG_RGEN_SHADE_DEDICATED_LIGHT].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_DEDICATED_LIGHT].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_DEDICATED_LIGHT].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_dedicated_light";
     group_descs[PG_RGEN_EVAL_DISPLACE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_EVAL_DISPLACE].raygen.module = optix_module;
     group_descs[PG_RGEN_EVAL_DISPLACE].raygen.entryFunctionName =
@@ -659,6 +667,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_SHADOW]);
     pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_SUBSURFACE]);
     pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_VOLUME_STACK]);
+    pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_DEDICATED_LIGHT]);
     pipeline_groups.push_back(groups[PG_MISS]);
     pipeline_groups.push_back(groups[PG_HITD]);
     pipeline_groups.push_back(groups[PG_HITS]);
@@ -948,6 +957,7 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_VOLUME]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SHADOW]);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_DEDICATED_LIGHT]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_DISPLACE]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_BACKGROUND]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY]);

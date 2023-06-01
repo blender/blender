@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -1184,6 +1186,9 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
   if (!rna_NodeTree_check(ntree, reports)) {
     return NULL;
   }
+
+  /* If the given idname is an alias, translate it to the proper idname. */
+  type = nodeTypeFindAlias(type);
 
   ntype = nodeTypeFind(type);
   if (!ntype) {
@@ -2685,13 +2690,6 @@ static void rna_Node_width_range(
   bNode *node = ptr->data;
   *min = *softmin = node->typeinfo->minwidth;
   *max = *softmax = node->typeinfo->maxwidth;
-}
-
-static void rna_Node_width_hidden_set(PointerRNA *UNUSED(ptr), float UNUSED(value)) {}
-
-static float rna_Node_width_hidden_get(PointerRNA *UNUSED(ptr))
-{
-  return 0.0f;
 }
 
 static void rna_Node_height_range(
@@ -4742,16 +4740,11 @@ static const EnumPropertyItem node_flip_items[] = {
 static const EnumPropertyItem node_ycc_items[] = {
     {0, "ITUBT601", 0, "ITU 601", ""},
     {1, "ITUBT709", 0, "ITU 709", ""},
-    {2, "JFIF", 0, "Jpeg", ""},
+    {2, "JFIF", 0, "JPEG", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_glossy_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
@@ -4761,28 +4754,10 @@ static const EnumPropertyItem node_glossy_items[] = {
      "Multiscatter GGX",
      "Slower than GGX but gives a more energy conserving results, which would otherwise be "
      "visible as excessive darkening"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static const EnumPropertyItem node_anisotropic_items[] = {
-    {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
-    {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
-    {SHD_GLOSSY_MULTI_GGX,
-     "MULTI_GGX",
-     0,
-     "Multiscatter GGX",
-     "Slower than GGX but gives a more energy conserving results, which would otherwise be "
-     "visible as excessive darkening"},
-    {SHD_GLOSSY_ASHIKHMIN_SHIRLEY, "ASHIKHMIN_SHIRLEY", 0, "Ashikhmin-Shirley", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_glass_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {SHD_GLOSSY_MULTI_GGX,
@@ -4795,11 +4770,6 @@ static const EnumPropertyItem node_glass_items[] = {
 };
 
 static const EnumPropertyItem node_refraction_items[] = {
-    {SHD_GLOSSY_SHARP,
-     "SHARP",
-     0,
-     "Sharp",
-     "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"},
     {SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
     {SHD_GLOSSY_GGX, "GGX", 0, "GGX", ""},
     {0, NULL, 0, NULL, NULL},
@@ -6304,17 +6274,6 @@ static void def_refraction(StructRNA *srna)
   prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, node_refraction_items);
-  RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_anisotropic(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
-  RNA_def_property_enum_items(prop, node_anisotropic_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -11281,17 +11240,6 @@ static void def_geo_viewer(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_realize_instances(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "legacy_behavior", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "custom1", GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR);
-  RNA_def_property_ui_text(
-      prop, "Legacy Behavior", "Behave like before instance attributes existed");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
-}
-
 static void def_geo_evaluate_at_index(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -12617,13 +12565,6 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
   RNA_def_property_ui_text(prop, "Width", "Width of the node");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
-
-  prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_funcs(
-      prop, "rna_Node_width_hidden_get", "rna_Node_width_hidden_set", "rna_Node_width_range");
-  RNA_def_property_ui_text(
-      prop, "Width Hidden", "Deprecated width of the node when it is collapsed");
-  RNA_def_property_update(prop, 0, NULL);
 
   prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "height");

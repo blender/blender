@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup ply
@@ -576,27 +578,60 @@ static const char *load_edge_element(PlyReadBuffer &file,
   return nullptr;
 }
 
+static const char *skip_element(PlyReadBuffer &file,
+                                const PlyHeader &header,
+                                const PlyElement &element)
+{
+  if (header.type == PlyFormatType::ASCII) {
+    for (int i = 0; i < element.count; i++) {
+      Span<char> line = file.read_line();
+      (void)line;
+    }
+  }
+  else {
+    Vector<uint8_t> scratch(64);
+    for (int i = 0; i < element.count; i++) {
+      for (const PlyProperty &prop : element.properties) {
+        skip_property(file, prop, scratch, header.type == PlyFormatType::BINARY_BE);
+      }
+    }
+  }
+  return nullptr;
+}
+
 std::unique_ptr<PlyData> import_ply_data(PlyReadBuffer &file, PlyHeader &header)
 {
   std::unique_ptr<PlyData> data = std::make_unique<PlyData>();
 
+  bool got_vertex = false, got_face = false, got_tristrips = false, got_edge = false;
   for (const PlyElement &element : header.elements) {
     const char *error = nullptr;
     if (element.name == "vertex") {
       error = load_vertex_element(file, header, element, data.get());
+      got_vertex = true;
     }
     else if (element.name == "face") {
       error = load_face_element(file, header, element, data.get());
+      got_face = true;
     }
     else if (element.name == "tristrips") {
       error = load_tristrips_element(file, header, element, data.get());
+      got_tristrips = true;
     }
     else if (element.name == "edge") {
       error = load_edge_element(file, header, element, data.get());
+      got_edge = true;
+    }
+    else {
+      error = skip_element(file, header, element);
     }
     if (error != nullptr) {
       data->error = error;
       return data;
+    }
+    if (got_vertex && got_face && got_tristrips && got_edge) {
+      /* We have parsed all the elements we'd need, skip the rest. */
+      break;
     }
   }
 

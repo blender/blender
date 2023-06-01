@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blf
@@ -1436,7 +1437,9 @@ bool blf_ensure_face(FontBLF *font)
    * from our font in 3.1. In 3.4 we disable kerning here in the new version to keep spacing the
    * same
    * (#101506). Enable again later with change of font, placement, or rendering - Harley. */
-  if (font && font->filepath && BLI_str_endswith(font->filepath, BLF_DEFAULT_PROPORTIONAL_FONT)) {
+  if (font && font->filepath &&
+      (BLI_path_cmp(BLI_path_basename(font->filepath), BLF_DEFAULT_PROPORTIONAL_FONT) == 0))
+  {
     font->face_flags &= ~FT_FACE_FLAG_KERNING;
   }
 
@@ -1547,7 +1550,7 @@ static FontBLF *blf_font_new_impl(const char *filepath,
   if (font->filepath) {
     const char *filename = BLI_path_basename(font->filepath);
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-      if (STREQ(static_face_details[i].filename, filename)) {
+      if (BLI_path_cmp(static_face_details[i].filename, filename) == 0) {
         const struct FaceDetails *static_details = &static_face_details[i];
         font->unicode_ranges[0] = static_details->coverage1;
         font->unicode_ranges[1] = static_details->coverage2;

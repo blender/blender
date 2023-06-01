@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WITH_BLENDER)
@@ -13,6 +15,7 @@ if(WITH_BLENDER)
   add_subdirectory(geometry)
   add_subdirectory(gizmo_library)
   add_subdirectory(gpencil_legacy)
+  add_subdirectory(grease_pencil)
   add_subdirectory(interface)
   add_subdirectory(io)
   add_subdirectory(lattice)

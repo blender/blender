@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sptext
@@ -712,7 +713,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   drawcache->valid_tail = 0;
 }
 
-void text_drawcache_tag_update(SpaceText *st, int full)
+void text_drawcache_tag_update(SpaceText *st, const bool full)
 {
   /* This happens if text editor ops are called from Python. */
   if (st == NULL) {

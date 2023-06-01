@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -7,13 +8,16 @@
 
 #pragma once
 
+#include "BKE_global.h"
+
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 
-#include "overlay_shader_shared.h"
+#include "UI_resources.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "draw_handle.hh"
+
+#include "overlay_shader_shared.h"
 
 #ifdef __APPLE__
 #  define USE_GEOM_SHADER_WORKAROUND 1
@@ -436,10 +440,6 @@ typedef struct OVERLAY_StorageList {
   struct OVERLAY_PrivateData *pd;
 } OVERLAY_StorageList;
 
-typedef struct OVERLAY_Instance {
-  GPUUniformBuf *grid_ubo;
-} OVERLAY_Instance;
-
 typedef struct OVERLAY_Data {
   void *engine_type;
   OVERLAY_FramebufferList *fbl;
@@ -447,7 +447,7 @@ typedef struct OVERLAY_Data {
   OVERLAY_PassList *psl;
   OVERLAY_StorageList *stl;
 
-  OVERLAY_Instance *instance;
+  void *instance;
 } OVERLAY_Data;
 
 typedef struct OVERLAY_DupliData {
@@ -460,7 +460,7 @@ typedef struct OVERLAY_DupliData {
   short base_flag;
 } OVERLAY_DupliData;
 
-typedef struct BoneInstanceData {
+struct BoneInstanceData {
   /* Keep sync with bone instance vertex format (OVERLAY_InstanceFormats) */
   union {
     float mat[4][4];
@@ -477,7 +477,12 @@ typedef struct BoneInstanceData {
       float _pad03[3], amax_b;
     };
   };
-} BoneInstanceData;
+
+  BoneInstanceData() = default;
+  /* Constructor used by metaball overlays and expected to be used for drawing
+   * metaball_wire_sphere with armature wire shader that produces wide-lines. */
+  BoneInstanceData(Object *ob, const float *pos, const float radius, const float color[4]);
+};
 
 typedef struct OVERLAY_InstanceFormats {
   struct GPUVertFormat *instance_pos;
@@ -797,7 +802,3 @@ GPUShader *OVERLAY_shader_xray_fade(void);
 OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void);
 
 void OVERLAY_shader_free(void);
-
-#ifdef __cplusplus
-}
-#endif

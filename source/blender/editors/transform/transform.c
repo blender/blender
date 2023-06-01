@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -92,9 +93,6 @@ void setTransformViewMatrices(TransInfo *t)
     unit_m4(t->persinv);
     t->persp = RV3D_ORTHO;
   }
-
-  calculateCenter2D(t);
-  calculateCenterLocal(t, t->center_global);
 }
 
 void setTransformViewAspect(TransInfo *t, float r_aspect[3])
@@ -926,15 +924,17 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
 int transformEvent(TransInfo *t, const wmEvent *event)
 {
   bool handled = false;
+  bool is_navigating = t->vod ? ((RegionView3D *)t->region->regiondata)->rflag & RV3D_NAVIGATING :
+                                false;
 
   /* Handle modal numinput events first, if already activated. */
-  if (((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) && hasNumInput(&t->num) &&
-      handleNumInput(t->context, &(t->num), event))
+  if (!is_navigating && ((event->val == KM_PRESS) || (event->type == EVT_MODAL_MAP)) &&
+      hasNumInput(&t->num) && handleNumInput(t->context, &(t->num), event))
   {
     t->redraw |= TREDRAW_HARD;
     handled = true;
   }
-  else if (event->type == MOUSEMOVE) {
+  else if (!is_navigating && event->type == MOUSEMOVE) {
     copy_v2_v2_int(t->mval, event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */

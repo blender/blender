@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -284,5 +286,42 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
         old_socket->link = nullptr;
       }
     }
+  }
+}
+
+static blender::Vector<bNodeLink *> find_connected_links(bNodeTree *ntree, bNodeSocket *in_socket)
+{
+  blender::Vector<bNodeLink *> links;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tosock == in_socket) {
+      links.append(link);
+    }
+  }
+  return links;
+}
+
+void add_realize_instances_before_socket(bNodeTree *ntree,
+                                         bNode *node,
+                                         bNodeSocket *geometry_socket)
+{
+  BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
+  blender::Vector<bNodeLink *> links = find_connected_links(ntree, geometry_socket);
+  for (bNodeLink *link : links) {
+    /* If the realize instances node is already before this socket, no need to continue. */
+    if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
+      return;
+    }
+
+    bNode *realize_node = nodeAddStaticNode(nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
+    realize_node->parent = node->parent;
+    realize_node->locx = node->locx - 100;
+    realize_node->locy = node->locy;
+    nodeAddLink(ntree,
+                link->fromnode,
+                link->fromsock,
+                realize_node,
+                static_cast<bNodeSocket *>(realize_node->inputs.first));
+    link->fromnode = realize_node;
+    link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
   }
 }

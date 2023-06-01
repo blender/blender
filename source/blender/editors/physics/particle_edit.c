@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Janne Karhu. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Janne Karhu. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edphys
@@ -4151,12 +4152,10 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   if (mesh == NULL) {
     psys_disable_all(ob);
 
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-    mesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+    mesh = (Mesh *)BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh == NULL) {
-      mesh = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+      return 0;
     }
 
     psys_enable_all(ob);

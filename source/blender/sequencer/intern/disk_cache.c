@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sequencer
@@ -424,7 +425,8 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
                                     int level,
                                     DiskCacheHeaderEntry *header_entry)
 {
-  void *data = (ibuf->rect != NULL) ? (void *)ibuf->rect : (void *)ibuf->rect_float;
+  void *data = (ibuf->byte_buffer.data != NULL) ? (void *)ibuf->byte_buffer.data :
+                                                  (void *)ibuf->float_buffer.data;
 
   /* Apply compression if wanted, otherwise just write directly to the file. */
   if (level > 0) {
@@ -438,7 +440,8 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
 
 static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntry *header_entry)
 {
-  void *data = (ibuf->rect != NULL) ? (void *)ibuf->rect : (void *)ibuf->rect_float;
+  void *data = (ibuf->byte_buffer.data != NULL) ? (void *)ibuf->byte_buffer.data :
+                                                  (void *)ibuf->float_buffer.data;
   char header[4];
   fseek(file, header_entry->offset, SEEK_SET);
   if (fread(header, 1, sizeof(header), file) != sizeof(header)) {
@@ -519,7 +522,7 @@ static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCa
 
   /* Store colorspace name of ibuf. */
   const char *colorspace_name;
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     header->entry[i].size_raw = ibuf->x * ibuf->y * ibuf->channels;
     colorspace_name = IMB_colormanagement_get_rect_colorspace(ibuf);
   }

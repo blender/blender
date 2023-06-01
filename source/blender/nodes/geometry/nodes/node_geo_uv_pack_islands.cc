@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GEO_uv_parametrizer.hh"
 
@@ -52,7 +54,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   evaluator.evaluate();
 
   geometry::ParamHandle *handle = geometry::uv_parametrizer_construct_begin();
-  for (const int poly_index : selection) {
+  selection.foreach_index([&](const int poly_index) {
     const IndexRange poly = polys[poly_index];
     Array<geometry::ParamKey, 16> mp_vkeys(poly.size());
     Array<bool, 16> mp_pin(poly.size());
@@ -76,7 +78,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                        mp_uv.data(),
                                        mp_pin.data(),
                                        mp_select.data());
-  }
+  });
   geometry::uv_parametrizer_construct_end(handle, true, true, nullptr);
 
   geometry::uv_parametrizer_pack(handle, margin, rotate, true);
@@ -110,7 +112,7 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_uv_gvarray(mesh, selection_field_, uv_field_, rotate_, margin_, domain);
   }

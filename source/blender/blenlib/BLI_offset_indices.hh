@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include <algorithm>
 
+#include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
@@ -35,7 +38,7 @@ template<typename T> class OffsetIndices {
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const
   {
-    return offsets_.size() == 1 ? 0 : offsets_.last();
+    return offsets_.size() > 1 ? offsets_.last() : 0;
   }
 
   /**
@@ -93,18 +96,74 @@ template<typename T> class OffsetIndices {
 };
 
 /**
+ * References many separate spans in a larger contiguous array. This gives a more efficient way to
+ * store many grouped arrays, without requiring many small allocations, giving the general benefits
+ * of using contiguous memory.
+ *
+ * \note If the offsets are shared between many #GroupedSpan objects, it will still
+ * be more efficient to retrieve the #IndexRange only once and slice each span.
+ */
+template<typename T> struct GroupedSpan {
+  OffsetIndices<int> offsets;
+  Span<T> data;
+
+  GroupedSpan() = default;
+  GroupedSpan(OffsetIndices<int> offsets, Span<T> data) : offsets(offsets), data(data)
+  {
+    BLI_assert(this->offsets.total_size() == this->data.size());
+  }
+
+  Span<T> operator[](const int64_t index) const
+  {
+    return this->data.slice(this->offsets[index]);
+  }
+
+  int64_t size() const
+  {
+    return this->offsets.size();
+  }
+
+  IndexRange index_range() const
+  {
+    return this->offsets.index_range();
+  }
+
+  bool is_empty() const
+  {
+    return this->data.size() == 0;
+  }
+};
+
+/**
  * Turn an array of sizes into the offset at each index including all previous sizes.
  */
-void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets, int start_offset = 0);
+OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets,
+                                                int start_offset = 0);
 
+/** Copy the number of indices in every group in the mask to the corresponding index. */
+void copy_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, MutableSpan<int> sizes);
+
+/** Gather the number of indices in each indexed group to sizes. */
+void gather_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, MutableSpan<int> sizes);
+
+/** Build new offsets that contains only the groups chosen by \a selection. */
+OffsetIndices<int> gather_selected_offsets(OffsetIndices<int> src_offsets,
+                                           const IndexMask &selection,
+                                           MutableSpan<int> dst_offsets);
 /**
  * Create a map from indexed elements to the source indices, in other words from the larger array
  * to the smaller array.
  */
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 
+/**
+ * Build offsets to group the elements of \a indices pointing to the same index.
+ */
+void build_reverse_offsets(Span<int> indices, MutableSpan<int> r_map);
+
 }  // namespace blender::offset_indices
 
 namespace blender {
+using offset_indices::GroupedSpan;
 using offset_indices::OffsetIndices;
-}
+}  // namespace blender

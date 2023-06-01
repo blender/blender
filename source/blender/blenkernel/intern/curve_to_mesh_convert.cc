@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_math_matrix.hh"
@@ -770,7 +772,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     mesh->tag_loose_verts_none();
     if (!offsets.any_single_point_profile) {
       /* If there are no single point profiles, every combination will have faces. */
-      mesh->loose_edges_tag_none();
+      mesh->tag_loose_edges_none();
     }
   }
 

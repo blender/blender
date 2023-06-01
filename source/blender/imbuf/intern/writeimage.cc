@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -42,7 +43,7 @@ bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags)
    * have already created this byte buffer. This is a basic fallback for other
    * cases where we do not have a specific desired output colorspace. */
   if (!(type->flag & IM_FTYPE_FLOAT)) {
-    if (ibuf->rect == nullptr && ibuf->rect_float) {
+    if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data) {
       ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
       IMB_rect_from_float(ibuf);
     }

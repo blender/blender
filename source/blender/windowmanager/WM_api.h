@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -100,16 +101,35 @@ void WM_init_input_devices(void);
  */
 void WM_init(struct bContext *C, int argc, const char **argv);
 /**
- * \note doesn't run exit() call #WM_exit() for that.
+ * Main exit function (implementation).
+ *
+ * \note Unlike #WM_exit this does not call `exit()`,
+ * the caller is responsible for this.
+ *
+ * \param C: The context or null, a null context implies `do_user_exit_actions == false` &
+ * prevents some editor-exit operations from running.
+ * \param do_python: Free all data associated with Blender's Python integration.
+ * Also exit the Python interpreter (unless `WITH_PYTHON_MODULE` is enabled).
+ * \param do_user_exit_actions: When enabled perform actions associated with a user
+ * having been using Blender then exiting. Actions such as writing the auto-save
+ * and writing any changes to preferences.
+ * Set to false in background mode or when exiting because of failed command line argument parsing.
+ * In general automated actions where the user isn't making changes should pass in false too.
  */
-void WM_exit_ex(struct bContext *C, bool do_python);
+void WM_exit_ex(struct bContext *C, bool do_python, bool do_user_exit_actions);
 
 /**
- * \brief Main exit function to close Blender ordinarily.
+ * Main exit function to close Blender ordinarily.
+ *
  * \note Use #wm_exit_schedule_delayed() to close Blender from an operator.
  * Might leak memory otherwise.
+ *
+ * \param exit_code: Passed to #exit, typically #EXIT_SUCCESS or #EXIT_FAILURE should be used.
+ * With failure being used for an early exit when parsing command line arguments fails.
+ * Note that any exit-code besides #EXIT_SUCCESS calls #WM_exit_ex with its `do_user_exit_actions`
+ * argument set to false.
  */
-void WM_exit(struct bContext *C) ATTR_NORETURN;
+void WM_exit(struct bContext *C, int exit_code) ATTR_NORETURN;
 
 void WM_main(struct bContext *C) ATTR_NORETURN;
 
@@ -181,9 +201,9 @@ wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area
  * \warning Drawing (swap-buffers) immediately before calling this function causes
  * the front-buffer state to be invalid under some EGL configurations.
  */
-uint *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
-                                             const struct wmWindow *win,
-                                             int r_size[2]);
+uint8_t *WM_window_pixels_read_from_frontbuffer(const struct wmWindowManager *wm,
+                                                const struct wmWindow *win,
+                                                int r_size[2]);
 /** A version of #WM_window_pixels_read_from_frontbuffer that samples a pixel at `pos`. */
 void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
                                                    const struct wmWindow *win,
@@ -197,9 +217,9 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
  * \note This is needed because the state of the front-buffer may be damaged
  * (see in-line code comments for details).
  */
-uint *WM_window_pixels_read_from_offscreen(struct bContext *C,
-                                           struct wmWindow *win,
-                                           int r_size[2]);
+uint8_t *WM_window_pixels_read_from_offscreen(struct bContext *C,
+                                              struct wmWindow *win,
+                                              int r_size[2]);
 /** A version of #WM_window_pixels_read_from_offscreen that samples a pixel at `pos`. */
 bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
                                                  struct wmWindow *win,
@@ -211,7 +231,7 @@ bool WM_window_pixels_read_sample_from_offscreen(struct bContext *C,
  *
  * \note Use off-screen drawing when front-buffer reading is not supported.
  */
-uint *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
+uint8_t *WM_window_pixels_read(struct bContext *C, struct wmWindow *win, int r_size[2]);
 /**
  * Read a single pixel from the screen.
  *
@@ -387,9 +407,6 @@ void WM_cursor_grab_enable(struct wmWindow *win,
                            eWM_CursorWrapAxis wrap,
                            const struct rcti *wrap_region,
                            bool hide);
-/**
- *
- */
 void WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 /**
  * After this you can call restore too.
@@ -488,6 +505,8 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(struct bContext *C,
                                                        struct wmWindow *win,
                                                        struct ListBase *handlers,
                                                        const struct wmEvent *event);
+
+bool WM_event_match(const struct wmEvent *winevent, const struct wmKeyMapItem *kmi);
 
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
@@ -1624,14 +1643,15 @@ void WM_job_main_thread_lock_release(struct wmJob *job);
 
 /**
  * Return text from the clipboard.
- *
- * \note Caller needs to check for valid utf8 if this is a requirement.
+ * \param selection: Use the "primary" clipboard, see: #WM_CAPABILITY_PRIMARY_CLIPBOARD.
+ * \param ensure_utf8: Ensure the resulting string does not contain invalid UTF8 encoding.
  */
-char *WM_clipboard_text_get(bool selection, int *r_len);
+char *WM_clipboard_text_get(bool selection, bool ensure_utf8, int *r_len);
 /**
  * Convenience function for pasting to areas of Blender which don't support newlines.
  */
-char *WM_clipboard_text_get_firstline(bool selection, int *r_len);
+char *WM_clipboard_text_get_firstline(bool selection, bool ensure_utf8, int *r_len);
+
 void WM_clipboard_text_set(const char *buf, bool selection);
 
 /**

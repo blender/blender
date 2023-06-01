@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -567,7 +569,7 @@ static int py_to_array(PyObject *seq,
      * python data, the check here is mainly for completeness. */
     if (copy_values(seq, ptr, prop, 0, data, item_size, NULL, convert_item, NULL) != NULL) {
       if (param_data == NULL) {
-        /* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
+        /* NULL can only pass through in case RNA property array-length is 0 (impossible?) */
         rna_set_array(ptr, prop, data);
         PyMem_FREE(data);
       }

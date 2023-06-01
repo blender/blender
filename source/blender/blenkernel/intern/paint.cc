@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1388,10 +1389,12 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
   else {
     return;
   }
-  MEM_SAFE_FREE(gmap->vert_to_loop);
-  MEM_SAFE_FREE(gmap->vert_map_mem);
-  MEM_SAFE_FREE(gmap->vert_to_poly);
-  MEM_SAFE_FREE(gmap->poly_map_mem);
+  gmap->vert_to_loop_offsets = {};
+  gmap->vert_to_loop_indices = {};
+  gmap->vert_to_loop = {};
+  gmap->vert_to_poly_offsets = {};
+  gmap->vert_to_poly_indices = {};
+  gmap->vert_to_poly = {};
 }
 
 /**
@@ -1442,14 +1445,15 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-  MEM_SAFE_FREE(ss->pmap_mem);
-
-  MEM_SAFE_FREE(ss->epmap);
-  MEM_SAFE_FREE(ss->epmap_mem);
-
-  MEM_SAFE_FREE(ss->vemap);
-  MEM_SAFE_FREE(ss->vemap_mem);
+  ss->vert_to_poly_offsets = {};
+  ss->vert_to_poly_indices = {};
+  ss->pmap = {};
+  ss->edge_to_poly_offsets = {};
+  ss->edge_to_poly_indices = {};
+  ss->epmap = {};
+  ss->vert_to_edge_offsets = {};
+  ss->vert_to_edge_indices = {};
+  ss->vemap = {};
 
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
@@ -1495,15 +1499,6 @@ void BKE_sculptsession_free(Object *ob)
 
     sculptsession_free_pbvh(ob);
 
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
-
-    MEM_SAFE_FREE(ss->epmap);
-    MEM_SAFE_FREE(ss->epmap_mem);
-
-    MEM_SAFE_FREE(ss->vemap);
-    MEM_SAFE_FREE(ss->vemap_mem);
-
     if (ss->bm_log) {
       BM_log_free(ss->bm_log);
     }
@@ -1536,7 +1531,7 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->last_paint_canvas_key);
 
-    MEM_freeN(ss);
+    MEM_delete(ss);
 
     ob->sculpt = nullptr;
   }
@@ -1766,9 +1761,12 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (ob->type == OB_MESH && !ss->pmap) {
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
+  if (ob->type == OB_MESH && ss->pmap.is_empty()) {
+    ss->pmap = blender::bke::mesh::build_vert_to_poly_map(me->polys(),
+                                                          me->corner_verts(),
+                                                          me->totvert,
+                                                          ss->vert_to_poly_offsets,
+                                                          ss->vert_to_poly_indices);
   }
 
   if (ss->pbvh) {
@@ -1936,6 +1934,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   }
 
   BKE_id_attributes_active_color_set(&orig_me->id, unique_name);
+  BKE_id_attributes_default_color_set(&orig_me->id, unique_name);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   BKE_mesh_tessface_clear(orig_me);
 
@@ -2354,9 +2353,10 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
   return 0;
 }
 
-/** Returns pointer to a CustomData associated with a given domain, if
+/**
+ * Returns pointer to a CustomData associated with a given domain, if
  * one exists.  If not nullptr is returned (this may happen with e.g.
- * multires and ATTR_DOMAIN_POINT).
+ * multires and #ATTR_DOMAIN_POINT).
  */
 static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
 {

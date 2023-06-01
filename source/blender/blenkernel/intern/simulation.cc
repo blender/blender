@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -10,6 +12,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_defaults.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_simulation_types.h"
 
@@ -24,15 +27,18 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_pointcache.h"
 #include "BKE_simulation.h"
+#include "BKE_simulation_state.hh"
 
 #include "NOD_geometry.h"
 
@@ -180,4 +186,18 @@ void BKE_simulation_data_update(Depsgraph * /*depsgraph*/,
                                 Scene * /*scene*/,
                                 Simulation * /*simulation*/)
 {
+}
+
+void BKE_simulation_reset_scene(Scene *scene)
+{
+  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      NodesModifierData *nmd = (NodesModifierData *)md;
+      nmd->simulation_cache->reset();
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
 }

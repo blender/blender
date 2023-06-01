@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -637,7 +639,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
      * its values are overwritten by #BKE_brush_sculpt_reset below. */
     brush->alpha = 1.0;
 
-    /* Enable antialiasing by default */
+    /* Enable anti-aliasing by default. */
     brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
   }
 

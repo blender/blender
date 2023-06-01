@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -55,8 +56,12 @@ typedef struct IpoCurve {
   /** Bounding boxes. */
   rctf maxrct, totrct;
 
-  /** Blocktype= ipo-blocktype; adrcode= type of ipo-curve; vartype= 'format' of data. */
-  short blocktype, adrcode, vartype;
+  /** Block-type of the curve (#ID_Type). */
+  short blocktype;
+  /** Type of ipo-curve. */
+  short adrcode;
+  /** Format of data. */
+  short vartype;
   /** Total number of BezTriples (i.e. keyframes) on curve. */
   short totvert;
   /** Interpolation and extrapolation modes. */
@@ -89,10 +94,11 @@ typedef struct Ipo {
   /** Rect defining extents of keyframes? */
   rctf cur;
 
-  /** Blocktype: self-explanatory; showkey: either 0 or 1
-   * (show vertical yellow lines for editing). */
-  short blocktype, showkey;
-  /** Muteipo: either 0 or 1 (whether ipo block is muted). */
+  /** #ID_Type. */
+  short blocktype;
+  /** Either 0 or 1 (show vertical yellow lines for editing). */
+  short showkey;
+  /** Mute-IPO: either 0 or 1 (whether ipo block is muted). */
   short muteipo;
   char _pad[2];
 } Ipo;

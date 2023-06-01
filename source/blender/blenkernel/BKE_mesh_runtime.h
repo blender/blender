@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -76,11 +77,6 @@ eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh);
  * to a more suitable location when that file is removed.
  * They should also be renamed to use conventions from BKE, not old DerivedMesh.cc.
  * For now keep the names similar to avoid confusion. */
-
-struct Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                                 const struct Scene *scene,
-                                 struct Object *ob,
-                                 const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,

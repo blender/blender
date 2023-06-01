@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edfile
@@ -81,7 +83,8 @@ typedef struct FileIndexerType {
    * Is called at the end of the file listing process. An indexer can free the data that it created
    * during the file listing process.
    *
-   * This is an optional callback */
+   * This is an optional callback.
+   */
   FileIndexerFreeUserDataFunc free_user_data;
 
   /**

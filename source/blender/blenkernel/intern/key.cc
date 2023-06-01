@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1864,9 +1865,8 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   kb->slidermin = 0.0f;
   kb->slidermax = 1.0f;
 
-  /**
-   * \note caller may want to set this to current time, but don't do it here since we need to sort
-   * which could cause problems in some cases, see #BKE_keyblock_add_ctime */
+  /* \note caller may want to set this to current time, but don't do it here since we need to sort
+   * which could cause problems in some cases, see #BKE_keyblock_add_ctime. */
   kb->pos = curpos + 0.1f; /* only used for absolute shape keys */
 
   return kb;

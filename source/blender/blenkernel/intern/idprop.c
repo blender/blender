@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -414,28 +415,6 @@ void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, int maxncpy)
 void IDP_AssignString(IDProperty *prop, const char *st)
 {
   IDP_AssignStringMaxSize(prop, st, 0);
-}
-
-void IDP_ConcatStringC(IDProperty *prop, const char *st)
-{
-  BLI_assert(prop->type == IDP_STRING);
-
-  int newlen = prop->len + (int)strlen(st);
-  /* We have to remember that prop->len includes the null byte for strings.
-   * so there's no need to add +1 to the resize function. */
-  IDP_ResizeArray(prop, newlen);
-  strcat(prop->data.pointer, st);
-}
-
-void IDP_ConcatString(IDProperty *str1, IDProperty *append)
-{
-  BLI_assert(append->type == IDP_STRING);
-
-  /* Since ->len for strings includes the NULL byte, we have to subtract one or
-   * we'll get an extra null byte after each concatenation operation. */
-  int newlen = str1->len + append->len - 1;
-  IDP_ResizeArray(str1, newlen);
-  strcat(str1->data.pointer, append->data.pointer);
 }
 
 void IDP_FreeString(IDProperty *prop)

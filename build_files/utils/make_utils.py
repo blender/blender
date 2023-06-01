@@ -60,11 +60,16 @@ def git_local_branch_exists(git_command: str, branch: str) -> bool:
     )
 
 
+def git_remote_branch_exists(git_command: str, remote: str, branch: str) -> bool:
+    return call([git_command, "rev-parse", "--verify", f"remotes/{remote}/{branch}"],
+                exit_on_error=False, silent=True) == 0
+
+
 def git_branch_exists(git_command: str, branch: str) -> bool:
     return (
         git_local_branch_exists(git_command, branch) or
-        call([git_command, "rev-parse", "--verify", "remotes/upstream/" + branch], exit_on_error=False, silent=True) == 0 or
-        call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
+        git_remote_branch_exists(git_command, "upstream", branch) or
+        git_remote_branch_exists(git_command, "origin", branch)
     )
 
 

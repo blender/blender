@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -491,6 +493,20 @@ void transform_input_update(TransInfo *t, const float fac)
   }
   else if (t->mode == TFM_VERT_SLIDE) {
     transform_mode_vert_slide_reproject_input(t);
+  }
+}
+
+void transform_input_virtual_mval_reset(TransInfo *t)
+{
+  MouseInput *mi = &t->mouse;
+  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    struct InputAngle_Data *data = mi->data;
+    data->angle = 0.0;
+    data->mval_prev[0] = mi->imval[0];
+    data->mval_prev[1] = mi->imval[1];
+  }
+  else {
+    memset(&mi->virtual_mval, 0, sizeof(mi->virtual_mval));
   }
 }
 

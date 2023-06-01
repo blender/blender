@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -1213,7 +1214,7 @@ void EEVEE_material_transparent_output_init(EEVEE_Data *vedata)
         {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->transparent_accum)});
 
     {
-      /* This pass Accumulate 1 sample of the transparent pass into the the transparent
+      /* This pass Accumulate 1 sample of the transparent pass into the transparent
        * accumulation buffer. */
       DRW_PASS_CREATE(psl->transparent_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
       DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_renderpasses_accumulate_sh_get(),

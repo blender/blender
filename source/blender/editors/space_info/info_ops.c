@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spinfo
@@ -73,7 +74,9 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
+  WM_cursor_wait(true);
   BKE_packedfile_unpack_all_libraries(bmain, op->reports);
+  WM_cursor_wait(false);
 
   return OPERATOR_FINISHED;
 }
@@ -225,7 +228,9 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
   int method = RNA_enum_get(op->ptr, "method");
 
   if (method != PF_KEEP) {
+    WM_cursor_wait(true);
     BKE_packedfile_unpack_all(bmain, op->reports, method); /* XXX PF_ASK can't work here */
+    WM_cursor_wait(false);
   }
   G.fileflags &= ~G_FILE_AUTOPACK;
 
@@ -329,7 +334,9 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
   }
 
   if (method != PF_KEEP) {
+    WM_cursor_wait(true);
     BKE_packedfile_id_unpack(bmain, id, op->reports, method); /* XXX PF_ASK can't work here */
+    WM_cursor_wait(false);
   }
 
   G.fileflags &= ~G_FILE_AUTOPACK;

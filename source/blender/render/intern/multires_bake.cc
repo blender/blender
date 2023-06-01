@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -420,7 +421,7 @@ static void *do_multires_bake_thread(void *data_v)
     bake_rasterize(bake_rast, uv[0], uv[1], uv[2]);
 
     /* tag image buffer for refresh */
-    if (data->ibuf->rect_float) {
+    if (data->ibuf->float_buffer.data) {
       data->ibuf->userflags |= IB_RECT_INVALID;
     }
 
@@ -922,13 +923,13 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
   thread_data->height_min = min_ff(thread_data->height_min, len);
   thread_data->height_max = max_ff(thread_data->height_max, len);
 
-  if (ibuf->rect_float) {
-    float *rrgbf = ibuf->rect_float + pixel * 4;
+  if (ibuf->float_buffer.data) {
+    float *rrgbf = ibuf->float_buffer.data + pixel * 4;
     rrgbf[0] = rrgbf[1] = rrgbf[2] = len;
     rrgbf[3] = 1.0f;
   }
   else {
-    char *rrgb = (char *)ibuf->rect + pixel * 4;
+    uchar *rrgb = ibuf->byte_buffer.data + pixel * 4;
     rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(len);
     rrgb[3] = 255;
   }
@@ -1016,15 +1017,15 @@ static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_p
   normalize_v3_length(vec, 0.5);
   add_v3_v3(vec, tmp);
 
-  if (ibuf->rect_float) {
-    float *rrgbf = ibuf->rect_float + pixel * 4;
+  if (ibuf->float_buffer.data) {
+    float *rrgbf = ibuf->float_buffer.data + pixel * 4;
     rrgbf[0] = vec[0];
     rrgbf[1] = vec[1];
     rrgbf[2] = vec[2];
     rrgbf[3] = 1.0f;
   }
   else {
-    uchar *rrgb = (uchar *)ibuf->rect + pixel * 4;
+    uchar *rrgb = ibuf->byte_buffer.data + pixel * 4;
     rgb_float_to_uchar(rrgb, vec);
     rrgb[3] = 255;
   }
@@ -1412,15 +1413,15 @@ static void bake_ibuf_normalize_displacement(ImBuf *ibuf,
         normalized_displacement = 0.5f;
       }
 
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         /* currently baking happens to RGBA only */
-        float *fp = ibuf->rect_float + i * 4;
+        float *fp = ibuf->float_buffer.data + i * 4;
         fp[0] = fp[1] = fp[2] = normalized_displacement;
         fp[3] = 1.0f;
       }
 
-      if (ibuf->rect) {
-        uchar *cp = (uchar *)(ibuf->rect + i);
+      if (ibuf->byte_buffer.data) {
+        uchar *cp = ibuf->byte_buffer.data + 4 * i;
         cp[0] = cp[1] = cp[2] = unit_float_to_uchar_clamp(normalized_displacement);
         cp[3] = 255;
       }
@@ -1564,7 +1565,7 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
       ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
       BKE_image_mark_dirty(ima, ibuf);
 
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         ibuf->userflags |= IB_RECT_INVALID;
       }
 

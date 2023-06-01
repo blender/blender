@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -25,6 +26,7 @@ extern "C" {
 #include "gpencil_shader_shared.h"
 
 extern DrawEngineType draw_engine_gpencil_type;
+extern DrawEngineType draw_engine_gpencil_next_type;
 
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;

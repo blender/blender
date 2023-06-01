@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -164,7 +165,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   if (mtex->tex && mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
     ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
     /* For consistency, sampling always returns color in linear space. */
-    if (tex_ibuf && tex_ibuf->rect_float == nullptr) {
+    if (tex_ibuf && tex_ibuf->float_buffer.data == nullptr) {
       convert_to_linear = true;
       colorspace = tex_ibuf->rect_colorspace;
     }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blf
@@ -23,6 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
@@ -113,7 +115,7 @@ static int blf_search_by_filepath(const char *filepath)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font && STREQ(font->filepath, filepath)) {
+    if (font && (BLI_path_cmp(font->filepath, filepath) == 0)) {
       return i;
     }
   }
@@ -249,7 +251,7 @@ void BLF_unload(const char *filepath)
       continue;
     }
 
-    if (STREQ(font->filepath, filepath)) {
+    if (BLI_path_cmp(font->filepath, filepath) == 0) {
       BLI_assert(font->reference_count > 0);
       font->reference_count--;
 

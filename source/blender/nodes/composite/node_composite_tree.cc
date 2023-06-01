@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -10,8 +11,6 @@
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

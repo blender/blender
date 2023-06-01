@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_disjoint_set.hh"
@@ -238,14 +240,15 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
   BKE_mesh_tag_positions_changed(&mesh);
 }
 
-static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexMask face_selection)
+static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh,
+                                                  const IndexMask &face_selection)
 {
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet<int> disjoint_set(mesh.totvert);
-  for (const int poly_index : face_selection) {
+  face_selection.foreach_index([&](const int poly_index) {
     const Span<int> poly_verts = corner_verts.slice(polys[poly_index]);
     for (const int loop_index : poly_verts.index_range().drop_back(1)) {
       const int v1 = poly_verts[loop_index];
@@ -253,7 +256,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
       disjoint_set.join(v1, v2);
     }
     disjoint_set.join(poly_verts.first(), poly_verts.last());
-  }
+  });
 
   VectorSet<int> island_ids;
   Vector<ElementIsland> islands;
@@ -261,7 +264,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
   islands.reserve(face_selection.size());
 
   /* Gather all of the face indices in each island into separate vectors. */
-  for (const int poly_index : face_selection) {
+  face_selection.foreach_index([&](const int poly_index) {
     const Span<int> poly_verts = corner_verts.slice(polys[poly_index]);
     const int island_id = disjoint_set.find_root(poly_verts[0]);
     const int island_index = island_ids.index_of_or_add(island_id);
@@ -270,7 +273,7 @@ static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexM
     }
     ElementIsland &island = islands[island_index];
     island.element_indices.append(poly_index);
-  }
+  });
 
   return islands;
 }
@@ -329,16 +332,17 @@ static void scale_faces_uniformly(Mesh &mesh, const UniformScaleFields &fields)
   scale_vertex_islands_uniformly(mesh, island, params, get_face_verts);
 }
 
-static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexMask edge_selection)
+static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh,
+                                                  const IndexMask &edge_selection)
 {
   const Span<int2> edges = mesh.edges();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */
   DisjointSet<int> disjoint_set(mesh.totvert);
-  for (const int edge_index : edge_selection) {
+  edge_selection.foreach_index([&](const int edge_index) {
     const int2 &edge = edges[edge_index];
     disjoint_set.join(edge[0], edge[1]);
-  }
+  });
 
   VectorSet<int> island_ids;
   Vector<ElementIsland> islands;
@@ -346,7 +350,7 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
   islands.reserve(edge_selection.size());
 
   /* Gather all of the edge indices in each island into separate vectors. */
-  for (const int edge_index : edge_selection) {
+  edge_selection.foreach_index([&](const int edge_index) {
     const int2 &edge = edges[edge_index];
     const int island_id = disjoint_set.find_root(edge[0]);
     const int island_index = island_ids.index_of_or_add(island_id);
@@ -355,7 +359,7 @@ static Vector<ElementIsland> prepare_edge_islands(const Mesh &mesh, const IndexM
     }
     ElementIsland &island = islands[island_index];
     island.element_indices.append(edge_index);
-  }
+  });
 
   return islands;
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup creator
@@ -451,7 +452,7 @@ int main(int argc,
   /* Ensure we free on early exit. */
   app_init_data.ba = ba;
 
-  main_args_setup(C, ba);
+  main_args_setup(C, ba, false);
 
   /* Begin argument parsing, ignore leaks so arguments that call #exit
    * (such as '--version' & '--help') don't report leaks. */
@@ -547,7 +548,7 @@ int main(int argc,
   /* OK we are ready for it */
 #ifndef WITH_PYTHON_MODULE
   /* Handles #ARG_PASS_FINAL. */
-  main_args_setup_post(C, ba);
+  BLI_args_parse(ba, ARG_PASS_FINAL, main_args_handle_load_file, C);
 #endif
 
   /* Explicitly free data allocated for argument parsing:
@@ -574,7 +575,7 @@ int main(int argc,
 #ifndef WITH_PYTHON_MODULE
   if (G.background) {
     /* Using window-manager API in background-mode is a bit odd, but works fine. */
-    WM_exit(C);
+    WM_exit(C, G.is_break ? EXIT_FAILURE : EXIT_SUCCESS);
   }
   else {
     /* Shows the splash as needed. */
@@ -594,7 +595,7 @@ int main(int argc,
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)
 {
-  WM_exit_ex((bContext *)evil_C, true);
+  WM_exit_ex((bContext *)evil_C, true, false);
   evil_C = NULL;
 }
 #endif

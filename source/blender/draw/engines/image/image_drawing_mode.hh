@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -389,10 +390,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       ImBuf *float_buffer, PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const
   {
     ImBuf *src = iterator.tile_data.tile_buffer;
-    BLI_assert(float_buffer->rect_float != nullptr);
-    BLI_assert(float_buffer->rect == nullptr);
-    BLI_assert(src->rect_float == nullptr);
-    BLI_assert(src->rect != nullptr);
+    BLI_assert(float_buffer->float_buffer.data != nullptr);
+    BLI_assert(float_buffer->byte_buffer.data == nullptr);
+    BLI_assert(src->float_buffer.data == nullptr);
+    BLI_assert(src->byte_buffer.data != nullptr);
 
     /* Calculate the overlap between the updated region and the buffer size. Partial Update Checker
      * always returns a tile (256x256). Which could lay partially outside the buffer when using
@@ -503,7 +504,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                       info.clipping_uv_bounds.xmin * (1.0 - xf) - tile_offset_x;
             nearest_interpolation_color(tile_buffer,
                                         nullptr,
-                                        &extracted_buffer.rect_float[offset * 4],
+                                        &extracted_buffer.float_buffer.data[offset * 4],
                                         u * tile_buffer->x,
                                         v * tile_buffer->y);
             offset++;
@@ -513,7 +514,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
         GPU_texture_update_sub(texture,
                                GPU_DATA_FLOAT,
-                               extracted_buffer.rect_float,
+                               extracted_buffer.float_buffer.data,
                                gpu_texture_region_to_update.xmin,
                                gpu_texture_region_to_update.ymin,
                                0,
@@ -563,7 +564,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }
     IMB_gpu_clamp_half_float(&texture_buffer);
-    GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.rect_float);
+    GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.float_buffer.data);
     imb_freerectImbuf_all(&texture_buffer);
   }
 

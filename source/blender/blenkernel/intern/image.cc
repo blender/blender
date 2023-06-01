@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1138,7 +1139,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
     }
 
     if (ibuf != nullptr) {
-      rect_float = ibuf->rect_float;
+      rect_float = ibuf->float_buffer.data;
       IMB_colormanagement_check_is_data(ibuf, ima->colorspace_settings.name);
     }
 
@@ -1162,7 +1163,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
     }
 
     if (ibuf != nullptr) {
-      rect = (uchar *)ibuf->rect;
+      rect = ibuf->byte_buffer.data;
       IMB_colormanagement_assign_rect_colorspace(ibuf, ima->colorspace_settings.name);
     }
 
@@ -1261,7 +1262,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
 {
   const char *colorspace_name = nullptr;
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     if (ibuf->float_colorspace) {
       colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_colorspace);
     }
@@ -1270,7 +1271,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
     }
   }
 
-  if (ibuf->rect && !colorspace_name) {
+  if (ibuf->byte_buffer.data && !colorspace_name) {
     if (ibuf->rect_colorspace) {
       colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->rect_colorspace);
     }
@@ -1318,7 +1319,7 @@ void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
 
   /* Keep generated image type flags consistent with the image buffer. */
   if (image->source == IMA_SRC_GENERATED) {
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       image->gen_flag |= IMA_GEN_FLOAT;
     }
     else {
@@ -1338,11 +1339,11 @@ void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
 static bool image_memorypack_imbuf(
     Image *ima, ImBuf *ibuf, int view, int tile_number, const char *filepath)
 {
-  ibuf->ftype = (ibuf->rect_float) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
+  ibuf->ftype = (ibuf->float_buffer.data) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
 
   IMB_saveiff(ibuf, filepath, IB_rect | IB_mem);
 
-  if (ibuf->encodedbuffer == nullptr) {
+  if (ibuf->encoded_buffer.data == nullptr) {
     CLOG_STR_ERROR(&LOG, "memory save for pack error");
     IMB_freeImBuf(ibuf);
     image_free_packedfiles(ima);
@@ -1352,8 +1353,8 @@ static bool image_memorypack_imbuf(
   ImagePackedFile *imapf;
   PackedFile *pf = MEM_cnew<PackedFile>("PackedFile");
 
-  pf->data = ibuf->encodedbuffer;
-  pf->size = ibuf->encodedsize;
+  pf->size = ibuf->encoded_size;
+  pf->data = IMB_steal_encoded_buffer(ibuf);
 
   imapf = static_cast<ImagePackedFile *>(MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile"));
   STRNCPY(imapf->filepath, filepath);
@@ -1362,8 +1363,6 @@ static bool image_memorypack_imbuf(
   imapf->tile_number = tile_number;
   BLI_addtail(&ima->packedfiles, imapf);
 
-  ibuf->encodedbuffer = nullptr;
-  ibuf->encodedsize = 0;
   ibuf->userflags &= ~IB_BITMAPDIRTY;
 
   return true;
@@ -1505,26 +1504,12 @@ static uintptr_t image_mem_size(Image *image)
       if (ibuf == nullptr) {
         continue;
       }
-      ImBuf *ibufm;
-      int level;
 
-      if (ibuf->rect) {
-        size += MEM_allocN_len(ibuf->rect);
-      }
-      if (ibuf->rect_float) {
-        size += MEM_allocN_len(ibuf->rect_float);
-      }
+      size += IMB_get_size_in_memory(ibuf);
 
-      for (level = 0; level < IMB_MIPMAP_LEVELS; level++) {
-        ibufm = ibuf->mipmap[level];
-        if (ibufm) {
-          if (ibufm->rect) {
-            size += MEM_allocN_len(ibufm->rect);
-          }
-          if (ibufm->rect_float) {
-            size += MEM_allocN_len(ibufm->rect_float);
-          }
-        }
+      for (int level = 0; level < IMB_MIPMAP_LEVELS; level++) {
+        ImBuf *ibufm = ibuf->mipmap[level];
+        size += IMB_get_size_in_memory(ibufm);
       }
     }
     IMB_moviecacheIter_free(iter);
@@ -2537,16 +2522,16 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
   int tot;
-  if (ibuf->rect_float) {
-    const float *buf = ibuf->rect_float;
+  if (ibuf->float_buffer.data) {
+    const float *buf = ibuf->float_buffer.data;
     for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
       if (buf[3] < 1.0f) {
         return true;
       }
     }
   }
-  else if (ibuf->rect) {
-    uchar *buf = (uchar *)ibuf->rect;
+  else if (ibuf->byte_buffer.data) {
+    uchar *buf = ibuf->byte_buffer.data;
     for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
       if (buf[3] != 255) {
         return true;
@@ -4005,12 +3990,10 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
 
     if (rpass) {
       // printf("load from pass %s\n", rpass->name);
-      /* since we free  render results, we copy the rect */
       ibuf = IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
-      ibuf->rect_float = static_cast<float *>(MEM_dupallocN(rpass->rect));
-      ibuf->flags |= IB_rectfloat;
-      ibuf->mall = IB_rectfloat;
       ibuf->channels = rpass->channels;
+
+      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
 
@@ -4318,8 +4301,8 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 
       image_init_after_load(ima, iuser, ibuf);
 
-      ibuf->rect_float = rpass->rect;
-      ibuf->flags |= IB_rectfloat;
+      IMB_assign_shared_float_buffer(ibuf, rpass->buffer.data, rpass->buffer.sharing_info);
+
       ibuf->channels = rpass->channels;
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
@@ -4338,8 +4321,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 {
   Render *re;
   RenderView *rv;
-  float *rectf, *rectz;
-  uint *rect;
+  RenderBuffer *combined_buffer, *z_buffer;
+  RenderByteBuffer *byte_buffer;
   float dither;
   int channels, layer, pass;
   ImBuf *ibuf;
@@ -4373,7 +4356,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
     rres = *(slot->render);
-    rres.have_combined = ((RenderView *)rres.views.first)->rectf != nullptr;
+    rres.have_combined = ((RenderView *)rres.views.first)->combined_buffer.data != nullptr;
   }
 
   if (!(rres.rectx > 0 && rres.recty > 0)) {
@@ -4398,14 +4381,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   /* this gives active layer, composite or sequence result */
   if (rv == nullptr) {
-    rect = (uint *)rres.rect32;
-    rectf = rres.rectf;
-    rectz = rres.rectz;
+    byte_buffer = &rres.byte_buffer;
+    combined_buffer = &rres.combined_buffer;
+    z_buffer = &rres.z_buffer;
   }
   else {
-    rect = (uint *)rv->rect32;
-    rectf = rv->rectf;
-    rectz = rv->rectz;
+    byte_buffer = &rv->byte_buffer;
+    combined_buffer = &rv->combined_buffer;
+    z_buffer = &rv->z_buffer;
   }
 
   dither = iuser->scene->r.dither_intensity;
@@ -4414,13 +4397,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   if (rres.have_combined && layer == 0) {
     /* pass */
   }
-  else if (rect && layer == 0) {
+  else if (byte_buffer && byte_buffer->data && layer == 0) {
     /* rect32 is set when there's a Sequence pass, this pass seems
      * to have layer=0 (this is from image_buttons.c)
      * in this case we ignore float buffer, because it could have
      * hung from previous pass which was float
      */
-    rectf = nullptr;
+    combined_buffer = nullptr;
   }
   else if (rres.layers.first) {
     RenderLayer *rl = static_cast<RenderLayer *>(
@@ -4428,7 +4411,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     if (rl) {
       RenderPass *rpass = image_render_pass_get(rl, pass, actview, nullptr);
       if (rpass) {
-        rectf = rpass->rect;
+        combined_buffer = &rpass->buffer;
         if (pass != 0) {
           channels = rpass->channels;
           dither = 0.0f; /* don't dither passes */
@@ -4437,7 +4420,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
       for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass; rpass = rpass->next) {
         if (STREQ(rpass->name, RE_PASSNAME_Z) && rpass->view_id == actview) {
-          rectz = rpass->rect;
+          z_buffer = &rpass->buffer;
         }
       }
     }
@@ -4459,56 +4442,48 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    *
    * For other cases we need to be sure it stays to default byte buffer space.
    */
-  if (ibuf->rect != rect) {
+  if (ibuf->byte_buffer.data != byte_buffer->data) {
     const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
     IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
   }
 
   /* invalidate color managed buffers if render result changed */
   BLI_thread_lock(LOCK_COLORMANAGE);
-  if (ibuf->x != rres.rectx || ibuf->y != rres.recty || ibuf->rect_float != rectf) {
+  if (combined_buffer && (ibuf->x != rres.rectx || ibuf->y != rres.recty ||
+                          ibuf->float_buffer.data != combined_buffer->data))
+  {
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   }
 
   ibuf->x = rres.rectx;
   ibuf->y = rres.recty;
+  ibuf->channels = channels;
 
-  if (rect) {
-    imb_freerectImBuf(ibuf);
-    ibuf->rect = rect;
+  imb_freerectImBuf(ibuf);
+
+  if (byte_buffer) {
+    IMB_assign_shared_byte_buffer(ibuf, byte_buffer->data, byte_buffer->sharing_info);
   }
   else {
-    /* byte buffer of render result has been freed, make sure image buffers
-     * does not reference to this buffer anymore
-     * need check for whether byte buffer was allocated and owned by image itself
-     * or if it's reusing buffer from render result
-     */
-    if ((ibuf->mall & IB_rect) == 0) {
-      ibuf->rect = nullptr;
-    }
+    IMB_assign_byte_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
   }
 
-  if (rectf) {
-    ibuf->rect_float = rectf;
-    ibuf->flags |= IB_rectfloat;
-    ibuf->channels = channels;
+  if (combined_buffer) {
+    IMB_assign_shared_float_buffer(ibuf, combined_buffer->data, combined_buffer->sharing_info);
   }
   else {
-    ibuf->rect_float = nullptr;
-    ibuf->flags &= ~IB_rectfloat;
+    IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
   }
 
-  if (rectz) {
-    ibuf->zbuf_float = rectz;
-    ibuf->flags |= IB_zbuffloat;
+  if (z_buffer) {
+    IMB_assign_shared_float_z_buffer(ibuf, z_buffer->data, z_buffer->sharing_info);
   }
   else {
-    ibuf->zbuf_float = nullptr;
-    ibuf->flags &= ~IB_zbuffloat;
+    IMB_assign_float_z_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
   }
 
   /* TODO(sergey): Make this faster by either simply referencing the stamp
-   * or by changing both ImBug and RenderResult to use same data type to
+   * or by changing both ImBuf and RenderResult to use same data type to
    * store metadata. */
   if (ibuf->metadata != nullptr) {
     IMB_metadata_free(ibuf->metadata);
@@ -5269,7 +5244,7 @@ uchar *BKE_image_get_pixels_for_frame(struct Image *image, int frame, int tile)
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
   if (ibuf) {
-    pixels = (uchar *)ibuf->rect;
+    pixels = ibuf->byte_buffer.data;
 
     if (pixels) {
       pixels = static_cast<uchar *>(MEM_dupallocN(pixels));
@@ -5299,7 +5274,7 @@ float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame, int 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
   if (ibuf) {
-    pixels = ibuf->rect_float;
+    pixels = ibuf->float_buffer.data;
 
     if (pixels) {
       pixels = static_cast<float *>(MEM_dupallocN(pixels));

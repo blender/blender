@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -315,7 +316,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
 
       for (y = ibuf->y - 1; y >= 0; y--) {
         jpeg_read_scanlines(cinfo, row_pointer, 1);
-        rect = (uchar *)(ibuf->rect + y * ibuf->x);
+        rect = ibuf->byte_buffer.data + 4 * y * ibuf->x;
         buffer = row_pointer[0];
 
         switch (depth) {
@@ -626,7 +627,7 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
       sizeof(JSAMPLE) * cinfo->input_components * cinfo->image_width, "jpeg row_pointer"));
 
   for (y = ibuf->y - 1; y >= 0; y--) {
-    rect = (uchar *)(ibuf->rect + y * ibuf->x);
+    rect = ibuf->byte_buffer.data + 4 * y * ibuf->x;
     buffer = row_pointer[0];
 
     switch (cinfo->in_color_space) {

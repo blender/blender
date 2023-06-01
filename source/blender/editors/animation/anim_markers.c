@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -1416,7 +1417,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
  * xmin, ymin
  * xmax, ymax
  *
- * customdata: the wmGesture pointer, with subwindow
+ * customdata: the wmGesture pointer, with sub-window.
  *
  * callbacks:
  *

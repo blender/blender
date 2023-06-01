@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-05-22 16:40:40\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -297,16 +297,16 @@ msgid "Fill"
 msgstr "Fyll"
 
 
-msgid "Smooth"
-msgstr "Jämn"
+msgid "Hardness"
+msgstr "Hårdhet"
 
 
 msgid "Thickness"
 msgstr "Tjocklek"
 
 
-msgid "Hardness"
-msgstr "Hårdhet"
+msgid "Smooth"
+msgstr "Jämn"
 
 
 msgid "Saturation"
@@ -2232,6 +2232,10 @@ msgid "Translate Tooltips"
 msgstr "Översätt verktygstipsen"
 
 
+msgid "Base"
+msgstr "Bas"
+
+
 msgid "Find"
 msgstr "Sök"
 
@@ -2330,10 +2334,6 @@ msgstr "Stämpla sekvensremsan"
 
 msgid "Collision Margin"
 msgstr "Krockmarginal"
-
-
-msgid "Base"
-msgstr "Bas"
 
 
 msgid "Settings for particle fluids physics"
@@ -2735,10 +2735,6 @@ msgstr "Engelska (English)"
 
 msgid "Japanese (日本語)"
 msgstr "Japanska (日本語)"
-
-
-msgid "Dutch (Nederlandse taal)"
-msgstr "Nederländska (Nederlandse taal)"
 
 
 msgid "Italian (Italiano)"

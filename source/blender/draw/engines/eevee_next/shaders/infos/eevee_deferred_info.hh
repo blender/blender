@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
@@ -24,11 +26,9 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_base)
     /* Combined pass output. */
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
-    /* Light pass output. */
-    .image_array_out(RBUFS_LIGHT_SLOT, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_light_img")
     /* Chaining to next pass. */
-    .image_out(2, Qualifier::READ_WRITE, GPU_RGBA16F, "out_diffuse_light_img")
-    .image_out(3, Qualifier::READ_WRITE, GPU_RGBA16F, "out_specular_light_img");
+    .image_out(2, Qualifier::WRITE, GPU_RGBA16F, "out_diffuse_light_img")
+    .image_out(3, Qualifier::WRITE, GPU_RGBA16F, "out_specular_light_img");
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_light)
     .fragment_source("eevee_deferred_light_frag.glsl")
@@ -40,6 +40,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
                      "eevee_shadow_data",
                      "eevee_deferred_base",
                      "eevee_hiz_data",
+                     "eevee_render_pass_out",
                      "draw_view",
                      "draw_fullscreen")
     .do_static_compilation(true);

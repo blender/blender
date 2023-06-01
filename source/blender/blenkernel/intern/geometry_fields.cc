@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 
@@ -134,7 +136,7 @@ const Instances *GeometryFieldContext::instances() const
 }
 
 GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                   const IndexMask mask,
+                                                   const IndexMask &mask,
                                                    ResourceScope & /*scope*/) const
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
@@ -169,7 +171,7 @@ std::optional<eAttrDomain> GeometryFieldInput::preferred_domain(
 }
 
 GVArray MeshFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                               const IndexMask mask,
+                                               const IndexMask &mask,
                                                ResourceScope & /*scope*/) const
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
@@ -191,7 +193,7 @@ std::optional<eAttrDomain> MeshFieldInput::preferred_domain(const Mesh & /*mesh*
 }
 
 GVArray CurvesFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                 IndexMask mask,
+                                                 const IndexMask &mask,
                                                  ResourceScope & /*scope*/) const
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
@@ -215,7 +217,7 @@ std::optional<eAttrDomain> CurvesFieldInput::preferred_domain(
 }
 
 GVArray PointCloudFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                     IndexMask mask,
+                                                     const IndexMask &mask,
                                                      ResourceScope & /*scope*/) const
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
@@ -234,7 +236,7 @@ GVArray PointCloudFieldInput::get_varray_for_context(const fn::FieldContext &con
 }
 
 GVArray InstancesFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                    IndexMask mask,
+                                                    const IndexMask &mask,
                                                     ResourceScope & /*scope*/) const
 {
   if (const GeometryFieldContext *geometry_context = dynamic_cast<const GeometryFieldContext *>(
@@ -253,7 +255,7 @@ GVArray InstancesFieldInput::get_varray_for_context(const fn::FieldContext &cont
 }
 
 GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                    const IndexMask /*mask*/) const
+                                                    const IndexMask & /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
   if (auto attributes = context.attributes()) {
@@ -308,7 +310,7 @@ static StringRef get_random_id_attribute_name(const eAttrDomain domain)
 }
 
 GVArray IDAttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                      const IndexMask mask) const
+                                                      const IndexMask &mask) const
 {
 
   const StringRef name = get_random_id_attribute_name(context.domain());
@@ -340,7 +342,7 @@ bool IDAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
 }
 
 GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                             const IndexMask /*mask*/) const
+                                                             const IndexMask & /*mask*/) const
 {
   const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
   return *context.attributes()->lookup(*anonymous_id_, context.domain(), data_type);
@@ -391,7 +393,7 @@ std::optional<eAttrDomain> AnonymousAttributeFieldInput::preferred_domain(
 namespace blender::bke {
 
 GVArray NormalFieldInput::get_varray_for_context(const GeometryFieldContext &context,
-                                                 const IndexMask mask) const
+                                                 const IndexMask &mask) const
 {
   if (const Mesh *mesh = context.mesh()) {
     return mesh_normals_varray(*mesh, mask, context.domain());

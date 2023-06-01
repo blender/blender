@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -666,7 +667,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
     rv = nullptr;
   }
 
-  if (rv && rv->rectf) {
+  if (rv && rv->combined_buffer.data) {
 
     if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
 
@@ -1073,8 +1074,9 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  rv->rectf = static_cast<float *>(
-      MEM_callocN(sizeof(float[4]) * width * height, "texture render result"));
+  RE_RenderBuffer_assign_data(&rv->combined_buffer,
+                              static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
+                                                               "texture render result")));
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
@@ -1082,7 +1084,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
-  float *rect_float = rv->rectf;
+  float *rect_float = rv->combined_buffer.data;
   float tex_coord[3] = {0.0f, 0.0f, 0.0f};
   bool color_manage = true;
 
@@ -1352,7 +1354,8 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   short ex, ey, dx, dy;
 
   /* paranoia test */
-  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     return;
   }
 
@@ -1382,11 +1385,11 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   IMB_scalefastImBuf(ima, ex, ey);
 
   /* if needed, convert to 32 bits */
-  if (ima->rect == nullptr) {
+  if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = ima->rect;
+  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
   drect = rect;
 
   drect += dy * w + dx;
@@ -1440,7 +1443,8 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
      * already there. Very expensive for large images. Need to find a way to
      * only get existing `ibuf`. */
     ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
-    if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+    if (ibuf == nullptr ||
+        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr)) {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return;
     }
@@ -1458,7 +1462,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
-    if (!(br->icon_imbuf) || !(br->icon_imbuf->rect)) {
+    if (!(br->icon_imbuf) || !(br->icon_imbuf->byte_buffer.data)) {
       return;
     }
 

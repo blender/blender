@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 
@@ -43,12 +45,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
     case GEO_NODE_BOOLEAN_INTERSECT:
     case GEO_NODE_BOOLEAN_UNION:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, false);
-      bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, "Mesh");
       break;
     case GEO_NODE_BOOLEAN_DIFFERENCE:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, true);
-      bke::nodeSetSocketAvailability(ntree, geometry_2_socket, true);
       node_sock_label(geometry_2_socket, "Mesh 2");
       break;
   }
@@ -67,8 +67,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
 
   Vector<const Mesh *> meshes;
-  Vector<const float4x4 *> transforms;
-
   VectorSet<Material *> materials;
   Vector<Array<short>> material_remaps;
 
@@ -78,10 +76,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */
-    const Mesh *mesh_in_a = set_a.get_mesh_for_read();
-    if (mesh_in_a != nullptr) {
+    if (const Mesh *mesh_in_a = set_a.get_mesh_for_read()) {
       meshes.append(mesh_in_a);
-      transforms.append(nullptr);
       if (mesh_in_a->totcol == 0) {
         /* Necessary for faces using the default material when there are no material slots. */
         materials.add(nullptr);
@@ -93,33 +89,17 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  /* The instance transform matrices are owned by the instance group, so we have to
-   * keep all of them around for use during the boolean operation. */
-  Vector<bke::GeometryInstanceGroup> set_groups;
   Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Mesh 2");
-  for (const GeometrySet &geometry_set : geometry_sets) {
-    bke::geometry_set_gather_instances(geometry_set, set_groups);
-  }
 
-  for (const bke::GeometryInstanceGroup &set_group : set_groups) {
-    const Mesh *mesh = set_group.geometry_set.get_mesh_for_read();
-    if (mesh != nullptr) {
+  for (const GeometrySet &geometry : geometry_sets) {
+    if (const Mesh *mesh = geometry.get_mesh_for_read()) {
+      meshes.append(mesh);
       Array<short> map(mesh->totcol);
       for (const int i : IndexRange(mesh->totcol)) {
         Material *material = mesh->mat[i];
         map[i] = material ? materials.index_of_or_add(material) : -1;
       }
       material_remaps.append(std::move(map));
-    }
-  }
-
-  for (const bke::GeometryInstanceGroup &set_group : set_groups) {
-    const Mesh *mesh_in = set_group.geometry_set.get_mesh_for_read();
-    if (mesh_in != nullptr) {
-      meshes.append_n_times(mesh_in, set_group.transforms.size());
-      for (const int i : set_group.transforms.index_range()) {
-        transforms.append(set_group.transforms.begin() + i);
-      }
     }
   }
 
@@ -130,7 +110,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<int> intersecting_edges;
   Mesh *result = blender::meshintersect::direct_mesh_boolean(
       meshes,
-      transforms,
+      {},
       float4x4::identity(),
       material_remaps,
       use_self,

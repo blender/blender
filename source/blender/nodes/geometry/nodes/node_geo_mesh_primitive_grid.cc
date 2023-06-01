@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -150,7 +152,7 @@ Mesh *create_grid_mesh(const int verts_x,
   }
 
   mesh->tag_loose_verts_none();
-  mesh->loose_edges_tag_none();
+  mesh->tag_loose_edges_none();
 
   const float3 bounds = float3(size_x * 0.5f, size_y * 0.5f, 0.0f);
   mesh->bounds_set_eager({-bounds, bounds});

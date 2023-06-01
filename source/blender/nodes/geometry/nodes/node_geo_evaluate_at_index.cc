@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -24,7 +26,7 @@ EvaluateAtIndexInput::EvaluateAtIndexInput(Field<int> index_field,
 }
 
 GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
-                                                     const IndexMask mask) const
+                                                     const IndexMask &mask) const
 {
   const std::optional<AttributeAccessor> attributes = context.attributes();
   if (!attributes) {

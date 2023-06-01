@@ -4,7 +4,7 @@
 void main()
 {
 #ifndef UNIFORM_ID
-  id = offset + index;
+  select_id = offset + index;
 #endif
 
   vec3 world_pos = point_object_to_world(pos);

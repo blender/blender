@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -503,13 +505,15 @@ static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(values, rpass->rect, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  memcpy(
+      values, rpass->buffer.data, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(rpass->rect, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  memcpy(
+      rpass->buffer.data, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 static RenderPass *rna_RenderPass_find_by_type(RenderLayer *rl, int passtype, const char *view)

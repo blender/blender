@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -8,14 +9,16 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 struct ImBuf;
 
 void imb_filterx(struct ImBuf *ibuf);
 
-void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h);
+void IMB_premultiply_rect(uint8_t *rect, char planes, int w, int h);
 void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h);
 
-void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h);
+void IMB_unpremultiply_rect(uint8_t *rect, char planes, int w, int h);
 void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h);
 
 /**

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -27,6 +28,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
@@ -89,6 +91,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -267,6 +270,9 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   if (ob_src->lightgroup) {
     ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
   }
+  if (ob_src->light_linking) {
+    ob_dst->light_linking = (LightLinking *)MEM_dupallocN(ob_src->light_linking);
+  }
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
     if (ob_src->lightprobe_cache) {
@@ -331,6 +337,7 @@ static void object_free_data(ID *id)
   BKE_previewimg_free(&ob->preview);
 
   MEM_SAFE_FREE(ob->lightgroup);
+  MEM_SAFE_FREE(ob->light_linking);
 
   BKE_lightprobe_cache_free(ob);
 }
@@ -468,6 +475,13 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
           data, object->soft->effector_weights->group, IDWALK_CB_USER);
     }
+  }
+
+  if (object->light_linking) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, object->light_linking->receiver_collection, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+        data, object->light_linking->blocker_collection, IDWALK_CB_USER);
   }
 }
 
@@ -610,6 +624,9 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   if (ob->lightgroup) {
     BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
+  }
+  if (ob->light_linking) {
+    BLO_write_struct(writer, LightgroupMembership, ob->light_linking);
   }
 
   if (ob->lightprobe_cache) {
@@ -834,6 +851,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, ob->preview);
 
   BLO_read_data_address(reader, &ob->lightgroup);
+  BLO_read_data_address(reader, &ob->light_linking);
 
   BLO_read_data_address(reader, &ob->lightprobe_cache);
   if (ob->lightprobe_cache) {
@@ -1034,6 +1052,11 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
     BLO_read_id_address(reader, id, &ob->rigidbody_constraint->ob1);
     BLO_read_id_address(reader, id, &ob->rigidbody_constraint->ob2);
   }
+
+  if (ob->light_linking) {
+    BLO_read_id_address(reader, id, &ob->light_linking->receiver_collection);
+    BLO_read_id_address(reader, id, &ob->light_linking->blocker_collection);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -1150,6 +1173,12 @@ static void object_blend_read_expand(BlendExpander *expander, ID *id)
     BLO_expand(expander, ob->rigidbody_constraint->ob1);
     BLO_expand(expander, ob->rigidbody_constraint->ob2);
   }
+
+  /* Light and shadow linking. */
+  if (ob->light_linking) {
+    BLO_expand(expander, ob->light_linking->receiver_collection);
+    BLO_expand(expander, ob->light_linking->blocker_collection);
+  }
 }
 
 static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
@@ -1227,7 +1256,7 @@ static IDProperty *object_asset_dimensions_property(Object *ob)
   }
 
   IDPropertyTemplate idprop{};
-  idprop.array.len = ARRAY_SIZE(dimensions);
+  idprop.array.len = 3;
   idprop.array.type = IDP_FLOAT;
 
   IDProperty *property = IDP_New(IDP_ARRAY, &idprop, "dimensions");
@@ -1441,7 +1470,8 @@ bool BKE_object_supports_modifiers(const Object *ob)
               OB_FONT,
               OB_LATTICE,
               OB_POINTCLOUD,
-              OB_VOLUME);
+              OB_VOLUME,
+              OB_GREASE_PENCIL);
 }
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
@@ -1944,6 +1974,8 @@ bool BKE_object_is_in_editmode(const Object *ob)
     case OB_CURVES:
       /* Curves object has no edit mode data. */
       return ob->mode == OB_MODE_EDIT;
+    case OB_GREASE_PENCIL:
+      return ob->mode == OB_MODE_EDIT;
     default:
       return false;
   }
@@ -1971,6 +2003,7 @@ bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
     case ID_AR:
       return ((const bArmature *)id)->edbo != nullptr;
     case ID_CV:
+    case ID_GP:
       if (ob) {
         return BKE_object_is_in_editmode(ob);
       }
@@ -2024,6 +2057,10 @@ char *BKE_object_data_editmode_flush_ptr_get(struct ID *id)
     }
     case ID_CV: {
       /* Curves have no edit mode data. */
+      return nullptr;
+    }
+    case ID_GP: {
+      /* Grease Pencil has no edit mode data. */
       return nullptr;
     }
     default:
@@ -2169,6 +2206,8 @@ static const char *get_obdata_defname(int type)
       return DATA_("GPencil");
     case OB_LIGHTPROBE:
       return DATA_("LightProbe");
+    case OB_GREASE_PENCIL:
+      return DATA_("GreasePencil");
     default:
       CLOG_ERROR(&LOG, "Internal error, bad type: %d", type);
       return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Empty");
@@ -2238,6 +2277,8 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
       return BKE_pointcloud_add_default(bmain, name);
     case OB_VOLUME:
       return BKE_volume_add(bmain, name);
+    case OB_GREASE_PENCIL:
+      return BKE_grease_pencil_add(bmain, name);
     case OB_EMPTY:
       return nullptr;
     default:
@@ -2276,6 +2317,8 @@ int BKE_object_obdata_to_type(const ID *id)
       return OB_POINTCLOUD;
     case ID_VO:
       return OB_VOLUME;
+    case ID_GP:
+      return OB_GREASE_PENCIL;
     default:
       return -1;
   }
@@ -3787,6 +3830,8 @@ const BoundBox *BKE_object_boundbox_get(Object *ob)
     case OB_VOLUME:
       bb = BKE_volume_boundbox_get(ob);
       break;
+    case OB_GREASE_PENCIL:
+      bb = BKE_grease_pencil_boundbox_get(ob);
     default:
       break;
   }
@@ -3971,7 +4016,6 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       changed = true;
       break;
     }
-
     case OB_POINTCLOUD: {
       const BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
@@ -3980,6 +4024,12 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     }
     case OB_VOLUME: {
       const BoundBox bb = *BKE_volume_boundbox_get(ob);
+      BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
+      changed = true;
+      break;
+    }
+    case OB_GREASE_PENCIL: {
+      const BoundBox bb = *BKE_grease_pencil_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->object_to_world, r_min, r_max);
       changed = true;
       break;
@@ -5159,7 +5209,8 @@ bool BKE_object_supports_material_slots(struct Object *ob)
               OB_CURVES,
               OB_POINTCLOUD,
               OB_VOLUME,
-              OB_GPENCIL_LEGACY);
+              OB_GPENCIL_LEGACY,
+              OB_GREASE_PENCIL);
 }
 
 /** \} */

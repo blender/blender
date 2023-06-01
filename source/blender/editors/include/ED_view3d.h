@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -43,6 +44,7 @@ struct SnapObjectContext;
 struct View3D;
 struct ViewContext;
 struct ViewLayer;
+struct ViewOpsData;
 struct bContext;
 struct bPoseChannel;
 struct bScreen;
@@ -209,6 +211,19 @@ bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
                                   const int mval[2],
                                   double depth,
                                   float r_location_world[3]);
+
+/**
+ * Utilities to perform navigation.
+ * Call `ED_view3d_navigation_init` to create a context and `ED_view3d_navigation_do` to perform
+ * navigation in modal operators.
+ *
+ * \note modal map events can also be used in `ED_view3d_navigation_do`.
+ */
+struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C);
+bool ED_view3d_navigation_do(struct bContext *C,
+                             struct ViewOpsData *vod,
+                             const struct wmEvent *event);
+void ED_view3d_navigation_free(struct bContext *C, struct ViewOpsData *vod);
 
 /* Projection */
 #define IS_CLIPPED 12000
@@ -1271,11 +1286,11 @@ bool ED_view3d_distance_set_from_location(struct RegionView3D *rv3d,
  */
 float ED_scene_grid_scale(const struct Scene *scene, const char **r_grid_unit);
 float ED_view3d_grid_scale(const struct Scene *scene,
-                           struct View3D *v3d,
+                           const struct View3D *v3d,
                            const char **r_grid_unit);
 void ED_view3d_grid_steps(const struct Scene *scene,
-                          struct View3D *v3d,
-                          struct RegionView3D *rv3d,
+                          const struct View3D *v3d,
+                          const struct RegionView3D *rv3d,
                           float r_grid_steps[8]);
 /**
  * Simulates the grid scale that is actually viewed.

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 by Nicholas Bishop. */
+/* SPDX-FileCopyrightText: 2011 by Nicholas Bishop.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -188,7 +189,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                                   rmd->scale,
                                                   rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
-    output->mesh->poly_offsets_for_write().last() = output->mesh->totloop;
     result = output->mesh;
     MEM_freeN(output);
   }

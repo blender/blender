@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -140,7 +142,7 @@ void AssetList::setup()
   const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
   filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
-  char path[FILE_MAXDIR] = "";
+  char path[FILE_MAX_LIBEXTRA] = "";
   if (!asset_lib_path.empty()) {
     STRNCPY(path, asset_lib_path.c_str());
   }

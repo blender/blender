@@ -494,7 +494,7 @@ void MTLFrameBuffer::read(eGPUFrameBufferBits planes,
         if (tex) {
           size_t sample_len = area[2] * area[3];
           size_t sample_size = to_bytesize(tex->format_, format);
-          int debug_data_size = sample_len * sample_size;
+          size_t debug_data_size = sample_len * sample_size;
           tex->read_internal(0,
                              area[0],
                              area[1],
@@ -523,7 +523,7 @@ void MTLFrameBuffer::read(eGPUFrameBufferBits planes,
         if (tex) {
           size_t sample_len = area[2] * area[3];
           size_t sample_size = to_bytesize(tex->format_, format);
-          int debug_data_size = sample_len * sample_size * channel_len;
+          size_t debug_data_size = sample_len * sample_size * channel_len;
           tex->read_internal(0,
                              area[0],
                              area[1],

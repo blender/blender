@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edlattice
@@ -71,8 +72,8 @@ static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
     memcpy(editlatt->latt->def, ult->def, sizeof(BPoint) * len_src);
   }
 
-  /* Even for the same amount of points we dont just copy memory for MDeformVert, relations to
-   * MDeformWeight might have changed. */
+  /* Even for the same amount of points we don't just copy memory for MDeformVert,
+   * relations to #MDeformWeight might have changed. */
   if (editlatt->latt->dvert && ult->dvert) {
     BKE_defvert_array_free(editlatt->latt->dvert, len_dst);
     editlatt->latt->dvert = MEM_mallocN(sizeof(MDeformVert) * len_src, "Lattice MDeformVert");

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -428,14 +430,14 @@ TEST(polyfill2d, SquareCW)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, POLYFILL2D_TEST_NOP);
 }
 
-/* Starfleet insigna */
+/* Star-fleet insignia. */
 TEST(polyfill2d, Starfleet)
 {
   const float poly[][2] = {{0, 0}, {0.6f, 0.4f}, {1, 0}, {0.5f, 1}};
   TEST_POLYFILL_TEMPLATE_STATIC(poly, POLYFILL2D_TEST_NOP);
 }
 
-/* Starfleet insigna with repeated point */
+/* Star-fleet insignia with repeated point. */
 TEST(polyfill2d, StarfleetDegenerate)
 {
   const float poly[][2] = {{0, 0}, {0.6f, 0.4f}, {0.6f, 0.4f}, {1, 0}, {0.5f, 1}};

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -549,9 +550,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
           cur->xmin -= temp;
           cur->xmax -= temp;
 
-          /* width does not get modified, as keepaspect here is just set to make
-           * sure visible area adjusts to changing view shape!
-           */
+          /* Width does not get modified, as keep-aspect here is just set to make
+           * sure visible area adjusts to changing view shape! */
         }
       }
       else {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_OutputFileMultiViewOperation.h"
 
@@ -321,9 +322,9 @@ void OutputStereoOperation::deinit_execution()
         ibuf[i] = IMB_allocImBuf(width, height, format_.planes, 0);
 
         ibuf[i]->channels = channels_;
-        ibuf[i]->rect_float = rectf;
-        ibuf[i]->mall |= IB_rectfloat;
         ibuf[i]->dither = rd_->dither_intensity;
+
+        IMB_assign_float_buffer(ibuf[i], rectf, IB_TAKE_OWNERSHIP);
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
         IMB_colormanagement_imbuf_for_write(ibuf[i], true, false, &format_);

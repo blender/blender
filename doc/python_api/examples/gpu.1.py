@@ -77,7 +77,7 @@ Typically multiple shaders are linked together into a *Program*.
 However, in the Blender Python API the term *Shader* refers to an OpenGL Program.
 Every :class:`gpu.types.GPUShader` consists of a vertex shader, a fragment shader and an optional geometry shader.
 For common drawing tasks there are some built-in shaders accessible from :class:`gpu.shader.from_builtin`
-with an identifier such as `2D_UNIFORM_COLOR` or `3D_FLAT_COLOR`.
+with an identifier such as `UNIFORM_COLOR` or `FLAT_COLOR`.
 
 Every shader defines a set of attributes and uniforms that have to be set in order to use the shader.
 Attributes are properties that are set using a vertex buffer and can be different for individual vertices.
@@ -129,7 +129,7 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 
 coords = [(1, 1, 1), (-2, 0, 0), (-2, -1, 3), (0, 1, 1)]
-shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader = gpu.shader.from_builtin('UNIFORM_COLOR')
 batch = batch_for_shader(shader, 'LINES', {"pos": coords})
 
 

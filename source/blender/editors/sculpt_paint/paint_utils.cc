@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -33,6 +34,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -235,8 +237,8 @@ static void imapaint_tri_weights(float matrix[4][4],
   h[1] = (co[1] - view[1]) * 2.0f / view[3] - 1.0f;
   h[2] = 1.0f;
 
-  /* solve for (w1,w2,w3)/perspdiv in:
-   * h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3) */
+  /* Solve for `(w1,w2,w3)/perspdiv` in:
+   * `h * perspdiv = Project * Model * (w1 * v1 + w2 * v2 + w3 * v3)`. */
 
   wmat[0][0] = pv1[0];
   wmat[1][0] = pv2[0];
@@ -253,7 +255,7 @@ static void imapaint_tri_weights(float matrix[4][4],
 
   copy_v3_v3(w, h);
 
-  /* w is still divided by perspdiv, make it sum to one */
+  /* w is still divided by `perspdiv`, make it sum to one */
   divw = w[0] + w[1] + w[2];
   if (divw != 0.0f) {
     mul_v3_fl(w, 1.0f / divw);
@@ -261,8 +263,12 @@ static void imapaint_tri_weights(float matrix[4][4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(
-    Mesh *me_eval, Scene *scene, Object *ob_eval, uint faceindex, const int xy[2], float uv[2])
+static void imapaint_pick_uv(const Mesh *me_eval,
+                             Scene *scene,
+                             Object *ob_eval,
+                             uint faceindex,
+                             const int xy[2],
+                             float uv[2])
 {
   int i, findex;
   float p[2], w[3], absw, minabsw;
@@ -358,7 +364,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   ED_view3d_select_id_validate(vc);
   *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
-  if ((*r_index) == 0 || (*r_index) > (uint)totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(totpoly)) {
     return 0;
   }
 
@@ -406,7 +412,7 @@ void paint_sample_color(
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.pmask |= CD_MASK_ORIGINDEX;
       Mesh *me = (Mesh *)ob->data;
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &cddata_masks);
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
           &me_eval->pdata, CD_PROP_INT32, "material_index");
 
@@ -472,11 +478,11 @@ void paint_sample_color(
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
-            if (ibuf && (ibuf->rect || ibuf->rect_float)) {
+            if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
               u = u * ibuf->x;
               v = v * ibuf->y;
 
-              if (ibuf->rect_float) {
+              if (ibuf->float_buffer.data) {
                 float rgba_f[4];
                 if (interp == SHD_INTERP_CLOSEST) {
                   nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
@@ -759,6 +765,34 @@ void PAINT_OT_face_select_less(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "face_step", true, "Face Step", "Also deselect faces that only touch on a corner");
+}
+
+static int paintface_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  if (!extend) {
+    paintface_deselect_all_visible(C, CTX_data_active_object(C), SEL_DESELECT, false);
+  }
+  view3d_operator_needs_opengl(C);
+  paintface_select_loop(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_loop(wmOperatorType *ot)
+{
+  ot->name = "Select Loop";
+  ot->description = "Select face loop under the cursor";
+  ot->idname = "PAINT_OT_face_select_loop";
+
+  ot->invoke = paintface_select_loop_invoke;
+  ot->poll = facemask_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "select", true, "Select", "If false, faces will be deselected");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int vert_select_all_exec(bContext *C, wmOperator *op)

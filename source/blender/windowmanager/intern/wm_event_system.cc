@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -2205,7 +2206,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
   }
 }
 
-static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
+BLI_INLINE bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
 {
   if (kmi->flag & KMI_INACTIVE) {
     return false;
@@ -4526,7 +4527,7 @@ static void wm_event_get_keymap_from_toolsystem_ex(wmWindowManager *wm,
 {
   memset(km_result, 0x0, sizeof(*km_result));
 
-  const char *keymap_id_list[ARRAY_SIZE(km_result->keymaps)];
+  const char *keymap_id_list[BOUNDED_ARRAY_TYPE_SIZE<decltype(km_result->keymaps)>()];
   int keymap_id_list_len = 0;
 
   /* NOTE(@ideasman42): If `win` is nullptr, this function may not behave as expected.
@@ -6017,6 +6018,11 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(
     }
   }
   return nullptr;
+}
+
+bool WM_event_match(const wmEvent *winevent, const wmKeyMapItem *kmi)
+{
+  return wm_eventmatch(winevent, kmi);
 }
 
 /** \} */

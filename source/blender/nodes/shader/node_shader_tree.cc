@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -22,8 +23,6 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
@@ -822,7 +821,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   /* Recreate links between copied nodes. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->runtime->tmp_flag >= 0) {
-      /* Naming can be confusing here. We use original nodelink name for from/to prefix.
+      /* Naming can be confusing here. We use original node-link name for from/to prefix.
        * The final link is in reversed order. */
       int socket_index;
       LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, socket_index) {
@@ -884,7 +883,6 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
               break;
             }
             case SH_NODE_BACKGROUND:
-            case SH_NODE_BSDF_ANISOTROPIC:
             case SH_NODE_BSDF_DIFFUSE:
             case SH_NODE_BSDF_GLASS:
             case SH_NODE_BSDF_GLOSSY:
@@ -942,7 +940,6 @@ static bool closure_node_filter(const bNode *node)
     case SH_NODE_ADD_SHADER:
     case SH_NODE_MIX_SHADER:
     case SH_NODE_BACKGROUND:
-    case SH_NODE_BSDF_ANISOTROPIC:
     case SH_NODE_BSDF_DIFFUSE:
     case SH_NODE_BSDF_GLASS:
     case SH_NODE_BSDF_GLOSSY:

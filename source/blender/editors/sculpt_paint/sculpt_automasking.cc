@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -639,11 +640,6 @@ static void SCULPT_topology_automasking_init(Sculpt *sd, Object *ob)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert_unreachable();
-    return;
-  }
-
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i : IndexRange(totvert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
@@ -678,11 +674,6 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob)
     return;
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && !ss->pmap) {
-    BLI_assert_msg(0, "Face Sets automasking: pmap missing");
-    return;
-  }
-
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
   for (int i : IndexRange(tot_vert)) {
@@ -701,11 +692,6 @@ static void SCULPT_boundary_automasking_init(Object *ob,
                                              int propagation_steps)
 {
   SculptSession *ss = ob->sculpt;
-
-  if (!ss->pmap) {
-    BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
-    return;
-  }
 
   const int totvert = SCULPT_vertex_count_get(ss);
   int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");

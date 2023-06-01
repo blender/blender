@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -140,9 +141,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-      MeshElemMap *vert_map = &ss->pmap[vd.index];
-      for (int j = 0; j < ss->pmap[vd.index].count; j++) {
-        const blender::IndexRange poly = ss->polys[vert_map->indices[j]];
+      for (const int poly_i : ss->pmap[vd.index]) {
+        const blender::IndexRange poly = ss->polys[poly_i];
 
         const float3 poly_center = bke::mesh::poly_center_calc(positions,
                                                                ss->corner_verts.slice(poly));
@@ -150,7 +150,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
         }
-        const bool face_hidden = ss->hide_poly && ss->hide_poly[vert_map->indices[j]];
+        const bool face_hidden = ss->hide_poly && ss->hide_poly[poly_i];
         if (face_hidden) {
           continue;
         }
@@ -166,7 +166,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     &automask_data);
 
         if (fade > 0.05f) {
-          ss->face_sets[vert_map->indices[j]] = ss->cache->paint_face_set;
+          ss->face_sets[poly_i] = ss->cache->paint_face_set;
           changed = true;
         }
       }
@@ -552,9 +552,9 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
   const OffsetIndices polys = mesh->polys();
   const Span<int> corner_edges = mesh->corner_edges();
 
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(
-        &ss->epmap, &ss->epmap_mem, edges.size(), polys, corner_edges.data(), corner_edges.size());
+  if (ss->epmap.is_empty()) {
+    ss->epmap = bke::mesh::build_edge_to_poly_map(
+        polys, corner_edges, edges.size(), ss->edge_to_poly_offsets, ss->edge_to_poly_indices);
   }
 
   int next_face_set = 1;
@@ -574,8 +574,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
       queue.pop();
 
       for (const int edge_i : corner_edges.slice(polys[poly_i])) {
-        const Span<int> neighbor_polys(ss->epmap[edge_i].indices, ss->epmap[edge_i].count);
-        for (const int neighbor_i : neighbor_polys) {
+        for (const int neighbor_i : ss->epmap[edge_i]) {
           if (neighbor_i == poly_i) {
             continue;
           }
@@ -705,7 +704,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     }
     case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT: {
       const float *bevel_weights = static_cast<const float *>(
-          CustomData_get_layer(&mesh->edata, CD_BWEIGHT));
+          CustomData_get_layer_named(&mesh->edata, CD_PROP_FLOAT, "bevel_weight_edge"));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
             return bevel_weights ? bevel_weights[edge] < threshold : true;
@@ -1084,9 +1083,7 @@ static void sculpt_face_set_grow(Object *ob,
       continue;
     }
     for (const int vert : corner_verts.slice(polys[p])) {
-      const MeshElemMap *vert_map = &ss->pmap[vert];
-      for (int i = 0; i < vert_map->count; i++) {
-        const int neighbor_face_index = vert_map->indices[i];
+      for (const int neighbor_face_index : ss->pmap[vert]) {
         if (neighbor_face_index == p) {
           continue;
         }
@@ -1114,9 +1111,7 @@ static void sculpt_face_set_shrink(Object *ob,
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
       for (const int vert_i : corner_verts.slice(polys[p])) {
-        const MeshElemMap *vert_map = &ss->pmap[vert_i];
-        for (int i = 0; i < vert_map->count; i++) {
-          const int neighbor_face_index = vert_map->indices[i];
+        for (const int neighbor_face_index : ss->pmap[vert_i]) {
           if (neighbor_face_index == p) {
             continue;
           }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
@@ -33,7 +35,7 @@ class CornerNextEdgeFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
@@ -69,14 +71,14 @@ class CornerPreviousEdgeFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     if (domain != ATTR_DOMAIN_CORNER) {
       return {};
     }
     const OffsetIndices polys = mesh.polys();
     const Span<int> corner_edges = mesh.corner_edges();
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
     return VArray<int>::ForFunc(
         mesh.totloop,
         [polys, corner_edges, loop_to_poly_map = std::move(loop_to_poly_map)](const int corner_i) {

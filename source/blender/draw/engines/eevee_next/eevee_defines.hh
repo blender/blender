@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -97,17 +98,11 @@
 #define RBUFS_UTILITY_TEX_SLOT 14
 
 /* Images. */
-#define RBUFS_NORMAL_SLOT 0
-#define RBUFS_LIGHT_SLOT 1
-#define RBUFS_DIFF_COLOR_SLOT 2
-#define RBUFS_SPEC_COLOR_SLOT 3
-#define RBUFS_EMISSION_SLOT 4
-#define RBUFS_AOV_COLOR_SLOT 5
-#define RBUFS_AOV_VALUE_SLOT 6
-#define RBUFS_CRYPTOMATTE_SLOT 7
-/* G-buffer reuses render passes slots. */
-#define GBUF_CLOSURE_SLOT RBUFS_LIGHT_SLOT
-#define GBUF_COLOR_SLOT RBUFS_DIFF_COLOR_SLOT
+#define RBUFS_COLOR_SLOT 0
+#define RBUFS_VALUE_SLOT 1
+#define RBUFS_CRYPTOMATTE_SLOT 2
+#define GBUF_CLOSURE_SLOT 3
+#define GBUF_COLOR_SLOT 4
 
 /* Uniform Buffers. */
 /* Only during pre-pass. */
@@ -116,17 +111,16 @@
 #define VELOCITY_CAMERA_NEXT_BUF 5
 
 #define CAMERA_BUF_SLOT 6
+#define RBUFS_BUF_SLOT 7
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0
 #define LIGHT_BUF_SLOT 1
 #define LIGHT_ZBIN_BUF_SLOT 2
 #define LIGHT_TILE_BUF_SLOT 3
-/* Only during surface shading. */
-#define RBUFS_AOV_BUF_SLOT 5
 /* Only during shadow rendering. */
-#define SHADOW_PAGE_INFO_SLOT 5
-#define SAMPLING_BUF_SLOT 6
+#define SHADOW_PAGE_INFO_SLOT 4
+#define SAMPLING_BUF_SLOT 5
 #define CRYPTOMATTE_BUF_SLOT 7
 
 /* Only during pre-pass. */

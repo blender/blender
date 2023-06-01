@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <queue>
 
@@ -17,8 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Bool>("End Vertex").default_value(false).hide_value().supports_field();
   b.add_input<decl::Float>("Edge Cost").default_value(1.0f).hide_value().supports_field();
-  b.add_output<decl::Int>("Next Vertex Index").field_source();
-  b.add_output<decl::Float>("Total Cost").field_source();
+  b.add_output<decl::Int>("Next Vertex Index").reference_pass_all();
+  b.add_output<decl::Float>("Total Cost").reference_pass_all();
 }
 
 typedef std::pair<float, int> VertPriority;
@@ -50,10 +52,10 @@ static void shortest_paths(const Mesh &mesh,
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
 
-  for (const int start_vert_i : end_selection) {
+  end_selection.foreach_index([&](const int start_vert_i) {
     r_cost[start_vert_i] = 0.0f;
     queue.emplace(0.0f, start_vert_i);
-  }
+  });
 
   while (!queue.empty()) {
     const float cost_i = queue.top().first;
@@ -97,7 +99,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
@@ -173,7 +175,7 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
@@ -203,6 +205,12 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
     });
     return mesh.attributes().adapt_domain<float>(
         VArray<float>::ForContainer(std::move(cost)), ATTR_DOMAIN_POINT, domain);
+  }
+
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    end_selection_.node().for_each_field_input_recursive(fn);
+    cost_.node().for_each_field_input_recursive(fn);
   }
 
   uint64_t hash() const override

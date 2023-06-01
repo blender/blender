@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -252,20 +253,24 @@ struct FileList {
 
   BlendHandle *libfiledata;
 
-  /* Set given path as root directory,
-   * if last bool is true may change given string in place to a valid value.
-   * Returns True if valid dir. */
-  bool (*check_dir_fn)(FileList *, char *, const bool);
+  /**
+   * Set given path as root directory.
+   *
+   * \param do_change: When true, the callback may change given string in place to a valid value.
+   * \return True when `dirpath` is valid.
+   */
+  bool (*check_dir_fn)(FileList *filelist, char dirpath[FILE_MAX_LIBEXTRA], const bool do_change);
 
-  /* Fill filelist (to be called by read job). */
-  void (*read_job_fn)(FileListReadJob *, bool *, bool *, float *);
+  /** Fill `filelist` (to be called by read job). */
+  void (*read_job_fn)(FileListReadJob *job_params, bool *stop, bool *do_update, float *progress);
 
-  /* Filter an entry of current filelist. */
-  bool (*filter_fn)(FileListInternEntry *, const char *, FileListFilter *);
-  /* Executed before filtering individual items, to set up additional filter data. */
-  void (*prepare_filter_fn)(const FileList *, FileListFilter *);
+  /** Filter an entry of current `filelist`. */
+  bool (*filter_fn)(FileListInternEntry *file, const char *root, FileListFilter *filter);
+  /** Executed before filtering individual items, to set up additional filter data. */
+  void (*prepare_filter_fn)(const FileList *filelist, FileListFilter *filter);
 
-  short tags; /* FileListTags */
+  /** #FileListTags. */
+  short tags;
 };
 
 /** #FileList.flags */
@@ -1115,10 +1120,12 @@ void filelist_init_icons(void)
         if (tile < SPECIAL_IMG_MAX) {
           ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect);
           for (k = 0; k < SPECIAL_IMG_SIZE; k++) {
-            memcpy(&ibuf->rect[k * SPECIAL_IMG_SIZE],
-                   &bbuf->rect[(k + y * SPECIAL_IMG_SIZE) * SPECIAL_IMG_SIZE * SPECIAL_IMG_COLS +
-                               x * SPECIAL_IMG_SIZE],
-                   SPECIAL_IMG_SIZE * sizeof(int));
+            memcpy(
+                &ibuf->byte_buffer.data[4 * (k * SPECIAL_IMG_SIZE)],
+                &bbuf->byte_buffer
+                     .data[4 * ((k + y * SPECIAL_IMG_SIZE) * SPECIAL_IMG_SIZE * SPECIAL_IMG_COLS +
+                                x * SPECIAL_IMG_SIZE)],
+                SPECIAL_IMG_SIZE * sizeof(uint8_t) * 4);
           }
           gSpecialFileImages[tile] = ibuf;
         }
@@ -1138,7 +1145,9 @@ void filelist_free_icons(void)
   }
 }
 
-void filelist_file_get_full_path(const FileList *filelist, const FileDirEntry *file, char *r_path)
+void filelist_file_get_full_path(const FileList *filelist,
+                                 const FileDirEntry *file,
+                                 char r_path[/*FILE_MAX_LIBEXTRA*/])
 {
   if (file->asset) {
     const std::string asset_path = AS_asset_representation_full_path_get(file->asset);
@@ -1342,40 +1351,46 @@ static void parent_dir_until_exists_or_default_root(char *dir)
   }
 }
 
-static bool filelist_checkdir_dir(FileList * /*filelist*/, char *r_dir, const bool do_change)
+static bool filelist_checkdir_dir(FileList * /*filelist*/,
+                                  char dirpath[FILE_MAX_LIBEXTRA],
+                                  const bool do_change)
 {
   if (do_change) {
-    parent_dir_until_exists_or_default_root(r_dir);
+    parent_dir_until_exists_or_default_root(dirpath);
     return true;
   }
-  return BLI_is_dir(r_dir);
+  return BLI_is_dir(dirpath);
 }
 
-static bool filelist_checkdir_lib(FileList * /*filelist*/, char *r_dir, const bool do_change)
+static bool filelist_checkdir_lib(FileList * /*filelist*/,
+                                  char dirpath[FILE_MAX_LIBEXTRA],
+                                  const bool do_change)
 {
   char tdir[FILE_MAX_LIBEXTRA];
   char *name;
 
-  const bool is_valid = (BLI_is_dir(r_dir) ||
-                         (BKE_blendfile_library_path_explode(r_dir, tdir, nullptr, &name) &&
+  const bool is_valid = (BLI_is_dir(dirpath) ||
+                         (BKE_blendfile_library_path_explode(dirpath, tdir, nullptr, &name) &&
                           BLI_is_file(tdir) && !name));
 
   if (do_change && !is_valid) {
     /* if not a valid library, we need it to be a valid directory! */
-    parent_dir_until_exists_or_default_root(r_dir);
+    parent_dir_until_exists_or_default_root(dirpath);
     return true;
   }
   return is_valid;
 }
 
-static bool filelist_checkdir_main(FileList *filelist, char *r_dir, const bool do_change)
+static bool filelist_checkdir_main(FileList *filelist,
+                                   char dirpath[FILE_MAX_LIBEXTRA],
+                                   const bool do_change)
 {
   /* TODO */
-  return filelist_checkdir_lib(filelist, r_dir, do_change);
+  return filelist_checkdir_lib(filelist, dirpath, do_change);
 }
 
 static bool filelist_checkdir_return_always_valid(struct FileList * /*filelist*/,
-                                                  char * /*r_dir*/,
+                                                  char /*dirpath*/[FILE_MAX_LIBEXTRA],
                                                   const bool /*do_change*/)
 {
   return true;
@@ -1990,19 +2005,19 @@ bool filelist_is_dir(FileList *filelist, const char *path)
   return filelist->check_dir_fn(filelist, (char *)path, false);
 }
 
-void filelist_setdir(FileList *filelist, char *r_dir)
+void filelist_setdir(FileList *filelist, char dirpath[FILE_MAX_LIBEXTRA])
 {
   const bool allow_invalid = filelist->asset_library_ref != nullptr;
-  BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
+  BLI_assert(strlen(dirpath) < FILE_MAX_LIBEXTRA);
 
-  BLI_path_abs(r_dir, BKE_main_blendfile_path_from_global());
-  BLI_path_normalize_dir(r_dir, FILE_MAX_LIBEXTRA);
-  const bool is_valid_path = filelist->check_dir_fn(filelist, r_dir, !allow_invalid);
+  BLI_path_abs(dirpath, BKE_main_blendfile_path_from_global());
+  BLI_path_normalize_dir(dirpath, FILE_MAX_LIBEXTRA);
+  const bool is_valid_path = filelist->check_dir_fn(filelist, dirpath, !allow_invalid);
   BLI_assert(is_valid_path || allow_invalid);
   UNUSED_VARS_NDEBUG(is_valid_path);
 
-  if (!STREQ(filelist->filelist.root, r_dir)) {
-    STRNCPY(filelist->filelist.root, r_dir);
+  if (!STREQ(filelist->filelist.root, dirpath)) {
+    STRNCPY(filelist->filelist.root, dirpath);
     filelist->flags |= FL_FORCE_RESET;
   }
 }

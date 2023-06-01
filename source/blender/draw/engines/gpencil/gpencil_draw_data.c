@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -46,7 +47,7 @@ static struct GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-  if (ibuf != NULL && ibuf->rect != NULL) {
+  if (ibuf != NULL && ibuf->byte_buffer.data != NULL) {
     gpu_tex = BKE_image_get_gpu_texture(image, &iuser, ibuf);
     *r_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
   }
@@ -231,6 +232,13 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
     }
     if (gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT) {
       mat_data->flag |= GP_FILL_HOLDOUT;
+    }
+
+    if (gp_style->flag & GP_MATERIAL_STROKE_SHOW) {
+      mat_data->flag |= GP_SHOW_STROKE;
+    }
+    if (gp_style->flag & GP_MATERIAL_FILL_SHOW) {
+      mat_data->flag |= GP_SHOW_FILL;
     }
 
     gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style, lighting_mode);

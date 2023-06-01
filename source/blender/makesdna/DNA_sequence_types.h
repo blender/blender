@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 /** \file
  * \ingroup DNA
  *
@@ -164,7 +165,7 @@ typedef struct Sequence {
   int len;
   /**
    * Start frame of contents of strip in absolute frame coordinates.
-   * For metastrips start of first strip startdisp.
+   * For meta-strips start of first strip startdisp.
    */
   float start;
   /**
@@ -187,9 +188,9 @@ typedef struct Sequence {
   float _pad1;
 
   short anim_preseek; /* UNUSED. */
-  /** Streamindex for movie or sound files with several streams. */
+  /** Stream-index for movie or sound files with several streams. */
   short streamindex;
-  /** For multicam source selection. */
+  /** For multi-camera source selection. */
   int multicam_source;
   /** MOVIECLIP render flags. */
   int clip_flag;

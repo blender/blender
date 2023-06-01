@@ -122,8 +122,7 @@ template<bool in_volume_segment>
 ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
                                                   int prim,
                                                   int object,
-                                                  float randu,
-                                                  float randv,
+                                                  const float2 rand,
                                                   float time,
                                                   ccl_private LightSample *ls,
                                                   const float3 P)
@@ -191,14 +190,14 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
     /* precompute a few things
      * these could be re-used to take several samples
-     * as they are independent of randu/randv */
+     * as they are independent of `rand` */
     const float cos_c = dot(A, B);
     const float sin_alpha = fast_sinf(alpha);
     const float product = sin_alpha * cos_c;
 
     /* Select a random sub-area of the spherical triangle
      * and calculate the third vertex C_ of that new triangle */
-    const float phi = randu * solid_angle - alpha;
+    const float phi = rand.x * solid_angle - alpha;
     float s, t;
     fast_sincosf(phi, &s, &t);
     const float u = t - cos_alpha;
@@ -217,7 +216,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
     /* Finally, select a random point along the edge of the new triangle
      * That point on the spherical triangle is the sampled ray direction */
-    const float z = 1.0f - randv * (1.0f - dot(C_, B));
+    const float z = 1.0f - rand.y * (1.0f - dot(C_, B));
     ls->D = z * B + sin_from_cos(z) * safe_normalize(C_ - dot(C_, B) * B);
 
     /* calculate intersection with the planar triangle */
@@ -246,8 +245,8 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
 
     /* compute random point in triangle. From Eric Heitz's "A Low-Distortion Map Between Triangle
      * and Square" */
-    float u = randu;
-    float v = randv;
+    float u = rand.x;
+    float v = rand.y;
     if (v > u) {
       u *= 0.5f;
       v -= u;

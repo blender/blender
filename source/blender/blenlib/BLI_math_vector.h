@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -630,7 +631,7 @@ void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3]);
  */
 void ortho_v3_v3(float out[3], const float v[3]);
 /**
- * no brainer compared to v3, just have for consistency.
+ * Trivial compared to v3, include for consistency.
  */
 void ortho_v2_v2(float out[2], const float v[2]);
 /**

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -197,7 +199,8 @@ const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
  */
 const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
 
-/** Get the logged mask of a vertex
+/**
+ * Get the logged mask of a vertex
  *
  * Does not modify the log or the vertex.
  */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -350,8 +351,8 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
        * as these directories are expected to be skipped. */
       BLI_assert(!IS_PARENT_DIR(start));
       const size_t start_len = path_len - (start - path);
-      memmove(path_first_non_slash_part, start, start_len + 1);
       BLI_assert(strlen(start) == start_len);
+      memmove(path_first_non_slash_part, start, start_len + 1);
       path_len -= start - path_first_non_slash_part;
       BLI_assert(strlen(path) == path_len);
     }
@@ -408,7 +409,7 @@ int BLI_path_canonicalize_native(char *path, int path_maxncpy)
   return path_len;
 }
 
-bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
+bool BLI_path_make_safe_filename_ex(char *filename, bool allow_tokens)
 {
 #define INVALID_CHARS \
   "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" \
@@ -424,69 +425,69 @@ bool BLI_path_make_safe_filename_ex(char *fname, bool allow_tokens)
   char *fn;
   bool changed = false;
 
-  if (*fname == '\0') {
+  if (*filename == '\0') {
     return changed;
   }
 
-  for (fn = fname; *fn && (fn = strpbrk(fn, invalid)); fn++) {
+  for (fn = filename; *fn && (fn = strpbrk(fn, invalid)); fn++) {
     *fn = '_';
     changed = true;
   }
 
   /* Forbid only dots. */
-  for (fn = fname; *fn == '.'; fn++) {
+  for (fn = filename; *fn == '.'; fn++) {
     /* Pass. */
   }
   if (*fn == '\0') {
-    *fname = '_';
+    *filename = '_';
     changed = true;
   }
 
 #ifdef WIN32
   {
-    const size_t len = strlen(fname);
+    const size_t len = strlen(filename);
     const char *invalid_names[] = {
         "con",  "prn",  "aux",  "null", "com1", "com2", "com3", "com4",
         "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3",
         "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", NULL,
     };
-    char *lower_fname = BLI_strdup(fname);
+    char *filename_lower = BLI_strdup(filename);
     const char **iname;
 
     /* Forbid trailing dot (trailing space has already been replaced above). */
-    if (fname[len - 1] == '.') {
-      fname[len - 1] = '_';
+    if (filename[len - 1] == '.') {
+      filename[len - 1] = '_';
       changed = true;
     }
 
     /* Check for forbidden names - not we have to check all combination
-     * of upper and lower cases, hence the usage of lower_fname
+     * of upper and lower cases, hence the usage of filename_lower
      * (more efficient than using #BLI_strcasestr repeatedly). */
-    BLI_str_tolower_ascii(lower_fname, len);
+    BLI_str_tolower_ascii(filename_lower, len);
     for (iname = invalid_names; *iname; iname++) {
-      if (strstr(lower_fname, *iname) == lower_fname) {
+      if (strstr(filename_lower, *iname) == filename_lower) {
         const size_t iname_len = strlen(*iname);
         /* Only invalid if the whole name is made of the invalid chunk, or it has an
          * (assumed extension) dot just after. This means it will also catch *valid*
          * names like `aux.foo.bar`, but should be good enough for us! */
-        if ((iname_len == len) || (lower_fname[iname_len] == '.')) {
-          *fname = '_';
+        if ((iname_len == len) || (filename_lower[iname_len] == '.')) {
+          *filename = '_';
           changed = true;
           break;
         }
       }
     }
 
-    MEM_freeN(lower_fname);
+    MEM_freeN(filename_lower);
   }
 #endif
 
   return changed;
 }
 
-bool BLI_path_make_safe_filename(char *fname)
+bool BLI_path_make_safe_filename(char *filename)
 {
-  return BLI_path_make_safe_filename_ex(fname, false);
+  return BLI_path_make_safe_filename_ex(filename, false);
 }
 
 bool BLI_path_make_safe(char *path)
@@ -566,6 +567,11 @@ static int BLI_path_win32_prefix_len(const char *path)
 bool BLI_path_is_win32_drive(const char *path)
 {
   return isalpha(path[0]) && (path[1] == ':');
+}
+
+bool BLI_path_is_win32_drive_only(const char *path)
+{
+  return isalpha(path[0]) && (path[1] == ':') && (path[2] == '\0');
 }
 
 bool BLI_path_is_win32_drive_with_slash(const char *path)
@@ -655,7 +661,7 @@ void BLI_path_normalize_unc_16(wchar_t *path_16)
 void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
-  /* A `basepath` starting with `//` will be be made relative multiple times. */
+  /* A `basepath` starting with `//` will be made relative multiple times. */
   BLI_assert_msg(!BLI_path_is_rel(basepath), "The 'basepath' cannot start with '//'!");
 
   const char *lslash;
@@ -934,12 +940,7 @@ static bool path_frame_chars_find_range(const char *path, int *char_start, int *
  */
 static void ensure_digits(char *path, int digits)
 {
-  char *file = (char *)BLI_path_slash_rfind(path);
-
-  if (file == NULL) {
-    file = path;
-  }
-
+  char *file = (char *)BLI_path_basename(path);
   if (strrchr(file, '#') == NULL) {
     int len = strlen(file);
 
@@ -963,7 +964,7 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[FILENAME_FRAME_CHARS_MAX + 1]; /* One for null. */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
-    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d", ch_span, frame);
+    SNPRINTF(frame_str, "%.*d", ch_span, frame);
     BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
@@ -983,7 +984,7 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
   if (path_frame_chars_find_range(path, &ch_sta, &ch_end)) {
     char frame_str[(FILENAME_FRAME_CHARS_MAX * 2) + 1 + 1]; /* One for null, one for the '-' */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
-    BLI_snprintf(frame_str, sizeof(frame_str), "%.*d-%.*d", ch_span, sta, ch_span, end);
+    SNPRINTF(frame_str, "%.*d-%.*d", ch_span, sta, ch_span, end);
     BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
@@ -1095,7 +1096,7 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
 bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
 {
   BLI_string_debug_size_after_nil(path, FILE_MAX);
-  /* A `basepath` starting with `//` will be be made absolute multiple times. */
+  /* A `basepath` starting with `//` will be made absolute multiple times. */
   BLI_assert_msg(!BLI_path_is_rel(basepath), "The 'basepath' cannot start with '//'!");
 
   const bool wasrelative = BLI_path_is_rel(path);
@@ -1111,16 +1112,19 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
   /* We are checking here if we have an absolute path that is not in the current `.blend` file
    * as a lib main - we are basically checking for the case that a UNIX root `/` is passed. */
   if (!wasrelative && !BLI_path_is_abs_win32(path)) {
+    const size_t root_dir_len = 3;
     char *p = path;
     BLI_windows_get_default_root_dir(tmp);
-    /* Get rid of the slashes at the beginning of the path. */
-    while (ELEM(*p, '\\', '/')) {
+    BLI_assert(strlen(tmp) == root_dir_len);
+
+    /* Step over the slashes at the beginning of the path. */
+    while (BLI_path_slash_is_native_compat(*p)) {
       p++;
     }
-    strcat(tmp, p);
+    BLI_strncpy(tmp + root_dir_len, p, sizeof(tmp) - root_dir_len);
   }
   else {
-    BLI_strncpy(tmp, path, FILE_MAX);
+    STRNCPY(tmp, path);
   }
 #else
   STRNCPY(tmp, path);

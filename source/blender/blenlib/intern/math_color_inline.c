@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -10,6 +11,10 @@
 #include "BLI_utildefines.h"
 
 #include <math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef __MATH_COLOR_INLINE_C__
 #  define __MATH_COLOR_INLINE_C__
@@ -379,3 +384,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
 }
 
 #endif /* __MATH_COLOR_INLINE_C__ */
+
+#ifdef __cplusplus
+}
+#endif

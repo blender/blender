@@ -1454,7 +1454,7 @@ template<typename T> T mix(T a, T b, MTLBOOL mask)
   return (mask) ? b : a;
 }
 
-template<typename T, unsigned int Size> bool is_zero(vec<T, Size> a)
+template<typename T, int Size> bool is_zero(vec<T, Size> a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] != T(0)) {

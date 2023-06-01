@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
@@ -121,7 +123,7 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_probe_filter_diffuse_hl2)
     .auto_resource_location(true);
 
 /* EEVEE_shaders_probe_filter_visibility_sh_get */
-GPU_SHADER_CREATE_INFO(eevee_legacy_probe_filter_visiblity)
+GPU_SHADER_CREATE_INFO(eevee_legacy_probe_filter_visibility)
     .define("IRRADIANCE_HL2")
     .additional_info("eevee_legacy_irradiance_lib")
     .additional_info("draw_fullscreen")

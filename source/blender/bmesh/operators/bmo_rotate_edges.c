@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -30,9 +32,8 @@ static void bm_rotate_edges_simple(BMesh *bm,
   BMEdge *e;
 
   BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-    /**
-     * this ends up being called twice, could add option to not to call check in
-     * #BM_edge_rotate to get some extra speed */
+    /* This ends up being called twice, could add option to not to call check in
+     * #BM_edge_rotate to get some extra speed. */
     if (BM_edge_rotate_check(e)) {
       BMEdge *e_rotate = BM_edge_rotate(bm, e, use_ccw, check_flag);
       if (e_rotate != NULL) {

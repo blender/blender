@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -1116,7 +1117,7 @@ void ED_spacetype_image(void)
   art->listener = image_main_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: listview/buttons/scopes */
+  /* regions: list-view/buttons/scopes */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;

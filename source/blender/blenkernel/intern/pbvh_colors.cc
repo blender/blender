@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -89,11 +91,9 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap[index];
-
     int count = 0;
     zero_v4(r_color);
-    for (const int i_poly : Span(melem.indices, melem.count)) {
+    for (const int i_poly : pbvh.pmap[index]) {
       const IndexRange poly = pbvh.polys[i_poly];
       Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
       Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};
@@ -124,9 +124,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap[index];
-
-    for (const int i_poly : Span(melem.indices, melem.count)) {
+    for (const int i_poly : pbvh.pmap[index]) {
       const IndexRange poly = pbvh.polys[i_poly];
       MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
       Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};

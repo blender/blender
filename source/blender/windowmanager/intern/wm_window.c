@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -793,14 +794,14 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
-  /* add drop boxes */
+  /* Add drop boxes. */
   {
     ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);
 
-  /* add topbar */
+  /* Add top-bar. */
   ED_screen_global_areas_refresh(win);
 }
 
@@ -1234,7 +1235,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     /* Ghost now can call this function for life resizes,
      * but it should return if WM didn't initialize yet.
      * Can happen on file read (especially full size window). */
-    if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
+    if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
       return true;
     }
     if (!ghostwin) {
@@ -1398,7 +1399,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 
 #if defined(__APPLE__) || defined(WIN32)
-            /* OSX and Win32 don't return to the mainloop while resize */
+            /* MACOS and WIN32 don't return to the main-loop while resize. */
             wm_window_timer(C);
             wm_event_do_handlers(C);
             wm_event_do_notifiers(C);
@@ -1677,7 +1678,7 @@ void wm_ghost_init(bContext *C)
     /* GHOST will have reported the back-ends that failed to load. */
     fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
     /* This will leak memory, it's preferable to crashing. */
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 #if !(defined(WIN32) || defined(__APPLE__))
   g_system_backend_id = GHOST_SystemBackend();
@@ -1983,7 +1984,10 @@ void WM_event_remove_timer_notifier(wmWindowManager *wm, wmWindow *win, wmTimer 
 /** \name Clipboard
  * \{ */
 
-static char *wm_clipboard_text_get_ex(bool selection, int *r_len, bool firstline)
+static char *wm_clipboard_text_get_ex(bool selection,
+                                      int *r_len,
+                                      const bool ensure_utf8,
+                                      const bool firstline)
 {
   if (G.background) {
     *r_len = 0;
@@ -1996,8 +2000,18 @@ static char *wm_clipboard_text_get_ex(bool selection, int *r_len, bool firstline
     return NULL;
   }
 
+  int buf_len = strlen(buf);
+
+  if (ensure_utf8) {
+    /* TODO(@ideasman42): It would be good if unexpected byte sequences could be interpreted
+     * instead of stripped - so mixed in characters (typically Latin1) aren't ignored.
+     * Check on how Python bytes this, see: #PyC_UnicodeFromBytesAndSize,
+     * there are clever ways to handle this although they increase the size of the buffer. */
+    buf_len -= BLI_str_utf8_invalid_strip(buf, buf_len);
+  }
+
   /* always convert from \r\n to \n */
-  char *newbuf = MEM_mallocN(strlen(buf) + 1, __func__);
+  char *newbuf = MEM_mallocN(buf_len + 1, __func__);
   char *p2 = newbuf;
 
   if (firstline) {
@@ -2028,14 +2042,14 @@ static char *wm_clipboard_text_get_ex(bool selection, int *r_len, bool firstline
   return newbuf;
 }
 
-char *WM_clipboard_text_get(bool selection, int *r_len)
+char *WM_clipboard_text_get(bool selection, bool ensure_utf8, int *r_len)
 {
-  return wm_clipboard_text_get_ex(selection, r_len, false);
+  return wm_clipboard_text_get_ex(selection, r_len, ensure_utf8, false);
 }
 
-char *WM_clipboard_text_get_firstline(bool selection, int *r_len)
+char *WM_clipboard_text_get_firstline(bool selection, bool ensure_utf8, int *r_len)
 {
-  return wm_clipboard_text_get_ex(selection, r_len, true);
+  return wm_clipboard_text_get_ex(selection, r_len, ensure_utf8, true);
 }
 
 void WM_clipboard_text_set(const char *buf, bool selection)
@@ -2093,7 +2107,7 @@ ImBuf *WM_clipboard_image_get(void)
 
   int width, height;
 
-  uint *rgba = GHOST_getClipboardImage(&width, &height);
+  uint8_t *rgba = (uint8_t *)GHOST_getClipboardImage(&width, &height);
   if (!rgba) {
     return NULL;
   }
@@ -2111,13 +2125,13 @@ bool WM_clipboard_image_set(ImBuf *ibuf)
   }
 
   bool free_byte_buffer = false;
-  if (ibuf->rect == NULL) {
+  if (ibuf->byte_buffer.data == NULL) {
     /* Add a byte buffer if it does not have one. */
     IMB_rect_from_float(ibuf);
     free_byte_buffer = true;
   }
 
-  bool success = (bool)GHOST_putClipboardImage(ibuf->rect, ibuf->x, ibuf->y);
+  bool success = (bool)GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y);
 
   if (free_byte_buffer) {
     /* Remove the byte buffer if we added it. */

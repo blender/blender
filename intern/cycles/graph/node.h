@@ -95,6 +95,7 @@ struct Node {
   void set(const SocketType &input, bool value);
   void set(const SocketType &input, int value);
   void set(const SocketType &input, uint value);
+  void set(const SocketType &input, uint64_t value);
   void set(const SocketType &input, float value);
   void set(const SocketType &input, float2 value);
   void set(const SocketType &input, float3 value);
@@ -127,6 +128,7 @@ struct Node {
   bool get_bool(const SocketType &input) const;
   int get_int(const SocketType &input) const;
   uint get_uint(const SocketType &input) const;
+  uint64_t get_uint64(const SocketType &input) const;
   float get_float(const SocketType &input) const;
   float2 get_float2(const SocketType &input) const;
   float3 get_float3(const SocketType &input) const;
