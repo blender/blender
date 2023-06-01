@@ -25,20 +25,9 @@ void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
 
   GPUShader *sh = OVERLAY_shader_sculpt_mask();
   pd->sculpt_mask_grp = grp = DRW_shgroup_create(sh, psl->sculpt_mask_ps);
-
   DRW_shgroup_uniform_float_copy(grp, "maskOpacity", pd->overlay.sculpt_mode_mask_opacity);
-
   DRW_shgroup_uniform_float_copy(
       grp, "faceSetsOpacity", pd->overlay.sculpt_mode_face_sets_opacity);
-  DRW_shgroup_uniform_float_copy(
-      grp, "faceSetsPatSeed", pd->overlay.sculpt_mode_face_sets_moire_seed);
-  DRW_shgroup_uniform_bool_copy(
-      grp, "useMoire", pd->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_FSET_MOIRE);
-  DRW_shgroup_uniform_bool_copy(
-      grp, "showIds", pd->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_SHOW_IDS);
-
-  DRW_shgroup_uniform_float_copy(
-      grp, "faceSetsPatScale", 0.5f * (1.1f - pd->overlay.sculpt_mode_face_sets_moire_scale));
 }
 
 void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
@@ -56,7 +45,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
     return;
   }
 
-  if (!BKE_pbvh_draw_mask(pbvh) && !BKE_pbvh_draw_face_sets(pbvh)) {
+  if (!pbvh_has_mask(pbvh) && !pbvh_has_face_sets(pbvh)) {
     /* The SculptSession and the PBVH can be created without a Mask data-layer or Face Set
      * data-layer. (masks data-layers are created after using a mask tool), so in these cases there
      * is nothing to draw. */
@@ -64,8 +53,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (use_pbvh) {
-    bool use_ids = draw_ctx->v3d->overlay.sculpt_flag & V3D_OVERLAY_SCULPT_SHOW_IDS;
-    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false, use_ids);
+    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true, true, false, false);
   }
   else {
     sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(static_cast<Mesh *>(ob->data));

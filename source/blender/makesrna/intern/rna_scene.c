@@ -3101,10 +3101,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
   RNA_def_struct_ui_text(srna, "Tool Settings", "");
 
-  prop = RNA_def_property(srna, "save_temp_layers", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "save_temp_layers", 1);
-  RNA_def_property_ui_text(prop, "Save Temp Layers", "");
-
+  /* NotForPR: used to debug interpolation of original coordinates in dyntopo. */
   prop = RNA_def_property(srna, "show_origco", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "show_origco", 1);
   RNA_def_property_ui_text(prop, "Show Original", "");

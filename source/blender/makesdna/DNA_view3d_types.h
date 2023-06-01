@@ -606,12 +606,6 @@ enum {
   V3D_OVERLAY_WPAINT_CONTOURS = (1 << 0),
 };
 
-/** #View3DOverlay.sculpt_flag */
-enum {
-  V3D_OVERLAY_SCULPT_FSET_MOIRE = (1 << 0),
-  V3D_OVERLAY_SCULPT_SHOW_IDS = (1 << 1),
-};
-
 /** #View3D.around */
 enum {
   /* center of the bounding box */

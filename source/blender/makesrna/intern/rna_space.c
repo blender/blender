@@ -4773,27 +4773,6 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "sculpt_mode_face_sets_moire_seed", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_moire_seed");
-  RNA_def_property_ui_text(prop, "Pattern Seed", "Sculpt Face Sets Pattern Seed");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "sculpt_mode_use_face_set_moire", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "overlay.sculpt_flag", V3D_OVERLAY_SCULPT_FSET_MOIRE);
-  RNA_def_property_ui_text(prop, "Moire", "Draw face sets with moire pattern");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-  prop = RNA_def_property(srna, "sculpt_mode_face_sets_moire_scale", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, NULL, "overlay.sculpt_mode_face_sets_moire_scale");
-  RNA_def_property_ui_text(prop, "Pattern Scale", "Sculpt Face Sets Pattern Scale");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-
-  prop = RNA_def_property(srna, "show_sculpt_ids", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "overlay.sculpt_flag", V3D_OVERLAY_SCULPT_SHOW_IDS);
-  RNA_def_property_ui_text(prop, "Sculpt IDs", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
   prop = RNA_def_property(srna, "show_sculpt_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_SCULPT_SHOW_MASK);
   RNA_def_property_ui_text(prop, "Sculpt Show Mask", "");

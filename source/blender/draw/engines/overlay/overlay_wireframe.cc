@@ -312,7 +312,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         DRW_shgroup_call_no_cull(shgrp, geom, ob);
       }
       else if (use_sculpt_pbvh) {
-        DRW_shgroup_call_sculpt(shgrp, ob, true, false, false, false, false, true);
+        DRW_shgroup_call_sculpt(shgrp, ob, true, false, false, false, false);
       }
       else {
         DRW_shgroup_call(shgrp, geom, ob);

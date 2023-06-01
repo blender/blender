@@ -6857,9 +6857,6 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         sub.active = overlay.show_sculpt_face_sets
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
 
-        row = layout.row(align=True)
-        row.prop(overlay, "show_sculpt_ids")
-
 class VIEW3D_PT_overlay_sculpt_curves(Panel):
     bl_space_type = 'VIEW_3D'
     bl_context = ".curves_sculpt"

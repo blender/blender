@@ -869,16 +869,12 @@ bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
-bool BKE_pbvh_draw_mask(const PBVH *pbvh);
-bool BKE_pbvh_has_mask(const PBVH *pbvh);
-
-void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
-
-bool BKE_pbvh_draw_face_sets(PBVH *pbvh);
-void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 bool pbvh_has_mask(const PBVH *pbvh);
 
 bool pbvh_has_face_sets(PBVH *pbvh);
+
+void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
+void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
 /* Parallelization. */
 

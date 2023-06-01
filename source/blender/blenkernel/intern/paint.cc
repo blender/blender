@@ -1797,9 +1797,6 @@ static void sculpt_update_object(
   ss->building_vp_handle = false;
 
   ss->scene = scene;
-  if (scene->toolsettings) {
-    ss->save_temp_layers = scene->toolsettings->save_temp_layers;
-  }
 
   ss->shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
@@ -3216,7 +3213,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
       }
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
-      if (!permanent && !ss->save_temp_layers) {
+      if (!permanent) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 
@@ -3247,7 +3244,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
       }
       int index = CustomData_get_named_layer_index(cdata, proptype, name);
 
-      if (!permanent && !ss->save_temp_layers) {
+      if (!permanent) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
 

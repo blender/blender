@@ -2052,7 +2052,10 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   BLI_path_join(filepath, FILE_MAX, tempdir_base, filename);
 }
 
-/* TODO: Move to appropriate headers */
+/* NotForPR: In order to make testing less painful,
+ * flush the sculpt mesh prior to autosave.  Since this comes with a
+ * performance cost it must be removed prior to the final merge.
+ */
 void ED_sculpt_fast_save_bmesh(Object *ob);
 struct MemFileUndoStep;
 MemFileUndoData *memfile_get_step_data(struct MemFileUndoStep *us);

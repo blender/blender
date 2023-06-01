@@ -7,7 +7,7 @@
  */
 
 //#define JVKE_DEBUG
-//#define FORCE_BMESH_CHECK
+#define FORCE_BMESH_CHECK
 
 #if !defined(NDEBUG) || defined(FORCE_BMESH_CHECK) || defined(JVKE_DEBUG)
 #  define BMESH_DEBUG
@@ -1977,6 +1977,9 @@ static char *obj_append_line(const char *line, char *str, char *fixed, int *size
   return str;
 }
 
+/* NotForPr: saves an obj of the neighborhood around an edge prior to collapse
+ *           into a buffer that can be read from a debugger.
+ */
 static char *bm_save_local_obj_text(
     BMesh *UNUSED(bm), int depth, char buf[LOCAL_OBJ_SIZE], const char *fmt, ...)
 {

@@ -102,6 +102,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
 
   lock_main_thread();
 
+  /* NotForPR: used to debug dyntopo edge queue. */
   bool developer_mode = RNA_boolean_get(op->ptr, "developer");
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = tool_settings->sculpt;
@@ -424,6 +425,8 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(ot->srna, "interactive", true, "Interactive", "Interactive mode");
+
+  /* NotForPR: used to debug dyntopo edge queue. */
   RNA_def_boolean(ot->srna, "developer", false, "Developer", "Developer mode");
   RNA_def_boolean(
       ot->srna, "emulate_brush", false, "Emulate Brush", "Use last brush position and radius");

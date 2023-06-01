@@ -1704,9 +1704,11 @@ typedef struct ToolSettings {
 
   /** Normal Editing. */
   float normal_vector[3];
-  char save_temp_layers, show_origco;
 
-  char _pad6[2];
+  /* NotForPR: Show original coordinates from start of sculpt stroke.*/
+  char show_origco;
+
+  char _pad6[3];
 
   /**
    * Custom Curve Profile for bevel tool:

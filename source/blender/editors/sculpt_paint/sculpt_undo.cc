@@ -2552,7 +2552,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
       sculpt_undo_store_hidden(ob, unode);
       break;
     case SCULPT_UNDO_MASK:
-      if (BKE_pbvh_has_mask(ss->pbvh)) {
+      if (pbvh_has_mask(ss->pbvh)) {
         sculpt_undo_store_mask(ob, unode);
       }
       break;

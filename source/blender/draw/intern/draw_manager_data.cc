@@ -1388,8 +1388,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
                              bool use_mask,
                              bool use_fset,
                              bool use_color,
-                             bool use_uv,
-                             bool use_id)
+                             bool use_uv)
 {
   DRWSculptCallbackData scd{};
   scd.ob = ob;
@@ -1414,12 +1413,6 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 
   if (use_fset) {
     attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
-  }
-
-  if (use_id) {
-    attrs[attrs_num].type = (eCustomDataType)CD_PBVH_ID_TYPE;
-    attrs[attrs_num].domain = ATTR_DOMAIN_POINT;
-    attrs_num++;
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);

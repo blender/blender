@@ -5,19 +5,15 @@
 GPU_SHADER_INTERFACE_INFO(overlay_sculpt_mask_iface, "")
     .flat(Type::VEC3, "faceset_color")
     .smooth(Type::FLOAT, "mask_color")
-    .smooth(Type::VEC4, "finalColor")
-    .flat(Type::INT, "sculpt_id");
+    .smooth(Type::VEC4, "finalColor");
 
 GPU_SHADER_CREATE_INFO(overlay_sculpt_mask)
     .do_static_compilation(true)
     .push_constant(Type::FLOAT, "maskOpacity")
     .push_constant(Type::FLOAT, "faceSetsOpacity")
-    .push_constant(Type::BOOL, "useMoire")
-    .push_constant(Type::BOOL, "showIds")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "fset")
     .vertex_in(2, Type::FLOAT, "msk")
-    .vertex_in(3, Type::INT, "eid")
     .vertex_out(overlay_sculpt_mask_iface)
     .vertex_source("overlay_sculpt_mask_vert.glsl")
     .fragment_source("overlay_sculpt_mask_frag.glsl")

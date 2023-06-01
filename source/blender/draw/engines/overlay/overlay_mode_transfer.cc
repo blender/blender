@@ -110,8 +110,7 @@ void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob)
   pd->mode_transfer.any_animated = true;
 
   if (use_sculpt_pbvh) {
-    DRW_shgroup_call_sculpt(
-        mode_transfer_grp[is_xray], ob, false, false, false, false, false, false);
+    DRW_shgroup_call_sculpt(mode_transfer_grp[is_xray], ob, false, false, false, false, false);
   }
   else {
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);

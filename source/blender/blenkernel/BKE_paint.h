@@ -879,7 +879,6 @@ struct SculptSession {
   /* Used to derive initial tip rotation. */
   float last_grab_delta[3];
 
-  bool save_temp_layers;
   const float (*vert_normals)[3];
 
   int last_automasking_settings_hash;

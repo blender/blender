@@ -46,7 +46,7 @@ void OVERLAY_facing_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool is_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   if (use_sculpt_pbvh) {
-    DRW_shgroup_call_sculpt(pd->facing_grp[is_xray], ob, false, false, false, false, false, false);
+    DRW_shgroup_call_sculpt(pd->facing_grp[is_xray], ob, false, false, false, false, false);
   }
   else {
     struct GPUBatch *geom = DRW_cache_object_surface_get(ob);

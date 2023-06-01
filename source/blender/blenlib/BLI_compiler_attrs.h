@@ -89,7 +89,10 @@
 #  define ATTR_ALIGN(x) __attribute__((aligned(x)))
 #endif
 
-/* Disable optimization for a function (for debugging use only!)*/
+/* NotForPR: Needed for debugging but already been rejected in
+ * a standalone PR.
+ * Disable optimization for a function (for debugging use only!) 
+ */
 #ifdef __clang__
 #  define ATTR_NO_OPT __attribute__((optnone))
 #elif defined(_MSC_VER)

@@ -803,7 +803,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
   BMLoop *l = f->l_first;
   do {
-    validate_vert(pbvh, pbvh->header.bm, l->v, true, true);
+    validate_vert(pbvh, l->v, CHECK_VERT_ALL);
 
     if (l->e->head.index == -1) {
       l->e->head.index = 0;
@@ -898,7 +898,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       }
     } while ((l = l->next) != f2->l_first);
 
-    validate_face(pbvh, pbvh->header.bm, f2, false, true);
+    validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
 
     BKE_pbvh_bmesh_add_face(pbvh, f2, false, true);
     // BM_log_face_post(pbvh->bm_log, f2);
@@ -1210,7 +1210,7 @@ bool _check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
 
   Vector<BMFace *, 32> fs;
 
-  validate_vert(pbvh, pbvh->header.bm, v, true, true);
+  validate_vert(pbvh, v, CHECK_VERT_ALL);
 
   if (v->head.htype != BM_VERT) {
     printf("non-vert %p fed to %s\n", v, __func__);
@@ -1677,10 +1677,12 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       continue;
     }
 
-    validate_vert(pbvh, pbvh->header.bm, v, false, true);
+    validate_vert(pbvh, v, CHECK_VERT_ALL);
+
     check_vert_fan_are_tris(pbvh, v);
     pbvh_check_vert_boundary(pbvh, v);
-    validate_vert(pbvh, pbvh->header.bm, v, true, true);
+
+    validate_vert(pbvh, v, CHECK_VERT_ALL);
 
     BKE_pbvh_bmesh_check_valence(pbvh, {(intptr_t)v});
 
@@ -1815,7 +1817,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       continue;
     }
 
-    validate_vert(pbvh, pbvh->header.bm, v, false, true);
+    validate_vert(pbvh, v, CHECK_VERT_ALL);
 
     l = v->e->l;
 
@@ -1855,7 +1857,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     vs[1] = ls[1]->v;
     vs[2] = ls[2]->v;
 
-    validate_vert(pbvh, pbvh->header.bm, v, false, false);
+    validate_vert(pbvh, v, CHECK_VERT_ALL);
 
     pbvh_boundary_update_bmesh(pbvh, vs[0]);
     pbvh_boundary_update_bmesh(pbvh, vs[1]);
@@ -1876,7 +1878,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       normal_tri_v3(
           f1->no, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->prev->v->co);
 
-      validate_face(pbvh, pbvh->header.bm, f1, false, false);
+      validate_face(pbvh, f1, CHECK_FACE_NONE);
     }
 
     BMFace *f2 = nullptr;
@@ -1924,7 +1926,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
           f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f2);
 
-      validate_face(pbvh, pbvh->header.bm, f2, false, false);
+      validate_face(pbvh, f2, CHECK_FACE_NONE);
     }
 
     if (f1) {
@@ -1944,15 +1946,15 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f1);
     }
 
-    validate_vert(pbvh, pbvh->header.bm, v, false, false);
+    validate_vert(pbvh, v, CHECK_VERT_ALL);
     pbvh_kill_vert(pbvh, v, true, true);
 
     if (f1 && !bm_elem_is_free((BMElem *)f1, BM_FACE)) {
-      check_face_is_manifold(pbvh, pbvh->header.bm, f1);
+      check_face_is_manifold(pbvh, f1);
     }
 
     if (f2 && !bm_elem_is_free((BMElem *)f2, BM_FACE)) {
-      check_face_is_manifold(pbvh, pbvh->header.bm, f2);
+      check_face_is_manifold(pbvh, f2);
     }
   }
 
@@ -2712,7 +2714,7 @@ static void pbvh_split_edges(
     BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v1, pbvh->stroke_id);
     BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v2, pbvh->stroke_id);
 
-    validate_edge(pbvh, pbvh->header.bm, e, true, true);
+    validate_edge(pbvh, e);
 
     BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v1);
     BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v2);
@@ -2742,9 +2744,9 @@ static void pbvh_split_edges(
 
     PBVH_CHECK_NAN(newv->co);
 
-    validate_edge(pbvh, pbvh->header.bm, e, true, true);
-    validate_edge(pbvh, pbvh->header.bm, newe, true, true);
-    validate_vert(pbvh, pbvh->header.bm, newv, true, true);
+    validate_edge(pbvh, e);
+    validate_edge(pbvh, newe);
+    validate_vert(pbvh, newv, CHECK_VERT_ALL);
 
     newv->head.hflag |= SPLIT_TAG;
 
@@ -2927,7 +2929,7 @@ static void pbvh_split_edges(
         continue;
       }
 
-      validate_face(pbvh, bm, f2, false, true);
+      validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
 
       bool log_edge = true;
       BMFace *newf = nullptr;
@@ -2958,12 +2960,12 @@ static void pbvh_split_edges(
         new_edges.append(exist_e);
 #endif
 
-        check_face_is_manifold(pbvh, bm, newf);
-        check_face_is_manifold(pbvh, bm, f2);
-        check_face_is_manifold(pbvh, bm, f);
+        check_face_is_manifold(pbvh, newf);
+        check_face_is_manifold(pbvh, f2);
+        check_face_is_manifold(pbvh, f);
 
-        validate_face(pbvh, bm, f2, false, true);
-        validate_face(pbvh, bm, newf, false, true);
+        validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
+        validate_face(pbvh, newf, CHECK_FACE_MANIFOLD);
 
         if (log_edge) {
           BM_log_edge_added(bm, pbvh->bm_log, rl->e);

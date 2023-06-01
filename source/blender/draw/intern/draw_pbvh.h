@@ -15,7 +15,6 @@ enum {
   CD_PBVH_NO_TYPE = CD_NUMTYPES + 1,
   CD_PBVH_FSET_TYPE = CD_NUMTYPES + 2,
   CD_PBVH_MASK_TYPE = CD_NUMTYPES + 3,
-  CD_PBVH_ID_TYPE = CD_NUMTYPES + 4
 };
 
 int drw_pbvh_material_index_get(struct PBVHBatches *batches);

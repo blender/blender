@@ -5245,6 +5245,7 @@ static void sculpt_update_cache_invariants(
 #undef PIXEL_INPUT_THRESHHOLD
 
   if (ss->pbvh) {
+    /* NotForPR: draw original coordinates for debugging. */
     BKE_pbvh_show_orig_set(ss->pbvh, tool_settings->show_origco);
   }
 

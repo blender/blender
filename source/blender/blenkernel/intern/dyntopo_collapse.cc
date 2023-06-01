@@ -586,7 +586,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   const int mupdateflag = SCULPTFLAG_NEED_VALENCE;
   // updateflag |= SCULPTFLAG_NEED_TRIANGULATE;  // to check for non-manifold flaps
 
-  validate_edge(pbvh, pbvh->header.bm, e, true, true);
+  validate_edge(pbvh, e);
 
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
@@ -622,7 +622,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
 
-  validate_vert_faces(pbvh, pbvh->header.bm, v_conn, false, true);
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   BMEdge *e2;
 
@@ -669,7 +669,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return v_conn;
   }
 
-  validate_vert_faces(pbvh, pbvh->header.bm, v_conn, false, true);
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   /* Flag boundaries for update. */
   e2 = v_conn->e;
@@ -732,7 +732,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     check_for_fins(pbvh, v_conn);
   }
 
-  validate_vert_faces(pbvh, pbvh->header.bm, v_conn, false, true);
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   bm_logstack_pop();
   PBVH_CHECK_NAN(v_conn->co);

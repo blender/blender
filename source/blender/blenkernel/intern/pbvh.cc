@@ -3647,12 +3647,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   }
 }
 
-bool BKE_pbvh_draw_mask(const PBVH *pbvh)
-{
-  return BKE_pbvh_has_mask(pbvh);
-}
-
-bool BKE_pbvh_has_mask(const PBVH *pbvh)
+bool pbvh_has_mask(const PBVH *pbvh)
 {
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
@@ -3667,7 +3662,7 @@ bool BKE_pbvh_has_mask(const PBVH *pbvh)
   return false;
 }
 
-bool BKE_pbvh_draw_face_sets(PBVH *pbvh)
+bool pbvh_has_face_sets(PBVH *pbvh)
 {
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
@@ -3675,9 +3670,8 @@ bool BKE_pbvh_draw_face_sets(PBVH *pbvh)
       return pbvh->pdata &&
              CustomData_get_layer_named(pbvh->pdata, CD_PROP_INT32, ".sculpt_face_set") != nullptr;
     case PBVH_BMESH:
-      return (pbvh->header.bm && CustomData_get_named_layer_index(&pbvh->header.bm->pdata,
-                                                                  CD_PROP_INT32,
-                                                                  ".sculpt_face_set") != -1);
+      return CustomData_get_offset_named(
+                 &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set") != -1;
   }
 
   return false;

@@ -464,8 +464,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
                              bool use_mask,
                              bool use_fset,
                              bool use_color,
-                             bool use_uv,
-                             bool use_ids);
+                             bool use_uv);
 
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             struct GPUMaterial **gpumats,

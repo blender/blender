@@ -110,7 +110,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
     bool use_color = color_type == V3D_SHADING_VERTEX_COLOR;
     bool use_uv = color_type == V3D_SHADING_TEXTURE_COLOR;
 
-    DRW_shgroup_call_sculpt(grp, ob, false, false, false, use_color, use_uv, false);
+    DRW_shgroup_call_sculpt(grp, ob, false, false, false, use_color, use_uv);
   }
   else {
     const int materials_len = DRW_cache_object_material_count_get(ob);

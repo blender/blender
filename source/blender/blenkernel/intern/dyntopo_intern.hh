@@ -10,6 +10,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
+#include "BLI_utildefines.h"
 
 #include "bmesh.h"
 #include "pbvh_intern.hh"
@@ -395,113 +396,58 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 
 /**** Debugging Tools ********/
 
-inline void fix_mesh(PBVH *pbvh, BMesh *bm)
-{
-  BMIter iter;
-  BMVert *v;
-  BMEdge *e;
-  BMFace *f;
-
-  printf("fixing mesh. . .\n");
-
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    v->e = nullptr;
-    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-  }
-
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    e->v1_disk_link.next = e->v1_disk_link.prev = nullptr;
-    e->v2_disk_link.next = e->v2_disk_link.prev = nullptr;
-    e->l = nullptr;
-
-    if (e->v1 == e->v2) {
-      bm_kill_only_edge(bm, e);
-    }
-  }
-
-  // rebuild disk cycles
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    if (BM_edge_exists(e->v1, e->v2)) {
-      printf("duplicate edge %p!\n", e);
-      bm_kill_only_edge(bm, e);
-
-      continue;
-    }
-
-    bmesh_disk_edge_append(e, e->v1);
-    bmesh_disk_edge_append(e, e->v2);
-  }
-
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    BMLoop *l = f->l_first;
-
-    do {
-      if (f->len < 3) {
-        break;
-      }
-
-      if (l->next->v == l->v) {
-        BMLoop *l_del = l->next;
-
-        l->next = l_del->next;
-        l_del->next->prev = l;
-
-        f->len--;
-
-        if (f->l_first == l_del) {
-          f->l_first = l;
-        }
-
-        bm_kill_only_loop(bm, l_del);
-
-        if (f->len < 3) {
-          break;
-        }
-      }
-    } while ((l = l->next) != f->l_first);
-
-    if (f->len < 3) {
-      int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
-
-      if (ni >= 0 && ni < pbvh->totnode && (pbvh->nodes[ni].flag & PBVH_Leaf)) {
-        BLI_table_gset_remove(pbvh->nodes[ni].bm_faces, f, nullptr);
-      }
-
-      bm_kill_only_face(bm, f);
-      continue;
-    }
-
-    do {
-      l->e = BM_edge_exists(l->v, l->next->v);
-
-      if (!l->e) {
-        l->e = BM_edge_create(bm, l->v, l->next->v, nullptr, BM_CREATE_NOP);
-      }
-
-      bmesh_radial_loop_append(l->e, l);
-    } while ((l = l->next) != f->l_first);
-  }
-
-  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
-
-  printf("done fixing mesh.\n");
-}
-
+/* Note: you will have to uncomment FORCE_BMESH_CHECK in bmesh_core.cc for this
+ * to work in RelWithDebInfo builds.
+ */
 //#define CHECKMESH
-//#define TEST_INVALID_NORMALS
+
+enum eValidateVertFlags {
+  CHECK_VERT_NONE = 0,
+  CHECK_VERT_MANIFOLD = (1 << 0),
+  CHECK_VERT_NODE_ASSIGNED = (1 << 1),
+  CHECK_VERT_FACES = (1 << 2),
+  CHECK_VERT_ALL = (1 << 0) | (1 << 1) /* Don't include CHECK_VERT_FACES */
+};
+ENUM_OPERATORS(eValidateVertFlags, CHECK_VERT_FACES);
+
+enum eValidateFaceFlags {
+  CHECK_FACE_NONE = 0,
+  CHECK_FACE_NODE_ASSIGNED = (1 << 1),
+  CHECK_FACE_ALL = (1 << 1),
+  CHECK_FACE_MANIFOLD = (1 << 2),
+};
+ENUM_OPERATORS(eValidateFaceFlags, CHECK_FACE_MANIFOLD);
 
 #ifndef CHECKMESH
-#  define validate_vert(pbvh, bm, v, autofix, check_manifold) true
-#  define validate_edge(pbvh, bm, e, autofix, check_manifold) true
-#  define validate_face(pbvh, bm, f, autofix, check_manifold) true
-#  define validate_vert_faces(pbvh, bm, v, autofix, check_manifold) true
-#  define check_face_is_manifold(pbvh, bm, f) true
+
+template<typename T> inline bool validate_elem(PBVH *pbvh, T *elem){return true};
+inline bool validate_vert(PBVH *pbvh, BMVert *v, eValidateVertFlags flags = CHECK_VERT_NONE)
+{
+  return true;
+}
+inline bool validate_edge(PBVH *pbvh, BMEdge *e)
+{
+  return true;
+}
+inline bool validate_loop(PBVH *pbvh, BMLoop *l)
+{
+  return true;
+}
+inline bool validate_face(PBVH *pbvh, BMFace *f, eValidateFaceFlags flags = CHECK_FACE_NONE)
+{
+  return true;
+}
+inline bool check_face_is_manifold(PBVH *pbvh, BMFace *f)
+{
+  return true;
+}
 #else
+#  include "../bmesh/intern/bmesh_private.h"
+#  include <cstdarg>
+#  include <type_traits>
 
-#  define CHECKMESH_ATTR ATTR_NO_OPT
-
-CHECKMESH_ATTR static void _debugprint(const char *fmt, ...)
+namespace blender::bke::dyntopo::debug {
+static void debug_printf(const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -509,282 +455,212 @@ CHECKMESH_ATTR static void _debugprint(const char *fmt, ...)
   va_end(args);
 }
 
-CHECKMESH_ATTR static bool check_face_is_manifold(PBVH *pbvh, BMesh *bm, BMFace *f)
+template<typename T> static char bm_get_htype()
 {
-  BMLoop *l = f->l_first;
+  if constexpr (std::is_same_v<T, BMVert>) {
+    return BM_VERT;
+  }
+  if constexpr (std::is_same_v<T, BMEdge>) {
+    return BM_EDGE;
+  }
+  if constexpr (std::is_same_v<T, BMLoop>) {
+    return BM_LOOP;
+  }
+  if constexpr (std::is_same_v<T, BMFace>) {
+    return BM_FACE;
+  }
 
+  return 0;
+}
+
+template<typename T> static const char *get_type_name()
+{
+  if constexpr (std::is_same_v<T, BMVert>) {
+    return "vertex";
+  }
+  if constexpr (std::is_same_v<T, BMEdge>) {
+    return "edge";
+  }
+  if constexpr (std::is_same_v<T, BMLoop>) {
+    return "loop";
+  }
+  if constexpr (std::is_same_v<T, BMFace>) {
+    return "face";
+  }
+
+  return "(invalid element)";
+}
+static const char *get_type_name(char htype)
+{
+  switch (htype) {
+    case BM_VERT:
+      return "vertex";
+    case BM_EDGE:
+      return "edge";
+    case BM_LOOP:
+      return "loop";
+    case BM_FACE:
+      return "face";
+  }
+
+  return "(invalid element)";
+}
+}  // namespace blender::bke::dyntopo::debug
+
+template<typename T = BMVert> ATTR_NO_OPT static bool validate_elem(PBVH *pbvh, T *elem)
+{
+  using namespace blender::bke::dyntopo::debug;
+
+  if (!v) {
+    debug_printf("%s was null\n", get_type_name<T>);
+    return false;
+  }
+
+  if (elem->head.htype != get_type_htype<T>()) {
+    debug_printf("%p had wrong type: expected a %s but got %s (type %d).\n",
+                 elem,
+                 get_type_name<T>(),
+                 get_type_name(elem->head.htype));
+    return false;
+  }
+
+  int ret = bmesh_elem_check(static_cast<void *>(elem), bm_get_htype<T>());
+
+  if (ret) {
+    debug_printf("%s (%p) failed integrity checks with code %d\n", get_type_name<T>(), elem, ret);
+    return false;
+  }
+
+  return true;
+}
+
+ATTR_NO_OPT static bool check_face_is_manifold(PBVH *pbvh, BMFace *f)
+{
+  using namespace blender::bke::dyntopo::debug;
+
+  BMLoop *l = f->l_first;
   do {
     if (l->radial_next != l && l->radial_next->radial_next != l) {
-      //_debugprint("non-manifold edge in loop\n");
-
-      BMVert *v1 = l->e->v1, *v2 = l->e->v2;
-
-      for (int i = 0; i < 2; i++) {
-        BMVert *v = i ? v2 : v1;
-        BMEdge *e = v->e;
-
-        if (!e) {
-          continue;
-        }
-
-        int i = 0;
-
-        do {
-          if (!e) {
-            break;
-          }
-
-          bool same = e->v1 == v1 && e->v2 == v2;
-          same = same || (e->v1 == v2 && e->v2 == v1);
-
-          if (same && e != l->e) {
-            // printf("duplicate edges in face!\n");
-          }
-
-          if (i++ > 5000) {
-            printf("infinite loop in edge disk cycle! v: %p, e: %p\n", v, e);
-            break;
-          }
-        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-      }
-      l->e->head.hflag |= BM_ELEM_SELECT;
-      l->f->head.hflag |= BM_ELEM_SELECT;
-      l->v->head.hflag |= BM_ELEM_SELECT;
-
-      // pbvh->dyntopo_stop = true;
+      debug_printf("Face %p has non-manifold edge %p\n", f, l->e);
 
       return false;
     }
-
-#  ifdef TEST_INVALID_NORMALS
-    if (l != l->radial_next && l->v == l->radial_next->v) {
-      _debugprint("invalid normals\n");
-      return false;
-    }
-#  endif
   } while ((l = l->next) != f->l_first);
 
   return true;
 }
 
-CHECKMESH_ATTR
-static bool validate_vert(PBVH *pbvh, BMesh *bm, BMVert *v, bool autofix, bool check_manifold)
+ATTR_NO_OPT static bool validate_face(PBVH *pbvh,
+                                      BMFace *f,
+                                      eValidateFaceFlags flags = CHECK_FACE_NONE)
 {
-  if (v->head.htype != BM_VERT) {
-    _debugprint("bad vertex\n");
+  if (!validate_elem<BMFace>(pbvh, f)) {
     return false;
   }
 
-  BMEdge *e = v->e;
-  int i = 0;
+  bool ok = true;
 
-  if (!e) {
-    return true;
+  if (flags & CHECK_FACE_MANIFOLD) {
+    ok = ok && check_face_is_manifold(pbvh, f);
   }
 
-  do {
-    if (e->v1 != v && e->v2 != v) {
-      _debugprint("edge does not contain v\n");
-      goto error;
-    }
-
-    if (e->l) {
-      int j = 0;
-
-      BMLoop *l = e->l;
-      do {
-        if (l->e->v1 != v && l->e->v2 != v) {
-          _debugprint("loop's edges doesn't contain v\n");
-          goto error;
-        }
-
-        if (l->v != v && l->next->v != v) {
-          _debugprint("loop and loop->next don't contain v\n");
-          goto error;
-        }
-
-        j++;
-        if (j > 1000) {
-          _debugprint("corrupted radial cycle\n");
-          goto error;
-        }
-
-        if (check_manifold) {
-          check_face_is_manifold(pbvh, bm, l->f);
-        }
-      } while ((l = l->radial_next) != e->l);
-    }
-    if (i > 10000) {
-      _debugprint("corrupted disk cycle\n");
-      goto error;
-    }
-
-    e = BM_DISK_EDGE_NEXT(e, v);
-    i++;
-  } while (e != v->e);
-
-  return true;
-
-error:
-
-  if (autofix) {
-    fix_mesh(pbvh, bm);
-  }
-
-  return false;
-}
-
-CHECKMESH_ATTR
-static bool validate_edge(PBVH *pbvh, BMesh *bm, BMEdge *e, bool autofix, bool check_manifold)
-{
-  if (e->head.htype != BM_EDGE) {
-    _debugprint("corrupted edge!\n");
-    return false;
-  }
-
-  bool ret = validate_vert(pbvh, bm, e->v1, false, check_manifold) &&
-             validate_vert(pbvh, bm, e->v2, false, check_manifold);
-
-  if (!ret && autofix) {
-    fix_mesh(pbvh, bm);
-  }
-
-  return ret;
-}
-
-CHECKMESH_ATTR bool face_verts_are_same(PBVH *pbvh, BMesh *bm, BMFace *f1, BMFace *f2)
-{
-  BMLoop *l1 = f1->l_first;
-  BMLoop *l2 = f2->l_first;
-
-  int count1 = 0;
-
-  do {
-    count1++;
-  } while ((l1 = l1->next) != f1->l_first);
-
-  do {
-    bool ok = false;
-
-    do {
-      if (l2->v == l1->v) {
-        ok = true;
-        break;
-      }
-    } while ((l2 = l2->next) != f2->l_first);
-
-    if (!ok) {
+  int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
+  if (ni < 0 || ni >= pbvh->totnode) {
+    if (ni != DYNTOPO_NODE_NONE || flags & CHECK_FACE_NODE_ASSIGNED) {
+      debug_printf("face %p has corrupted node index %d\n", f, ni);
       return false;
     }
-  } while ((l1 = l1->next) != f1->l_first);
+    else {
+      return ok;
+    }
+  }
 
-  return true;
-}
-
-CHECKMESH_ATTR
-static bool validate_face(PBVH *pbvh, BMesh *bm, BMFace *f, bool autofix, bool check_manifold)
-{
-  if (f->head.htype != BM_FACE) {
-    _debugprint("corrupted edge!\n");
+  PBVHNode *node = &pbvh->nodes[ni];
+  if (!(node->flag & PBVH_Leaf)) {
+    printf("face %p has corrupted node index.", f);
     return false;
   }
 
-  BMLoop **ls = nullptr;
-  BLI_array_staticdeclare(ls, 32);
-
-  BMLoop *l = f->l_first;
-  int i = 0;
-  do {
-    i++;
-
-    if (i > 100000) {
-      _debugprint("Very corrupted face!\n");
-      goto error;
-    }
-
-    if (!validate_edge(pbvh, bm, l->e, false, check_manifold)) {
-      goto error;
-    }
-
-    BMLoop *l2 = l->radial_next;
-    do {
-      if (l2->f != f && face_verts_are_same(pbvh, bm, l2->f, f)) {
-        _debugprint("Duplicate faces!\n");
-        goto error;
-      }
-    } while ((l2 = l2->radial_next) != l);
-
-    BLI_array_append(ls, l);
-  } while ((l = l->next) != f->l_first);
-
-  for (int i = 0; i < BLI_array_len(ls); i++) {
-    BMLoop *l1 = ls[i];
-    for (int j = 0; j < BLI_array_len(ls); j++) {
-      BMLoop *l2 = ls[j];
-
-      if (i != j && l1->v == l2->v) {
-        _debugprint("duplicate verts in face!\n");
-        goto error;
-      }
-
-      if (BM_edge_exists(l->v, l->next->v) != l->e) {
-        _debugprint("loop has wrong edge!\n");
-        goto error;
-      }
-    }
-  }
-
-  BLI_array_free(ls);
-  return true;
-
-error:
-  BLI_array_free(ls);
-
-  if (autofix) {
-    fix_mesh(pbvh, bm);
-  }
-
-  return false;
-}
-
-CHECKMESH_ATTR bool validate_vert_faces(
-    PBVH *pbvh, BMesh *bm, BMVert *v, int autofix, bool check_manifold)
-{
-  if (!validate_vert(pbvh, bm, v, autofix, check_manifold)) {
+  if (!BLI_table_gset_has(node->bm_faces, static_cast<void *>(f))) {
+    printf("face is not in node->bm_faces.\n");
     return false;
   }
 
-  if (!v->e) {
-    return true;
-  }
-
-  BMEdge *e = v->e;
-  do {
-    BMLoop *l = e->l;
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      if (!validate_edge(pbvh, bm, l->e, false, false)) {
-        goto error;
-      }
-
-      if (!validate_face(pbvh, bm, l->f, false, check_manifold)) {
-        goto error;
-      }
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  return true;
-
-error:
-
-  if (autofix) {
-    fix_mesh(pbvh, bm);
-  }
-
-  return false;
+  return ok;
 }
+
+ATTR_NO_OPT static bool validate_vert(PBVH *pbvh,
+                                      BMVert *v,
+                                      eValidateVertFlags flags = CHECK_VERT_NONE)
+{
+  using namespace blender::bke::dyntopo::debug;
+
+  if (!validate_elem<BMVert>(pbvh, v)) {
+    return false;
+  }
+
+  if (flags & CHECK_VERT_FACES) {
+    BMIter iter;
+    BMFace *f;
+    BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+      if (!validate_face<BMFace>(pbvh,
+                                 f,
+                                 flags & CHECK_VERT_NODE_ASSIGNED ? CHECK_FACE_NODE_ASSIGNED :
+                                                                    CHECK_FACE_NONE))
+      {
+        return false;
+      }
+    }
+  }
+
+  bool ok = true;
+
+  if (flags & CHECK_VERT_MANIFOLD) {
+    BMIter iter;
+    BMFace *f;
+
+    BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+      ok = ok && check_face_is_manifold(pbvh, f);
+    }
+  }
+
+  int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
+
+  if (ni < 0 || ni >= pbvh->totnode) {
+    if (ni != DYNTOPO_NODE_NONE || flags & CHECK_VERT_NODE_ASSIGNED) {
+      debug_printf("vertex %p has corrupted node index %d\n", v, ni);
+      return false;
+    }
+    else {
+      return ok;
+    }
+  }
+
+  PBVHNode *node = &pbvh->nodes[ni];
+  if (!(node->flag & PBVH_Leaf)) {
+    printf("Vertex %p has corrupted node index.", v);
+    return false;
+  }
+
+  if (!BLI_table_gset_haskey(node->bm_unique_verts, static_cast<void *>(v))) {
+    printf("Vertex %p is not in node->bm_unique_verts\n");
+    return false;
+  }
+  if (BLI_table_gset_haskey(node->bm_other_verts, static_cast<void *>(v))) {
+    printf("Vertex %p is inside of node->bm_other_verts\n");
+    return false;
+  }
+
+  return ok;
+}
+
+ATTR_NO_OPT static bool validate_edge(PBVH *pbvh, BMEdge *e)
+{
+  return validate_elem<BMEdge>(pbvh, e);
+}
+ATTR_NO_OPT static bool validate_loop(PBVH *pbvh, BMLoop *l)
+{
+  return validate_elem<BMLoop>(pbvh, l);
+}
+
 #endif

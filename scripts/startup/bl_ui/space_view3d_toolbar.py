@@ -1056,8 +1056,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col = layout.column(heading="Display", align=True)
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "use_sculpt_delay_updates")
-        col.prop(sculpt, "use_deform_only")
-        col.prop(tool_settings, "show_origco")
+        col.prop(sculpt, "use_deform_only") 
+        col.prop(tool_settings, "show_origco") #NotForPR
         col.prop(context.object.data, "sculpt_ignore_uvs")
 
         col.label(text="Smooth Boundaries")
