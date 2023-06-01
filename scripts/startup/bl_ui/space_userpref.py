@@ -2092,9 +2092,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         split.label(text="  " + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    tot_row = bool(info["doc_url"]) + bool(user_addon)
-
-                    if tot_row:
+                    if info["doc_url"] or info.get("tracker_url"):
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Internet:")
                         sub = split.row()
@@ -2118,10 +2116,13 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                             )
                             props.type = 'BUG_ADDON'
                             props.id = addon_info
-                        if user_addon:
-                            sub.operator(
-                                "preferences.addon_remove", text="Remove", icon='CANCEL',
-                            ).module = mod.__name__
+
+                    if user_addon:
+                        split = colsub.row().split(factor=0.15)
+                        split.label(text="User:")
+                        split.operator(
+                            "preferences.addon_remove", text="Remove", icon='CANCEL',
+                        ).module = mod.__name__
 
                     # Show addon user preferences
                     if is_enabled:
