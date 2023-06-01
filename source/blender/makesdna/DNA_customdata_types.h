@@ -56,9 +56,6 @@ typedef struct CustomDataLayer {
    */
   const AnonymousAttributeIDHandle *anonymous_id;
 
-  /** Default data for layer elements, heap-allocated. */
-  void *default_data;
-
   /**
    * Run-time data that allows sharing `data` with other entities (mostly custom data layers on
    * other geometries).

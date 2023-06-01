@@ -337,14 +337,7 @@ void BM_idmap_check_attributes(BMIdMap *idmap)
       idx = CustomData_get_named_layer_index(cdata, CD_PROP_INT32, name);
     }
 
-    if (!cdata->layers[idx].default_data) {
-      cdata->layers[idx].default_data = MEM_cnew<MIntProperty>("MIntProperty");
-    }
-
     cdata->layers[idx].flag |= CD_FLAG_ELEM_NOINTERP | CD_FLAG_ELEM_NOCOPY;
-
-    int *default_data = static_cast<int *>(cdata->layers[idx].default_data);
-    *default_data = BM_ID_NONE;
 
     idmap->cd_id_off[type] = cdata->layers[idx].offset;
   };

@@ -134,10 +134,7 @@ bool CustomData_has_referenced(const struct CustomData *data);
  * implemented for `mloopuv/mloopcol`, for now.
  */
 void CustomData_data_copy_value(eCustomDataType type, const void *source, void *dest);
-void CustomData_data_set_default_value(const struct CustomData *data,
-                                       const eCustomDataType type,
-                                       int n,
-                                       void *elem);
+void CustomData_data_set_default_value(const eCustomDataType type, void *elem);
 
 /**
  * Mixes the "value" (e.g. `mloopuv` UV or `mloopcol` colors) from one block into
@@ -179,8 +176,10 @@ void CustomData_copy_layout(const struct CustomData *source,
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
-/* copies all customdata layers without allocating data,
- * and without respect to type masks or NO_COPY/etc flags*/
+/* Copies all customdata layers without allocating data
+ * and without respect to type masks or CD_FLAG_NO_COPY
+ * or CD_FLAG_TEMPORARY flags.
+ */
 void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest);
 
 /**
