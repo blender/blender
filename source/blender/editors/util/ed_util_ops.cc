@@ -67,6 +67,17 @@ static bool lib_id_preview_editing_poll(bContext *C)
   return true;
 }
 
+static ID *lib_id_load_custom_preview_id_get(bContext *C, const wmOperator *op)
+{
+  /* #invoke() gets the ID from context and saves it in the custom data. */
+  if (op->customdata) {
+    return static_cast<ID *>(op->customdata);
+  }
+
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  return static_cast<ID *>(idptr.data);
+}
+
 static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -78,14 +89,31 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  PointerRNA idptr = CTX_data_pointer_get(C, "id");
-  ID *id = (ID *)idptr.data;
+  ID *id = lib_id_load_custom_preview_id_get(C, op);
+  if (!id) {
+    BKE_report(
+        op->reports, RPT_ERROR, "Failed to set preview: no ID in context (incorrect context?)");
+    return OPERATOR_CANCELLED;
+  }
 
   BKE_previewimg_id_custom_set(id, filepath);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
+}
+
+/**
+ * Obtain the ID from context, and spawn a File Browser to select the preview image. The
+ * File Browser may re-use the Asset Browser under the cursor, and clear the file-list on
+ * confirmation, leading to failure to obtain the ID at that point. So get it before spawning the
+ * File Browser (store it in the operator custom data).
+ */
+static int lib_id_load_custom_preview_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  PointerRNA idptr = CTX_data_pointer_get(C, "id");
+  op->customdata = idptr.data;
+  return WM_operator_filesel(C, op, event);
 }
 
 static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
@@ -97,7 +125,7 @@ static void ED_OT_lib_id_load_custom_preview(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = lib_id_preview_editing_poll;
   ot->exec = lib_id_load_custom_preview_exec;
-  ot->invoke = WM_operator_filesel;
+  ot->invoke = lib_id_load_custom_preview_invoke;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
