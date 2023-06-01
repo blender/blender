@@ -136,14 +136,13 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
-  /* Reduce user-count for current action. */
+  /* Unassign current action. */
   if (adt->action) {
     id_us_min((ID *)adt->action);
+    adt->action = NULL;
   }
 
   if (act == NULL) {
-    /* Just clearing the action. */
-    adt->action = NULL;
     return true;
   }
 
