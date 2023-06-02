@@ -160,12 +160,12 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   /* Aspect uses 9 bits */
   float asp_normalized = (asp > 1.0f) ? (1.0f / asp) : asp;
   packed |= int32_t(unit_float_to_uchar_clamp(asp_normalized));
-  /* Store if inversed in the 9th bit. */
+  /* Store if inverted in the 9th bit. */
   if (asp > 1.0f) {
     packed |= 1 << 8;
   }
   /* Rotation uses 9 bits */
-  /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
+  /* Rotation are in [-90..90] degree range, so we can encode the sign of the angle + the cosine
    * because the cosine will always be positive. */
   packed |= int32_t(unit_float_to_uchar_clamp(cosf(rot))) << 9;
   /* Store sine sign in 9th bit. */
@@ -197,7 +197,7 @@ static void grease_pencil_batches_ensure(GreasePencil &grease_pencil, int cfra)
       cfra, [&](GreasePencilDrawing &drawing) { drawings.append(&drawing); });
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
-   * offsets into the curves for the verticies and triangles. */
+   * offsets into the curves for the vertices and triangles. */
   int total_points_num = 0;
   int total_triangles_num = 0;
   int v_offset = 0;
@@ -240,7 +240,7 @@ static void grease_pencil_batches_ensure(GreasePencil &grease_pencil, int cfra)
     }
 
     /* One vertex is stored before and after as padding. Cyclic strokes have one extra
-     * vertex.*/
+     * vertex. */
     total_points_num += curves.points_num() + num_cyclic + curves.curves_num() * 2;
     total_triangles_num += (curves.points_num() + num_cyclic) * 2;
     total_triangles_num += drawing.triangles().size();

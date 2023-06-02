@@ -54,7 +54,7 @@ class VKVertexBuffer : public VertBuf {
   void allocate();
   void *convert() const;
 
-  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture.*/
+  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture. */
   friend class VKTexture;
 };
 

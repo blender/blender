@@ -2272,7 +2272,7 @@ static bool lib_override_library_resync(Main *bmain,
                                                        RNA_OVERRIDE_APPLY_FLAG_NOP);
 
       /* Clear the old shape key pointer again, otherwise it won't make ID management code happy
-       * when freeing (at least from user count side of things).  */
+       * when freeing (at least from user count side of things). */
       if (key_override_old_p != nullptr) {
         *key_override_old_p = nullptr;
       }

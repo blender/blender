@@ -125,7 +125,7 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name String Concatinate
+/** \name String Concatenate
  * \{ */
 
 TEST(string, StrCat)

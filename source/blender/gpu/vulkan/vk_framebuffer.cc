@@ -441,7 +441,7 @@ void VKFrameBuffer::render_pass_create()
     size_set(size[0], size[1]);
   }
   else {
-    /* A framebuffer should at least be 1 by 1.*/
+    /* A frame-buffer should at least be 1 by 1. */
     this->size_set(1, 1);
   }
   viewport_reset();

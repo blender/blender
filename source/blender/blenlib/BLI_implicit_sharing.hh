@@ -149,7 +149,7 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
          * data can be freed though. */
         const_cast<ImplicitSharingInfo *>(this)->delete_data_only();
         /* Also remove the "fake" weak user that indicated that there was at least one strong
-         * user.*/
+         * user. */
         this->remove_weak_user_and_delete_if_last();
       }
     }

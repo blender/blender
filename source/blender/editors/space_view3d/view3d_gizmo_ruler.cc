@@ -951,11 +951,11 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     if ((len < (numstr_size[1] * 2.5f)) ||
         ((len < (numstr_size[0] + bg_margin + bg_margin)) && (fabs(rot_90_vec[0]) < 0.5f)))
     {
-      /* Super short, or quite short and also shallow angle. Position below line.*/
+      /* Super short, or quite short and also shallow angle. Position below line. */
       posit[1] = MIN2(co_ss[0][1], co_ss[2][1]) - numstr_size[1] - bg_margin - bg_margin;
     }
     else if (fabs(rot_90_vec[0]) < 0.2f) {
-      /* Very shallow angle. Shift down by text height.*/
+      /* Very shallow angle. Shift down by text height. */
       posit[1] -= numstr_size[1];
     }
 

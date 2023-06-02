@@ -93,7 +93,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   int stroke_i = 0;
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
-    /* TODO: check if gps->editcurve is not nullptr and parse bezier curve instead. */
+    /* TODO: check if `gps->editcurve` is not nullptr and parse bezier curve instead. */
 
     /* Write curve attributes. */
     stroke_cyclic.span[stroke_i] = (gps->flag & GP_STROKE_CYCLIC) != 0;

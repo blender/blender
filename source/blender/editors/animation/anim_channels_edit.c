@@ -3354,7 +3354,7 @@ static int click_select_channel_object(bContext *C,
    * to avoid getting stuck there, see: #48747. */
   ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
-  /* Similar to outliner, do not change active element when selecting elements in range.*/
+  /* Similar to outliner, do not change active element when selecting elements in range. */
   if ((adt) && (adt->flag & ADT_UI_SELECTED) && (selectmode != SELECT_EXTEND_RANGE)) {
     adt->flag |= ADT_UI_ACTIVE;
   }

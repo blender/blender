@@ -1688,7 +1688,7 @@ static int gpencil_weight_sample_invoke(bContext *C, wmOperator *UNUSED(op), con
     }
   }
 
-  /* Set brush weight, based on points found.*/
+  /* Set brush weight, based on points found. */
   if (closest_count > 0) {
     if (closest_count == 1) {
       brush->weight = closest_weight[0];

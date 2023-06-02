@@ -103,7 +103,7 @@ class Instance {
 
     objects.init(v3d, scene);
     lights.init(v3d);
-    /* TODO(fclem): Vfx. */
+    /* TODO(@fclem): VFX. */
     // vfx.init(use_vfx_, camera_, rv3d);
     anti_aliasing.init(v3d, scene);
   }

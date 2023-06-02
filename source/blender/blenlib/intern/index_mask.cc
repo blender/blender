@@ -341,7 +341,7 @@ static int64_t get_size_before_gap(const Span<int16_t> indices)
   BLI_assert(indices.size() >= 2);
   if (indices[1] > indices[0] + 1) {
     /* For sparse indices, often the next gap is just after the next index.
-     * In this case we can skip the logarithmic check below.*/
+     * In this case we can skip the logarithmic check below. */
     return 1;
   }
   return unique_sorted_indices::find_size_of_next_range(indices);

@@ -1178,7 +1178,7 @@ static int mesh_tessface_calc(Mesh &mesh,
 
   /* NOTE: quad detection issue - fourth vertex-index vs fourth loop-index:
    * Polygons take care of their loops ordering, hence not of their vertices ordering.
-   * Currently, our tfaces' fourth vertex index might be 0 even for a quad.
+   * Currently, the #TFace fourth vertex index might be 0 even for a quad.
    * However, we know our fourth loop index is never 0 for quads
    * (because they are sorted for polygons, and our quads are still mere copies of their polygons).
    * So we pass nullptr as #MFace pointer, and #mesh_loops_to_tessdata

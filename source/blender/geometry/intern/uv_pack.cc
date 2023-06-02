@@ -185,7 +185,7 @@ static bool can_rotate(const Span<PackIsland *> islands, const UVPackIsland_Para
   return true;
 }
 
-/** Angle rounding helper for "D4" transforms.  */
+/** Angle rounding helper for "D4" transforms. */
 static float angle_match(float angle_radians, float target_radians)
 {
   if (fabsf(angle_radians - target_radians) < DEG2RADF(0.1f)) {
@@ -194,7 +194,7 @@ static float angle_match(float angle_radians, float target_radians)
   return angle_radians;
 }
 
-/** Angle rounding helper for "D4" transforms.  */
+/** Angle rounding helper for "D4" transforms. */
 static float plusminus_90_angle(float angle_radians)
 {
   angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
@@ -1109,7 +1109,7 @@ static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> islan
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
     /* AABB margin calculations are not preserved under rotations. */
-    if (island_indices.size() > 1) { /* Unless there's only one island...*/
+    if (island_indices.size() > 1) { /* Unless there's only one island. */
 
       if (params.target_aspect_y != 1.0f) {
         /* TODO: Check for possible 90 degree rotation. */
@@ -1146,10 +1146,10 @@ static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> islan
   /* Now we have all the points in the correct space, compute the 2D convex hull. */
   const float(*source)[2] = reinterpret_cast<const float(*)[2]>(square_finder.points.data());
 
-  square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case.*/
+  square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case. */
   int convex_size = BLI_convexhull_2d(
       source, int(square_finder.points.size()), square_finder.indices.data());
-  square_finder.indices.resize(convex_size); /* Resize to actual size.*/
+  square_finder.indices.resize(convex_size); /* Resize to actual size. */
 
   /* Run the computation to find the best angle. (Slow!) */
   const float quad_180 = square_finder.update(DEG2RADF(-180.0f));
