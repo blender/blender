@@ -405,21 +405,21 @@ static void file_draw_preview(const FileDirEntry *file,
 
   /* the large image */
 
-  float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (is_icon) {
     if (file->typeflag & FILE_TYPE_DIR) {
-      UI_GetThemeColor4fv(TH_ICON_FOLDER, col);
+      UI_GetThemeColor4fv(TH_ICON_FOLDER, document_img_col);
     }
     else {
-      UI_GetThemeColor4fv(TH_TEXT, col);
+      UI_GetThemeColor4fv(TH_TEXT, document_img_col);
     }
   }
   else if (file->typeflag & FILE_TYPE_FTFONT) {
-    UI_GetThemeColor4fv(TH_TEXT, col);
+    UI_GetThemeColor4fv(TH_TEXT, document_img_col);
   }
 
   if (dimmed) {
-    col[3] *= 0.3f;
+    document_img_col[3] *= 0.3f;
   }
 
   if (!is_icon && file->typeflag & FILE_TYPE_BLENDERLIB) {
@@ -440,7 +440,7 @@ static void file_draw_preview(const FileDirEntry *file,
                                 scale,
                                 1.0f,
                                 1.0f,
-                                col);
+                                document_img_col);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -450,9 +450,7 @@ static void file_draw_preview(const FileDirEntry *file,
     const float icon_size = 16.0f / icon_aspect * UI_SCALE_FAC;
     float icon_opacity = 0.3f;
     uchar icon_color[4] = {0, 0, 0, 255};
-    float bgcolor[4];
-    UI_GetThemeColor4fv(TH_ICON_FOLDER, bgcolor);
-    if (rgb_to_grayscale(bgcolor) < 0.5f) {
+    if (rgb_to_grayscale(document_img_col) < 0.5f) {
       icon_color[0] = 255;
       icon_color[1] = 255;
       icon_color[2] = 255;
