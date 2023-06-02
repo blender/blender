@@ -1167,17 +1167,6 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     case TFM_TIME_SCALE:
       initTimeScale(t);
       break;
-    case TFM_TIME_DUPLICATE:
-      /* same as TFM_TIME_EXTEND, but we need the mode info for later
-       * so that duplicate-culling will work properly
-       */
-      if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
-        initTranslation(t);
-      }
-      else {
-        initTimeTranslate(t);
-      }
-      break;
     case TFM_TIME_EXTEND:
       /* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
        * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION
