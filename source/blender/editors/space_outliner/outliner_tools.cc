@@ -2893,7 +2893,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_REMAP: {
-      if (idlevel > 0) {
+      if (idlevel > 0 || objectlevel) {
         outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_remap_fn, nullptr);
         /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
          * trick does not work here). */
