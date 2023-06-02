@@ -1070,8 +1070,8 @@ id<MTLBuffer> MTLBatch::get_emulated_toplogy_buffer(GPUPrimType &in_out_prim_typ
       case GPU_PRIM_LINE_LOOP: {
         int line = 0;
         for (line = 0; line < output_prim_count - 1; line++) {
-          data[line * 3 + 0] = line + 0;
-          data[line * 3 + 1] = line + 1;
+          data[line * 2 + 0] = line + 0;
+          data[line * 2 + 1] = line + 1;
         }
         /* Closing line. */
         data[line * 2 + 0] = line + 0;
