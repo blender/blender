@@ -3147,6 +3147,21 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 
 namespace myinterp {
 
+int ignore_check = 0;
+struct ignore {
+  int f = 0;
+
+  ignore()
+  {
+    f = ignore_check++;
+  }
+  ~ignore()
+  {
+    f = ignore_check--;
+  }
+  ignore(const ignore &b) = delete;
+};
+
 template<typename T> constexpr T get_epsilon()
 {
   if constexpr (std::is_same_v<T, float>) {
@@ -3523,28 +3538,6 @@ template<typename T1 = float, typename T2 = float> void copy_v2_v2(T1 r[2], cons
   r[0] = b[0];
   r[1] = b[1];
 }
-
-int ignore_check = 0;
-int bleh_bleh = 0;
-
-struct ignore {
-  int f = 0;
-
-  void bleh()
-  {
-    bleh_bleh++;
-  }
-
-  ignore()
-  {
-    f = ignore_check++;
-  }
-  ~ignore()
-  {
-    f = ignore_check--;
-  }
-  ignore(const ignore &b) = delete;
-};
 
 template<typename T = float> struct TestFloat {
   T f;
