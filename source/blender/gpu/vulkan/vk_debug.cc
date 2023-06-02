@@ -322,7 +322,7 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
   {
     debugging_tools.print_labels(callback_data);
   }
-  return VK_TRUE;
+  return VK_FALSE;
 };
 
 VkResult VKDebuggingTools::init_messenger(VkInstance vk_instance)
