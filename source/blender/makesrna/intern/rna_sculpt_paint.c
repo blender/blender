@@ -549,12 +549,6 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
-void SCULPT_substep_undo(bContext *ctx, int dir);
-static void rna_SCULPT_substep_undo(bContext *ctx, int dir)
-{
-  SCULPT_substep_undo(ctx, dir);
-}
-
 static char *rna_GPencilSculptSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt");

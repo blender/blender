@@ -170,8 +170,6 @@ typedef struct SculptUndoStep {
 #endif
 } SculptUndoStep;
 
-extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh);
-
 static UndoSculpt *sculpt_undo_get_nodes(void);
 static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b);
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr);

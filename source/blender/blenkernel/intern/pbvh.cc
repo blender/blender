@@ -2628,10 +2628,10 @@ bool ray_face_intersection_tri(const float ray_start[3],
   return false;
 }
 
-bool ray_update_depth_and_hit_count(const float depth_test,
-                                    float *r_depth,
-                                    float *r_back_depth,
-                                    int *hit_count)
+static bool ray_update_depth_and_hit_count(const float depth_test,
+                                           float *r_depth,
+                                           float *r_back_depth,
+                                           int *hit_count)
 {
   (*hit_count)++;
   if (depth_test < *r_depth) {
@@ -2647,15 +2647,15 @@ bool ray_update_depth_and_hit_count(const float depth_test,
   return false;
 }
 
-bool ray_face_intersection_depth_quad(const float ray_start[3],
-                                      struct IsectRayPrecalc *isect_precalc,
-                                      const float t0[3],
-                                      const float t1[3],
-                                      const float t2[3],
-                                      const float t3[3],
-                                      float *r_depth,
-                                      float *r_back_depth,
-                                      int *hit_count)
+static bool ray_face_intersection_depth_quad(const float ray_start[3],
+                                             struct IsectRayPrecalc *isect_precalc,
+                                             const float t0[3],
+                                             const float t1[3],
+                                             const float t2[3],
+                                             const float t3[3],
+                                             float *r_depth,
+                                             float *r_back_depth,
+                                             int *hit_count)
 {
   float depth_test;
   if (!(isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, nullptr) ||

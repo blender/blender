@@ -1838,7 +1838,7 @@ static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH:
     case PBVH_FACES:
-      return expand_cache->original_face_sets[BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_face)];
+      return expand_cache->original_face_sets[BKE_pbvh_face_to_index(ss->pbvh, ss->active_face)];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);

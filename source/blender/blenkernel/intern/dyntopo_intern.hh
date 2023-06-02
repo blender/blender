@@ -386,13 +386,6 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
                                bool log_face);
 }  // namespace blender::bke::dyntopo
 
-extern "C" {
-void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face);
-void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge);
-void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert);
-void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk);
-}
-
 /*************************** Topology update **************************/
 
 /**** Debugging Tools ********/

@@ -803,18 +803,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, struct PBVHVertexIter *vi
   } \
   ((void)0)
 
-#define BKE_pbvh_vertex_to_index(pbvh, v) \
-  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMVert *)(v.i)) : (v.i))
-PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int idx);
-
-#define BKE_pbvh_edge_to_index(pbvh, v) \
-  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMEdge *)(v.i)) : (v.i))
-PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int idx);
-
-#define BKE_pbvh_face_to_index(pbvh, v) \
-  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMFace *)(v.i)) : (v.i))
-PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int idx);
-
 #define PBVH_FACE_ITER_VERTS_RESERVED 8
 
 #ifdef __cplusplus
@@ -972,25 +960,23 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh);
  * BKE_pbvh_bmesh_from_saved_indices */
 void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags);
 
-void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, struct BMFace *f, bool log_face);
-void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, struct BMEdge *e, bool log_vert);
-void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, struct BMVert *v, bool log_vert);
-
+void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face);
+void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge);
+void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert);
 void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk);
 
-// note that e_tri and f_example are allowed to be NULL
+/* e_tri and f_example are allowed to be nullptr. */
 struct BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,
                                           struct BMVert *v_tri[3],
                                           struct BMEdge *e_tri[3],
                                           const struct BMFace *f_example);
 
-// if node is NULL, one will be foudn in the pbvh, which potentially can be slow
+/* If node is nullptr then one will be found in the pbvh. */
 struct BMVert *BKE_pbvh_vert_create_bmesh(
     PBVH *pbvh, float co[3], float no[3], PBVHNode *node, struct BMVert *v_example);
 PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
-struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
 void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit);
 float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit);
 void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
@@ -1092,6 +1078,7 @@ void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
 bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 
 void BKE_pbvh_flush_tri_areas(PBVH *pbvh);
+void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh);
 
 #ifdef __cplusplus
 void BKE_pbvh_pmap_set(PBVH *pbvh, blender::GroupedSpan<int> pmap);

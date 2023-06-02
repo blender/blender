@@ -562,13 +562,13 @@ static void add_split_edge_recursive(
 #endif
 
 typedef struct EdgeQueueThreadData {
-  PBVH *pbvh;
-  PBVHNode *node;
+  PBVH *pbvh = nullptr;
+  PBVHNode *node = nullptr;
   Vector<BMEdge *> edges;
-  EdgeQueueContext *eq_ctx;
-  int size;
-  bool is_collapse;
-  int seed;
+  EdgeQueueContext *eq_ctx = nullptr;
+  int size = 0;
+  bool is_collapse = false;
+  int seed = 0;
 } EdgeQueueThreadData;
 
 static void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
@@ -1198,53 +1198,6 @@ bool check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
   return false;
 }
 
-bool _check_vert_fan_are_tris(PBVH *pbvh, BMVert *v)
-{
-  uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
-
-  if (!(*flag & SCULPTFLAG_NEED_TRIANGULATE)) {
-    return true;
-  }
-
-  bm_log_message("  == triangulate == ");
-
-  Vector<BMFace *, 32> fs;
-
-  validate_vert(pbvh, v, CHECK_VERT_ALL);
-
-  if (v->head.htype != BM_VERT) {
-    printf("non-vert %p fed to %s\n", v, __func__);
-    return false;
-  }
-
-  BMIter iter;
-  BMFace *f;
-  BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-    BMLoop *l = f->l_first;
-
-    do {
-      pbvh_boundary_update_bmesh(pbvh, l->v);
-      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
-    } while ((l = l->next) != f->l_first);
-    fs.append(f);
-
-    if (BM_elem_is_free((BMElem *)f, BM_FACE)) {
-      printf("%s: corrupted face error!\n", __func__);
-    }
-  }
-
-  *flag &= ~SCULPTFLAG_NEED_TRIANGULATE;
-
-  for (int i = 0; i < fs.size(); i++) {
-    /* Triangulation can sometimes delete a face. */
-    if (!BM_elem_is_free((BMElem *)fs[i], BM_FACE)) {
-      check_face_is_tri(pbvh, fs[i]);
-    }
-  }
-
-  return false;
-}
-
 /* Create a priority queue containing vertex pairs connected by a long
  * edge as defined by PBVH.bm_max_edge_len.
  *
@@ -1437,7 +1390,6 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
     if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
         !(node->flag & PBVH_FullyHidden))
     {
-      memset(&td, 0, sizeof(td));
       td.pbvh = pbvh;
       td.node = node;
       td.is_collapse = local_mode & PBVH_LocalCollapse;
@@ -3881,10 +3833,12 @@ inline void reproject_bm_data(
 
   BMLoop *l_iter;
   BMLoop *l_first;
-  const void **vblocks = do_vertex ? BLI_array_alloca(vblocks, f_src->len) : nullptr;
-  const void **blocks = BLI_array_alloca(blocks, f_src->len);
-  T(*cos_2d)[2] = BLI_array_alloca(cos_2d, f_src->len);
-  T *w = BLI_array_alloca(w, f_src->len);
+  const void **vblocks = do_vertex ?
+                             static_cast<const void **>(BLI_array_alloca(vblocks, f_src->len)) :
+                             nullptr;
+  const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
+  T(*cos_2d)[2] = static_cast<T(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  T *w = static_cast<T *>(BLI_array_alloca(w, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
@@ -3959,7 +3913,7 @@ inline void reproject_bm_data(
   float *fw;
 
   if constexpr (!std::is_same_v<T, float>) {
-    fw = BLI_array_alloca(fw, f_src->len);
+    fw = static_cast<float *>(BLI_array_alloca(fw, f_src->len));
     for (int i = 0; i < f_src->len; i++) {
       fw[i] = float(w[i]);
     }
@@ -4014,8 +3968,8 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
   int tag = BM_ELEM_TAG_ALT;
 
-  float *lastuvs = (float *)BLI_array_alloca(lastuvs, totuv * 2);
-  bool *snapuvs = (bool *)BLI_array_alloca(snapuvs, totuv);
+  float *lastuvs = static_cast<float *>(BLI_array_alloca(lastuvs, totuv * 2));
+  bool *snapuvs = static_cast<bool *>(BLI_array_alloca(snapuvs, totuv));
 
   e = v->e;
   int valence = 0;
@@ -4103,20 +4057,20 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
   /* Original (l->prev, l, l->next) projections for each loop ('l' remains unchanged). */
 
-  char *_blocks = (char *)alloca(ldata->totsize * totloop);
-  void **blocks = (void **)BLI_array_alloca(blocks, totloop);
+  char *_blocks = static_cast<char *>(alloca(ldata->totsize * totloop));
+  void **blocks = static_cast<void **>(BLI_array_alloca(blocks, totloop));
 
   const int max_vblocks = valence * 2;
 
-  char *_vblocks = (char *)alloca(ss->bm->vdata.totsize * max_vblocks);
-  void **vblocks = (void **)BLI_array_alloca(vblocks, max_vblocks);
+  char *_vblocks = static_cast<char *>(alloca(ss->bm->vdata.totsize * max_vblocks));
+  void **vblocks = static_cast<void **>(BLI_array_alloca(vblocks, max_vblocks));
 
   for (int i = 0; i < max_vblocks; i++, _vblocks += ss->bm->vdata.totsize) {
-    vblocks[i] = (void *)_vblocks;
+    vblocks[i] = static_cast<void *>(_vblocks);
   }
 
   for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
-    blocks[i] = (void *)_blocks;
+    blocks[i] = static_cast<void *>(_blocks);
   }
 
   float vco[3], vno[3];
@@ -4146,8 +4100,8 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
       BMLoop *l = ls[i];
       float no[3] = {0.0f, 0.0f, 0.0f};
 
-      BMLoop *fakels = (BMLoop *)BLI_array_alloca(fakels, l->f->len);
-      BMVert *fakevs = (BMVert *)BLI_array_alloca(fakevs, l->f->len);
+      BMLoop *fakels = static_cast<BMLoop *>(BLI_array_alloca(fakels, l->f->len));
+      BMVert *fakevs = static_cast<BMVert *>(BLI_array_alloca(fakevs, l->f->len));
       BMLoop *l2 = l->f->l_first;
       BMLoop *fakel = fakels;
       BMVert *fakev = fakevs;
@@ -4229,7 +4183,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     }
 
     if (cur_vblock > 0) {
-      float *ws = BLI_array_alloca(ws, cur_vblock);
+      float *ws = static_cast<float *>(BLI_array_alloca(ws, cur_vblock));
       for (int i = 0; i < cur_vblock; i++) {
         ws[i] = 1.0f / float(cur_vblock);
       }
@@ -4248,7 +4202,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     }
   }
 
-  int *tots = (int *)BLI_array_alloca(tots, totuv);
+  int *tots = static_cast<int *>(BLI_array_alloca(tots, totuv));
 
   for (int i = 0; i < totuv; i++) {
     lastuvs[i * 2] = lastuvs[i * 2 + 1] = 0.0f;
