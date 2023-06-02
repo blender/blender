@@ -11,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -24,12 +25,15 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_appdir.h"
+#include "BKE_blender_copybuffer.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -38,6 +42,8 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
@@ -2731,8 +2737,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 /** \name Material Copy Operator
  * \{ */
 
-/* material copy/paste */
-static int copy_material_exec(bContext *C, wmOperator * /*op*/)
+static int copy_material_exec(bContext *C, wmOperator *op)
 {
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
@@ -2741,7 +2746,19 @@ static int copy_material_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_material_copybuf_copy(CTX_data_main(C), ma);
+  char filepath[FILE_MAX];
+  Main *bmain = CTX_data_main(C);
+
+  /* Mark is the material to use (others may be expanded). */
+  BKE_copybuffer_copy_begin(bmain);
+
+  BKE_copybuffer_copy_tag_ID(&ma->id);
+
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_material.blend");
+  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
+
+  /* We are all done! */
+  BKE_report(op->reports, RPT_INFO, "Copied material to internal clipboard");
 
   return OPERATOR_FINISHED;
 }
@@ -2767,8 +2784,47 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 /** \name Material Paste Operator
  * \{ */
 
+/**
+ * Clear ID's as freeing the data-block doesn't handle reference counting.
+ */
+static int paste_material_nodetree_ids_decref(LibraryIDLinkCallbackData *cb_data)
+{
+  if (cb_data->cb_flag & IDWALK_CB_USER) {
+    id_us_min(*cb_data->id_pointer);
+  }
+  *cb_data->id_pointer = nullptr;
+  return IDWALK_RET_NOP;
+}
+
+/**
+ * Re-map ID's from the clipboard to ID's in `main`, by name.
+ */
+static int paste_material_nodetree_ids_relink_or_clear(LibraryIDLinkCallbackData *cb_data)
+{
+  Main *bmain = static_cast<Main *>(cb_data->user_data);
+  ID **id_p = cb_data->id_pointer;
+  if (*id_p) {
+    if (cb_data->cb_flag & IDWALK_CB_USER) {
+      id_us_min(*id_p);
+    }
+    ListBase *lb = which_libbase(bmain, GS((*id_p)->name));
+    ID *id_local = static_cast<ID *>(
+        BLI_findstring(lb, (*id_p)->name + 2, offsetof(ID, name) + 2));
+    *id_p = id_local;
+    if (cb_data->cb_flag & IDWALK_CB_USER) {
+      id_us_plus(id_local);
+    }
+    else if (cb_data->cb_flag & IDWALK_CB_USER_ONE) {
+      id_us_ensure_real(id_local);
+    }
+    id_lib_extern(id_local);
+  }
+  return IDWALK_RET_NOP;
+}
+
 static int paste_material_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
@@ -2777,10 +2833,130 @@ static int paste_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!BKE_material_copybuf_paste(CTX_data_main(C), ma)) {
-    BKE_report(op->reports, RPT_WARNING, "No material in the internal clipboard to paste");
+  /* Read copy buffer .blend file. */
+  char filepath[FILE_MAX];
+  Main *temp_bmain = BKE_main_new();
+
+  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
+  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_material.blend");
+
+  /* NOTE(@ideasman42) The node tree might reference different kinds of ID types.
+   * It's not clear-cut which ID types should be included, although it's unlikely
+   * users would want an entire scene & it's objects to be included.
+   * Filter a subset of ID types with some reasons for including them. */
+  const uint64_t ntree_filter = (
+      /* Material is necessary for reading the clipboard. */
+      FILTER_ID_MA |
+      /* Node-groups. */
+      FILTER_ID_NT |
+      /* Image textures. */
+      FILTER_ID_IM |
+      /* Internal text (scripts). */
+      FILTER_ID_TXT |
+      /* Texture coordinates may reference objects.
+       * Note that object data is *not* included. */
+      FILTER_ID_OB);
+
+  if (!BKE_copybuffer_read(temp_bmain, filepath, op->reports, ntree_filter)) {
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
+    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
+
+  /* There may be multiple materials,
+   * check for a property that marks this as the active material. */
+  Material *ma_from = nullptr;
+  LISTBASE_FOREACH (Material *, ma_iter, &temp_bmain->materials) {
+    if (ma_iter->id.flag & LIB_CLIPBOARD_MARK) {
+      ma_from = ma_iter;
+      break;
+    }
+  }
+
+  /* Make sure data from this file is usable for material paste. */
+  if (ma_from == nullptr) {
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from a material");
+    BKE_main_free(temp_bmain);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Keep animation by moving local animation to the paste node-tree. */
+  if (ma->nodetree && ma_from->nodetree) {
+    BLI_assert(ma_from->nodetree->adt == nullptr);
+    std::swap(ma->nodetree->adt, ma_from->nodetree->adt);
+  }
+
+  /* Needed to update #SpaceNode::nodetree else a stale pointer is used. */
+  if (ma->nodetree) {
+    bNodeTree *nodetree = ma->nodetree;
+    BKE_libblock_remap(bmain, ma->nodetree, ma_from->nodetree, ID_REMAP_FORCE_UI_POINTERS);
+
+    /* Free & clear data here, so user counts are handled, otherwise it's
+     * freed as part of #BKE_main_free which doesn't handle user-counts. */
+    /* Walk over all the embedded nodes ID's (non-recursively). */
+    BKE_library_foreach_ID_link(
+        bmain, &nodetree->id, paste_material_nodetree_ids_decref, nullptr, IDWALK_NOP);
+
+    ntreeFreeEmbeddedTree(nodetree);
+    MEM_freeN(nodetree);
+    ma->nodetree = nullptr;
+  }
+
+/* Swap data-block content, while swapping isn't always needed,
+ * it means memory is properly freed in the case of allocations.. */
+#define SWAP_MEMBER(member) std::swap(ma->member, ma_from->member)
+
+  /* Intentionally skip:
+   * - Texture painting slots.
+   * - Preview render.
+   * - Grease pencil styles (we could although they reference many ID's themselves).
+   */
+  SWAP_MEMBER(flag);
+  SWAP_MEMBER(r);
+  SWAP_MEMBER(g);
+  SWAP_MEMBER(b);
+  SWAP_MEMBER(a);
+  SWAP_MEMBER(specr);
+  SWAP_MEMBER(specg);
+  SWAP_MEMBER(specb);
+  SWAP_MEMBER(spec);
+  SWAP_MEMBER(roughness);
+  SWAP_MEMBER(metallic);
+  SWAP_MEMBER(use_nodes);
+  SWAP_MEMBER(index);
+  SWAP_MEMBER(nodetree);
+  SWAP_MEMBER(line_col);
+  SWAP_MEMBER(line_priority);
+  SWAP_MEMBER(vcol_alpha);
+  SWAP_MEMBER(vcol_alpha);
+
+  SWAP_MEMBER(alpha_threshold);
+  SWAP_MEMBER(refract_depth);
+  SWAP_MEMBER(blend_method);
+  SWAP_MEMBER(blend_shadow);
+  SWAP_MEMBER(blend_flag);
+
+#undef SWAP_MEMBER
+
+  /* The node-tree from the clipboard is now assigned to the local material,
+   * however the ID's it references are still part of `temp_bmain`.
+   * These data-blocks references must be cleared or replaces with references to `bmain`.
+   * TODO(@ideasman42): support merging indirectly referenced data-blocks besides the material,
+   * this would be useful for pasting materials with node-groups between files. */
+  if (ma->nodetree) {
+    ma->nodetree->owner_id = nullptr;
+    /* Map remote ID's to local ones. */
+    BKE_library_foreach_ID_link(
+        bmain, &ma->nodetree->id, paste_material_nodetree_ids_relink_or_clear, bmain, IDWALK_NOP);
+  }
+  BKE_main_free(temp_bmain);
+
+  /* Important to run this when the embedded tree if freed,
+   * otherwise the depsgraph holds a reference to the (now freed) `ma->nodetree`.
+   * Also run this when a new node-tree is set to ensure it's accounted for.
+   * This also applies to animation data which is likely to be stored in the depsgraph.
+   * Always call instead of checking when it *might* be needed. */
+  DEG_relations_tag_update(bmain);
 
   DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
