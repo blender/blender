@@ -124,6 +124,7 @@ typedef struct Strip {
 
 typedef enum eSeqRetimingHandleFlag {
   SPEED_TRANSITION = (1 << 0),
+  FREEZE_FRAME = (1 << 1),
 } eSeqRetimingHandleFlag;
 
 typedef struct SeqRetimingHandle {

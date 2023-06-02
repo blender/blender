@@ -168,12 +168,30 @@ static int sequencer_retiming_handle_move_invoke(bContext *C, wmOperator *op, co
 
   RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
 
-  if ((event->modifier & KM_SHIFT) != 0) {
-    op->customdata = (void *)1;
-  }
+  /* Pass pressed modifier key to exec function. */
+  op->customdata = (void *)(event->modifier & (KM_SHIFT | KM_CTRL));
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
+}
+
+static SeqRetimingHandle *make_speed_transition(const Scene *scene,
+                                                Sequence *seq,
+                                                SeqRetimingHandle *handle,
+                                                const int offset)
+{
+  SeqRetimingHandle *transition_handle = SEQ_retiming_add_transition(
+      scene, seq, handle, abs(offset));
+  if (transition_handle == nullptr) {
+    return nullptr;
+  }
+
+  /* New gradient handle was created - update operator properties. */
+  if (offset < 0) {
+    return transition_handle;
+  }
+
+  return transition_handle + 1;
 }
 
 static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -198,20 +216,22 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
         return OPERATOR_RUNNING_MODAL;
       }
 
+      uint8_t invoke_modifier = (uint8_t)op->customdata;
       /* Add retiming gradient and move handle. */
-      if (op->customdata) {
-        SeqRetimingHandle *transition_handle = SEQ_retiming_add_transition(
-            scene, seq, handle, abs(offset));
-        /* New gradient handle was created - update operator properties. */
-        if (transition_handle != nullptr) {
-          if (offset < 0) {
-            handle = transition_handle;
-          }
-          else {
-            handle = transition_handle + 1;
-          }
-          RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
+      if (invoke_modifier != 0) {
+        SeqRetimingHandle *new_handle = nullptr;
+        if ((invoke_modifier & KM_SHIFT) != 0) {
+          new_handle = make_speed_transition(scene, seq, handle, offset);
         }
+        else if ((invoke_modifier & KM_CTRL) != 0) {
+          new_handle = SEQ_retiming_add_freeze_frame(scene, seq, handle, abs(offset));
+        }
+
+        if (new_handle != nullptr) {
+          handle = new_handle;
+          RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, new_handle));
+        }
+        op->customdata = (void *)0;
       }
 
       const bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);

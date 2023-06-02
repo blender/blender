@@ -191,6 +191,11 @@ bool SEQ_retiming_handle_is_transition_type(const SeqRetimingHandle *handle)
   return (handle->flag & SPEED_TRANSITION) != 0;
 }
 
+bool SEQ_retiming_handle_is_freeze_frame(const SeqRetimingHandle *handle)
+{
+  return (handle->flag & FREEZE_FRAME) != 0;
+}
+
 /* Check colinearity of 2 segments allowing for some imprecision.
  * `isect_seg_seg_v2_lambda_mu_db()` return value does not work well in this case. */
 
@@ -252,7 +257,9 @@ SeqRetimingHandle *SEQ_retiming_add_handle(const Scene *scene,
     return nullptr; /* Retiming handle already exists. */
   }
 
-  if (SEQ_retiming_handle_is_transition_type(start_handle)) {
+  if (SEQ_retiming_handle_is_transition_type(start_handle) ||
+      SEQ_retiming_handle_is_freeze_frame(start_handle))
+  {
     return nullptr;
   }
 
@@ -442,12 +449,39 @@ void SEQ_retiming_remove_handle(const Scene *scene, Sequence *seq, SeqRetimingHa
     seq_retiming_remove_transition(scene, seq, handle);
     return;
   }
+
   SeqRetimingHandle *previous_handle = handle - 1;
   if (SEQ_retiming_handle_is_transition_type(previous_handle)) {
     seq_retiming_remove_transition(scene, seq, previous_handle);
     return;
   }
+  else if (SEQ_retiming_handle_is_freeze_frame(previous_handle)) {
+    previous_handle->flag &= ~FREEZE_FRAME;
+  }
+
   seq_retiming_remove_handle_ex(seq, handle);
+}
+
+SeqRetimingHandle *SEQ_retiming_add_freeze_frame(const Scene *scene,
+                                                 Sequence *seq,
+                                                 SeqRetimingHandle *handle,
+                                                 const int offset)
+{
+  if (SEQ_retiming_handle_is_transition_type(handle) ||
+      SEQ_retiming_handle_is_transition_type(handle - 1))
+  {
+    return nullptr;
+  }
+
+  const int orig_timeline_frame = SEQ_retiming_handle_timeline_frame_get(scene, seq, handle);
+  const float orig_retiming_factor = handle->retiming_factor;
+  SeqRetimingHandle *new_handle = SEQ_retiming_add_handle(
+      scene, seq, orig_timeline_frame + offset);
+  /* Tag previous handle as freeze frame handle. This is only a convenient way to prevent creating
+   * speed transitions. When freeze frame is deleted, this flag should be cleared. */
+  new_handle->retiming_factor = orig_retiming_factor;
+  (new_handle - 1)->flag |= FREEZE_FRAME;
+  return new_handle;
 }
 
 SeqRetimingHandle *SEQ_retiming_add_transition(const Scene *scene,
@@ -457,6 +491,12 @@ SeqRetimingHandle *SEQ_retiming_add_transition(const Scene *scene,
 {
   if (SEQ_retiming_handle_is_transition_type(handle) ||
       SEQ_retiming_handle_is_transition_type(handle - 1))
+  {
+    return nullptr;
+  }
+
+  if (SEQ_retiming_handle_is_freeze_frame(handle) ||
+      SEQ_retiming_handle_is_freeze_frame(handle - 1))
   {
     return nullptr;
   }
