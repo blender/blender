@@ -245,7 +245,7 @@ typedef struct PlayAnimPict {
   int size;
   /** The allocated file-path to the image. */
   const char *filepath;
-  struct ImBuf *ibuf;
+  ImBuf *ibuf;
   struct anim *anim;
   int frame;
   int IB_flags;
@@ -257,7 +257,7 @@ typedef struct PlayAnimPict {
 #endif
 } PlayAnimPict;
 
-static struct ListBase picsbase = {NULL, NULL};
+static ListBase picsbase = {NULL, NULL};
 /* frames in memory - store them here to for easy deallocation later */
 static bool fromdisk = false;
 static double ptottime = 0.0, swaptime = 0.04;
@@ -268,7 +268,7 @@ static double fps_movie;
 #ifdef USE_FRAME_CACHE_LIMIT
 static struct {
   /** A list of #LinkData nodes referencing #PlayAnimPict to track cached frames. */
-  struct ListBase pics;
+  ListBase pics;
   /** Number if elements in `pics`. */
   int pics_len;
   /** Keep track of memory used by #g_frame_cache.pics when `g_frame_cache.memory_limit != 0`. */
@@ -536,7 +536,7 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
 }
 
 static void playanim_toscreen(
-    PlayState *ps, PlayAnimPict *picture, struct ImBuf *ibuf, int fontid, int fstep)
+    PlayState *ps, PlayAnimPict *picture, ImBuf *ibuf, int fontid, int fstep)
 {
   GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
@@ -639,7 +639,7 @@ static void build_pict_list_ex(
     struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
     if (anim) {
       int pic;
-      struct ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+      ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
       if (ibuf) {
         playanim_toscreen(ps, NULL, ibuf, fontid, fstep);
         IMB_freeImBuf(ibuf);
@@ -836,7 +836,7 @@ static void change_frame(PlayState *ps)
   }
 
   playanim_window_get_size(&sizex, &sizey);
-  i_last = ((struct PlayAnimPict *)picsbase.last)->frame;
+  i_last = ((PlayAnimPict *)picsbase.last)->frame;
   i = (i_last * ps->frame_cursor_x) / sizex;
   CLAMP(i, 0, i_last);
 
@@ -1398,7 +1398,7 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
  */
 static char *wm_main_playanim_intern(int argc, const char **argv)
 {
-  struct ImBuf *ibuf = NULL;
+  ImBuf *ibuf = NULL;
   static char filepath[FILE_MAX]; /* abused to return dropped file path */
   uint32_t maxwinx, maxwiny;
   int i;
@@ -1612,7 +1612,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
   {
-    struct anim *anim_movie = ((struct PlayAnimPict *)picsbase.first)->anim;
+    struct anim *anim_movie = ((PlayAnimPict *)picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
       float frs_sec_base = 1.0;

@@ -1086,8 +1086,8 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 #endif
 }
 
-static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                      struct Scene *scene,
+static void volume_evaluate_modifiers(Depsgraph *depsgraph,
+                                      Scene *scene,
                                       Object *object,
                                       GeometrySet &geometry_set)
 {
@@ -1121,7 +1121,7 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
+void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
 {
   volume_update_simplify_level(volume, depsgraph);
 
@@ -1160,7 +1160,7 @@ static Volume *take_volume_ownership_from_geometry_set(GeometrySet &geometry_set
   return volume;
 }
 
-void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
+void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);

@@ -755,8 +755,7 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
 /* ***************************************** */
 /* Driver Evaluation */
 
-AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
-                                                        float eval_time)
+AnimationEvalContext BKE_animsys_eval_context_construct(Depsgraph *depsgraph, float eval_time)
 {
   AnimationEvalContext ctx = {
       .depsgraph = depsgraph,
@@ -3004,7 +3003,7 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
                              ListBase *modifiers,
                              NlaEvalStrip *nes,
                              NlaEvalSnapshot *snapshot,
-                             const struct AnimationEvalContext *anim_eval_context,
+                             const AnimationEvalContext *anim_eval_context,
                              const bool flush_to_original)
 {
   nlastrip_evaluate(STRIP_EVAL_BLEND,
@@ -3023,7 +3022,7 @@ void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     ListBase *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,
-    const struct AnimationEvalContext *anim_eval_context)
+    const AnimationEvalContext *anim_eval_context)
 {
   nlastrip_evaluate(STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT,
                     ptr,
@@ -3040,7 +3039,7 @@ void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       ListBase *modifiers,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
-                                      const struct AnimationEvalContext *anim_eval_context)
+                                      const AnimationEvalContext *anim_eval_context)
 {
   nlastrip_evaluate(
       STRIP_EVAL_NOBLEND, ptr, channels, modifiers, nes, snapshot, anim_eval_context, false);
@@ -3694,10 +3693,7 @@ void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
 /* ---------------------- */
 
 NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
-    struct ListBase *cache,
-    struct PointerRNA *ptr,
-    struct AnimData *adt,
-    const AnimationEvalContext *anim_eval_context)
+    ListBase *cache, PointerRNA *ptr, AnimData *adt, const AnimationEvalContext *anim_eval_context)
 {
   /* No remapping needed if NLA is off or no action. */
   if ((adt == NULL) || (adt->action == NULL) || (adt->nla_tracks.first == NULL) ||
@@ -3733,13 +3729,13 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
   return ctx;
 }
 
-void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
-                                           struct PointerRNA *prop_ptr,
-                                           struct PropertyRNA *prop,
+void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
+                                           PointerRNA *prop_ptr,
+                                           PropertyRNA *prop,
                                            float *values,
                                            int count,
                                            int index,
-                                           const struct AnimationEvalContext *anim_eval_context,
+                                           const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BLI_bitmap *r_successful_remaps)
 {
@@ -3861,7 +3857,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   MEM_freeN(remap_domain);
 }
 
-void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
+void BKE_animsys_free_nla_keyframing_context_cache(ListBase *cache)
 {
   LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
     MEM_SAFE_FREE(ctx->eval_strip);

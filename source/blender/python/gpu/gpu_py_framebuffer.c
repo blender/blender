@@ -661,7 +661,7 @@ static PyGetSetDef pygpu_framebuffer__tp_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
+static PyMethodDef pygpu_framebuffer__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_framebuffer_bind, METH_NOARGS, pygpu_framebuffer_bind_doc},
     {"clear",
      (PyCFunction)pygpu_framebuffer_clear,

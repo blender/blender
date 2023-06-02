@@ -321,7 +321,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree, Set<const bNodeTree 
   return false;
 }
 
-static bool dependsOnTime(struct Scene * /*scene*/, ModifierData *md)
+static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -359,7 +359,7 @@ static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void 
   walk(userData, ob, md, "texture");
 }
 
-static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 

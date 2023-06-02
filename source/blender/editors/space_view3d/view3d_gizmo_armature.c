@@ -196,7 +196,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     /* need to set property here for undo. TODO: would prefer to do this in _init. */
     WM_gizmo_target_property_def_func(gz,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_bbone_offset_get,
                                           .value_set_fn = gizmo_bbone_offset_set,
                                           .range_get_fn = NULL,

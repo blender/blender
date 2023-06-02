@@ -293,9 +293,9 @@ static void gpencil_engine_free()
 }
 
 static void gpencil_render_to_image(void * /*vedata*/,
-                                    struct RenderEngine * /*engine*/,
-                                    struct RenderLayer * /*layer*/,
-                                    const struct rcti * /*rect*/)
+                                    RenderEngine * /*engine*/,
+                                    RenderLayer * /*layer*/,
+                                    const rcti * /*rect*/)
 {
 }
 

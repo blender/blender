@@ -749,7 +749,7 @@ static PyGetSetDef Euler_getseters[] = {
 /** \name Euler Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Euler_methods[] = {
+static PyMethodDef Euler_methods[] = {
     {"zero", (PyCFunction)Euler_zero, METH_NOARGS, Euler_zero_doc},
     {"to_matrix", (PyCFunction)Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
     {"to_quaternion", (PyCFunction)Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},

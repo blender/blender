@@ -33,7 +33,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  struct ColorBand *coba = (ColorBand *)node->storage;
+  ColorBand *coba = (ColorBand *)node->storage;
   float *array, layer;
   int size;
 

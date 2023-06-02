@@ -444,7 +444,7 @@ static void gizmo_mesh_spin_init_message_subscribe(const bContext *C,
                               __func__);
 }
 
-void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
+void MESH_GGT_spin(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "Mesh Spin Init";
   gzgt->idname = "MESH_GGT_spin";
@@ -485,17 +485,17 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 
 typedef struct GizmoGroupData_SpinRedo {
   /* Translate XYZ. */
-  struct wmGizmo *translate_c;
+  wmGizmo *translate_c;
   /* Spin angle */
-  struct wmGizmo *angle_z;
+  wmGizmo *angle_z;
 
   /* Translate XY constrained ('orient_mat'). */
-  struct wmGizmo *translate_xy[2];
+  wmGizmo *translate_xy[2];
   /* Rotate XY constrained ('orient_mat'). */
-  struct wmGizmo *rotate_xy[2];
+  wmGizmo *rotate_xy[2];
 
   /* Rotate on view axis. */
-  struct wmGizmo *rotate_view;
+  wmGizmo *rotate_view;
 
   struct {
     float plane_co[3];
@@ -953,7 +953,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   {
     WM_gizmo_target_property_def_func(ggd->translate_c,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_spin_prop_translate_get,
                                           .value_set_fn = gizmo_spin_prop_translate_set,
                                           .range_get_fn = NULL,
@@ -962,7 +962,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
     WM_gizmo_target_property_def_func(ggd->rotate_view,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_spin_prop_axis_angle_get,
                                           .value_set_fn = gizmo_spin_prop_axis_angle_set,
                                           .range_get_fn = NULL,
@@ -972,7 +972,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     for (int i = 0; i < 2; i++) {
       WM_gizmo_target_property_def_func(ggd->rotate_xy[i],
                                         "offset",
-                                        &(const struct wmGizmoPropertyFnParams){
+                                        &(const wmGizmoPropertyFnParams){
                                             .value_get_fn = gizmo_spin_prop_axis_angle_get,
                                             .value_set_fn = gizmo_spin_prop_axis_angle_set,
                                             .range_get_fn = NULL,
@@ -980,7 +980,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
                                         });
       WM_gizmo_target_property_def_func(ggd->translate_xy[i],
                                         "offset",
-                                        &(const struct wmGizmoPropertyFnParams){
+                                        &(const wmGizmoPropertyFnParams){
                                             .value_get_fn = gizmo_spin_prop_depth_get,
                                             .value_set_fn = gizmo_spin_prop_depth_set,
                                             .range_get_fn = NULL,
@@ -990,7 +990,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
     WM_gizmo_target_property_def_func(ggd->angle_z,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_spin_prop_angle_get,
                                           .value_set_fn = gizmo_spin_prop_angle_set,
                                           .range_get_fn = NULL,
@@ -1046,7 +1046,7 @@ static void gizmo_mesh_spin_redo_draw_prepare(const bContext *UNUSED(C), wmGizmo
   }
 }
 
-void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
+void MESH_GGT_spin_redo(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "Mesh Spin Redo";
   gzgt->idname = "MESH_GGT_spin_redo";

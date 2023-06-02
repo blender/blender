@@ -88,7 +88,7 @@ typedef struct tGP_Selected {
 
 /* Context for brush operators */
 typedef struct tGP_BrushWeightpaintData {
-  struct Main *bmain;
+  Main *bmain;
   Scene *scene;
   Object *object;
 
@@ -181,12 +181,12 @@ static void gpencil_select_buffer_ensure(tGP_BrushWeightpaintData *gso, const bo
    * This is done in order to keep cache small and improve speed. */
   if ((gso->pbuffer_used + 1) > gso->pbuffer_size) {
     if ((gso->pbuffer_size == 0) || (gso->pbuffer == NULL)) {
-      gso->pbuffer = MEM_callocN(sizeof(struct tGP_Selected) * GP_SELECT_BUFFER_CHUNK, __func__);
+      gso->pbuffer = MEM_callocN(sizeof(tGP_Selected) * GP_SELECT_BUFFER_CHUNK, __func__);
       gso->pbuffer_size = GP_SELECT_BUFFER_CHUNK;
     }
     else {
       gso->pbuffer_size += GP_SELECT_BUFFER_CHUNK;
-      gso->pbuffer = MEM_recallocN(gso->pbuffer, sizeof(struct tGP_Selected) * gso->pbuffer_size);
+      gso->pbuffer = MEM_recallocN(gso->pbuffer, sizeof(tGP_Selected) * gso->pbuffer_size);
     }
   }
 
@@ -204,10 +204,10 @@ static void gpencil_select_buffer_ensure(tGP_BrushWeightpaintData *gso, const bo
 
     /* Stroke point buffer. */
     if (gso->fn_pbuffer == NULL) {
-      gso->fn_pbuffer = MEM_callocN(sizeof(struct tGP_Selected) * gso->fn_size, __func__);
+      gso->fn_pbuffer = MEM_callocN(sizeof(tGP_Selected) * gso->fn_size, __func__);
     }
     else {
-      gso->fn_pbuffer = MEM_recallocN(gso->fn_pbuffer, sizeof(struct tGP_Selected) * gso->fn_size);
+      gso->fn_pbuffer = MEM_recallocN(gso->fn_pbuffer, sizeof(tGP_Selected) * gso->fn_size);
     }
 
     /* Stroke point hash table (for duplicate checking.) */

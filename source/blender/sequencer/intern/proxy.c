@@ -189,7 +189,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   return true;
 }
 
-bool SEQ_can_use_proxy(const struct SeqRenderData *context, Sequence *seq, int psize)
+bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize)
 {
   if (seq->strip->proxy == NULL || !context->use_proxies) {
     return false;
@@ -422,7 +422,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
                                Scene *scene,
                                Sequence *seq,
-                               struct GSet *file_list,
+                               GSet *file_list,
                                ListBase *queue,
                                bool build_only_on_bad_performance)
 {
@@ -587,7 +587,7 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
   MEM_freeN(context);
 }
 
-void SEQ_proxy_set(struct Sequence *seq, bool value)
+void SEQ_proxy_set(Sequence *seq, bool value)
 {
   if (value) {
     seq->flag |= SEQ_USE_PROXY;

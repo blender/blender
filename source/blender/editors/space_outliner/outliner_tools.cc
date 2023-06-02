@@ -823,7 +823,7 @@ static void merged_element_search_update_fn(const bContext * /*C*/,
 }
 
 /* Activate an element from the merged element search menu */
-static void merged_element_search_exec_fn(struct bContext *C, void * /*arg1*/, void *element)
+static void merged_element_search_exec_fn(bContext *C, void * /*arg1*/, void *element)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   TreeElement *te = (TreeElement *)element;
@@ -2589,7 +2589,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   const Base *basact_prev = BKE_view_layer_active_base_get(view_layer);

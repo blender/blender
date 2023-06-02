@@ -165,7 +165,7 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
 }
 
 Mesh *MOD_deform_mesh_eval_get(Object *ob,
-                               struct BMEditMesh *em,
+                               BMEditMesh *em,
                                Mesh *mesh,
                                const float (*vertexCos)[3],
                                const int verts_num,
@@ -223,7 +223,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
 }
 
 void MOD_get_vgroup(
-    Object *ob, struct Mesh *mesh, const char *name, const MDeformVert **dvert, int *defgrp_index)
+    Object *ob, Mesh *mesh, const char *name, const MDeformVert **dvert, int *defgrp_index)
 {
   if (mesh) {
     *defgrp_index = BKE_id_defgroup_name_index(&mesh->id, name);
@@ -245,7 +245,7 @@ void MOD_get_vgroup(
   }
 }
 
-void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
+void MOD_depsgraph_update_object_bone_relation(DepsNodeHandle *node,
                                                Object *object,
                                                const char *bonename,
                                                const char *description)

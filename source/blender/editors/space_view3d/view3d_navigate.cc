@@ -1980,11 +1980,8 @@ ViewOpsData *ED_view3d_navigation_init(bContext *C)
 }
 
 /* Checks and initializes the navigation modal operation. */
-static int view3d_navigation_invoke(bContext *C,
-                                    ViewOpsData *vod,
-                                    const wmEvent *event,
-                                    struct wmKeyMapItem *kmi,
-                                    eV3D_OpMode nav_type)
+static int view3d_navigation_invoke(
+    bContext *C, ViewOpsData *vod, const wmEvent *event, wmKeyMapItem *kmi, eV3D_OpMode nav_type)
 {
   switch (nav_type) {
     case V3D_OP_MODE_ZOOM:

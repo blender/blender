@@ -79,7 +79,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 /** \name UI Templates
  * \{ */
 
-void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
+void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (!obedit || obedit->type != OB_MESH) {
@@ -120,7 +120,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }
 
-static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
+static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -144,7 +144,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
   }
 }
 
-void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C)
+void uiTemplateHeader3D_mode(uiLayout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

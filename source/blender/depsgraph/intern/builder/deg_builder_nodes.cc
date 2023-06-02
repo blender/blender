@@ -2259,8 +2259,8 @@ void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_la
 /* **** ID traversal callbacks functions **** */
 
 void DepsgraphNodeBuilder::modifier_walk(void *user_data,
-                                         struct Object * /*object*/,
-                                         struct ID **idpoin,
+                                         Object * /*object*/,
+                                         ID **idpoin,
                                          int /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;

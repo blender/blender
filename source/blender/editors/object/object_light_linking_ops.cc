@@ -257,7 +257,7 @@ static int light_linking_unlink_from_collection_exec(bContext *C, wmOperator *op
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_light_linking_unlink_from_collection(struct wmOperatorType *ot)
+void OBJECT_OT_light_linking_unlink_from_collection(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove From Light Linking Collection";

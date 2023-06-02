@@ -72,9 +72,7 @@ static bool seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
   return true;
 }
 
-void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
-                                             ListBase *seqbasep,
-                                             Sequence *seq)
+void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Sequence *seq)
 {
   SeqUniqueInfo sui;
   char *dot;

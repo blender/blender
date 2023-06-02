@@ -20,7 +20,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags)
+bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags)
 {
   errno = 0;
 

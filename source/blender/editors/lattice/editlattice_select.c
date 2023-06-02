@@ -60,7 +60,7 @@ static void bpoint_select_set(BPoint *bp, bool select)
   }
 }
 
-bool ED_lattice_deselect_all_multi_ex(struct Base **bases, const uint bases_len)
+bool ED_lattice_deselect_all_multi_ex(Base **bases, const uint bases_len)
 {
   bool changed_multi = false;
   for (uint base_index = 0; base_index < bases_len; base_index++) {
@@ -72,7 +72,7 @@ bool ED_lattice_deselect_all_multi_ex(struct Base **bases, const uint bases_len)
   return changed_multi;
 }
 
-bool ED_lattice_deselect_all_multi(struct bContext *C)
+bool ED_lattice_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;

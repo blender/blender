@@ -710,10 +710,10 @@ static void do_gammacross_effect_float(
   }
 }
 
-static struct ImBuf *gammacross_init_execution(const SeqRenderData *context,
-                                               ImBuf *ibuf1,
-                                               ImBuf *ibuf2,
-                                               ImBuf *ibuf3)
+static ImBuf *gammacross_init_execution(const SeqRenderData *context,
+                                        ImBuf *ibuf1,
+                                        ImBuf *ibuf2,
+                                        ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
   build_gammatabs();
@@ -3307,7 +3307,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   TextVars *data = seq->effectdata;
   int width = out->x;
   int height = out->y;
-  struct ColorManagedDisplay *display;
+  ColorManagedDisplay *display;
   const char *display_device;
   int font = blf_mono_font_render;
   int line_height;
@@ -3491,10 +3491,10 @@ static void get_default_fac_fade(const Scene *scene,
   *fac /= SEQ_time_strip_length_get(scene, seq);
 }
 
-static struct ImBuf *init_execution(const SeqRenderData *context,
-                                    ImBuf *ibuf1,
-                                    ImBuf *ibuf2,
-                                    ImBuf *ibuf3)
+static ImBuf *init_execution(const SeqRenderData *context,
+                             ImBuf *ibuf1,
+                             ImBuf *ibuf2,
+                             ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 

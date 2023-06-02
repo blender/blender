@@ -384,7 +384,7 @@ static void action_flip_pchan(Object *ob_arm,
 /**
  * Swap all RNA paths left/right.
  */
-static void action_flip_pchan_rna_paths(struct bAction *act)
+static void action_flip_pchan_rna_paths(bAction *act)
 {
   const char *path_pose_prefix = "pose.bones[\"";
   const int path_pose_prefix_len = strlen(path_pose_prefix);
@@ -447,7 +447,7 @@ static void action_flip_pchan_rna_paths(struct bAction *act)
   }
 }
 
-void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm)
+void BKE_action_flip_with_pose(bAction *act, Object *ob_arm)
 {
   struct FCurvePathCache *fcache = BKE_fcurve_pathcache_create(&act->curves);
   int i;

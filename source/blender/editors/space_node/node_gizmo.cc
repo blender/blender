@@ -202,7 +202,7 @@ struct NodeCropWidgetGroup {
   } update_data;
 };
 
-static void gizmo_node_crop_update(struct NodeCropWidgetGroup *crop_group)
+static void gizmo_node_crop_update(NodeCropWidgetGroup *crop_group)
 {
   RNA_property_update(
       crop_group->update_data.context, &crop_group->update_data.ptr, crop_group->update_data.prop);

@@ -62,45 +62,43 @@ static PrimitiveGizmo3D *gizmo_primitive_rna_find_operator(PointerRNA *ptr)
   return (PrimitiveGizmo3D *)gizmo_find_from_properties(ptr->data, SPACE_TYPE_ANY, RGN_TYPE_ANY);
 }
 
-static int gizmo_primitive_rna__draw_style_get_fn(struct PointerRNA *ptr,
-                                                  struct PropertyRNA *UNUSED(prop))
+static int gizmo_primitive_rna__draw_style_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->draw_style;
 }
 
-static void gizmo_primitive_rna__draw_style_set_fn(struct PointerRNA *ptr,
-                                                   struct PropertyRNA *UNUSED(prop),
+static void gizmo_primitive_rna__draw_style_set_fn(PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop),
                                                    int value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   gz_prim->draw_style = value;
 }
 
-static float gizmo_primitive_rna__arc_inner_factor_get_fn(struct PointerRNA *ptr,
-                                                          struct PropertyRNA *UNUSED(prop))
+static float gizmo_primitive_rna__arc_inner_factor_get_fn(PointerRNA *ptr,
+                                                          PropertyRNA *UNUSED(prop))
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->arc_inner_factor;
 }
 
-static void gizmo_primitive_rna__arc_inner_factor_set_fn(struct PointerRNA *ptr,
-                                                         struct PropertyRNA *UNUSED(prop),
+static void gizmo_primitive_rna__arc_inner_factor_set_fn(PointerRNA *ptr,
+                                                         PropertyRNA *UNUSED(prop),
                                                          float value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   gz_prim->arc_inner_factor = value;
 }
 
-static bool gizmo_primitive_rna__draw_inner_get_fn(struct PointerRNA *ptr,
-                                                   struct PropertyRNA *UNUSED(prop))
+static bool gizmo_primitive_rna__draw_inner_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->draw_inner;
 }
 
-static void gizmo_primitive_rna__draw_inner_set_fn(struct PointerRNA *ptr,
-                                                   struct PropertyRNA *UNUSED(prop),
+static void gizmo_primitive_rna__draw_inner_set_fn(PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop),
                                                    bool value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);

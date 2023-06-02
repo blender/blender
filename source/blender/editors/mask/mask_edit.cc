@@ -229,7 +229,7 @@ void ED_mask_view_lock_state_restore_no_jump(const bContext *C, const MaskViewLo
      * calculation of new offset for the view for an updated state of mask to cancel the offset out
      * by modifying locked offset. In order to do such calculation mask needs to be evaluated after
      * modification by an operator. */
-    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     (void)depsgraph;
 
     ED_clip_view_lock_state_restore_no_jump(C, &state->space_clip_state);

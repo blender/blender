@@ -121,7 +121,7 @@ struct DrawInfo {
       short event_value;
       int icon;
       /* Allow lookups. */
-      struct DrawInfo *next;
+      DrawInfo *next;
     } input;
   } data;
 };

@@ -166,7 +166,7 @@ static bool do_write_image_or_movie(Render *re,
 
 /* default callbacks, set in each new render */
 static void result_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
-static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, struct rcti * /*rect*/) {}
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
 static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
@@ -227,9 +227,7 @@ void RE_FreeRenderResult(RenderResult *rr)
   render_result_free(rr);
 }
 
-RenderBuffer *RE_RenderLayerGetPassBuffer(struct RenderLayer *rl,
-                                          const char *name,
-                                          const char *viewname)
+RenderBuffer *RE_RenderLayerGetPassBuffer(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
   return rpass ? &rpass->buffer : nullptr;
@@ -1259,7 +1257,7 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
 static void do_render_sequencer(Render *re)
 {
   static int recurs_depth = 0;
-  struct ImBuf *out;
+  ImBuf *out;
   RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
   int cfra = re->r.cfra;
   SeqRenderData context;
@@ -2542,7 +2540,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
   }
 }
 
-bool RE_layers_have_name(struct RenderResult *result)
+bool RE_layers_have_name(RenderResult *result)
 {
   switch (BLI_listbase_count_at_most(&result->layers, 2)) {
     case 0:
@@ -2554,7 +2552,7 @@ bool RE_layers_have_name(struct RenderResult *result)
   }
 }
 
-bool RE_passes_have_name(struct RenderLayer *rl)
+bool RE_passes_have_name(RenderLayer *rl)
 {
   LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
     if (!STREQ(rp->name, "Combined")) {

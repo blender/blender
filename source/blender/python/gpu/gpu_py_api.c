@@ -33,7 +33,7 @@
 PyDoc_STRVAR(pygpu_doc,
              "This module provides Python wrappers for the GPU implementation in Blender.\n"
              "Some higher level functions can be found in the `gpu_extras` module.");
-static struct PyModuleDef pygpu_module_def = {
+static PyModuleDef pygpu_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu",
     /*m_doc*/ pygpu_doc,

@@ -849,7 +849,7 @@ static int ptcache_rigidbody_totpoint(void *rb_v, int UNUSED(cfra))
   return rbw->numbodies;
 }
 
-static void ptcache_rigidbody_error(const struct ID *UNUSED(owner_id),
+static void ptcache_rigidbody_error(const ID *UNUSED(owner_id),
                                     void *UNUSED(rb_v),
                                     const char *UNUSED(message))
 {
@@ -995,7 +995,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
   pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
-void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct FluidModifierData *fmd)
+void BKE_ptcache_id_from_smoke(PTCacheID *pid, Object *ob, FluidModifierData *fmd)
 {
   FluidDomainSettings *fds = fmd->domain;
 
@@ -1260,7 +1260,7 @@ static bool ptcache_object_has_cb(PTCacheID *UNUSED(pid), void *UNUSED(userdata)
   return false;
 }
 
-bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis)
+bool BKE_ptcache_object_has(Scene *scene, Object *ob, int duplis)
 {
   return !foreach_object_ptcache(scene, ob, duplis, ptcache_object_has_cb, NULL);
 }

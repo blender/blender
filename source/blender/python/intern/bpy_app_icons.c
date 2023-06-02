@@ -147,7 +147,7 @@ static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args, P
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef M_AppIcons_methods[] = {
+static PyMethodDef M_AppIcons_methods[] = {
     {"new_triangles",
      (PyCFunction)bpy_app_icons_new_triangles,
      METH_VARARGS | METH_KEYWORDS,
@@ -163,7 +163,7 @@ static struct PyMethodDef M_AppIcons_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_AppIcons_module_def = {
+static PyModuleDef M_AppIcons_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.app.icons",
     /*m_doc*/ NULL,

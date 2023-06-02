@@ -175,13 +175,13 @@ struct UniqueName_Map {
   }
 };
 
-struct UniqueName_Map *BKE_main_namemap_create()
+UniqueName_Map *BKE_main_namemap_create()
 {
-  struct UniqueName_Map *map = MEM_new<UniqueName_Map>(__func__);
+  UniqueName_Map *map = MEM_new<UniqueName_Map>(__func__);
   return map;
 }
 
-void BKE_main_namemap_destroy(struct UniqueName_Map **r_name_map)
+void BKE_main_namemap_destroy(UniqueName_Map **r_name_map)
 {
 #ifdef DEBUG_PRINT_MEMORY_USAGE
   int64_t size_sets = 0;
@@ -214,7 +214,7 @@ void BKE_main_namemap_clear(Main *bmain)
   }
 }
 
-static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, ID *ignore_id)
+static void main_namemap_populate(UniqueName_Map *name_map, Main *bmain, ID *ignore_id)
 {
   BLI_assert_msg(name_map != nullptr, "name_map should not be null");
   for (UniqueName_TypeMap &type_map : name_map->type_maps) {
@@ -264,7 +264,7 @@ static UniqueName_Map *get_namemap_for(Main *bmain, ID *id, bool ensure_created)
   return bmain->name_map;
 }
 
-bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
+bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name)
 {
 #ifndef __GNUC__ /* GCC warns with `nonull-compare`. */
   BLI_assert(bmain != nullptr);
@@ -349,7 +349,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
   return is_name_changed;
 }
 
-void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char *name)
+void BKE_main_namemap_remove_name(Main *bmain, ID *id, const char *name)
 {
 #ifndef __GNUC__ /* GCC warns with `nonull-compare`. */
   BLI_assert(bmain != nullptr);
@@ -361,7 +361,7 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
     return;
   }
 
-  struct UniqueName_Map *name_map = get_namemap_for(bmain, id, false);
+  UniqueName_Map *name_map = get_namemap_for(bmain, id, false);
   if (name_map == nullptr) {
     return;
   }

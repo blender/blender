@@ -564,7 +564,7 @@ void DNA_sdna_current_init(void)
   g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
 }
 
-const struct SDNA *DNA_sdna_current_get(void)
+const SDNA *DNA_sdna_current_get(void)
 {
   BLI_assert(g_sdna != NULL);
   return g_sdna;
@@ -1870,7 +1870,7 @@ void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
   DNA_sdna_alias_data_ensure(sdna);
 #ifdef WITH_DNA_GHASH
   /* create a ghash lookup to speed up */
-  struct GHash *structs_map = BLI_ghash_str_new_ex(__func__, sdna->structs_len);
+  GHash *structs_map = BLI_ghash_str_new_ex(__func__, sdna->structs_len);
   for (intptr_t nr = 0; nr < sdna->structs_len; nr++) {
     const SDNA_Struct *struct_info = sdna->structs[nr];
     BLI_ghash_insert(

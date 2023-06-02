@@ -142,9 +142,9 @@ static void eevee_instance_free(void *instance)
 }
 
 static void eevee_render_to_image(void *vedata,
-                                  struct RenderEngine *engine,
-                                  struct RenderLayer *layer,
-                                  const struct rcti * /*rect*/)
+                                  RenderEngine *engine,
+                                  RenderLayer *layer,
+                                  const rcti * /*rect*/)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
@@ -170,7 +170,7 @@ static void eevee_render_to_image(void *vedata,
   ved->instance = instance;
 }
 
-static void eevee_store_metadata(void *vedata, struct RenderResult *render_result)
+static void eevee_store_metadata(void *vedata, RenderResult *render_result)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;

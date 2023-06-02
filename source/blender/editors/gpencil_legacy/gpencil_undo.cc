@@ -33,10 +33,10 @@
 #include "gpencil_intern.h"
 
 typedef struct bGPundonode {
-  struct bGPundonode *next, *prev;
+  bGPundonode *next, *prev;
 
   char name[BKE_UNDO_STR_MAX];
-  struct bGPdata *gpd;
+  bGPdata *gpd;
 } bGPundonode;
 
 static ListBase undo_nodes = {nullptr, nullptr};

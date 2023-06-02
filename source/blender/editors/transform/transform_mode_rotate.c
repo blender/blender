@@ -405,7 +405,7 @@ static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
   mul_m4_m4m4(mat_xform, mat4, mat_xform);
 }
 
-static void initRotation(TransInfo *t, struct wmOperator *UNUSED(op))
+static void initRotation(TransInfo *t, wmOperator *UNUSED(op))
 {
   if (t->spacetype == SPACE_ACTION) {
     BKE_report(t->reports, RPT_ERROR, "Rotation is not supported in the Dope Sheet Editor");

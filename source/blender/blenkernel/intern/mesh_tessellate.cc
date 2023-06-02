@@ -265,10 +265,9 @@ static void looptris_calc_all(const Span<float3> positions,
                                          reinterpret_cast<const float(*)[3]>(poly_normals.data()));
     return;
   }
-  struct TessellationUserTLS tls_data_dummy = {nullptr};
+  TessellationUserTLS tls_data_dummy = {nullptr};
 
-  struct TessellationUserData data {
-  };
+  TessellationUserData data{};
   data.corner_verts = corner_verts;
   data.polys = polys;
   data.positions = positions;

@@ -26,7 +26,7 @@
 
 GPUUniformBuf *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd)
 {
-  struct GPUUniformBuf **ubo = BLI_memblock_alloc(wpd->material_ubo);
+  GPUUniformBuf **ubo = BLI_memblock_alloc(wpd->material_ubo);
   if (*ubo == NULL) {
     *ubo = GPU_uniformbuf_create(sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL);
   }
@@ -52,7 +52,7 @@ static void workbench_view_layer_data_free(void *storage)
   BLI_memblock_destroy(vldata->material_ubo, workbench_ubo_free);
 }
 
-static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
+static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(ViewLayer *view_layer)
 {
   WORKBENCH_ViewLayerData **vldata = (WORKBENCH_ViewLayerData **)
       DRW_view_layer_engine_data_ensure_ex(view_layer,

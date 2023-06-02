@@ -27,7 +27,7 @@
 #include "BPY_extern.h"
 
 void bpy_app_generic_callback(struct Main *main,
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg);
 
@@ -344,7 +344,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main),
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg)
 {

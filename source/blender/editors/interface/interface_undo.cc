@@ -23,7 +23,7 @@
  * \{ */
 
 struct uiUndoStack_Text_State {
-  struct uiUndoStack_Text_State *next, *prev;
+  uiUndoStack_Text_State *next, *prev;
   int cursor_index;
   char text[0];
 };

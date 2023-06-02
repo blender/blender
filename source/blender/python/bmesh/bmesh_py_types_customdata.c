@@ -680,12 +680,12 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
   return Py_INCREF_RET(def);
 }
 
-static struct PyMethodDef bpy_bmlayeritem_methods[] = {
+static PyMethodDef bpy_bmlayeritem_methods[] = {
     {"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from, METH_O, bpy_bmlayeritem_copy_from_doc},
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmelemseq_methods[] = {
+static PyMethodDef bpy_bmelemseq_methods[] = {
     {"verify",
      (PyCFunction)bpy_bmlayercollection_verify,
      METH_NOARGS,

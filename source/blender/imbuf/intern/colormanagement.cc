@@ -215,12 +215,12 @@ typedef struct ColormanageCacheData {
 } ColormanageCacheData;
 
 typedef struct ColormanageCache {
-  struct MovieCache *moviecache;
+  MovieCache *moviecache;
 
   ColormanageCacheData *data;
 } ColormanageCache;
 
-static struct MovieCache *colormanage_moviecache_get(const ImBuf *ibuf)
+static MovieCache *colormanage_moviecache_get(const ImBuf *ibuf)
 {
   if (!ibuf->colormanage_cache) {
     return nullptr;
@@ -255,14 +255,14 @@ static bool colormanage_hashcmp(const void *av, const void *bv)
   return ((a->view != b->view) || (a->display != b->display));
 }
 
-static struct MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
+static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
   if (!ibuf->colormanage_cache) {
     ibuf->colormanage_cache = MEM_cnew<ColormanageCache>("imbuf colormanage cache");
   }
 
   if (!ibuf->colormanage_cache->moviecache) {
-    struct MovieCache *moviecache;
+    MovieCache *moviecache;
 
     moviecache = IMB_moviecache_create("colormanage cache",
                                        sizeof(ColormanageCacheKey),
@@ -322,7 +322,7 @@ static ImBuf *colormanage_cache_get_ibuf(ImBuf *ibuf,
                                          void **cache_handle)
 {
   ImBuf *cache_ibuf;
-  struct MovieCache *moviecache = colormanage_moviecache_get(ibuf);
+  MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
   if (!moviecache) {
     /* If there's no moviecache it means no color management was applied
@@ -402,7 +402,7 @@ static void colormanage_cache_put(ImBuf *ibuf,
   ImBuf *cache_ibuf;
   ColormanageCacheData *cache_data;
   int view_flag = 1 << (view_settings->view - 1);
-  struct MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
+  MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
   CurveMapping *curve_mapping = view_settings->curve_mapping;
   int curve_mapping_timestamp = curve_mapping ? curve_mapping->changed_timestamp : 0;
 
@@ -758,7 +758,7 @@ void colormanage_cache_free(ImBuf *ibuf)
 
   if (ibuf->colormanage_cache) {
     ColormanageCacheData *cache_data = colormanage_cachedata_get(ibuf);
-    struct MovieCache *moviecache = colormanage_moviecache_get(ibuf);
+    MovieCache *moviecache = colormanage_moviecache_get(ibuf);
 
     if (cache_data) {
       MEM_freeN(cache_data);
@@ -2142,12 +2142,8 @@ void IMB_colormanagement_colorspace_to_scene_linear_v4(float pixel[4],
   }
 }
 
-void IMB_colormanagement_colorspace_to_scene_linear(float *buffer,
-                                                    int width,
-                                                    int height,
-                                                    int channels,
-                                                    struct ColorSpace *colorspace,
-                                                    bool predivide)
+void IMB_colormanagement_colorspace_to_scene_linear(
+    float *buffer, int width, int height, int channels, ColorSpace *colorspace, bool predivide)
 {
   OCIO_ConstCPUProcessorRcPtr *processor;
 
@@ -2186,7 +2182,7 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
                                                const int offset_y,
                                                const int width,
                                                const int height,
-                                               const struct ImBuf *ibuf,
+                                               const ImBuf *ibuf,
                                                const bool store_premultiplied)
 {
   /* Byte buffer storage, only for sRGB, scene linear and data texture since other
@@ -2269,7 +2265,7 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
                                                 const int offset_y,
                                                 const int width,
                                                 const int height,
-                                                const struct ImBuf *ibuf,
+                                                const ImBuf *ibuf,
                                                 const bool store_premultiplied)
 {
   /* Float texture are stored in scene linear color space, with premultiplied
@@ -2915,7 +2911,7 @@ const char *IMB_colormanagement_display_get_none_name(void)
 }
 
 const char *IMB_colormanagement_display_get_default_view_transform_name(
-    struct ColorManagedDisplay *display)
+    ColorManagedDisplay *display)
 {
   return colormanage_view_get_default_name(display);
 }
@@ -3310,7 +3306,7 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items,
   }
 }
 
-void IMB_colormanagement_look_items_add(struct EnumPropertyItem **items,
+void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
                                         int *totitem,
                                         const char *view_name)
 {
@@ -3688,14 +3684,14 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf,
 }
 
 void IMB_partial_display_buffer_update_threaded(
-    struct ImBuf *ibuf,
+    ImBuf *ibuf,
     const float *linear_buffer,
     const uchar *byte_buffer,
     int stride,
     int offset_x,
     int offset_y,
-    const struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings,
     int xmin,
     int ymin,
     int xmax,
@@ -3832,7 +3828,7 @@ void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, 
   }
 }
 
-void IMB_colormanagement_processor_apply_pixel(struct ColormanageProcessor *cm_processor,
+void IMB_colormanagement_processor_apply_pixel(ColormanageProcessor *cm_processor,
                                                float *pixel,
                                                int channels)
 {
@@ -4021,7 +4017,7 @@ bool IMB_colormanagement_support_glsl_draw(const ColorManagedViewSettings * /*vi
 bool IMB_colormanagement_setup_glsl_draw_from_space(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings,
-    struct ColorSpace *from_colorspace,
+    ColorSpace *from_colorspace,
     float dither,
     bool predivide,
     bool do_overlay_merge)
@@ -4085,7 +4081,7 @@ bool IMB_colormanagement_setup_glsl_draw(const ColorManagedViewSettings *view_se
 }
 
 bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C,
-                                                        struct ColorSpace *from_colorspace,
+                                                        ColorSpace *from_colorspace,
                                                         float dither,
                                                         bool predivide)
 {

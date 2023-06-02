@@ -151,7 +151,7 @@ static PyObject *bpy_app_timers_is_registered(PyObject *UNUSED(self), PyObject *
   return PyBool_FromLong(ret);
 }
 
-static struct PyMethodDef M_AppTimers_methods[] = {
+static PyMethodDef M_AppTimers_methods[] = {
     {"register",
      (PyCFunction)bpy_app_timers_register,
      METH_VARARGS | METH_KEYWORDS,
@@ -164,7 +164,7 @@ static struct PyMethodDef M_AppTimers_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_AppTimers_module_def = {
+static PyModuleDef M_AppTimers_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.app.timers",
     /*m_doc*/ NULL,

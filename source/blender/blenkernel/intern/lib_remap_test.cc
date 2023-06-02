@@ -37,7 +37,7 @@ namespace blender::bke::tests {
 class TestData {
  public:
   Main *bmain = nullptr;
-  struct bContext *C = nullptr;
+  bContext *C = nullptr;
 
   virtual void setup()
   {

@@ -70,7 +70,7 @@ static void wm_drag_free_path_data(wmDragPath **path_data);
 /* when editors become configurable, they can add own dropbox definitions */
 
 struct wmDropBoxMap {
-  struct wmDropBoxMap *next, *prev;
+  wmDropBoxMap *next, *prev;
 
   ListBase dropboxes;
   short spaceid, regionid;

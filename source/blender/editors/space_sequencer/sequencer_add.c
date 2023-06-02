@@ -467,7 +467,7 @@ static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, const w
   return sequencer_add_scene_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -588,7 +588,7 @@ static const EnumPropertyItem *strip_new_sequencer_enum_itemf(bContext *C,
   return item;
 }
 
-void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot)
+void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
@@ -649,7 +649,7 @@ static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, con
   return sequencer_add_movieclip_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -713,7 +713,7 @@ static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, const wm
   return sequencer_add_mask_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -1039,7 +1039,7 @@ static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_movie_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1172,7 +1172,7 @@ static int sequencer_add_sound_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1372,7 +1372,7 @@ static int sequencer_add_image_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1532,7 +1532,7 @@ static char *sequencer_add_effect_strip_desc(bContext *UNUSED(C),
   return NULL;
 }
 
-void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

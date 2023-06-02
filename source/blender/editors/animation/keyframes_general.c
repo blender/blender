@@ -90,7 +90,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
 /** \name Various Tools
  * \{ */
 
-void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
+void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
   BezTriple *old_bezts, *bezt, *beztn;

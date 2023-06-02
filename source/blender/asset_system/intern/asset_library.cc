@@ -45,7 +45,7 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *library_path)
+::AssetLibrary *AS_asset_library_load(const char *name, const char *library_path)
 {
   /* NOTE: Loading an asset library at this point only means loading the catalogs.
    * Later on this should invoke reading of asset representations too. */
@@ -58,7 +58,7 @@ struct ::AssetLibrary *AS_asset_library_load(const char *name, const char *libra
   else {
     lib = service->get_asset_library_on_disk_custom(name, library_path);
   }
-  return reinterpret_cast<struct ::AssetLibrary *>(lib);
+  return reinterpret_cast<::AssetLibrary *>(lib);
 }
 
 bool AS_asset_library_has_any_unsaved_catalogs()
@@ -113,8 +113,8 @@ AssetCatalogTree *AS_asset_library_get_catalog_tree(const ::AssetLibrary *librar
   return catalog_service->get_catalog_tree();
 }
 
-void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_library,
-                                                 struct AssetMetaData *asset_data)
+void AS_asset_library_refresh_catalog_simplename(::AssetLibrary *asset_library,
+                                                 AssetMetaData *asset_data)
 {
   asset_system::AssetLibrary *lib = reinterpret_cast<asset_system::AssetLibrary *>(asset_library);
   lib->refresh_catalog_simplename(asset_data);
@@ -254,8 +254,8 @@ void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)
 }
 
 namespace {
-void asset_library_on_save_post(struct Main *main,
-                                struct PointerRNA **pointers,
+void asset_library_on_save_post(Main *main,
+                                PointerRNA **pointers,
                                 const int num_pointers,
                                 void *arg)
 {
@@ -283,8 +283,8 @@ void AssetLibrary::on_blend_save_handler_unregister()
   on_save_callback_store_.arg = nullptr;
 }
 
-void AssetLibrary::on_blend_save_post(struct Main *main,
-                                      struct PointerRNA ** /*pointers*/,
+void AssetLibrary::on_blend_save_post(Main *main,
+                                      PointerRNA ** /*pointers*/,
                                       const int /*num_pointers*/)
 {
   if (this->catalog_service == nullptr) {
@@ -301,7 +301,7 @@ AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_a
   return AssetIdentifier(root_path_, relative_asset_path);
 }
 
-void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
+void AssetLibrary::refresh_catalog_simplename(AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
     asset_data->catalog_simple_name[0] = '\0';

@@ -116,17 +116,17 @@ void BLI_task_graph_work_and_wait(TaskGraph *task_graph)
 #endif
 }
 
-struct TaskNode *BLI_task_graph_node_create(struct TaskGraph *task_graph,
-                                            TaskGraphNodeRunFunction run,
-                                            void *user_data,
-                                            TaskGraphNodeFreeFunction free_func)
+TaskNode *BLI_task_graph_node_create(TaskGraph *task_graph,
+                                     TaskGraphNodeRunFunction run,
+                                     void *user_data,
+                                     TaskGraphNodeFreeFunction free_func)
 {
   TaskNode *task_node = new TaskNode(task_graph, run, user_data, free_func);
   task_graph->nodes.push_back(std::unique_ptr<TaskNode>(task_node));
   return task_node;
 }
 
-bool BLI_task_graph_node_push_work(struct TaskNode *task_node)
+bool BLI_task_graph_node_push_work(TaskNode *task_node)
 {
 #ifdef WITH_TBB
   if (BLI_task_scheduler_num_threads() > 1) {
@@ -138,7 +138,7 @@ bool BLI_task_graph_node_push_work(struct TaskNode *task_node)
   return true;
 }
 
-void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_node)
+void BLI_task_graph_edge_create(TaskNode *from_node, TaskNode *to_node)
 {
 #ifdef WITH_TBB
   if (BLI_task_scheduler_num_threads() > 1) {

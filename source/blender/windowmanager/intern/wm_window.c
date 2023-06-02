@@ -1770,9 +1770,7 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
   return GHOST_kDrawingContextTypeNone;
 }
 
-static uiBlock *block_create_opengl_usage_warning(struct bContext *C,
-                                                  struct ARegion *region,
-                                                  void *UNUSED(arg1))
+static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, void *UNUSED(arg1))
 {
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -2244,7 +2242,7 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
   return win_other;
 }
 
-wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area)
+wmWindow *WM_window_find_by_area(wmWindowManager *wm, const ScrArea *area)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *sc = WM_window_get_active_screen(win);

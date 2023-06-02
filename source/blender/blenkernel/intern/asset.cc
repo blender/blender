@@ -71,10 +71,9 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
   return tag;
 }
 
-struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
-                                                          const char *name)
+AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data, const char *name)
 {
-  struct AssetTagEnsureResult result = {nullptr};
+  AssetTagEnsureResult result = {nullptr};
   if (!name[0]) {
     return result;
   }
@@ -108,13 +107,13 @@ void BKE_asset_library_reference_init_default(AssetLibraryReference *library_ref
   memcpy(library_ref, DNA_struct_default_get(AssetLibraryReference), sizeof(*library_ref));
 }
 
-void BKE_asset_metadata_catalog_id_clear(struct AssetMetaData *asset_data)
+void BKE_asset_metadata_catalog_id_clear(AssetMetaData *asset_data)
 {
   asset_data->catalog_id = BLI_uuid_nil();
   asset_data->catalog_simple_name[0] = '\0';
 }
 
-void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
+void BKE_asset_metadata_catalog_id_set(AssetMetaData *asset_data,
                                        const ::bUUID catalog_id,
                                        const char *catalog_simple_name)
 {

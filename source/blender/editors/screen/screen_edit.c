@@ -560,7 +560,7 @@ int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
   return screen_area_join_ex(C, screen, sa1, sa2, false);
 }
 
-bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
+bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area)
 {
   if (area == NULL) {
     return false;
@@ -1887,7 +1887,7 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
 
 Scene *ED_screen_scene_find_with_window(const bScreen *screen,
                                         const wmWindowManager *wm,
-                                        struct wmWindow **r_window)
+                                        wmWindow **r_window)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (WM_window_get_active_screen(win) == screen) {

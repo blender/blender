@@ -127,7 +127,7 @@ void workbench_shadow_cache_init(WORKBENCH_Data *data)
 {
   WORKBENCH_PassList *psl = data->psl;
   WORKBENCH_PrivateData *wpd = data->stl->wpd;
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   if (SHADOW_ENABLED(wpd)) {

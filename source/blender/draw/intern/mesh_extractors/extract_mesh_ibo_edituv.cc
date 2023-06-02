@@ -133,7 +133,7 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache * /*subdiv
   edituv_tri_add(data, mp_hidden, mp_select, loop_idx, loop_idx + 2, loop_idx + 3);
 }
 
-static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_tris_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                               const MeshRenderData * /*mr*/,
                                               MeshBatchCache * /*cache*/,
                                               void *buf,
@@ -316,7 +316,7 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
   }
 }
 
-static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_lines_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                const MeshRenderData * /*mr*/,
                                                MeshBatchCache * /*cache*/,
                                                void *buf,
@@ -470,7 +470,7 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
   }
 }
 
-static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_points_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                 const MeshRenderData * /*mr*/,
                                                 MeshBatchCache * /*cache*/,
                                                 void *buf,

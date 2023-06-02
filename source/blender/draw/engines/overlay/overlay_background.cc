@@ -94,7 +94,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec4_copy(grp, "ucolor", G_draw.block.color_clipping_border);
     DRW_shgroup_uniform_vec3(grp, "boundbox", &bb->vec[0][0], 8);
 
-    struct GPUBatch *cube = DRW_cache_cube_get();
+    GPUBatch *cube = DRW_cache_cube_get();
     DRW_shgroup_call(grp, cube, nullptr);
   }
   else {

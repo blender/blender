@@ -188,7 +188,7 @@ void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
   }
 }
 
-void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
+void BKE_keyconfig_pref_filter_items(UserDef *userdef,
                                      const struct wmKeyConfigFilterItemParams *params,
                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
                                      void *user_data)

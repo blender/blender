@@ -749,7 +749,7 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
 /** \name UI Data Manager Definition
  * \{ */
 
-static struct PyMethodDef BPy_IDPropertyUIManager_methods[] = {
+static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
     {"update",
      (PyCFunction)BPy_IDPropertyUIManager_update,
      METH_VARARGS | METH_KEYWORDS,

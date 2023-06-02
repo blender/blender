@@ -22,7 +22,7 @@ extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
 
 /*----------------------------MODULE INIT-------------------------*/
-static struct PyModuleDef _bpy_path_module_def = {
+static PyModuleDef _bpy_path_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "_bpy_path",
     /*m_doc*/ NULL,

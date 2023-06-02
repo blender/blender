@@ -112,7 +112,7 @@ static TransformProperties *v3d_transform_props_ensure(View3D *v3d);
 /** \name Edit Mesh Partial Updates
  * \{ */
 
-static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
+static void *editmesh_partial_update_begin_fn(bContext *UNUSED(C),
                                               const struct uiBlockInteraction_Params *params,
                                               void *arg1)
 {
@@ -153,7 +153,7 @@ static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
   return bmpinfo;
 }
 
-static void editmesh_partial_update_end_fn(struct bContext *UNUSED(C),
+static void editmesh_partial_update_end_fn(bContext *UNUSED(C),
                                            const struct uiBlockInteraction_Params *UNUSED(params),
                                            void *UNUSED(arg1),
                                            void *user_data)
@@ -166,7 +166,7 @@ static void editmesh_partial_update_end_fn(struct bContext *UNUSED(C),
 }
 
 static void editmesh_partial_update_update_fn(
-    struct bContext *C,
+    bContext *C,
     const struct uiBlockInteraction_Params *UNUSED(params),
     void *arg1,
     void *user_data)

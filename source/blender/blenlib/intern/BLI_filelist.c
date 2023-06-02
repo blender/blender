@@ -119,7 +119,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     return;
   }
 
-  struct ListBase dirbase = {NULL, NULL};
+  ListBase dirbase = {NULL, NULL};
   int newnum = 0;
   const struct dirent *fname;
   bool has_current = false, has_parent = false;

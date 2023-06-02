@@ -49,7 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
 }
 
-static void node_layout(uiLayout *layout, struct bContext *C, PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -212,7 +212,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
   BLI_strncpy(cu.str, layout.text.c_str(), len_bytes + 1);
 
-  struct CharTrans *chartransdata = nullptr;
+  CharTrans *chartransdata = nullptr;
   int text_len;
   bool text_free;
   const char32_t *r_text = nullptr;

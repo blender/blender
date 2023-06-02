@@ -336,12 +336,12 @@ void GPU_vertbuf_wrap_handle(GPUVertBuf *verts, uint64_t handle)
   unwrap(verts)->wrap_handle(handle);
 }
 
-void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding)
+void GPU_vertbuf_bind_as_ssbo(GPUVertBuf *verts, int binding)
 {
   unwrap(verts)->bind_as_ssbo(binding);
 }
 
-void GPU_vertbuf_bind_as_texture(struct GPUVertBuf *verts, int binding)
+void GPU_vertbuf_bind_as_texture(GPUVertBuf *verts, int binding)
 {
   unwrap(verts)->bind_as_texture(binding);
 }

@@ -40,12 +40,12 @@ typedef struct TransDataNla {
   ID *id;
 
   /** Original NLA-Track that the strip belongs to. */
-  struct NlaTrack *oldTrack;
+  NlaTrack *oldTrack;
   /** Current NLA-Track that the strip belongs to. */
-  struct NlaTrack *nlt;
+  NlaTrack *nlt;
 
   /** NLA-strip this data represents. */
-  struct NlaStrip *strip;
+  NlaStrip *strip;
 
   /* dummy values for transform to write in - must have 3 elements... */
   /** start handle. */

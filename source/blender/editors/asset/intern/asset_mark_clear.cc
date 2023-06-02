@@ -72,7 +72,7 @@ bool ED_asset_clear_id(ID *id)
   return true;
 }
 
-void ED_assets_pre_save(struct Main *bmain)
+void ED_assets_pre_save(Main *bmain)
 {
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {

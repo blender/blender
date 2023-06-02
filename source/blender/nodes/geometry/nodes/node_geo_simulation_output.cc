@@ -1153,7 +1153,7 @@ void NOD_geometry_simulation_output_remove_item(NodeGeometrySimulationOutput *si
   MEM_SAFE_FREE(old_items);
 }
 
-void NOD_geometry_simulation_output_clear_items(struct NodeGeometrySimulationOutput *sim)
+void NOD_geometry_simulation_output_clear_items(NodeGeometrySimulationOutput *sim)
 {
   for (NodeSimulationItem &item : sim->items_span_for_write()) {
     MEM_SAFE_FREE(item.name);

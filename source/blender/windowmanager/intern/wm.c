@@ -331,7 +331,7 @@ void WM_operator_free(wmOperator *op)
   MEM_freeN(op);
 }
 
-void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
+void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op)
 {
   op = op->next;
   while (op != NULL) {

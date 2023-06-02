@@ -1025,7 +1025,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
   id_cow->name[0] = '\0';
 }
 
-void deg_evaluate_copy_on_write(struct ::Depsgraph *graph, const IDNode *id_node)
+void deg_evaluate_copy_on_write(::Depsgraph *graph, const IDNode *id_node)
 {
   const Depsgraph *depsgraph = reinterpret_cast<const Depsgraph *>(graph);
   DEG_debug_print_eval(graph, __func__, id_node->id_orig->name, id_node->id_cow);

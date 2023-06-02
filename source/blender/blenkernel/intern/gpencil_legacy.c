@@ -918,7 +918,7 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_
   return gpf_dst;
 }
 
-void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, struct bGPDframe *gpf_dst)
+void BKE_gpencil_frame_copy_strokes(bGPDframe *gpf_src, bGPDframe *gpf_dst)
 {
   bGPDstroke *gps_dst = NULL;
   /* error checking */
@@ -1467,8 +1467,8 @@ void BKE_gpencil_layer_mask_remove_ref(bGPdata *gpd, const char *name)
 static int gpencil_cb_sort_masks(const void *arg1, const void *arg2)
 {
   /* sort is inverted as layer list. */
-  const struct bGPDlayer_Mask *mask1 = arg1;
-  const struct bGPDlayer_Mask *mask2 = arg2;
+  const bGPDlayer_Mask *mask1 = arg1;
+  const bGPDlayer_Mask *mask2 = arg2;
   int val = 0;
 
   if (mask1->sort_index < mask2->sort_index) {
@@ -1550,7 +1550,7 @@ static int gpencil_cb_cmp_frame(void *thunk, const void *a, const void *b)
   return 0;
 }
 
-void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames)
+void BKE_gpencil_layer_frames_sort(bGPDlayer *gpl, bool *r_has_duplicate_frames)
 {
   BLI_listbase_sort_r(&gpl->frames, gpencil_cb_cmp_frame, r_has_duplicate_frames);
 }
@@ -1977,7 +1977,7 @@ bool BKE_gpencil_material_index_used(bGPdata *gpd, int index)
   return false;
 }
 
-void BKE_gpencil_material_remap(struct bGPdata *gpd, const uint *remap, uint remap_len)
+void BKE_gpencil_material_remap(bGPdata *gpd, const uint *remap, uint remap_len)
 {
   const short remap_len_short = (short)remap_len;
 
@@ -2268,7 +2268,7 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
 
   /* Try to find the default palette. */
   const char *palette_id = "Palette";
-  struct Palette *palette = BLI_findstring(&bmain->palettes, palette_id, offsetof(ID, name) + 2);
+  Palette *palette = BLI_findstring(&bmain->palettes, palette_id, offsetof(ID, name) + 2);
 
   if (palette == NULL) {
     /* Fall back to the first palette. */
@@ -2633,8 +2633,8 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
   }
 }
 
-void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig,
-                                                const struct bGPDframe *gpf_eval)
+void BKE_gpencil_frame_original_pointers_update(const bGPDframe *gpf_orig,
+                                                const bGPDframe *gpf_eval)
 {
   bGPDstroke *gps_eval = gpf_eval->strokes.first;
   LISTBASE_FOREACH (bGPDstroke *, gps_orig, &gpf_orig->strokes) {
@@ -2661,8 +2661,8 @@ void BKE_gpencil_frame_original_pointers_update(const struct bGPDframe *gpf_orig
   }
 }
 
-void BKE_gpencil_layer_original_pointers_update(const struct bGPDlayer *gpl_orig,
-                                                const struct bGPDlayer *gpl_eval)
+void BKE_gpencil_layer_original_pointers_update(const bGPDlayer *gpl_orig,
+                                                const bGPDlayer *gpl_eval)
 {
   bGPDframe *gpf_eval = gpl_eval->frames.first;
   LISTBASE_FOREACH (bGPDframe *, gpf_orig, &gpl_orig->frames) {
@@ -2863,7 +2863,7 @@ int BKE_gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_
   return -1;
 }
 
-void BKE_gpencil_frame_selected_hash(bGPdata *gpd, struct GHash *r_list)
+void BKE_gpencil_frame_selected_hash(bGPdata *gpd, GHash *r_list)
 {
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);

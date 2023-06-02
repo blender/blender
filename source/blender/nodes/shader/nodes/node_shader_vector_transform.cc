@@ -93,7 +93,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  struct GPUNodeLink *inputlink;
+  GPUNodeLink *inputlink;
 
   NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
 

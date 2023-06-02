@@ -210,7 +210,7 @@ static void mesh_attributes_copy_to_bmesh_block(CustomData &data,
   }
 }
 
-void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *params)
 {
   if (!me) {
     /* Sanity check. */
@@ -1409,7 +1409,7 @@ static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loop
 
 }  // namespace blender
 
-void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
+void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const BMeshToMeshParams *params)
 {
   using namespace blender;
   const int old_verts_num = me->totvert;

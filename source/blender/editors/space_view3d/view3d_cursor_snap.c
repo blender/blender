@@ -52,7 +52,7 @@ typedef struct SnapCursorDataIntern {
   ListBase state_intern;
   V3DSnapCursorData snap_data;
 
-  struct SnapObjectContext *snap_context_v3d;
+  SnapObjectContext *snap_context_v3d;
   const Scene *scene;
   eSnapMode snap_elem_hidden;
 
@@ -68,7 +68,7 @@ typedef struct SnapCursorDataIntern {
   } last_eventstate;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-  struct wmKeyMap *keymap;
+  wmKeyMap *keymap;
   int snap_on;
 #endif
 
@@ -938,7 +938,7 @@ static void v3d_cursor_snap_activate(void)
        * TODO: ED_view3d_cursor_snap_init */
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-      struct wmKeyConfig *keyconf = ((wmWindowManager *)G.main->wm.first)->defaultconf;
+      wmKeyConfig *keyconf = ((wmWindowManager *)G.main->wm.first)->defaultconf;
 
       data_intern->keymap = WM_modalkeymap_find(keyconf, "Generic Gizmo Tweak Modal Map");
       RNA_enum_value_from_id(data_intern->keymap->modal_items, "SNAP_ON", &data_intern->snap_on);
@@ -1053,7 +1053,7 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
   return &data_intern->snap_data;
 }
 
-struct SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
+SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   v3d_cursor_snap_context_ensure(scene);

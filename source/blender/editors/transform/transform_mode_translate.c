@@ -666,7 +666,7 @@ static void applyTranslationMatrix(TransInfo *t, float mat_xform[4][4])
   add_v3_v3(mat_xform[3], delta);
 }
 
-static void initTranslation(TransInfo *t, struct wmOperator *UNUSED(op))
+static void initTranslation(TransInfo *t, wmOperator *UNUSED(op))
 {
   if (t->spacetype == SPACE_ACTION) {
     /* this space uses time translate */

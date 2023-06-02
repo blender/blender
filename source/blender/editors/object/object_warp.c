@@ -241,7 +241,7 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void TRANSFORM_OT_vertex_warp(struct wmOperatorType *ot)
+void TRANSFORM_OT_vertex_warp(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

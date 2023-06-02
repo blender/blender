@@ -33,7 +33,7 @@
 /* allocates PoseTree, and links that to root bone/channel */
 /* NOTE: detecting the IK chain is duplicate code...
  * in drawarmature.c and in transform_conversions.c */
-static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_tip)
+static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
   bPoseChannel *curchan, *pchan_root = NULL, *chanlist[256], **oldchan;
   PoseTree *tree;
@@ -574,7 +574,7 @@ static void free_posetree(PoseTree *tree)
 
 void iksolver_initialize_tree(struct Depsgraph *UNUSED(depsgraph),
                               struct Scene *UNUSED(scene),
-                              struct Object *ob,
+                              Object *ob,
                               float UNUSED(ctime))
 {
   bPoseChannel *pchan;
@@ -632,7 +632,7 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
   }
 }
 
-void iksolver_release_tree(struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
+void iksolver_release_tree(struct Scene *UNUSED(scene), Object *ob, float UNUSED(ctime))
 {
   iksolver_clear_data(ob->pose);
 }

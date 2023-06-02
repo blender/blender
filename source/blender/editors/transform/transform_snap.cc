@@ -167,7 +167,7 @@ static bool doForceIncrementSnap(const TransInfo *t)
   return !transformModeUseSnap(t);
 }
 
-void drawSnapping(const struct bContext *C, TransInfo *t)
+void drawSnapping(const bContext *C, TransInfo *t)
 {
   uchar col[4], selectedCol[4], activeCol[4];
   if (!transform_snap_is_active(t)) {
@@ -1439,13 +1439,13 @@ bool peelObjectsTransform(TransInfo *t,
 
   if (!BLI_listbase_is_empty(&depths_peel)) {
     /* At the moment we only use the hits of the first object */
-    struct SnapObjectHitDepth *hit_min = static_cast<SnapObjectHitDepth *>(depths_peel.first);
-    for (struct SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {
+    SnapObjectHitDepth *hit_min = static_cast<SnapObjectHitDepth *>(depths_peel.first);
+    for (SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {
       if (iter->depth < hit_min->depth) {
         hit_min = iter;
       }
     }
-    struct SnapObjectHitDepth *hit_max = nullptr;
+    SnapObjectHitDepth *hit_max = nullptr;
 
     if (use_peel_object) {
       /* if peeling objects, take the first and last from each object */

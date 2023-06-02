@@ -45,7 +45,7 @@
 
 /** Used for sequencer transform. */
 typedef struct TransDataSeq {
-  struct Sequence *seq;
+  Sequence *seq;
   /** A copy of #Sequence.flag that may be modified for nested strips. */
   int flag;
   /** Use this so we can have transform data at the strips start,

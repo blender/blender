@@ -57,7 +57,7 @@ typedef struct MPathTarget {
 /* ........ */
 
 /* update scene for current frame */
-static void motionpaths_calc_update_scene(struct Depsgraph *depsgraph)
+static void motionpaths_calc_update_scene(Depsgraph *depsgraph)
 {
   BKE_scene_graph_update_for_newframe(depsgraph);
 }

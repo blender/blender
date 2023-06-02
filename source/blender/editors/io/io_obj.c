@@ -223,7 +223,7 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
   return changed;
 }
 
-void WM_OT_obj_export(struct wmOperatorType *ot)
+void WM_OT_obj_export(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -462,7 +462,7 @@ static void wm_obj_import_draw(bContext *C, wmOperator *op)
   ui_obj_import_settings(op->layout, &ptr);
 }
 
-void WM_OT_obj_import(struct wmOperatorType *ot)
+void WM_OT_obj_import(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

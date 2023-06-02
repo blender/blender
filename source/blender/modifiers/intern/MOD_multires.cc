@@ -48,7 +48,7 @@
 
 struct MultiresRuntimeData {
   /* Cached subdivision surface descriptor, with topology and settings. */
-  struct Subdiv *subdiv;
+  Subdiv *subdiv;
 };
 
 static void initData(ModifierData *md)

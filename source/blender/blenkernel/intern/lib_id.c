@@ -453,7 +453,7 @@ void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const i
 }
 
 void BKE_lib_id_make_local_generic_action_define(
-    struct Main *bmain, struct ID *id, int flags, bool *r_force_local, bool *r_force_copy)
+    Main *bmain, ID *id, int flags, bool *r_force_local, bool *r_force_copy)
 {
   bool force_local = (flags & LIB_ID_MAKELOCAL_FORCE_LOCAL) != 0;
   bool force_copy = (flags & LIB_ID_MAKELOCAL_FORCE_COPY) != 0;
@@ -1075,17 +1075,14 @@ void BKE_main_id_tag_listbase(ListBase *lb, const int tag, const bool value)
   }
 }
 
-void BKE_main_id_tag_idcode(struct Main *mainvar,
-                            const short type,
-                            const int tag,
-                            const bool value)
+void BKE_main_id_tag_idcode(Main *mainvar, const short type, const int tag, const bool value)
 {
   ListBase *lb = which_libbase(mainvar, type);
 
   BKE_main_id_tag_listbase(lb, tag, value);
 }
 
-void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value)
+void BKE_main_id_tag_all(Main *mainvar, const int tag, const bool value)
 {
   ListBase *lbarray[INDEX_ID_MAX];
   int a;
@@ -1461,16 +1458,14 @@ void *BKE_libblock_copy(Main *bmain, const ID *id)
 
 /* ***************** ID ************************ */
 
-ID *BKE_libblock_find_name(struct Main *bmain, const short type, const char *name)
+ID *BKE_libblock_find_name(Main *bmain, const short type, const char *name)
 {
   ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != NULL);
   return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
-struct ID *BKE_libblock_find_session_uuid(Main *bmain,
-                                          const short type,
-                                          const uint32_t session_uuid)
+ID *BKE_libblock_find_session_uuid(Main *bmain, const short type, const uint32_t session_uuid)
 {
   ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != NULL);
@@ -1594,7 +1589,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 }
 
 bool BKE_id_new_name_validate(
-    struct Main *bmain, ListBase *lb, ID *id, const char *tname, const bool do_linked_data)
+    Main *bmain, ListBase *lb, ID *id, const char *tname, const bool do_linked_data)
 {
   bool result = false;
   char name[MAX_ID_NAME - 2];
@@ -1664,7 +1659,7 @@ static int id_refcount_recompute_callback(LibraryIDLinkCallbackData *cb_data)
   return IDWALK_RET_NOP;
 }
 
-void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only)
+void BKE_main_id_refcount_recompute(Main *bmain, const bool do_linked_only)
 {
   ID *id;
 
@@ -2052,7 +2047,7 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI],
   }
 }
 
-char *BKE_id_to_unique_string_key(const struct ID *id)
+char *BKE_id_to_unique_string_key(const ID *id)
 {
   if (!ID_IS_LINKED(id)) {
     return BLI_strdup(id->name);

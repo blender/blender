@@ -68,7 +68,7 @@ typedef struct tGraphSliderOp {
   struct tSlider *slider;
 
   /* Each operator has a specific update function. */
-  void (*modal_update)(struct bContext *, struct wmOperator *);
+  void (*modal_update)(bContext *, wmOperator *);
 
   /* If an operator stores custom data, it also needs to provide the function to clean it up. */
   void *operator_data;

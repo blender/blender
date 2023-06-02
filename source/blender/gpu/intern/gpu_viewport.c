@@ -205,9 +205,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   viewport->active_view = view;
 }
 
-void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
-                                      struct GPUOffScreen *ofs,
-                                      bool is_xr_surface)
+void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, bool is_xr_surface)
 {
   GPUTexture *color, *depth;
   GPUFrameBuffer *fb;
@@ -527,7 +525,7 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *re
 }
 
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
-                                        struct GPUOffScreen *ofs,
+                                        GPUOffScreen *ofs,
                                         bool display_colorspace,
                                         bool do_overlay_merge)
 {

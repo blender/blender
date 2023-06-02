@@ -50,7 +50,7 @@ MutableSpan<SeqRetimingHandle> SEQ_retiming_handles_get(const Sequence *seq)
   return handles;
 }
 
-struct SeqRetimingHandle *SEQ_retiming_last_handle_get(const struct Sequence *seq)
+SeqRetimingHandle *SEQ_retiming_last_handle_get(const Sequence *seq)
 {
   return seq->retiming_handles + seq->retiming_handle_num - 1;
 }
@@ -496,8 +496,7 @@ SeqRetimingHandle *SEQ_retiming_add_transition(const Scene *scene,
   }
 
   if (SEQ_retiming_handle_is_freeze_frame(handle) ||
-      SEQ_retiming_handle_is_freeze_frame(handle - 1))
-  {
+      SEQ_retiming_handle_is_freeze_frame(handle - 1)) {
     return nullptr;
   }
 

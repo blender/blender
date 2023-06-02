@@ -191,7 +191,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
     if (winding_votes < 0) {
       for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
-        SWAP(struct ScanFillVert *, sf_tri->v2, sf_tri->v3);
+        SWAP(ScanFillVert *, sf_tri->v2, sf_tri->v3);
       }
     }
   }

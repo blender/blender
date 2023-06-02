@@ -1409,7 +1409,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   return success;
 }
 
-static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *region)
+static bool transinfo_show_overlay(const bContext *C, TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
   bool ok = false;
@@ -1428,7 +1428,7 @@ static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegi
   return ok;
 }
 
-static void drawTransformView(const struct bContext *C, ARegion *region, void *arg)
+static void drawTransformView(const bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 
@@ -1483,7 +1483,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void drawTransformPixel(const struct bContext *C, ARegion *region, void *arg)
+static void drawTransformPixel(const bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 

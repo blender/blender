@@ -653,11 +653,11 @@ enum eSymmetryAxes {
 
 struct QuadriFlowJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
 
-  const struct wmOperator *op;
+  const wmOperator *op;
   Scene *scene;
   int target_faces;
   int seed;

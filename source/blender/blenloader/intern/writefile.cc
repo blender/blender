@@ -150,7 +150,7 @@ enum eWriteWrapType {
 };
 
 struct ZstdFrame {
-  struct ZstdFrame *next, *prev;
+  ZstdFrame *next, *prev;
 
   uint32_t compressed_size;
   uint32_t uncompressed_size;
@@ -1093,7 +1093,7 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 #define ID_BUFFER_STATIC_SIZE 8192
 
 typedef struct BLO_Write_IDBuffer {
-  const struct IDTypeInfo *id_type;
+  const IDTypeInfo *id_type;
   ID *temp_id;
   char id_buffer_static[ID_BUFFER_STATIC_SIZE];
 } BLO_Write_IDBuffer;
@@ -1414,7 +1414,7 @@ static bool do_history(const char *name, ReportList *reports)
 bool BLO_write_file(Main *mainvar,
                     const char *filepath,
                     const int write_flags,
-                    const struct BlendFileWriteParams *params,
+                    const BlendFileWriteParams *params,
                     ReportList *reports)
 {
   BLI_assert(!BLI_path_is_rel(filepath));

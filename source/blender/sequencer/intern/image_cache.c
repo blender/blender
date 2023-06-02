@@ -74,18 +74,18 @@
 
 typedef struct SeqCache {
   Main *bmain;
-  struct GHash *hash;
+  GHash *hash;
   ThreadMutex iterator_mutex;
-  struct BLI_mempool *keys_pool;
-  struct BLI_mempool *items_pool;
-  struct SeqCacheKey *last_key;
+  BLI_mempool *keys_pool;
+  BLI_mempool *items_pool;
+  SeqCacheKey *last_key;
   struct SeqDiskCache *disk_cache;
   int thumbnail_count;
 } SeqCache;
 
 typedef struct SeqCacheItem {
-  struct SeqCache *cache_owner;
-  struct ImBuf *ibuf;
+  SeqCache *cache_owner;
+  ImBuf *ibuf;
 } SeqCacheItem;
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
@@ -728,10 +728,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
   cache->last_key = NULL;
 }
 
-struct ImBuf *seq_cache_get(const SeqRenderData *context,
-                            Sequence *seq,
-                            float timeline_frame,
-                            int type)
+ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
 {
 
   if (context->skip_cache || context->is_proxy_render || !seq) {
@@ -897,10 +894,10 @@ void seq_cache_put(
 }
 
 void SEQ_cache_iterate(
-    struct Scene *scene,
+    Scene *scene,
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
-    bool callback_iter(void *userdata, struct Sequence *seq, int timeline_frame, int cache_type))
+    bool callback_iter(void *userdata, Sequence *seq, int timeline_frame, int cache_type))
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {

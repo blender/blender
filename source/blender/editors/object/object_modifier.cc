@@ -101,7 +101,7 @@ using blender::Span;
 
 static CLG_LogRef LOG = {"ed.object"};
 
-static void modifier_skin_customdata_delete(struct Object *ob);
+static void modifier_skin_customdata_delete(Object *ob);
 
 /* ------------------------------------------------------------------- */
 /** \name Public Api
@@ -1881,9 +1881,9 @@ static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const 
   return retval;
 }
 
-static char *modifier_apply_as_shapekey_get_description(struct bContext * /*C*/,
-                                                        struct wmOperatorType * /*op*/,
-                                                        struct PointerRNA *values)
+static char *modifier_apply_as_shapekey_get_description(bContext * /*C*/,
+                                                        wmOperatorType * /*op*/,
+                                                        PointerRNA *values)
 {
   bool keep = RNA_boolean_get(values, "keep_modifier");
 
@@ -3285,13 +3285,13 @@ static bool ocean_bake_poll(bContext *C)
 
 struct OceanBakeJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
   int current_frame;
-  struct OceanCache *och;
-  struct Ocean *ocean;
-  struct OceanModifierData *omd;
+  OceanCache *och;
+  Ocean *ocean;
+  OceanModifierData *omd;
 };
 
 static void oceanbake_free(void *customdata)
@@ -3409,7 +3409,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
   }
 
   /* Make a copy of ocean to use for baking - thread-safety. */
-  struct Ocean *ocean = BKE_ocean_add();
+  Ocean *ocean = BKE_ocean_add();
   BKE_ocean_init_from_modifier(ocean, omd, omd->resolution);
 
 #if 0

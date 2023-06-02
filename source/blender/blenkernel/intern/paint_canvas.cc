@@ -69,8 +69,7 @@ bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
   return *r_image != nullptr;
 }
 
-int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
-                                           struct Object *ob)
+int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Object *ob)
 {
   switch (settings->canvas_source) {
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
@@ -106,7 +105,7 @@ int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *setti
   return -1;
 }
 
-char *BKE_paint_canvas_key_get(struct PaintModeSettings *settings, struct Object *ob)
+char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
 {
   std::stringstream ss;
   int active_uv_map_layer_index = BKE_paint_canvas_uvmap_layer_index_get(settings, ob);

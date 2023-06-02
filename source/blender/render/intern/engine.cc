@@ -973,8 +973,8 @@ static void engine_render_view_layer(Render *re,
 
 /* Callback function for engine_render_create_result to add all render passes to the result. */
 static void engine_render_add_result_pass_cb(void *user_data,
-                                             struct Scene * /*scene*/,
-                                             struct ViewLayer *view_layer,
+                                             Scene * /*scene*/,
+                                             ViewLayer *view_layer,
                                              const char *name,
                                              int channels,
                                              const char *chanid,
@@ -1170,9 +1170,9 @@ bool RE_engine_render(Render *re, bool do_all)
   return true;
 }
 
-void RE_engine_update_render_passes(struct RenderEngine *engine,
-                                    struct Scene *scene,
-                                    struct ViewLayer *view_layer,
+void RE_engine_update_render_passes(RenderEngine *engine,
+                                    Scene *scene,
+                                    ViewLayer *view_layer,
                                     update_render_passes_cb_t callback,
                                     void *callback_data)
 {
@@ -1191,9 +1191,9 @@ void RE_engine_update_render_passes(struct RenderEngine *engine,
   BLI_mutex_unlock(&engine->update_render_passes_mutex);
 }
 
-void RE_engine_register_pass(struct RenderEngine *engine,
-                             struct Scene *scene,
-                             struct ViewLayer *view_layer,
+void RE_engine_register_pass(RenderEngine *engine,
+                             Scene *scene,
+                             ViewLayer *view_layer,
                              const char *name,
                              int channels,
                              const char *chanid,
@@ -1219,7 +1219,7 @@ void RE_engine_free_blender_memory(RenderEngine *engine)
   engine_depsgraph_free(engine);
 }
 
-struct RenderEngine *RE_engine_get(const Render *re)
+RenderEngine *RE_engine_get(const Render *re)
 {
   return re->engine;
 }

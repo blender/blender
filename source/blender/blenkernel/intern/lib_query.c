@@ -86,12 +86,12 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   }
 
   const int callback_return = data->callback(
-      &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
-                                          .bmain = data->bmain,
-                                          .owner_id = data->owner_id,
-                                          .self_id = data->self_id,
-                                          .id_pointer = id_pp,
-                                          .cb_flag = cb_flag});
+      &(LibraryIDLinkCallbackData){.user_data = data->user_data,
+                                   .bmain = data->bmain,
+                                   .owner_id = data->owner_id,
+                                   .self_id = data->self_id,
+                                   .id_pointer = id_pp,
+                                   .cb_flag = cb_flag});
   if (flag & IDWALK_READONLY) {
     BLI_assert(*(id_pp) == old_id);
   }

@@ -105,7 +105,7 @@ static int threads_override_num = 0;
 #define RE_MAX_THREAD BLENDER_MAX_THREADS
 
 struct ThreadSlot {
-  struct ThreadSlot *next, *prev;
+  ThreadSlot *next, *prev;
   void *(*do_thread)(void *);
   void *callerdata;
   pthread_t pthread;
@@ -646,7 +646,7 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
   return work;
 }
 
-static void wait_timeout(struct timespec *timeout, int ms)
+static void wait_timeout(timespec *timeout, int ms)
 {
   ldiv_t div_result;
   long sec, usec, x;
@@ -660,7 +660,7 @@ static void wait_timeout(struct timespec *timeout, int ms)
   }
 #else
   {
-    struct timeval now;
+    timeval now;
     gettimeofday(&now, nullptr);
     sec = now.tv_sec;
     usec = now.tv_usec;
@@ -685,7 +685,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 {
   double t;
   void *work = nullptr;
-  struct timespec timeout;
+  timespec timeout;
 
   t = PIL_check_seconds_timer();
   wait_timeout(&timeout, ms);

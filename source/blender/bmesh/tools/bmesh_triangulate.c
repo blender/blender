@@ -40,7 +40,7 @@ static void bm_face_triangulate_mapping(BMesh *bm,
 
                                         MemArena *pf_arena,
                                         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-                                        struct Heap *pf_heap)
+                                        Heap *pf_heap)
 {
   int faces_array_tot = face->len - 3;
   BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);

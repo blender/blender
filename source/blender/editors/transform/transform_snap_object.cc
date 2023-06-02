@@ -1147,7 +1147,7 @@ static void nearest_world_tree_co(BVHTree *tree,
 }
 
 static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
-                               const struct SnapObjectParams *params,
+                               const SnapObjectParams *params,
                                BVHTree *tree,
                                BVHTree_NearestPointCallback nearest_cb,
                                void *treedata,
@@ -1220,7 +1220,7 @@ static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
 }
 
 static bool nearest_world_mesh(SnapObjectContext *sctx,
-                               const struct SnapObjectParams *params,
+                               const SnapObjectParams *params,
                                Object *ob_eval,
                                const Mesh *me_eval,
                                const float (*obmat)[4],
@@ -1253,7 +1253,7 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
 }
 
 static bool nearest_world_editmesh(SnapObjectContext *sctx,
-                                   const struct SnapObjectParams *params,
+                                   const SnapObjectParams *params,
                                    Object *ob_eval,
                                    BMEditMesh *em,
                                    const float (*obmat)[4],
@@ -1291,7 +1291,7 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
                                          bool use_hide,
                                          void *data)
 {
-  struct NearestWorldObjUserData *dt = static_cast<NearestWorldObjUserData *>(data);
+  NearestWorldObjUserData *dt = static_cast<NearestWorldObjUserData *>(data);
 
   bool retval = false;
   bool is_edit = false;
@@ -1366,7 +1366,7 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
  * \param prev_co: Current location of source point after transformation but before snapping.
  */
 static bool nearestWorldObjects(SnapObjectContext *sctx,
-                                const struct SnapObjectParams *params,
+                                const SnapObjectParams *params,
                                 const float init_co[3],
                                 const float curr_co[3])
 {

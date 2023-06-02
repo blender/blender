@@ -184,7 +184,7 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 
 struct BHeadN {
-  struct BHeadN *next, *prev;
+  BHeadN *next, *prev;
 #ifdef USE_BHEAD_READ_ON_DEMAND
   /** Use to read the data from the file directly into memory as needed. */
   off64_t file_offset;
@@ -192,7 +192,7 @@ struct BHeadN {
   bool has_data;
 #endif
   bool is_memchunk_identical;
-  struct BHead bhead;
+  BHead bhead;
 };
 
 #define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -int(offsetof(BHeadN, bhead))))
@@ -3495,7 +3495,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (G.debug & G_DEBUG) {
     char build_commit_datetime[32];
     time_t temp_time = main->build_commit_timestamp;
-    struct tm *tm = (temp_time) ? gmtime(&temp_time) : nullptr;
+    tm *tm = (temp_time) ? gmtime(&temp_time) : nullptr;
     if (LIKELY(tm)) {
       strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
     }

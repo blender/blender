@@ -1089,10 +1089,7 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
   object_material_assign(bmain, ob, ma, act, assign_type, true);
 }
 
-void BKE_object_material_assign_single_obdata(struct Main *bmain,
-                                              struct Object *ob,
-                                              struct Material *ma,
-                                              short act)
+void BKE_object_material_assign_single_obdata(Main *bmain, Object *ob, Material *ma, short act)
 {
   object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
@@ -1210,11 +1207,8 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
   BKE_object_materials_test(bmain, ob_orig, data_orig);
 }
 
-void BKE_object_material_array_assign(Main *bmain,
-                                      struct Object *ob,
-                                      struct Material ***matar,
-                                      int totcol,
-                                      const bool to_object_only)
+void BKE_object_material_array_assign(
+    Main *bmain, Object *ob, Material ***matar, int totcol, const bool to_object_only)
 {
   int actcol_orig = ob->actcol;
 
@@ -1463,7 +1457,7 @@ struct FillTexPaintSlotsData {
 
 static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
 {
-  struct FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
+  FillTexPaintSlotsData *fill_data = static_cast<FillTexPaintSlotsData *>(userdata);
 
   Material *ma = fill_data->ma;
   int index = fill_data->index;
@@ -1526,12 +1520,12 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree,
                                           int slot_len,
                                           ePaintSlotFilter slot_filter)
 {
-  struct FillTexPaintSlotsData fill_data = {active_node, ob, ma, 0, slot_len};
+  FillTexPaintSlotsData fill_data = {active_node, ob, ma, 0, slot_len};
   ntree_foreach_texnode_recursive(nodetree, fill_texpaint_slots_cb, &fill_data, slot_filter);
 }
 
 /** Check which type of paint slots should be filled for the given object. */
-static ePaintSlotFilter material_paint_slot_filter(const struct Object *ob)
+static ePaintSlotFilter material_paint_slot_filter(const Object *ob)
 {
   ePaintSlotFilter slot_filter = PAINT_SLOT_IMAGE;
   if (ob->mode == OB_MODE_SCULPT && U.experimental.use_sculpt_texture_paint) {
@@ -1540,7 +1534,7 @@ static ePaintSlotFilter material_paint_slot_filter(const struct Object *ob)
   return slot_filter;
 }
 
-void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Object *ob)
+void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *ob)
 {
   if (!ma) {
     return;
@@ -1605,7 +1599,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const struct Ob
   MEM_SAFE_FREE(prev_texpaintslot);
 }
 
-void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
+void BKE_texpaint_slots_refresh_object(Scene *scene, Object *ob)
 {
   for (int i = 1; i < ob->totcol + 1; i++) {
     Material *ma = BKE_object_material_get(ob, i);
@@ -1620,7 +1614,7 @@ struct FindTexPaintNodeData {
 
 static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 {
-  struct FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
+  FindTexPaintNodeData *find_data = static_cast<FindTexPaintNodeData *>(userdata);
   if (find_data->slot->ima && node->type == SH_NODE_TEX_IMAGE) {
     Image *node_ima = (Image *)node->id;
     if (find_data->slot->ima == node_ima) {
@@ -1643,7 +1637,7 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
   TexPaintSlot *slot = &ma->texpaintslot[texpaint_slot];
-  struct FindTexPaintNodeData find_data = {slot, nullptr};
+  FindTexPaintNodeData find_data = {slot, nullptr};
   ntree_foreach_texnode_recursive(ma->nodetree,
                                   texpaint_slot_node_find_cb,
                                   &find_data,
@@ -1912,7 +1906,7 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
   }
 }
 
-void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
+void BKE_material_eval(Depsgraph *depsgraph, Material *material)
 {
   DEG_debug_print_eval(depsgraph, __func__, material->id.name, material);
   GPU_material_free(&material->gpumaterial);

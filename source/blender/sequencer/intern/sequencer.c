@@ -56,7 +56,7 @@
 
 StripProxy *seq_strip_proxy_alloc(void)
 {
-  StripProxy *strip_proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+  StripProxy *strip_proxy = MEM_callocN(sizeof(StripProxy), "StripProxy");
   strip_proxy->quality = 50;
   strip_proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
   strip_proxy->tc = SEQ_PROXY_TC_RECORD_RUN;
@@ -68,13 +68,13 @@ static Strip *seq_strip_alloc(int type)
   Strip *strip = MEM_callocN(sizeof(Strip), "strip");
 
   if (ELEM(type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
-    strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+    strip->transform = MEM_callocN(sizeof(StripTransform), "StripTransform");
     strip->transform->scale_x = 1;
     strip->transform->scale_y = 1;
     strip->transform->origin[0] = 0.5f;
     strip->transform->origin[1] = 0.5f;
     strip->transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
-    strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
+    strip->crop = MEM_callocN(sizeof(StripCrop), "StripCrop");
   }
 
   strip->us = 1;
@@ -744,7 +744,7 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
     if (seq->type == SEQ_TYPE_IMAGE) {
       BLO_write_struct_array(writer,
                              StripElem,
-                             MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem),
+                             MEM_allocN_len(strip->stripdata) / sizeof(StripElem),
                              strip->stripdata);
     }
     else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {

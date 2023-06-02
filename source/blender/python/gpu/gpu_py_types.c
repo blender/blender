@@ -20,7 +20,7 @@
 /** \name GPU Types Module
  * \{ */
 
-static struct PyModuleDef pygpu_types_module_def = {
+static PyModuleDef pygpu_types_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.types",
     /*m_doc*/ NULL,

@@ -23,11 +23,11 @@ extern char datatoc_common_pointcloud_lib_glsl[];
 
 typedef struct BASIC_Shaders {
   /* Depth Pre Pass */
-  struct GPUShader *depth;
-  struct GPUShader *pointcloud_depth;
-  struct GPUShader *curves_depth;
-  struct GPUShader *depth_conservative;
-  struct GPUShader *pointcloud_depth_conservative;
+  GPUShader *depth;
+  GPUShader *pointcloud_depth;
+  GPUShader *curves_depth;
+  GPUShader *depth_conservative;
+  GPUShader *pointcloud_depth_conservative;
 } BASIC_Shaders;
 
 static struct {

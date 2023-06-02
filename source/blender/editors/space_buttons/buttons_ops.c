@@ -59,7 +59,7 @@ static int buttons_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void BUTTONS_OT_start_filter(struct wmOperatorType *ot)
+void BUTTONS_OT_start_filter(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Filter";
@@ -84,7 +84,7 @@ static int buttons_clear_filter_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void BUTTONS_OT_clear_filter(struct wmOperatorType *ot)
+void BUTTONS_OT_clear_filter(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Clear Filter";

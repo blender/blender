@@ -37,7 +37,7 @@ bool tex_node_poll_default(const bNodeType * /*ntype*/,
   return true;
 }
 
-void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass)
+void tex_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
 {
   blender::bke::node_type_base(ntype, type, name, nclass);
 
@@ -137,7 +137,7 @@ void tex_output(bNode *node,
   dg->type = out->sockettype;
 }
 
-void ntreeTexCheckCyclics(struct bNodeTree *ntree)
+void ntreeTexCheckCyclics(bNodeTree *ntree)
 {
   bNode *node;
   for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {

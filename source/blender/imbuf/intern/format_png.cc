@@ -42,7 +42,7 @@ ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, char colorspace[IM
   return ibuf;
 }
 
-bool imb_save_png(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags)
 {
   const bool is_16bit = (ibuf->foptions.flag & PNG_16BIT);
   const int file_channels = ibuf->planes >> 3;

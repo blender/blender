@@ -337,7 +337,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const ListBase *component_paths,
                                  const float *float_thresholds,
                                  const eXrAxisFlag *axis_flags,
-                                 const struct wmXrPose *poses)
+                                 const wmXrPose *poses)
 {
   const uint count = (uint)BLI_listbase_count(user_paths);
   BLI_assert(count == (uint)BLI_listbase_count(component_paths));

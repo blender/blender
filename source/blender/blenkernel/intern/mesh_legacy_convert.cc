@@ -45,7 +45,7 @@ struct EdgeSort {
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct EdgeSort *ed, uint v1, uint v2, char is_loose, short is_draw)
+static void to_edgesort(EdgeSort *ed, uint v1, uint v2, char is_loose, short is_draw)
 {
   if (v1 < v2) {
     ed->v1 = v1;
@@ -61,8 +61,8 @@ static void to_edgesort(struct EdgeSort *ed, uint v1, uint v2, char is_loose, sh
 
 static int vergedgesort(const void *v1, const void *v2)
 {
-  const struct EdgeSort *x1 = static_cast<const struct EdgeSort *>(v1);
-  const struct EdgeSort *x2 = static_cast<const struct EdgeSort *>(v2);
+  const EdgeSort *x1 = static_cast<const EdgeSort *>(v1);
+  const EdgeSort *x2 = static_cast<const EdgeSort *>(v2);
 
   if (x1->v1 > x2->v1) {
     return 1;
@@ -97,7 +97,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   const MFace *mface;
   MEdge *edges, *edge;
   EdgeHash *hash;
-  struct EdgeSort *edsort, *ed;
+  EdgeSort *edsort, *ed;
   int a, totedge = 0;
   uint totedge_final = 0;
   uint edge_index;
@@ -123,7 +123,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     return;
   }
 
-  ed = edsort = (EdgeSort *)MEM_mallocN(totedge * sizeof(struct EdgeSort), "EdgeSort");
+  ed = edsort = (EdgeSort *)MEM_mallocN(totedge * sizeof(EdgeSort), "EdgeSort");
 
   for (a = totface, mface = allface; a > 0; a--, mface++) {
     to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
@@ -138,7 +138,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     }
   }
 
-  qsort(edsort, totedge, sizeof(struct EdgeSort), vergedgesort);
+  qsort(edsort, totedge, sizeof(EdgeSort), vergedgesort);
 
   /* count final amount */
   for (a = totedge, ed = edsort; a > 1; a--, ed++) {
@@ -1224,7 +1224,7 @@ void BKE_mesh_tessface_calc(Mesh *mesh)
   mesh_ensure_tessellation_customdata(mesh);
 }
 
-void BKE_mesh_tessface_ensure(struct Mesh *mesh)
+void BKE_mesh_tessface_ensure(Mesh *mesh)
 {
   if (mesh->totpoly && mesh->totface == 0) {
     BKE_mesh_tessface_calc(mesh);

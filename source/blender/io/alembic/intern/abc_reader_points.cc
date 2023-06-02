@@ -109,12 +109,12 @@ void read_points_sample(const IPointsSchema &schema,
   read_mverts(*config.mesh, positions, vnormals);
 }
 
-struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
-                                        const ISampleSelector &sample_sel,
-                                        int read_flag,
-                                        const char * /*velocity_name*/,
-                                        const float /*velocity_scale*/,
-                                        const char **err_str)
+Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
+                                 const ISampleSelector &sample_sel,
+                                 int read_flag,
+                                 const char * /*velocity_name*/,
+                                 const float /*velocity_scale*/,
+                                 const char **err_str)
 {
   IPointsSchema::Sample sample;
   try {

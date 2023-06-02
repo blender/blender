@@ -186,7 +186,7 @@ IDTypeInfo IDType_ID_VF = {
 
 /***************************** VFont *******************************/
 
-void BKE_vfont_free_data(struct VFont *vfont)
+void BKE_vfont_free_data(VFont *vfont)
 {
   if (vfont->data) {
     if (vfont->data->characters) {
@@ -221,7 +221,7 @@ void BKE_vfont_free_data(struct VFont *vfont)
 static const void *builtin_font_data = NULL;
 static int builtin_font_size = 0;
 
-bool BKE_vfont_is_builtin(const struct VFont *vfont)
+bool BKE_vfont_is_builtin(const VFont *vfont)
 {
   return STREQ(vfont->filepath, FO_BUILTIN_NAME);
 }
@@ -364,7 +364,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   return vfont;
 }
 
-VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists)
+VFont *BKE_vfont_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   VFont *vfont;
   char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
@@ -392,7 +392,7 @@ VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *
   return BKE_vfont_load(bmain, filepath);
 }
 
-VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath)
+VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath)
 {
   return BKE_vfont_load_exists_ex(bmain, filepath, NULL);
 }
@@ -534,7 +534,7 @@ void BKE_vfont_build_char(Curve *cu,
       if (nu2 == NULL) {
         break;
       }
-      memcpy(nu2, nu1, sizeof(struct Nurb));
+      memcpy(nu2, nu1, sizeof(Nurb));
       nu2->resolu = cu->resolu;
       nu2->bp = NULL;
       nu2->knotsu = nu2->knotsv = NULL;
@@ -555,7 +555,7 @@ void BKE_vfont_build_char(Curve *cu,
         MEM_freeN(nu2);
         break;
       }
-      memcpy(bezt2, bezt1, u * sizeof(struct BezTriple));
+      memcpy(bezt2, bezt1, u * sizeof(BezTriple));
       nu2->bezt = bezt2;
 
       if (shear != 0.0f) {
@@ -794,7 +794,7 @@ static bool vfont_to_curve(Object *ob,
                            Curve *cu,
                            int mode,
                            VFontToCurveIter *iter_data,
-                           struct VFontCursor_Params *cursor_params,
+                           VFontCursor_Params *cursor_params,
                            ListBase *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,

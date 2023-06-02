@@ -1438,7 +1438,7 @@ BGL_Wrap(TexImage3DMultisample,
 /** \name Module Definition
  * \{ */
 
-static struct PyModuleDef BGL_module_def = {
+static PyModuleDef BGL_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bgl",
     /*m_doc*/ NULL,

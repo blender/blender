@@ -86,7 +86,7 @@ static bool wm_stl_import_check(bContext *UNUSED(C), wmOperator *op)
   return false;
 }
 
-void WM_OT_stl_import(struct wmOperatorType *ot)
+void WM_OT_stl_import(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

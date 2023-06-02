@@ -37,9 +37,9 @@ typedef struct BASIC_StorageList {
 } BASIC_StorageList;
 
 typedef struct BASIC_PassList {
-  struct DRWPass *depth_pass[2];
-  struct DRWPass *depth_pass_pointcloud[2];
-  struct DRWPass *depth_pass_cull[2];
+  DRWPass *depth_pass[2];
+  DRWPass *depth_pass_pointcloud[2];
+  DRWPass *depth_pass_cull[2];
 } BASIC_PassList;
 
 typedef struct BASIC_Data {
@@ -120,7 +120,7 @@ static void basic_cache_init(void *vedata)
 static struct GPUBatch **basic_object_surface_material_get(Object *ob)
 {
   const int materials_len = DRW_cache_object_material_count_get(ob);
-  struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+  GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
   memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
 
   return DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);

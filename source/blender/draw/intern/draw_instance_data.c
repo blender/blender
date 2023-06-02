@@ -37,14 +37,14 @@
 #include "MEM_guardedalloc.h"
 
 struct DRWInstanceData {
-  struct DRWInstanceData *next;
+  DRWInstanceData *next;
   bool used;        /* If this data is used or not. */
   size_t data_size; /* Size of one instance data. */
   BLI_mempool *mempool;
 };
 
 struct DRWInstanceDataList {
-  struct DRWInstanceDataList *next, *prev;
+  DRWInstanceDataList *next, *prev;
   /* Linked lists for all possible data pool size */
   DRWInstanceData *idata_head[MAX_INSTANCE_DATA_SIZE];
   DRWInstanceData *idata_tail[MAX_INSTANCE_DATA_SIZE];
@@ -406,7 +406,7 @@ typedef struct DRWSparseUniformBuf {
   /* Memory buffers used to stage chunk data before transfer to UBOs. */
   char **chunk_buffers;
   /* Uniform buffer objects with flushed data. */
-  struct GPUUniformBuf **chunk_ubos;
+  GPUUniformBuf **chunk_ubos;
   /* True if the relevant chunk contains data (distinct from simply being allocated). */
   BLI_bitmap *chunk_used;
 
@@ -680,8 +680,7 @@ GPUUniformBuf *drw_ensure_layer_attribute_buffer(void)
   return data->vlattrs_ubo;
 }
 
-DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
-                                                     const struct GPUUniformAttrList *key)
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, const GPUUniformAttrList *key)
 {
   DRWUniformAttrBuf *buffer = BLI_ghash_lookup(table, key);
   return buffer ? &buffer->ubos : NULL;

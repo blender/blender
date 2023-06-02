@@ -585,14 +585,12 @@ static const char *wm_area_name(ScrArea *area)
 typedef struct WindowDrawCB {
   struct WindowDrawCB *next, *prev;
 
-  void (*draw)(const struct wmWindow *, void *);
+  void (*draw)(const wmWindow *, void *);
   void *customdata;
 
 } WindowDrawCB;
 
-void *WM_draw_cb_activate(wmWindow *win,
-                          void (*draw)(const struct wmWindow *, void *),
-                          void *customdata)
+void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata)
 {
   WindowDrawCB *wdc = MEM_callocN(sizeof(*wdc), "WindowDrawCB");
 

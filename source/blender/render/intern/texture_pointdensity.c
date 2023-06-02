@@ -486,7 +486,7 @@ typedef struct PointDensityRangeData {
   short falloff_type;
   short noise_influence;
   float *age;
-  struct CurveMapping *density_curve;
+  CurveMapping *density_curve;
   float velscale;
 } PointDensityRangeData;
 
@@ -567,7 +567,7 @@ static void init_pointdensityrangedata(PointDensity *pd,
                                        float *vec,
                                        float *age,
                                        float *col,
-                                       struct CurveMapping *density_curve,
+                                       CurveMapping *density_curve,
                                        float velscale)
 {
   pdr->squared_radius = pd->radius * pd->radius;
@@ -798,7 +798,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
   psys_sim_data_free(&sim);
 }
 
-void RE_point_density_cache(struct Depsgraph *depsgraph, PointDensity *pd)
+void RE_point_density_cache(Depsgraph *depsgraph, PointDensity *pd)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
@@ -808,8 +808,8 @@ void RE_point_density_cache(struct Depsgraph *depsgraph, PointDensity *pd)
   BLI_mutex_unlock(&sample_mutex);
 }
 
-void RE_point_density_minmax(struct Depsgraph *depsgraph,
-                             struct PointDensity *pd,
+void RE_point_density_minmax(Depsgraph *depsgraph,
+                             PointDensity *pd,
                              float r_min[3],
                              float r_max[3])
 {
@@ -941,7 +941,7 @@ void RE_point_density_sample(Depsgraph *depsgraph,
   free_pointdensity(pd);
 }
 
-void RE_point_density_free(struct PointDensity *pd)
+void RE_point_density_free(PointDensity *pd)
 {
   free_pointdensity(pd);
 }

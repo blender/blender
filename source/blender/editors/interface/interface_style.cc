@@ -128,10 +128,10 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           const char *str,
                           const size_t str_len,
                           const uchar col[4],
-                          const struct uiFontStyleDraw_Params *fs_params,
+                          const uiFontStyleDraw_Params *fs_params,
                           int *r_xofs,
                           int *r_yofs,
-                          struct ResultBLF *r_info)
+                          ResultBLF *r_info)
 {
   int xofs = 0, yofs;
   int font_flag = BLF_CLIPPING;
@@ -199,7 +199,7 @@ void UI_fontstyle_draw(const uiFontStyle *fs,
                        const char *str,
                        const size_t str_len,
                        const uchar col[4],
-                       const struct uiFontStyleDraw_Params *fs_params)
+                       const uiFontStyleDraw_Params *fs_params)
 {
   UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }

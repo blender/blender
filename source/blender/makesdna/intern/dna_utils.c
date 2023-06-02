@@ -126,7 +126,7 @@ bool DNA_elem_id_match(const char *elem_search,
   return false;
 }
 
-char *DNA_elem_id_rename(struct MemArena *mem_arena,
+char *DNA_elem_id_rename(MemArena *mem_arena,
                          const char *elem_src,
                          const int elem_src_len,
                          const char *elem_dst,

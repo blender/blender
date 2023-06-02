@@ -33,7 +33,7 @@ struct FolderList {
   char *foldername;
 };
 
-void folderlist_popdir(struct ListBase *folderlist, char *dir)
+void folderlist_popdir(ListBase *folderlist, char *dir)
 {
   const char *prev_dir;
   FolderList *folder;
@@ -89,7 +89,7 @@ const char *folderlist_peeklastdir(ListBase *folderlist)
   return folder->foldername;
 }
 
-bool folderlist_clear_next(struct SpaceFile *sfile)
+bool folderlist_clear_next(SpaceFile *sfile)
 {
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FolderList *folder;

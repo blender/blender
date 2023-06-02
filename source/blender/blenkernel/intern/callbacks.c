@@ -27,7 +27,7 @@ static bool callbacks_initialized = false;
                  "the callback system.")
 
 void BKE_callback_exec(struct Main *bmain,
-                       struct PointerRNA **pointers,
+                       PointerRNA **pointers,
                        const int num_pointers,
                        eCbEvent evt)
 {

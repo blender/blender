@@ -204,7 +204,7 @@ typedef struct WalkInfo {
   RegionView3D *rv3d;
   View3D *v3d;
   ARegion *region;
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
   Scene *scene;
 
   /** Needed for updating that isn't triggered by input. */
@@ -294,7 +294,7 @@ typedef struct WalkInfo {
   /** Nicer dynamics. */
   float zlock_momentum;
 
-  struct SnapObjectContext *snap_context;
+  SnapObjectContext *snap_context;
 
   struct View3DCameraControl *v3d_camera_control;
 
@@ -310,10 +310,10 @@ typedef struct WalkInfo {
 #ifdef WITH_INPUT_NDOF
 static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
-static int walkApply(bContext *C, struct WalkInfo *walk, bool is_confirm);
+static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
-static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, void *arg)
+static void drawWalkPixel(const bContext *UNUSED(C), ARegion *region, void *arg)
 {
   /* draws an aim/cross in the center */
   WalkInfo *walk = arg;

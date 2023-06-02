@@ -789,7 +789,7 @@ void BKE_linestyle_init(FreestyleLineStyle *linestyle)
   linestyle_init_data(&linestyle->id);
 }
 
-FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
+FreestyleLineStyle *BKE_linestyle_new(Main *bmain, const char *name)
 {
   FreestyleLineStyle *linestyle;
 

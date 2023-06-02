@@ -289,7 +289,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * Creating a dummy window-manager early, or moving the key-maps into the preferences
    * would resolve this and may be worth looking into long-term, see: D12184 for details.
    */
-  struct wmFileReadPost_Params *params_file_read_post = nullptr;
+  wmFileReadPost_Params *params_file_read_post = nullptr;
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = true;
   read_homefile_params.use_userdef = true;
@@ -487,9 +487,9 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
-      struct MemFile *undo_memfile = wm->undo_stack ?
-                                         ED_undosys_stack_memfile_get_active(wm->undo_stack) :
-                                         nullptr;
+      MemFile *undo_memfile = wm->undo_stack ?
+                                  ED_undosys_stack_memfile_get_active(wm->undo_stack) :
+                                  nullptr;
       if (undo_memfile != nullptr) {
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);

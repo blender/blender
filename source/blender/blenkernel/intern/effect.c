@@ -108,7 +108,7 @@ PartDeflect *BKE_partdeflect_new(int type)
 
 /************************ PARTICLES ***************************/
 
-PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src)
+PartDeflect *BKE_partdeflect_copy(const PartDeflect *pd_src)
 {
   if (pd_src == NULL) {
     return NULL;
@@ -133,7 +133,7 @@ void BKE_partdeflect_free(PartDeflect *pd)
 
 /******************** EFFECTOR RELATIONS ***********************/
 
-static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *eff)
+static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
 {
   float ctime = DEG_get_ctime(depsgraph);
   uint cfra = (uint)(ctime >= 0 ? ctime : -ctime);
@@ -535,7 +535,7 @@ static float eff_calc_visibility(ListBase *colliders,
 }
 
 /* Noise function for wind e.g. */
-static float wind_func(struct RNG *rng, float strength)
+static float wind_func(RNG *rng, float strength)
 {
   int random = (BLI_rng_get_int(rng) + 1) % 128; /* max 2357 */
   float force = BLI_rng_get_float(rng) + 1.0f;

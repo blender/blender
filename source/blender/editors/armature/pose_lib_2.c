@@ -179,7 +179,7 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   }
 
   /* Perform the actual blending. */
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
   bAction *to_blend = poselib_action_to_blend(pbd);
   BKE_pose_apply_action_blend(pbd->ob, to_blend, &anim_eval_context, pbd->blend_factor);

@@ -405,7 +405,7 @@ void BKE_modifier_copydata(const ModifierData *md, ModifierData *target)
   BKE_modifier_copydata_ex(md, target, 0);
 }
 
-bool BKE_modifier_supports_cage(struct Scene *scene, ModifierData *md)
+bool BKE_modifier_supports_cage(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
@@ -413,7 +413,7 @@ bool BKE_modifier_supports_cage(struct Scene *scene, ModifierData *md)
           (mti->flags & eModifierTypeFlag_SupportsEditmode) && BKE_modifier_supports_mapping(md));
 }
 
-bool BKE_modifier_couldbe_cage(struct Scene *scene, ModifierData *md)
+bool BKE_modifier_couldbe_cage(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
@@ -461,10 +461,7 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
   CLOG_ERROR(&LOG, "Object: \"%s\", Modifier: \"%s\", %s", ob->id.name + 2, md->name, md->error);
 }
 
-void BKE_modifier_set_warning(const struct Object *ob,
-                              struct ModifierData *md,
-                              const char *_format,
-                              ...)
+void BKE_modifier_set_warning(const Object *ob, ModifierData *md, const char *_format, ...)
 {
   char buffer[512];
   va_list ap;
@@ -578,7 +575,7 @@ bool BKE_modifiers_is_particle_enabled(Object *ob)
   return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-bool BKE_modifier_is_enabled(const struct Scene *scene, ModifierData *md, int required_mode)
+bool BKE_modifier_is_enabled(const Scene *scene, ModifierData *md, int required_mode)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
@@ -607,7 +604,7 @@ bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierDat
           (md == nullptr || (md->flag & eModifierFlag_OverrideLibrary_Local) == 0));
 }
 
-CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
+CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
                                          ModifierData *md,
                                          CustomData_MeshMasks *final_datamask,
                                          int required_mode,
@@ -674,7 +671,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
   return dataMasks;
 }
 
-ModifierData *BKE_modifier_get_last_preview(const struct Scene *scene,
+ModifierData *BKE_modifier_get_last_preview(const Scene *scene,
                                             ModifierData *md,
                                             int required_mode)
 {
@@ -890,7 +887,7 @@ bool BKE_modifier_is_correctable_deformed(ModifierData *md)
   return mti->deformMatricesEM != nullptr;
 }
 
-bool BKE_modifiers_is_correctable_deformed(const struct Scene *scene, Object *ob)
+bool BKE_modifiers_is_correctable_deformed(const Scene *scene, Object *ob)
 {
   VirtualModifierData virtualModifierData;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
@@ -991,9 +988,7 @@ static void modwrap_dependsOnNormals(Mesh *me)
 
 /* wrapper around ModifierTypeInfo.modifyMesh that ensures valid normals */
 
-struct Mesh *BKE_modifier_modify_mesh(ModifierData *md,
-                                      const ModifierEvalContext *ctx,
-                                      struct Mesh *me)
+Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
@@ -1027,7 +1022,7 @@ void BKE_modifier_deform_verts(ModifierData *md,
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
-                                 struct BMEditMesh *em,
+                                 BMEditMesh *em,
                                  Mesh *me,
                                  float (*vertexCos)[3],
                                  int numVerts)
@@ -1066,9 +1061,7 @@ ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)
   return BKE_modifiers_findby_session_uuid(object_orig, &md->session_uuid);
 }
 
-struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
-                                                Object *object,
-                                                ModifierData *md)
+ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, ModifierData *md)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   if (object_eval == object) {
@@ -1079,7 +1072,7 @@ struct ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph,
 
 void BKE_modifier_check_uuids_unique_and_report(const Object *object)
 {
-  struct GSet *used_uuids = BLI_gset_new(
+  GSet *used_uuids = BLI_gset_new(
       BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "modifier used uuids");
 
   LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {

@@ -242,7 +242,7 @@ static void sequencer_thumbnail_init_job(const bContext *C,
     tj = MEM_callocN(sizeof(ThumbnailDrawJob), "Thumbnail cache job");
 
     /* Duplicate value of v2d->cur and v2d->tot to have module separation. */
-    rctf *view_area = MEM_callocN(sizeof(struct rctf), "viewport area");
+    rctf *view_area = MEM_callocN(sizeof(rctf), "viewport area");
     view_area->xmax = v2d->cur.xmax;
     view_area->xmin = v2d->cur.xmin;
     view_area->ymax = v2d->cur.ymax;
@@ -370,7 +370,7 @@ static int sequencer_thumbnail_closest_previous_frame_get(int timeline_frame,
   return best_frame;
 }
 
-static int sequencer_thumbnail_closest_guaranteed_frame_get(struct Scene *scene,
+static int sequencer_thumbnail_closest_guaranteed_frame_get(Scene *scene,
                                                             Sequence *seq,
                                                             int timeline_frame)
 {

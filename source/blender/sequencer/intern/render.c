@@ -192,7 +192,7 @@ void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
   }
 }
 
-void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4])
+void SEQ_render_pixel_from_sequencer_space_v4(Scene *scene, float pixel[4])
 {
   const char *from_colorspace = scene->sequencer_colorspace_settings.name;
   const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(
@@ -214,7 +214,7 @@ void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4
  * \{ */
 
 void SEQ_render_new_render_data(Main *bmain,
-                                struct Depsgraph *depsgraph,
+                                Depsgraph *depsgraph,
                                 Scene *scene,
                                 int rectx,
                                 int recty,

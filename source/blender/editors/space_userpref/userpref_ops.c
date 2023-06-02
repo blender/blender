@@ -285,7 +285,7 @@ static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 #endif
 }
 
-static void PREFERENCES_OT_associate_blend(struct wmOperatorType *ot)
+static void PREFERENCES_OT_associate_blend(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Register File Association";
@@ -333,7 +333,7 @@ static int unassociate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 #endif
 }
 
-static void PREFERENCES_OT_unassociate_blend(struct wmOperatorType *ot)
+static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove File Association";

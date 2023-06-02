@@ -120,7 +120,7 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
   return PyLong_FromLong(attr_id);
 }
 
-static struct PyMethodDef pygpu_vertformat__tp_methods[] = {
+static PyMethodDef pygpu_vertformat__tp_methods[] = {
     {"attr_add",
      (PyCFunction)pygpu_vertformat_attr_add,
      METH_VARARGS | METH_KEYWORDS,

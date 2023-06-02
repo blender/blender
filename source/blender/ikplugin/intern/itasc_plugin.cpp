@@ -65,12 +65,12 @@ using ErrorCallback = void (*)(const iTaSC::ConstraintValues *values,
 
 /* one structure for each target in the scene */
 struct IK_Target {
-  struct Depsgraph *bldepsgraph;
-  struct Scene *blscene;
+  Depsgraph *bldepsgraph;
+  Scene *blscene;
   iTaSC::MovingFrame *target;
   iTaSC::ConstraintSet *constraint;
-  struct bConstraint *blenderConstraint;
-  struct bPoseChannel *rootChannel;
+  bConstraint *blenderConstraint;
+  bPoseChannel *rootChannel;
   Object *owner; /* for auto IK */
   ErrorCallback errorCallback;
   std::string targetName;
@@ -135,8 +135,8 @@ struct IK_Channel {
 };
 
 struct IK_Scene {
-  struct Depsgraph *bldepsgraph;
-  struct Scene *blscene;
+  Depsgraph *bldepsgraph;
+  Scene *blscene;
   IK_Scene *next;
   int numchan;  /* number of channel in pchan */
   int numjoint; /* number of joint in jointArray */
@@ -152,7 +152,7 @@ struct IK_Scene {
   Object *blArmature;
   float blScale;    /* scale of the Armature object (assume uniform scaling) */
   float blInvScale; /* inverse of Armature object scale */
-  struct bConstraint *polarConstraint;
+  bConstraint *polarConstraint;
   std::vector<IK_Target *> targets;
 
   IK_Scene()
@@ -920,10 +920,7 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
 }
 
 /* build array of joint corresponding to IK chain */
-static int convert_channels(struct Depsgraph *depsgraph,
-                            IK_Scene *ikscene,
-                            PoseTree *tree,
-                            float ctime)
+static int convert_channels(Depsgraph *depsgraph, IK_Scene *ikscene, PoseTree *tree, float ctime)
 {
   IK_Channel *ikchan;
   bPoseChannel *pchan;
@@ -1131,7 +1128,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
 }
 
 static IK_Scene *convert_tree(
-    struct Depsgraph *depsgraph, Scene *blscene, Object *ob, bPoseChannel *pchan, float ctime)
+    Depsgraph *depsgraph, Scene *blscene, Object *ob, bPoseChannel *pchan, float ctime)
 {
   PoseTree *tree = (PoseTree *)pchan->iktree.first;
   PoseTarget *target;
@@ -1639,7 +1636,7 @@ static IK_Scene *convert_tree(
   return ikscene;
 }
 
-static void create_scene(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
+static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
   bPoseChannel *pchan;
 
@@ -1694,7 +1691,7 @@ static int init_scene(Object *ob)
   return 0;
 }
 
-static void execute_scene(struct Depsgraph *depsgraph,
+static void execute_scene(Depsgraph *depsgraph,
                           Scene *blscene,
                           IK_Scene *ikscene,
                           bItasc *ikparam,
@@ -1877,10 +1874,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
 /** \name Plugin Interface
  * \{ */
 
-void itasc_initialize_tree(struct Depsgraph *depsgraph,
-                           struct Scene *scene,
-                           Object *ob,
-                           float ctime)
+void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
   bPoseChannel *pchan;
   int count = 0;
@@ -1910,11 +1904,8 @@ void itasc_initialize_tree(struct Depsgraph *depsgraph,
   ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void itasc_execute_tree(struct Depsgraph *depsgraph,
-                        struct Scene *scene,
-                        Object *ob,
-                        bPoseChannel *pchan_root,
-                        float ctime)
+void itasc_execute_tree(
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
   if (ob->pose->ikdata) {
     IK_Data *ikdata = (IK_Data *)ob->pose->ikdata;
@@ -1934,12 +1925,12 @@ void itasc_execute_tree(struct Depsgraph *depsgraph,
   }
 }
 
-void itasc_release_tree(struct Scene *scene, struct Object *ob, float ctime)
+void itasc_release_tree(Scene *scene, Object *ob, float ctime)
 {
   /* not used for iTaSC */
 }
 
-void itasc_clear_data(struct bPose *pose)
+void itasc_clear_data(bPose *pose)
 {
   if (pose->ikdata) {
     IK_Data *ikdata = (IK_Data *)pose->ikdata;
@@ -1952,7 +1943,7 @@ void itasc_clear_data(struct bPose *pose)
   }
 }
 
-void itasc_clear_cache(struct bPose *pose)
+void itasc_clear_cache(bPose *pose)
 {
   if (pose->ikdata) {
     IK_Data *ikdata = (IK_Data *)pose->ikdata;
@@ -1965,7 +1956,7 @@ void itasc_clear_cache(struct bPose *pose)
   }
 }
 
-void itasc_update_param(struct bPose *pose)
+void itasc_update_param(bPose *pose)
 {
   if (pose->ikdata && pose->ikparam) {
     IK_Data *ikdata = (IK_Data *)pose->ikdata;
@@ -1994,9 +1985,9 @@ void itasc_update_param(struct bPose *pose)
   }
 }
 
-void itasc_test_constraint(struct Object *ob, struct bConstraint *cons)
+void itasc_test_constraint(Object *ob, bConstraint *cons)
 {
-  struct bKinematicConstraint *data = (struct bKinematicConstraint *)cons->data;
+  bKinematicConstraint *data = (bKinematicConstraint *)cons->data;
 
   /* only for IK constraint */
   if (cons->type != CONSTRAINT_TYPE_KINEMATIC || data == nullptr) {

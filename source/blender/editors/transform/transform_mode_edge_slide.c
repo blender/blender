@@ -48,14 +48,14 @@
 
 typedef struct TransDataEdgeSlideVert {
   /** #TransDataGenericSlideVert (header) */
-  struct BMVert *v;
+  BMVert *v;
   struct LinkNode **cd_loop_groups;
   float v_co_orig[3];
   /* end generic */
 
   float edge_len;
 
-  struct BMVert *v_side[2];
+  BMVert *v_side[2];
 
   /* add origvert.co to get the original locations */
   float dir_side[2][3];
@@ -104,7 +104,7 @@ static EdgeSlideData *edgeSlideFirstGet(TransInfo *t)
   return tc->custom.mode.data;
 }
 
-static void calcEdgeSlideCustomPoints(struct TransInfo *t)
+static void calcEdgeSlideCustomPoints(TransInfo *t)
 {
   EdgeSlideData *sld = edgeSlideFirstGet(t);
 
@@ -1081,7 +1081,7 @@ static void freeEdgeSlideVerts(TransInfo *UNUSED(t),
   custom_data->data = NULL;
 }
 
-static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
+static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
 {
   EdgeSlideParams *slp = t->custom.mode.data;
 

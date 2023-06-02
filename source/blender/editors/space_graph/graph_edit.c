@@ -2359,7 +2359,7 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool graph_has_selected_control_points(struct bContext *C)
+static bool graph_has_selected_control_points(bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {NULL, NULL};
@@ -2389,9 +2389,9 @@ static bool graph_has_selected_control_points(struct bContext *C)
   return has_selected_control_points;
 }
 
-static int graphkeys_selected_control_points_invoke(struct bContext *C,
-                                                    struct wmOperator *op,
-                                                    const struct wmEvent *event)
+static int graphkeys_selected_control_points_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   if (!graph_has_selected_control_points(C)) {
     BKE_report(op->reports, RPT_ERROR, "No control points are selected");

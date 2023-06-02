@@ -151,7 +151,7 @@ typedef struct tGP_BrushEditData {
 
   RNG *rng;
   /* Auto-masking strokes. */
-  struct GHash *automasking_strokes;
+  GHash *automasking_strokes;
   bool automasking_ready;
 
 } tGP_BrushEditData;

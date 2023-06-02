@@ -324,7 +324,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-static void initBend(TransInfo *t, struct wmOperator *UNUSED(op))
+static void initBend(TransInfo *t, wmOperator *UNUSED(op))
 {
   const float mval_fl[2] = {UNPACK2(t->mval)};
   const float *curs;

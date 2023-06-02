@@ -52,7 +52,7 @@ static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNU
 static void statusbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */
-static void statusbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void statusbar_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 {
@@ -74,7 +74,7 @@ static void statusbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *r
 
 static void statusbar_operatortypes(void) {}
 
-static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
+static void statusbar_keymap(wmKeyConfig *UNUSED(keyconf)) {}
 
 static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {

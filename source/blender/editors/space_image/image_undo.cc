@@ -458,12 +458,12 @@ static void utile_decref(UndoImageTile *utile)
  * \{ */
 
 struct UndoImageBuf {
-  struct UndoImageBuf *next, *prev;
+  UndoImageBuf *next, *prev;
 
   /**
    * The buffer after the undo step has executed.
    */
-  struct UndoImageBuf *post;
+  UndoImageBuf *post;
 
   char ibuf_filepath[IMB_FILEPATH_SIZE];
 
@@ -577,7 +577,7 @@ static void ubuf_free(UndoImageBuf *ubuf)
  * \{ */
 
 struct UndoImageHandle {
-  struct UndoImageHandle *next, *prev;
+  UndoImageHandle *next, *prev;
 
   /** Each undo handle refers to a single image which may have multiple buffers. */
   UndoRefID_Image image_ref;
@@ -804,7 +804,7 @@ static bool image_undosys_poll(bContext *C)
   return false;
 }
 
-static void image_undosys_step_encode_init(struct bContext * /*C*/, UndoStep *us_p)
+static void image_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
 {
   ImageUndoStep *us = reinterpret_cast<ImageUndoStep *>(us_p);
   /* dummy, memory is cleared anyway. */
@@ -813,7 +813,7 @@ static void image_undosys_step_encode_init(struct bContext * /*C*/, UndoStep *us
   us->paint_tile_map = MEM_new<PaintTileMap>(__func__);
 }
 
-static bool image_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
+static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   /* Encoding is done along the way by adding tiles
    * to the current 'ImageUndoStep' added by encode_init.
@@ -1008,7 +1008,7 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
 }
 
 static void image_undosys_step_decode(
-    struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
   /* NOTE: behavior for undo/redo closely matches sculpt undo. */
   BLI_assert(dir != STEP_INVALID);

@@ -134,12 +134,12 @@ Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
   return s0.getMatrix();
 }
 
-struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
-                                        const Alembic::Abc::ISampleSelector & /*sample_sel*/,
-                                        int /*read_flag*/,
-                                        const char * /*velocity_name*/,
-                                        const float /*velocity_scale*/,
-                                        const char ** /*err_str*/)
+Mesh *AbcObjectReader::read_mesh(Mesh *existing_mesh,
+                                 const Alembic::Abc::ISampleSelector & /*sample_sel*/,
+                                 int /*read_flag*/,
+                                 const char * /*velocity_name*/,
+                                 const float /*velocity_scale*/,
+                                 const char ** /*err_str*/)
 {
   return existing_mesh;
 }

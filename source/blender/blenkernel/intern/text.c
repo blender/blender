@@ -2170,7 +2170,7 @@ bool txt_unindent(Text *text)
   return txt_select_unprefix(text, prefix, false);
 }
 
-void txt_move_lines(struct Text *text, const int direction)
+void txt_move_lines(Text *text, const int direction)
 {
   TextLine *line_other;
 

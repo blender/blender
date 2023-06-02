@@ -109,10 +109,10 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
 
 static void group_execute(void *data,
                           int thread,
-                          struct bNode *node,
+                          bNode *node,
                           bNodeExecData *execdata,
-                          struct bNodeStack **in,
-                          struct bNodeStack **out)
+                          bNodeStack **in,
+                          bNodeStack **out)
 {
   bNodeTreeExec *exec = static_cast<bNodeTreeExec *>(execdata->data);
   bNodeThreadStack *nts;

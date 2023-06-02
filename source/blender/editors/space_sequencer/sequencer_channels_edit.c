@@ -45,7 +45,7 @@ static int sequencer_rename_channel_invoke(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot)
+void SEQUENCER_OT_rename_channel(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Rename Channel";

@@ -352,7 +352,7 @@ bool BKE_lib_override_library_property_is_animated(const ID *id,
 {
   AnimData *anim_data = BKE_animdata_from_id(id);
   if (anim_data != nullptr) {
-    struct FCurve *fcurve;
+    FCurve *fcurve;
     char *index_token_start = const_cast<char *>(
         RNA_path_array_index_token_find(override_prop->rna_path, override_rna_prop));
     if (index_token_start != nullptr) {

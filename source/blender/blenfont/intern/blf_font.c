@@ -67,8 +67,8 @@ static ThreadMutex ft_lib_mutex;
 /* May be set to #UI_widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)(void) = NULL;
 
-static ft_pix blf_font_height_max_ft_pix(struct FontBLF *font);
-static ft_pix blf_font_width_max_ft_pix(struct FontBLF *font);
+static ft_pix blf_font_height_max_ft_pix(FontBLF *font);
+static ft_pix blf_font_width_max_ft_pix(FontBLF *font);
 
 /* -------------------------------------------------------------------- */
 
@@ -981,7 +981,7 @@ static bool blf_cursor_position_foreach_glyph(const char *UNUSED(str),
   return true;
 }
 
-size_t blf_str_offset_from_cursor_position(struct FontBLF *font,
+size_t blf_str_offset_from_cursor_position(FontBLF *font,
                                            const char *str,
                                            size_t str_len,
                                            int location_x)
@@ -1022,7 +1022,7 @@ static bool blf_str_offset_foreach_glyph(const char *UNUSED(str),
   return true;
 }
 
-void blf_str_offset_to_glyph_bounds(struct FontBLF *font,
+void blf_str_offset_to_glyph_bounds(FontBLF *font,
                                     const char *str,
                                     size_t str_offset,
                                     rcti *glyph_bounds)

@@ -164,7 +164,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
                                EEVEE_Data *vedata,
                                Material *ma,
                                DRWShadingGroup *shgrp,
-                               struct GPUMaterial *gpumat)
+                               GPUMaterial *gpumat)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_StorageList *stl = vedata->stl;
@@ -172,8 +172,8 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   GPUTexture **depth_src = GPU_depth_blitting_workaround() ? &effects->sss_stencil : &dtxl->depth;
 
-  struct GPUTexture *sss_tex_profile = NULL;
-  struct GPUUniformBuf *sss_profile = GPU_material_sss_profile_get(
+  GPUTexture *sss_tex_profile = NULL;
+  GPUUniformBuf *sss_profile = GPU_material_sss_profile_get(
       gpumat, stl->effects->sss_sample_count, &sss_tex_profile);
 
   if (!sss_profile) {

@@ -56,7 +56,7 @@
  */
 
 struct wmJob {
-  struct wmJob *next, *prev;
+  wmJob *next, *prev;
 
   /** Job originating from, keep track of this when deleting windows */
   wmWindow *win;
@@ -576,7 +576,7 @@ void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)
   }
 }
 
-void WM_jobs_kill_type(struct wmWindowManager *wm, const void *owner, int job_type)
+void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
     if (owner && wm_job->owner != owner) {
@@ -717,7 +717,7 @@ bool WM_jobs_has_running(const wmWindowManager *wm)
   return false;
 }
 
-bool WM_jobs_has_running_type(const struct wmWindowManager *wm, int job_type)
+bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->running && wm_job->job_type == job_type) {

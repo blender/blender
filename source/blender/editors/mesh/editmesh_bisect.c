@@ -393,10 +393,10 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 }
 
 #ifdef USE_GIZMO
-static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt);
+static void MESH_GGT_bisect(wmGizmoGroupType *gzgt);
 #endif
 
-void MESH_OT_bisect(struct wmOperatorType *ot)
+void MESH_OT_bisect(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -471,11 +471,11 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 
 typedef struct GizmoGroup {
   /* Arrow to change plane depth. */
-  struct wmGizmo *translate_z;
+  wmGizmo *translate_z;
   /* Translate XYZ */
-  struct wmGizmo *translate_c;
+  wmGizmo *translate_c;
   /* For grabbing the gizmo and moving freely. */
-  struct wmGizmo *rotate_c;
+  wmGizmo *rotate_c;
 
   /* We could store more vars here! */
   struct {
@@ -681,7 +681,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  struct GizmoGroup *ggd = MEM_callocN(sizeof(GizmoGroup), __func__);
+  GizmoGroup *ggd = MEM_callocN(sizeof(GizmoGroup), __func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
@@ -715,7 +715,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
   {
     WM_gizmo_target_property_def_func(ggd->translate_z,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_bisect_prop_depth_get,
                                           .value_set_fn = gizmo_bisect_prop_depth_set,
                                           .range_get_fn = NULL,
@@ -724,7 +724,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
     WM_gizmo_target_property_def_func(ggd->translate_c,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_bisect_prop_translate_get,
                                           .value_set_fn = gizmo_bisect_prop_translate_set,
                                           .range_get_fn = NULL,
@@ -733,7 +733,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
     WM_gizmo_target_property_def_func(ggd->rotate_c,
                                       "offset",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_bisect_prop_angle_get,
                                           .value_set_fn = gizmo_bisect_prop_angle_set,
                                           .range_get_fn = NULL,
@@ -751,7 +751,7 @@ static void gizmo_mesh_bisect_draw_prepare(const bContext *UNUSED(C), wmGizmoGro
   gizmo_mesh_bisect_update_from_op(ggd);
 }
 
-static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt)
+static void MESH_GGT_bisect(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "Mesh Bisect";
   gzgt->idname = "MESH_GGT_bisect";

@@ -677,7 +677,7 @@ struct wmFileReadPost_Params {
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *params)
+static void wm_file_read_post(bContext *C, const wmFileReadPost_Params *params)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -1014,7 +1014,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
     bf_reports.duration.whole = PIL_check_seconds_timer();
-    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
+    BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
 
@@ -1134,9 +1134,9 @@ const char *WM_init_state_app_template_get(void)
  * \{ */
 
 void wm_homefile_read_ex(bContext *C,
-                         const struct wmHomeFileRead_Params *params_homefile,
+                         const wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
-                         struct wmFileReadPost_Params **r_params_file_read_post)
+                         wmFileReadPost_Params **r_params_file_read_post)
 {
 #if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
   /* Context does not always have valid main pointer here. */
@@ -1330,7 +1330,7 @@ void wm_homefile_read_ex(bContext *C,
       params.skip_flags = skip_flags | BLO_READ_SKIP_USERDEF;
       BlendFileReadReport bf_reports{};
       bf_reports.reports = reports;
-      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
+      BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
       if (bfd != nullptr) {
         BKE_blendfile_read_setup_ex(
@@ -1360,7 +1360,7 @@ void wm_homefile_read_ex(bContext *C,
     BlendFileReadParams read_file_params{};
     read_file_params.is_startup = true;
     read_file_params.skip_flags = skip_flags;
-    struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
+    BlendFileData *bfd = BKE_blendfile_read_from_memory(
         datatoc_startup_blend, datatoc_startup_blend_size, &read_file_params, nullptr);
     if (bfd != nullptr) {
       BlendFileReadReport read_report{};
@@ -1470,14 +1470,13 @@ void wm_homefile_read_ex(bContext *C,
 }
 
 void wm_homefile_read(bContext *C,
-                      const struct wmHomeFileRead_Params *params_homefile,
+                      const wmHomeFileRead_Params *params_homefile,
                       ReportList *reports)
 {
   wm_homefile_read_ex(C, params_homefile, reports, nullptr);
 }
 
-void wm_homefile_read_post(struct bContext *C,
-                           const struct wmFileReadPost_Params *params_file_read_post)
+void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file_read_post)
 {
   wm_file_read_post(C, params_file_read_post);
 
@@ -1518,7 +1517,7 @@ void wm_history_file_read(void)
     const char *line = static_cast<const char *>(l->link);
     /* don't check if files exist, causes slow startup for remote/external drives */
     if (line[0]) {
-      struct RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
+      RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;
@@ -2843,9 +2842,9 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
   return wm_open_mainfile__open(C, op);
 }
 
-static char *wm_open_mainfile_description(struct bContext * /*C*/,
-                                          struct wmOperatorType * /*op*/,
-                                          struct PointerRNA *params)
+static char *wm_open_mainfile_description(bContext * /*C*/,
+                                          wmOperatorType * /*op*/,
+                                          PointerRNA *params)
 {
   if (!RNA_struct_property_is_set(params, "filepath")) {
     return nullptr;
@@ -2886,12 +2885,11 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
 struct FileRuntime {
   bool is_untrusted;
 };
-BLI_STATIC_ASSERT(sizeof(struct FileRuntime) <= sizeof(void *),
-                  "Struct must not exceed pointer size");
+BLI_STATIC_ASSERT(sizeof(FileRuntime) <= sizeof(void *), "Struct must not exceed pointer size");
 
 static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
   bool is_untrusted = false;
   char filepath[FILE_MAX];
@@ -2921,7 +2919,7 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 
 static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
@@ -3520,9 +3518,7 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, void *arg_block
 }
 
 /* Build the autorun warning dialog UI */
-static uiBlock *block_create_autorun_warning(struct bContext *C,
-                                             struct ARegion *region,
-                                             void * /*arg1*/)
+static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void * /*arg1*/)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -3807,9 +3803,7 @@ static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg
   ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
 }
 
-static uiBlock *block_create__close_file_dialog(struct bContext *C,
-                                                struct ARegion *region,
-                                                void *arg1)
+static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);

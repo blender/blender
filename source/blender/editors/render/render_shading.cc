@@ -2670,7 +2670,7 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
     MTex **mtex_ar, *mtexswap;
     short act;
     int type = RNA_enum_get(op->ptr, "type");
-    struct AnimData *adt = BKE_animdata_from_id(id);
+    AnimData *adt = BKE_animdata_from_id(id);
 
     give_active_mtex(id, &mtex_ar, &act);
 

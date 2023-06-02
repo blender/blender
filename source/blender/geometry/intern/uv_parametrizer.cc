@@ -38,7 +38,7 @@ namespace blender::geometry {
 using PHashKey = uintptr_t;
 
 struct PHashLink {
-  struct PHashLink *next;
+  PHashLink *next;
   PHashKey key;
 };
 
@@ -51,7 +51,7 @@ struct PHash {
 /* Simplices */
 
 struct PVert {
-  struct PVert *nextlink;
+  PVert *nextlink;
 
   union PVertUnion {
     PHashKey key;       /* Construct. */
@@ -66,25 +66,25 @@ struct PVert {
 };
 
 struct PEdge {
-  struct PEdge *nextlink;
+  PEdge *nextlink;
 
   union PEdgeUnion {
-    PHashKey key;               /* Construct. */
-    int id;                     /* ABF matrix index. */
-    HeapNode *heaplink;         /* Fill holes. */
-    struct PEdge *nextcollapse; /* Simplification. */
+    PHashKey key;        /* Construct. */
+    int id;              /* ABF matrix index. */
+    HeapNode *heaplink;  /* Fill holes. */
+    PEdge *nextcollapse; /* Simplification. */
   } u;
 
-  struct PVert *vert;
-  struct PEdge *pair;
-  struct PEdge *next;
+  PVert *vert;
+  PEdge *pair;
+  PEdge *next;
   struct PFace *face;
   float *orig_uv, old_uv[2];
   uint flag;
 };
 
 struct PFace {
-  struct PFace *nextlink;
+  PFace *nextlink;
 
   union PFaceUnion {
     PHashKey key; /* Construct. */
@@ -93,7 +93,7 @@ struct PFace {
     int id;       /* ABF matrix index. */
   } u;
 
-  struct PEdge *edge;
+  PEdge *edge;
   uint flag;
 };
 
@@ -3705,7 +3705,7 @@ void uv_parametrizer_delete(ParamHandle *phandle)
 }
 
 struct GeoUVPinIndex {
-  struct GeoUVPinIndex *next;
+  GeoUVPinIndex *next;
   float uv[2];
   ParamKey reindex;
 };

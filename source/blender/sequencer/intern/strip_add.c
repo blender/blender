@@ -114,7 +114,7 @@ static void seq_add_set_view_transform(Scene *scene, Sequence *seq, SeqLoadData 
     role_colorspace_byte = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
 
     if (STREQ(strip_colorspace, role_colorspace_byte)) {
-      struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+      ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
           scene->display_settings.display_device);
       const char *default_view_transform =
           IMB_colormanagement_display_get_default_view_transform_name(display);
@@ -123,7 +123,7 @@ static void seq_add_set_view_transform(Scene *scene, Sequence *seq, SeqLoadData 
   }
 }
 
-Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SCENE);
@@ -135,7 +135,7 @@ Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDat
   return seq;
 }
 
-Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIECLIP);
@@ -147,7 +147,7 @@ Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoa
   return seq;
 }
 
-Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MASK);
@@ -159,7 +159,7 @@ Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData
   return seq;
 }
 
-Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, load_data->effect.type);
@@ -684,11 +684,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
   SEQ_relations_invalidate_cache_raw(scene, seq);
 }
 
-void SEQ_add_movie_reload_if_needed(struct Main *bmain,
-                                    struct Scene *scene,
-                                    struct Sequence *seq,
-                                    bool *r_was_reloaded,
-                                    bool *r_can_produce_frames)
+void SEQ_add_movie_reload_if_needed(
+    Main *bmain, Scene *scene, Sequence *seq, bool *r_was_reloaded, bool *r_can_produce_frames)
 {
   BLI_assert(seq->type == SEQ_TYPE_MOVIE ||
              !"This function is only implemented for movie strips.");

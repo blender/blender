@@ -318,8 +318,8 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
   PyObject *py_scene, *py_view_layer, *py_region, *py_view3d;
 
   struct Depsgraph *depsgraph;
-  struct Scene *scene;
-  struct ViewLayer *view_layer;
+  Scene *scene;
+  ViewLayer *view_layer;
   View3D *v3d;
   ARegion *region;
 
@@ -471,7 +471,7 @@ static PyGetSetDef pygpu_offscreen__tp_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static struct PyMethodDef pygpu_offscreen__tp_methods[] = {
+static PyMethodDef pygpu_offscreen__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_offscreen_bind, METH_NOARGS, pygpu_offscreen_bind_doc},
     {"unbind",
      (PyCFunction)pygpu_offscreen_unbind,

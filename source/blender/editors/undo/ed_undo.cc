@@ -445,7 +445,7 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
   return true;
 }
 
-bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
+bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -668,7 +668,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
   if (op) {
     CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
     wmWindowManager *wm = CTX_wm_manager(C);
-    struct Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_scene(C);
 
     /* keep in sync with logic in view3d_panel_operator_redo() */
     ARegion *region_orig = CTX_wm_region(C);
@@ -818,7 +818,7 @@ void ED_undo_object_set_active_or_warn(
   }
 }
 
-void ED_undo_object_editmode_restore_helper(struct bContext *C,
+void ED_undo_object_editmode_restore_helper(bContext *C,
                                             Object **object_array,
                                             uint object_array_len,
                                             uint object_array_stride)

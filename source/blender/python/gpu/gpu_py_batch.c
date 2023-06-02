@@ -336,7 +336,7 @@ static PyObject *pygpu_batch_program_use_end(BPyGPUBatch *self)
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pygpu_batch__tp_methods[] = {
+static PyMethodDef pygpu_batch__tp_methods[] = {
     {"vertbuf_add", (PyCFunction)pygpu_batch_vertbuf_add, METH_O, pygpu_batch_vertbuf_add_doc},
     {"program_set", (PyCFunction)pygpu_batch_program_set, METH_O, pygpu_batch_program_set_doc},
     {"draw", (PyCFunction)pygpu_batch_draw, METH_VARARGS, pygpu_batch_draw_doc},

@@ -1653,7 +1653,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     /* For vertex surface loop through `looptris` and find UV color
      * that provides highest alpha. */
     if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-      struct ImagePool *pool = BKE_image_pool_new();
+      ImagePool *pool = BKE_image_pool_new();
 
       DynamicPaintSetInitColorData data{};
       data.surface = surface;

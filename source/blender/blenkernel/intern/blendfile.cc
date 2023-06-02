@@ -226,7 +226,7 @@ static void setup_app_userdef(BlendFileData *bfd)
  */
 static void setup_app_data(bContext *C,
                            BlendFileData *bfd,
-                           const struct BlendFileReadParams *params,
+                           const BlendFileReadParams *params,
                            BlendFileReadReport *reports)
 {
   Main *bmain = G_MAIN;
@@ -525,7 +525,7 @@ static void setup_app_data(bContext *C,
 
 static void setup_app_blend_file_data(bContext *C,
                                       BlendFileData *bfd,
-                                      const struct BlendFileReadParams *params,
+                                      const BlendFileReadParams *params,
                                       BlendFileReadReport *reports)
 {
   if ((params->skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
@@ -552,7 +552,7 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 
 void BKE_blendfile_read_setup_ex(bContext *C,
                                  BlendFileData *bfd,
-                                 const struct BlendFileReadParams *params,
+                                 const BlendFileReadParams *params,
                                  BlendFileReadReport *reports,
                                  /* Extra args. */
                                  const bool startup_update_defaults,
@@ -576,15 +576,15 @@ void BKE_blendfile_read_setup_ex(bContext *C,
 
 void BKE_blendfile_read_setup(bContext *C,
                               BlendFileData *bfd,
-                              const struct BlendFileReadParams *params,
+                              const BlendFileReadParams *params,
                               BlendFileReadReport *reports)
 {
   BKE_blendfile_read_setup_ex(C, bfd, params, reports, false, nullptr);
 }
 
-struct BlendFileData *BKE_blendfile_read(const char *filepath,
-                                         const struct BlendFileReadParams *params,
-                                         BlendFileReadReport *reports)
+BlendFileData *BKE_blendfile_read(const char *filepath,
+                                  const BlendFileReadParams *params,
+                                  BlendFileReadReport *reports)
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
@@ -605,10 +605,10 @@ struct BlendFileData *BKE_blendfile_read(const char *filepath,
   return bfd;
 }
 
-struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
-                                                     int filelength,
-                                                     const struct BlendFileReadParams *params,
-                                                     ReportList *reports)
+BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
+                                              int filelength,
+                                              const BlendFileReadParams *params,
+                                              ReportList *reports)
 {
   BlendFileData *bfd = BLO_read_from_memory(
       filebuf, filelength, eBLOReadSkip(params->skip_flags), reports);
@@ -625,10 +625,10 @@ struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
   return bfd;
 }
 
-struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
-                                                      struct MemFile *memfile,
-                                                      const struct BlendFileReadParams *params,
-                                                      ReportList *reports)
+BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
+                                               MemFile *memfile,
+                                               const BlendFileReadParams *params,
+                                               ReportList *reports)
 {
   BlendFileData *bfd = BLO_read_from_memfile(
       bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);

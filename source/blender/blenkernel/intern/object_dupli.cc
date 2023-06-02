@@ -790,7 +790,7 @@ static void make_duplis_font(const DupliContext *ctx)
   GHash *family_gh;
   Object *ob;
   Curve *cu;
-  struct CharTrans *ct, *chartransdata = nullptr;
+  CharTrans *ct, *chartransdata = nullptr;
   float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
   int text_len, a;
   size_t family_len;
@@ -1968,8 +1968,8 @@ bool BKE_object_dupli_find_rgba_attribute(
   return false;
 }
 
-bool BKE_view_layer_find_rgba_attribute(struct Scene *scene,
-                                        struct ViewLayer *layer,
+bool BKE_view_layer_find_rgba_attribute(Scene *scene,
+                                        ViewLayer *layer,
                                         const char *name,
                                         float r_value[4])
 {

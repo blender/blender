@@ -867,52 +867,52 @@ wmKeyMap *WM_gizmogroup_setup_keymap_generic_select(const wmGizmoGroupType *UNUS
  * Key config version so these can be called from #wmGizmoGroupFnSetupKeymap.
  * \{ */
 
-struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Select";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_select_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_drag_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Click Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Maybe Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wm->defaultconf);
 }
@@ -923,8 +923,8 @@ struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 /** \name wmGizmoGroupType
  * \{ */
 
-struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(struct wmGizmoMapType *gzmap_type,
-                                                           const wmGizmoGroupType *gzgt)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(wmGizmoMapType *gzmap_type,
+                                                    const wmGizmoGroupType *gzgt)
 {
   /* could use hash lookups as operator types do, for now simple search. */
   LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
@@ -935,8 +935,7 @@ struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(struct wmGizmoMapType
   return NULL;
 }
 
-struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(struct wmGizmoMapType *gzmap_type,
-                                                       const char *idname)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type, const char *idname)
 {
   /* could use hash lookups as operator types do, for now simple search. */
   LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
@@ -1136,25 +1135,25 @@ bool WM_gizmo_group_type_ensure(const char *idname)
   return WM_gizmo_group_type_ensure_ptr(gzgt);
 }
 
-void WM_gizmo_group_type_remove_ptr_ex(struct Main *bmain,
+void WM_gizmo_group_type_remove_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)
 {
   WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
 }
-void WM_gizmo_group_type_remove_ptr(struct Main *bmain, wmGizmoGroupType *gzgt)
+void WM_gizmo_group_type_remove_ptr(Main *bmain, wmGizmoGroupType *gzgt)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_remove_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_remove(struct Main *bmain, const char *idname)
+void WM_gizmo_group_type_remove(Main *bmain, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != NULL);
   WM_gizmo_group_type_remove_ptr(bmain, gzgt);
 }
 
-void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
+void WM_gizmo_group_type_reinit_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)
 {
@@ -1164,12 +1163,12 @@ void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
   WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
   WM_gizmo_group_type_add_ptr_ex(gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_reinit_ptr(struct Main *bmain, wmGizmoGroupType *gzgt)
+void WM_gizmo_group_type_reinit_ptr(Main *bmain, wmGizmoGroupType *gzgt)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_reinit_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_reinit(struct Main *bmain, const char *idname)
+void WM_gizmo_group_type_reinit(Main *bmain, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != NULL);

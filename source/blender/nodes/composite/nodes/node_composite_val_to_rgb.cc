@@ -52,7 +52,7 @@ class ColorRampShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    struct ColorBand *color_band = get_color_band();
+    ColorBand *color_band = get_color_band();
 
     /* Common / easy case optimization. */
     if ((color_band->tot <= 2) && (color_band->color_mode == COLBAND_BLEND_RGB)) {
@@ -117,9 +117,9 @@ class ColorRampShaderNode : public ShaderNode {
     GPU_stack_link(material, &bnode(), "valtorgb", inputs, outputs, tex, GPU_constant(&layer));
   }
 
-  struct ColorBand *get_color_band()
+  ColorBand *get_color_band()
   {
-    return static_cast<struct ColorBand *>(bnode().storage);
+    return static_cast<ColorBand *>(bnode().storage);
   }
 };
 

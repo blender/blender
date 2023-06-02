@@ -40,7 +40,7 @@ static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
   BlendFileReadReport bf_reports = {};
   bf_reports.reports = nullptr;
 
-  struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
+  BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, &bf_reports);
   if (libfiledata == nullptr) {
     return nullptr;
   }

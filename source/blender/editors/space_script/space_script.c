@@ -77,7 +77,7 @@ static void script_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void script_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {

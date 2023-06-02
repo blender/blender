@@ -76,7 +76,7 @@ static void transdata_elem_shrink_fatten_fn(void *__restrict iter_data_v,
 /** \name Transform (Shrink-Fatten)
  * \{ */
 
-static eRedrawFlag shrinkfatten_handleEvent(struct TransInfo *t, const wmEvent *event)
+static eRedrawFlag shrinkfatten_handleEvent(TransInfo *t, const wmEvent *event)
 {
   BLI_assert(t->mode == TFM_SHRINKFATTEN);
   const wmKeyMapItem *kmi = t->custom.mode.data;
@@ -170,7 +170,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-static void initShrinkFatten(TransInfo *t, struct wmOperator *UNUSED(op))
+static void initShrinkFatten(TransInfo *t, wmOperator *UNUSED(op))
 {
   if ((t->flag & T_EDIT) == 0 || (t->obedit_type != OB_MESH)) {
     BKE_report(t->reports, RPT_ERROR, "'Shrink/Fatten' meshes is only supported in edit mode");

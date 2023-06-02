@@ -46,7 +46,7 @@ struct CDDerivedMesh {
   int *corner_edges;
 
   /* Cached */
-  struct PBVH *pbvh;
+  PBVH *pbvh;
   bool pbvh_draw;
 
   /* Mesh connectivity */

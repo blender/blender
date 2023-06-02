@@ -291,13 +291,12 @@ void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *s
 
   if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
     const int materials_len = DRW_cache_object_material_count_get(ob);
-    struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+    GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
     memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
-    struct GPUBatch **geoms = DRW_cache_object_surface_material_get(
-        ob, gpumat_array, materials_len);
+    GPUBatch **geoms = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
     if (geoms) {
       for (int i = 0; i < materials_len; i++) {
-        struct GPUBatch *geom = geoms[i];
+        GPUBatch *geom = geoms[i];
         if (geom == NULL) {
           continue;
         }

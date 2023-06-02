@@ -76,12 +76,12 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM
   return ibuf;
 }
 
-struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
-                                               const int /*flags*/,
-                                               const size_t max_thumb_size,
-                                               char colorspace[],
-                                               size_t *r_width,
-                                               size_t *r_height)
+ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
+                                        const int /*flags*/,
+                                        const size_t max_thumb_size,
+                                        char colorspace[],
+                                        size_t *r_width,
+                                        size_t *r_height)
 {
   const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
@@ -120,7 +120,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   const int dest_h = MAX2(int(config.input.height * scale), 1);
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
-  struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
+  ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
   if (ibuf == nullptr) {
     fprintf(stderr, "WebP: Failed to allocate image memory\n");
     imb_mmap_lock();
@@ -160,7 +160,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   return ibuf;
 }
 
-bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int /*flags*/)
+bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const int bytesperpixel = (ibuf->planes + 7) >> 3;
   uchar *encoded_data, *last_row;

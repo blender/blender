@@ -131,7 +131,7 @@ struct ShaderPreview {
 };
 
 struct IconPreviewSize {
-  struct IconPreviewSize *next, *prev;
+  IconPreviewSize *next, *prev;
   int sizex, sizey;
   uint *rect;
 };
@@ -148,7 +148,7 @@ struct IconPreview {
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
-  struct Object *active_object;
+  Object *active_object;
 };
 
 /** \} */
@@ -805,7 +805,7 @@ static Object *object_preview_camera_create(Main *preview_main,
   return camera;
 }
 
-static Scene *object_preview_scene_create(const struct ObjectPreviewData *preview_data,
+static Scene *object_preview_scene_create(const ObjectPreviewData *preview_data,
                                           Depsgraph **r_depsgraph)
 {
   Scene *scene = BKE_scene_add(preview_data->pr_main, "Object preview scene");
@@ -854,7 +854,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   BLI_assert(preview->id_copy && (preview->id_copy != preview->id));
 
-  struct ObjectPreviewData preview_data = {};
+  ObjectPreviewData preview_data = {};
   preview_data.pr_main = preview_main;
   /* Act on a copy. */
   preview_data.object = (Object *)preview->id_copy;
@@ -942,7 +942,7 @@ static bool collection_preview_contains_geometry_recursive(const Collection *col
 /** \name Action Preview
  * \{ */
 
-static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
+static PoseBackup *action_preview_render_prepare(IconPreview *preview)
 {
   Object *object = preview->active_object;
   if (object == nullptr) {
@@ -957,8 +957,8 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   }
 
   /* Create a backup of the current pose. */
-  struct bAction *action = (struct bAction *)preview->id;
-  struct PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
+  bAction *action = (bAction *)preview->id;
+  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
@@ -972,7 +972,7 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   return pose_backup;
 }
 
-static void action_preview_render_cleanup(IconPreview *preview, struct PoseBackup *pose_backup)
+static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose_backup)
 {
   if (pose_backup == nullptr) {
     return;
@@ -998,7 +998,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
   BLI_assert(preview->scene == DEG_get_input_scene(depsgraph));
 
   /* Apply the pose before getting the evaluated scene, so that the new pose is evaluated. */
-  struct PoseBackup *pose_backup = action_preview_render_prepare(preview);
+  PoseBackup *pose_backup = action_preview_render_prepare(preview);
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *camera_eval = scene_eval->camera;
@@ -1042,7 +1042,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv, RenderResult * /*rr*/, struct rcti * /*rect*/)
+static void shader_preview_update(void *spv, RenderResult * /*rr*/, rcti * /*rect*/)
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 
@@ -1080,7 +1080,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
-  struct ImagePool *img_pool = BKE_image_pool_new();
+  ImagePool *img_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
@@ -1245,7 +1245,7 @@ static void shader_preview_startjob(void *customdata, bool *stop, bool *do_updat
 
 static void preview_id_copy_free(ID *id)
 {
-  struct IDProperty *properties;
+  IDProperty *properties;
   /* get rid of copied ID */
   properties = IDP_GetProperties(id, false);
   if (properties) {
@@ -1348,7 +1348,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
 {
-  struct ImBuf *ima;
+  ImBuf *ima;
   uint *drect, *srect;
   float scaledx, scaledy;
   short ex, ey, dx, dy;
@@ -1737,7 +1737,7 @@ class PreviewLoadJob {
   ThreadQueue *todo_queue_; /* RequestedPreview * */
   /** All unfinished preview requests, #update_fn() calls #finish_preview_request() on loaded
    * previews and removes them from this list. Only access from the main thread! */
-  std::list<struct RequestedPreview> requested_previews_;
+  std::list<RequestedPreview> requested_previews_;
 
  public:
   PreviewLoadJob();
@@ -2132,7 +2132,7 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main * /*bmain*/)
 }
 
 struct PreviewRestartQueueEntry {
-  struct PreviewRestartQueueEntry *next, *prev;
+  PreviewRestartQueueEntry *next, *prev;
 
   enum eIconSizes size;
   ID *id;

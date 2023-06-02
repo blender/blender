@@ -45,7 +45,7 @@
 
 typedef struct TransDataVertSlideVert {
   /** #TransDataGenericSlideVert (header) */
-  struct BMVert *v;
+  BMVert *v;
   struct LinkNode **cd_loop_groups;
   float co_orig_3d[3];
   /* end generic */
@@ -99,7 +99,7 @@ static void vert_slide_update_input(TransInfo *t)
   }
 }
 
-static void calcVertSlideCustomPoints(struct TransInfo *t)
+static void calcVertSlideCustomPoints(TransInfo *t)
 {
   vert_slide_update_input(t);
 
@@ -112,7 +112,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 /**
  * Run once when initializing vert slide to find the reference edge
  */
-static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
+static void calcVertSlideMouseActiveVert(TransInfo *t, const int mval[2])
 {
   /* Active object may have no selected vertices. */
   VertSlideData *sld = TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data;
@@ -140,7 +140,7 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 /**
  * Run while moving the mouse to slide along the edge matching the mouse direction
  */
-static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
+static void calcVertSlideMouseActiveEdges(TransInfo *t, const int mval[2])
 {
   VertSlideData *sld = TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data;
   const float imval_fl[2] = {UNPACK2(t->mouse.imval)};
@@ -304,7 +304,7 @@ static void freeVertSlideVerts(TransInfo *UNUSED(t),
   custom_data->data = NULL;
 }
 
-static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
+static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
 {
   VertSlideParams *slp = t->custom.mode.data;
 
