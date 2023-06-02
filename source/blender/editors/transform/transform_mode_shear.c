@@ -320,11 +320,9 @@ static void apply_shear(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initShear(TransInfo *t)
+static void initShear(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_SHEAR;
-  t->transform = apply_shear;
-  t->handleEvent = handleEventShear;
 
   if (t->orient_axis == t->orient_axis_ortho) {
     t->orient_axis = 2;
@@ -342,9 +340,18 @@ void initShear(TransInfo *t)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE; /* Don't think we have any unit here? */
 
-  t->flag |= T_NO_CONSTRAINT;
-
   transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
 
 /** \} */
+
+TransModeInfo TransMode_shear = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initShear,
+    /*transform_fn*/ apply_shear,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ handleEventShear,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

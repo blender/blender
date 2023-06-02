@@ -148,10 +148,9 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initBoneSize(TransInfo *t)
+static void initBoneSize(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_BONESIZE;
-  t->transform = applyBoneSize;
 
   initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
@@ -172,3 +171,14 @@ void initBoneSize(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_bboneresize = {
+    /*flags*/ 0,
+    /*init_fn*/ initBoneSize,
+    /*transform_fn*/ applyBoneSize,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

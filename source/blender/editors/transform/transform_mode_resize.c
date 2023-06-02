@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 
+#include "DNA_windowmanager_types.h"
+
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -16,6 +18,8 @@
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
+
+#include "RNA_access.h"
 
 #include "UI_interface.h"
 
@@ -282,13 +286,22 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initResize(TransInfo *t, float mouse_dir_constraint[3])
+static void initResize(TransInfo *t, wmOperator *op)
 {
-  t->mode = TFM_RESIZE;
-  t->transform = applyResize;
-  t->transform_matrix = NULL;
-  t->tsnap.snap_mode_apply_fn = ApplySnapResize;
-  t->tsnap.snap_mode_distance_fn = ResizeBetween;
+  float mouse_dir_constraint[3];
+  if (op) {
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "mouse_dir_constraint");
+    if (prop) {
+      RNA_property_float_get_array(op->ptr, prop, mouse_dir_constraint);
+    }
+    else {
+      /* Resize is expected to have this property. */
+      BLI_assert(!STREQ(op->idname, "TRANSFORM_OT_resize"));
+    }
+  }
+  else {
+    zero_v3(mouse_dir_constraint);
+  }
 
   if (is_zero_v3(mouse_dir_constraint)) {
     initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
@@ -323,7 +336,6 @@ void initResize(TransInfo *t, float mouse_dir_constraint[3])
     initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
   }
 
-  t->flag |= T_NULL_ONE;
   t->num.val_flag[0] |= NUM_NULL_ONE;
   t->num.val_flag[1] |= NUM_NULL_ONE;
   t->num.val_flag[2] |= NUM_NULL_ONE;
@@ -351,3 +363,14 @@ void initResize(TransInfo *t, float mouse_dir_constraint[3])
 }
 
 /** \} */
+
+TransModeInfo TransMode_resize = {
+    /*flags*/ T_NULL_ONE,
+    /*init_fn*/ initResize,
+    /*transform_fn*/ applyResize,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ ResizeBetween,
+    /*snap_apply_fn*/ ApplySnapResize,
+    /*draw_fn*/ NULL,
+};

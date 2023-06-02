@@ -170,7 +170,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initShrinkFatten(TransInfo *t)
+static void initShrinkFatten(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   if ((t->flag & T_EDIT) == 0 || (t->obedit_type != OB_MESH)) {
     BKE_report(t->reports, RPT_ERROR, "'Shrink/Fatten' meshes is only supported in edit mode");
@@ -178,8 +178,6 @@ void initShrinkFatten(TransInfo *t)
   }
 
   t->mode = TFM_SHRINKFATTEN;
-  t->transform = applyShrinkFatten;
-  t->handleEvent = shrinkfatten_handleEvent;
 
   initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 
@@ -192,8 +190,6 @@ void initShrinkFatten(TransInfo *t)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_LENGTH;
 
-  t->flag |= T_NO_CONSTRAINT;
-
   if (t->keymap) {
     /* Workaround to use the same key as the modal keymap. */
     t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
@@ -201,3 +197,14 @@ void initShrinkFatten(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_shrinkfatten = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initShrinkFatten,
+    /*transform_fn*/ applyShrinkFatten,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ shrinkfatten_handleEvent,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

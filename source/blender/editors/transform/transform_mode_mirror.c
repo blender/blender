@@ -216,12 +216,20 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
   }
 }
 
-void initMirror(TransInfo *t)
+static void initMirror(TransInfo *t, struct wmOperator *UNUSED(op))
 {
-  t->transform = applyMirror;
   initMouseInputMode(t, &t->mouse, INPUT_NONE);
-
-  t->flag |= T_NULL_ONE;
 }
 
 /** \} */
+
+TransModeInfo TransMode_mirror = {
+    /*flags*/ T_NULL_ONE,
+    /*init_fn*/ initMirror,
+    /*transform_fn*/ applyMirror,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

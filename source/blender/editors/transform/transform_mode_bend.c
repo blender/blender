@@ -324,7 +324,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initBend(TransInfo *t)
+static void initBend(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   const float mval_fl[2] = {UNPACK2(t->mval)};
   const float *curs;
@@ -332,8 +332,6 @@ void initBend(TransInfo *t)
   struct BendCustomData *data;
 
   t->mode = TFM_BEND;
-  t->transform = Bend;
-  t->handleEvent = handleEventBend;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE_SPRING);
 
@@ -347,8 +345,6 @@ void initBend(TransInfo *t)
   t->num.unit_use_radians = (t->scene->unit.system_rotation == USER_UNIT_ROT_RADIANS);
   t->num.unit_type[0] = B_UNIT_ROTATION;
   t->num.unit_type[1] = B_UNIT_LENGTH;
-
-  t->flag |= T_NO_CONSTRAINT;
 
   // copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
@@ -378,3 +374,14 @@ void initBend(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_bend = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initBend,
+    /*transform_fn*/ Bend,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ handleEventBend,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

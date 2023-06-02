@@ -79,10 +79,8 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initBoneEnvelope(TransInfo *t)
+static void initBoneEnvelope(TransInfo *t, struct wmOperator *UNUSED(op))
 {
-  t->transform = applyBoneEnvelope;
-
   initMouseInputMode(t, &t->mouse, INPUT_SPRING);
 
   t->idx_max = 0;
@@ -93,8 +91,17 @@ void initBoneEnvelope(TransInfo *t)
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
-
-  t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
 /** \} */
+
+TransModeInfo TransMode_boneenvelope = {
+    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*init_fn*/ initBoneEnvelope,
+    /*transform_fn*/ applyBoneEnvelope,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

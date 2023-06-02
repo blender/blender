@@ -1332,11 +1332,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   }
 
   /* Per transform event, if present */
-  if (t->handleEvent && (!handled ||
-                         /* Needed for vertex slide, see #38756. */
-                         (event->type == MOUSEMOVE)))
+  if (t->mode_info && t->mode_info->handle_event_fn &&
+      (!handled ||
+       /* Needed for vertex slide, see #38756. */
+       (event->type == MOUSEMOVE)))
   {
-    t->redraw |= t->handleEvent(t, event);
+    t->redraw |= t->mode_info->handle_event_fn(t, event);
   }
 
   /* Try to init modal numinput now, if possible. */
@@ -1441,10 +1442,8 @@ static void drawTransformView(const struct bContext *C, ARegion *region, void *a
   drawPropCircle(C, t);
   drawSnapping(C, t);
 
-  if (region == t->region) {
-    /* edge slide, vert slide */
-    drawEdgeSlide(t);
-    drawVertSlide(t);
+  if (region == t->region && t->mode_info && t->mode_info->draw_fn) {
+    t->mode_info->draw_fn(t);
   }
 }
 
@@ -2066,8 +2065,8 @@ void transformApply(bContext *C, TransInfo *t)
 
   if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
-    if (t->transform) {
-      t->transform(t, t->mval); /* calls recalcData() */
+    if (t->mode_info) {
+      t->mode_info->transform_fn(t, t->mval); /* calls recalcData() */
     }
   }
 
@@ -2143,8 +2142,8 @@ bool checkUseAxisMatrix(TransInfo *t)
 
 bool transform_apply_matrix(TransInfo *t, float mat[4][4])
 {
-  if (t->transform_matrix != NULL) {
-    t->transform_matrix(t, mat);
+  if (t->mode_info && t->mode_info->transform_matrix_fn) {
+    t->mode_info->transform_matrix_fn(t, mat);
     return true;
   }
   return false;

@@ -666,7 +666,7 @@ static void applyTranslationMatrix(TransInfo *t, float mat_xform[4][4])
   add_v3_v3(mat_xform[3], delta);
 }
 
-void initTranslation(TransInfo *t)
+static void initTranslation(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   if (t->spacetype == SPACE_ACTION) {
     /* this space uses time translate */
@@ -675,12 +675,8 @@ void initTranslation(TransInfo *t)
                "Use 'Time_Translate' transform mode instead of 'Translation' mode "
                "for translating keyframes in Dope Sheet Editor");
     t->state = TRANS_CANCEL;
+    return;
   }
-
-  t->transform = applyTranslation;
-  t->transform_matrix = applyTranslationMatrix;
-  t->tsnap.snap_mode_apply_fn = ApplySnapTranslation;
-  t->tsnap.snap_mode_distance_fn = transform_snap_distance_len_squared_fn;
 
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
@@ -716,3 +712,14 @@ void initTranslation(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_translate = {
+    /*flags*/ 0,
+    /*init_fn*/ initTranslation,
+    /*transform_fn*/ applyTranslation,
+    /*transform_matrix_fn*/ applyTranslationMatrix,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ transform_snap_distance_len_squared_fn,
+    /*snap_apply_fn*/ ApplySnapTranslation,
+    /*draw_fn*/ NULL,
+};
