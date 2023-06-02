@@ -78,7 +78,7 @@ static IndexMask vert_selection_from_edge(const Span<int2> edges,
                                           IndexMaskMemory &memory)
 {
   Array<bool> array(verts_num, false);
-  edge_mask.foreach_index_optimized<int>([&](const int i) {
+  edge_mask.foreach_index_optimized<int>(GrainSize(4096), [&](const int i) {
     array[edges[i][0]] = true;
     array[edges[i][1]] = true;
   });
