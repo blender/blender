@@ -421,7 +421,10 @@ ENUM_OPERATORS(eValidateFaceFlags, CHECK_FACE_MANIFOLD);
 
 #ifndef CHECKMESH
 
-template<typename T> inline bool validate_elem(PBVH *pbvh, T *elem){return true};
+template<typename T> inline bool validate_elem(PBVH *pbvh, T *elem)
+{
+  return true
+}
 inline bool validate_vert(PBVH *, BMVert *, eValidateVertFlags)
 {
   return true;
