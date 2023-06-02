@@ -595,7 +595,7 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
 
   if ((boundflag1 & SCULPT_BOUNDARY_UV) != (boundflag2 & SCULPT_BOUNDARY_UV)) {
-    return false;
+    return nullptr;
   }
 
   /* one of the two vertices may be masked, select the correct one for deletion */
