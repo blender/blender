@@ -1701,8 +1701,6 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 
 /** \} */
 
-void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
-
 /* -------------------------------------------------------------------- */
 /** \name Auto-masking.
  * \{ */
