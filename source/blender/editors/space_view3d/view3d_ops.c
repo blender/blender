@@ -41,6 +41,17 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+static void view3d_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+{
+  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer.blend");
+}
+
+/** \} */
+
 /* ************************** copy paste ***************************** */
 
 static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
@@ -60,7 +71,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
+  view3d_copybuffer_filepath_get(filepath, sizeof(filepath));
   BKE_copybuffer_copy_end(bmain, filepath, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected object(s)", num_copied);
@@ -92,7 +103,7 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
     flag |= FILE_ACTIVE_COLLECTION;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
+  view3d_copybuffer_filepath_get(filepath, sizeof(filepath));
 
   const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, FILTER_ID_OB);
   if (num_pasted == 0) {

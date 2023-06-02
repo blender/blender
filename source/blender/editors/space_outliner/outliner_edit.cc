@@ -75,6 +75,18 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ID *id);
 
 /* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+static void outliner_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+{
+  /* NOTE: this uses the same path as the 3D viewport. */
+  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer.blend");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Highlight on Cursor Motion Operator
  * \{ */
 
@@ -817,7 +829,7 @@ static int outliner_id_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
+  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
   BKE_copybuffer_copy_end(bmain, filepath, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
@@ -851,7 +863,7 @@ static int outliner_id_paste_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
 
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer.blend");
+  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
 
   const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, 0);
   if (num_pasted == 0) {
