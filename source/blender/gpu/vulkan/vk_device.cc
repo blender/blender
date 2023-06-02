@@ -18,7 +18,7 @@ void VKDevice::deinit()
 {
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
-  debugging_tools_.deinit();
+  debugging_tools_.deinit(vk_instance_);
 
   vk_instance_ = VK_NULL_HANDLE;
   vk_physical_device_ = VK_NULL_HANDLE;
