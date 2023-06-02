@@ -140,7 +140,7 @@ static void remove_materials(Material ***materials, short *materials_num)
 }
 
 /**
- * Removess parts of the geometry that can't be stored in the simulation state:
+ * Removes parts of the geometry that can't be stored in the simulation state:
  * - Anonymous attributes can't be stored because it is not known which of them will or will not be
  *   used in the future.
  * - Materials can't be stored directly, because they are linked ID data blocks that can't be

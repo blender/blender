@@ -52,7 +52,9 @@ static void view3d_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filep
 
 /** \} */
 
-/* ************************** copy paste ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Viewport Copy Operator
+ * \{ */
 
 static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 {
@@ -90,6 +92,12 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
   ot->exec = view3d_copybuffer_exec;
   ot->poll = ED_operator_scene;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Viewport Paste Operator
+ * \{ */
 
 static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
 {
@@ -142,7 +150,11 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
                   "Put pasted objects in the active collection");
 }
 
-/* ************************** registration **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void view3d_operatortypes(void)
 {
@@ -234,3 +246,5 @@ void view3d_keymap(wmKeyConfig *keyconf)
   viewdolly_modal_keymap(keyconf);
   viewplace_modal_keymap(keyconf);
 }
+
+/** \} */
