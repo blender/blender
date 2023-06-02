@@ -418,7 +418,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
   dw = dvert->dw;
   for (int i = dvert->totweight; i != 0; i--, dw++) {
-    if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+    /* Auto-normalize is only applied on bone-deformed vertex groups that have weight already. */
+    if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON) {
       sum += dw->weight;
 
       if (vgroup_locked[dw->def_nr] || (lock_active_vgroup && active_vgroup == dw->def_nr)) {
@@ -460,7 +461,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
     dw = dvert->dw;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
+      {
         if ((vgroup_locked[dw->def_nr] == false) &&
             !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
           dw->weight *= fac;
@@ -475,7 +477,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
     dw = dvert->dw;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
+      {
         if ((vgroup_locked[dw->def_nr] == false) &&
             !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
           dw->weight = fac;
