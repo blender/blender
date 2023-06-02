@@ -2802,7 +2802,7 @@ static int paste_material_nodetree_ids_decref(LibraryIDLinkCallbackData *cb_data
 }
 
 /**
- * Re-map ID's from the clipboard to ID's in `main`, by name.
+ * Re-map ID's from the clipboard to ID's in `bmain`, by name.
  */
 static int paste_material_nodetree_ids_relink_or_clear(LibraryIDLinkCallbackData *cb_data)
 {
@@ -2934,13 +2934,14 @@ static int paste_material_exec(bContext *C, wmOperator *op)
   SWAP_MEMBER(line_col);
   SWAP_MEMBER(line_priority);
   SWAP_MEMBER(vcol_alpha);
-  SWAP_MEMBER(vcol_alpha);
 
   SWAP_MEMBER(alpha_threshold);
   SWAP_MEMBER(refract_depth);
   SWAP_MEMBER(blend_method);
   SWAP_MEMBER(blend_shadow);
   SWAP_MEMBER(blend_flag);
+
+  SWAP_MEMBER(lineart);
 
 #undef SWAP_MEMBER
 
