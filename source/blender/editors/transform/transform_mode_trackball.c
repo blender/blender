@@ -211,7 +211,7 @@ TransModeInfo TransMode_trackball = {
     /*flags*/ T_NO_CONSTRAINT,
     /*init_fn*/ initTrackball,
     /*transform_fn*/ applyTrackball,
-    /*transform_matrix_fn*/ NULL,
+    /*transform_matrix_fn*/ applyTrackballMatrix,
     /*handle_event_fn*/ NULL,
     /*snap_distance_fn*/ NULL,
     /*snap_apply_fn*/ NULL,
