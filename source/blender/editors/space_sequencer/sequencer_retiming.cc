@@ -169,7 +169,7 @@ static int sequencer_retiming_handle_move_invoke(bContext *C, wmOperator *op, co
   RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
 
   /* Pass pressed modifier key to exec function. */
-  op->customdata = (void *)(event->modifier & (KM_SHIFT | KM_CTRL));
+  op->customdata = POINTER_FROM_UINT(event->modifier & (KM_SHIFT | KM_CTRL));
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -216,7 +216,7 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
         return OPERATOR_RUNNING_MODAL;
       }
 
-      uint8_t invoke_modifier = (uint8_t)op->customdata;
+      uint8_t invoke_modifier = POINTER_AS_UINT(op->customdata);
       /* Add retiming gradient and move handle. */
       if (invoke_modifier != 0) {
         SeqRetimingHandle *new_handle = nullptr;
@@ -231,7 +231,7 @@ static int sequencer_retiming_handle_move_modal(bContext *C, wmOperator *op, con
           handle = new_handle;
           RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, new_handle));
         }
-        op->customdata = (void *)0;
+        op->customdata = POINTER_FROM_UINT(0);
       }
 
       const bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
