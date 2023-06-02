@@ -30,7 +30,7 @@ int blender_device_threads(BL::Scene &b_scene)
     return 0;
 }
 
-void adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
+void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
 {
   if (!get_boolean(cpreferences, "peer_memory")) {
     info.has_peer_memory = false;
