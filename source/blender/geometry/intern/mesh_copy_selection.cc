@@ -276,7 +276,10 @@ std::optional<Mesh *> mesh_copy_selection(
   if (vert_mask.is_empty()) {
     return nullptr;
   }
-  if (vert_mask.size() == src_mesh.totvert) {
+  const bool same_verts = vert_mask.size() == src_mesh.totvert;
+  const bool same_edges = edge_mask.size() == src_mesh.totedge;
+  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
+  if (same_verts && same_edges && same_polys) {
     return std::nullopt;
   }
 
@@ -408,6 +411,12 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
       break;
   }
 
+  const bool same_edges = edge_mask.size() == src_mesh.totedge;
+  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
+  if (same_edges && same_polys) {
+    return std::nullopt;
+  }
+
   Mesh *dst_mesh = create_mesh_no_attributes(
       src_mesh, src_mesh.totvert, edge_mask.size(), poly_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
@@ -486,6 +495,11 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
     default:
       BLI_assert_unreachable();
       break;
+  }
+
+  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
+  if (same_polys) {
+    return std::nullopt;
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
