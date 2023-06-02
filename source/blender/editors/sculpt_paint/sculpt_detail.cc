@@ -195,7 +195,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     }
 
     EdgeQueueContext remesher(tester,
-                              ss,
+                              ob,
                               ss->pbvh,
                               mode,
                               false,

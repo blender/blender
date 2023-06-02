@@ -118,6 +118,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+using blender::float2;
+using blender::float3;
 using blender::IndexRange;
 using blender::OffsetIndices;
 
@@ -227,12 +229,48 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
       }
 
-      if (typemask & SCULPT_BOUNDARY_UV) {
-        int boundflag1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
-        int boundflag2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
+      if (e->l && (typemask & SCULPT_BOUNDARY_UV)) {
+#if 1
+        CustomData *ldata = &ss->bm->ldata;
+        int base = ldata->typemap[CD_PROP_FLOAT2];
 
-        ret |= (boundflag1 | boundflag2) & SCULPT_BOUNDARY_UV;
+        for (int i = base; i < ldata->totlayer; i++) {
+          CustomDataLayer &layer = ldata->layers[i];
+          if (layer.type != CD_PROP_FLOAT2) {
+            break;
+          }
+          if (layer.flag & CD_FLAG_TEMPORARY) {
+            continue;
+          }
+
+          BMLoop *l = e->l;
+
+          int cd_uv = layer.offset;
+          float limit = 0.0005;
+
+          float2 a1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
+          float2 a2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
+
+          do {
+            float *b1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
+            float *b2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
+
+            if (len_v2v2(a1, b1) > limit || len_v2v2(a2, b2) > limit) {
+              ret |= SCULPT_BOUNDARY_UV;
+              goto uv_outer;
+            }
+          } while ((l = l->radial_next) != e->l);
+        }
+#else
+        int b1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
+        int b2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
+
+        if ((b1 & SCULPT_BOUNDARY_UV) && (b2 & SCULPT_BOUNDARY_UV)) {
+          ret |= SCULPT_BOUNDARY_UV;
+        }
+#endif
       }
+    uv_outer:
 
       if (typemask & SCULPT_BOUNDARY_SHARP_MARK) {
         ret |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
@@ -452,7 +490,7 @@ static bool sculpt_vertex_ensure_boundary(const SculptSession *ss,
                                       (BMVert *)vertex.i,
                                       &ss->bm->ldata,
                                       ss->totuv,
-                                      !ss->ignore_uvs,
+                                      ss->reproject_smooth,
                                       ss->sharp_angle_limit);
       }
       else if ((mask & (SCULPT_BOUNDARY_SHARP_ANGLE | SCULPT_CORNER_SHARP_ANGLE)) &&

@@ -99,14 +99,6 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-/**
- * Syncs customdata layers with internal bmesh, but ignores deleted layers.
- */
-void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
-{
-  BKE_sculptsession_sync_attributes(ob, me);
-}
-
 static void customdata_strip_templayers(CustomData *cdata, int totelem)
 {
   for (int i = 0; i < cdata->totlayer; i++) {
@@ -197,11 +189,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
   /* Enable dynamic topology. */
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
-  if (!ss->bm_idmap) {
-    ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
-    BM_idmap_check_ids(ss->bm_idmap);
-    BKE_sculptsession_update_attr_refs(ob);
-  }
+  BKE_sculpt_ensure_idmap(ob);
 
   /* Enable logging for undo/redo. */
   if (!ss->bm_log) {

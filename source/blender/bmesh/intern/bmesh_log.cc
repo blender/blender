@@ -1233,7 +1233,9 @@ void BMLogSetDiff::remove_face(BMesh *bm, BMFace *f, bool no_check)
   if (BMLogFace **ptr = modified_faces.lookup_ptr(id)) {
     lf = *ptr;
     modified_faces.remove(id);
-    entry->update_logface(bm, lf, f);
+    if (lf->verts.size() != f->len) {
+      entry->update_logface(bm, lf, f);
+    }
   }
   else {
     lf = entry->alloc_logface(bm, f);
@@ -1603,7 +1605,6 @@ void BM_log_set_idmap(BMLog *log, struct BMIdMap *idmap)
   log->set_idmap(idmap);
 }
 
-/* XXX get rid of bmlog refcounting. */
 bool BM_log_is_dead(BMLog *log)
 {
   return log->dead;

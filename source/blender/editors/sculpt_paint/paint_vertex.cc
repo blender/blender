@@ -4181,7 +4181,34 @@ bool BKE_object_attributes_active_color_fill(Object *ob,
                                              const float fill_color[4],
                                              bool only_selected)
 {
-  return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
+  if (ob->sculpt && ob->mode == OB_MODE_SCULPT && ob->sculpt->pbvh &&
+      ELEM(BKE_pbvh_type(ob->sculpt->pbvh), PBVH_FACES, PBVH_BMESH))
+  {
+    SculptSession *ss = ob->sculpt;
+
+    /* Ensure active attribute is set inside ss->bm properly if
+     * in PBVH_BMESH mode.
+     */
+    BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), false);
+    BKE_pbvh_update_active_vcol(ss->pbvh, static_cast<Mesh *>(ob->data));
+
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+    for (PBVHNode *node : nodes) {
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_color_set(ss->pbvh, vd.vertex, fill_color);
+      }
+      BKE_pbvh_vertex_iter_end;
+
+      BKE_pbvh_node_mark_update_color(node);
+    }
+
+    return true;
+  }
+  else {
+    return paint_object_attributes_active_color_fill_ex(
+        ob, ColorPaint4f(fill_color), only_selected);
+  }
 }
 
 static int vertex_color_set_exec(bContext *C, wmOperator * /*op*/)

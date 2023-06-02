@@ -690,6 +690,7 @@ static bool sculpt_undo_restore_face_sets(bContext *C,
 }
 
 typedef struct BmeshUndoData {
+  Object *ob;
   PBVH *pbvh;
   BMesh *bm;
   bool do_full_recalc;
@@ -794,12 +795,22 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
   data->balance_pbvh = true;
 }
+
 static void bmesh_undo_full_mesh(void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
+  BKE_sculptsession_update_attr_refs(data->ob);
+
   if (data->pbvh) {
-    BKE_pbvh_bmesh_update_all_valence(data->pbvh);
+    BMIter iter;
+    BMVert *v;
+
+    BM_ITER_MESH (v, &iter, data->bm, BM_VERTS_OF_MESH) {
+      BKE_pbvh_bmesh_update_valence(data->pbvh, BKE_pbvh_make_vref((intptr_t)v));
+    }
+
+    data->pbvh = nullptr;
   }
 
   data->do_full_recalc = true;
@@ -962,7 +973,8 @@ static void bmesh_undo_customdata_change(CustomData *domain, char htype, void *u
 
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
-  BmeshUndoData data = {ss->pbvh,
+  BmeshUndoData data = {ob,
+                        ss->pbvh,
                         ss->bm,
                         false,
                         false,
@@ -990,6 +1002,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
 
   BKE_sculptsession_update_attr_refs(ob);
 
+  BKE_sculpt_ensure_idmap(ob);
   // pbvh_bmesh_check_nodes(ss->pbvh);
 
   if (unode->applied) {
@@ -1001,10 +1014,11 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     unode->applied = true;
   }
 
-  BKE_pbvh_bmesh_check_nodes(ss->pbvh);
   update_unode_bmesh_memsize(unode);
 
   if (!data.do_full_recalc) {
+    BKE_pbvh_bmesh_check_nodes(ss->pbvh);
+
     Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
 
     if (data.regen_all_unique_verts) {
@@ -1071,10 +1085,10 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
 
   if (ss->bm_idmap) {
     BM_idmap_destroy(ss->bm_idmap);
+    ss->bm_idmap = nullptr;
   }
 
-  ss->bm_idmap = BM_idmap_new(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
-  BM_idmap_check_ids(ss->bm_idmap);
+  BKE_sculpt_ensure_idmap(ob);
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */
@@ -1308,35 +1322,7 @@ static int sculpt_undo_bmesh_restore(
     ss->bm_log = BM_log_from_existing_entries_create(ss->bm, ss->bm_idmap, unode->bm_entry);
   }
 
-  if (ss->bm_log && ss->bm &&
-      !ELEM(unode->type, SCULPT_UNDO_DYNTOPO_BEGIN, SCULPT_UNDO_DYNTOPO_END)) {
-    BKE_sculptsession_update_attr_refs(ob);
-
-#if 0
-    if (ss->active_face.i && ss->active_face.i != -1LL) {
-      ss->active_face.i = (intptr_t)BM_log_face_id_get(ss->bm_log,
-                                                             (BMFace *)ss->active_face.i);
-    }
-    else {
-      ss->active_face.i = -1;
-    }
-
-    if (ss->active_vertex.i && ss->active_vertex.i != -1LL) {
-      ss->active_vertex.i = (intptr_t)BM_log_vert_id_get(
-          ss->bm_log, (BMVert *)ss->active_vertex.i);
-    }
-    else {
-      ss->active_vertex.i = -1;
-    }
-#endif
-    ss->active_face.i = ss->active_vertex.i = -1;
-  }
-  else {
-    ss->active_face.i = ss->active_vertex.i = -1;
-  }
-
   bool ret = false;
-  bool set_active_vertex = true;
 
   switch (unode->type) {
     case SCULPT_UNDO_DYNTOPO_BEGIN:
@@ -1344,13 +1330,11 @@ static int sculpt_undo_bmesh_restore(
       SCULPT_vertex_random_access_ensure(ss);
 
       ss->active_face.i = ss->active_vertex.i = 0;
-      set_active_vertex = false;
 
       ret = true;
       break;
     case SCULPT_UNDO_DYNTOPO_END:
-      ss->active_face.i = ss->active_vertex.i = 0;
-      set_active_vertex = false;
+      ss->active_face.i = ss->active_vertex.i = PBVH_REF_NONE;
 
       sculpt_undo_bmesh_restore_end(C, unode, ob, ss, dir);
       SCULPT_vertex_random_access_ensure(ss);
@@ -1374,37 +1358,10 @@ static int sculpt_undo_bmesh_restore(
     BKE_pbvh_flush_tri_areas(ss->pbvh);
   }
 
-  if (set_active_vertex && ss->bm_log && ss->bm) {
-    if (ss->active_face.i != -1) {
-      BMFace *f = BM_log_id_face_get(ss->bm, ss->bm_log, (uint)ss->active_face.i);
-      if (f && f->head.htype == BM_FACE) {
-        ss->active_face.i = (intptr_t)f;
-      }
-      else {
-        ss->active_face.i = 0LL;
-      }
-    }
-    else {
-      ss->active_face.i = 0LL;
-    }
+  ss->active_face.i = ss->active_vertex.i = PBVH_REF_NONE;
 
-    if (ss->active_vertex.i != -1) {
-      BMVert *v = BM_log_id_vert_get(ss->bm, ss->bm_log, (uint)ss->active_vertex.i);
-
-      if (v && v->head.htype == BM_VERT) {
-        ss->active_vertex.i = (intptr_t)v;
-      }
-      else {
-        ss->active_vertex.i = 0LL;
-      }
-    }
-    else {
-      ss->active_vertex.i = 0LL;
-    }
-  }
-  else {
-    ss->active_face.i = ss->active_vertex.i = 0;
-  }
+  /* Load attribute layout from bmesh to ob. */
+  BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), true);
 
   return ret;
 }

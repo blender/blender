@@ -444,6 +444,13 @@ void CustomData_bmesh_interp(struct CustomData *data,
                              const float *sub_weights,
                              int count,
                              void *dst_block);
+void CustomData_bmesh_interp_ex(struct CustomData *data,
+                                const void **src_blocks,
+                                const float *weights,
+                                const float *sub_weights,
+                                int count,
+                                void *dst_block,
+                                eCustomDataMask typemask);
 
 /**
  * Swap data inside each item, for all layers.

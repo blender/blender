@@ -134,7 +134,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 /* Slightly relax geometry by this factor along surface tangents
  * to improve convergence of dyntopo remesher.
  */
-#define DYNTOPO_SAFE_SMOOTH_FAC 0.01f
+#define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
@@ -257,6 +257,7 @@ struct EdgeQueueContext {
 
   PBVHTopologyUpdateMode mode;
   bool reproject_cdata;
+  bool surface_relax;
 
   bool updatePBVH = false;
   int steps[2];
@@ -278,7 +279,7 @@ struct EdgeQueueContext {
 
   ~EdgeQueueContext();
   EdgeQueueContext(BrushTester *brush_tester,
-                   struct SculptSession *ss,
+                   Object *ob,
                    PBVH *pbvh,
                    PBVHTopologyUpdateMode mode,
                    bool use_frontface,

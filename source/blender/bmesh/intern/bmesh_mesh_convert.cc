@@ -103,6 +103,7 @@
 #include "intern/bmesh_private.h" /* For element checking. */
 
 #include "CLG_log.h"
+#include <utility>
 
 static CLG_LogRef LOG = {"bmesh.mesh.convert"};
 
@@ -151,20 +152,58 @@ static BMFace *bm_face_create_from_mpoly(BMesh &bm,
   return BM_face_create(&bm, verts.data(), edges.data(), size, nullptr, BM_CREATE_SKIP_CD);
 }
 
-static void bm_unmark_temp_cdlayers(BMesh *bm)
+using NoCopyLayerVector = blender::Vector<std::pair<CustomDataLayer, int>>;
+
+static NoCopyLayerVector unmark_temp_cdlayers(CustomData *domains[4])
 {
-  CustomData_unmark_temporary_nocopy(&bm->vdata);
-  CustomData_unmark_temporary_nocopy(&bm->edata);
-  CustomData_unmark_temporary_nocopy(&bm->ldata);
-  CustomData_unmark_temporary_nocopy(&bm->pdata);
+  NoCopyLayerVector nocopy_list;
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *data = domains[i];
+
+    for (const CustomDataLayer &layer :
+         blender::Span<CustomDataLayer>(data->layers, data->totlayer)) {
+      if ((layer.flag & CD_FLAG_TEMPORARY) && (layer.flag & CD_FLAG_NOCOPY)) {
+        nocopy_list.append(std::make_pair(layer, int(1 << i)));
+      }
+    }
+
+    CustomData_unmark_temporary_nocopy(data);
+  }
+
+  return nocopy_list;
 }
 
-static void bm_mark_temp_cdlayers(BMesh *bm)
+static void restore_cd_copy_flags(CustomData *domains[4], NoCopyLayerVector &nocopy_list)
 {
-  CustomData_mark_temporary_nocopy(&bm->vdata);
-  CustomData_mark_temporary_nocopy(&bm->edata);
-  CustomData_mark_temporary_nocopy(&bm->ldata);
-  CustomData_mark_temporary_nocopy(&bm->pdata);
+  for (std::pair<CustomDataLayer, int> &pair : nocopy_list) {
+    CustomData *data = nullptr;
+
+    switch (pair.second) {
+      case BM_VERT:
+        data = domains[0];
+        break;
+      case BM_EDGE:
+        data = domains[1];
+        break;
+      case BM_LOOP:
+        data = domains[2];
+        break;
+      case BM_FACE:
+        data = domains[3];
+        break;
+    }
+
+    CustomDataLayer &layer = pair.first;
+    int idx = CustomData_get_named_layer_index(data, eCustomDataType(layer.type), layer.name);
+
+    if (idx == -1) {
+      printf("Error: missing temporary attribute %s\n", layer.name);
+      continue;
+    }
+
+    data->layers[idx].flag |= CD_FLAG_NOCOPY;
+  }
 }
 
 struct MeshToBMeshLayerInfo {
@@ -232,10 +271,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     return;
   }
 
-  if (params->copy_temp_cdlayers) {
-    bm_unmark_temp_cdlayers(bm);
-  }
-
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
   KeyBlock *actkey;
@@ -251,6 +286,14 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
                                                                               mask.pmask);
   CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->ldata,
                                                                               mask.lmask);
+
+  CustomData *mesh_domains[4] = {&mesh_vdata, &mesh_edata, &mesh_ldata, &mesh_pdata};
+  CustomData *bmesh_domains[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  NoCopyLayerVector nocopy_layers;
+
+  if (params && params->copy_temp_cdlayers) {
+    nocopy_layers = unmark_temp_cdlayers(mesh_domains);
+  }
 
   blender::Vector<std::string> temporary_layers_to_delete;
 
@@ -302,8 +345,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
     }
 
-    if (params->copy_temp_cdlayers) {
-      bm_mark_temp_cdlayers(bm);
+    if (params && params->copy_temp_cdlayers) {
+      restore_cd_copy_flags(bmesh_domains, nocopy_layers);
     }
 
     if (bm->use_toolflags) {
@@ -664,8 +707,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     BM_select_history_clear(bm);
   }
 
-  if (params->copy_temp_cdlayers) {
-    bm_mark_temp_cdlayers(bm);
+  if (params && params->copy_temp_cdlayers) {
+    restore_cd_copy_flags(mesh_domains, nocopy_layers);
+    restore_cd_copy_flags(bmesh_domains, nocopy_layers);
   }
 
   MEM_SAFE_FREE(cd_shape_key_offset);
@@ -1486,8 +1530,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   using namespace blender;
   const int old_verts_num = me->totvert;
 
+  CustomData *bmesh_domains[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  NoCopyLayerVector nocopy_layers;
   if (params->copy_temp_cdlayers) {
-    bm_unmark_temp_cdlayers(bm);
+    nocopy_layers = unmark_temp_cdlayers(bmesh_domains);
   }
 
   BKE_mesh_clear_geometry(me);
@@ -1692,7 +1738,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   material_index.finish();
 
   if (params && params->copy_temp_cdlayers) {
-    bm_mark_temp_cdlayers(bm);
+    CustomData *mesh_domains[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+
+    restore_cd_copy_flags(bmesh_domains, nocopy_layers);
+    restore_cd_copy_flags(mesh_domains, nocopy_layers);
   }
 }
 

@@ -4004,7 +4004,7 @@ static void sculpt_topology_update(Sculpt *sd,
   /* do nodes under the brush cursor */
   blender::bke::dyntopo::remesh_topology_nodes(
       brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE ? &sphere_tester : &tube_tester,
-      ss,
+      ob,
       ss->pbvh,
       SCULPT_search_sphere_cb,
       topology_undopush_cb,
@@ -5101,7 +5101,7 @@ static void sculpt_update_cache_invariants(
   ss->smooth_boundary_flag = eSculptBoundary(ups->smooth_boundary_flag);
 
   Mesh *me = BKE_object_get_original_mesh(ob);
-  BKE_sculptsession_ignore_uvs_set(ob, me->flag & ME_SCULPT_IGNORE_UVS);
+  BKE_sculptsession_reproject_smooth_set(ob, !(me->flag & ME_SCULPT_IGNORE_UVS));
 
   ss->cache = cache;
 

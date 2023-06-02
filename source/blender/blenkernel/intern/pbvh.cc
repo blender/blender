@@ -4308,13 +4308,13 @@ void update_vert_boundary_faces(int *boundary_flags,
 }
 }  // namespace blender::bke::pbvh
 
-void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value)
+void BKE_pbvh_reproject_smooth_set(PBVH *pbvh, bool value)
 {
-  if (!!(pbvh->flags & PBVH_IGNORE_UVS) == value) {
+  if (!!(pbvh->flags & PBVH_IGNORE_UVS) == !value) {
     return;  // no change
   }
 
-  if (value) {
+  if (!value) {
     pbvh->flags |= PBVH_IGNORE_UVS;
   }
   else {

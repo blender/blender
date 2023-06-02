@@ -447,7 +447,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   v,
                                   &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv,
-                                  pbvh->flags & PBVH_IGNORE_UVS,
+                                  !(pbvh->flags & PBVH_IGNORE_UVS),
                                   pbvh->sharp_angle_limit);
     return true;
   }

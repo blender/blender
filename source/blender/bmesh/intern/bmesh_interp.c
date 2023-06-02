@@ -741,29 +741,6 @@ void BM_loop_interp_from_face(
   /* interpolate */
   interp_weights_poly_v2(w, cos_2d, f_src->len, co);
 
-  /* Clamp excessively negative weights to zero.  Prevents numerical
-   * instability when interpolating UVs.
-   */
-  float totw = 0.0f;
-  for (int i = 0; i < f_src->len; i++) {
-    if (w[i] < -5.0) {
-      w[i] = 0.0f;
-    }
-
-    totw += w[i];
-  }
-
-  if (fabsf(totw - 1.0f) > FLT_EPSILON * 100) {
-    for (int i = 0; i < f_src->len; i++) {
-      w[i] /= totw;
-    }
-  }
-  else if (totw == 0.0f) { /* Use uniform weights in this case.*/
-    for (int i = 0; i < f_src->len; i++) {
-      w[i] = 1.0f / (float)f_src->len;
-    }
-  }
-
   CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, f_src->len, l_dst->head.data);
   if (do_vertex) {
     CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, f_src->len, l_dst->v->head.data);

@@ -45,6 +45,7 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_sculpt.h"
 
 #include "GEO_mesh_split_edges.hh"
 
@@ -491,7 +492,12 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
 
+  if (ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    ED_sculpt_undo_geometry_begin(ob, op);
+  }
+
   if (ED_mesh_uv_add(me, nullptr, true, true, op->reports) == -1) {
+    ED_sculpt_undo_geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
@@ -499,6 +505,12 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
     ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  }
+
+  if (ob->mode == OB_MODE_SCULPT && ob->sculpt) {
+    /* Push attribute into the sculpt mesh. */
+    BKE_sculptsession_sync_attributes(ob, me, false);
+    ED_sculpt_undo_geometry_end(ob);
   }
 
   return OPERATOR_FINISHED;
@@ -524,9 +536,14 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
 
+  if (ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    ED_sculpt_undo_geometry_begin(ob, op);
+  }
+
   CustomData *ldata = GET_CD_DATA(me, ldata);
   const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
   if (!BKE_id_attribute_remove(&me->id, name, op->reports)) {
+    ED_sculpt_undo_geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
@@ -534,6 +551,12 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
     ED_paint_proj_mesh_data_check(scene, ob, nullptr, nullptr, nullptr, nullptr);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  }
+
+  if (ob->mode == OB_MODE_SCULPT && ob->sculpt) {
+    /* Delete attribute from the sculpt mesh. */
+    BKE_sculptsession_sync_attributes(ob, me, false);
+    ED_sculpt_undo_geometry_end(ob);
   }
 
   DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);

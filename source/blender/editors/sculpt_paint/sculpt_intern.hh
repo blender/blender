@@ -1696,7 +1696,6 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
-void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 
@@ -1921,7 +1920,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
-  return !ss->ignore_uvs && ss->bm && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
+  return ss->reproject_smooth && ss->bm; // && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
 }
 
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);

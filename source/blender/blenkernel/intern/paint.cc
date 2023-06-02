@@ -1720,16 +1720,17 @@ void BKE_sculpt_ensure_idmap(Object *ob)
     ob->sculpt->bm_idmap = BM_idmap_new(ob->sculpt->bm, BM_VERT | BM_EDGE | BM_FACE);
     BM_idmap_check_ids(ob->sculpt->bm_idmap);
 
-    BKE_sculptsession_update_attr_refs(ob);
+    /* Push id attributes into base mesh customdata layout. */
+    BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), true);
   }
 }
 
-void BKE_sculptsession_ignore_uvs_set(Object *ob, bool value)
+void BKE_sculptsession_reproject_smooth_set(Object *ob, bool value)
 {
-  ob->sculpt->ignore_uvs = value;
+  ob->sculpt->reproject_smooth = value;
 
   if (ob->sculpt->pbvh) {
-    BKE_pbvh_ignore_uvs_set(ob->sculpt->pbvh, value);
+    BKE_pbvh_reproject_smooth_set(ob->sculpt->pbvh, value);
   }
 }
 
@@ -1790,7 +1791,7 @@ static void sculpt_update_object(
 
   ss->depsgraph = depsgraph;
 
-  ss->ignore_uvs = me->flag & ME_SCULPT_IGNORE_UVS;
+  ss->reproject_smooth = !(me->flag & ME_SCULPT_IGNORE_UVS);
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
@@ -1875,6 +1876,22 @@ static void sculpt_update_object(
 
       ss->vcol_type = (eCustomDataType)-1;
       ss->vcol_domain = ATTR_DOMAIN_POINT;
+    }
+  }
+
+  CustomData *ldata;
+  if (ss->bm) {
+    ldata = &ss->bm->ldata;
+  }
+  else {
+    ldata = &me->ldata;
+  }
+
+  ss->totuv = 0;
+  for (int i : IndexRange(ldata->totlayer)) {
+    CustomDataLayer &layer = ldata->layers[i];
+    if (layer.type == CD_PROP_FLOAT2 && !(layer.flag & CD_FLAG_TEMPORARY)) {
+      ss->totuv++;
     }
   }
 
@@ -2249,8 +2266,11 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
   Object *ob_orig = DEG_get_original_object(ob_eval);
   Mesh *me_orig = BKE_object_get_original_mesh(ob_orig);
 
+  if (ob_orig->sculpt) {
+    BKE_sculptsession_sync_attributes(ob_orig, me_orig, false);
+  }
+
   sculpt_update_object(depsgraph, ob_orig, ob_eval, false, false);
-  BKE_sculptsession_sync_attributes(ob_orig, me_orig);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(Object *object)
@@ -2741,7 +2761,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       }
     }
 
-    BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob));
+    BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob), false);
     BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
 
     return pbvh;
@@ -2902,10 +2922,147 @@ static bool sculpt_attribute_stored_in_bmesh_builtin(const StringRef name)
   return BM_attribute_stored_in_bmesh_builtin(name);
 }
 
+static bool sync_ignore_layer(CustomDataLayer *layer)
+{
+  int badmask = CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+
+  bool bad = sculpt_attribute_stored_in_bmesh_builtin(layer->name);
+  bad = bad || ((1 << layer->type) & badmask);
+  bad = bad || (layer->flag & (CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY));
+
+  return bad;
+}
 /**
   Syncs customdata layers with internal bmesh, but ignores deleted layers.
 */
-void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
+static void get_synced_attributes(CustomData *src_data,
+                                  CustomData *dst_data,
+                                  Vector<CustomDataLayer> &r_new,
+                                  Vector<CustomDataLayer> &r_kill)
+{
+  int badmask = CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+
+  for (int i : IndexRange(src_data->totlayer)) {
+    CustomDataLayer *src_layer = src_data->layers + i;
+
+    if (sync_ignore_layer(src_layer)) {
+      continue;
+    }
+
+    if (CustomData_get_named_layer_index(
+            dst_data, eCustomDataType(src_layer->type), src_layer->name) == -1)
+    {
+      r_new.append(*src_layer);
+    }
+  }
+
+  for (int i : IndexRange(dst_data->totlayer)) {
+    CustomDataLayer *dst_layer = dst_data->layers + i;
+
+    if (sync_ignore_layer(dst_layer)) {
+      continue;
+    }
+
+    if (CustomData_get_named_layer_index(
+            src_data, eCustomDataType(dst_layer->type), dst_layer->name) == -1)
+    {
+      r_kill.append(*dst_layer);
+    }
+  }
+}
+
+static bool sync_attribute_actives(CustomData *src_data, CustomData *dst_data)
+{
+  bool modified = false;
+
+  bool donemap[CD_NUMTYPES] = {0};
+
+  for (int i : IndexRange(src_data->totlayer)) {
+    CustomDataLayer *src_layer = src_data->layers + i;
+    eCustomDataType type = eCustomDataType(src_layer->type);
+
+    if (sync_ignore_layer(src_layer) || donemap[int(type)]) {
+      continue;
+    }
+
+    /* Only do first layers of each type, active refs will be propagated to
+     * the other ones later.
+     */
+    donemap[src_layer->type] = true;
+
+    /* Find first layer of type. */
+    int baseidx = CustomData_get_layer_index(dst_data, type);
+
+    if (baseidx < 0) {
+      modified |= true;
+      continue;
+    }
+
+    CustomDataLayer *dst_layer = dst_data->layers + baseidx;
+
+    int idx = CustomData_get_named_layer_index(dst_data, type, src_layer[src_layer->active].name);
+    if (idx >= 0) {
+      modified |= idx - baseidx != dst_layer->active;
+      dst_layer->active = idx - baseidx;
+    }
+    else {
+      modified |= dst_layer->active != 0;
+      dst_layer->active = 0;
+    }
+
+    idx = CustomData_get_named_layer_index(dst_data, type, src_layer[src_layer->active_rnd].name);
+    if (idx >= 0) {
+      modified |= idx - baseidx != dst_layer->active_rnd;
+      dst_layer->active_rnd = idx - baseidx;
+    }
+    else {
+      modified |= dst_layer->active_rnd != 0;
+      dst_layer->active_rnd = 0;
+    }
+
+    idx = CustomData_get_named_layer_index(dst_data, type, src_layer[src_layer->active_mask].name);
+    if (idx >= 0) {
+      modified |= idx - baseidx != dst_layer->active_mask;
+      dst_layer->active_mask = idx - baseidx;
+    }
+    else {
+      modified |= dst_layer->active_mask != 0;
+      dst_layer->active_mask = 0;
+    }
+
+    idx = CustomData_get_named_layer_index(
+        dst_data, type, src_layer[src_layer->active_clone].name);
+    if (idx >= 0) {
+      modified |= idx - baseidx != dst_layer->active_clone;
+      dst_layer->active_clone = idx - baseidx;
+    }
+    else {
+      modified |= dst_layer->active_clone != 0;
+      dst_layer->active_clone = 0;
+    }
+  }
+
+  if (modified) {
+    CustomDataLayer *base_layer = dst_data->layers;
+
+    for (int i = 0; i < dst_data->totlayer; i++) {
+      CustomDataLayer *dst_layer = dst_data->layers;
+
+      if (dst_layer->type != base_layer->type) {
+        base_layer = dst_layer;
+      }
+
+      dst_layer->active = base_layer->active;
+      dst_layer->active_clone = base_layer->active_clone;
+      dst_layer->active_mask = base_layer->active_mask;
+      dst_layer->active_rnd = base_layer->active_rnd;
+    }
+  }
+
+  return modified;
+}
+
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me, bool load_to_mesh)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2913,139 +3070,99 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me)
     return;
   }
   else if (!ss->bm) {
-    BKE_sculptsession_update_attr_refs(ob);
+    if (!load_to_mesh) {
+      BKE_sculptsession_update_attr_refs(ob);
+    }
     return;
   }
 
   bool modified = false;
+
   BMesh *bm = ss->bm;
 
-  CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
-  CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-  int badmask = CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+  CustomData *cdme[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+  CustomData *cdbm[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
 
-  for (int i = 0; i < 4; i++) {
-    Vector<CustomDataLayer *> newlayers;
+  if (!load_to_mesh) {
+    for (int i = 0; i < 4; i++) {
+      Vector<CustomDataLayer> new_layers, kill_layers;
 
-    CustomData *data1 = cd1[i];
-    CustomData *data2 = cd2[i];
+      get_synced_attributes(cdme[i], cdbm[i], new_layers, kill_layers);
 
-    if (!data1->layers) {
-      modified |= data2->layers != nullptr;
-      continue;
+      for (CustomDataLayer &layer : kill_layers) {
+        BM_data_layer_free_named(bm, cdbm[i], layer.name);
+        modified = true;
+      }
+
+      Vector<BMCustomLayerReq> new_bm_layers;
+      for (CustomDataLayer &layer : new_layers) {
+        new_bm_layers.append({layer.type, layer.name, layer.flag});
+      }
+
+      BM_data_layers_ensure(bm, cdbm[i], new_bm_layers.data(), new_bm_layers.size());
+
+      modified |= new_bm_layers.size() > 0;
+      modified |= sync_attribute_actives(cdme[i], cdbm[i]);
+    }
+  }
+  else {
+    for (int i = 0; i < 4; i++) {
+      Vector<CustomDataLayer> new_layers, kill_layers;
+
+      get_synced_attributes(cdbm[i], cdme[i], new_layers, kill_layers);
+
+      int totelem;
+      switch (i) {
+        case 0:
+          totelem = me->totvert;
+          break;
+        case 1:
+          totelem = me->totedge;
+          break;
+        case 2:
+          totelem = me->totloop;
+          break;
+        case 3:
+          totelem = me->totpoly;
+          break;
+      }
+
+      for (CustomDataLayer &layer : new_layers) {
+        CustomData_add_layer_named(
+            cdme[i], eCustomDataType(layer.type), CD_CONSTRUCT, totelem, layer.name);
+        modified = true;
+      }
+
+      for (CustomDataLayer &layer : kill_layers) {
+        CustomData_free_layer_named(cdme[i], layer.name, totelem);
+        modified = true;
+      }
+
+      modified |= sync_attribute_actives(cdbm[i], cdme[i]);
     }
 
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
-        continue;
-      }
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      int idx = CustomData_get_named_layer_index(data2, eCustomDataType(cl1->type), cl1->name);
-      if (idx < 0) {
-        newlayers.append(cl1);
-      }
+    if (me->default_color_attribute &&
+        !BKE_id_attributes_color_find(&me->id, me->active_color_attribute))
+    {
+      MEM_SAFE_FREE(me->active_color_attribute);
     }
-
-    for (CustomDataLayer *layer : newlayers) {
-      BM_data_layer_add_named(bm, data2, layer->type, layer->name);
-      modified = true;
-    }
-
-    /* sync various ids */
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
-        continue;
-      }
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      int idx = CustomData_get_named_layer_index(data2, eCustomDataType(cl1->type), cl1->name);
-
-      if (idx == -1) {
-        continue;
-      }
-
-      CustomDataLayer *cl2 = data2->layers + idx;
-
-      cl2->anonymous_id = cl1->anonymous_id;
-      cl2->uid = cl1->uid;
-    }
-
-    bool typemap[CD_NUMTYPES] = {0};
-
-    for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
-
-      if (sculpt_attribute_stored_in_bmesh_builtin(cl1->name)) {
-        continue;
-      }
-      if ((1 << cl1->type) & badmask) {
-        continue;
-      }
-
-      if (typemap[cl1->type]) {
-        continue;
-      }
-
-      typemap[cl1->type] = true;
-
-      // find first layer
-      int baseidx = CustomData_get_layer_index(data2, eCustomDataType(cl1->type));
-
-      if (baseidx < 0) {
-        modified |= true;
-        continue;
-      }
-
-      CustomDataLayer *cl2 = data2->layers + baseidx;
-
-      int idx = CustomData_get_named_layer_index(
-          data2, eCustomDataType(cl1->type), cl1[cl1->active].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active;
-        cl2->active = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(
-          data2, eCustomDataType(cl1->type), cl1[cl1->active_rnd].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_rnd;
-        cl2->active_rnd = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(
-          data2, eCustomDataType(cl1->type), cl1[cl1->active_mask].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_mask;
-        cl2->active_mask = idx - baseidx;
-      }
-
-      idx = CustomData_get_named_layer_index(
-          data2, eCustomDataType(cl1->type), cl1[cl1->active_clone].name);
-      if (idx >= 0) {
-        modified |= idx - baseidx != cl2->active_clone;
-        cl2->active_clone = idx - baseidx;
-      }
+    if (me->default_color_attribute &&
+        !BKE_id_attributes_color_find(&me->id, me->default_color_attribute))
+    {
+      MEM_SAFE_FREE(me->default_color_attribute);
     }
   }
 
-  if (modified && ss->bm) {
-    CustomData_regen_active_refs(&ss->bm->vdata);
-    CustomData_regen_active_refs(&ss->bm->edata);
-    CustomData_regen_active_refs(&ss->bm->ldata);
-    CustomData_regen_active_refs(&ss->bm->pdata);
+  if (modified) {
+    printf("%s: Attribute layout changed! %s\n",
+           __func__,
+           load_to_mesh ? "Loading to mesh" : "Loading from mesh");
   }
 
-  BKE_sculptsession_update_attr_refs(ob);
-}
+  if (!load_to_mesh) {
+    BKE_sculptsession_update_attr_refs(ob);
+  }
+};
 
 BMesh *BKE_sculptsession_empty_bmesh_create()
 {
@@ -3216,6 +3333,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
       if (!permanent) {
         cdata->layers[index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
+      else {
+        /* Push attribute into the base mesh. */
+        BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), true);
+      }
 
       out->data = nullptr;
       out->layer = cdata->layers + index;
@@ -3296,6 +3417,15 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
       }
       else {
         attr->data = cdata->layers[layer_index].data;
+      }
+    }
+
+    if (layer_index != -1) {
+      if (attr->params.nocopy) {
+        cdata->layers[layer_index].flag |= CD_FLAG_ELEM_NOCOPY;
+      }
+      if (attr->params.nointerp) {
+        cdata->layers[layer_index].flag |= CD_FLAG_ELEM_NOINTERP;
       }
     }
   }
@@ -3522,6 +3652,9 @@ static void sculptsession_bmesh_add_layers(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttributeParams params = {0};
+
+  params.nocopy = true;
+  params.nointerp = true;
 
   if (!ss->attrs.face_areas) {
     SculptAttributeParams params = {0};

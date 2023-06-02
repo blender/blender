@@ -36,6 +36,7 @@
 #include "ED_geometry.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_sculpt.h"
 
 #include "geometry_intern.hh"
 
@@ -89,6 +90,10 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
 
+  if (ob->type == OB_MESH && ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    ED_sculpt_undo_geometry_begin(ob, op);
+  }
+
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
@@ -96,10 +101,17 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   if (layer == nullptr) {
+    ED_sculpt_undo_geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
   BKE_id_attributes_active_set(id, layer->name);
+
+  if (ob->type == OB_MESH && ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    /* Push attribute into sculpt mesh. */
+    BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), false);
+    ED_sculpt_undo_geometry_end(ob);
+  }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -152,6 +164,10 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   ID *id = static_cast<ID *>(ob->data);
   CustomDataLayer *layer = BKE_id_attributes_active_get(id);
 
+  if (ob->type == OB_MESH && ob->mode & OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    ED_sculpt_undo_geometry_end(ob);
+  }
+
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
@@ -159,6 +175,12 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
   int *active_index = BKE_id_attributes_active_index_p(id);
   if (*active_index > 0) {
     *active_index -= 1;
+  }
+
+  if (ob->type == OB_MESH && ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->pbvh) {
+    /* Push attribute into sculpt mesh. */
+    BKE_sculptsession_sync_attributes(ob, static_cast<Mesh *>(ob->data), false);
+    ED_sculpt_undo_geometry_end(ob);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -186,6 +208,11 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
+  bool is_sculpt = ob->sculpt && ob->mode == OB_MODE_SCULPT && ob->sculpt->pbvh;
+
+  if (is_sculpt) {
+    ED_sculpt_undo_geometry_begin(ob, op);
+  }
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
@@ -197,6 +224,7 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "color", color);
 
   if (layer == nullptr) {
+    ED_sculpt_undo_geometry_end(ob);
     return OPERATOR_CANCELLED;
   }
 
@@ -207,6 +235,10 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   }
 
   BKE_object_attributes_active_color_fill(ob, color, false);
+
+  if (is_sculpt) {
+    ED_sculpt_undo_geometry_end(ob);
+  }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);

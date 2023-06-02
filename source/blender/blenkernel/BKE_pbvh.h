@@ -1082,7 +1082,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *heap_alloc,
                             int **r_polys);
 
-void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
+void BKE_pbvh_reproject_smooth_set(PBVH *pbvh, bool value);
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);

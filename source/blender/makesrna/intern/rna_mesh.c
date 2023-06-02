@@ -3744,6 +3744,10 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_IGNORE_UVS);
   RNA_def_property_ui_text(prop, "Ignore UVs", "");
 
+  prop = RNA_def_property(srna, "sculpt_dyntopo_relax", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FLAG_UNUSED_5);
+  RNA_def_property_ui_text(prop, "Relax During Remeshing", "Relax geometry during remeshing");
+  
   /* End Symmetry */
 
   prop = RNA_def_property(srna, "use_auto_smooth", PROP_BOOLEAN, PROP_NONE);

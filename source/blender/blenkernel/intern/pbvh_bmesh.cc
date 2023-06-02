@@ -668,7 +668,7 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   BM_FACES_OF_VERT_ITER_END;
 }
 
-ATTR_NO_OPT void pbvh_bmesh_face_remove(
+void pbvh_bmesh_face_remove(
     PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool ensure_ownership_transfer)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
@@ -1559,42 +1559,24 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 #  undef NORMAL_VERT_BAD
 #endif
 #define NORMAL_VERT_BAD(v) \
-  (!v->e || BM_ELEM_CD_GET_INT((v), cd_vert_node_offset) != node_nr || \
-   ((*BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flag)) & SCULPTFLAG_PBVH_BOUNDARY))
+  (!(v)->e || BM_ELEM_CD_GET_INT((v), cd_vert_node_offset) != node_nr || \
+   ((*BM_ELEM_CD_PTR<uint8_t *>((v), data->cd_flag)) & SCULPTFLAG_PBVH_BOUNDARY))
 
-  const char tag = BM_ELEM_TAG_ALT;
+  for (BMVert *v : *node->bm_unique_verts) {
+    PBVH_CHECK_NAN(v->no);
+
+    if (NORMAL_VERT_BAD(v)) {
+      data->border_verts.append(v);
+    }
+
+    zero_v3(v->no);
+  }
 
   for (BMVert *v : *node->bm_other_verts) {
     PBVH_CHECK_NAN(v->no);
 
     if (NORMAL_VERT_BAD(v)) {
-      v->head.hflag |= tag;
       data->border_verts.append(v);
-      continue;
-    }
-
-    v->head.hflag &= ~tag;
-
-    BMEdge *e = v->e;
-    do {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        continue;
-      }
-
-      do {
-        if (BM_ELEM_CD_GET_INT(l->f, cd_face_node_offset) != node_nr) {
-          v->head.hflag |= tag;
-          goto loop_exit;
-        }
-      } while ((l = l->radial_next) != e->l);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-  loop_exit:
-
-    if (v->head.hflag & tag) {
-      data->border_verts.append(v);
-      continue;
     }
 
     zero_v3(v->no);
@@ -1609,7 +1591,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
     do {
       PBVH_CHECK_NAN(l->v->no);
 
-      if (BM_ELEM_CD_GET_INT(l->v, cd_vert_node_offset) == node_nr && !(l->v->head.hflag & tag)) {
+      if (!NORMAL_VERT_BAD(l->v)) {
         add_v3_v3(l->v->no, f->no);
       }
     } while ((l = l->next) != f->l_first);
@@ -1618,13 +1600,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   for (BMVert *v : *node->bm_unique_verts) {
     PBVH_CHECK_NAN(v->no);
 
-    if (dot_v3v3(v->no, v->no) == 0.0f) {
-      data->border_verts.append(v);
-
-      continue;
-    }
-
-    if (!(v->head.hflag & tag)) {
+    if (!NORMAL_VERT_BAD(v)) {
       normalize_v3(v->no);
     }
   }
@@ -1640,10 +1616,10 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, Span<PBVHNode *> nodes)
 
   for (int i : nodes.index_range()) {
     datas[i].node = nodes[i];
+    datas[i].node_nr = nodes[i] - pbvh->nodes;
     datas[i].cd_flag = pbvh->cd_flag;
     datas[i].cd_vert_node_offset = pbvh->cd_vert_node_offset;
     datas[i].cd_face_node_offset = pbvh->cd_face_node_offset;
-    datas[i].node_nr = nodes[i] - pbvh->nodes;
 
     BKE_pbvh_bmesh_check_tris(pbvh, nodes[i]);
   }
@@ -1651,66 +1627,34 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, Span<PBVHNode *> nodes)
   BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   BLI_task_parallel_range(0, nodes.size(), datas.data(), pbvh_update_normals_task_cb, &settings);
 
-  /* not sure it's worth calling BM_mesh_elem_index_ensure here */
-#if 0
-  BLI_bitmap *visit = BLI_BITMAP_NEW(bm->totvert, "visit");
-  BM_mesh_elem_index_ensure(bm, BM_VERT);
-#endif
-
-  for (int i = 0; i < datas.size(); i++) {
-    UpdateNormalsTaskData *data = &datas[i];
-
-#if 0
-    printf("%.2f%% : %d %d\n",
-      100.0f * (float)data->tot_border_verts / (float)data->node->bm_unique_verts->length,
-      data->tot_border_verts,
-      data->node->bm_unique_verts->length);
-#endif
-
-    for (int j = 0; j < data->border_verts.size(); j++) {
-      BMVert *v = data->border_verts[j];
-
+  for (UpdateNormalsTaskData &data : datas) {
+    for (BMVert *v : data.border_verts) {
       if (BM_elem_is_free((BMElem *)v, BM_VERT)) {
         printf("%s: error, v was freed!\n", __func__);
         continue;
       }
 
-#if 0
-      if (v->head.index < 0 || v->head.index >= bm->totvert) {
-        printf("%s: error, v->head.index was out of bounds!\n", __func__);
-        continue;
-      }
-
-      if (BLI_BITMAP_TEST(visit, v->head.index)) {
-        continue;
-      }
-
-      BLI_BITMAP_ENABLE(visit, v->head.index);
-#endif
-
-      // manual iteration
-      BMEdge *e = v->e;
-
-      if (!e) {
+      if (!v->e || !v->e->l) {
         continue;
       }
 
       zero_v3(v->no);
 
+      BMEdge *e = v->e;
       do {
-        if (e->l) {
-          add_v3_v3(v->no, e->l->f->no);
+        BMLoop *l = e->l;
+        if (!l) {
+          continue;
         }
-        e = BM_DISK_EDGE_NEXT(e, v);
-      } while (e != v->e);
+
+        do {
+          add_v3_v3(v->no, l->f->no);
+        } while ((l = l->radial_next) != e->l);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
       normalize_v3(v->no);
     }
   }
-
-#if 0
-  MEM_SAFE_FREE(visit);
-#endif
 }
 
 struct FastNodeBuildInfo {
@@ -2094,10 +2038,20 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
   bool uv_first = true;
 
   if (do_uvs) {
-    for (int i = 0; i < totuv; i++) {
-      CustomDataLayer *layer = ldata->layers + base_uv_idx + i;
-      cd_uvs[i] = layer->offset;
-      disjount_uv_count[i] = 0;
+    int base = ldata->typemap[CD_PROP_FLOAT2];
+    int uv_i = 0;
+
+    for (int i = base; i < ldata->totlayer; i++) {
+      CustomDataLayer *layer = ldata->layers + i;
+      if (layer->type != CD_PROP_FLOAT2) {
+        break;
+      }
+
+      if (!(layer->flag & CD_FLAG_TEMPORARY)) {
+        cd_uvs[uv_i] = layer->offset;
+        disjount_uv_count[uv_i] = 0;
+        uv_i++;
+      }
     }
   }
 
@@ -2526,7 +2480,7 @@ void BKE_pbvh_set_bm_log(PBVH *pbvh, BMLog *log)
 
 namespace blender::bke::dyntopo {
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
-                           SculptSession *ss,
+                           Object *ob,
                            PBVH *pbvh,
                            bool (*searchcb)(PBVHNode *node, void *data),
                            void (*undopush)(PBVHNode *node, void *data),
@@ -2562,7 +2516,7 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
   }
 
   modified = remesh_topology(brush_tester,
-                             ss,
+                             ob,
                              pbvh,
                              mode,
                              use_frontface,
@@ -3343,7 +3297,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
 }
 
 /* Prunes leaf nodes that are too small or degenerate. */
-ATTR_NO_OPT static void pbvh_bmesh_balance_tree(PBVH *pbvh)
+static void pbvh_bmesh_balance_tree(PBVH *pbvh)
 {
   float *overlaps = MEM_cnew_array<float>(pbvh->totnode, "overlaps");
   PBVHNode **parentmap = MEM_cnew_array<PBVHNode *>(pbvh->totnode, "parentmap");
@@ -3819,7 +3773,15 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_faceset_offset = CustomData_get_offset_named(
       &pbvh->header.bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-  pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_PROP_FLOAT2);
+  CustomData *ldata = &pbvh->header.bm->ldata;
+  pbvh->totuv = 0;
+  for (int i : IndexRange(ldata->totlayer)) {
+    CustomDataLayer &layer = ldata->layers[i];
+    if (layer.type == CD_PROP_FLOAT2 && !(layer.flag & CD_FLAG_TEMPORARY)) {
+      pbvh->totuv++;
+    }
+  }
+
   pbvh->cd_boundary_flag = cd_boundary_flag;
   pbvh->cd_curvature_dir = cd_curvature_dir;
 

@@ -1420,7 +1420,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   if (use_color) {
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id,
                                                                 me->active_color_attribute);
-    if (layer) {
+    if (layer && !(layer->flag & CD_FLAG_TEMPORARY)) {
       eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
       attrs[attrs_num].type = eCustomDataType(layer->type);
@@ -1436,11 +1436,13 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
     if (layer_i != -1) {
       CustomDataLayer *layer = me->ldata.layers + layer_i;
 
-      attrs[attrs_num].type = CD_PROP_FLOAT2;
-      attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-      STRNCPY(attrs[attrs_num].name, layer->name);
+      if (!(layer->flag & CD_FLAG_TEMPORARY)) {
+        attrs[attrs_num].type = CD_PROP_FLOAT2;
+        attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
+        STRNCPY(attrs[attrs_num].name, layer->name);
 
-      attrs_num++;
+        attrs_num++;
+      }
     }
   }
 
@@ -1474,10 +1476,12 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   blender::Array<PBVHAttrReq, 16> attrs(attrs_num, PBVHAttrReq{});
 
   int attrs_i = 0;
+  int real_attrs_num = 0; /* Requests minus and CD_FLAG_TEMPORARY layers. */
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
   attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
   attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
+  real_attrs_num += 2;
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
     DRW_AttributeRequest *req = draw_attrs.requests + i;
@@ -1486,6 +1490,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
     attrs[attrs_i].domain = req->domain;
     STRNCPY(attrs[attrs_i].name, req->attribute_name);
     attrs_i++;
+    real_attrs_num++;
   }
 
   /* UV maps are not in attribute requests. */
@@ -1496,11 +1501,12 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
       int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
       CustomDataLayer *layer = layer_i != -1 ? me->ldata.layers + layer_i : nullptr;
 
-      if (layer) {
+      if (layer && !(layer->flag & CD_FLAG_TEMPORARY)) {
         attrs[attrs_i].type = CD_PROP_FLOAT2;
         attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
         STRNCPY(attrs[attrs_i].name, layer->name);
         attrs_i++;
+        real_attrs_num++;
       }
     }
   }

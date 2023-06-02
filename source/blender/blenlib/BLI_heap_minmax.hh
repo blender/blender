@@ -200,7 +200,7 @@ class MinMaxHeap {
 
   ~MinMaxHeap() {}
 
-  ATTR_NO_OPT bool valid_recurse(int i)
+  bool valid_recurse(int i)
   {
     bool ret = true;
 
@@ -237,7 +237,7 @@ class MinMaxHeap {
     return ret;
   }
 
-  ATTR_NO_OPT bool is_valid()
+  bool is_valid()
   {
 
     if (nodes.size() == 0) {
@@ -252,7 +252,7 @@ class MinMaxHeap {
     return HeapValueIter<Value, MinMaxHeapNode>(nodes);
   }
 
-  ATTR_NO_OPT MinMaxHeapNode *insert(float weight, Value value)
+  MinMaxHeapNode *insert(float weight, Value value)
   {
     MinMaxHeapNode *node = heap_make_node();
 

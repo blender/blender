@@ -574,9 +574,6 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return nullptr;
   }
 
-  pbvh_check_vert_boundary(pbvh, v1);
-  pbvh_check_vert_boundary(pbvh, v2);
-
   TraceData tdata;
 
   tdata.ss = eq_ctx->ss;
@@ -591,8 +588,15 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
   check_vert_fan_are_tris(pbvh, e->v1);
   check_vert_fan_are_tris(pbvh, e->v2);
 
+  pbvh_check_vert_boundary(pbvh, v1);
+  pbvh_check_vert_boundary(pbvh, v2);
+
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
+
+  if ((boundflag1 & SCULPT_BOUNDARY_UV) != (boundflag2 & SCULPT_BOUNDARY_UV)) {
+    return false;
+  }
 
   /* one of the two vertices may be masked, select the correct one for deletion */
   if (!(boundflag1 & SCULPTVERT_ALL_CORNER) || DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
@@ -616,26 +620,26 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
     return nullptr;
   }
 
-  /* Make sure original data is initialized before we snap it. */
-  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
-  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
-
-  bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
-
-  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
-
-  BMEdge *e2;
-
   const int tag = COLLAPSE_TAG;
   const int facetag = COLLAPSE_FACE_TAG;
   const int log_rings = 1;
+
+  /* Make sure original data is initialized before we snap it. */
+  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
+  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
 
   if (deleted_verts) {
     BLI_ghash_insert(deleted_verts, (void *)v_del, nullptr);
   }
 
+  /* Remove topology from PBVH and insert into bmlog. */
   vert_ring_do(e->v1, e->v2, collapse_ring_callback_pre, &tdata, tag, facetag, log_rings - 1);
 
+  /* Snap UVS. */
+  bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
+
+  BMEdge *e2;
   if (!uvs_snapped) {
     float co[3];
 

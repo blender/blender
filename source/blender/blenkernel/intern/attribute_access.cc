@@ -9,6 +9,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
+#include "BKE_global.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -56,6 +57,10 @@ const char *no_procedural_access_message = N_(
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
+  if (G.debug_value == 892) {
+    return true;
+  }
+
   if (attribute_name.startswith(".corner")) {
     return false;
   }

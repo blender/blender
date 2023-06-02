@@ -134,7 +134,7 @@ ENUM_OPERATORS(PBVHTopologyUpdateMode, PBVH_LocalCollapse);
 void detail_size_set(PBVH *pbvh, float detail_size, float detail_range);
 
 bool remesh_topology(blender::bke::dyntopo::BrushTester *brush_tester,
-                     struct SculptSession *ss,
+                     struct Object *ob,
                      PBVH *pbvh,
                      PBVHTopologyUpdateMode mode,
                      bool use_frontface,
@@ -145,7 +145,7 @@ bool remesh_topology(blender::bke::dyntopo::BrushTester *brush_tester,
                      int edge_limit_multiply);
 
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *tester,
-                           struct SculptSession *ss,
+                           struct Object *ob,
                            PBVH *pbvh,
                            bool (*searchcb)(PBVHNode *node, void *data),
                            void (*undopush)(PBVHNode *node, void *data),

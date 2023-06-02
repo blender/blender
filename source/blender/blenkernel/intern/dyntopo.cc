@@ -4,6 +4,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
@@ -49,8 +50,6 @@
 
 //#define CLEAR_TAGS_IN_THREAD
 
-namespace blender::bke::dyntopo {
-
 using blender::float2;
 using blender::float3;
 using blender::float4;
@@ -58,10 +57,15 @@ using blender::IndexRange;
 using blender::Map;
 using blender::Set;
 using blender::Vector;
+
+namespace blender::bke::dyntopo {
+
 using namespace blender::bke::sculpt;
 
-static void pbvh_split_edges(
-    struct EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, BMEdge **edges, int totedge);
+static void pbvh_split_edges(struct EdgeQueueContext *eq_ctx,
+                             PBVH *pbvh,
+                             BMesh *bm,
+                             Span<BMEdge *> edges);
 
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
@@ -665,7 +669,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   PBVHNode *node = tdata->node;
   EdgeQueueContext *eq_ctx = tdata->eq_ctx;
 
-  bool do_smooth = eq_ctx->surface_smooth_fac > 0.0f;
+  bool do_smooth = eq_ctx->surface_relax && eq_ctx->surface_smooth_fac > 0.0f;
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   int ni = node - pbvh->nodes;
@@ -748,9 +752,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
          * but tangentially to surface.  We can stochastically skip this and still get the
          * benefit to convergence.
          */
-        int randval = rand.get_uint32();
-
-        if (do_smooth && randval > (1 << 16)) {
+        if (do_smooth && rand.get_float() > 0.75f) {
           PBVHVertRef sv = {(intptr_t)l_iter->v};
           surface_smooth_v_safe(eq_ctx->ss,
                                 tdata->pbvh,
@@ -2001,7 +2003,7 @@ float mask_cb_nop(PBVHVertRef /*vertex*/, void * /*userdata*/)
 }
 
 EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
-                                   struct SculptSession *ss_,
+                                   Object *ob,
                                    PBVH *pbvh_,
                                    PBVHTopologyUpdateMode mode_,
                                    bool use_frontface_,
@@ -2011,7 +2013,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
                                    void *mask_cb_data_,
                                    int edge_limit_multiply)
 {
-  ss = ss_;
+  ss = ob->sculpt;
   pbvh = pbvh_;
   brush_tester = brush_tester_;
   use_view_normal = use_frontface_;
@@ -2029,8 +2031,13 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   cd_face_node_offset = pbvh->cd_face_node_offset;
   local_mode = false;
   mode = mode_;
-  reproject_cdata = CustomData_has_layer(&pbvh->header.bm->ldata, CD_PROP_FLOAT2) &&
-                    !ss->ignore_uvs;
+
+  /* Need to do some final testing before deciding whether or not
+   * to remove surface relax.
+   */
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  surface_relax = me->flag & ME_FLAG_UNUSED_5;
+  reproject_cdata = ss->reproject_smooth;
 
   max_heap_mm = (DYNTOPO_MAX_ITER * edge_limit_multiply) << 8;
   limit_len_min = pbvh->bm_min_edge_len;
@@ -2103,7 +2110,7 @@ void EdgeQueueContext::flush_subdivision()
   modified = true;
   subd_edges.clear();
 
-  pbvh_split_edges(this, pbvh, pbvh->header.bm, split_edges, etot);
+  pbvh_split_edges(this, pbvh, pbvh->header.bm, {split_edges, etot});
 
   count_subd += etot;
   VALIDATE_LOG(pbvh->bm_log);
@@ -2245,19 +2252,15 @@ void EdgeQueueContext::step()
         break;
       }
 
-      /*XXX*/
+#if 0
       if (BM_vert_edge_count(e->v1) > 100 || BM_vert_edge_count(e->v2) > 100) {
         printf("Pathological vertex for subdivide.\n");
         break;
       }
+#endif
 
       e->head.hflag &= ~BM_ELEM_TAG;
 
-#if 0
-      if (subd_edges.add(e)) {
-        split_edges[etot++] = e;
-      }
-#else
       /* Add complete faces. */
       BMLoop *l = e->l;
       if (l) {
@@ -2279,7 +2282,6 @@ void EdgeQueueContext::step()
           } while ((l2 = l2->next) != l);
         } while ((l = l->radial_next) != e->l);
       }
-#endif
       break;
     }
     case PBVH_Collapse: {
@@ -2370,7 +2372,7 @@ void EdgeQueueContext::report()
 
 // EdgeQueueContext
 bool remesh_topology(BrushTester *brush_tester,
-                     struct SculptSession *ss,
+                     Object *ob,
                      PBVH *pbvh,
                      PBVHTopologyUpdateMode mode,
                      bool use_frontface,
@@ -2381,7 +2383,7 @@ bool remesh_topology(BrushTester *brush_tester,
                      int edge_limit_multiply)
 {
   EdgeQueueContext eq_ctx(brush_tester,
-                          ss,
+                          ob,
                           pbvh,
                           mode,
                           use_frontface,
@@ -2538,8 +2540,7 @@ static const int splitmap[43][16] = {
 
 float dyntopo_params[5] = {5.0f, 1.0f, 4.0f};
 
-static void pbvh_split_edges(
-    EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, BMEdge **edges1, int totedge)
+static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Span<BMEdge *> edges)
 {
   bm_logstack_push();
   bm_log_message("  == split edges == ");
@@ -2550,15 +2551,7 @@ static void pbvh_split_edges(
    * either.  We use tri_in_range for this.
    */
 
-  auto test_near_brush = [&](BMEdge *e, float *co, float *r_w = nullptr) {
-#if 0
-    const int vlimit = 8;
-    if (BM_ELEM_CD_GET_INT(e->v1, pbvh->cd_valence) > vlimit ||
-        BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_valence) > vlimit)
-    {
-      return true;
-    }
-#endif
+  auto test_near_brush = [&](BMEdge *e, float * /*co*/, float *r_w = nullptr) {
     float w = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
     if (r_w) {
       *r_w = w;
@@ -2583,7 +2576,6 @@ static void pbvh_split_edges(
     return false;
   };
 
-  BMEdge **edges = edges1;
   Vector<BMFace *> faces;
 
 #define SUBD_ADD_TO_QUEUE
@@ -2593,15 +2585,12 @@ static void pbvh_split_edges(
                               PBVH_UpdateTriAreas | PBVH_UpdateDrawBuffers |
                               PBVH_RebuildDrawBuffers | PBVH_UpdateTris | PBVH_UpdateNormals;
 
-  for (int i = 0; i < totedge; i++) {
-    BMEdge *e = edges[i];
-
+  for (BMEdge *e : edges) {
     check_vert_fan_are_tris(pbvh, e->v1);
     check_vert_fan_are_tris(pbvh, e->v2);
   }
 
-  for (int i = 0; i < totedge; i++) {
-    BMEdge *e = edges[i];
+  for (BMEdge *e : edges) {
     BMLoop *l = e->l;
 
     /* Clear tags. */
@@ -2630,12 +2619,49 @@ static void pbvh_split_edges(
   }
 
   /* Tag edges and faces to split. */
-  for (int i = 0; i < totedge; i++) {
+  for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
     BMLoop *l = e->l;
 
     e->head.index = 0;
     e->head.hflag |= SPLIT_TAG;
+  }
+
+  Vector<BMEdge *> edges2;
+
+  if (eq_ctx->mode & PBVH_Cleanup) {
+    /* Don't allow singletons that produce 3/4 valence verts. */
+    for (BMEdge *e : edges) {
+      BMLoop *l = e->l;
+
+      if (!l) {
+        continue;
+      }
+
+      bool ok = false;
+      do {
+        BMLoop *l2 = l;
+        do {
+          if (l2->e != e && l2->e->head.hflag & SPLIT_TAG) {
+            ok = true;
+            break;
+          }
+        } while ((l2 = l2->next) != l);
+      } while (!ok && (l = l->radial_next) != e->l);
+
+      if (ok) {
+        edges2.append(e);
+      }
+      else {
+        e->head.hflag &= ~SPLIT_TAG;
+      }
+    }
+    edges = edges2;
+  }
+
+  for (int i = 0; i < edges.size(); i++) {
+    BMEdge *e = edges[i];
+    BMLoop *l = e->l;
 
     if (!l) {
       continue;
@@ -2687,7 +2713,7 @@ static void pbvh_split_edges(
   Vector<BMEdge *> new_edges;
 #endif
 
-  for (int i = 0; i < totedge; i++) {
+  for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
 
     if (!e || !(e->head.hflag & SPLIT_TAG)) {
@@ -2712,7 +2738,6 @@ static void pbvh_split_edges(
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
 
     BMVert *newv = BM_edge_split(pbvh->header.bm, e, e->v1, &newe, 0.5f);
-    int cd_stroke_id = eq_ctx->ss->attrs.stroke_id->bmesh_cd_offset;
 
     /* Flag new vertex as not needing original data update, since we interpolated it. */
     sculpt::stroke_id_test(eq_ctx->ss, {reinterpret_cast<intptr_t>(newv)}, STROKEID_USER_ORIGINAL);
@@ -3118,11 +3143,858 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   bm_logstack_pop();
 }
 
+#include <type_traits>
+
+namespace myinterp {
+
+template<typename T> constexpr T get_epsilon()
+{
+  if constexpr (std::is_same_v<T, float>) {
+    return FLT_EPSILON;
+  }
+  else if constexpr (std::is_same_v<T, double>) {
+    return DBL_EPSILON;
+  }
+  else {
+    return T::EPSILON();
+  }
+}
+
+#define IS_POINT_IX (1 << 0)
+#define IS_SEGMENT_IX (1 << 1)
+
+#define DIR_V3_SET(d_len, va, vb) \
+  { \
+    sub_v3_v3v3<T, T, T>((d_len)->dir, va, vb); \
+    (d_len)->len = len_v3((d_len)->dir); \
+  } \
+  (void)0
+
+#define DIR_V2_SET(d_len, va, vb) \
+  { \
+    sub_v2_v2v2<T2, T, T>((d_len)->dir, va, vb); \
+    (d_len)->len = len_v2<T2>((d_len)->dir); \
+  } \
+  (void)0
+
+template<typename T> struct Float3_Len {
+  T dir[3], len;
+};
+
+template<typename T2> struct Double2_Len {
+  T2 dir[2], len;
+};
+
+template<typename T1 = float, typename T2 = T1, typename T3 = T2>
+void sub_v2_v2v2(T1 r[3], const T2 a[3], const T2 b[3])
+{
+  r[0] = T1(a[0] - b[0]);
+  r[1] = T1(a[1] - b[1]);
+}
+
+template<typename T1 = float, typename T2 = T1, typename T3 = T2>
+void sub_v3_v3v3(T1 r[3], const T2 a[3], const T2 b[3])
+{
+  r[0] = T1(a[0] - b[0]);
+  r[1] = T1(a[1] - b[1]);
+  r[2] = T1(a[2] - b[2]);
+}
+
+template<typename T = float> T cross_v2v2(const T *a, const T *b)
+{
+  return a[0] * b[1] - a[1] * b[0];
+}
+
+template<typename T = float> void cross_v3_v3v3(T r[3], const T a[3], const T b[3])
+{
+  BLI_assert(r != a && r != b);
+  r[0] = a[1] * b[2] - a[2] * b[1];
+  r[1] = a[2] * b[0] - a[0] * b[2];
+  r[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+template<typename T = float> T len_squared_v2v2(const T *a, const T *b)
+{
+  T dx = a[0] - b[0];
+  T dy = a[1] - b[1];
+  return dx * dx + dy * dy;
+}
+
+template<typename T = float> T dot_v2v2(const T *a, const T *b)
+{
+  return a[0] * b[0] + a[1] * b[1];
+}
+
+template<typename T = float> T dot_v3v3(const T *a, const T *b)
+{
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+template<typename T = float> T len_squared_v2(const T *a)
+{
+  return dot_v2v2(a, a);
+}
+
+template<typename T = float> T len_v2(const T *a)
+{
+  return std::sqrt(len_squared_v2(a));
+}
+
+template<typename T = float> T len_v2v2(const T *a, const T *b)
+{
+  return std::sqrt(len_squared_v2v2(a, b));
+}
+
+template<typename T = float> void sub_v2_v2v2(T *r, const T *a, const T *b)
+{
+  r[0] = a[0] - b[0];
+  r[1] = a[1] - b[1];
+}
+
+/* Mean value weights - smooth interpolation weights for polygons with
+ * more than 3 vertices */
+template<typename T>
+T mean_value_half_tan_v3(const struct Float3_Len<T> *d_curr, const struct Float3_Len<T> *d_next)
+{
+  T cross[3];
+  cross_v3_v3v3<T>(cross, d_curr->dir, d_next->dir);
+  const T area = len_v3(cross);
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
+  if (LIKELY(area != 0.0)) {
+    const T dot = dot_v3v3<T>(d_curr->dir, d_next->dir);
+    const T len = d_curr->len * d_next->len;
+    const T result = (len - dot) / area;
+    if (std::isfinite(result)) {
+      return result;
+    }
+  }
+  return 0.0;
+}
+
+/**
+ * Mean value weights - same as #mean_value_half_tan_v3 but for 2D vectors.
+ *
+ * \note When interpolating a 2D polygon, a point can be considered "outside"
+ * the polygon's bounds. Thus, when the point is very distant and the vectors
+ * have relatively close values, the precision problems are evident since they
+ * do not indicate a point "inside" the polygon.
+ * To resolve this, doubles are used.
+ */
+template<typename T2 = double>
+T2 mean_value_half_tan_v2_db(const struct Double2_Len<T2> *d_curr,
+                             const struct Double2_Len<T2> *d_next)
+{
+  /* Different from the 3d version but still correct. */
+  const T2 area = cross_v2v2<T2>(d_curr->dir, d_next->dir);
+  /* Compare against zero since 'FLT_EPSILON' can be too large, see: #73348. */
+  if (LIKELY(area != 0.0)) {
+    const T2 dot = dot_v2v2<T2>(d_curr->dir, d_next->dir);
+    const T2 len = d_curr->len * d_next->len;
+    const T2 result = (len - dot) / area;
+    if (std::isfinite(result)) {
+      return result;
+    }
+  }
+  return 0.0;
+}
+
+template<typename T = float>
+T line_point_factor_v2_ex(
+    const T p[2], const T l1[2], const T l2[2], const T epsilon, const T fallback)
+{
+  T h[2], u[2];
+  T dot;
+  sub_v2_v2v2<T>(u, l2, l1);
+  sub_v2_v2v2<T>(h, p, l1);
+
+  /* better check for zero */
+  dot = len_squared_v2<T>(u);
+  return (dot > epsilon) ? (dot_v2v2<T>(u, h) / dot) : fallback;
+}
+
+template<typename T = float> T line_point_factor_v2(const T p[2], const T l1[2], const T l2[2])
+{
+  return line_point_factor_v2_ex<T>(p, l1, l2, 0.0, 0.0);
+}
+template<typename T = float>
+T dist_squared_to_line_segment_v2(const T *p, const T *v1, const T *v2)
+{
+  T dx1 = p[0] - v1[0];
+  T dy1 = p[1] - v1[1];
+
+  T dx2 = v2[0] - v1[0];
+  T dy2 = v2[1] - v1[1];
+
+  T len_sqr = len_squared_v2v2<T>(v1, v2);
+  T len = std::sqrt(len_sqr);
+
+  bool good;
+  {
+    ignore scope;
+    good = len > get_epsilon<T>() * 32.0;
+  }
+
+  if (good) {
+    dx2 /= len;
+    dy2 /= len;
+  }
+  else {
+    return len_squared_v2v2<T>(p, v1);
+  }
+
+  T fac = dx1 * dx2 + dy1 * dy2;
+  bool test;
+
+  {
+    ignore scope;
+    test = fac <= get_epsilon<T>() * 32.0;
+  }
+
+  if (test) {
+    return len_squared_v2v2<T>(p, v1);
+  }
+  else {
+    {
+      ignore scope;
+      test = fac >= len - get_epsilon<T>() * 32.0;
+    }
+    if (test) {
+      return len_squared_v2v2<T>(p, v2);
+    }
+  }
+
+  return std::fabs(dx1 * dy2 - dy1 * dx2);
+}
+
+template<typename T = float, typename T2 = double>
+void interp_weights_poly_v2(T *w, T v[][2], const int n, const T _co[2])
+{
+  /* Before starting to calculate the weight, we need to figure out the floating point precision we
+   * can expect from the supplied data. */
+  T max_value = 0.0;
+  T co[2] = {_co[0], _co[1]};
+
+  T min[2], max[2];
+  min[0] = min[1] = T(1e17);
+  max[0] = max[1] = T(-1e17);
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < 2; j++) {
+      min[j] = std::min(min[j], v[i][j]);
+      max[j] = std::max(max[j], v[i][j]);
+    }
+  }
+
+  max[0] -= min[0];
+  max[1] -= min[1];
+  bool test1;
+  {
+    ignore scope;
+    test1 = max[0] > get_epsilon<T>() * 1000.0 && max[1] > get_epsilon<T>() * 1000.0;
+  }
+
+  if (test1) {
+    for (int i = 0; i < n; i++) {
+      v[i][0] = (v[i][0] - min[0]) / max[0];
+      v[i][1] = (v[i][1] - min[1]) / max[1];
+    }
+
+    co[0] = (co[0] - min[0]) / max[0];
+    co[1] = (co[1] - min[1]) / max[1];
+  }
+
+  for (int i = 0; i < n; i++) {
+    max_value = std::max(max_value, std::fabs(v[i][0] - co[0]));
+    max_value = std::max(max_value, std::fabs(v[i][1] - co[1]));
+  }
+  /* These to values we derived by empirically testing different values that works for the test
+   * files in D7772. */
+  T eps, eps_sq;
+
+  {
+    volatile myinterp::ignore scope;
+    eps = 16.0 * get_epsilon<T>() * std::max(T(max_value), T(1.0));
+    eps_sq = eps * eps;
+  }
+
+  const T *v_curr, *v_next;
+  T2 ht_prev, ht; /* half tangents */
+  T totweight = 0.0;
+  int i_curr, i_next;
+  char ix_flag = 0;
+  struct Double2_Len<T2> d_curr, d_next;
+
+  /* loop over 'i_next' */
+  i_curr = n - 1;
+  i_next = 0;
+
+  v_curr = v[i_curr];
+  v_next = v[i_next];
+
+  DIR_V2_SET(&d_curr, v_curr - 2 /* v[n - 2] */, co);
+  DIR_V2_SET(&d_next, v_curr /* v[n - 1] */, co);
+  ht_prev = mean_value_half_tan_v2_db<T2>(&d_curr, &d_next);
+
+  while (i_next < n) {
+    /* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
+     * to borders of face. In that case,
+     * do simple linear interpolation between the two edge vertices */
+
+    /* 'd_next.len' is in fact 'd_curr.len', just avoid copy to begin with */
+    {
+      ignore scope;
+
+      if (UNLIKELY(d_next.len < eps)) {
+        ix_flag = IS_POINT_IX;
+        break;
+      }
+    }
+
+    T ret = dist_squared_to_line_segment_v2<T>(co, v_curr, v_next);
+    {
+      ignore scope;
+
+      if (ret < eps_sq) {
+        ix_flag = IS_SEGMENT_IX;
+        break;
+      }
+    }
+
+    d_curr = d_next;
+    DIR_V2_SET(&d_next, v_next, co);
+    ht = mean_value_half_tan_v2_db(&d_curr, &d_next);
+    w[i_curr] = (d_curr.len == 0.0) ? 0.0 : T((ht_prev + ht) / d_curr.len);
+    totweight += w[i_curr];
+
+    /* step */
+    i_curr = i_next++;
+    v_curr = v_next;
+    v_next = v[i_next];
+
+    ht_prev = ht;
+  }
+
+  if (ix_flag) {
+    memset(w, 0, sizeof(*w) * (size_t)n);
+
+    if (ix_flag & IS_POINT_IX) {
+      w[i_curr] = 1.0;
+    }
+    else {
+      T fac = line_point_factor_v2<T>(co, v_curr, v_next);
+      CLAMP(fac, 0.0, 1.0);
+      w[i_curr] = 1.0 - fac;
+      w[i_next] = fac;
+    }
+  }
+  else {
+    if (totweight != 0.0) {
+      for (i_curr = 0; i_curr < n; i_curr++) {
+        w[i_curr] /= totweight;
+      }
+    }
+  }
+}
+
+#undef IS_POINT_IX
+#undef IS_SEGMENT_IX
+
+#undef DIR_V3_SET
+#undef DIR_V2_SET
+
+template<typename T = float> bool is_zero_v2(const T *a)
+{
+  return a[0] == 0.0f && a[1] == 0.0f;
+}
+template<typename T = float> bool is_zero_v3(const T *a)
+{
+  return a[0] == 0.0f && a[1] == 0.0f && a[2] == 0.0f;
+}
+
+template<typename T1 = float, typename T2 = float> void copy_v3_v3(T1 r[3], const T2 b[3])
+{
+  r[0] = b[0];
+  r[1] = b[1];
+  r[2] = b[2];
+}
+
+template<typename T1 = float, typename T2 = float> void copy_v2_v2(T1 r[2], const T2 b[2])
+{
+  r[0] = b[0];
+  r[1] = b[1];
+}
+
+int ignore_check = 0;
+int bleh_bleh = 0;
+
+struct ignore {
+  int f = 0;
+
+  void bleh()
+  {
+    bleh_bleh++;
+  }
+
+  ignore()
+  {
+    f = ignore_check++;
+  }
+  ~ignore()
+  {
+    f = ignore_check--;
+  }
+  ignore(const ignore &b) = delete;
+};
+
+template<typename T = float> struct TestFloat {
+  T f;
+
+  static T EPSILON()
+  {
+    return get_epsilon<T>();
+  }
+
+  TestFloat(int i) : f(T(i))
+  {
+    check();
+  }
+  TestFloat(float v) : f(T(v))
+  {
+    check();
+  }
+  TestFloat(double v) : f(T(v))
+  {
+    check();
+  }
+  TestFloat(const TestFloat &b) : f(b.f)
+  {
+    check();
+  }
+  TestFloat() : f(0.0) {}
+
+  static bool check(const float f)
+  {
+    if (ignore_check > 0) {
+      return true;
+    }
+
+    if (f == 0.0f) {
+      return true;
+    }
+
+    if (std::isnan(f)) {
+      printf("NaN!\n");
+      return false;
+    }
+
+    if (!std::isfinite(f)) {
+      printf("Infinite!\n");
+      return false;
+    }
+
+    if (!std::isnormal(f)) {
+      printf("Subnormal number!\n");
+      return false;
+    }
+
+    T limit = get_epsilon<T>() * 100.0;
+
+    if (f != get_epsilon<T>() && f >= -limit && f <= limit) {
+      // printf("Really small number.");
+    }
+
+    limit = 1000.0;
+    if (f <= -limit || f >= limit) {
+      // printf("Really large number.");
+    }
+
+    return true;
+  }
+
+  bool check() const
+  {
+    return TestFloat::check(f);
+  }
+
+  explicit operator int()
+  {
+    check();
+    return int(f);
+  }
+
+  explicit operator float()
+  {
+    check();
+    return float(f);
+  }
+  explicit operator double()
+  {
+    check();
+    return double(f);
+  }
+
+  TestFloat operator-() const
+  {
+    return TestFloat(-f);
+  }
+
+  bool operator==(T b) const
+  {
+    check();
+    TestFloat::check(b);
+
+    return f == b;
+  }
+
+  bool operator!=(T b) const
+  {
+    check();
+    TestFloat::check(b);
+    return f != b;
+  }
+
+  bool operator>=(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return f >= b.f;
+  }
+  bool operator<=(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return f <= b.f;
+  }
+  bool operator>(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return f > b.f;
+  }
+  bool operator>(T b) const
+  {
+    TestFloat::check(b);
+    return f > b;
+  }
+  bool operator<(const TestFloat &b) const
+  {
+    b.check();
+    check();
+    return f < b.f;
+  }
+  TestFloat operator+(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return TestFloat(f + b.f);
+  }
+  TestFloat operator-(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return TestFloat(f - b.f);
+  }
+  TestFloat operator/(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return TestFloat(f / b.f);
+  }
+  TestFloat operator*(const TestFloat &b) const
+  {
+    check();
+    b.check();
+    return TestFloat(f * b.f);
+  }
+
+  const TestFloat &operator=(const TestFloat &b)
+  {
+    b.check();
+    f = b.f;
+    check();
+    return *this;
+  }
+
+  const TestFloat &operator+=(const TestFloat &b)
+  {
+    b.check();
+    f += b.f;
+    check();
+    return *this;
+  }
+  const TestFloat &operator-=(const TestFloat &b)
+  {
+    b.check();
+    f -= b.f;
+    check();
+    return *this;
+  }
+  const TestFloat &operator*=(const TestFloat &b)
+  {
+    b.check();
+    f *= b.f;
+    check();
+    return *this;
+  }
+  const TestFloat &operator/=(const TestFloat &b)
+  {
+    b.check();
+    f /= b.f;
+    check();
+    return *this;
+  }
+};
+
+}  // namespace myinterp
+
+template<typename T> bool operator==(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return a == b.f;
+}
+
+template<typename T> bool operator!=(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return a != b.f;
+}
+
+template<typename T> bool operator<(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return a < b.f;
+}
+template<typename T> bool operator>(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return a > b.f;
+}
+
+template<typename T> myinterp::TestFloat<T> operator*(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return myinterp::TestFloat<T>(a * b.f);
+}
+
+template<typename T> myinterp::TestFloat<T> operator-(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return myinterp::TestFloat<T>(a - b.f);
+}
+
+template<typename T> myinterp::TestFloat<T> operator/(T a, myinterp::TestFloat<T> b)
+{
+  myinterp::TestFloat<T>::check(a);
+  b.check();
+  return myinterp::TestFloat<T>(a / b.f);
+}
+
+namespace std {
+template<typename T> myinterp::TestFloat<T> sqrt(myinterp::TestFloat<T> f)
+{
+  f.check();
+  return std::sqrt(f.f);
+}
+template<typename T> myinterp::TestFloat<T> fabs(myinterp::TestFloat<T> f)
+{
+  f.check();
+  return std::fabs(f.f);
+}
+template<typename T> bool isfinite(myinterp::TestFloat<T> f)
+{
+  f.check();
+  return std::isfinite(f.f);
+}
+}  // namespace std
+
+/* reduce symbolic algebra script
+
+on factor;
+off period;
+
+comment: assumption, origin is at p;
+px := 0;
+py := 0;
+f1 := w1*ax + w2*bx + w3*cx - px;
+f2 := w1*ay + w2*by + w3*cy - py;
+f3 := (w1 + w2 + w3) - 1.0;
+
+ff := solve({f1, f2, f3}, {w1, w2,w3});
+on fort;
+fw1 := part(ff, 1, 1, 2);
+fw2 := part(ff, 1, 2, 2);
+fw3 := part(ff, 1, 3, 2);
+off fort;
+*/
+
+namespace myinterp {
+template<typename T = float> void tri_weights_v3(T *p, const T *a, const T *b, const T *c, T *r_ws)
+{
+  T ax = (a[0] - p[0]), ay = (a[1] - p[1]);
+  T bx = (b[0] - p[0]), by = (b[1] - p[1]);
+  T cx = (c[0] - p[0]), cy = (c[1] - p[1]);
+
+#if 1
+  // T cent[2] = {(a[0] + b[0] + c[0]) / 3.0f, (a[1] + b[1] + c[1]) / 3.0f};
+  T div0 = len_v2v2(a, b);
+
+  if (div0 > get_epsilon<T>() * 1000) {
+    ax /= div0;
+    bx /= div0;
+    cx /= div0;
+    ay /= div0;
+    by /= div0;
+    cy /= div0;
+  }
+#endif
+
+  T div = (bx * cy - by * cx + (by - cy) * ax - (bx - cx) * ay);
+
+  bool test;
+  {
+    ignore scope;
+    test = std::fabs(div) < get_epsilon<T>() * 10000;
+  }
+
+  if (test) {
+    r_ws[0] = r_ws[1] = r_ws[2] = 1.0 / 3.0;
+    return;
+  }
+
+  r_ws[0] = (bx * cy - by * cx) / div;
+  r_ws[1] = (-ax * cy + ay * cx) / div;
+  r_ws[2] = (ax * by - ay * bx) / div;
+
+#if 0
+  T px = a[0] * r_ws[0] + b[0] * r_ws[1] + c[0] * r_ws[2];
+  T py = a[1] * r_ws[0] + b[1] * r_ws[1] + c[1] * r_ws[2];
+
+  printf("%.6f  %.6f\n", float(px - p[0]), float(py - p[1]));
+#endif
+}
+}  // namespace myinterp
+
+template<typename T = double>  // myinterp::TestFloat<double>>
+inline void reproject_bm_data(
+    BMesh *bm, BMLoop *l_dst, const BMFace *f_src, const bool do_vertex, eCustomDataMask typemask)
+{
+  using namespace myinterp;
+
+  BMLoop *l_iter;
+  BMLoop *l_first;
+  const void **vblocks = do_vertex ? BLI_array_alloca(vblocks, f_src->len) : nullptr;
+  const void **blocks = BLI_array_alloca(blocks, f_src->len);
+  T(*cos_2d)[2] = BLI_array_alloca(cos_2d, f_src->len);
+  T *w = BLI_array_alloca(w, f_src->len);
+  float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
+  float co[2];
+
+  /* Convert the 3d coords into 2d for projection. */
+  float axis_dominant[3];
+  if (!is_zero_v3<float>(f_src->no)) {
+    BLI_assert(BM_face_is_normal_valid(f_src));
+    copy_v3_v3(axis_dominant, f_src->no);
+  }
+  else {
+    /* Rare case in which all the vertices of the face are aligned.
+     * Get a random axis that is orthogonal to the tangent. */
+    float vec[3];
+    BM_face_calc_tangent_auto(f_src, vec);
+    ortho_v3_v3(axis_dominant, vec);
+    normalize_v3(axis_dominant);
+  }
+  axis_dominant_v3_to_m3(axis_mat, axis_dominant);
+
+  int i = 0;
+  l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
+  do {
+    float co2d[2];
+    mul_v2_m3v3(co2d, axis_mat, l_iter->v->co);
+    myinterp::copy_v2_v2<T, float>(cos_2d[i], co2d);
+
+    blocks[i] = l_iter->head.data;
+
+    float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+    if (len_sq < FLT_EPSILON * 100.0f) {
+      return;
+    }
+
+    if (do_vertex) {
+      vblocks[i] = l_iter->v->head.data;
+    }
+  } while ((void)i++, (l_iter = l_iter->next) != l_first);
+
+  mul_v2_m3v3(co, axis_mat, l_dst->v->co);
+
+  T tco[2];
+  myinterp::copy_v2_v2<T, float>(tco, co);
+
+  /* interpolate */
+  if (f_src->len == 3) {
+    myinterp::tri_weights_v3<T>(tco, cos_2d[0], cos_2d[1], cos_2d[2], w);
+    T sum = 0.0;
+
+    for (int i = 0; i < 3; i++) {
+      sum += w[i];
+      if (w[i] < 0.0 || w[i] > 1.0) {
+        // return;
+      }
+    }
+  }
+  else {
+    myinterp::interp_weights_poly_v2<T, T>(w, cos_2d, f_src->len, tco);
+  }
+
+  T totw = 0.0;
+  for (int i = 0; i < f_src->len; i++) {
+    totw += w[i];
+  }
+
+  /* Use uniform weights in this case.*/
+  if (totw == 0.0) {
+    for (int i = 0; i < f_src->len; i++) {
+      w[i] = 1.0 / T(f_src->len);
+    }
+  }
+
+  float *fw;
+
+  if constexpr (!std::is_same_v<T, float>) {
+    fw = BLI_array_alloca(fw, f_src->len);
+    for (int i = 0; i < f_src->len; i++) {
+      fw[i] = float(w[i]);
+    }
+  }
+  else {
+    fw = w;
+  }
+
+  CustomData_bmesh_interp_ex(
+      &bm->ldata, blocks, fw, nullptr, f_src->len, l_dst->head.data, typemask);
+
+  if (do_vertex) {
+    // bool inside = isect_point_poly_v2(co, cos_2d, l_dst->f->len, false);
+    CustomData_bmesh_interp_ex(
+        &bm->vdata, vblocks, fw, nullptr, f_src->len, l_dst->v->head.data, typemask);
+  }
+}
+
 void BKE_sculpt_reproject_cdata(SculptSession *ss,
                                 PBVHVertRef vertex,
                                 float startco[3],
                                 float startno[3])
 {
+  int boundary_flag = blender::bke::paint::vertex_attr_get<int>(vertex, ss->attrs.boundary_flags);
+  if (boundary_flag & (SCULPT_BOUNDARY_UV)) {
+    return;
+  }
+
   BMVert *v = (BMVert *)vertex.i;
   BMEdge *e;
 
@@ -3149,24 +4021,16 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
   int tag = BM_ELEM_TAG_ALT;
 
-  float origin[3];
-  float ray[3];
-
-  copy_v3_v3(origin, v->co);
-  copy_v3_v3(ray, v->no);
-  negate_v3(ray);
-
-  struct IsectRayPrecalc precalc;
-  isect_ray_tri_watertight_v3_precalc(&precalc, ray);
-
   float *lastuvs = (float *)BLI_array_alloca(lastuvs, totuv * 2);
   bool *snapuvs = (bool *)BLI_array_alloca(snapuvs, totuv);
 
   e = v->e;
+  int valence = 0;
 
   /* First clear some flags. */
   do {
     e->head.api_flag &= ~tag;
+    valence++;
 
     if (!e->l) {
       continue;
@@ -3195,20 +4059,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     if (!l) {
       continue;
     }
-#if 0
-    bool bound = l == l->radial_next;
 
-    // check for faceset boundaries
-    bound = bound || (BM_ELEM_CD_GET_INT(l->f,ss->cd_faceset_offset) !=
-      BM_ELEM_CD_GET_INT(l->radial_next->f,ss->cd_faceset_offset));
-
-    // check for seam and sharp edges
-    bound = bound || (e->head.hflag & BM_ELEM_SEAM) || !(e->head.hflag & BM_ELEM_SMOOTH);
-
-    if (bound) {
-      continue;
-    }
-#endif
     do {
       BMLoop *l2 = l->v != v ? l->next : l;
 
@@ -3262,6 +4113,15 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   char *_blocks = (char *)alloca(ldata->totsize * totloop);
   void **blocks = (void **)BLI_array_alloca(blocks, totloop);
 
+  const int max_vblocks = valence * 2;
+
+  char *_vblocks = (char *)alloca(ss->bm->vdata.totsize * max_vblocks);
+  void **vblocks = (void **)BLI_array_alloca(vblocks, max_vblocks);
+
+  for (int i = 0; i < max_vblocks; i++, _vblocks += ss->bm->vdata.totsize) {
+    vblocks[i] = (void *)_vblocks;
+  }
+
   for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
     blocks[i] = (void *)_blocks;
   }
@@ -3272,102 +4132,127 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   copy_v3_v3(vno, v->no);
 
   BMFace _fakef, *fakef = &_fakef;
+  int cur_vblock = 0;
 
-#if 0
-  BMFace *projf = NULL;
-  // find face vertex projects into
-  for (int i = 0; i < totloop; i++) {
-    BMLoop *l = ls[i];
+  eCustomDataMask typemask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
+                             CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_COLOR;
 
-    copy_v3_v3(ray,l->f->no);
-    negate_v3(ray);
+  int totstep = 2;
+  for (int step = 0; step < totstep; step++) {
+    float3 startco2;
+    float3 startno2;
+    float t = (float(step) + 1.0f) / float(totstep);
 
-    float t,uv[2];
+    interp_v3_v3v3(startco2, v->co, startco, t);
+    interp_v3_v3v3(startno2, v->no, startno, t);
 
-    //*
-    bool hit = isect_ray_tri_v3(origin,ray,l->prev->v->co,origco,l->next->v->co,&t,uv);
-    if (hit) {
-      projf = l->f;
-      break;
-    }  //*/
-  }
+    normalize_v3(startno2);
 
-  if (!projf) {
-    return;
-  }
-#endif
+    /* Build fake face with original coordinates. */
+    for (int i = 0; i < totloop; i++) {
+      BMLoop *l = ls[i];
+      float no[3] = {0.0f, 0.0f, 0.0f};
 
-  /* Build fake face with original coordinates. */
-  for (int i = 0; i < totloop; i++) {
-    BMLoop *l = ls[i];
-    float no[3] = {0.0f, 0.0f, 0.0f};
+      BMLoop *fakels = (BMLoop *)BLI_array_alloca(fakels, l->f->len);
+      BMVert *fakevs = (BMVert *)BLI_array_alloca(fakevs, l->f->len);
+      BMLoop *l2 = l->f->l_first;
+      BMLoop *fakel = fakels;
+      BMVert *fakev = fakevs;
+      int j = 0;
 
-    BMLoop *fakels = (BMLoop *)BLI_array_alloca(fakels, l->f->len);
-    BMVert *fakevs = (BMVert *)BLI_array_alloca(fakevs, l->f->len);
-    BMLoop *l2 = l->f->l_first;
-    BMLoop *fakel = fakels;
-    BMVert *fakev = fakevs;
-    int j = 0;
+      do {
+        *fakel = *l2;
+        fakel->next = fakels + ((j + 1) % l->f->len);
+        fakel->prev = fakels + ((j + l->f->len - 1) % l->f->len);
 
-    do {
-      *fakel = *l2;
-      fakel->next = fakels + ((j + 1) % l->f->len);
-      fakel->prev = fakels + ((j + l->f->len - 1) % l->f->len);
+        *fakev = *l2->v;
+        fakel->v = fakev;
 
-      *fakev = *l2->v;
-      fakel->v = fakev;
+        /* Make sure original coordinate is up to date. */
+        blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 
-      /* Make sure original coordinate is up to date. */
-      blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
+        if (l2->v == v) {
+          copy_v3_v3(fakev->co, startco2);
+          copy_v3_v3(fakev->no, startno2);
+          add_v3_v3(no, startno2);
+        }
+        else {
+          add_v3_v3(no, l2->v->no);
+        }
 
-      if (l2->v == v) {
-        copy_v3_v3(fakev->co, startco);
-        copy_v3_v3(fakev->no, startno);
-        add_v3_v3(no, startno);
+        fakel++;
+        fakev++;
+        j++;
+      } while ((l2 = l2->next) != l->f->l_first);
+
+      *fakef = *l->f;
+      fakef->l_first = fakels;
+
+      normalize_v3(no);
+
+      if (len_squared_v3(no) > 0.0f) {
+        copy_v3_v3(fakef->no, no);
+      }
+      else if (fakef->len == 4) {
+        normal_quad_v3(
+            fakef->no, l->v->co, l->next->v->co, l->next->next->v->co, l->next->next->next->v->co);
       }
       else {
-        add_v3_v3(no, l2->v->no);
+        normal_tri_v3(fakef->no, l->v->co, l->next->v->co, l->next->next->v->co);
       }
 
-      fakel++;
-      fakev++;
-      j++;
-    } while ((l2 = l2->next) != l->f->l_first);
+      /* Interpolate. */
+      BMLoop _interpl, *interpl = &_interpl;
 
-    *fakef = *l->f;
-    fakef->l_first = fakels;
+      *interpl = *l;
+      memcpy(blocks[i], l->head.data, ldata->totsize);
+      interpl->head.data = blocks[i];
 
-    normalize_v3(no);
+      interp_v3_v3v3(l->v->co, startco, vco, t);
+      interp_v3_v3v3(l->v->no, startno, vno, t);
+      normalize_v3(l->v->no);
 
-    if (len_squared_v3(no) > 0.0f) {
-      copy_v3_v3(fakef->no, no);
+      if (l->v == v && cur_vblock < max_vblocks) {
+        void *vblock_old = interpl->v->head.data;
+        void *vblock = vblocks[cur_vblock];
+        memcpy((void *)vblock, v->head.data, ss->bm->vdata.totsize);
+
+        interpl->v->head.data = (void *)vblock;
+
+        reproject_bm_data(ss->bm, interpl, fakef, true, typemask);
+
+        interpl->v->head.data = vblock_old;
+        cur_vblock++;
+      }
+      else {
+        reproject_bm_data(ss->bm, interpl, fakef, false, typemask);
+      }
+
+      copy_v3_v3(l->v->co, vco);
+      copy_v3_v3(l->v->no, vno);
+
+      CustomData_bmesh_copy_data(
+          &ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
     }
-    else if (fakef->len == 4) {
-      normal_quad_v3(
-          fakef->no, l->v->co, l->next->v->co, l->next->next->v->co, l->next->next->next->v->co);
+
+    if (cur_vblock > 0) {
+      float *ws = BLI_array_alloca(ws, cur_vblock);
+      for (int i = 0; i < cur_vblock; i++) {
+        ws[i] = 1.0f / float(cur_vblock);
+      }
+
+      float *origco = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_co->bmesh_cd_offset);
+      float *origno = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_no->bmesh_cd_offset);
+
+      float3 origco_saved = origco;
+      float3 origno_saved = origno;
+
+      CustomData_bmesh_interp(
+          &ss->bm->vdata, (const void **)vblocks, ws, nullptr, cur_vblock, v->head.data);
+
+      copy_v3_v3(origco, origco_saved);
+      copy_v3_v3(origno, origno_saved);
     }
-    else {
-      normal_tri_v3(fakef->no, l->v->co, l->next->v->co, l->next->next->v->co);
-    }
-
-    /* Interpolate. */
-    BMLoop _interpl, *interpl = &_interpl;
-
-    uint8_t *flag = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.flags->bmesh_cd_offset);
-    uint8_t *stroke_id = BM_ELEM_CD_PTR<uint8_t *>(v, ss->attrs.stroke_id->bmesh_cd_offset);
-
-    int flag_saved = *flag;
-    int stroke_id_saved = *stroke_id;
-
-    *interpl = *l;
-    interpl->head.data = blocks[i];
-
-    BM_loop_interp_from_face(ss->bm, interpl, fakef, false, false);
-
-    *stroke_id = stroke_id_saved;
-    *flag = flag_saved;
-
-    CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, interpl->head.data, &l->head.data);
   }
 
   int *tots = (int *)BLI_array_alloca(tots, totuv);

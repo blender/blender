@@ -728,7 +728,8 @@ struct SculptSession {
 
   int totuv;
 
-  bool ignore_uvs;
+  /* Reproject customdata during smooth. */
+  bool reproject_smooth;
 
   /* Undo/redo log for dynamic topology sculpting */
   BMLog *bm_log;
@@ -949,7 +950,10 @@ bool BKE_sculpt_init_flags_valence(struct Object *ob,
 struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 
-void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
+/* Ensures non-temporary attributes in me exist in the sculpt mesh, or vice
+ * versa if load_to_mesh is true. 
+ */
+void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me, bool load_to_mesh);
 
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
 SculptAttribute *BKE_sculptsession_attr_layer_get(struct Object *ob,
@@ -963,7 +967,7 @@ void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
 int BKE_sculptsession_get_totvert(const struct SculptSession *ss);
 
-void BKE_sculptsession_ignore_uvs_set(struct Object *ob, bool value);
+void BKE_sculptsession_reproject_smooth_set(struct Object *ob, bool value);
 void BKE_sculptsession_free_attribute_refs(struct Object *ob);
 
 /**
