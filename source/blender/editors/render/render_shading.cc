@@ -3052,7 +3052,22 @@ static void paste_mtex_copybuf(ID *id)
 
     **mtex = blender::dna::shallow_copy(mtexcopybuf);
 
-    id_us_plus((ID *)mtexcopybuf.tex);
+    /* NOTE(@ideasman42): the simple memory copy has no special handling for ID data-blocks.
+     * Ideally this would use `BKE_copybuffer_*` API's, however for common using
+     * copy-pasting between slots, the case a users expects to copy between files
+     * seems quite niche. So, do primitive ID validation. */
+
+    /* WARNING: This isn't a fool-proof solution as it's possible memory locations are reused,
+     * or that the ID was relocated in memory since it was copied.
+     * it does however guard against references to dangling pointers. */
+    if ((*mtex)->tex && (BLI_findindex(&G_MAIN->textures, (*mtex)->tex) == -1)) {
+      (*mtex)->tex = nullptr;
+    }
+    if ((*mtex)->object && (BLI_findindex(&G_MAIN->objects, (*mtex)->object) == -1)) {
+      (*mtex)->object = nullptr;
+    }
+    id_us_plus((ID *)(*mtex)->tex);
+    id_lib_extern((ID *)(*mtex)->object);
   }
 }
 
