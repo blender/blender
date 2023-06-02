@@ -221,53 +221,31 @@ VKDebuggingTools::~VKDebuggingTools()
 {
   BLI_assert(vk_debug_utils_messenger == nullptr);
 };
-void VKDebuggingTools::print_vulkan_version()
-{
-  uint32_t instanceVersion = VK_API_VERSION_1_0;
-  vkEnumerateInstanceVersion(&instanceVersion);
-  uint32_t major = VK_VERSION_MAJOR(instanceVersion);
-  uint32_t minor = VK_VERSION_MINOR(instanceVersion);
-  uint32_t patch = VK_VERSION_PATCH(instanceVersion);
-
-  printf("Vulkan Version:%u.%u.%u\n", major, minor, patch);
-}
 
 void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *callback_data)
 {
   std::stringstream ss;
-  if (callback_data->objectCount > 0) {
+  for (uint32_t object = 0; object < callback_data->objectCount; ++object) {
+    ss << " - ObjectType[" << to_string(callback_data->pObjects[object].objectType) << "],";
+    ss << "Handle[0x" << std::hex
+       << static_cast<uintptr_t>(callback_data->pObjects[object].objectHandle) << "]";
+    if (callback_data->pObjects[object].pObjectName) {
+      ss << ",Name[" << callback_data->pObjects[object].pObjectName << "]";
+    }
     ss << std::endl;
-    ss << callback_data->objectCount << " Object[s] related \n";
-    for (uint32_t object = 0; object < callback_data->objectCount; ++object) {
-      ss << "ObjectType[" << to_string(callback_data->pObjects[object].objectType) << "],";
-      ss << "Handle[0x" << std::hex
-         << static_cast<uintptr_t>(callback_data->pObjects[object].objectHandle) << "]";
-      if (callback_data->pObjects[object].pObjectName) {
-        ss << ",Name[" << callback_data->pObjects[object].pObjectName << "]";
-      }
-      ss << std::endl;
+  }
+  for (uint32_t label = 0; label < callback_data->cmdBufLabelCount; ++label) {
+    if (callback_data->pCmdBufLabels[label].pLabelName) {
+      ss << " - CommandBuffer : " << callback_data->pCmdBufLabels[label].pLabelName << std::endl;
     }
   }
-  if (callback_data->cmdBufLabelCount > 0) {
-    ss << std::endl;
-    ss << callback_data->cmdBufLabelCount << " Command Buffer Label[s] " << std::endl;
-    for (uint32_t label = 0; label < callback_data->cmdBufLabelCount; ++label) {
-      if (callback_data->pCmdBufLabels[label].pLabelName) {
-        ss << "CmdBufLabelName : " << callback_data->pCmdBufLabels[label].pLabelName << std::endl;
-      }
+  for (uint32_t label = 0; label < callback_data->queueLabelCount; ++label) {
+    if (callback_data->pQueueLabels[label].pLabelName) {
+      ss << " - Queue : " << callback_data->pQueueLabels[label].pLabelName << std::endl;
     }
   }
-  if (callback_data->queueLabelCount > 0) {
-    ss << std::endl;
-    ss << callback_data->queueLabelCount << " Queue Label[s]\n";
-    for (uint32_t label = 0; label < callback_data->queueLabelCount; ++label) {
-      if (callback_data->pQueueLabels[label].pLabelName) {
-        ss << "QueueLabelName : " << callback_data->pQueueLabels[label].pLabelName << std::endl;
-      }
-    }
-  }
-  printf("%s\n", ss.str().c_str());
-  fflush(stdout);
+  ss << std::endl;
+  printf("%s", ss.str().c_str());
 }
 VKAPI_ATTR VkBool32 VKAPI_CALL
 messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -349,7 +327,6 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 
 VkResult VKDebuggingTools::init_messenger(VkInstance vk_instance)
 {
-  print_vulkan_version();
   vk_message_id_number_ignored.clear();
   BLI_assert(enabled);
 

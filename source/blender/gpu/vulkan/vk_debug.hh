@@ -54,7 +54,6 @@ class VKDebuggingTools {
   VkDebugUtilsMessengerEXT vk_debug_utils_messenger = nullptr;
   Set<int32_t> vk_message_id_number_ignored;
   std::mutex ignore_mutex;
-  void print_vulkan_version();
   void add_group(int32_t id_number);
   void remove_group(int32_t id_number);
 };
