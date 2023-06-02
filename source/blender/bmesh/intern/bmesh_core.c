@@ -7,7 +7,7 @@
  */
 
 //#define JVKE_DEBUG
-#define FORCE_BMESH_CHECK
+//#define FORCE_BMESH_CHECK
 
 #if !defined(NDEBUG) || defined(FORCE_BMESH_CHECK) || defined(JVKE_DEBUG)
 #  define BMESH_DEBUG
