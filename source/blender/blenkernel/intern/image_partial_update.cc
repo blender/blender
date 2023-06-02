@@ -420,7 +420,15 @@ struct PartialUpdateRegisterImpl {
    */
   bool can_construct(ChangesetID changeset_id)
   {
-    return changeset_id >= first_changeset_id;
+    if (changeset_id < first_changeset_id) {
+      return false;
+    }
+
+    if (changeset_id > last_changeset_id) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
