@@ -238,11 +238,27 @@ const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
 };
 
 const EnumPropertyItem rna_enum_brush_gpencil_vertex_types_items[] = {
-    {GPVERTEX_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {GPVERTEX_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GPVERTEX_TOOL_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GPVERTEX_TOOL_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {GPVERTEX_TOOL_REPLACE, "REPLACE", ICON_BRUSH_BLUR, "Replace", ""},
+    {GPVERTEX_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", "Paint a color on stroke points"},
+    {GPVERTEX_TOOL_BLUR,
+     "BLUR",
+     ICON_BRUSH_BLUR,
+     "Blur",
+     "Smooth out the colors of adjacent stroke points"},
+    {GPVERTEX_TOOL_AVERAGE,
+     "AVERAGE",
+     ICON_BRUSH_BLUR,
+     "Average",
+     "Smooth out colors with the average color under the brush"},
+    {GPVERTEX_TOOL_SMEAR,
+     "SMEAR",
+     ICON_BRUSH_BLUR,
+     "Smear",
+     "Smudge colors by grabbing and dragging them"},
+    {GPVERTEX_TOOL_REPLACE,
+     "REPLACE",
+     ICON_BRUSH_BLUR,
+     "Replace",
+     "Replace the color of stroke points that already have a color applied"},
     {0, NULL, 0, NULL, NULL},
 };
 
