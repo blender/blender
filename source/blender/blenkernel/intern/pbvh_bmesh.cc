@@ -1997,11 +1997,13 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
                                    BMVert *v,
                                    const CustomData *ldata,
                                    const int totuv,
-                                   const bool do_uvs,
+                                   const bool /*do_uvs*/,
                                    float sharp_angle_limit)
 {
   int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
   int boundflag = 0;
+
+  const bool do_uvs = totuv > 0;
 
   BMEdge *e = v->e;
   newflag &= ~(SCULPTFLAG_VERT_FSET_HIDDEN | SCULPTFLAG_PBVH_BOUNDARY);
