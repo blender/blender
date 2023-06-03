@@ -804,6 +804,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   BMLoop *l = f->l_first;
   do {
     validate_vert(pbvh, l->v, CHECK_VERT_ALL);
+    dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
 
     if (l->e->head.index == -1) {
       l->e->head.index = 0;
@@ -857,8 +858,13 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
       f = nullptr;
     }
 
+    BMLoop *l = f2->l_first;
+    do {
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
+    } while ((l = l->next) != f2->l_first);
+
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)dbl->link, true);
-    BM_face_kill(pbvh->header.bm, (BMFace *)dbl->link);
+    BM_face_kill(pbvh->header.bm, f2);
 
     MEM_freeN(dbl);
     dbl = next;
@@ -894,6 +900,8 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     do {
       if (l->e->head.index == -1) {
         BM_log_edge_added(pbvh->header.bm, pbvh->bm_log, l->e);
+        dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
+        dyntopo_add_flag(pbvh, l->next->v, SCULPTFLAG_NEED_VALENCE);
         l->e->head.index = 0;
       }
     } while ((l = l->next) != f2->l_first);
@@ -1633,8 +1641,8 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     validate_vert(pbvh, v, CHECK_VERT_ALL);
 
     BKE_pbvh_bmesh_check_valence(pbvh, {(intptr_t)v});
-
     int val = BM_ELEM_CD_GET_INT(v, pbvh->cd_valence);
+
     if (val != 4 && val != 3) {
       continue;
     }
@@ -1830,15 +1838,16 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     }
 
     BMFace *f2 = nullptr;
+    bool ok2 = false;
 
     if (val == 4) {
       vs[0] = ls[0]->v;
       vs[1] = ls[2]->v;
       vs[2] = ls[3]->v;
-    }
 
-    bool ok2 = val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3];
-    ok2 = ok2 && !BM_face_exists(vs, 3);
+      ok2 = vs[0] != vs[1] && vs[1] != vs[2] && vs[2] != vs[0];
+      ok2 = ok2 && !BM_face_exists(vs, 3);
+    }
 
     if (ok2) {
       pbvh_boundary_update_bmesh(pbvh, vs[0]);
@@ -2024,6 +2033,8 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
     unified_edge_queue_create(this, pbvh, mode & (PBVH_LocalSubdivide | PBVH_LocalCollapse));
   }
 
+  totop = 0;
+
   if ((mode & PBVH_Subdivide) && (mode & PBVH_Collapse)) {
     ops[0] = PBVH_Subdivide;
     ops[1] = PBVH_Collapse;
@@ -2048,11 +2059,17 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   max_steps = (DYNTOPO_MAX_ITER * edge_limit_multiply) << (totop - 1);
   max_subd = max_steps >> (totop - 1);
 
-  split_edges_size = steps[0];
-  split_edges = (BMEdge **)MEM_malloc_arrayN(split_edges_size, sizeof(void *), __func__);
-  etot = 0;
+  if (totop > 0) {
+    split_edges_size = steps[0];
+    split_edges = (BMEdge **)MEM_malloc_arrayN(split_edges_size, sizeof(void *), __func__);
+    etot = 0;
 
-  subd_edges.clear();
+    subd_edges.clear();
+  }
+  else {
+    split_edges = nullptr;
+    split_edges_size = 0;
+  }
 }
 
 void EdgeQueueContext::flush_subdivision()
@@ -2575,42 +2592,9 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
   /* Tag edges and faces to split. */
   for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
-    BMLoop *l = e->l;
 
     e->head.index = 0;
     e->head.hflag |= SPLIT_TAG;
-  }
-
-  Vector<BMEdge *> edges2;
-
-  if (eq_ctx->mode & PBVH_Cleanup) {
-    /* Don't allow singletons that produce 3/4 valence verts. */
-    for (BMEdge *e : edges) {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        continue;
-      }
-
-      bool ok = false;
-      do {
-        BMLoop *l2 = l;
-        do {
-          if (l2->e != e && l2->e->head.hflag & SPLIT_TAG) {
-            ok = true;
-            break;
-          }
-        } while ((l2 = l2->next) != l);
-      } while (!ok && (l = l->radial_next) != e->l);
-
-      if (ok) {
-        edges2.append(e);
-      }
-      else {
-        e->head.hflag &= ~SPLIT_TAG;
-      }
-    }
-    edges = edges2;
   }
 
   for (int i = 0; i < edges.size(); i++) {
@@ -2901,20 +2885,10 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
 
       bool log_edge = true;
       BMFace *newf = nullptr;
-      BMEdge *exist_e;
+      BMEdge *exist_e = BM_edge_exists(v1, v2);
 
-      if ((exist_e = BM_edge_exists(v1, v2))) {
+      if (exist_e) {
         log_edge = false;
-
-        BMLoop *l1 = exist_e->l;
-
-        if (l1 && l1->f == f2) {
-          l1 = l1->radial_next;
-        }
-
-        if (l1 && l1->f != f2) {
-          // newf = l1->f;
-        }
       }
       else {
         newf = BM_face_split(bm, f2, l1, l2, &rl, nullptr, false);
@@ -3007,7 +2981,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
       if (w > eq_ctx->limit_len_max_sqr) {
         add_split_edge_recursive(eq_ctx, e->l, w, eq_ctx->limit_len_max, 0);
       }
-      else if (w < eq_ctx->limit_len_min_sqr) {
+      else if (w < eq_ctx->limit_len_min_sqr && (eq_ctx->mode & PBVH_Collapse)) {
         edge_queue_insert_unified(eq_ctx, e, w);
       }
     }
@@ -3018,9 +2992,13 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
 }
 void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
-  pbvh->bm_detail_range = detail_range == 0.0f ? 0.4f : max_ff(detail_range, 0.1f);
+  detail_range = max_ff(detail_range, 0.1f);
+
+  detail_size /= detail_range;
+
+  pbvh->bm_detail_range = detail_range;
   pbvh->bm_max_edge_len = detail_size;
-  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * pbvh->bm_detail_range;
+  pbvh->bm_min_edge_len = detail_size * detail_range;
 }
 }  // namespace blender::bke::dyntopo
 
@@ -3860,14 +3838,14 @@ inline void reproject_bm_data(
   }
   axis_dominant_v3_to_m3(axis_mat, axis_dominant);
 
-  int i = 0;
+  int l_i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
   do {
     float co2d[2];
     mul_v2_m3v3(co2d, axis_mat, l_iter->v->co);
-    myinterp::copy_v2_v2<T, float>(cos_2d[i], co2d);
+    myinterp::copy_v2_v2<T, float>(cos_2d[l_i], co2d);
 
-    blocks[i] = l_iter->head.data;
+    blocks[l_i] = l_iter->head.data;
 
     float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
     if (len_sq < FLT_EPSILON * 100.0f) {
@@ -3875,9 +3853,9 @@ inline void reproject_bm_data(
     }
 
     if (do_vertex) {
-      vblocks[i] = l_iter->v->head.data;
+      vblocks[l_i] = l_iter->v->head.data;
     }
-  } while ((void)i++, (l_iter = l_iter->next) != l_first);
+  } while ((void)l_i++, (l_iter = l_iter->next) != l_first);
 
   mul_v2_m3v3(co, axis_mat, l_dst->v->co);
 

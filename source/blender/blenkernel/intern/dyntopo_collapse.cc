@@ -366,7 +366,7 @@ static bool vert_is_nonmanifold(BMVert *v)
 
   BMEdge *e = v->e;
   do {
-    if (e->l->radial_next != e->l && e->l->radial_next->radial_next != e->l) {
+    if (e->l && e->l->radial_next != e->l && e->l->radial_next->radial_next != e->l) {
       return true;
     }
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
