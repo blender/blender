@@ -918,6 +918,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     BLI_heap_free(heap, nullptr);
   }
 
+  pbvh_bmesh_check_nodes(pbvh);
   bm_logstack_pop();
 
   return false;
@@ -991,8 +992,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
   }
 
-  int nupdateflag = PBVH_UpdateOtherVerts | PBVH_UpdateDrawBuffers | PBVH_UpdateBB |
-                    PBVH_UpdateTriAreas;
+  int nupdateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTriAreas;
   nupdateflag = nupdateflag | PBVH_UpdateNormals | PBVH_UpdateTris | PBVH_RebuildDrawBuffers;
 
   if (!minfs.size()) {
@@ -1064,7 +1064,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       pbvh->nodes[ni].flag |= (PBVHNodeFlags)nupdateflag;
     }
 
-    pbvh_bmesh_face_remove(pbvh, f, true, false, false);
+    pbvh_bmesh_face_remove(pbvh, f, true, true, false);
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
     BM_face_kill(pbvh->header.bm, f);
   }
@@ -1096,6 +1096,8 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       dyntopo_add_flag(pbvh, v, mupdateflag);
     }
   }
+
+  pbvh_bmesh_check_nodes(pbvh);
 
   bm_logstack_pop();
   return true;
@@ -2269,7 +2271,7 @@ void EdgeQueueContext::step()
       }
 
       modified = true;
-      pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, nullptr, nullptr, this);
+      pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, this);
       flushed_ = true;
       VALIDATE_LOG(pbvh->bm_log);
       break;
@@ -2533,9 +2535,9 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
 #define SUBD_ADD_TO_QUEUE
 
   const int node_updateflag = PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateNormals |
-                              PBVH_UpdateOtherVerts | PBVH_UpdateCurvatureDir |
-                              PBVH_UpdateTriAreas | PBVH_UpdateDrawBuffers |
-                              PBVH_RebuildDrawBuffers | PBVH_UpdateTris | PBVH_UpdateNormals;
+                              PBVH_UpdateCurvatureDir | PBVH_UpdateTriAreas |
+                              PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateTris |
+                              PBVH_UpdateNormals;
 
   for (BMEdge *e : edges) {
     check_vert_fan_are_tris(pbvh, e->v1);

@@ -3968,7 +3968,7 @@ static void sculpt_topology_update(Sculpt *sd,
     // mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
-  int edge_multiply = 1 + int(ss->cached_dyntopo.quality * 50.0f);
+  int edge_multiply = 1 + int(powf(ss->cached_dyntopo.quality, 3.0f) * 50.0f);
 
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;

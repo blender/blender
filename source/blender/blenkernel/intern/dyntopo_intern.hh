@@ -321,8 +321,6 @@ BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                  BMEdge *e,
                                  BMVert *v1,
                                  BMVert *v2,
-                                 struct GHash *deleted_verts,
-                                 struct BLI_Buffer *deleted_faces,
                                  struct EdgeQueueContext *eq_ctx);
 
 extern "C" void bm_log_message(const char *fmt, ...);

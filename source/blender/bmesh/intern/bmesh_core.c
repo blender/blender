@@ -2816,24 +2816,6 @@ BMVert *bmesh_kernel_join_vert_kill_edge(
   }
 
 #ifdef JVKE_DEBUG
-#  if 0 /* "Inverted pyramid" situations will trigger this check */  
-  if (v_conn && v_conn->e) {
-    BMEdge *e = v_conn->e;
-    do {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        continue;
-      }
-
-      /* boundary? */
-      if (l == l->radial_next && !have_boundary) {
-        trigger_jvke_error(IS_LOOP_WRONG_RADIAL_LENGTH, saved_obj);
-      }
-    } while ((e = BM_DISK_EDGE_NEXT(e, v_conn)) != v_conn->e);
-  }
-#  endif
-
   bm_local_obj_free(saved_obj, buf);
 #endif
 
