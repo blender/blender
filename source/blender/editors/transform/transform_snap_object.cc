@@ -300,7 +300,7 @@ static SnapData_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx,
     else if (sod->mesh_runtime) {
       if (sod->mesh_runtime != snap_object_data_editmesh_runtime_get(ob_eval)) {
         if (G.moving) {
-          /* Hack to avoid updating while transforming. */
+          /* WORKAROUND: avoid updating while transforming. */
           BLI_assert(!sod->treedata_editmesh.cached && !sod->cached[0] && !sod->cached[1]);
           sod->mesh_runtime = snap_object_data_editmesh_runtime_get(ob_eval);
         }
@@ -383,11 +383,12 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapObjectCon
                                     em,
                                     4,
                                     BVHTREE_FROM_EM_LOOPTRI,
-                                    &sod->mesh_runtime->bvh_cache,
+                                    /* WORKAROUND: avoid updating while transforming. */
+                                    G.moving ? nullptr : &sod->mesh_runtime->bvh_cache,
                                     &sod->mesh_runtime->eval_mutex);
     }
   }
-  if (treedata == nullptr || treedata->tree == nullptr) {
+  if (treedata->tree == nullptr) {
     return nullptr;
   }
 
@@ -1265,7 +1266,7 @@ static bool nearest_world_editmesh(SnapObjectContext *sctx,
                                    int *r_index)
 {
   BVHTreeFromEditMesh *treedata = snap_object_data_editmesh_treedata_get(sctx, ob_eval, em);
-  if (treedata == nullptr || treedata->tree == nullptr) {
+  if (treedata == nullptr) {
     return false;
   }
 
@@ -2767,7 +2768,8 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                                       em,
                                       2,
                                       BVHTREE_FROM_EM_VERTS,
-                                      &sod->mesh_runtime->bvh_cache,
+                                      /* WORKAROUND: avoid updating while transforming. */
+                                      G.moving ? nullptr : &sod->mesh_runtime->bvh_cache,
                                       &sod->mesh_runtime->eval_mutex);
       }
       sod->bvhtree[0] = treedata.tree;
@@ -2796,7 +2798,8 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                                       em,
                                       2,
                                       BVHTREE_FROM_EM_EDGES,
-                                      &sod->mesh_runtime->bvh_cache,
+                                      /* WORKAROUND: avoid updating while transforming. */
+                                      G.moving ? nullptr : &sod->mesh_runtime->bvh_cache,
                                       &sod->mesh_runtime->eval_mutex);
       }
       sod->bvhtree[1] = treedata.tree;
@@ -3065,11 +3068,27 @@ void ED_transform_snap_object_context_set_editmesh_callbacks(
     bool (*test_face_fn)(BMFace *, void *user_data),
     void *user_data)
 {
-  sctx->callbacks.edit_mesh.test_vert_fn = test_vert_fn;
-  sctx->callbacks.edit_mesh.test_edge_fn = test_edge_fn;
-  sctx->callbacks.edit_mesh.test_face_fn = test_face_fn;
+  bool is_cache_dirty = false;
+  if (sctx->callbacks.edit_mesh.test_vert_fn != test_vert_fn) {
+    sctx->callbacks.edit_mesh.test_vert_fn = test_vert_fn;
+    is_cache_dirty = true;
+  }
+  if (sctx->callbacks.edit_mesh.test_edge_fn != test_edge_fn) {
+    sctx->callbacks.edit_mesh.test_edge_fn = test_edge_fn;
+    is_cache_dirty = true;
+  }
+  if (sctx->callbacks.edit_mesh.test_face_fn != test_face_fn) {
+    sctx->callbacks.edit_mesh.test_face_fn = test_face_fn;
+    is_cache_dirty = true;
+  }
+  if (sctx->callbacks.edit_mesh.user_data != user_data) {
+    sctx->callbacks.edit_mesh.user_data = user_data;
+    is_cache_dirty = true;
+  }
 
-  sctx->callbacks.edit_mesh.user_data = user_data;
+  if (is_cache_dirty) {
+    sctx->editmesh_caches.clear();
+  }
 }
 
 bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,

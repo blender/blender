@@ -167,17 +167,33 @@ static bool doForceIncrementSnap(const TransInfo *t)
   return !transformModeUseSnap(t);
 }
 
+static void snap_source_transformed(TransInfo *t, float r_vec[3])
+{
+  float mat[4][4];
+  unit_m4(mat);
+  if (t->mode_info->transform_matrix_fn) {
+    t->mode_info->transform_matrix_fn(t, mat);
+  }
+
+  mul_v3_m4v3(r_vec, mat, t->tsnap.snap_source);
+}
+
 void drawSnapping(const bContext *C, TransInfo *t)
 {
   uchar col[4], selectedCol[4], activeCol[4];
-  if (!transform_snap_is_active(t)) {
+  if (!(transform_snap_is_active(t) || t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
     return;
   }
 
-  bool draw_source = (t->spacetype == SPACE_VIEW3D) && (t->tsnap.status & SNAP_SOURCE_FOUND) &&
-                     (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
+  const bool draw_source = (t->spacetype == SPACE_VIEW3D) &&
+                           (t->tsnap.status & SNAP_SOURCE_FOUND) &&
+                           (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
 
-  if (!(draw_source || validSnap(t))) {
+  bool draw_source_transformed = (t->spacetype == SPACE_VIEW3D) &&
+                                 (t->tsnap.status & SNAP_SOURCE_FOUND) &&
+                                 !(t->modifiers & MOD_EDIT_SNAP_SOURCE);
+
+  if (!(draw_source || draw_source_transformed || validSnap(t))) {
     return;
   }
 
@@ -203,8 +219,8 @@ void drawSnapping(const bContext *C, TransInfo *t)
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    if (!BLI_listbase_is_empty(&t->tsnap.points)) {
+    RegionView3D *rv3d = (RegionView3D *)t->region->regiondata;
+    if (draw_source_transformed || !BLI_listbase_is_empty(&t->tsnap.points)) {
       /* Draw snap points. */
 
       float size = 2.0f * UI_GetThemeValuef(TH_VERTEX_SIZE);
@@ -216,14 +232,68 @@ void drawSnapping(const bContext *C, TransInfo *t)
 
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-      LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
-        if (p == t->tsnap.selectedPoint) {
-          immUniformColor4ubv(selectedCol);
+      float snap_source_tranformed[3];
+      if (draw_source_transformed) {
+        snap_source_transformed(t, snap_source_tranformed);
+      }
+
+      if (!BLI_listbase_is_empty(&t->tsnap.points)) {
+        LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
+          if (p == t->tsnap.selectedPoint) {
+            immUniformColor4ubv(selectedCol);
+          }
+          else {
+            immUniformColor4ubv(col);
+          }
+          imm_drawcircball(p->co, ED_view3d_pixel_size(rv3d, p->co) * size, view_inv, pos);
         }
-        else {
-          immUniformColor4ubv(col);
+
+        if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
+          /* Indicate the new snap source position. */
+          getSnapPoint(t, snap_source_tranformed);
+          draw_source_transformed = true;
         }
-        imm_drawcircball(p->co, ED_view3d_pixel_size(rv3d, p->co) * size, view_inv, pos);
+      }
+
+      if (draw_source_transformed &&
+          !compare_v3v3(snap_source_tranformed, t->tsnap.snap_target, FLT_EPSILON))
+      {
+        float view_inv[4][4];
+        copy_m4_m4(view_inv, rv3d->viewinv);
+
+        float vx[3], vy[3], v[3];
+        float size_tmp = ED_view3d_pixel_size(rv3d, snap_source_tranformed) * size;
+        float size_fac = 0.5f;
+
+        mul_v3_v3fl(vx, view_inv[0], size_tmp);
+        mul_v3_v3fl(vy, view_inv[1], size_tmp);
+
+        immUniformColor4ubv(col);
+
+        imm_drawcircball(snap_source_tranformed, size_tmp, view_inv, pos);
+
+        immBegin(GPU_PRIM_LINES, 8);
+        add_v3_v3v3(v, snap_source_tranformed, vx);
+        immVertex3fv(pos, v);
+        madd_v3_v3fl(v, vx, size_fac);
+        immVertex3fv(pos, v);
+
+        sub_v3_v3v3(v, snap_source_tranformed, vx);
+        immVertex3fv(pos, v);
+        madd_v3_v3fl(v, vx, -size_fac);
+        immVertex3fv(pos, v);
+
+        add_v3_v3v3(v, snap_source_tranformed, vy);
+        immVertex3fv(pos, v);
+        madd_v3_v3fl(v, vy, size_fac);
+        immVertex3fv(pos, v);
+
+        sub_v3_v3v3(v, snap_source_tranformed, vy);
+        immVertex3fv(pos, v);
+        madd_v3_v3fl(v, vy, -size_fac);
+        immVertex3fv(pos, v);
+
+        immEnd();
       }
 
       immUnbindProgram();
@@ -238,7 +308,7 @@ void drawSnapping(const bContext *C, TransInfo *t)
       loc_prev = t->tsnap.snap_source;
     }
 
-    if (validSnap(t)) {
+    if (t->tsnap.status & SNAP_TARGET_FOUND) {
       loc_cur = t->tsnap.snap_target;
     }
 
@@ -739,6 +809,28 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
   return ret;
 }
 
+static void snap_object_context_init(TransInfo *t)
+{
+  if (t->data_type == &TransConvertType_Mesh) {
+    /* Ignore elements being transformed. */
+    ED_transform_snap_object_context_set_editmesh_callbacks(
+        t->tsnap.object_context,
+        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+        bm_edge_is_snap_target,
+        bm_face_is_snap_target,
+        POINTER_FROM_UINT(BM_ELEM_SELECT | BM_ELEM_HIDDEN));
+  }
+  else {
+    /* Ignore hidden geometry in the general case. */
+    ED_transform_snap_object_context_set_editmesh_callbacks(
+        t->tsnap.object_context,
+        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
+        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
+        POINTER_FROM_UINT(BM_ELEM_HIDDEN));
+  }
+}
+
 static void initSnappingMode(TransInfo *t)
 {
   if (!transformModeUseSnap(t)) {
@@ -769,25 +861,7 @@ static void initSnappingMode(TransInfo *t)
     if (t->tsnap.object_context == nullptr) {
       SET_FLAG_FROM_TEST(t->tsnap.flag, snap_use_backface_culling(t), SCE_SNAP_BACKFACE_CULLING);
       t->tsnap.object_context = ED_transform_snap_object_context_create(t->scene, 0);
-
-      if (t->data_type == &TransConvertType_Mesh) {
-        /* Ignore elements being transformed. */
-        ED_transform_snap_object_context_set_editmesh_callbacks(
-            t->tsnap.object_context,
-            (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-            bm_edge_is_snap_target,
-            bm_face_is_snap_target,
-            POINTER_FROM_UINT(BM_ELEM_SELECT | BM_ELEM_HIDDEN));
-      }
-      else {
-        /* Ignore hidden geometry in the general case. */
-        ED_transform_snap_object_context_set_editmesh_callbacks(
-            t->tsnap.object_context,
-            (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-            (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
-            (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
-            POINTER_FROM_UINT(BM_ELEM_HIDDEN));
-      }
+      snap_object_context_init(t);
     }
   }
   else if (t->spacetype == SPACE_SEQ) {
@@ -1078,6 +1152,15 @@ void getSnapPoint(const TransInfo *t, float vec[3])
   }
   else {
     copy_v3_v3(vec, t->tsnap.snap_target);
+  }
+}
+
+static void snap_multipoints_free(TransInfo *t)
+{
+  if (t->tsnap.status & SNAP_MULTI_POINTS) {
+    BLI_freelistN(&t->tsnap.points);
+    t->tsnap.status &= ~SNAP_MULTI_POINTS;
+    t->tsnap.selectedPoint = NULL;
   }
 }
 
@@ -1717,6 +1800,12 @@ float transform_snap_increment_get(const TransInfo *t)
   }
 
   return 0.0f;
+}
+
+void tranform_snap_source_restore_context(TransInfo *t)
+{
+  snap_object_context_init(t);
+  snap_multipoints_free(t);
 }
 
 /** \} */

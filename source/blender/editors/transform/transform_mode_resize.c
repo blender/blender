@@ -286,6 +286,14 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
+static void resize_transform_matrix_fn(struct TransInfo *t, float mat_xform[4][4])
+{
+  float mat4[4][4];
+  copy_m4_m3(mat4, t->mat);
+  transform_pivot_set_m4(mat4, t->center_global);
+  mul_m4_m4m4(mat_xform, mat4, mat_xform);
+}
+
 static void initResize(TransInfo *t, wmOperator *op)
 {
   float mouse_dir_constraint[3];
@@ -368,7 +376,7 @@ TransModeInfo TransMode_resize = {
     /*flags*/ T_NULL_ONE,
     /*init_fn*/ initResize,
     /*transform_fn*/ applyResize,
-    /*transform_matrix_fn*/ NULL,
+    /*transform_matrix_fn*/ resize_transform_matrix_fn,
     /*handle_event_fn*/ NULL,
     /*snap_distance_fn*/ ResizeBetween,
     /*snap_apply_fn*/ ApplySnapResize,

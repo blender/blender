@@ -80,4 +80,16 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                 km_items.append(('ROTATE_NORMALS', {"type": 'N', "value": 'PRESS'}, None))
                 break
 
+    if keyconfig_version <= (3, 6, 3):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        # "Snap Source Toggle" did not exist until then.
+        for km_name, _km_parms, km_items_data in keyconfig_data:
+            if km_name == "Transform Modal Map":
+                km_items_data["items"].extend(("EDIT_SNAP_SOURCE_ON", {"type": 'B', "value": 'PRESS'}, None))
+                km_items_data["items"].append(("EDIT_SNAP_SOURCE_OFF", {"type": 'B', "value": 'PRESS'}, None))
+                break
+
     return keyconfig_data

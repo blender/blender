@@ -510,4 +510,16 @@ void transform_input_virtual_mval_reset(TransInfo *t)
   }
 }
 
+void transform_input_reset(TransInfo *t, const int mval[2])
+{
+  MouseInput *mi = &t->mouse;
+  copy_v2_v2_int(mi->imval, mval);
+  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    struct InputAngle_Data *data = mi->data;
+    data->mval_prev[0] = mi->imval[0];
+    data->mval_prev[1] = mi->imval[1];
+    data->angle = 0.0f;
+  }
+}
+
 /** \} */

@@ -158,6 +158,7 @@ typedef enum {
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
   MOD_NODE_ATTACH = 1 << 5,
   MOD_SNAP_FORCED = 1 << 6,
+  MOD_EDIT_SNAP_SOURCE = 1 << 7,
 } eTModifier;
 ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
@@ -271,6 +272,9 @@ enum {
   TFM_MODAL_VERT_EDGE_SLIDE = 31,
   TFM_MODAL_TRACKBALL = 32,
   TFM_MODAL_ROTATE_NORMALS = 33,
+
+  TFM_MODAL_EDIT_SNAP_SOURCE_ON = 34,
+  TFM_MODAL_EDIT_SNAP_SOURCE_OFF = 35,
 };
 
 /** \} */
@@ -753,6 +757,7 @@ void applyMouseInput(struct TransInfo *t,
                      float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
+void transform_input_reset(TransInfo *t, const int mval[2]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);

@@ -543,6 +543,20 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 static bool transform_modal_item_poll(const wmOperator *op, int value)
 {
   const TransInfo *t = op->customdata;
+  if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
+    if (value == TFM_MODAL_EDIT_SNAP_SOURCE_OFF) {
+      return true;
+    }
+    else if (!ELEM(value,
+                   TFM_MODAL_CANCEL,
+                   TFM_MODAL_CONFIRM,
+                   TFM_MODAL_ADD_SNAP,
+                   TFM_MODAL_REMOVE_SNAP))
+    {
+      return false;
+    }
+  }
+
   switch (value) {
     case TFM_MODAL_CANCEL: {
       /* TODO: Canceling with LMB is not possible when the operator is activated
@@ -670,6 +684,20 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
+    case TFM_MODAL_EDIT_SNAP_SOURCE_OFF:
+      return false;
+    case TFM_MODAL_EDIT_SNAP_SOURCE_ON: {
+      if (t->spacetype != SPACE_VIEW3D) {
+        return false;
+      }
+      if (!ELEM(
+              t->mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE, TFM_EDGE_SLIDE, TFM_VERT_SLIDE))
+      {
+        /* More modes can be added over time if this feature proves useful for them. */
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }
@@ -686,6 +714,8 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Y Plane", ""},
       {TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Z Plane", ""},
       {TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Clear Constraints", ""},
+      {TFM_MODAL_EDIT_SNAP_SOURCE_ON, "EDIT_SNAP_SOURCE_ON", 0, "Set Snap Base", ""},
+      {TFM_MODAL_EDIT_SNAP_SOURCE_OFF, "EDIT_SNAP_SOURCE_OFF", 0, "Set Snap Base (Off)", ""},
       {TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Snap Invert", ""},
       {TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Snap Invert (Off)", ""},
       {TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
@@ -956,12 +986,16 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   else if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
       case TFM_MODAL_CANCEL:
-        t->state = TRANS_CANCEL;
-        handled = true;
+        if (!(t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
+          t->state = TRANS_CANCEL;
+          handled = true;
+        }
         break;
       case TFM_MODAL_CONFIRM:
-        t->state = TRANS_CONFIRM;
-        handled = true;
+        if (!(t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
+          t->state = TRANS_CONFIRM;
+          handled = true;
+        }
         break;
       case TFM_MODAL_TRANSLATE:
       case TFM_MODAL_ROTATE:
@@ -1245,6 +1279,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->mouse.precision = 0;
           t->redraw |= TREDRAW_HARD;
         }
+        break;
+      case TFM_MODAL_EDIT_SNAP_SOURCE_ON:
+        transform_mode_snap_source_init(t);
+        t->redraw |= TREDRAW_HARD;
         break;
       default:
         break;
