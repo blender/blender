@@ -1281,7 +1281,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case TFM_MODAL_EDIT_SNAP_SOURCE_ON:
-        transform_mode_snap_source_init(t);
+        transform_mode_snap_source_init(t, NULL);
         t->redraw |= TREDRAW_HARD;
         break;
       default:

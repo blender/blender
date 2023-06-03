@@ -187,7 +187,7 @@ extern TransModeInfo TransMode_skinresize;
 /* transform_mode_snapsource.c */
 
 extern TransModeInfo TransMode_snapsource;
-void transform_mode_snap_source_init(TransInfo *t);
+void transform_mode_snap_source_init(TransInfo *t, struct wmOperator *op);
 
 /* transform_mode_tilt.c */
 

@@ -153,7 +153,7 @@ static void snapsource_transform_fn(TransInfo *t, const int UNUSED(mval[2]))
   t->redraw |= TREDRAW_SOFT;
 }
 
-void transform_mode_snap_source_init(TransInfo *t, struct wmOperator *UNUSED(op))
+void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
 {
   if (t->mode_info == &TransMode_snapsource) {
     /* Already running. */
