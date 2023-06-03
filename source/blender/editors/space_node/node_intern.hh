@@ -183,7 +183,7 @@ void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.cc */
 
-rctf node_frame_rect_inside(const bNode &node);
+rctf node_frame_rect_inside(const SpaceNode &snode, const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
 void node_deselect_all(bNodeTree &node_tree);
@@ -223,7 +223,10 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 /* drawnode.cc */
 
-NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
+NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
+                                              const bNode *node,
+                                              int x,
+                                              int y);
 
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);
