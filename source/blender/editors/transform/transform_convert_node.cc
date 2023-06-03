@@ -28,6 +28,8 @@
 #include "transform_convert.h"
 #include "transform_snap.h"
 
+#include "WM_api.h"
+
 struct TransCustomDataNode {
   View2DEdgePanData edgepan_data;
 
@@ -308,6 +310,13 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
   }
 
   space_node::node_insert_on_link_flags_clear(*ntree);
+
+  wmOperatorType *ot = WM_operatortype_find("NODE_OT_insert_offset", true);
+  BLI_assert(ot);
+  PointerRNA ptr;
+  WM_operator_properties_create_ptr(&ptr, ot);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
+  WM_operator_properties_free(&ptr);
 }
 
 /** \} */
