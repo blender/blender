@@ -922,6 +922,10 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
                                        clnors_data[ml_curr_index],
                                        loop_normals[ml_curr_index]);
     }
+
+    if (!lnors_spacearr->corners_by_space.is_empty()) {
+      lnors_spacearr->corners_by_space[space_index] = {ml_curr_index};
+    }
   }
 }
 
@@ -1037,6 +1041,9 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
       if (edge != edge_orig) {
         /* We store here all edges-normalized vectors processed. */
         edge_vectors->append(vec_curr);
+      }
+      if (!lnors_spacearr->corners_by_space.is_empty()) {
+        lnors_spacearr->corners_by_space[space_index] = processed_corners.as_span();
       }
     }
 
@@ -1379,6 +1386,9 @@ void normals_calc_loop(const Span<float3> vert_positions,
   if (r_lnors_spacearr) {
     r_lnors_spacearr->spaces.reinitialize(single_corners.size() + fan_corners.size());
     r_lnors_spacearr->corner_space_indices = Array<int>(corner_verts.size(), -1);
+    if (r_lnors_spacearr->create_corners_by_space) {
+      r_lnors_spacearr->corners_by_space.reinitialize(r_lnors_spacearr->spaces.size());
+    }
   }
 
   threading::parallel_for(single_corners.index_range(), 1024, [&](const IndexRange range) {
@@ -1401,38 +1411,6 @@ void normals_calc_loop(const Span<float3> vert_positions,
 #undef INDEX_UNSET
 #undef INDEX_INVALID
 #undef IS_EDGE_SHARP
-
-/**
- * Take an array of N indices that points to \a items_num items, where multiple indices map to the
- * same item, and reverse the indices to create an array of all the indices that reference each
- * item. Group each item's indices together consecutively, encoding the grouping in #r_offsets,
- * which is meant to be used by #OffsetIndices.
- *
- * \param r_offsets: An array to be filled with the first index of each item in
- * \a r_reverse_indices, used to split the indices into chunks by item. (See #OffsetIndices).
- * \param r_reverse_indices: The indices into \a item_indices that point to each item, split by \a
- * r_offsets.
- */
-static void reverse_index_array(const Span<int> item_indices,
-                                const int items_num,
-                                Array<int> &r_offsets,
-                                Array<int> &r_reverse_indices)
-{
-  r_offsets = Array<int>(items_num + 1, 0);
-  for (const int index : item_indices) {
-    r_offsets[index]++;
-  }
-
-  offset_indices::accumulate_counts_to_offsets(r_offsets);
-  r_reverse_indices.reinitialize(r_offsets.last());
-
-  Array<int> count_per_item(items_num, 0);
-  for (const int corner : item_indices.index_range()) {
-    const int space = item_indices[corner];
-    r_reverse_indices[r_offsets[space] + count_per_item[space]] = corner;
-    count_per_item[space]++;
-  }
-}
 
 /**
  * Compute internal representation of given custom normals (as an array of float[2]).
@@ -1463,6 +1441,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
    * when importing custom normals, and modifier (and perhaps from some editing tools later?). So
    * better to keep some simplicity here, and just call #bke::mesh::normals_calc_loop() twice! */
   CornerNormalSpaceArray lnors_spacearr;
+  lnors_spacearr.create_corners_by_space = true;
   BitVector<> done_loops(corner_verts.size(), false);
   Array<float3> loop_normals(corner_verts.size());
   const Array<int> loop_to_poly = mesh_topology::build_loop_to_poly_map(polys);
@@ -1514,14 +1493,6 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
     done_loops.fill(true);
   }
   else {
-    Array<int> fan_corners_from_space_offset_indices;
-    Array<int> fan_corners_from_space_data;
-    reverse_index_array(lnors_spacearr.corner_space_indices,
-                        lnors_spacearr.spaces.size(),
-                        fan_corners_from_space_offset_indices,
-                        fan_corners_from_space_data);
-    const OffsetIndices<int> fan_corner_offsets(fan_corners_from_space_offset_indices);
-
     for (const int i : corner_verts.index_range()) {
       if (lnors_spacearr.corner_space_indices[i] == -1) {
         /* This should not happen in theory, but in some rare case (probably ugly geometry)
@@ -1538,8 +1509,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
       }
 
       const int space_index = lnors_spacearr.corner_space_indices[i];
-      const Span<int> fan_corners = fan_corners_from_space_data.as_span().slice(
-          fan_corner_offsets[space_index]);
+      const Span<int> fan_corners = lnors_spacearr.corners_by_space[space_index];
 
       /* Notes:
        * - In case of mono-loop smooth fan, we have nothing to do.
@@ -1603,7 +1573,6 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
     }
 
     /* And now, recompute our new auto `loop_normals` and lnor spacearr! */
-    lnors_spacearr = {};
     normals_calc_loop(positions,
                       edges,
                       polys,
@@ -1621,14 +1590,6 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
                       loop_normals);
   }
 
-  Array<int> fan_corners_from_space_offset_indices;
-  Array<int> fan_corners_from_space_data;
-  reverse_index_array(lnors_spacearr.corner_space_indices,
-                      lnors_spacearr.spaces.size(),
-                      fan_corners_from_space_offset_indices,
-                      fan_corners_from_space_data);
-  const OffsetIndices<int> fan_corner_offsets(fan_corners_from_space_offset_indices);
-
   /* And we just have to convert plain object-space custom normals to our
    * lnor space-encoded ones. */
   for (const int i : corner_verts.index_range()) {
@@ -1645,8 +1606,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
     }
 
     const int space_index = lnors_spacearr.corner_space_indices[i];
-    const Span<int> fan_corners = fan_corners_from_space_data.as_span().slice(
-        fan_corner_offsets[space_index]);
+    const Span<int> fan_corners = lnors_spacearr.corners_by_space[space_index];
 
     /* Note we accumulate and average all custom normals in current smooth fan,
      * to avoid getting different clnors data (tiny differences in plain custom normals can
