@@ -229,8 +229,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
       }
 
-      if (e->l && (typemask & SCULPT_BOUNDARY_UV)) {
-#if 1
+      if (e->l && (typemask & SCULPT_BOUNDARY_UV) && ss->bm->ldata.typemap[CD_PROP_FLOAT2] != -1) {
         CustomData *ldata = &ss->bm->ldata;
         int base = ldata->typemap[CD_PROP_FLOAT2];
 
@@ -261,14 +260,6 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
             }
           } while ((l = l->radial_next) != e->l);
         }
-#else
-        int b1 = BM_ELEM_CD_GET_INT(e->v1, ss->attrs.boundary_flags->bmesh_cd_offset);
-        int b2 = BM_ELEM_CD_GET_INT(e->v2, ss->attrs.boundary_flags->bmesh_cd_offset);
-
-        if ((b1 & SCULPT_BOUNDARY_UV) && (b2 & SCULPT_BOUNDARY_UV)) {
-          ret |= SCULPT_BOUNDARY_UV;
-        }
-#endif
       }
     uv_outer:
 
