@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_object_types.h"
+
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
 
@@ -197,6 +199,40 @@ static void copy_loose_edge_hint(const Mesh &src, Mesh &dst)
   }
 }
 
+/** Gather vertex group data and array attributes in separate loops. */
+static void gather_vert_attributes(const Mesh &mesh_src,
+                                   const bke::AnonymousAttributePropagationInfo &propagation_info,
+                                   const IndexMask &vert_mask,
+                                   Mesh &mesh_dst)
+{
+  Set<std::string> names;
+  LISTBASE_FOREACH (bDeformGroup *, group, &mesh_src.vertex_group_names) {
+    names.add(group->name);
+  }
+
+  const Span<MDeformVert> src = mesh_src.deform_verts();
+  MutableSpan<MDeformVert> dst = mesh_dst.deform_verts_for_write();
+  threading::parallel_invoke(
+      src.size() > 1024,
+      [&]() {
+        if (!src.is_empty() && !dst.is_empty()) {
+          vert_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+            dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
+            dst[dst_i].totweight = src[src_i].totweight;
+            dst[dst_i].flag = src[src_i].flag;
+          });
+        }
+      },
+      [&]() {
+        bke::gather_attributes(mesh_src.attributes(),
+                               ATTR_DOMAIN_POINT,
+                               propagation_info,
+                               names,
+                               vert_mask,
+                               mesh_dst.attributes_for_write());
+      });
+}
+
 std::optional<Mesh *> mesh_copy_selection(
     const Mesh &src_mesh,
     const fn::Field<bool> &selection_field,
@@ -321,8 +357,7 @@ std::optional<Mesh *> mesh_copy_selection(
                     dst_corner_edges);
       },
       [&]() {
-        bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, vert_mask, dst_attributes);
+        gather_vert_attributes(src_mesh, propagation_info, vert_mask, *dst_mesh);
         bke::gather_attributes(src_attributes,
                                ATTR_DOMAIN_EDGE,
                                propagation_info,
