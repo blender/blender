@@ -1969,7 +1969,7 @@ static eV3D_OpMode view3d_navigation_type_from_idname(const char *idname)
 ViewOpsData *ED_view3d_navigation_init(bContext *C)
 {
   if (!CTX_wm_region_view3d(C)) {
-    return NULL;
+    return nullptr;
   }
 
   ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
@@ -2069,7 +2069,7 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
     /* Although #ED_view3d_update_viewmat is already called when redrawing the 3D View, do it here
      * as well, so the updated matrix values can be accessed by the operator. */
     ED_view3d_update_viewmat(
-        vod->depsgraph, vod->scene, vod->v3d, vod->region, NULL, NULL, NULL, false);
+        vod->depsgraph, vod->scene, vod->v3d, vod->region, nullptr, nullptr, nullptr, false);
 
     return true;
   }

@@ -99,21 +99,21 @@ static void SELECT_next_instance_free(void *instance_)
 static const DrawEngineDataSize SELECT_next_data_size = DRW_VIEWPORT_DATA_SIZE(SELECT_NextData);
 
 DrawEngineType draw_engine_select_next_type = {
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
     N_("Select-Next"),
     &SELECT_next_data_size,
     &SELECT_next_engine_init,
-    NULL,
+    nullptr,
     &SELECT_next_instance_free,
     &SELECT_next_cache_init,
     &SELECT_next_cache_populate,
     &SELECT_next_cache_finish,
     &SELECT_next_draw_scene,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 
 /** \} */

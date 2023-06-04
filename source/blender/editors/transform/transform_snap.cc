@@ -1160,7 +1160,7 @@ static void snap_multipoints_free(TransInfo *t)
   if (t->tsnap.status & SNAP_MULTI_POINTS) {
     BLI_freelistN(&t->tsnap.points);
     t->tsnap.status &= ~SNAP_MULTI_POINTS;
-    t->tsnap.selectedPoint = NULL;
+    t->tsnap.selectedPoint = nullptr;
   }
 }
 

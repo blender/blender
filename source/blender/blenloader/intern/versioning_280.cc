@@ -4098,8 +4098,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
       UnitSettings *unit = &scene->unit;
       if (unit->system == USER_UNIT_NONE) {
-        unit->length_unit = (char)USER_UNIT_ADAPTIVE;
-        unit->mass_unit = (char)USER_UNIT_ADAPTIVE;
+        unit->length_unit = char(USER_UNIT_ADAPTIVE);
+        unit->mass_unit = char(USER_UNIT_ADAPTIVE);
       }
 
       RenderData *render_data = &scene->r;
