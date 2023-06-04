@@ -327,7 +327,7 @@ bool composite_node_active(bContext *C);
 bool composite_node_editable(bContext *C);
 
 bool node_has_hidden_sockets(bNode *node);
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
+void node_set_hidden_sockets(bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         const float2 &cursor,
