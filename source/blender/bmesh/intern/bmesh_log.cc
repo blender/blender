@@ -1285,7 +1285,7 @@ void BMLogSetDiff::swap_verts(BMesh *bm,
     /* Ensure id wasn't mangled in customdata swap. */
     BM_ELEM_CD_SET_INT(v, cd_id, lv->id.id);
 
-    if (callbacks) {
+    if (callbacks && callbacks->on_vert_change) {
       callbacks->on_vert_change(v, callbacks->userdata, old_customdata);
     }
   }
@@ -1366,7 +1366,7 @@ void BMLogSetDiff::restore_edges(BMesh *bm,
 
     entry->assign_elem_id<BMEdge>(bm, e, le->id, true);
 
-    if (callbacks->on_edge_add) {
+    if (callbacks && callbacks->on_edge_add) {
       callbacks->on_edge_add(e, callbacks->userdata);
     }
   }
@@ -1413,7 +1413,7 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
 
     entry->swap_logedge(bm, le->id, e, le);
 
-    if (callbacks->on_edge_change) {
+    if (callbacks && callbacks->on_edge_change) {
       callbacks->on_edge_change(e, callbacks->userdata, old_customdata);
     }
   }
@@ -1524,7 +1524,7 @@ void BMLogSetDiff::swap_faces(BMesh *bm,
     /* Ensure id wasn't mangled in customdata swap. */
     BM_ELEM_CD_SET_INT(f, cd_id, lf->id.id);
 
-    if (callbacks) {
+    if (callbacks && callbacks->on_face_change) {
       callbacks->on_face_change(f, callbacks->userdata, old_customdata, lf->flag);
     }
   }

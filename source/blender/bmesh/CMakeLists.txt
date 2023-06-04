@@ -62,6 +62,8 @@ set(SRC
 
   intern/bmesh_callback_generic.c
   intern/bmesh_callback_generic.h
+  intern/bmesh_collapse.cc
+  intern/bmesh_collapse.hh
   intern/bmesh_construct.c
   intern/bmesh_construct.h
   intern/bmesh_core.c

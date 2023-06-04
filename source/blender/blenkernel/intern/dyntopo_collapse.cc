@@ -29,6 +29,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
+#include "../../bmesh/intern/bmesh_collapse.hh"
 #include "bmesh.h"
 #include "bmesh_log.h"
 
@@ -56,6 +57,33 @@ typedef struct TraceData {
 
 const int COLLAPSE_TAG = 32;
 const int COLLAPSE_FACE_TAG = 64;
+
+template<typename T = BMVert> static void check_new_elem_id(T *elem, PBVH *pbvh)
+{
+#if 1
+  int id = BM_ELEM_CD_GET_INT(elem, pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
+  if (id != BM_ID_NONE) {
+    BMElem *existing = id < pbvh->bm_idmap->map_size ? BM_idmap_lookup(pbvh->bm_idmap, id) :
+                                                       nullptr;
+
+    if (existing) {
+      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
+      BM_idmap_release(pbvh->bm_idmap, existing, true);
+    }
+
+    BM_idmap_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem), id);
+
+    if (existing) {
+      BM_idmap_check_assign(pbvh->bm_idmap, existing);
+    }
+  }
+  else {
+    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
+  }
+#else
+  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
+#endif
+}
 
 static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 {
@@ -91,29 +119,6 @@ static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
   }
 }
 
-static void check_new_elem_id(BMElem *elem, TraceData *data)
-{
-  int id = BM_ELEM_CD_GET_INT(elem, data->pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
-  if (id != BM_ID_NONE) {
-    BMElem *existing = id < data->pbvh->bm_idmap->map_size ?
-                           BM_idmap_lookup(data->pbvh->bm_idmap, id) :
-                           nullptr;
-
-    if (existing) {
-      BM_idmap_release(data->pbvh->bm_idmap, existing, true);
-    }
-
-    BM_idmap_assign(data->pbvh->bm_idmap, elem, id);
-
-    if (existing) {
-      BM_idmap_check_assign(data->pbvh->bm_idmap, existing);
-    }
-  }
-  else {
-    BM_idmap_check_assign(data->pbvh->bm_idmap, elem);
-  }
-}
-
 static void collapse_ring_callback_post(BMElem *elem, void *userdata)
 {
   TraceData *data = static_cast<TraceData *>(userdata);
@@ -125,20 +130,20 @@ static void collapse_ring_callback_post(BMElem *elem, void *userdata)
 
       dyntopo_add_flag(data->pbvh, v, SCULPTFLAG_NEED_VALENCE);
 
-      check_new_elem_id(elem, data);
+      check_new_elem_id(v, data->pbvh);
       BM_log_vert_added(bm, data->pbvh->bm_log, v);
       break;
     }
     case BM_EDGE: {
       BMEdge *e = reinterpret_cast<BMEdge *>(elem);
-      check_new_elem_id(elem, data);
+      check_new_elem_id(e, data->pbvh);
 
       BM_log_edge_added(bm, data->pbvh->bm_log, e);
       break;
     }
     case BM_FACE: {
       BMFace *f = reinterpret_cast<BMFace *>(elem);
-      check_new_elem_id(elem, data);
+      check_new_elem_id(f, data->pbvh);
 
       BM_log_face_added(bm, data->pbvh->bm_log, f);
       BKE_pbvh_bmesh_add_face(data->pbvh, f, false, false);
@@ -616,6 +621,54 @@ bool pbvh_bmesh_collapse_edge_uvs(
   return snap;
 }
 
+class DyntopoCollapseCallbacks {
+  PBVH *pbvh;
+  BMesh *bm;
+
+ public:
+  DyntopoCollapseCallbacks(PBVH *pbvh_) : pbvh(pbvh_), bm(pbvh_->header.bm) {}
+
+  inline void on_vert_kill(BMVert *v)
+  {
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
+
+    BM_log_vert_removed(bm, pbvh->bm_log, v);
+    pbvh_bmesh_vert_remove(pbvh, v);
+    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v), false);
+  }
+  inline void on_edge_kill(BMEdge *e)
+  {
+    BM_log_edge_removed(bm, pbvh->bm_log, e);
+    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), false);
+  }
+  inline void on_face_kill(BMFace *f)
+  {
+    BM_log_face_removed(bm, pbvh->bm_log, f);
+    pbvh_bmesh_face_remove(pbvh, f, false, true, true);
+    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f), false);
+  }
+
+  inline void on_vert_create(BMVert *v)
+  {
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
+
+    check_new_elem_id(v, pbvh);
+    BM_log_vert_added(bm, pbvh->bm_log, v);
+  }
+  inline void on_edge_create(BMEdge *e)
+  {
+    check_new_elem_id(e, pbvh);
+    BM_log_edge_added(bm, pbvh->bm_log, e);
+  }
+  inline void on_face_create(BMFace *f)
+  {
+    check_new_elem_id(f, pbvh);
+    BM_log_face_added(bm, pbvh->bm_log, f);
+    BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    BKE_pbvh_bmesh_add_face(pbvh, f, false, false);
+  }
+};
+
 /*
  * This function is rather complicated.  It has to
  * snap UVs, log geometry and free ids.
@@ -687,17 +740,28 @@ BMVert *pbvh_bmesh_collapse_edge(
   const int facetag = COLLAPSE_FACE_TAG;
   int vert_ring_maxdepth = 0;
 
-  bool non_manifold = vert_is_nonmanifold(e->v1);
-  non_manifold |= vert_is_nonmanifold(e->v2);
+  bool non_manifold_v1 = vert_is_nonmanifold(e->v1);
+  bool non_manifold_v2 = vert_is_nonmanifold(e->v2);
 
-  if (non_manifold) {
+  if (non_manifold_v1 && non_manifold_v2) {
     vert_ring_maxdepth++;
   }
+  /* Do not collapse non-manifold verts into manifold ones. */
+  else if (non_manifold_v1 != non_manifold_v2) {
+    return nullptr;
+  }
+
+#define USE_COLLAPSE_CALLBACKS
+
+#ifdef USE_COLLAPSE_CALLBACKS
+  DyntopoCollapseCallbacks callbacks(pbvh);
+#endif
 
   /* Make sure original data is initialized before we snap it. */
   BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
   BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
 
+#ifndef USE_COLLAPSE_CALLBACKS
   /* Remove topology from PBVH and insert into bmlog. */
   vert_ring_do(pbvh->header.bm,
                e->v1,
@@ -707,7 +771,7 @@ BMVert *pbvh_bmesh_collapse_edge(
                tag,
                facetag,
                vert_ring_maxdepth);
-
+#endif
   pbvh_bmesh_check_nodes(pbvh);
 
   /* Snap UVS. */
@@ -719,9 +783,6 @@ BMVert *pbvh_bmesh_collapse_edge(
     float co[3];
 
     copy_v3_v3(co, v_conn->co);
-
-    /* Full non-manifold collapse. */
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
     copy_v3_v3(v_conn->co, co);
   }
   else {
@@ -730,11 +791,17 @@ BMVert *pbvh_bmesh_collapse_edge(
     add_v3_v3v3(co, v_del->co, v_conn->co);
     mul_v3_fl(co, 0.5f);
 
-    /* Full non-manifold collapse. */
-    BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
     copy_v3_v3(v_conn->co, co);
   }
 
+  /* Full non-manifold collapse. */
+#ifdef USE_COLLAPSE_CALLBACKS
+  blender::bmesh::join_vert_kill_edge(pbvh->header.bm, e, v_del, true, true, callbacks);
+#else
+  BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
+#endif
+
+#ifndef USE_COLLAPSE_CALLBACKS
   vert_ring_do(pbvh->header.bm,
                v_conn,
                nullptr,
@@ -743,12 +810,19 @@ BMVert *pbvh_bmesh_collapse_edge(
                tag,
                facetag,
                vert_ring_maxdepth);
+#endif
 
   if (!v_conn->e) {
     printf("%s: pbvh error, v_conn->e was null\n", __func__);
     return v_conn;
   }
 
+  if (v_conn->e) {
+    BMEdge *e2 = v_conn->e;
+    do {
+      validate_edge(pbvh, e2);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+  }
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   /* Flag boundaries for update. */
@@ -776,7 +850,7 @@ BMVert *pbvh_bmesh_collapse_edge(
     return nullptr;
   }
 
-  if (v_conn->e && !v_conn->e->l) {
+  if (0) {  // XXX v_conn->e && !v_conn->e->l) {
     BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, v_conn->e);
     if (BM_idmap_get_id(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e)) != BM_ID_NONE) {
       BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e), true);
@@ -784,7 +858,7 @@ BMVert *pbvh_bmesh_collapse_edge(
     BM_edge_kill(pbvh->header.bm, v_conn->e);
   }
 
-  if (!v_conn->e) {
+  if (0) {  // XXX !v_conn->e) {
     /* Delete isolated vertex. */
     if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
       blender::bke::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);

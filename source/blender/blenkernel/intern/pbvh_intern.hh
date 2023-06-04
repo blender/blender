@@ -393,14 +393,6 @@ BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
   return node_index;
 }
 
-BLI_INLINE int pbvh_bmesh_node_index_from_face(PBVH *pbvh, const BMFace *key)
-{
-  const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_face_node_offset);
-  BLI_assert(node_index != DYNTOPO_NODE_NONE);
-  BLI_assert(node_index < pbvh->totnode);
-  return node_index;
-}
-
 BLI_INLINE PBVHNode *pbvh_bmesh_node_from_vert(PBVH *pbvh, const BMVert *key)
 {
   int ni = pbvh_bmesh_node_index_from_vert(pbvh, key);
@@ -411,10 +403,8 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_vert(PBVH *pbvh, const BMVert *key)
 
 BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
 {
-  int ni = pbvh_bmesh_node_index_from_face(pbvh, key);
-
-  return ni >= 0 ? pbvh->nodes + ni : NULL;
-  // return &pbvh->nodes[pbvh_bmesh_node_index_from_face(pbvh, key)];
+  int ni = BM_ELEM_CD_GET_INT(key, pbvh->cd_face_node_offset);
+  return ni >= 0 && ni < pbvh->totnode ? pbvh->nodes + ni : NULL;
 }
 
 bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);

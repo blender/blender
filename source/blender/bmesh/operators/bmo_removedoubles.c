@@ -443,7 +443,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 
 #define USE_BM_EDGE_COLLAPSE
 
-void bmo_collapse_exec(BMesh *bm, BMOperator *op)
+ATTR_NO_OPT void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator weldop;
   BMWalker walker;
@@ -510,7 +510,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
         BLI_stack_pop(edge_stack, &e);
 
 #ifdef USE_BM_EDGE_COLLAPSE
-        if (e->head.htype != BM_EDGE) {
+        if (BM_elem_is_free((BMElem*)e, BM_EDGE)) {
           continue;
         }
 #endif

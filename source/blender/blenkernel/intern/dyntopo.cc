@@ -85,7 +85,7 @@ static void surface_smooth_v_safe(
   }
 
   PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v)};
-  if (stroke_id_test_no_update(ss, vertex, STROKEID_USER_ORIGINAL)) {
+  if (stroke_id_test(ss, vertex, STROKEID_USER_ORIGINAL)) {
     copy_v3_v3(origco1, v->co);
     copy_v3_v3(origno1, v->no);
   }
@@ -126,8 +126,24 @@ static void surface_smooth_v_safe(
     BMVert *v2 = e->v1 == v ? e->v2 : e->v1;
     PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(v2)};
 
-    float w = len_squared_v3v3(e->v1->co, e->v2->co);
+    float w;
 
+    if (e->l && e->l->f->len == 3) {
+      BMLoop *l = e->l;
+      float w1 = area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co);
+
+      if (l->radial_next != l) {
+        l = l->radial_next;
+        float w2 = area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co);
+        w = (w1 + w2) * 0.5f;
+      }
+      else {
+        w = len_squared_v3v3(e->v1->co, e->v2->co);
+      }
+    }
+    else {
+      w = len_squared_v3v3(e->v1->co, e->v2->co);
+    }
     /* Note: we can't validate the boundary flags from with a thread
      * so they may not be up to date.
      */
@@ -140,19 +156,20 @@ static void surface_smooth_v_safe(
     }
 
     sub_v3_v3v3(tan, v2->co, v->co);
-    float d = dot_v3v3(tan, v->no);
 
+    float d = dot_v3v3(tan, v->no);
     madd_v3_v3fl(tan, v->no, -d * 0.95f);
     madd_v3_v3fl(co, tan, w);
 
+    float *origco2;
     if (!stroke_id_test_no_update(ss, vertex2, STROKEID_USER_ORIGINAL)) {
-      sub_v3_v3v3(
-          tan, blender::bke::paint::vertex_attr_ptr<float>(vertex2, ss->attrs.orig_co), origco1);
+      origco2 = blender::bke::paint::vertex_attr_ptr<float>(vertex2, ss->attrs.orig_co);
     }
     else {
-      sub_v3_v3v3(tan, v2->co, origco1);
+      origco2 = v2->co;
     }
 
+    sub_v3_v3v3(tan, origco2, origco1);
     d = dot_v3v3(tan, origno1);
     madd_v3_v3fl(tan, origno1, -d * 0.95f);
     madd_v3_v3fl(origco, tan, w);
@@ -752,7 +769,9 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
          * but tangentially to surface.  We can stochastically skip this and still get the
          * benefit to convergence.
          */
-        if (do_smooth && rand.get_float() > 0.75f) {
+        if (do_smooth && rand.get_float() > 0.75f &&
+            BM_ELEM_CD_GET_INT(l_iter->v, pbvh->cd_vert_node_offset) == ni)
+        {
           PBVHVertRef sv = {(intptr_t)l_iter->v};
           surface_smooth_v_safe(eq_ctx->ss,
                                 tdata->pbvh,
@@ -880,6 +899,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     BMLoop *l = f2->l_first;
     do {
       dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
+      validate_edge(pbvh, l->e);
     } while ((l = l->next) != f2->l_first);
   }
 
@@ -902,6 +922,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
         BM_log_edge_added(pbvh->header.bm, pbvh->bm_log, l->e);
         dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
         dyntopo_add_flag(pbvh, l->next->v, SCULPTFLAG_NEED_VALENCE);
+        validate_edge(pbvh, l->e);
         l->e->head.index = 0;
       }
     } while ((l = l->next) != f2->l_first);
@@ -915,6 +936,7 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 
   if (f) {
     BKE_pbvh_bmesh_add_face(pbvh, f, false, true);
+    validate_face(pbvh, f, CHECK_FACE_MANIFOLD);
     BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
   }
 
@@ -1260,7 +1282,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = !eq_ctx->reproject_cdata;
+  settings.use_threading = true;  //! eq_ctx->reproject_cdata;
 
 #ifdef DYNTOPO_NO_THREADING
   settings.use_threading = false;
@@ -1883,7 +1905,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
           f2->no, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->prev->v->co);
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f2);
 
-      validate_face(pbvh, f2, CHECK_FACE_NONE);
+      validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
     }
 
     if (f1) {
@@ -1901,6 +1923,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
                                         pbvh->bm_idmap->cd_id_off[BM_LOOP]);
 
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f1);
+      validate_face(pbvh, f1, CHECK_FACE_MANIFOLD);
     }
 
     validate_vert(pbvh, v, CHECK_VERT_ALL);
@@ -2100,7 +2123,7 @@ void EdgeQueueContext::start()
 
 bool EdgeQueueContext::done()
 {
-  return !(totop > 0 && !edge_heap.empty() && current_i < max_steps);
+  return totop == 0 || edge_heap.empty() || current_i >= max_steps;
 }
 
 void EdgeQueueContext::finish()
@@ -2196,6 +2219,14 @@ void EdgeQueueContext::step()
   }
 #endif
 
+  RandomNumberGenerator srand(PIL_check_seconds_timer() * 10000);
+
+  auto do_smooth = [&](BMVert *v) {
+    // if (srand.get_float() > 0.75) {
+    // surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, true);
+    //}
+  };
+
   switch (ops[curop]) {
     case PBVH_None:
       break;
@@ -2229,6 +2260,9 @@ void EdgeQueueContext::step()
         break;
       }
 #endif
+
+      do_smooth(e->v1);
+      do_smooth(e->v2);
 
       e->head.hflag &= ~BM_ELEM_TAG;
 
@@ -2286,6 +2320,9 @@ void EdgeQueueContext::step()
                e->v2);
         break;
       }
+
+      do_smooth(e->v1);
+      do_smooth(e->v2);
 
       modified = true;
       pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, this);
@@ -2365,8 +2402,14 @@ bool remesh_topology(BrushTester *brush_tester,
                           edge_limit_multiply);
   eq_ctx.start();
 
+  double time = PIL_check_seconds_timer();
+
   while (!eq_ctx.done()) {
     eq_ctx.step();
+
+    if (PIL_check_seconds_timer() - time > 350.0 / 1000.0) {
+      // XXX break;
+    }
   }
 
   eq_ctx.finish();
@@ -2676,6 +2719,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
 
     BMVert *newv = BM_edge_split(pbvh->header.bm, e, e->v1, &newe, 0.5f);
+    validate_edge(pbvh, newe);
 
     /* Flag new vertex as not needing original data update, since we interpolated it. */
     sculpt::stroke_id_test(eq_ctx->ss, {reinterpret_cast<intptr_t>(newv)}, STROKEID_USER_ORIGINAL);
@@ -2895,7 +2939,7 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Sp
         exist_e = newf ? rl->e : nullptr;
       }
 
-      if (exist_e && exist_e->l) {
+      if (newf && exist_e && exist_e->l) {
         exist_e->head.hflag &= ~BM_ELEM_TAG;
 
 #ifdef SUBD_ADD_TO_QUEUE
@@ -4064,6 +4108,50 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   eCustomDataMask typemask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
                              CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_COLOR;
 
+  CustomData *cdatas[2] = {&ss->bm->vdata, &ss->bm->ldata};
+  bool ok = false;
+
+  int cd_originals[4];
+  cd_originals[0] = ss->attrs.orig_co->bmesh_cd_offset;
+  cd_originals[1] = ss->attrs.orig_no->bmesh_cd_offset;
+  cd_originals[2] = ss->attrs.orig_color ? ss->attrs.orig_color->bmesh_cd_offset : -1;
+  cd_originals[3] = ss->attrs.orig_mask ? ss->attrs.orig_mask->bmesh_cd_offset : -1;
+
+  for (int i = 0; i < 2; i++) {
+    CustomData *data = cdatas[i];
+
+    for (int j = 0; j < data->totlayer; j++) {
+      if (data->layers[j].flag & (CD_FLAG_ELEM_NOINTERP)) {
+        continue;
+      }
+
+      /* We don't reproject origco/origno. */
+      if (i == 0) {
+        bool bad = false;
+
+        for (int k = 0; k < ARRAY_SIZE(cd_originals); k++) {
+          if (data->layers[j].offset == cd_originals[k]) {
+            bad = true;
+            break;
+          }
+        }
+
+        if (bad) {
+          continue;
+        }
+      }
+
+      if (CD_TYPE_AS_MASK(data->layers[j].type) & typemask) {
+        ok = true;
+      }
+    }
+  }
+
+  /* No attributes to reproject. */
+  if (!ok) {
+    return;
+  }
+
   int totstep = 2;
   for (int step = 0; step < totstep; step++) {
     float3 startco2;
@@ -4075,7 +4163,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
     normalize_v3(startno2);
 
-    /* Build fake face with original coordinates. */
+    /* Build fake face with starting coordinates. */
     for (int i = 0; i < totloop; i++) {
       BMLoop *l = ls[i];
       float no[3] = {0.0f, 0.0f, 0.0f};
@@ -4094,9 +4182,6 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
         *fakev = *l2->v;
         fakel->v = fakev;
-
-        /* Make sure original coordinate is up to date. */
-        blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 
         if (l2->v == v) {
           copy_v3_v3(fakev->co, startco2);
@@ -4142,8 +4227,8 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
       if (l->v == v && cur_vblock < max_vblocks) {
         void *vblock_old = interpl->v->head.data;
         void *vblock = vblocks[cur_vblock];
-        memcpy((void *)vblock, v->head.data, ss->bm->vdata.totsize);
 
+        memcpy((void *)vblock, v->head.data, ss->bm->vdata.totsize);
         interpl->v->head.data = (void *)vblock;
 
         reproject_bm_data(ss->bm, interpl, fakef, true, typemask);
@@ -4168,17 +4253,17 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
         ws[i] = 1.0f / float(cur_vblock);
       }
 
-      float *origco = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_co->bmesh_cd_offset);
-      float *origno = BM_ELEM_CD_PTR<float *>(v, ss->attrs.orig_no->bmesh_cd_offset);
+      float3 *origco = BM_ELEM_CD_PTR<float3 *>(v, ss->attrs.orig_co->bmesh_cd_offset);
+      float3 *origno = BM_ELEM_CD_PTR<float3 *>(v, ss->attrs.orig_no->bmesh_cd_offset);
 
-      float3 origco_saved = origco;
-      float3 origno_saved = origno;
+      float3 origco_saved = *origco;
+      float3 origno_saved = *origno;
 
-      CustomData_bmesh_interp(
-          &ss->bm->vdata, (const void **)vblocks, ws, nullptr, cur_vblock, v->head.data);
+      CustomData_bmesh_interp_ex(
+          &ss->bm->vdata, (const void **)vblocks, ws, nullptr, cur_vblock, v->head.data, typemask);
 
-      copy_v3_v3(origco, origco_saved);
-      copy_v3_v3(origno, origno_saved);
+      *origco = origco_saved;
+      *origno = origno_saved;
     }
   }
 

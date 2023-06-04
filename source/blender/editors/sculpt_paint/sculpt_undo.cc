@@ -706,7 +706,9 @@ static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
   int ni = BM_ELEM_CD_GET_INT(v, data->cd_vert_node_offset);
   // data->do_full_recalc = true;
 
-  if (ni < 0) {
+  bool bad = ni == -1 || !BKE_pbvh_get_node_leaf_safe(data->pbvh, ni);
+
+  if (bad) {
 #if 0  // not sure this is really an error
     // something went wrong
     printf("%s: error, vertex %d is not in pbvh; ni was: %d\n",
