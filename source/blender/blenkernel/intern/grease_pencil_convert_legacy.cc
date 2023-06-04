@@ -182,7 +182,7 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     num_drawings += BLI_listbase_count(&gpl->frames);
   }
 
-  grease_pencil.drawing_array_size = num_drawings;
+  grease_pencil.drawing_array_num = num_drawings;
   grease_pencil.drawing_array = reinterpret_cast<GreasePencilDrawingBase **>(
       MEM_cnew_array<GreasePencilDrawing *>(num_drawings, __func__));
 

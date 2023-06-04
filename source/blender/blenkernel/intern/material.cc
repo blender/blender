@@ -395,7 +395,7 @@ short *BKE_object_material_len_p(Object *ob)
   }
   if (ob->type == OB_GREASE_PENCIL) {
     GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
-    return &(grease_pencil->material_array_size);
+    return &(grease_pencil->material_array_num);
   }
   return nullptr;
 }
@@ -449,7 +449,7 @@ short *BKE_id_material_len_p(ID *id)
     case ID_VO:
       return &(((Volume *)id)->totcol);
     case ID_GP:
-      return &(((GreasePencil *)id)->material_array_size);
+      return &(((GreasePencil *)id)->material_array_num);
     default:
       break;
   }
