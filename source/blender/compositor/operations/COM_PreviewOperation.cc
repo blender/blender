@@ -66,7 +66,7 @@ void PreviewOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   int offset;
   float color[4];
-  struct ColormanageProcessor *cm_processor;
+  ColormanageProcessor *cm_processor;
 
   cm_processor = IMB_colormanagement_display_processor_new(view_settings_, display_settings_);
 
@@ -160,7 +160,7 @@ void PreviewOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/,
                                                     Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input = inputs[0];
-  struct ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(
+  ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(
       view_settings_, display_settings_);
 
   rcti buffer_area;

@@ -40,11 +40,8 @@ struct SnapSouceCustomData {
   eSnapTargetOP target_operation_prev;
 
   struct {
-    void (*apply)(struct TransInfo *t,
-                  struct MouseInput *mi,
-                  const double mval[2],
-                  float output[3]);
-    void (*post)(struct TransInfo *t, float values[3]);
+    void (*apply)(TransInfo *t, MouseInput *mi, const double mval[2], float output[3]);
+    void (*post)(TransInfo *t, float values[3]);
     bool use_virtual_mval;
   } mouse_prev;
 };
@@ -111,7 +108,7 @@ static void snapsource_confirm(TransInfo *t)
   t->tsnap.flag &= ~SCE_SNAP_PROJECT;
 }
 
-static eRedrawFlag snapsource_handle_event_fn(struct TransInfo *t, const struct wmEvent *event)
+static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event)
 {
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
@@ -224,7 +221,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
 #ifdef REMOVE_GIZMO
   struct wmGizmo *gz = WM_gizmomap_get_modal(t->region->gizmo_map);
   if (gz) {
-    const struct wmEvent *event = CTX_wm_window(t->context)->eventstate;
+    const wmEvent *event = CTX_wm_window(t->context)->eventstate;
 #  ifdef RESET_TRANSFORMATION
     wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
     modal_fn(t->context, gz, event, 0);

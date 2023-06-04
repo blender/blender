@@ -1480,7 +1480,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-static void edge_slide_transform_matrix_fn(struct TransInfo *t, float mat_xform[4][4])
+static void edge_slide_transform_matrix_fn(TransInfo *t, float mat_xform[4][4])
 {
   float delta[3], orig_co[3], final_co[3];
 

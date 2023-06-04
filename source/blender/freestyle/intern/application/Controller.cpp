@@ -936,7 +936,7 @@ void Controller::InsertStyleModule(uint index, const char *iName, const char *iB
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(uint index, const char *iName, struct Text *iText)
+void Controller::InsertStyleModule(uint index, const char *iName, Text *iText)
 {
   StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);

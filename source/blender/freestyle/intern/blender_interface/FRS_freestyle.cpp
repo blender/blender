@@ -51,7 +51,7 @@ using namespace Freestyle;
 
 extern "C" {
 
-struct FreestyleGlobals g_freestyle;
+FreestyleGlobals g_freestyle;
 
 // Freestyle configuration
 static bool freestyle_is_initialized = false;
@@ -63,8 +63,8 @@ static AppView *view = nullptr;
 static FreestyleLineSet lineset_buffer;
 static bool lineset_copied = false;
 
-static void load_post_callback(struct Main * /*main*/,
-                               struct PointerRNA ** /*pointers*/,
+static void load_post_callback(Main * /*main*/,
+                               PointerRNA ** /*pointers*/,
                                const int /*num_pointers*/,
                                void * /*arg*/)
 {
@@ -190,7 +190,7 @@ struct edge_type_condition {
 };
 
 // examines the conditions and returns true if the target edge type needs to be computed
-static bool test_edge_type_conditions(struct edge_type_condition *conditions,
+static bool test_edge_type_conditions(edge_type_condition *conditions,
                                       int num_edge_types,
                                       bool logical_and,
                                       int target,
@@ -330,7 +330,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       int use_ridges_and_valleys = 0;
       int use_suggestive_contours = 0;
       int use_material_boundaries = 0;
-      struct edge_type_condition conditions[] = {
+      edge_type_condition conditions[] = {
           {FREESTYLE_FE_SILHOUETTE, 0},
           {FREESTYLE_FE_BORDER, 0},
           {FREESTYLE_FE_CREASE, 0},
@@ -765,7 +765,7 @@ bool FRS_move_active_lineset(FreestyleConfig *config, int direction)
 
 // Testing
 
-Material *FRS_create_stroke_material(Main *bmain, struct FreestyleLineStyle *linestyle)
+Material *FRS_create_stroke_material(Main *bmain, FreestyleLineStyle *linestyle)
 {
   bNodeTree *nt = (linestyle->use_nodes) ? linestyle->nodetree : nullptr;
   Material *ma = BlenderStrokeRenderer::GetStrokeShader(bmain, nt, true);
