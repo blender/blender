@@ -1289,7 +1289,7 @@ static void lib_override_library_create_post_process(Main *bmain,
     /* No instantiation in case the root override is linked data, unless it is part of the given
      * owner library.
      *
-     * NOTE: that last case should never happen actually in current code? Since non-NULL owner
+     * NOTE: that last case should never happen actually in current code? Since non-null owner
      * library should only happen in case of recursive resync, which is already excluded by the
      * previous condition. */
   }

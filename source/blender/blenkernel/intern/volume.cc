@@ -900,7 +900,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
   }
 
-  /* Add grids read from file to own vector, filtering out any NULL pointers. */
+  /* Add grids read from file to own vector, filtering out any null pointers. */
   for (const openvdb::GridBase::Ptr &vdb_grid : vdb_grids) {
     if (vdb_grid) {
       VolumeFileCache::Entry template_entry(filepath, vdb_grid);

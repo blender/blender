@@ -31,7 +31,7 @@ void GPencilBackup::restore_to_gpencil(bGPdata *gpd)
     BKE_gpencil_free_update_cache(gpd_orig);
   }
   /* Doing a copy-on-write copies the update cache pointer. Make sure to reset it
-   * to NULL as we should never use the update cache from eval data. */
+   * to null as we should never use the update cache from eval data. */
   gpd->runtime.update_cache = nullptr;
   /* Make sure to update the original runtime pointers in the eval data. */
   BKE_gpencil_data_update_orig_pointers(gpd_orig, gpd);

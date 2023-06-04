@@ -1279,7 +1279,8 @@ static int outliner_open_back(TreeElement *te)
   return retval;
 }
 
-/* Return element representing the active base or bone in the outliner, or NULL if none exists
+/**
+ * \return element representing the active base or bone in the outliner, or null if none exists
  */
 static TreeElement *outliner_show_active_get_element(bContext *C,
                                                      SpaceOutliner *space_outliner,

@@ -48,7 +48,7 @@ using namespace blender;
  */
 static bool id_name_final_build(char *name, char *base_name, size_t base_name_len, int number)
 {
-  char number_str[11]; /* Dot + nine digits + NULL terminator. */
+  char number_str[11]; /* Dot + nine digits + null terminator. */
   size_t number_str_len = SNPRINTF_RLEN(number_str, ".%.3d", number);
 
   /* If the number would lead to an overflow of the maximum ID name length, we need to truncate

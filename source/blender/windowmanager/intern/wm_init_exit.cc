@@ -546,7 +546,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
    * Don't run this code when `C` is null because #pyrna_unregister_class
    * passes in `CTX_data_main(C)` to un-registration functions.
    * Further: `addon_utils.disable_all()` may call into functions that expect a valid context,
-   * supporting all these code-paths with a NULL context is quite involved for such a corner-case.
+   * supporting all these code-paths with a null context is quite involved for such a corner-case.
    */
   if (C) {
     const char *imports[2] = {"addon_utils", nullptr};

@@ -243,7 +243,7 @@ static int outliner_get_insert_index(TreeElement *drag_te,
                                      TreeElementInsertType insert_type,
                                      ListBase *listbase)
 {
-  /* Find the element to insert after. NULL is the start of the list. */
+  /* Find the element to insert after. Null is the start of the list. */
   if (drag_te->index < drop_te->index) {
     if (insert_type == TE_INSERT_BEFORE) {
       drop_te = drop_te->prev;

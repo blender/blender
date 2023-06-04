@@ -171,7 +171,7 @@ TEST(listbase, FromLink)
   Link *link2 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link2"));
   Link *link3 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link3"));
 
-  /* NULL safety. */
+  /* Null safety. */
   EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
 
   /* One link. */

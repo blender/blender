@@ -176,7 +176,7 @@ bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int 
     return false;
   }
 
-  /* No need for NULL checks, these will always succeed. */
+  /* No need for null checks, these will always succeed. */
   const BMLoop *l_other_a = BM_loop_other_vert_loop_by_edge(l_a, e);
   const BMLoop *l_other_b = BM_loop_other_vert_loop_by_edge(l_b, e);
 

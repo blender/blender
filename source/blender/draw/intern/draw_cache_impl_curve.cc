@@ -195,8 +195,8 @@ enum {
   CU_DATATYPE_TEXT_SELECT = 1 << 4,
 };
 
-/*
- * ob_curve_cache can be NULL
+/**
+ * \param ob_curve_cache: can be null.
  */
 static CurveRenderData *curve_render_data_create(Curve *cu,
                                                  CurveCache *ob_curve_cache,

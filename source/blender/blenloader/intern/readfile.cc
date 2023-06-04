@@ -3140,7 +3140,7 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 
   /* We do need remapping of internal pointers to the ID itself here.
    *
-   * Passing a NULL BMain means that not all potential runtime data (like collections' parent
+   * Passing a null #Main means that not all potential runtime data (like collections' parent
    * pointers etc.) will be up-to-date. However, this should not be a problem here, since these
    * data are re-generated later in file-read process anyway. */
   BKE_lib_id_swap_full(nullptr,

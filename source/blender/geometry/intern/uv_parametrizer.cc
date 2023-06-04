@@ -3026,7 +3026,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 
       p_chart_boundaries(chart, &outer);
 
-      /* Outer can be NULL with non-finite coords. */
+      /* Outer can be null with non-finite coordinates. */
       if (!(outer && p_chart_symmetry_pins(chart, outer, &pin1, &pin2))) {
         p_chart_extrema_verts(chart, &pin1, &pin2);
       }

@@ -1062,7 +1062,7 @@ void ED_image_undosys_type(UndoType *ut)
 
   /* NOTE: this is actually a confusing case, since it expects a valid context, but only in a
    * specific case, see `image_undosys_step_encode` code. We cannot specify
-   * `UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE` though, as it can be called with a NULL context by
+   * `UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE` though, as it can be called with a null context by
    * current code. */
   ut->flags = UNDOTYPE_FLAG_DECODE_ACTIVE_STEP;
 

@@ -243,7 +243,7 @@ void sculpt_undo_print_nodes(Object *ob, void *active)
 
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = ustack->steps.first;
-  if (active == NULL) {
+  if (active == nullptr) {
     active = ustack->step_active;
   }
 
@@ -1822,7 +1822,7 @@ void SCULPT_undo_push_end_ex(Object *ob, const bool use_nested_undo)
       ustack, BKE_UNDOSYS_TYPE_SCULPT);
 
   sculpt_save_active_attribute(ob, &us->active_color_end);
-  sculpt_undo_print_nodes(ob, NULL);
+  sculpt_undo_print_nodes(ob, nullptr);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1922,7 +1922,7 @@ static void sculpt_undosys_step_decode_undo_impl(bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = false;
 
-  sculpt_undo_print_nodes(CTX_data_active_object(C), NULL);
+  sculpt_undo_print_nodes(CTX_data_active_object(C), nullptr);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(bContext *C,
@@ -1934,7 +1934,7 @@ static void sculpt_undosys_step_decode_redo_impl(bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = true;
 
-  sculpt_undo_print_nodes(CTX_data_active_object(C), NULL);
+  sculpt_undo_print_nodes(CTX_data_active_object(C), nullptr);
 }
 
 static void sculpt_undosys_step_decode_undo(bContext *C,

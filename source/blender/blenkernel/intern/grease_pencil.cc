@@ -750,7 +750,7 @@ void BKE_grease_pencil_data_update(struct Depsgraph * /*depsgraph*/,
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name)
 {
   short *totcol = BKE_object_material_len_p(ob);
-  Material *read_ma = NULL;
+  Material *read_ma = nullptr;
   for (short i = 0; i < *totcol; i++) {
     read_ma = BKE_object_material_get(ob, i + 1);
     if (STREQ(name, read_ma->id.name + 2)) {

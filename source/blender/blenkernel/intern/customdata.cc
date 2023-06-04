@@ -4507,7 +4507,7 @@ static bool CustomData_layer_ensure_data_exists(CustomDataLayer *layer, size_t c
 
     default:
       /* Log an error so we can collect instances of bad files. */
-      CLOG_WARN(&LOG, "CustomDataLayer->data is NULL for type %d.", layer->type);
+      CLOG_WARN(&LOG, "CustomDataLayer->data is null for type %d.", layer->type);
       break;
   }
   return false;
