@@ -496,6 +496,7 @@ option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debug
 
 option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
 option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)
+option(WITH_CYCLES_PRECOMPUTE        "Build Cycles data precomputation tool" OFF)
 
 option(WITH_CYCLES_HYDRA_RENDER_DELEGATE "Build Cycles Hydra render delegate" OFF)
 
@@ -507,6 +508,7 @@ mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
 mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
 mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
+mark_as_advanced(WITH_CYCLES_PRECOMPUTE)
 
 # NVIDIA CUDA & OptiX
 if(NOT APPLE)

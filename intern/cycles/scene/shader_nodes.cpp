@@ -2350,7 +2350,7 @@ NODE_DEFINE(GlossyBsdfNode)
   distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
   distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_ID);
   distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
   SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
 
   SOCKET_IN_VECTOR(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
@@ -2444,6 +2444,7 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
 
   if (closure == CLOSURE_BSDF_REFLECTION_ID)
     BsdfNode::compile(compiler, NULL, NULL);
+  /* TODO: Just use weight for legacy MultiGGX? Would also simplify OSL. */
   else if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
     BsdfNode::compile(
         compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
@@ -2471,7 +2472,7 @@ NODE_DEFINE(GlassBsdfNode)
   distribution_enum.insert("sharp", CLOSURE_BSDF_SHARP_GLASS_ID);
   distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
   distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
@@ -2749,8 +2750,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   NodeType *type = NodeType::add("principled_bsdf", create, NodeType::SHADER);
 
   static NodeEnum distribution_enum;
-  distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+  distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
 
