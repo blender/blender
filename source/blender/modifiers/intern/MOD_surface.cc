@@ -90,7 +90,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int verts_num)
+                        int /*verts_num*/)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
   const int cfra = int(DEG_get_ctime(ctx->depsgraph));
@@ -113,8 +113,7 @@ static void deformVerts(ModifierData *md,
         nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {
-    surmd->runtime.mesh = MOD_deform_mesh_eval_get(
-        ctx->object, nullptr, nullptr, nullptr, verts_num, false);
+    surmd->runtime.mesh = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr, false);
   }
 
   if (!ctx->object->pd) {

@@ -99,7 +99,7 @@ static void deformVerts(ModifierData *md,
   {
     /* mesh_src is needed for vgroups, but also used as ShrinkwrapCalcData.vert when projecting.
      * Avoid time-consuming mesh conversion for curves when not projecting. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, false);
   }
 
   const MDeformVert *dvert = nullptr;
@@ -126,7 +126,7 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = nullptr;
 
   if ((swmd->vgroup_name[0] != '\0') || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, false);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */

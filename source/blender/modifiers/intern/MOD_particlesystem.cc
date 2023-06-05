@@ -100,7 +100,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int verts_num)
+                        int /*verts_num*/)
 {
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
@@ -118,7 +118,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, verts_num, true);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, true);
     if (mesh_src == nullptr) {
       return;
     }
