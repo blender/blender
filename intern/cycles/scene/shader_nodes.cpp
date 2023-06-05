@@ -3527,9 +3527,8 @@ NODE_DEFINE(PrincipledHairBsdfNode)
   SOCKET_IN_FLOAT(melanin, "Melanin", 0.8f);
   SOCKET_IN_FLOAT(melanin_redness, "Melanin Redness", 1.0f);
   SOCKET_IN_COLOR(tint, "Tint", make_float3(1.f, 1.f, 1.f));
-  SOCKET_IN_VECTOR(absorption_coefficient,
-                   "Absorption Coefficient",
-                   make_float3(0.245531f, 0.52f, 1.365f));
+  SOCKET_IN_VECTOR(
+      absorption_coefficient, "Absorption Coefficient", make_float3(0.245531f, 0.52f, 1.365f));
 
   SOCKET_IN_FLOAT(offset, "Offset", 2.f * M_PI_F / 180.f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.3f);
