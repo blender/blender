@@ -864,7 +864,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   /* Make sure data from this file is usable for pose paste. */
-  if (BLI_listbase_count_at_most(&temp_bmain->objects, 2) != 1) {
+  if (!BLI_listbase_is_single(&temp_bmain->objects)) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from pose mode");
     BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;

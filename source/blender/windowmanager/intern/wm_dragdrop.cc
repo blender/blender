@@ -832,7 +832,7 @@ const char *WM_drag_get_item_name(wmDrag *drag)
   switch (drag->type) {
     case WM_DRAG_ID: {
       ID *id = WM_drag_get_local_ID(drag, 0);
-      bool single = (BLI_listbase_count_at_most(&drag->ids, 2) == 1);
+      bool single = BLI_listbase_is_single(&drag->ids);
 
       if (single) {
         return id->name + 2;
