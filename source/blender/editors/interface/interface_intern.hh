@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
