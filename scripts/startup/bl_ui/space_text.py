@@ -278,12 +278,17 @@ class TEXT_MT_text(Menu):
 class TEXT_MT_templates_py(Menu):
     bl_label = "Python"
 
-    def draw(self, _context):
+    def draw(self, context):
+        prefs = context.preferences
+        use_asset_shelf = prefs.experimental.use_asset_shelf
+
         self.path_menu(
             bpy.utils.script_paths(subdir="templates_py"),
             "text.open",
             props_default={"internal": True},
             filter_ext=lambda ext: (ext.lower() == ".py"),
+            filter_path=lambda path, use_asset_shelf=use_asset_shelf:
+                (use_asset_shelf or not path.endswith("ui_asset_shelf.py")),
         )
 
 
