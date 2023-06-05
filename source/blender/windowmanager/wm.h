@@ -38,7 +38,6 @@ void wm_exit_schedule_delayed(const bContext *C);
  * Context is allowed to be NULL, do not free wm itself (lib_id.c).
  */
 extern void wm_close_and_free(bContext *C, wmWindowManager *);
-extern void wm_close_and_free_all(bContext *C, ListBase *);
 
 /**
  * On startup, it adds all data, for matching.

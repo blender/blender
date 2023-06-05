@@ -69,7 +69,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
     BlendFileReadReport bf_reports{};
     BlendFileData *bfd = BKE_blendfile_read(mfu->filepath, &params, &bf_reports);
     if (bfd != nullptr) {
-      BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
+      BKE_blendfile_read_setup_undo(C, bfd, &params, &bf_reports);
       success = true;
     }
   }
@@ -82,7 +82,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
     BlendFileReadReport blend_file_read_report{};
     BlendFileData *bfd = BKE_blendfile_read_from_memfile(bmain, &mfu->memfile, &params, nullptr);
     if (bfd != nullptr) {
-      BKE_blendfile_read_setup(C, bfd, &params, &blend_file_read_report);
+      BKE_blendfile_read_setup_undo(C, bfd, &params, &blend_file_read_report);
       success = true;
     }
   }

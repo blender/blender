@@ -119,6 +119,16 @@ typedef struct FileData {
    * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
   struct IDNameLib_Map *old_idmap_uuid;
+  /**
+   * IDMap using uuids as keys of the IDs read (or moved) in the new main(s).
+   *
+   * Used during undo to ensure that the ID pointers from the 'no undo' IDs remain valid (these
+   * IDs are re-used from old main even if their content is not the same as in the memfile undo
+   * step, so they could point e.g. to an ID that does not exist in the newly read undo step).
+   *
+   * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
+   * read memfile. */
+  struct IDNameLib_Map *new_idmap_uuid;
 
   struct BlendFileReadReport *reports;
 } FileData;
@@ -151,10 +161,6 @@ void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
  * this works because freeing old main only happens after this call.
  */
 void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
-/**
- * Undo file support: add all library pointers in lookup.
- */
-void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
 /**
  * Build a #GSet of old main (we only care about local data here,
  * so we can do that after #blo_split_main() call.
