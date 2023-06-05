@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -10518,12 +10518,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
+msgid "Sample Rate"
 msgstr "Частота дискретизации"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Частота дискретизации аудио (сэмплов в секунду)"
 
 
 msgctxt "Sound"
@@ -20817,24 +20813,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "Количество точек по направлению U (не может быть изменено, если созданы ключи формы)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "Количество точек по направлению V (не может быть изменено, если созданы ключи формы)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "Количество точек по направлению W (не может быть изменено, если созданы ключи формы)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -21924,20 +21908,12 @@ msgid "Vertices of the mesh"
 msgstr "Вершины меша"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "Датаблок метасферы, определяющий каплевидные поверхности"
-
-
 msgid "Render Size"
 msgstr "Размер рендера"
 
 
 msgid "Polygonization resolution in rendering"
 msgstr "Разрешение полигонизации на рендере"
-
-
-msgid "Wire Size"
-msgstr "Размер сетки"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -22314,10 +22290,6 @@ msgstr "Габаритный контейнер объекта в координ
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "Настройки объекта столкновения при физикой симуляции"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Цвет объекта и прозрачность, используется, если включён режим ObColor"
 
 
 msgid "Constraints"
@@ -23058,10 +23030,6 @@ msgstr "Глобальный Y"
 
 msgid "Global Z"
 msgstr "Глобальный Z"
-
-
-msgid "Effect Children"
-msgstr "Воздействовать на потомков"
 
 
 msgid "Apply effectors to children"
@@ -26139,10 +26107,6 @@ msgid "File format to save the rendered images as"
 msgstr "Формат файла для сохранения рендеров"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Настройки кодека JPEG 2000"
-
-
 msgid "Quality for image formats that support lossy compression"
 msgstr "Качество для форматов изображений, поддерживающих сжатие с потерями"
 
@@ -26171,16 +26135,8 @@ msgid "Cinema (48)"
 msgstr "Кино (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Использовать предустановку кино OpenJPEG (48 кадров в секунду)"
-
-
 msgid "Cinema"
 msgstr "Кино"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Использовать предустановку кино OpenJPEG"
 
 
 msgid "YCC"
@@ -30631,10 +30587,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "Вершина в датаблоке меша"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "Вес, используемый модификатором фаски в режиме «Только вершины»"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "Веса для групп вершин, к которым принадлежит данная вершина"
 
@@ -30721,10 +30673,6 @@ msgstr "Размер по Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "Жёсткость определяет степень заполнения элемента"
-
-
-msgid "Metaball types"
-msgstr "Тип метасферы"
 
 
 msgid "Ball"
@@ -31441,10 +31389,6 @@ msgstr "Исправить искажение, вызванное деформа
 
 msgid "Lambda Factor"
 msgstr "Коэфф. лямбда"
-
-
-msgid "Smooth factor effect"
-msgstr "Уровень эффекта сглаживания"
 
 
 msgid "Bind current shape"
@@ -33993,10 +33937,6 @@ msgid "Y coordinate of the start position"
 msgstr "Координата Y начального положения"
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "Начальный кадр (для положительной скорости) или конечный кадр (для отрицательной скорости)"
-
-
 msgid "Cyclic wave effect"
 msgstr "Циклический волновой эффект"
 
@@ -36193,10 +36133,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "JPEG"
 
 
 msgid "Combine YUVA"
@@ -51465,10 +51401,6 @@ msgid "Move a node to detach links"
 msgstr "Переместить ноду для отсоединения связей"
 
 
-msgid "Insert Offset"
-msgstr "Вставить со смещением"
-
-
 msgid "Detach Links"
 msgstr "Отсоединить связи"
 
@@ -60570,8 +60502,8 @@ msgid "Fraction"
 msgstr "Дробная часть"
 
 
-msgid "Rotate islands for best fit"
-msgstr "Повернуть острова для наилучшего вписания"
+msgid "Pack"
+msgstr "Упаковать"
 
 
 msgctxt "Operator"
@@ -67889,10 +67821,6 @@ msgid "Tap Key Timeout"
 msgstr "Тайм-аут нажатия клавиши"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "Удержание клавиши кругового меню дольше этого времени скроет меню после отпускания клавиши (в сотых долях секунды)"
-
-
 msgid "Render Display Type"
 msgstr "Режим отображения процесса рендера"
 
@@ -71747,10 +71675,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -81398,10 +81322,6 @@ msgid "Buffer"
 msgstr "Буфер"
 
 
-msgid "Sample Rate"
-msgstr "Частота дискретизации"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "Особая (%.4g кадров/сек)"
 
@@ -83455,10 +83375,6 @@ msgstr "Добавить переход"
 
 msgid "Unpack"
 msgstr "Распаковать"
-
-
-msgid "Pack"
-msgstr "Упаковать"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -92329,6 +92245,10 @@ msgstr "Старый"
 
 msgid "Edge Crease"
 msgstr "Складка на ребре"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Повернуть острова для наилучшего вписания"
 
 
 msgid "Shader Editor"

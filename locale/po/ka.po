@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -11020,14 +11020,6 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
-msgstr "სემპლირების სიხშირე"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "აუდიოს სემპლირების სიხშირე (სემპლები/წმ)"
-
-
 msgctxt "Sound"
 msgid "Volume"
 msgstr "ხმის სიმაღლე"
@@ -17531,10 +17523,6 @@ msgid "Image Boundary Trimming"
 msgstr "გამოსახულების ზღუდის მოკვეცა"
 
 
-msgid "Trim all edges right at the boundary of image(including overscan region)"
-msgstr "შემოჭერი ყველა კიდე ზედ გამოსახულების საზღვარზე (გადასკანირების მონაკვეთის ჩათვლით)"
-
-
 msgid "Use Intersection"
 msgstr "გადაკვეთის გამოყენება"
 
@@ -23304,24 +23292,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "წერტილები U მიმართულებით (ვერ შეიცვლება, როცა არსებობს ფორმის სოლები)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "წერტილები V მიმართულებით (ვერ შეიცვლება, როცა არსებობს ფორმის სოლები)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "წერტილები W მიმართულებით (ვერ შეიცვლება, როცა არსებობს ფორმის სოლები)"
 
 
 msgid "Only display and take into account the outer vertices"
@@ -24563,10 +24539,6 @@ msgid "Vertices of the mesh"
 msgstr "მეშის წვეროები"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "მეტაბურთის მონაცემთა ბლოკი დაბუშტული ზედაპირების გამოსაკვეთად"
-
-
 msgid "Metaball elements"
 msgstr "მეტაბურთის ელემენტები"
 
@@ -24577,10 +24549,6 @@ msgstr "რენდერის ზომა"
 
 msgid "Polygonization resolution in rendering"
 msgstr "გამრავალკუთხედების გარჩევადობა რენდერში"
-
-
-msgid "Wire Size"
-msgstr "მავთულის ზომა"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -25021,10 +24989,6 @@ msgstr "ობიექტის მზღუდავი კოლოფი ო
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "ფიზიკის სიმულაციაში ობიექტის შემჯახებლად გამოყენების პარამეტრები"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "ობიექტის ფერი და ალფა, გამოყენებული, როცა წახნაგებს ObColor რეჟიმი ჩართული აქვს"
 
 
 msgid "Constraints"
@@ -25917,10 +25881,6 @@ msgstr "გლობალური Y"
 
 msgid "Global Z"
 msgstr "გლობალური Z"
-
-
-msgid "Effect Children"
-msgstr "ეფექტი შვილებზე"
 
 
 msgid "Apply effectors to children"
@@ -28501,16 +28461,8 @@ msgid "Cinema (48)"
 msgstr "კინო (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Openjpeg კინოს შაბლონის (48fps) გამოყენება"
-
-
 msgid "Cinema"
 msgstr "კინო"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Openjpeg კინოს შაბლონის გამოყენება"
 
 
 msgid "YCC"
@@ -31068,10 +31020,6 @@ msgid "F-Curve Context Menu"
 msgstr "F-მრუდის კონტექსტური მენიუ"
 
 
-msgid "Slider Operators"
-msgstr "სლაიდერი ოპერატორები"
-
-
 msgid "Mask Context Menu"
 msgstr "შენიღბვის კონტექსტური მენიუ"
 
@@ -31833,10 +31781,6 @@ msgstr "ზომა X"
 
 msgid "Size Z"
 msgstr "ზომა Z"
-
-
-msgid "Metaball types"
-msgstr "მეტაბურთის ტიპები"
 
 
 msgid "Ball"

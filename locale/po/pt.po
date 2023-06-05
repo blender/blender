@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -7757,12 +7757,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
-msgstr "Taxa de amostras"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Taxa de amostras de áudio (amostras por segundo)."
+msgid "Sample Rate"
+msgstr "Taxa de amostragem"
 
 
 msgctxt "Sound"
@@ -13577,24 +13573,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "Pontos na direção U (não pode ser alterado quando há chaves de formato)."
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "Pontos na direção V (não pode ser alterado quando há chaves de formato)."
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "Pontos na direção W (não pode ser alterado quando há chaves de formato)."
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -14149,20 +14133,12 @@ msgid "Vertices of the mesh"
 msgstr "Vértices da malha."
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "Blocos de dados de esferas-meta para superfícies definidas a partir de bolhas."
-
-
 msgid "Render Size"
 msgstr "Resolução de renderização"
 
 
 msgid "Polygonization resolution in rendering"
 msgstr "Resolução poligonização durante a renderização."
-
-
-msgid "Wire Size"
-msgstr "Resolução do aramado"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -14527,10 +14503,6 @@ msgstr "Caixa circundante do objeto nas coordenadas de espaço-objeto, todos os 
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "Definições para o uso do objeto como um colisor dentro da simulação física."
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Cor e alfa do objeto, usado quando as faces possuem o modo de cor de objeto ativo."
 
 
 msgid "Constraints"
@@ -15007,10 +14979,6 @@ msgstr "Y Global"
 
 msgid "Global Z"
 msgstr "Z Global"
-
-
-msgid "Effect Children"
-msgstr "Efetores para as crianças"
 
 
 msgid "Apply effectors to children"
@@ -21399,10 +21367,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "Vértices em um bloco de dados de malha."
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "Pesos de influência usado pelo modificador chanfro com a opção \"Somente vértices\"."
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "Pesos para os grupos de vértices nos quais este vértice é membro."
 
@@ -21489,10 +21453,6 @@ msgstr "Tamanho Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "A rigidez define quanto preencher do elemento."
-
-
-msgid "Metaball types"
-msgstr "Tipos de objeto esfera-meta"
 
 
 msgid "Ball"
@@ -22017,10 +21977,6 @@ msgstr "Corrige as distorções causadas pelas deformações (em geral, por osso
 
 msgid "Lambda Factor"
 msgstr "Fator Lambda"
-
-
-msgid "Smooth factor effect"
-msgstr "Fator para efeito de suavização."
 
 
 msgid "Bind current shape"
@@ -24303,10 +24259,6 @@ msgid "Y coordinate of the start position"
 msgstr "Coordenada Y da posição inicial."
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "Ou o fotograma inicial (para velocidade positiva) ou o fotograma final (para velocidade negativa)."
-
-
 msgid "Cyclic wave effect"
 msgstr "Efeito de onda cíclica."
 
@@ -26389,10 +26341,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -38357,10 +38305,6 @@ msgid "Move a node to detach links"
 msgstr "Move um nó para desconectar as ligações."
 
 
-msgid "Insert Offset"
-msgstr "Inserir deslocamento"
-
-
 msgid "Detach Links"
 msgstr "Desconectar ligações"
 
@@ -45524,10 +45468,6 @@ msgstr "Empacotar ilhas"
 
 msgid "Space between islands"
 msgstr "Espaço entre ilhas."
-
-
-msgid "Rotate islands for best fit"
-msgstr "Rotaciona as ilhas para um melhor ajuste."
 
 
 msgctxt "Operator"
@@ -53218,10 +53158,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
-
-
 msgid "Sequence strip in the sequence editor"
 msgstr "Faixa de sequência dentro do editor de sequências."
 
@@ -59711,10 +59647,6 @@ msgstr "Data"
 
 msgid "Buffer"
 msgstr "Contingenciador"
-
-
-msgid "Sample Rate"
-msgstr "Taxa de amostragem"
 
 
 msgid "Source Clone Slot"
@@ -66557,6 +66489,10 @@ msgstr "Antigo(a)"
 
 msgid "Edge Crease"
 msgstr "Vincos de arestas"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Rotaciona as ilhas para um melhor ajuste."
 
 
 msgid "AO"

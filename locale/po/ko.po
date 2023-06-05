@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -9311,12 +9311,8 @@ msgid "Vorbis"
 msgstr "보비스"
 
 
-msgid "Samplerate"
-msgstr "셈플레이트"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "오디오 셈플레이트 (샘플/초)"
+msgid "Sample Rate"
+msgstr "샘플 비율"
 
 
 msgctxt "Sound"
@@ -17790,24 +17786,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "U 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "V 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "W 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -18884,20 +18868,12 @@ msgid "Vertices of the mesh"
 msgstr "메쉬의 버텍스"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "방울진 표면을 정의하는 메타볼 데이터 블록"
-
-
 msgid "Render Size"
 msgstr "렌더 크기"
 
 
 msgid "Polygonization resolution in rendering"
 msgstr "렌더링에서 폴리고니제이션 해상도"
-
-
-msgid "Wire Size"
-msgstr "와이어 크기"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -19270,10 +19246,6 @@ msgstr "오브젝트 공간 좌표에서 오브젝트의 경계 박스, 사용�
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "피직스 시뮬레이션에서 오브젝트를 충돌체로 사용하기 위한 설정"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "페이스에 ObColor 모드가 활성화된 경우 활성화된 오브젝트 컬러 및 알파"
 
 
 msgid "Constraints"
@@ -20009,10 +19981,6 @@ msgstr "글로벌 Y"
 
 msgid "Global Z"
 msgstr "글로벌 Z"
-
-
-msgid "Effect Children"
-msgstr "이펙트 자식"
 
 
 msgid "Apply effectors to children"
@@ -22985,10 +22953,6 @@ msgid "File format to save the rendered images as"
 msgstr "렌더링 이미지를 저장하는 파일 형식"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Jpeg2000에 대한 코덱 설정"
-
-
 msgid "Quality for image formats that support lossy compression"
 msgstr "손실 압축을 지원하는 이미지 포맷에 대한 품질"
 
@@ -23017,16 +22981,8 @@ msgid "Cinema (48)"
 msgstr "시네마 (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Openjpeg 시네마 프리셋을 사용 (48fps)"
-
-
 msgid "Cinema"
 msgstr "시네마"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Openjpeg 시네마 프리셋을 사용"
 
 
 msgid "YCC"
@@ -27320,10 +27276,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "메쉬 데이터 블록에서 버텍스"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "베벨 모디파이어 '버텍스 전용' 옵션에 사용되는 웨이트"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "이 버텍스가 다음의 멤버인 버텍스 그룹에 대한 가중치"
 
@@ -27410,10 +27362,6 @@ msgstr "크기 Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "채우는 요소의 얼마나 많은 강성 정의"
-
-
-msgid "Metaball types"
-msgstr "메타볼 유형"
 
 
 msgid "Ball"
@@ -28270,10 +28218,6 @@ msgstr "변형으로 인한 왜곡 보정"
 
 msgid "Lambda Factor"
 msgstr "람다 팩터"
-
-
-msgid "Smooth factor effect"
-msgstr "스무스 팩터 이펙트"
 
 
 msgid "Bind current shape"
@@ -30830,10 +30774,6 @@ msgid "Y coordinate of the start position"
 msgstr "시작 위치의 Y 좌표"
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "시작하는 프레임(양수 속력) 또는 종료하는 프레임(음수 속력)중 하나"
-
-
 msgid "Cyclic wave effect"
 msgstr "사이클 웨이브 이펙트"
 
@@ -33020,10 +32960,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -48052,10 +47988,6 @@ msgid "Move a node to detach links"
 msgstr "연결을 분리하기 위해 노드를 이동"
 
 
-msgid "Insert Offset"
-msgstr "삽입 오프셋"
-
-
 msgid "Detach Links"
 msgstr "연결을 분리"
 
@@ -57053,8 +56985,8 @@ msgid "Fraction"
 msgstr "분수"
 
 
-msgid "Rotate islands for best fit"
-msgstr "최상의 맞추기에 대해 아일랜드를 회전"
+msgid "Pack"
+msgstr "포장"
 
 
 msgctxt "Operator"
@@ -64329,10 +64261,6 @@ msgid "Tap Key Timeout"
 msgstr "탭 키 타임 아웃"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "파이 메뉴 버튼을 길게 누르면 해제 시 메뉴가 사라집니다. (1/100 초 단위)"
-
-
 msgid "Render Display Type"
 msgstr "렌더 표시 유형"
 
@@ -68111,10 +68039,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -77281,10 +77205,6 @@ msgid "Buffer"
 msgstr "버퍼"
 
 
-msgid "Sample Rate"
-msgstr "샘플 비율"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "커스텀 (%.4g fps)"
 
@@ -79392,10 +79312,6 @@ msgstr "전환을 추가"
 
 msgid "Unpack"
 msgstr "포장 해제"
-
-
-msgid "Pack"
-msgstr "포장"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -87759,6 +87675,10 @@ msgstr "오래된"
 
 msgid "Edge Crease"
 msgstr "에지 크리스"
+
+
+msgid "Rotate islands for best fit"
+msgstr "최상의 맞추기에 대해 아일랜드를 회전"
 
 
 msgid "Shader Editor"

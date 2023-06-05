@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -7498,12 +7498,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
-msgstr "Frequenza Campioni"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Frequenza di Campionamento Audio (campioni/s)"
+msgid "Sample Rate"
+msgstr "Frequenza Campionamento"
 
 
 msgctxt "Sound"
@@ -13023,10 +13019,6 @@ msgid "Render Size"
 msgstr "Dimensione Render"
 
 
-msgid "Wire Size"
-msgstr "Dimensione Reticolo"
-
-
 msgid "Update"
 msgstr "Aggiorna"
 
@@ -13321,10 +13313,6 @@ msgstr "Casella Delimitazione"
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "Impostazioni per utilizzare l'oggetto come un collisionatore nella simulazione fisica"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Colore e trasparenza alfa dell'oggetto, usati quando le facce hanno abilitata la modalità ObColor"
 
 
 msgid "Constraints"
@@ -13836,10 +13824,6 @@ msgstr "Globale Y"
 
 msgid "Global Z"
 msgstr "Globale Z"
-
-
-msgid "Effect Children"
-msgstr "Effettori ai Figli"
 
 
 msgid "Apply effectors to children"
@@ -19064,10 +19048,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "Vertici in blocco-dati Mesh"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "Influenza usata dall'opzione \"Solo Vertici\" del modificatore Smusso"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "Influenze per il gruppo di vertici di cui questo vertice fa parte"
 
@@ -19122,10 +19102,6 @@ msgstr "Dimensione Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "La rigidità definisce quanta parte dell'elemento riempire"
-
-
-msgid "Metaball types"
-msgstr "Tipo metaball"
 
 
 msgid "Ball"
@@ -21752,10 +21728,6 @@ msgid "Y coordinate of the start position"
 msgstr "Coordinata Y della posizione iniziale"
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "O il fotogramma iniziale (per la velocità positiva) o quello finale (per la velocità negativa.)"
-
-
 msgid "Cyclic wave effect"
 msgstr "Effetto onda ciclico"
 
@@ -23182,10 +23154,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -33497,10 +33465,6 @@ msgid "Detach"
 msgstr "Scollega"
 
 
-msgid "Insert Offset"
-msgstr "Scostamento Inserimento"
-
-
 msgid "Detach Links"
 msgstr "Scollega Connessioni"
 
@@ -40062,8 +40026,8 @@ msgid "Space between islands"
 msgstr "Spazio tra le isole"
 
 
-msgid "Rotate islands for best fit"
-msgstr "Ruota le isole per ottimizzare lo spazio"
+msgid "Pack"
+msgstr "Comprimi"
 
 
 msgctxt "Operator"
@@ -47061,10 +47025,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Posizione Y dello spezzone sequenza"
 
@@ -52389,10 +52349,6 @@ msgid "Buffer"
 msgstr "Buffer"
 
 
-msgid "Sample Rate"
-msgstr "Frequenza Campionamento"
-
-
 msgid "Source Clone Image"
 msgstr "Sorgente Clona Immagine"
 
@@ -53575,10 +53531,6 @@ msgstr "Aggiungi Transizione"
 
 msgid "Unpack"
 msgstr "Estrai"
-
-
-msgid "Pack"
-msgstr "Comprimi"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -59366,6 +59318,10 @@ msgstr "Rimanente"
 
 msgid "Edge Crease"
 msgstr "Piega Spigolo"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Ruota le isole per ottimizzare lo spazio"
 
 
 msgid " node"

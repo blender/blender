@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -1400,6 +1400,10 @@ msgid "Modifiers"
 msgstr "ﺎﻫ‌ﺮﮕﺣﻼ﻿ﺻﺍ"
 
 
+msgid "Sample Rate"
+msgstr "ﻪﻧﻮﻤﻧ ﺖﻋﺮﺳ"
+
+
 msgid "MPEG-2"
 msgstr "MPEG-2"
 
@@ -1730,10 +1734,6 @@ msgstr "ﻪﻄﻘﻧ ﻩﺯﺍﺪﻧﺍ"
 
 msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
-
-
-msgid "Wire Size"
-msgstr "ﻢﯿﺳ ﻩﺯﺍﺪﻧﺍ"
 
 
 msgid "Nodes"
@@ -3104,6 +3104,10 @@ msgid "All UVs"
 msgstr "ﺎﻫUV ﻪﻤﻫ"
 
 
+msgid "Pack"
+msgstr "ﻪﺘﺴﺑ"
+
+
 msgctxt "Operator"
 msgid "Reset"
 msgstr "ﯽﻧﺎﺸﻧﺯﺎﺑ"
@@ -3729,10 +3733,6 @@ msgid "Date"
 msgstr "ﺦﯾﺭﺎﺗ"
 
 
-msgid "Sample Rate"
-msgstr "ﻪﻧﻮﻤﻧ ﺖﻋﺮﺳ"
-
-
 msgid "Roughness End"
 msgstr "ﯼﺮﺑﺯ ﻥﺎﯾﺎﭘ"
 
@@ -3763,10 +3763,6 @@ msgstr "ﺮﯾﻮﺼﺗ*"
 
 msgid "Aspect Ratio"
 msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
-
-
-msgid "Pack"
-msgstr "ﻪﺘﺴﺑ"
 
 
 msgid "Text: External"
