@@ -1073,8 +1073,8 @@ void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
   do {
     int ni2 = BM_ELEM_CD_GET_INT(l->v, pbvh->cd_vert_node_offset);
 
-    if (ni2 < 0 || ni2 >= pbvh->totnode || !(pbvh->nodes[ni2].flag & PBVH_Leaf) ||
-        !(pbvh->nodes[ni2].bm_unique_verts->contains(l->v)))
+    if (ni2 != DYNTOPO_NODE_NONE &&
+        (ni2 < 0 || ni2 >= pbvh->totnode || !(pbvh->nodes[ni2].flag & PBVH_Leaf)))
     {
       printf("%s: pbvh corruption\n", __func__);
       ni2 = DYNTOPO_NODE_NONE;
