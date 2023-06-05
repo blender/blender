@@ -206,7 +206,7 @@ ccl_device_inline float max4(float a, float b, float c, float d)
   return max(max(a, b), max(c, d));
 }
 
-#if !defined(__KERNEL_METAL__)
+#if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 
 ccl_device_inline int as_int(uint i)
