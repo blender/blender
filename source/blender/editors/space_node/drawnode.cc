@@ -1296,7 +1296,7 @@ static void std_node_socket_draw(
   }
 
   if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
-      ((sock->flag & SOCK_IS_LINKED) && !(sock->link->is_muted())))
+      ((sock->flag & SOCK_IS_LINKED) && !all_links_muted(*sock)))
   {
     node_socket_button_label(C, layout, ptr, node_ptr, text);
     return;
