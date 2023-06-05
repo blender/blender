@@ -5,6 +5,8 @@ from __future__ import annotations
 import bpy
 import _cycles
 
+from bpy.app.translations import pgettext_tip as tip_
+
 
 def osl_compile(input_path, report):
     """compile .osl file with given filepath to temporary .oso file"""
@@ -103,7 +105,7 @@ def update_script_node(node, report):
         ok = _cycles.osl_update_node(data, node.id_data.as_pointer(), node.as_pointer(), oso_path)
 
         if not ok:
-            report({'ERROR'}, "OSL query failed to open " + oso_path)
+            report({'ERROR'}, tip_("OSL query failed to open %s") % oso_path)
     else:
         report({'ERROR'}, "OSL script compilation failed, see console for errors")
 
