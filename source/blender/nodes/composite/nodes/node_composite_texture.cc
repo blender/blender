@@ -57,7 +57,7 @@ class TextureOperation : public NodeOperation {
     CachedTexture &cached_texture = context().cache_manager().cached_textures.get(
         context(),
         get_texture(),
-        context().get_scene(),
+        context().use_texture_color_management(),
         domain.size,
         get_input("Offset").get_vector_value_default(float4(0.0f)).xy(),
         get_input("Scale").get_vector_value_default(float4(0.0f)).xy());

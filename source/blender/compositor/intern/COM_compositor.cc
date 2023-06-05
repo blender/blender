@@ -50,7 +50,7 @@ static void compositor_reset_node_tree_status(bNodeTree *node_tree)
 void COM_execute(RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
-                 int rendering,
+                 bool rendering,
                  const char *view_name)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and

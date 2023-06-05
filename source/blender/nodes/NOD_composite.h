@@ -30,7 +30,7 @@ void register_node_type_cmp_custom_group(bNodeType *ntype);
 void ntreeCompositExecTree(struct Scene *scene,
                            struct bNodeTree *ntree,
                            struct RenderData *rd,
-                           int rendering,
+                           bool rendering,
                            int do_previews,
                            const char *view_name);
 

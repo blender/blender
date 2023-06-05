@@ -705,22 +705,15 @@ bool BKE_texture_dependsOnTime(const Tex *texture)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_texture_get_value_ex(const Scene *scene,
-                              Tex *texture,
+void BKE_texture_get_value_ex(Tex *texture,
                               const float *tex_co,
                               TexResult *texres,
                               ImagePool *pool,
                               bool use_color_management)
 {
-  int result_type;
-  bool do_color_manage = false;
-
-  if (scene && use_color_management) {
-    do_color_manage = BKE_scene_check_color_management_enabled(scene);
-  }
-
   /* no node textures for now */
-  result_type = multitex_ext_safe(texture, tex_co, texres, pool, do_color_manage, false);
+  const int result_type = multitex_ext_safe(
+      texture, tex_co, texres, pool, use_color_management, false);
 
   /* if the texture gave an RGB value, we assume it didn't give a valid
    * intensity, since this is in the context of modifiers don't use perceptual color conversion.
@@ -734,13 +727,12 @@ void BKE_texture_get_value_ex(const Scene *scene,
   }
 }
 
-void BKE_texture_get_value(const Scene *scene,
-                           Tex *texture,
+void BKE_texture_get_value(Tex *texture,
                            const float *tex_co,
                            TexResult *texres,
                            bool use_color_management)
 {
-  BKE_texture_get_value_ex(scene, texture, tex_co, texres, nullptr, use_color_management);
+  BKE_texture_get_value_ex(texture, tex_co, texres, nullptr, use_color_management);
 }
 
 static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, ImagePool *pool)

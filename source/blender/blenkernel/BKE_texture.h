@@ -75,15 +75,13 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture);
  */
 bool BKE_texture_is_image_user(const struct Tex *tex);
 
-void BKE_texture_get_value_ex(const struct Scene *scene,
-                              struct Tex *texture,
+void BKE_texture_get_value_ex(struct Tex *texture,
                               const float *tex_co,
                               struct TexResult *texres,
                               struct ImagePool *pool,
                               bool use_color_management);
 
-void BKE_texture_get_value(const struct Scene *scene,
-                           struct Tex *texture,
+void BKE_texture_get_value(struct Tex *texture,
                            const float *tex_co,
                            struct TexResult *texres,
                            bool use_color_management);

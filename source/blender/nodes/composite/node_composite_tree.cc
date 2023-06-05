@@ -174,7 +174,7 @@ void register_node_tree_type_cmp()
 void ntreeCompositExecTree(Scene *scene,
                            bNodeTree *ntree,
                            RenderData *rd,
-                           int rendering,
+                           bool rendering,
                            int do_preview,
                            const char *view_name)
 {

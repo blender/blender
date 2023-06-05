@@ -449,7 +449,9 @@ class OutputFileOperation : public NodeOperation {
 
   void execute() override
   {
-    context().set_info_message("Viewport compositor setup not fully supported");
+    if (context().use_file_output()) {
+      context().set_info_message("Viewport compositor setup not fully supported");
+    }
   }
 };
 
