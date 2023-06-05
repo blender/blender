@@ -104,8 +104,8 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
    SCULPT_CORNER_UV | SCULPT_CORNER_SHARP_ANGLE)
 
 #define DYNTOPO_MAX_ITER 512
-#define DYNTOPO_MAX_ITER_COLLAPSE 512
-#define DYNTOPO_MAX_ITER_SUBD 512
+#define DYNTOPO_MAX_ITER_COLLAPSE 16
+#define DYNTOPO_MAX_ITER_SUBD 16
 
 #define DYNTOPO_USE_HEAP
 #define DYNTOPO_USE_MINMAX_HEAP
@@ -135,6 +135,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
  * to improve convergence of dyntopo remesher.
  */
 #define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
+
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
@@ -266,16 +267,10 @@ struct EdgeQueueContext {
   int current_i = 0;
   int max_steps;
   PBVH *pbvh;
-  BMEdge **split_edges;
-  int split_edges_size;
-  int etot;
-  blender::Set<BMEdge *> subd_edges;
 
   bool modified = false;
-  int count_subd = 0;
   int count = 0;
   int curop = 0;
-  int max_subd;
 
   ~EdgeQueueContext();
   EdgeQueueContext(BrushTester *brush_tester,
@@ -289,7 +284,6 @@ struct EdgeQueueContext {
                    void *mask_cb_data,
                    int edge_limit_multiply);
 
-  void flush_subdivision();
   void start();
   bool done();
   void step();

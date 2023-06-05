@@ -122,7 +122,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh)
   }
 }
 
-void pbvh_bmesh_check_nodes(PBVH *pbvh)
+ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   BMVert *v;
   BMIter iter;
@@ -644,8 +644,10 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
       if (ni2 != DYNTOPO_NODE_NONE) {
         PBVHNode *node = pbvh->nodes + ni2;
 
-        node->flag |= PBVHNodeFlags(updateflag);
-        node->bm_other_verts->remove(v);
+        if (ni2 >= 0 && ni2 < pbvh->totnode && pbvh->nodes[ni2].flag & PBVH_Leaf) {
+          node->flag |= PBVHNodeFlags(updateflag);
+          node->bm_other_verts->remove(v);
+        }
       }
     } while ((l = l->radial_next) != e->l);
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
@@ -684,7 +686,12 @@ void pbvh_bmesh_face_remove(
         }
 
         if (ni2 != DYNTOPO_NODE_NONE && ni2 != ni) {
-          new_ni = ni2;
+          if (ni2 < 0 || ni2 >= pbvh->totnode || !(pbvh->nodes[ni2].bm_other_verts)) {
+            printf("error! invalid node index %d!\n", ni2);
+          }
+          else {
+            new_ni = ni2;
+          }
         }
       }
 
@@ -1049,7 +1056,7 @@ static bool point_in_node(const PBVHNode *node, const float co[3])
          co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
 }
 
-void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
+ATTR_NO_OPT void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 {
   PBVHNode *node = pbvh->nodes + ni;
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);

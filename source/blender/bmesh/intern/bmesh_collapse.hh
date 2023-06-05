@@ -406,7 +406,7 @@ static bool cleanup_vert(BMesh *bm, BMVert *v, Callbacks &callbacks)
   f = BM_face_create_quad_tri(bm, v1, v2, v3, nullptr, f_example, BM_CREATE_NOP);
   BMLoop *l = f->l_first;
 
-  // ensure correct winding
+  /* Ensure correct winding. */
   do {
     if (l->radial_next != l && l->radial_next->v == l->v) {
       BM_face_normal_flip(bm, f);
@@ -607,18 +607,12 @@ BMVert *join_vert_kill_edge(BMesh *bm,
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
   }
 
-  // printf("fs len: %d\n", int(fs.size()));
-
   for (BMFace *f : fs) {
     callbacks.on_face_kill(f);
   }
 
   /* Unlink loops. */
   for (BMFace *f : fs) {
-    if (f->head.htype != BM_FACE) {
-      printf("f was freed!\n");
-      continue;
-    }
     BMLoop *l = f->l_first;
 
     do {
@@ -678,7 +672,6 @@ BMVert *join_vert_kill_edge(BMesh *bm,
         if (v_other == v_conn) {
           /* Flag for later deletion. */
           if (!BM_ELEM_API_FLAG_TEST(l->e, tag)) {
-            // printf("%p l:%p 1\n", l->e->l, l);
             deles.append(l->e);
           }
 
@@ -701,7 +694,6 @@ BMVert *join_vert_kill_edge(BMesh *bm,
 
             /* Flag for later deletion. */
             if (!BM_ELEM_API_FLAG_TEST(l->e, tag)) {
-              // printf("%p l:%p 2\n", l->e->l, l);
               deles.append(l->e);
             }
 
@@ -880,7 +872,7 @@ BMVert *join_vert_kill_edge(BMesh *bm,
 #endif
 
   /* Use euler criteria to check for duplicate faces. */
-  if (0 && do_del && v_conn->e) {
+  if (do_del && v_conn->e) {
 #if 0
     int tote = 0, totv = 0, totf = 0;
 
@@ -977,9 +969,6 @@ if (do_del) {
     printf("%s: vert is not cleared\n", __func__);
   }
 
-  bool ok = !v_del->e;
-  ok = ok || (!v_del->e->l && v_del->e == BM_DISK_EDGE_NEXT(v_del->e, v_del));
-
   if (v_del->e) {
     BMIter iter;
 
@@ -994,10 +983,8 @@ if (do_del) {
     }
   }
 
-  if (1 || ok) {
-    callbacks.on_vert_kill(v_del);
-    BM_vert_kill(bm, v_del);
-  }
+  callbacks.on_vert_kill(v_del);
+  BM_vert_kill(bm, v_del);
 }
 
 #ifdef JVKE_DEBUG

@@ -50,6 +50,8 @@
 
 //#define CLEAR_TAGS_IN_THREAD
 
+#define EDGE_QUEUE_FLAG BM_ELEM_TAG
+
 using blender::float2;
 using blender::float3;
 using blender::float4;
@@ -62,10 +64,7 @@ namespace blender::bke::dyntopo {
 
 using namespace blender::bke::sculpt;
 
-static void pbvh_split_edges(struct EdgeQueueContext *eq_ctx,
-                             PBVH *pbvh,
-                             BMesh *bm,
-                             Span<BMEdge *> edges);
+static void pbvh_split_edge(struct EdgeQueueContext *eq_ctx, BMEdge *e);
 
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
@@ -306,9 +305,9 @@ static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
 
 static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e, float w)
 {
-  if (!(e->head.hflag & BM_ELEM_TAG)) {
+  if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
     eq_ctx->edge_heap.insert(w, e);
-    e->head.hflag |= BM_ELEM_TAG;
+    e->head.hflag |= EDGE_QUEUE_FLAG;
   }
 }
 
@@ -516,7 +515,7 @@ static void add_split_edge_recursive(
       do {
         BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
         for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
-          if (l_adjacent[i]->e->head.hflag & BM_ELEM_TAG) {
+          if (l_adjacent[i]->e->head.hflag & EDGE_QUEUE_FLAG) {
             continue;
           }
 
@@ -544,9 +543,9 @@ static void add_split_edge_recursive(
     }
   }
 
-  if (!skinny_bad_edge(l_edge->e)) {
-    edge_queue_insert_unified(eq_ctx, l_edge->e, len_sq);
-  }
+  // if (!skinny_bad_edge(l_edge->e)) {
+  edge_queue_insert_unified(eq_ctx, l_edge->e, len_sq);
+  //}
 
   if ((l_edge->radial_next != l_edge)) {
     const float len_sq_cmp = len_sq * EVEN_EDGELEN_THRESHOLD;
@@ -558,7 +557,7 @@ static void add_split_edge_recursive(
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
       for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
-        if (l_adjacent[i]->e->head.hflag & BM_ELEM_TAG) {
+        if (l_adjacent[i]->e->head.hflag & EDGE_QUEUE_FLAG) {
           continue;
         }
 
@@ -595,7 +594,7 @@ static void edge_thread_data_insert(EdgeQueueThreadData *tdata, BMEdge *e)
   BMElem elem;
   memcpy(&elem, (BMElem *)e, sizeof(BMElem));
 
-  elem.head.hflag = e->head.hflag | BM_ELEM_TAG;
+  elem.head.hflag = e->head.hflag | EDGE_QUEUE_FLAG;
   int64_t iold = *((int64_t *)&e->head.index);
   int64_t inew = *((int64_t *)&elem.head.index);
 
@@ -624,8 +623,8 @@ static void add_split_edge_recursive_threaded(EdgeQueueThreadData *tdata,
     }
   } while ((l = l->radial_next) != l_edge);
 
-  if (l_edge->e->head.hflag & BM_ELEM_TAG) {
-    // return;
+  if (l_edge->e->head.hflag & EDGE_QUEUE_FLAG) {
+    return;
   }
 
 #ifdef USE_EDGEQUEUE_FRONTFACE
@@ -721,7 +720,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
        * don't need to do this on x86, but I'm not sure about ARM.
        */
       BMEdge edge = *l->e;
-      edge.head.hflag &= ~BM_ELEM_TAG;
+      edge.head.hflag &= ~EDGE_QUEUE_FLAG;
 
       int64_t *t1 = (int64_t *)&edge.head.index;
       int64_t *t2 = (int64_t *)&l->e->head.index;
@@ -1299,7 +1298,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
     for (BMFace *f : *node->bm_faces) {
       BMLoop *l = f->l_first;
       do {
-        l->e->head.hflag &= ~BM_ELEM_TAG;
+        l->e->head.hflag &= ~EDGE_QUEUE_FLAG;
         l->v->head.hflag &= ~BM_ELEM_TAG;
         l->f->head.hflag &= ~(BM_ELEM_TAG | BM_ELEM_TAG_ALT);
       } while ((l = l->next) != f->l_first);
@@ -1311,7 +1310,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   for (int i = 0; i < count; i++) {
     for (BMEdge *e : tdata[i].edges) {
-      e->head.hflag &= ~BM_ELEM_TAG;
+      e->head.hflag &= ~EDGE_QUEUE_FLAG;
     }
   }
 
@@ -1322,7 +1321,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
         continue;
       }
 
-      e->head.hflag &= ~BM_ELEM_TAG;
+      e->head.hflag &= ~EDGE_QUEUE_FLAG;
 
       if (e->l && e->l != e->l->radial_next->radial_next) {
         /* Fix non-manifold "fins". */
@@ -1351,8 +1350,8 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       verts.append(e->v1);
       verts.append(e->v2);
 
-      e->v1->head.hflag |= BM_ELEM_TAG;
-      e->v2->head.hflag |= BM_ELEM_TAG;
+      e->v1->head.hflag |= EDGE_QUEUE_FLAG;
+      e->v2->head.hflag |= EDGE_QUEUE_FLAG;
 
       float w;
       if (edge_queue_test(eq_ctx, pbvh, e, &w)) {
@@ -1370,7 +1369,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   }
 
   for (BMEdge *e : eq_ctx->edge_heap.values()) {
-    e->head.hflag |= BM_ELEM_TAG;
+    e->head.hflag |= EDGE_QUEUE_FLAG;
   }
 
   if (push_subentry) {
@@ -1448,7 +1447,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   for (int i = 0; i < count; i++) {
     for (BMEdge *e : tdata[i].edges) {
-      e->head.hflag &= ~BM_ELEM_TAG;
+      e->head.hflag &= ~EDGE_QUEUE_FLAG;
     }
   }
 
@@ -1457,9 +1456,9 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
       e->v1->head.hflag &= ~BM_ELEM_TAG;
       e->v2->head.hflag &= ~BM_ELEM_TAG;
 
-      if (!(e->head.hflag & BM_ELEM_TAG)) {
+      if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
         edges.append(e);
-        e->head.hflag |= BM_ELEM_TAG;
+        e->head.hflag |= EDGE_QUEUE_FLAG;
       }
     }
   }
@@ -1497,7 +1496,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
       BMEdge *e1 = v1->e;
 
       do {
-        e1->head.hflag &= ~BM_ELEM_TAG;
+        e1->head.hflag &= ~EDGE_QUEUE_FLAG;
 
         e1 = BM_DISK_EDGE_NEXT(e1, v1);
       } while (e1 != v1->e);
@@ -1506,7 +1505,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   /* Re-tag edge list. */
   for (int i = 0; i < edges.size(); i++) {
-    edges[i]->head.hflag |= BM_ELEM_TAG;
+    edges[i]->head.hflag |= EDGE_QUEUE_FLAG;
   }
 
   int totstep = 3;
@@ -1524,7 +1523,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
         BMEdge *e1 = v1->e;
 
         do {
-          if (e1->head.hflag & BM_ELEM_TAG) {
+          if (e1->head.hflag & EDGE_QUEUE_FLAG) {
             len += lens[e1->head.index];
             totlen += 1.0f;
           }
@@ -1548,7 +1547,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
   for (int i = 0; i < edges.size(); i++) {
     BMEdge *e = edges[i];
 
-    e->head.hflag &= ~BM_ELEM_TAG;
+    e->head.hflag &= ~EDGE_QUEUE_FLAG;
 
     pbvh_check_vert_boundary(pbvh, e->v1);
     pbvh_check_vert_boundary(pbvh, e->v2);
@@ -2080,41 +2079,9 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   }
 
   max_steps = (DYNTOPO_MAX_ITER * edge_limit_multiply) << (totop - 1);
-  max_subd = max_steps >> (totop - 1);
-
-  if (totop > 0) {
-    split_edges_size = steps[0];
-    split_edges = (BMEdge **)MEM_malloc_arrayN(split_edges_size, sizeof(void *), __func__);
-    etot = 0;
-
-    subd_edges.clear();
-  }
-  else {
-    split_edges = nullptr;
-    split_edges_size = 0;
-  }
 }
 
-void EdgeQueueContext::flush_subdivision()
-{
-  if (etot == 0) {
-    return;
-  }
-
-  modified = true;
-  subd_edges.clear();
-
-  pbvh_split_edges(this, pbvh, pbvh->header.bm, {split_edges, etot});
-
-  count_subd += etot;
-  VALIDATE_LOG(pbvh->bm_log);
-  etot = 0;
-}
-
-EdgeQueueContext::~EdgeQueueContext()
-{
-  MEM_SAFE_FREE(split_edges);
-}
+EdgeQueueContext::~EdgeQueueContext() {}
 
 void EdgeQueueContext::start()
 {
@@ -2126,8 +2093,16 @@ bool EdgeQueueContext::done()
   return totop == 0 || edge_heap.empty() || current_i >= max_steps;
 }
 
-void EdgeQueueContext::finish()
+ATTR_NO_OPT void EdgeQueueContext::finish()
 {
+  while (!edge_heap.empty()) {
+    BMEdge *e = edge_heap.pop_max();
+
+    if (!BM_elem_is_free(reinterpret_cast<BMElem *>(e), BM_EDGE)) {
+      e->head.hflag &= ~EDGE_QUEUE_FLAG;
+    }
+  }
+
   if (mode & PBVH_Cleanup) {
     modified |= do_cleanup_3_4(this, pbvh);
 
@@ -2198,33 +2173,19 @@ void EdgeQueueContext::step()
   BMEdge *e = nullptr;
 
   if (count >= steps[curop]) {
-    if (ops[curop] == PBVH_Subdivide) {  // && count_subd < max_subd) {
-      BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
-      flush_subdivision();
-      flushed_ = true;
-    }
-
     curop = (curop + 1) % totop;
     count = 0;
-  }
 
-#if 0
-  if (curop == 0 && count_subd >= max_subd && totop > 1 && ops[0] == PBVH_Subdivide &&
-      ops[1] == PBVH_Collapse)
-  {
-    if (etot > 0) {
-      flush_subdivision();
-    }
-    curop = 1;
+    flushed_ = true;
   }
-#endif
 
   RandomNumberGenerator srand(PIL_check_seconds_timer() * 10000);
 
   auto do_smooth = [&](BMVert *v) {
-    // if (srand.get_float() > 0.75) {
-    // surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, true);
-    //}
+    float prob = ops[curop] == PBVH_Subdivide ? 0.25 : 0.75;
+    if (srand.get_float() > prob) {
+      surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, true);
+    }
   };
 
   switch (ops[curop]) {
@@ -2243,7 +2204,7 @@ void EdgeQueueContext::step()
               fabs(calc_weighted_length(this, e->v1, e->v2, SPLIT) - w) > w * 0.1))
       {
         if (e && !bm_elem_is_free((BMElem *)e, BM_EDGE)) {
-          e->head.hflag &= ~BM_ELEM_TAG;
+          e->head.hflag &= ~EDGE_QUEUE_FLAG;
           edge_heap.insert(calc_weighted_length(this, e->v1, e->v2, SPLIT), e);
         }
 
@@ -2264,8 +2225,10 @@ void EdgeQueueContext::step()
       do_smooth(e->v1);
       do_smooth(e->v2);
 
-      e->head.hflag &= ~BM_ELEM_TAG;
+      e->head.hflag &= ~EDGE_QUEUE_FLAG;
 
+      pbvh_split_edge(this, e);
+#if 0
       /* Add complete faces. */
       BMLoop *l = e->l;
       if (l) {
@@ -2281,12 +2244,13 @@ void EdgeQueueContext::step()
             }
 
             if (subd_edges.add(l->e)) {
-              l->e->head.hflag &= ~BM_ELEM_TAG;
+              l->e->head.hflag &= ~EDGE_QUEUE_FLAG;
               split_edges[etot++] = l->e;
             }
           } while ((l2 = l2->next) != l);
         } while ((l = l->radial_next) != e->l);
       }
+#endif
       break;
     }
     case PBVH_Collapse: {
@@ -2326,7 +2290,6 @@ void EdgeQueueContext::step()
 
       modified = true;
       pbvh_bmesh_collapse_edge(pbvh, e, e->v1, e->v2, this);
-      flushed_ = true;
       VALIDATE_LOG(pbvh->bm_log);
       break;
     }
@@ -2335,12 +2298,6 @@ void EdgeQueueContext::step()
     case PBVH_Cleanup:
       BLI_assert_unreachable();
       break;
-  }
-
-  if (edge_heap.empty() && etot > 0) {
-    /* Flush subdivision, it may add more to queue.*/
-    flush_subdivision();
-    flushed_ = true;
   }
 
   count++;
@@ -2408,7 +2365,7 @@ bool remesh_topology(BrushTester *brush_tester,
     eq_ctx.step();
 
     if (PIL_check_seconds_timer() - time > 350.0 / 1000.0) {
-      // XXX break;
+      break;
     }
   }
 
@@ -2416,624 +2373,8 @@ bool remesh_topology(BrushTester *brush_tester,
   return eq_ctx.modified;
 }
 
-#define SPLIT_TAG BM_ELEM_TAG_ALT
-
-/*
-
-#generate shifted and mirrored patterns
-# [number of verts, vert_connections... ]
-table = [
-  [4,     -1,  3, -1, -1],
-  [5,     -1,  3, -1,  0, -1],
-  [6,     -1,  3, -1,  5, -1, 1]
-]
-
-table2 = {}
-
-def getmask(row):
-  mask = 0
-  for i in range(len(row)):
-    if row[i] >= 0:
-      mask |= 1 << i
-  return mask
-
-ii = 0
-for row in table:
-  n = row[0]
-  row = row[1:]
-
-  mask = getmask(row)
-  table2[mask] = [n] + row
-
-  for step in range(2):
-    for i in range(n):
-      row2 = []
-      for j in range(n):
-        j2 = row[(j + i) % n]
-
-        if j2 != -1:
-          j2 = (j2 - i + n) % n
-
-        row2.append(j2)
-
-      if row2[0] != -1:
-        continue
-
-      mask2 = getmask(row2)
-      if mask2 not in table2:
-        table2[mask2] = [n] + row2
-
-    #reverse row
-    for i in range(n):
-      if row[i] != -1:
-        row[i] = n - row[i]
-
-    row.reverse()
-
-maxk = 0
-for k in table2:
-  maxk = max(maxk, k)
-
-buf = 'static const int splitmap[%i][16] = {\n' % (maxk+1)
-buf += '  //{numverts, vert_connections...}\n'
-
-for k in range(maxk+1):
-  line = ""
-
-  if k not in table2:
-    line += '  {-1},'
-  else:
-    line += '  {'
-    row = table2[k]
-    for j in range(len(row)):
-      if j > 0:
-        line += ", "
-      line += str(row[j])
-    line += '},'
-
-  while len(line) < 35:
-    line += " "
-  line += "//" + str(k) + " "
-
-  if k in table2:
-    for i in range(table2[k][0]):
-      ch = "1" if k & (1 << i) else "0"
-      line += str(ch) + " "
-
-  buf += line + "\n"
-buf += '};\n'
-print(buf)
-
-*/
-static const int splitmap[43][16] = {
-    //{numverts, vert_connections...}
-    {-1},                      // 0
-    {-1},                      // 1
-    {4, -1, 3, -1, -1},        // 2 0 1 0 0
-    {-1},                      // 3
-    {4, -1, -1, 0, -1},        // 4 0 0 1 0
-    {-1},                      // 5
-    {-1},                      // 6
-    {-1},                      // 7
-    {4, -1, -1, -1, 1},        // 8 0 0 0 1
-    {-1},                      // 9
-    {5, -1, 3, -1, 0, -1},     // 10 0 1 0 1 0
-    {-1},                      // 11
-    {-1},                      // 12
-    {-1},                      // 13
-    {-1},                      // 14
-    {-1},                      // 15
-    {-1},                      // 16
-    {-1},                      // 17
-    {5, -1, 3, -1, -1, 1},     // 18 0 1 0 0 1
-    {-1},                      // 19
-    {5, -1, -1, 4, -1, 1},     // 20 0 0 1 0 1
-    {-1},                      // 21
-    {-1},                      // 22
-    {-1},                      // 23
-    {-1},                      // 24
-    {-1},                      // 25
-    {-1},                      // 26
-    {-1},                      // 27
-    {-1},                      // 28
-    {-1},                      // 29
-    {-1},                      // 30
-    {-1},                      // 31
-    {-1},                      // 32
-    {-1},                      // 33
-    {-1},                      // 34
-    {-1},                      // 35
-    {-1},                      // 36
-    {-1},                      // 37
-    {-1},                      // 38
-    {-1},                      // 39
-    {-1},                      // 40
-    {-1},                      // 41
-    {6, -1, 3, -1, 5, -1, 1},  // 42 0 1 0 1 0 1
-};
-
 float dyntopo_params[5] = {5.0f, 1.0f, 4.0f};
 
-static void pbvh_split_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMesh *bm, Span<BMEdge *> edges)
-{
-  bm_logstack_push();
-  bm_log_message("  == split edges == ");
-
-  /* Try to improve quality by inserting new edge into queue.
-   * This is a bit tricky since we don't want to expand outside
-   * the brush radius too much, but we can't stay strictly inside
-   * either.  We use tri_in_range for this.
-   */
-
-  auto test_near_brush = [&](BMEdge *e, float * /*co*/, float *r_w = nullptr) {
-    float w = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
-    if (r_w) {
-      *r_w = w;
-    }
-
-    if (w == 0.0f || !e->l) {
-      return false;
-    }
-
-    if (skinny_bad_edge(e)) {
-      return false;
-    }
-
-    BMLoop *l = e->l;
-    do {
-      BMVert *vs[3] = {l->v, l->next->v, l->next->next->v};
-      if (eq_ctx->brush_tester->tri_in_range(vs, l->f->no)) {
-        return true;
-      }
-    } while ((l = l->radial_next) != e->l);
-
-    return false;
-  };
-
-  Vector<BMFace *> faces;
-
-#define SUBD_ADD_TO_QUEUE
-
-  const int node_updateflag = PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateNormals |
-                              PBVH_UpdateCurvatureDir | PBVH_UpdateTriAreas |
-                              PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers | PBVH_UpdateTris |
-                              PBVH_UpdateNormals;
-
-  for (BMEdge *e : edges) {
-    check_vert_fan_are_tris(pbvh, e->v1);
-    check_vert_fan_are_tris(pbvh, e->v2);
-  }
-
-  for (BMEdge *e : edges) {
-    BMLoop *l = e->l;
-
-    /* Clear tags. */
-    e->head.hflag &= ~SPLIT_TAG;
-    e->v1->head.hflag &= ~SPLIT_TAG;
-    e->v2->head.hflag &= ~SPLIT_TAG;
-
-    if (!l) {
-      continue;
-    }
-
-    /* Clear tags in wider neighborhood and flag valence/boundary for update. */
-    do {
-      BMLoop *l2 = l->f->l_first;
-
-      do {
-        l2->e->head.hflag &= ~SPLIT_TAG;
-        l2->v->head.hflag &= ~SPLIT_TAG;
-
-        pbvh_boundary_update_bmesh(pbvh, l2->v);
-        dyntopo_add_flag(pbvh, l2->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-      } while ((l2 = l2->next) != l->f->l_first);
-
-      l->f->head.hflag &= ~SPLIT_TAG;
-    } while ((l = l->radial_next) != e->l);
-  }
-
-  /* Tag edges and faces to split. */
-  for (int i = 0; i < edges.size(); i++) {
-    BMEdge *e = edges[i];
-
-    e->head.index = 0;
-    e->head.hflag |= SPLIT_TAG;
-  }
-
-  for (int i = 0; i < edges.size(); i++) {
-    BMEdge *e = edges[i];
-    BMLoop *l = e->l;
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      if (!(l->f->head.hflag & SPLIT_TAG)) {
-        BMLoop *l2 = l;
-        do {
-          l2->v->head.hflag &= ~SPLIT_TAG;
-        } while ((l2 = l2->next) != l);
-        l->f->head.hflag |= SPLIT_TAG;
-
-        if (l->f->len == 3) {
-          l->f->head.index = l->f->len;
-          faces.append(l->f);
-        }
-      }
-
-    } while ((l = l->radial_next) != e->l);
-  }
-
-  int totface = faces.size();
-  for (int i = 0; i < totface; i++) {
-    BMFace *f = faces[i];
-    BMLoop *l = f->l_first;
-
-    f->head.hflag |= SPLIT_TAG;
-    BM_log_face_removed(pbvh->header.bm, pbvh->bm_log, f);
-    BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
-
-    /* Build pattern mask and store in f->head.index. */
-    int mask = 0;
-    int j = 0;
-    do {
-      if (l->e->head.hflag & SPLIT_TAG) {
-        mask |= 1 << j;
-      }
-
-      j++;
-    } while ((l = l->next) != f->l_first);
-
-    f->head.index = mask;
-  }
-
-  bm_log_message("  == split edges (edge split) == ");
-
-#ifdef SUBD_ADD_TO_QUEUE
-  Vector<BMEdge *> new_edges;
-#endif
-
-  for (int i = 0; i < edges.size(); i++) {
-    BMEdge *e = edges[i];
-
-    if (!e || !(e->head.hflag & SPLIT_TAG)) {
-      continue;
-    }
-
-    BMVert *v1 = e->v1;
-    BMVert *v2 = e->v2;
-    BMEdge *newe = nullptr;
-
-    e->head.hflag &= ~SPLIT_TAG;
-
-    BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v1, pbvh->stroke_id);
-    BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, e->v2, pbvh->stroke_id);
-
-    validate_edge(pbvh, e);
-
-    BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v1);
-    BM_idmap_check_assign(pbvh->bm_idmap, (BMElem *)e->v2);
-    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
-
-    BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
-
-    BMVert *newv = BM_edge_split(pbvh->header.bm, e, e->v1, &newe, 0.5f);
-    validate_edge(pbvh, newe);
-
-    /* Flag new vertex as not needing original data update, since we interpolated it. */
-    sculpt::stroke_id_test(eq_ctx->ss, {reinterpret_cast<intptr_t>(newv)}, STROKEID_USER_ORIGINAL);
-
-    newe->head.hflag &= ~(SPLIT_TAG | BM_ELEM_TAG);
-    e->head.hflag &= ~(SPLIT_TAG | BM_ELEM_TAG);
-
-    BM_log_vert_added(bm, pbvh->bm_log, newv);
-    BM_log_edge_added(bm, pbvh->bm_log, e);
-    BM_log_edge_added(bm, pbvh->bm_log, newe);
-
-    edge_queue_insert_val34_vert(eq_ctx, newv);
-
-#ifdef SUBD_ADD_TO_QUEUE
-    new_edges.append(e);
-    new_edges.append(newe);
-#endif
-
-    PBVH_CHECK_NAN(newv->co);
-
-    validate_edge(pbvh, e);
-    validate_edge(pbvh, newe);
-    validate_vert(pbvh, newv, CHECK_VERT_ALL);
-
-    newv->head.hflag |= SPLIT_TAG;
-
-    pbvh_boundary_update_bmesh(pbvh, newv);
-    dyntopo_add_flag(pbvh, newv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-
-    BMVert *otherv = e->v1 != newv ? e->v1 : e->v2;
-    pbvh_boundary_update_bmesh(pbvh, e->v1 != newv ? e->v1 : e->v2);
-    dyntopo_add_flag(pbvh, otherv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-
-    BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
-
-    int ni = BM_ELEM_CD_GET_INT(v1, pbvh->cd_vert_node_offset);
-
-    if (ni == DYNTOPO_NODE_NONE) {
-      ni = BM_ELEM_CD_GET_INT(v2, pbvh->cd_vert_node_offset);
-    }
-
-    if (ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
-      printf("%s: error\n", __func__);
-    }
-
-    /* This should rarely happen. */
-    if (ni == DYNTOPO_NODE_NONE) {
-      ni = DYNTOPO_NODE_NONE;
-
-      for (int j = 0; j < 2; j++) {
-        BMVert *v = nullptr;
-
-        switch (j) {
-          case 0:
-            v = v1;
-            break;
-          case 1:
-            v = v2;
-            break;
-        }
-
-        if (!v->e) {
-          continue;
-        }
-
-        BMEdge *e2 = v->e;
-        do {
-          if (!e2->l) {
-            break;
-          }
-
-          BMLoop *l = e2->l;
-          do {
-            int ni2 = BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset);
-
-            if (ni2 >= 0 && ni2 < pbvh->totnode && (pbvh->nodes[ni2].flag & PBVH_Leaf)) {
-              ni = ni2;
-              goto outerbreak;
-            }
-          } while ((l = l->radial_next) != e2->l);
-        } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-      }
-    outerbreak:;
-    }
-
-    if (ni != DYNTOPO_NODE_NONE) {
-      PBVHNode *node = pbvh->nodes + ni;
-
-      if (!(node->flag & PBVH_Leaf)) {
-        printf("pbvh error in pbvh_split_edges!\n");
-
-        BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
-
-        continue;
-      }
-
-      node->flag |= (PBVHNodeFlags)node_updateflag;
-
-      node->bm_unique_verts->add(newv);
-
-      BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, ni);
-      // BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, -1);
-    }
-    else {
-      BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
-      printf("%s: error!\n", __func__);
-    }
-  }
-
-  bm_log_message("  == split edges (triangulate) == ");
-
-  /* Subdivide from template. */
-
-  Vector<BMVert *, 32> vs;
-  Vector<BMFace *> newfaces;
-
-  for (int i = 0; i < totface; i++) {
-    BMFace *f = faces[i];
-
-    if (!(f->head.hflag & SPLIT_TAG)) {
-      continue;
-    }
-
-    int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
-
-    if (ni < 0 || ni >= pbvh->totnode || !(pbvh->nodes[ni].flag & PBVH_Leaf)) {
-      printf("%s: error!\n", __func__);
-      ni = DYNTOPO_NODE_NONE;
-    }
-
-    BMLoop *l = f->l_first;
-    int totmask = 0, mask = 0;
-    int j = 0;
-
-    do {
-      if (l->v->head.hflag & SPLIT_TAG) {
-        mask |= 1 << j;
-        totmask++;
-      }
-      j++;
-    } while ((l = l->next) != f->l_first);
-
-    int flen = j;
-
-    if (mask < 0 || mask >= (int)ARRAY_SIZE(splitmap)) {
-      printf("splitmap error! flen: %d totmask: %d mask: %d\n", flen, totmask, mask);
-      continue;
-    }
-
-    const int *pat = splitmap[mask];
-    int n = pat[0];
-
-    if (n < 0) {
-      printf("%s: error 1! %d %d\n", __func__, n, flen);
-      continue;
-    }
-
-    if (n != f->len || n != flen) {
-      printf("%s: error 2! %d %d\n", __func__, n, flen);
-      continue;
-    }
-
-    BMFace *f2 = f;
-
-    vs.resize(n);
-
-    l = f->l_first;
-    j = 0;
-    do {
-      vs[j++] = l->v;
-    } while ((l = l->next) != f->l_first);
-
-    if (j != n) {
-      printf("%s: error 1!\n", __func__);
-      continue;
-    }
-
-    newfaces.resize(newfaces.size() + n);
-
-    int count = 0;
-
-    for (j = 0; j < n; j++) {
-      if (pat[j + 1] < 0) {
-        continue;
-      }
-
-      BMVert *v1 = vs[j], *v2 = vs[pat[j + 1]];
-      BMLoop *l1 = nullptr, *l2 = nullptr;
-      BMLoop *rl = nullptr;
-
-      BMLoop *l3 = f2->l_first;
-      do {
-        if (l3->v == v1) {
-          l1 = l3;
-        }
-        else if (l3->v == v2) {
-          l2 = l3;
-        }
-      } while ((l3 = l3->next) != f2->l_first);
-
-      if (l1 == l2 || !l1 || !l2) {
-        printf("%s: error 2!\n", __func__);
-        continue;
-      }
-
-      validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
-
-      bool log_edge = true;
-      BMFace *newf = nullptr;
-      BMEdge *exist_e = BM_edge_exists(v1, v2);
-
-      if (exist_e) {
-        log_edge = false;
-      }
-      else {
-        newf = BM_face_split(bm, f2, l1, l2, &rl, nullptr, false);
-        exist_e = newf ? rl->e : nullptr;
-      }
-
-      if (newf && exist_e && exist_e->l) {
-        exist_e->head.hflag &= ~BM_ELEM_TAG;
-
-#ifdef SUBD_ADD_TO_QUEUE
-        new_edges.append(exist_e);
-#endif
-
-        check_face_is_manifold(pbvh, newf);
-        check_face_is_manifold(pbvh, f2);
-        check_face_is_manifold(pbvh, f);
-
-        validate_face(pbvh, f2, CHECK_FACE_MANIFOLD);
-        validate_face(pbvh, newf, CHECK_FACE_MANIFOLD);
-
-        if (log_edge) {
-          BM_log_edge_added(bm, pbvh->bm_log, rl->e);
-        }
-
-        bool ok = ni != DYNTOPO_NODE_NONE;
-        ok = ok && BM_ELEM_CD_GET_INT(v1, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE;
-        ok = ok && BM_ELEM_CD_GET_INT(v2, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE;
-
-        if (ok) {
-          PBVHNode *node = pbvh->nodes + ni;
-
-          node->flag |= (PBVHNodeFlags)node_updateflag;
-
-          node->bm_faces->add(newf);
-          BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, ni);
-        }
-        else {
-          BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
-        }
-
-        if (count < n) {
-          newfaces[count++] = newf;
-        }
-        else {
-          printf("%s: error 4!\n", __func__);
-        }
-        f2 = newf;
-      }
-      else {
-        printf("%s: split error 2!\n", __func__);
-        continue;
-      }
-    }
-
-    for (j = 0; j < count; j++) {
-      if (BM_ELEM_CD_GET_INT(newfaces[j], pbvh->cd_face_node_offset) == DYNTOPO_NODE_NONE) {
-        BKE_pbvh_bmesh_add_face(pbvh, newfaces[j], false, true);
-      }
-
-      if (newfaces[j] != f) {
-        BM_log_face_added(bm, pbvh->bm_log, newfaces[j]);
-      }
-#if 1
-      if (newfaces[j]->len != 3) {
-        printf("%s: tesselation error!\n", __func__);
-      }
-#endif
-    }
-
-    if (f->len != 3) {
-      printf("%s: tesselation error!\n", __func__);
-    }
-
-    if (BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset) == DYNTOPO_NODE_NONE) {
-      BKE_pbvh_bmesh_add_face(pbvh, f, false, true);
-    }
-
-    BM_log_face_added(bm, pbvh->bm_log, f);
-  }
-
-#ifdef SUBD_ADD_TO_QUEUE
-  for (BMEdge *e : new_edges) {
-    float3 co = e->v1->co;
-    co = (co + e->v2->co) * 0.5f;
-
-    float w = 0.0f;
-    w = calc_weighted_length(eq_ctx, e->v1, e->v2, SPLIT);
-
-    if (test_near_brush(e, co)) {
-      if (w > eq_ctx->limit_len_max_sqr) {
-        add_split_edge_recursive(eq_ctx, e->l, w, eq_ctx->limit_len_max, 0);
-      }
-      else if (w < eq_ctx->limit_len_min_sqr && (eq_ctx->mode & PBVH_Collapse)) {
-        edge_queue_insert_unified(eq_ctx, e, w);
-      }
-    }
-  }
-#endif
-
-  bm_logstack_pop();
-}
 void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
   detail_range = max_ff(detail_range, 0.1f);
@@ -3118,6 +2459,146 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 
   bm_logstack_pop();
 }
+
+namespace blender::bke::dyntopo {
+ATTR_NO_OPT static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
+{
+  PBVH *pbvh = eq_ctx->pbvh;
+  BMesh *bm = pbvh->header.bm;
+  BMEdge *newe;
+  BMFace *newf = nullptr;
+
+  if (!e->l) {
+    return;
+  }
+
+  check_vert_fan_are_tris(pbvh, e->v1);
+  check_vert_fan_are_tris(pbvh, e->v2);
+
+  Vector<BMFace *, 4> fs;
+
+  BMLoop *l = e->l;
+  do {
+    if (BM_ELEM_CD_GET_INT(l->f, pbvh->cd_face_node_offset) != DYNTOPO_NODE_NONE) {
+      pbvh_bmesh_face_remove(pbvh, l->f, true, true, true);
+      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(l->f), true);
+      fs.append(l->f);
+    }
+
+    BMLoop *l2 = l->f->l_first;
+
+    do {
+      pbvh_boundary_update_bmesh(pbvh, l2->v);
+      dyntopo_add_flag(pbvh, l2->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+    } while ((l2 = l2->next) != l->f->l_first);
+  } while ((l = l->radial_next) != e->l);
+
+  BM_log_edge_removed(bm, pbvh->bm_log, e);
+  BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), true);
+
+  dyntopo_add_flag(pbvh, e->v1, SCULPTFLAG_NEED_VALENCE);
+  dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
+  pbvh_boundary_update_bmesh(pbvh, e->v1);
+  pbvh_boundary_update_bmesh(pbvh, e->v2);
+
+  BMVert *newv = BM_edge_split(bm, e, e->v1, &newe, 0.5f);
+
+  /* Remove edge-in-minmax-heap tag. */
+  e->head.hflag &= ~EDGE_QUEUE_FLAG;
+  newe->head.hflag &= ~EDGE_QUEUE_FLAG;
+
+  BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newv));
+  BM_log_vert_added(bm, pbvh->bm_log, newv);
+
+  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e));
+  BM_log_edge_added(bm, pbvh->bm_log, e);
+  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newe));
+  BM_log_edge_added(bm, pbvh->bm_log, newe);
+
+  dyntopo_add_flag(pbvh, newv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+  pbvh_boundary_update_bmesh(pbvh, newv);
+
+  for (BMFace *f : fs) {
+    BMLoop *l = f->l_first;
+    do {
+      if (l->v == newv) {
+        break;
+      }
+    } while ((l = l->next) != f->l_first);
+
+    BMEdge *exist_e = BM_edge_exists(l->v, l->next->next->v);
+    BMLoop *newl;
+    newf = BM_face_split(bm, f, l, l->next->next, &newl, nullptr, true);
+
+    dyntopo_add_flag(
+        pbvh, l->next->next->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+    pbvh_boundary_update_bmesh(pbvh, l->next->next->v);
+
+    BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f));
+    BKE_pbvh_bmesh_add_face(pbvh, f, true, false);
+
+    if (!newf || newf == f) {
+      continue;
+    }
+
+    BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+
+    if (!exist_e) {
+      BM_log_edge_added(bm, pbvh->bm_log, newl->e);
+      BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newl->e));
+      BKE_pbvh_bmesh_add_face(pbvh, newf, true, false);
+    }
+
+    newl->e->head.hflag &= ~EDGE_QUEUE_FLAG;
+
+    copy_v3_v3(newf->no, f->no);
+#if 1
+    BMVert *vs[3] = {newl->v, newl->next->v, newl->next->next->v};
+    if (eq_ctx->brush_tester->tri_in_range(vs, newl->f->no)) {
+      float w = 0.0f;
+      PBVHTopologyUpdateMode mode = edge_queue_test(eq_ctx, pbvh, newl->e, &w);
+
+      if (mode == PBVH_Subdivide) {
+        add_split_edge_recursive(eq_ctx, newl, w, eq_ctx->limit_len_max, 0);
+      }
+      else if (mode == PBVH_Collapse) {
+        edge_queue_insert_unified(eq_ctx, newl->e, w);
+      }
+    }
+#else
+    BMLoop *l2 = newl;
+    do {
+      BMLoop *l3 = l2;
+      do {
+        BMVert *vs[3] = {l3->v, l3->next->v, l3->next->next->v};
+
+        if (l3->e->head.hflag & EDGE_QUEUE_FLAG) {
+          continue;
+        }
+
+        if (eq_ctx->brush_tester->tri_in_range(vs, l3->f->no)) {
+          float w = 0.0f;
+          PBVHTopologyUpdateMode mode = edge_queue_test(eq_ctx, pbvh, l3->e, &w);
+
+          if (mode == PBVH_Subdivide) {
+            add_split_edge_recursive(eq_ctx, l3, w, eq_ctx->limit_len_max, 0);
+          }
+          else if (mode == PBVH_Collapse) {
+            edge_queue_insert_unified(eq_ctx, l3->e, w);
+          }
+        }
+      } while ((l3 = l3->next) != l2);
+    } while ((l2 = l2->radial_next) != newl);
+#endif
+  }
+
+  pbvh_bmesh_check_nodes(pbvh);
+
+  check_for_fins(pbvh, newv);
+}
+}  // namespace blender::bke::dyntopo
 
 #include <type_traits>
 
