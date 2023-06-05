@@ -1113,7 +1113,7 @@ static TransModeInfo *mode_info_get(TransInfo *t, const int mode)
     case TFM_BONE_ROLL:
       return &TransMode_boneroll;
     case TFM_TIME_TRANSLATE:
-      return &TransMode_translate;
+      return &TransMode_timetranslate;
     case TFM_TIME_SLIDE:
       return &TransMode_timeslide;
     case TFM_TIME_SCALE:
