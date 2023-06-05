@@ -196,8 +196,11 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob, BMEditMesh *em, Mesh *mesh, const flo
   return mesh;
 }
 
-void MOD_get_vgroup(
-    Object *ob, Mesh *mesh, const char *name, const MDeformVert **dvert, int *defgrp_index)
+void MOD_get_vgroup(const Object *ob,
+                    const Mesh *mesh,
+                    const char *name,
+                    const MDeformVert **dvert,
+                    int *defgrp_index)
 {
   if (mesh) {
     *defgrp_index = BKE_id_defgroup_name_index(&mesh->id, name);
