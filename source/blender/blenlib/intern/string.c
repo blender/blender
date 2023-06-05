@@ -989,6 +989,21 @@ size_t BLI_strnlen(const char *s, const size_t maxlen)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Scanning
+ * \{ */
+
+const char *BLI_strchr_or_end(const char *str, const char ch)
+{
+  const char *p = str;
+  while (!ELEM(*p, ch, '\0')) {
+    p++;
+  }
+  return p;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Case Conversion
  * \{ */
 
