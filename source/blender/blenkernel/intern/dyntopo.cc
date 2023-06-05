@@ -1649,8 +1649,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     }
 
     PBVHVertRef sv = {(intptr_t)v};
-    if (!ectx->brush_tester->vert_in_range(v) || !v->e ||
-        ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f) {
+    if (!v->e || ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f) {
       continue;
     }
 
@@ -1963,8 +1962,24 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
         BKE_pbvh_bmesh_update_valence(pbvh, {(intptr_t)v});
       }
 
-      bool ok = BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) < 5;
-      ok = ok && eq_ctx->brush_tester->vert_in_range(v);
+      if (BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) > 4) {
+        continue;
+      }
+
+      bool ok = eq_ctx->brush_tester->vert_in_range(v);
+
+      if (!ok) {
+        /* Check if any surrounding vertex is in range. */
+        BMEdge *e = v->e;
+        do {
+          BMVert *v2 = BM_edge_other_vert(e, v);
+
+          if (eq_ctx->brush_tester->vert_in_range(v2)) {
+            ok = true;
+            break;
+          }
+        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+      }
 
       if (ok) {
         edge_queue_insert_val34_vert(eq_ctx, v);
