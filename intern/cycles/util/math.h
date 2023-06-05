@@ -101,7 +101,6 @@ using std::isfinite;
 using std::isnan;
 using std::sqrt;
 #  else
-using sycl::sqrt;
 #    define isfinite(x) sycl::isfinite((x))
 #    define isnan(x) sycl::isnan((x))
 #  endif
@@ -795,7 +794,10 @@ ccl_device float bits_to_01(uint bits)
 
 #if !defined(__KERNEL_GPU__)
 #  if defined(__GNUC__)
-#    define popcount(x) __builtin_popcount(x)
+ccl_device_inline uint popcount(uint x)
+{
+  return __builtin_popcount(x);
+}
 #  else
 ccl_device_inline uint popcount(uint x)
 {
