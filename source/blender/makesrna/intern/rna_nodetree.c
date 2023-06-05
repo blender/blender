@@ -136,6 +136,11 @@ static const EnumPropertyItem rna_enum_execution_mode_items[] = {
      0,
      "Full Frame",
      "Composites full image result as fast as possible"},
+    {NTREE_EXECUTION_MODE_REALTIME,
+     "REALTIME",
+     0,
+     "Realtime GPU",
+     "Use GPU accelerated compositing with more limited functionality"},
     {0, NULL, 0, NULL, NULL},
 };
 
