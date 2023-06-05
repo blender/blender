@@ -338,9 +338,7 @@ static void curve_draw_stroke_from_operator(wmOperator *op)
 /** \name Operator Callbacks & Helpers
  * \{ */
 
-static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
-                                 ARegion *UNUSED(region),
-                                 void *arg)
+static void curve_draw_stroke_3d(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
   wmOperator *op = arg;
   struct CurveDrawData *cdd = op->customdata;

@@ -186,7 +186,7 @@ static int face_map_add_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_add(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Face Map";
@@ -215,7 +215,7 @@ static int face_map_remove_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_remove(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Face Map";
@@ -264,7 +264,7 @@ static int face_map_assign_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_assign(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_assign(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Assign Face Map";
@@ -314,7 +314,7 @@ static int face_map_remove_from_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_remove_from(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_remove_from(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove from Face Map";
@@ -369,7 +369,7 @@ static int face_map_select_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_select(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_select(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Face Map Faces";
@@ -399,7 +399,7 @@ static int face_map_deselect_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_face_map_deselect(struct wmOperatorType *ot)
+void OBJECT_OT_face_map_deselect(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Deselect Face Map Faces";

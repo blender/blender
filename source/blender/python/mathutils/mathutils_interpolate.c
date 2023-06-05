@@ -90,7 +90,7 @@ static PyMethodDef M_Interpolate_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Interpolate_module_def = {
+static PyModuleDef M_Interpolate_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.interpolate",
     /*m_doc*/ M_Interpolate_doc,

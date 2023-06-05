@@ -497,8 +497,8 @@ void ED_operatormacros_graph(void)
                                     "Make a copy of all selected keyframes and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
-  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
-  RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 

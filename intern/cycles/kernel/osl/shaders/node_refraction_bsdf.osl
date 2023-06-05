@@ -14,5 +14,5 @@ shader node_refraction_bsdf(color Color = 0.8,
   float eta = backfacing() ? 1.0 / f : f;
   float roughness = Roughness * Roughness;
 
-  BSDF = microfacet(distribution, Normal, roughness, eta, 1);
+  BSDF = Color * microfacet(distribution, Normal, roughness, eta, 1);
 }

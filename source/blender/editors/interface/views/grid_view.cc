@@ -127,9 +127,7 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
-                                              void *but_arg1,
-                                              void * /*arg2*/)
+void AbstractGridViewItem::grid_tile_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(

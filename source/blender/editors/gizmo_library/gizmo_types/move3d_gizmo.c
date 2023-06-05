@@ -77,7 +77,7 @@ typedef struct MoveInteraction {
   } prev;
 
   /* We could have other snap contexts, for now only support 3D view. */
-  struct SnapObjectContext *snap_context_v3d;
+  SnapObjectContext *snap_context_v3d;
 
 } MoveInteraction;
 

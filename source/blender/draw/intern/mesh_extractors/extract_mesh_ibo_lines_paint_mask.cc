@@ -150,7 +150,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
   }
 }
 
-static void extract_lines_paint_mask_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_lines_paint_mask_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                    const MeshRenderData *mr,
                                                    MeshBatchCache *cache,
                                                    void *buf,

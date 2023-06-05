@@ -352,7 +352,7 @@ bool BKE_lib_override_library_property_is_animated(const ID *id,
 {
   AnimData *anim_data = BKE_animdata_from_id(id);
   if (anim_data != nullptr) {
-    struct FCurve *fcurve;
+    FCurve *fcurve;
     char *index_token_start = const_cast<char *>(
         RNA_path_array_index_token_find(override_prop->rna_path, override_rna_prop));
     if (index_token_start != nullptr) {
@@ -1289,7 +1289,7 @@ static void lib_override_library_create_post_process(Main *bmain,
     /* No instantiation in case the root override is linked data, unless it is part of the given
      * owner library.
      *
-     * NOTE: that last case should never happen actually in current code? Since non-NULL owner
+     * NOTE: that last case should never happen actually in current code? Since non-null owner
      * library should only happen in case of recursive resync, which is already excluded by the
      * previous condition. */
   }
@@ -2272,7 +2272,7 @@ static bool lib_override_library_resync(Main *bmain,
                                                        RNA_OVERRIDE_APPLY_FLAG_NOP);
 
       /* Clear the old shape key pointer again, otherwise it won't make ID management code happy
-       * when freeing (at least from user count side of things).  */
+       * when freeing (at least from user count side of things). */
       if (key_override_old_p != nullptr) {
         *key_override_old_p = nullptr;
       }

@@ -86,7 +86,7 @@ static void create_flame_spectrum_texture(float *data)
 #  undef FULL_ON_FIRE
 }
 
-static void create_color_ramp(const struct ColorBand *coba, float *data)
+static void create_color_ramp(const ColorBand *coba, float *data)
 {
   for (int i = 0; i < TFUNC_WIDTH; i++) {
     BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
@@ -94,7 +94,7 @@ static void create_color_ramp(const struct ColorBand *coba, float *data)
   }
 }
 
-static GPUTexture *create_transfer_function(int type, const struct ColorBand *coba)
+static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
 {
   float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
 

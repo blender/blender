@@ -551,37 +551,12 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   switch (GS(id->name)) {
     case ID_LI:
     case ID_SCE:
+    case ID_ME:
+    case ID_CU_LEGACY:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
       outliner_add_object_contents(space_outliner, te, tselem, (Object *)id);
-      break;
-    }
-    case ID_ME: {
-      Mesh *me = (Mesh *)id;
-
-      if (outliner_animdata_test(me->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, me, te, TSE_ANIM_DATA, 0);
-      }
-
-      outliner_add_element(space_outliner, &te->subtree, me->key, te, TSE_SOME_ID, 0);
-      for (int a = 0; a < me->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, me->mat[a], te, TSE_SOME_ID, a);
-      }
-      /* could do tfaces with image links, but the images are not grouped nicely.
-       * would require going over all tfaces, sort images in use. etc... */
-      break;
-    }
-    case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)id;
-
-      if (outliner_animdata_test(cu->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < cu->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, cu->mat[a], te, TSE_SOME_ID, a);
-      }
       break;
     }
     case ID_MB: {

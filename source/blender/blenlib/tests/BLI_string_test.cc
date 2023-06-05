@@ -125,7 +125,7 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name String Concatinate
+/** \name String Concatenate
  * \{ */
 
 TEST(string, StrCat)
@@ -237,7 +237,7 @@ TEST(string, StrPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -247,7 +247,7 @@ TEST(string, StrPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -296,7 +296,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -306,7 +306,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -337,7 +337,7 @@ TEST(string, StrPartitionEx)
   {
     const char *str = "mate.rial";
 
-    /* "mate.rial" over "mate" -> "mate.rial", NULL, NULL, 4 */
+    /* "mate.rial" over "mate" -> "mate.rial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -386,7 +386,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -396,7 +396,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -445,7 +445,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -455,7 +455,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -487,7 +487,7 @@ TEST(string, StrPartitionExUtf8)
   {
     const char *str = "mate\xe2\x98\xafrial";
 
-    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", NULL, NULL, 4 */
+    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);

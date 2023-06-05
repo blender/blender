@@ -894,11 +894,11 @@ static void rna_DashGpencilModifierSegment_name_set(PointerRNA *ptr, const char 
   char name_esc[sizeof(ds->dmd->modifier.name) * 2];
   BLI_str_escape(name_esc, ds->dmd->modifier.name, sizeof(name_esc));
 
-  char prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
+  char rna_path_prefix[36 + sizeof(name_esc) + 1];
+  SNPRINTF(rna_path_prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
 
   /* Fix all the animation data which may link to this. */
-  BKE_animdata_fix_paths_rename_all(NULL, prefix, oldname, ds->name);
+  BKE_animdata_fix_paths_rename_all(NULL, rna_path_prefix, oldname, ds->name);
 }
 
 static void rna_TimeGpencilModifierSegment_name_set(PointerRNA *ptr, const char *value)
@@ -917,11 +917,11 @@ static void rna_TimeGpencilModifierSegment_name_set(PointerRNA *ptr, const char 
   char name_esc[sizeof(ds->gpmd->modifier.name) * 2];
   BLI_str_escape(name_esc, ds->gpmd->modifier.name, sizeof(name_esc));
 
-  char prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
+  char rna_path_prefix[36 + sizeof(name_esc) + 1];
+  SNPRINTF(rna_path_prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
 
   /* Fix all the animation data which may link to this. */
-  BKE_animdata_fix_paths_rename_all(NULL, prefix, oldname, ds->name);
+  BKE_animdata_fix_paths_rename_all(NULL, rna_path_prefix, oldname, ds->name);
 }
 
 static int rna_ShrinkwrapGpencilModifier_face_cull_get(PointerRNA *ptr)

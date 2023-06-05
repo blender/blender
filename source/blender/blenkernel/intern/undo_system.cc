@@ -326,7 +326,7 @@ static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoS
   }
 }
 
-static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct Main *bmain)
+static bool undosys_stack_push_main(UndoStack *ustack, const char *name, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   BLI_assert(ustack->step_init == nullptr);
@@ -339,7 +339,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
   return (ret & UNDO_PUSH_RET_SUCCESS);
 }
 
-void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
+void BKE_undosys_stack_init_from_main(UndoStack *ustack, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   undosys_stack_push_main(ustack, IFACE_("Original"), bmain);

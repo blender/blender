@@ -230,7 +230,7 @@ bool ABC_export(Scene *scene,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
+    /* Fake a job context, so that we don't need null pointer checks while exporting. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

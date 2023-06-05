@@ -1265,7 +1265,7 @@ bool MTLContext::ensure_buffer_bindings(
     const MTLShaderBufferBlock &ssbo = shader_interface->get_storage_block(ssbo_index);
 
     if (ssbo.buffer_index >= 0 && ssbo.location >= 0) {
-      /* Explicit lookup location for SSBO in bind table.*/
+      /* Explicit lookup location for SSBO in bind table. */
       const uint32_t ssbo_location = ssbo.location;
       /* buffer(N) index of where to bind the SSBO. */
       const uint32_t buffer_index = ssbo.buffer_index;
@@ -1444,7 +1444,7 @@ bool MTLContext::ensure_buffer_bindings(
     const MTLShaderBufferBlock &ssbo = shader_interface->get_storage_block(ssbo_index);
 
     if (ssbo.buffer_index >= 0 && ssbo.location >= 0) {
-      /* Explicit lookup location for UBO in bind table.*/
+      /* Explicit lookup location for UBO in bind table. */
       const uint32_t ssbo_location = ssbo.location;
       /* buffer(N) index of where to bind the UBO. */
       const uint32_t buffer_index = ssbo.buffer_index;

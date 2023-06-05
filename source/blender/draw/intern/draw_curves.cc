@@ -50,7 +50,7 @@ BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 }
 
 struct CurvesEvalCall {
-  struct CurvesEvalCall *next;
+  CurvesEvalCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;

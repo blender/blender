@@ -88,7 +88,7 @@ typedef struct tGP_Selected {
 
 /* Context for brush operators */
 typedef struct tGP_BrushWeightpaintData {
-  struct Main *bmain;
+  Main *bmain;
   Scene *scene;
   Object *object;
 
@@ -181,12 +181,12 @@ static void gpencil_select_buffer_ensure(tGP_BrushWeightpaintData *gso, const bo
    * This is done in order to keep cache small and improve speed. */
   if ((gso->pbuffer_used + 1) > gso->pbuffer_size) {
     if ((gso->pbuffer_size == 0) || (gso->pbuffer == NULL)) {
-      gso->pbuffer = MEM_callocN(sizeof(struct tGP_Selected) * GP_SELECT_BUFFER_CHUNK, __func__);
+      gso->pbuffer = MEM_callocN(sizeof(tGP_Selected) * GP_SELECT_BUFFER_CHUNK, __func__);
       gso->pbuffer_size = GP_SELECT_BUFFER_CHUNK;
     }
     else {
       gso->pbuffer_size += GP_SELECT_BUFFER_CHUNK;
-      gso->pbuffer = MEM_recallocN(gso->pbuffer, sizeof(struct tGP_Selected) * gso->pbuffer_size);
+      gso->pbuffer = MEM_recallocN(gso->pbuffer, sizeof(tGP_Selected) * gso->pbuffer_size);
     }
   }
 
@@ -204,10 +204,10 @@ static void gpencil_select_buffer_ensure(tGP_BrushWeightpaintData *gso, const bo
 
     /* Stroke point buffer. */
     if (gso->fn_pbuffer == NULL) {
-      gso->fn_pbuffer = MEM_callocN(sizeof(struct tGP_Selected) * gso->fn_size, __func__);
+      gso->fn_pbuffer = MEM_callocN(sizeof(tGP_Selected) * gso->fn_size, __func__);
     }
     else {
-      gso->fn_pbuffer = MEM_recallocN(gso->fn_pbuffer, sizeof(struct tGP_Selected) * gso->fn_size);
+      gso->fn_pbuffer = MEM_recallocN(gso->fn_pbuffer, sizeof(tGP_Selected) * gso->fn_size);
     }
 
     /* Stroke point hash table (for duplicate checking.) */
@@ -419,7 +419,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
   dw = dvert->dw;
   for (int i = dvert->totweight; i != 0; i--, dw++) {
-    if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+    /* Auto-normalize is only applied on bone-deformed vertex groups that have weight already. */
+    if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON) {
       sum += dw->weight;
 
       if (vgroup_locked[dw->def_nr] || (lock_active_vgroup && active_vgroup == dw->def_nr)) {
@@ -461,7 +462,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
     dw = dvert->dw;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
+      {
         if ((vgroup_locked[dw->def_nr] == false) &&
             !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
           dw->weight *= fac;
@@ -476,7 +478,8 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 
     dw = dvert->dw;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
+      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr] && dw->weight > FLT_EPSILON)
+      {
         if ((vgroup_locked[dw->def_nr] == false) &&
             !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
           dw->weight = fac;
@@ -1688,7 +1691,7 @@ static int gpencil_weight_sample_invoke(bContext *C, wmOperator *UNUSED(op), con
     }
   }
 
-  /* Set brush weight, based on points found.*/
+  /* Set brush weight, based on points found. */
   if (closest_count > 0) {
     if (closest_count == 1) {
       brush->weight = closest_weight[0];

@@ -769,7 +769,7 @@ ParticleSystem *psys_orig_get(ParticleSystem *psys)
   return psys->orig_psys;
 }
 
-struct ParticleSystem *psys_eval_get(Depsgraph *depsgraph, Object *object, ParticleSystem *psys)
+ParticleSystem *psys_eval_get(Depsgraph *depsgraph, Object *object, ParticleSystem *psys)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   if (object_eval == object) {
@@ -1942,7 +1942,7 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
                                  Mesh *mesh_original,
                                  int findex_orig,
                                  const float fw[4],
-                                 struct LinkNode **poly_nodes)
+                                 LinkNode **poly_nodes)
 {
   MFace *mtessface_final;
   const OrigSpaceFace *osface_final;
@@ -2884,7 +2884,7 @@ static void psys_task_init_path(ParticleTask *task, ParticleSimulationData *sim)
 
 /* NOTE: this function must be thread safe, except for branching! */
 static void psys_thread_create_path(ParticleTask *task,
-                                    struct ChildParticle *cpa,
+                                    ChildParticle *cpa,
                                     ParticleCacheKey *child_keys,
                                     int i)
 {

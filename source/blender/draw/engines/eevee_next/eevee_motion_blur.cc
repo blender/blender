@@ -55,7 +55,7 @@ void MotionBlurModule::init()
   }
 
   /* Without this there is the possibility of the curve table not being allocated. */
-  BKE_curvemapping_changed((struct CurveMapping *)&scene->r.mblur_shutter_curve, false);
+  BKE_curvemapping_changed((CurveMapping *)&scene->r.mblur_shutter_curve, false);
 
   Vector<float> cdf(CM_TABLE);
   Sampling::cdf_from_curvemapping(scene->r.mblur_shutter_curve, cdf);

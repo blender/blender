@@ -2306,6 +2306,17 @@ class VIEW3D_MT_volume_add(Menu):
                         icon='OUTLINER_DATA_VOLUME')
 
 
+class VIEW3D_MT_grease_pencil_add(Menu):
+    bl_idname = "VIEW3D_MT_grease_pencil_add"
+    bl_label = "Grease Pencil"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator("object.grease_pencil_add", text="Empty", icon='EMPTY_AXIS').type = 'EMPTY'
+        layout.operator("object.grease_pencil_add", text="Stroke", icon='STROKE').type = 'STROKE'
+        layout.operator("object.grease_pencil_add", text="Suzanne", icon='MONKEY').type = 'MONKEY'
+
+
 class VIEW3D_MT_add(Menu):
     bl_label = "Add"
     bl_translation_context = i18n_contexts.operator_default
@@ -2331,7 +2342,14 @@ class VIEW3D_MT_add(Menu):
         if context.preferences.experimental.use_new_point_cloud_type:
             layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
         layout.menu("VIEW3D_MT_volume_add", text="Volume", text_ctxt=i18n_contexts.id_id, icon='OUTLINER_OB_VOLUME')
-        layout.operator_menu_enum("object.gpencil_add", "type", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
+        if context.preferences.experimental.use_grease_pencil_version3:
+            layout.menu("VIEW3D_MT_grease_pencil_add", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
+        else:
+            layout.operator_menu_enum(
+                "object.gpencil_add",
+                "type",
+                text="Grease Pencil",
+                icon='OUTLINER_OB_GREASEPENCIL')
 
         layout.separator()
 
@@ -8211,6 +8229,7 @@ classes = (
     VIEW3D_MT_lightprobe_add,
     VIEW3D_MT_camera_add,
     VIEW3D_MT_volume_add,
+    VIEW3D_MT_grease_pencil_add,
     VIEW3D_MT_add,
     VIEW3D_MT_image_add,
     VIEW3D_MT_object,

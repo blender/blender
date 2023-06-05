@@ -209,7 +209,7 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef Py_ImBuf_methods[] = {
+static PyMethodDef Py_ImBuf_methods[] = {
     {"resize", (PyCFunction)py_imbuf_resize, METH_VARARGS | METH_KEYWORDS, py_imbuf_resize_doc},
     {"crop", (PyCFunction)py_imbuf_crop, METH_VARARGS | METH_KEYWORDS, (char *)py_imbuf_crop_doc},
     {"free", (PyCFunction)py_imbuf_free, METH_NOARGS, py_imbuf_free_doc},
@@ -563,7 +563,7 @@ PyDoc_STRVAR(IMB_doc,
              "\n"
              "It provides access to image buffers outside of Blender's\n"
              ":class:`bpy.types.Image` data-block context.\n");
-static struct PyModuleDef IMB_module_def = {
+static PyModuleDef IMB_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf",
     /*m_doc*/ IMB_doc,
@@ -607,7 +607,7 @@ PyDoc_STRVAR(IMB_types_doc,
              "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
              "   ID type to store and manipulate image data at runtime.\n");
 
-static struct PyModuleDef IMB_types_module_def = {
+static PyModuleDef IMB_types_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf.types",
     /*m_doc*/ IMB_types_doc,

@@ -200,7 +200,7 @@ static bool curve_undosys_poll(bContext *C)
   return (obedit != nullptr);
 }
 
-static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 
@@ -232,11 +232,8 @@ static bool curve_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
   return true;
 }
 
-static void curve_undosys_step_decode(struct bContext *C,
-                                      struct Main *bmain,
-                                      UndoStep *us_p,
-                                      const eUndoStepDir /*dir*/,
-                                      bool /*is_final*/)
+static void curve_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   CurveUndoStep *us = (CurveUndoStep *)us_p;
 

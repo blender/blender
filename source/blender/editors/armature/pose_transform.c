@@ -52,6 +52,17 @@
 #include "armature_intern.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+static void pose_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+{
+  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_pose.blend");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Apply Pose as Rest Pose
  * \{ */
 
@@ -789,7 +800,8 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
    * existing on its own.
    */
   BKE_copybuffer_copy_tag_ID(&ob_copy.id);
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_pose.blend");
+
+  pose_copybuffer_filepath_get(filepath, sizeof(filepath));
   BKE_copybuffer_copy_end(temp_bmain, filepath, op->reports);
   /* We clear the lists so no datablocks gets freed,
    * This is required because objects in temp bmain shares same pointers
@@ -842,27 +854,27 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
-  Main *tmp_bmain = BKE_main_new();
-  STRNCPY(tmp_bmain->filepath, BKE_main_blendfile_path_from_global());
+  Main *temp_bmain = BKE_main_new();
+  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
 
-  BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "copybuffer_pose.blend");
-  if (!BKE_copybuffer_read(tmp_bmain, filepath, op->reports, FILTER_ID_OB)) {
+  pose_copybuffer_filepath_get(filepath, sizeof(filepath));
+  if (!BKE_copybuffer_read(temp_bmain, filepath, op->reports, FILTER_ID_OB)) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
-    BKE_main_free(tmp_bmain);
+    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
   /* Make sure data from this file is usable for pose paste. */
-  if (BLI_listbase_count_at_most(&tmp_bmain->objects, 2) != 1) {
+  if (!BLI_listbase_is_single(&temp_bmain->objects)) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from pose mode");
-    BKE_main_free(tmp_bmain);
+    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
 
-  Object *object_from = tmp_bmain->objects.first;
+  Object *object_from = temp_bmain->objects.first;
   bPose *pose_from = object_from->pose;
   if (pose_from == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard has no pose");
-    BKE_main_free(tmp_bmain);
+    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
 
@@ -889,7 +901,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
       }
     }
   }
-  BKE_main_free(tmp_bmain);
+  BKE_main_free(temp_bmain);
 
   /* Update event for pose and deformation children. */
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

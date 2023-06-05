@@ -192,7 +192,7 @@ static bool lattice_undosys_poll(bContext *C)
   return editlatt_object_from_context(C) != NULL;
 }
 
-static bool lattice_undosys_step_encode(struct bContext *C, Main *bmain, UndoStep *us_p)
+static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   LatticeUndoStep *us = (LatticeUndoStep *)us_p;
 
@@ -223,8 +223,8 @@ static bool lattice_undosys_step_encode(struct bContext *C, Main *bmain, UndoSte
   return true;
 }
 
-static void lattice_undosys_step_decode(struct bContext *C,
-                                        struct Main *bmain,
+static void lattice_undosys_step_decode(bContext *C,
+                                        Main *bmain,
                                         UndoStep *us_p,
                                         const eUndoStepDir UNUSED(dir),
                                         bool UNUSED(is_final))

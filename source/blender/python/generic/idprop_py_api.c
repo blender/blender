@@ -1597,7 +1597,7 @@ static PyObject *BPy_IDGroup_get(BPy_IDProperty *self, PyObject *args)
   return def;
 }
 
-static struct PyMethodDef BPy_IDGroup_methods[] = {
+static PyMethodDef BPy_IDGroup_methods[] = {
     {"pop", (PyCFunction)BPy_IDGroup_pop, METH_VARARGS, BPy_IDGroup_pop_doc},
     {"keys", (PyCFunction)BPy_IDGroup_keys, METH_NOARGS, BPy_IDGroup_keys_doc},
     {"values", (PyCFunction)BPy_IDGroup_values, METH_NOARGS, BPy_IDGroup_values_doc},
@@ -2180,7 +2180,7 @@ static PyObject *BPy_IDGroup_ViewItems_CreatePyObject(BPy_IDProperty *group)
 /** \name Public Module 'idprop.types'
  * \{ */
 
-static struct PyModuleDef IDProp_types_module_def = {
+static PyModuleDef IDProp_types_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "idprop.types",
     /*m_doc*/ NULL,
@@ -2229,7 +2229,7 @@ static PyMethodDef IDProp_methods[] = {
 
 PyDoc_STRVAR(IDProp_module_doc,
              "This module provides access id property types (currently mainly for docs).");
-static struct PyModuleDef IDProp_module_def = {
+static PyModuleDef IDProp_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "idprop",
     /*m_doc*/ IDProp_module_doc,

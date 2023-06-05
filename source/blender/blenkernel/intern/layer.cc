@@ -1317,7 +1317,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
 #ifndef NDEBUG
   {
-    BLI_assert_msg(BLI_listbase_count_at_most(&view_layer->layer_collections, 2) == 1,
+    BLI_assert_msg(BLI_listbase_is_single(&view_layer->layer_collections),
                    "ViewLayer's first level of children layer collections should always have "
                    "exactly one item");
 

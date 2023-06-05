@@ -202,7 +202,7 @@ TextFormatType *ED_text_format_get(Text *text)
 
 const char *ED_text_format_comment_line_prefix(Text *text)
 {
-  const struct TextFormatType *format = ED_text_format_get(text);
+  const TextFormatType *format = ED_text_format_get(text);
   return format->comment_line;
 }
 

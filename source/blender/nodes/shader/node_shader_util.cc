@@ -43,7 +43,7 @@ static bool sh_fn_poll_default(const bNodeType * /*ntype*/,
   return true;
 }
 
-void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass)
+void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
 {
   blender::bke::node_type_base(ntype, type, name, nclass);
 
@@ -138,7 +138,7 @@ static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
   }
 }
 
-void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
+void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
 {
   memset(gs, 0, sizeof(*gs));
 

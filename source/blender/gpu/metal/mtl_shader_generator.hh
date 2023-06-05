@@ -249,7 +249,7 @@ struct MSLTextureResource {
   MSLTextureSamplerAccess access;
   /* Whether resource is a texture sampler or an image. */
   bool is_texture_sampler;
-  /* Index in shader bind table [[texture(N)]].*/
+  /* Index in shader bind table `[[texture(N)]]`. */
   uint slot;
   /* Explicit bind index provided by ShaderCreateInfo. */
   uint location;

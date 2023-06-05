@@ -459,7 +459,7 @@ bool USD_import(struct bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while importing. */
+    /* Fake a job context, so that we don't need null pointer checks while importing. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

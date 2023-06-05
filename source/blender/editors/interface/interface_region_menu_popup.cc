@@ -511,7 +511,7 @@ uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
   return UI_popup_menu_begin_ex(C, title, __func__, icon);
 }
 
-void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but)
+void UI_popup_menu_but_set(uiPopupMenu *pup, ARegion *butregion, uiBut *but)
 {
   pup->but = but;
   pup->butregion = butregion;

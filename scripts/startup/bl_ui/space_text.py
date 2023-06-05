@@ -224,6 +224,16 @@ class TEXT_MT_view(Menu):
 
         layout.separator()
 
+        props = layout.operator("wm.context_cycle_int", text="Zoom In")
+        props.data_path = "space_data.font_size"
+        props.reverse = False
+
+        props = layout.operator("wm.context_cycle_int", text="Zoom Out")
+        props.data_path = "space_data.font_size"
+        props.reverse = True
+
+        layout.separator()
+
         layout.menu("TEXT_MT_view_navigation")
 
         layout.separator()

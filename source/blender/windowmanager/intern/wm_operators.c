@@ -994,7 +994,7 @@ int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return op->type->modal(C, op, event);
 }
 
-void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op)
+void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op)
 {
   if (op->flag & OP_IS_INVOKE) {
     Scene *scene = CTX_data_scene(C);
@@ -1223,7 +1223,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
   return OPERATOR_RUNNING_MODAL;
 }
 
-bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
+bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData *im_format)
 {
   char filepath[FILE_MAX];
   /* Don't NULL check prop, this can only run on ops with a 'filepath'. */
@@ -1283,7 +1283,7 @@ void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
   RNA_pointer_create(G_MAIN->wm.first, ot->srna, props, ptr);
 }
 
-ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short idcode)
+ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
 {
   Main *bmain = CTX_data_main(C);
   ID *id = NULL;
@@ -1291,15 +1291,15 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
-    char path[FILE_MAX];
+    char filepath[FILE_MAX];
     bool exists = false;
 
-    RNA_string_get(op->ptr, "filepath", path);
+    RNA_string_get(op->ptr, "filepath", filepath);
 
     errno = 0;
 
     if (idcode == ID_IM) {
-      id = (ID *)BKE_image_load_exists_ex(bmain, path, &exists);
+      id = (ID *)BKE_image_load_exists_ex(bmain, filepath, &exists);
     }
     else {
       BLI_assert_unreachable();
@@ -1310,7 +1310,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
                   RPT_ERROR,
                   "Cannot read %s '%s': %s",
                   BKE_idtype_idcode_to_name(idcode),
-                  path,
+                  filepath,
                   errno ? strerror(errno) : TIP_("unsupported format"));
       return NULL;
     }
@@ -1517,7 +1517,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
   return block;
 }
 
-static void wm_operator_ui_popup_cancel(struct bContext *C, void *userData)
+static void wm_operator_ui_popup_cancel(bContext *C, void *userData)
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
@@ -1535,7 +1535,7 @@ static void wm_operator_ui_popup_cancel(struct bContext *C, void *userData)
   MEM_freeN(data);
 }
 
-static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
+static void wm_operator_ui_popup_ok(bContext *C, void *arg, int retval)
 {
   wmOpPopUp *data = arg;
   wmOperator *op = data->op;

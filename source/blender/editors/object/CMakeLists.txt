@@ -70,6 +70,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_editor_mesh
+  bf_editor_grease_pencil
   bf_render
   bf_windowmanager
 )

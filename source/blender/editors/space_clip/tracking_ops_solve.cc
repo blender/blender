@@ -35,7 +35,7 @@
 /********************** solve camera operator *********************/
 
 typedef struct {
-  struct wmWindowManager *wm;
+  wmWindowManager *wm;
   Scene *scene;
   MovieClip *clip;
   MovieClipUser user;
@@ -44,7 +44,7 @@ typedef struct {
 
   char stats_message[256];
 
-  struct MovieReconstructContext *context;
+  MovieReconstructContext *context;
 } SolveCameraJob;
 
 static bool solve_camera_initjob(

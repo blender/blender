@@ -553,7 +553,6 @@ typedef void (*uiButSearchListenFn)(const struct wmRegionListenerParams *params,
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
-typedef int (*uiButPushedStateFunc)(struct uiBut *but, const void *arg);
 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 

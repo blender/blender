@@ -1166,7 +1166,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     /* copy data from UVs to the preview display buffers */
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       /* just to test if face was added for processing.
-       * uvs of unselected vertices will return NULL */
+       * uvs of unselected vertices will return null */
       UvElement *element = BM_uv_element_get(state->element_map, BM_FACE_FIRST_LOOP(efa));
 
       if (element) {

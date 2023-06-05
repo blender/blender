@@ -177,44 +177,45 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
  * - restoring the screens from non-active windows
  * Best case is all screens match, in that case they get assigned to proper window.
  */
-static void wm_window_match_init(bContext *C, ListBase *wmlist)
+
+/**
+ * Clear several WM/UI runtime data that would make later complex WM handling impossible.
+ *
+ * Return data should be cleared by #wm_file_read_setup_wm_finalize. */
+static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C, Main *bmain)
 {
-  *wmlist = G_MAIN->wm;
+  BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
+
+  if (wm == nullptr) {
+    return wm_setup_data;
+  }
+
+  /* First wrap up running stuff.
+   *
+   * Code copied from wm_init_exit.cc */
+  WM_jobs_kill_all(wm);
 
   wmWindow *active_win = CTX_wm_window(C);
-
-  /* first wrap up running stuff */
-  /* code copied from wm_init_exit.cc */
-  LISTBASE_FOREACH (wmWindowManager *, wm, wmlist) {
-    WM_jobs_kill_all(wm);
-
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      CTX_wm_window_set(C, win); /* needed by operator close callbacks */
-      WM_event_remove_handlers(C, &win->handlers);
-      WM_event_remove_handlers(C, &win->modalhandlers);
-      ED_screen_exit(C, win, WM_window_get_active_screen(win));
-    }
-
-    /* NOTE(@ideasman42): Clear the message bus so it's always cleared on file load.
-     * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI & #wm_close_and_free).
-     * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
-     * which can re-register subscribers on file-load. To support this use case,
-     * it's best to have predictable behavior - always clear. */
-    if (wm->message_bus != nullptr) {
-      WM_msgbus_destroy(wm->message_bus);
-      wm->message_bus = nullptr;
-    }
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
+    WM_event_remove_handlers(C, &win->handlers);
+    WM_event_remove_handlers(C, &win->modalhandlers);
+    ED_screen_exit(C, win, WM_window_get_active_screen(win));
   }
-
-  BLI_listbase_clear(&G_MAIN->wm);
-  if (G_MAIN->name_map != nullptr) {
-    /* NOTE: UI IDs are assumed to be only local data-blocks, so no need to call
-     * #BKE_main_namemap_clear here. */
-    BKE_main_namemap_destroy(&G_MAIN->name_map);
-  }
-
-  /* reset active window */
+  /* Reset active window. */
   CTX_wm_window_set(C, active_win);
+
+  /* NOTE(@ideasman42): Clear the message bus so it's always cleared on file load.
+   * Otherwise it's cleared when "Load UI" is set (see #USER_FILENOUI and #wm_close_and_free).
+   * However it's _not_ cleared when the UI is kept. This complicates use from add-ons
+   * which can re-register subscribers on file-load. To support this use case,
+   * it's best to have predictable behavior - always clear. */
+  if (wm->message_bus != nullptr) {
+    WM_msgbus_destroy(wm->message_bus);
+    wm->message_bus = nullptr;
+  }
 
   /* XXX Hack! We have to clear context menu here, because removing all modalhandlers
    * above frees the active menu (at least, in the 'startup splash' case),
@@ -225,18 +226,23 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
    * so for now just handling this specific case here. */
   CTX_wm_menu_set(C, nullptr);
 
-  ED_editors_exit(G_MAIN, true);
+  ED_editors_exit(bmain, true);
 
   /* Asset loading is done by the UI/editors and they keep pointers into it. So make sure to clear
    * it after UI/editors. */
   ED_assetlist_storage_exit();
   AS_asset_libraries_exit();
+
+  /* NOTE: `wm_setup_data->old_wm` cannot be set here, as this pointer may be swapped with the
+   * newly read one in `setup_app_data` process (See #swap_wm_data_for_blendfile). */
+
+  return wm_setup_data;
 }
 
-static void wm_window_substitute_old(wmWindowManager *oldwm,
-                                     wmWindowManager *wm,
-                                     wmWindow *oldwin,
-                                     wmWindow *win)
+static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
+                                                        wmWindowManager *wm,
+                                                        wmWindow *oldwin,
+                                                        wmWindow *win)
 {
   win->ghostwin = oldwin->ghostwin;
   win->gpuctx = oldwin->gpuctx;
@@ -279,20 +285,24 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
  * An alternative solution could also be to close all windows except the first however this is
  * enough of a corner case that it's the current behavior is acceptable.
  */
-static void wm_window_match_keep_current_wm(const bContext *C,
-                                            ListBase *current_wm_list,
-                                            const bool load_ui,
-                                            ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_keep_old(const bContext *C,
+                                           Main *bmain,
+                                           BlendFileReadWMSetupData * /*wm_setup_data*/,
+                                           wmWindowManager *wm,
+                                           const bool load_ui)
 {
-  Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = static_cast<wmWindowManager *>(current_wm_list->first);
-  bScreen *screen = nullptr;
+  if (!load_ui) {
+    /* When loading without UI (i.e. keeping existing UI), no matching needed.
+     *
+     * The other UI data (workspaces, layouts, screens) has also been re-used from old Main, and
+     * newly read one from file has already been discarded in #setup_app_data. */
+    return;
+  }
 
-  /* match oldwm to new dbase, only old files */
-  wm->init_flag &= ~WM_INIT_FLAG_WINDOW;
-
-  /* when loading without UI, no matching needed */
-  if (load_ui && (screen = CTX_wm_screen(C))) {
+  /* Old WM is being reused, but other UI data (workspaces, layouts, screens) comes from the new
+   * file, so the WM needs to be updated to use these. */
+  bScreen *screen = CTX_wm_screen(C);
+  if (screen != nullptr) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       WorkSpace *workspace;
 
@@ -320,140 +330,102 @@ static void wm_window_match_keep_current_wm(const bContext *C,
       win_screen->winid = win->winid;
     }
   }
-
-  /* we'll be using the current wm list directly; make sure
-   * the names are validated and in the name map. */
-  LISTBASE_FOREACH (wmWindowManager *, wm_item, current_wm_list) {
-    BKE_main_namemap_get_name(bmain, &wm_item->id, wm_item->id.name + 2);
-  }
-
-  *r_new_wm_list = *current_wm_list;
 }
 
-static void wm_window_match_replace_by_file_wm(bContext *C,
-                                               ListBase *current_wm_list,
-                                               ListBase *readfile_wm_list,
-                                               ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_use_new(bContext *C,
+                                          Main * /* bmain */,
+                                          BlendFileReadWMSetupData *wm_setup_data,
+                                          wmWindowManager *wm)
 {
-  wmWindowManager *oldwm = static_cast<wmWindowManager *>(current_wm_list->first);
-  /* will become our new WM */
-  wmWindowManager *wm = static_cast<wmWindowManager *>(readfile_wm_list->first);
+  wmWindowManager *old_wm = wm_setup_data->old_wm;
 
-  /* Support window-manager ID references being held between file load operations by keeping
-   * #Main.wm.first memory address in-place, while swapping all of it's contents.
-   *
-   * This is needed so items such as key-maps can be held by an add-on,
-   * without it pointing to invalid memory, see: #86431 */
-  {
-    /* Referencing the window-manager pointer from elsewhere in the file is highly unlikely
-     * however it's possible with ID-properties & animation-drivers.
-     * At some point we could check on disallowing this since it doesn't seem practical. */
-    Main *bmain = G_MAIN;
-    BLI_assert(bmain->relations == nullptr);
-    BKE_libblock_remap(bmain, wm, oldwm, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+  wm->op_undo_depth = old_wm->op_undo_depth;
 
-    /* Maintain the undo-depth between file loads. Useful so Python can perform
-     * nested operator calls that exit with the proper undo-depth. */
-    wm->op_undo_depth = oldwm->op_undo_depth;
+  /* Move existing key configurations into the new WM. */
+  wm->keyconfigs = old_wm->keyconfigs;
+  wm->addonconf = old_wm->addonconf;
+  wm->defaultconf = old_wm->defaultconf;
+  wm->userconf = old_wm->userconf;
 
-    /* Simple pointer swapping step. */
-    BLI_remlink(current_wm_list, oldwm);
-    BLI_remlink(readfile_wm_list, wm);
-    SWAP(wmWindowManager, *oldwm, *wm);
-    SWAP(wmWindowManager *, oldwm, wm);
-    BLI_addhead(current_wm_list, oldwm);
-    BLI_addhead(readfile_wm_list, wm);
+  BLI_listbase_clear(&old_wm->keyconfigs);
+  old_wm->addonconf = nullptr;
+  old_wm->defaultconf = nullptr;
+  old_wm->userconf = nullptr;
 
-    /* Don't leave the old pointer in the context. */
-    CTX_wm_manager_set(C, wm);
-  }
-
-  bool has_match = false;
-
-  /* this code could move to setup_appdata */
-
-  /* preserve key configurations in new wm, to preserve their keymaps */
-  wm->keyconfigs = oldwm->keyconfigs;
-  wm->addonconf = oldwm->addonconf;
-  wm->defaultconf = oldwm->defaultconf;
-  wm->userconf = oldwm->userconf;
-
-  BLI_listbase_clear(&oldwm->keyconfigs);
-  oldwm->addonconf = nullptr;
-  oldwm->defaultconf = nullptr;
-  oldwm->userconf = nullptr;
-
-  /* ensure making new keymaps and set space types */
+  /* Ensure new keymaps are made, and space types are set. */
   wm->init_flag = 0;
   wm->winactive = nullptr;
 
-  /* Clearing drawable of before deleting any context
-   * to avoid clearing the wrong wm. */
-  wm_window_clear_drawable(oldwm);
+  /* Clearing drawable of old WM before deleting any context to avoid clearing the wrong wm. */
+  wm_window_clear_drawable(old_wm);
 
-  /* Only first `wm` in list has GHOST-windows. */
+  bool has_match = false;
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmWindow *, oldwin, &oldwm->windows) {
-      if (oldwin->winid == win->winid) {
+    LISTBASE_FOREACH (wmWindow *, old_win, &old_wm->windows) {
+      if (old_win->winid == win->winid) {
         has_match = true;
 
-        wm_window_substitute_old(oldwm, wm, oldwin, win);
+        wm_file_read_setup_wm_substitute_old_window(old_wm, wm, old_win, win);
       }
     }
   }
-  /* make sure at least one window is kept open so we don't lose the context, check #42303 */
+  /* Ensure that at least one window is kept open so we don't lose the context, see #42303. */
   if (!has_match) {
-    wm_window_substitute_old(oldwm,
-                             wm,
-                             static_cast<wmWindow *>(oldwm->windows.first),
-                             static_cast<wmWindow *>(wm->windows.first));
+    wm_file_read_setup_wm_substitute_old_window(old_wm,
+                                                wm,
+                                                static_cast<wmWindow *>(old_wm->windows.first),
+                                                static_cast<wmWindow *>(wm->windows.first));
   }
 
-  wm_close_and_free_all(C, current_wm_list);
-
-  *r_new_wm_list = *readfile_wm_list;
+  wm_setup_data->old_wm = nullptr;
+  wm_close_and_free(C, old_wm);
+  /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
+   * #BKE_main_free so any access to ID's referenced by the window-manager (from ID properties)
+   * will crash. See: #100703. */
+  BKE_libblock_free_data(&old_wm->id, false);
+  BKE_libblock_free_data_py(&old_wm->id);
+  MEM_freeN(old_wm);
 }
 
 /**
- * Match old WM with new, 4 cases:
- * 1) No current WM, no WM in file: Make new default.
- * 2) No current WM, but WM in file: Keep current WM, do nothing else.
- * 3) Current WM, but not in file: Keep current WM, update windows with screens from file.
- * 4) Current WM, and WM in file: Try to keep current GHOST windows, use WM from file.
+ * Finalize setting up the WM for the newly read file, transferring GHOST windows from the old WM
+ * if needed, updating other UI data, etc. And free the old WM if any.
  *
- * \param r_new_wm_list: Return argument for the wm list to be used from now on.
+ * Counterpart of #wm_file_read_setup_wm_init.
  */
-static void wm_window_match_do(bContext *C,
-                               ListBase *current_wm_list,
-                               ListBase *readfile_wm_list,
-                               ListBase *r_new_wm_list)
+static void wm_file_read_setup_wm_finalize(bContext *C,
+                                           Main *bmain,
+                                           BlendFileReadWMSetupData *wm_setup_data)
 {
-  if (BLI_listbase_is_empty(current_wm_list)) {
-    /* case 1 */
-    if (BLI_listbase_is_empty(readfile_wm_list)) {
-      Main *bmain = CTX_data_main(C);
-      /* Neither current, no newly read file have a WM -> add the default one. */
-      wm_add_default(bmain, C);
-      *r_new_wm_list = bmain->wm;
+  BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
+  BLI_assert(wm_setup_data != nullptr);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+
+  if (wm == nullptr) {
+    /* Add a default WM in case none exists in newly read main (should only happen when opening
+     * an old pre-2.5 .blend file at startup). */
+    wm_add_default(bmain, C);
+  }
+  else if (wm_setup_data->old_wm != nullptr) {
+    if (wm_setup_data->old_wm == wm) {
+      /* Old WM was kept, update it with new workspaces/layouts/screens read from file.
+       *
+       * Happens when not loading UI, or when the newly read file has no WM (pre-2.5 files). */
+      wm_file_read_setup_wm_keep_old(
+          C, bmain, wm_setup_data, wm, (G.fileflags & G_FILE_NO_UI) == 0);
     }
-    /* case 2 */
     else {
-      *r_new_wm_list = *readfile_wm_list;
+      /* Using new WM from read file, try to keep current GHOST windows, transfer keymaps, etc.,
+       * from old WM.
+       *
+       * Also takes care of clearing old WM data (temporarily stored in `wm_setup_data->old_wm`).
+       */
+      wm_file_read_setup_wm_use_new(C, bmain, wm_setup_data, wm);
     }
   }
-  else {
-    /* case 3 */
-    if (BLI_listbase_is_empty(readfile_wm_list)) {
-      /* We've read file without wm, keep current one entirely alive.
-       * Happens when reading pre 2.5 files (no WM back then) */
-      wm_window_match_keep_current_wm(
-          C, current_wm_list, (G.fileflags & G_FILE_NO_UI) == 0, r_new_wm_list);
-    }
-    /* case 4 */
-    else {
-      wm_window_match_replace_by_file_wm(C, current_wm_list, readfile_wm_list, r_new_wm_list);
-    }
-  }
+  /* Else just using the new WM read from file, nothing to do. */
+  BLI_assert(wm_setup_data->old_wm == nullptr);
+  MEM_delete(wm_setup_data);
 }
 
 /** \} */
@@ -677,7 +649,7 @@ struct wmFileReadPost_Params {
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *params)
+static void wm_file_read_post(bContext *C, const wmFileReadPost_Params *params)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -992,6 +964,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   /* NOTE: a matching #wm_read_callback_post_wrapper must be called. */
   wm_read_callback_pre_wrapper(C, filepath);
 
+  Main *bmain = CTX_data_main(C);
+
   /* so we can get the error message */
   errno = 0;
 
@@ -1014,20 +988,26 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
     bf_reports.duration.whole = PIL_check_seconds_timer();
-    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
+    BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
 
-      /* Put aside screens to match with persistent windows later,
-       * also exit screens and editors. */
-      ListBase wmbase;
-      wm_window_match_init(C, &wmbase);
+      /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
+       * message bus, and so on). */
+      BlendFileReadWMSetupData *wm_setup_data = wm_file_read_setup_wm_init(C, bmain);
 
       /* This flag is initialized by the operator but overwritten on read.
        * need to re-enable it here else drivers and registered scripts won't work. */
       const int G_f_orig = G.f;
 
-      BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
+      /* Frees the current main and replaces it with the new one read from file. */
+      BKE_blendfile_read_setup_readfile(
+          C, bfd, &params, wm_setup_data, &bf_reports, false, nullptr);
+      bmain = CTX_data_main(C);
+
+      /* Finalize handling of WM, using the read WM and/or the current WM depending on things like
+       * whether the UI is loaded from the .blend file or not, etc. */
+      wm_file_read_setup_wm_finalize(C, bmain, wm_setup_data);
 
       if (G.f != G_f_orig) {
         const int flags_keep = G_FLAG_ALL_RUNTIME;
@@ -1035,11 +1015,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
         G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
       }
 
-      /* #BKE_blendfile_read_result_setup sets new Main into context. */
-      Main *bmain = CTX_data_main(C);
-
-      /* match the read WM with current WM */
-      wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
       WM_check(C); /* opens window(s), checks keymaps */
 
       if (do_history_file_update) {
@@ -1134,9 +1109,9 @@ const char *WM_init_state_app_template_get(void)
  * \{ */
 
 void wm_homefile_read_ex(bContext *C,
-                         const struct wmHomeFileRead_Params *params_homefile,
+                         const wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
-                         struct wmFileReadPost_Params **r_params_file_read_post)
+                         wmFileReadPost_Params **r_params_file_read_post)
 {
 #if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
   /* Context does not always have valid main pointer here. */
@@ -1185,6 +1160,9 @@ void wm_homefile_read_ex(bContext *C,
 
   const char *app_template = nullptr;
   bool update_defaults = false;
+
+  /* Current Main is not always available in context here. */
+  Main *bmain = G_MAIN;
 
   if (filepath_startup_override != nullptr) {
     /* pass */
@@ -1241,9 +1219,11 @@ void wm_homefile_read_ex(bContext *C,
    * so we know this will work if all else fails. */
   wm_file_read_pre(use_data, use_userdef);
 
+  BlendFileReadWMSetupData *wm_setup_data = nullptr;
   if (use_data) {
-    /* put aside screens to match with persistent windows later */
-    wm_window_match_init(C, &wmbase);
+    /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
+     * message bus, and so on). */
+    wm_setup_data = wm_file_read_setup_wm_init(C, bmain);
   }
 
   filepath_startup[0] = '\0';
@@ -1330,12 +1310,19 @@ void wm_homefile_read_ex(bContext *C,
       params.skip_flags = skip_flags | BLO_READ_SKIP_USERDEF;
       BlendFileReadReport bf_reports{};
       bf_reports.reports = reports;
-      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
+      BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
       if (bfd != nullptr) {
-        BKE_blendfile_read_setup_ex(
-            C, bfd, &params, &bf_reports, update_defaults && use_data, app_template);
+        /* Frees the current main and replaces it with the new one read from file. */
+        BKE_blendfile_read_setup_readfile(C,
+                                          bfd,
+                                          &params,
+                                          wm_setup_data,
+                                          &bf_reports,
+                                          update_defaults && use_data,
+                                          app_template);
         success = true;
+        bmain = CTX_data_main(C);
       }
     }
     if (success) {
@@ -1360,12 +1347,15 @@ void wm_homefile_read_ex(bContext *C,
     BlendFileReadParams read_file_params{};
     read_file_params.is_startup = true;
     read_file_params.skip_flags = skip_flags;
-    struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
+    BlendFileData *bfd = BKE_blendfile_read_from_memory(
         datatoc_startup_blend, datatoc_startup_blend_size, &read_file_params, nullptr);
     if (bfd != nullptr) {
       BlendFileReadReport read_report{};
-      BKE_blendfile_read_setup_ex(C, bfd, &read_file_params, &read_report, true, nullptr);
+      /* Frees the current main and replaces it with the new one read from file. */
+      BKE_blendfile_read_setup_readfile(
+          C, bfd, &read_file_params, wm_setup_data, &read_report, true, nullptr);
       success = true;
+      bmain = CTX_data_main(C);
     }
 
     if (use_data && BLI_listbase_is_empty(&wmbase)) {
@@ -1415,16 +1405,15 @@ void wm_homefile_read_ex(bContext *C,
     STRNCPY(U.app_template, app_template_override);
   }
 
-  Main *bmain = CTX_data_main(C);
-
   if (use_userdef) {
     /* check userdef before open window, keymaps etc */
     wm_init_userdef(bmain);
   }
 
   if (use_data) {
-    /* match the read WM with current WM */
-    wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+    /* Finalize handling of WM, using the read WM and/or the current WM depending on things like
+     * whether the UI is loaded from the .blend file or not, etc. */
+    wm_file_read_setup_wm_finalize(C, bmain, wm_setup_data);
   }
 
   if (use_userdef) {
@@ -1470,14 +1459,13 @@ void wm_homefile_read_ex(bContext *C,
 }
 
 void wm_homefile_read(bContext *C,
-                      const struct wmHomeFileRead_Params *params_homefile,
+                      const wmHomeFileRead_Params *params_homefile,
                       ReportList *reports)
 {
   wm_homefile_read_ex(C, params_homefile, reports, nullptr);
 }
 
-void wm_homefile_read_post(struct bContext *C,
-                           const struct wmFileReadPost_Params *params_file_read_post)
+void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file_read_post)
 {
   wm_file_read_post(C, params_file_read_post);
 
@@ -1518,7 +1506,7 @@ void wm_history_file_read(void)
     const char *line = static_cast<const char *>(l->link);
     /* don't check if files exist, causes slow startup for remote/external drives */
     if (line[0]) {
-      struct RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
+      RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;
@@ -2843,9 +2831,9 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
   return wm_open_mainfile__open(C, op);
 }
 
-static char *wm_open_mainfile_description(struct bContext * /*C*/,
-                                          struct wmOperatorType * /*op*/,
-                                          struct PointerRNA *params)
+static char *wm_open_mainfile_description(bContext * /*C*/,
+                                          wmOperatorType * /*op*/,
+                                          PointerRNA *params)
 {
   if (!RNA_struct_property_is_set(params, "filepath")) {
     return nullptr;
@@ -2886,12 +2874,11 @@ static char *wm_open_mainfile_description(struct bContext * /*C*/,
 struct FileRuntime {
   bool is_untrusted;
 };
-BLI_STATIC_ASSERT(sizeof(struct FileRuntime) <= sizeof(void *),
-                  "Struct must not exceed pointer size");
+BLI_STATIC_ASSERT(sizeof(FileRuntime) <= sizeof(void *), "Struct must not exceed pointer size");
 
 static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
   bool is_untrusted = false;
   char filepath[FILE_MAX];
@@ -2921,7 +2908,7 @@ static bool wm_open_mainfile_check(bContext * /*C*/, wmOperator *op)
 
 static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
 {
-  struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+  FileRuntime *file_info = (FileRuntime *)&op->customdata;
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
@@ -3258,6 +3245,31 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (RNA_boolean_get(op->ptr, "incremental")) {
+    char head[FILE_MAXFILE], tail[FILE_MAXFILE];
+    ushort digits;
+    int num = BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &digits);
+    /* Numbers greater than INT_MAX return 0, resulting in always appending "1" to the name. */
+    if (num == 0 && digits == 0) {
+      /* This does nothing if there are no numbers at the end of the head. */
+      BLI_str_rstrip_digits(head);
+    }
+
+    const int tries_limit = 1000;
+    int tries = 0;
+    bool in_use = true;
+    do {
+      num++;
+      tries++;
+      BLI_path_sequence_encode(filepath, sizeof(filepath), head, tail, digits, num);
+      in_use = BLI_exists(filepath);
+    } while (in_use && tries < tries_limit && num < INT_MAX);
+    if (in_use) {
+      BKE_report(op->reports, RPT_ERROR, "Unable to find an available incremented file name");
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   const int fileflags_orig = G.fileflags;
   int fileflags = G.fileflags;
 
@@ -3392,6 +3404,18 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * 
   return ret;
 }
 
+static char *wm_save_mainfile_get_description(bContext * /*C*/,
+                                              wmOperatorType * /*ot*/,
+                                              PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "incremental")) {
+    return BLI_strdup(
+        TIP_("Save the current Blender file with a numerically incremented name that does not "
+             "overwrite any existing files"));
+  }
+  return nullptr;
+}
+
 void WM_OT_save_mainfile(wmOperatorType *ot)
 {
   ot->name = "Save Blender File";
@@ -3401,6 +3425,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
   ot->check = wm_save_mainfile_check;
+  ot->get_description = wm_save_mainfile_get_description;
   /* Omit window poll so this can work in background mode. */
 
   PropertyRNA *prop;
@@ -3419,6 +3444,14 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                   "Remap relative paths when saving to a different directory");
 
   prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+
+  prop = RNA_def_boolean(ot->srna,
+                         "incremental",
+                         false,
+                         "Incremental",
+                         "Save the current Blender file with a numerically incremented name that "
+                         "does not overwrite any existing files");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
@@ -3474,9 +3507,7 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, void *arg_block
 }
 
 /* Build the autorun warning dialog UI */
-static uiBlock *block_create_autorun_warning(struct bContext *C,
-                                             struct ARegion *region,
-                                             void * /*arg1*/)
+static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void * /*arg1*/)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -3761,9 +3792,7 @@ static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg
   ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
 }
 
-static uiBlock *block_create__close_file_dialog(struct bContext *C,
-                                                struct ARegion *region,
-                                                void *arg1)
+static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
 {
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);

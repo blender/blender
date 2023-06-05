@@ -117,7 +117,7 @@ static PyObject *pygpu_platform_backend_type_get(PyObject *UNUSED(self))
 /** \name Module
  * \{ */
 
-static struct PyMethodDef pygpu_platform__tp_methods[] = {
+static PyMethodDef pygpu_platform__tp_methods[] = {
     {"vendor_get",
      (PyCFunction)pygpu_platform_vendor_get,
      METH_NOARGS,

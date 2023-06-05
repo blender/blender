@@ -38,11 +38,11 @@ static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_PrivateData *pd)
   return matpool;
 }
 
-static struct GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_premult)
+static GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_premult)
 {
   ImBuf *ibuf;
   ImageUser iuser = {NULL};
-  struct GPUTexture *gpu_tex = NULL;
+  GPUTexture *gpu_tex = NULL;
   void *lock;
 
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);

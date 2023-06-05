@@ -27,12 +27,12 @@ using namespace blender::bke;
 
 /* simple struct for storing backup info for one pose channel */
 struct PoseChannelBackup {
-  struct PoseChannelBackup *next, *prev;
+  PoseChannelBackup *next, *prev;
 
-  struct bPoseChannel *pchan; /* Pose channel this backup is for. */
+  bPoseChannel *pchan; /* Pose channel this backup is for. */
 
-  struct bPoseChannel olddata; /* Backup of pose channel. */
-  struct IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
+  bPoseChannel olddata; /* Backup of pose channel. */
+  IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
 };
 
 struct PoseBackup {
@@ -108,7 +108,7 @@ PoseBackup *BKE_pose_backup_create_selected_bones(const Object *ob, const bActio
   return pose_backup_create(ob, action, selected_bone_names);
 }
 
-bool BKE_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup)
+bool BKE_pose_backup_is_selection_relevant(const PoseBackup *pose_backup)
 {
   return pose_backup->is_bone_selection_relevant;
 }
@@ -145,7 +145,7 @@ void BKE_pose_backup_create_on_object(Object *ob, const bAction *action)
   ob->runtime.pose_backup = pose_backup;
 }
 
-bool BKE_pose_backup_restore_on_object(struct Object *ob)
+bool BKE_pose_backup_restore_on_object(Object *ob)
 {
   if (ob->runtime.pose_backup == nullptr) {
     return false;

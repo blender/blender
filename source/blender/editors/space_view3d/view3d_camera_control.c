@@ -101,10 +101,10 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
   return NULL;
 }
 
-struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
-                                                            Scene *scene,
-                                                            View3D *v3d,
-                                                            RegionView3D *rv3d)
+View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
+                                                     Scene *scene,
+                                                     View3D *v3d,
+                                                     RegionView3D *rv3d)
 {
   View3DCameraControl *vctrl;
 

@@ -490,7 +490,7 @@ struct ProjPixel {
 };
 
 struct ProjPixelClone {
-  struct ProjPixel __pp;
+  ProjPixel __pp;
   PixelStore clonepx;
 };
 
@@ -504,7 +504,7 @@ struct TileInfo {
 };
 
 struct VertSeam {
-  struct VertSeam *next, *prev;
+  VertSeam *next, *prev;
   int tri;
   uint loop;
   float angle;
@@ -1838,7 +1838,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
   }
 
   if (generate_tile) {
-    struct PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
+    PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
     volatile void *undorect;
     if (tinf->masked) {
       undorect = ED_image_paint_tile_push(undo_tiles,
@@ -4288,7 +4288,7 @@ static bool project_paint_winclip(const ProjPaintState *ps, const ProjPaintFaceC
 #endif /* PROJ_DEBUG_WINCLIP */
 
 struct PrepareImageEntry {
-  struct PrepareImageEntry *next, *prev;
+  PrepareImageEntry *next, *prev;
   Image *ima;
   ImageUser iuser;
 };
@@ -4860,7 +4860,7 @@ struct ProjectHandle {
   /* thread settings */
   int thread_index;
 
-  struct ImagePool *pool;
+  ImagePool *pool;
 };
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)

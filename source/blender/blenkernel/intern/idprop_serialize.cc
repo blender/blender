@@ -62,7 +62,7 @@ class IDPropertySerializer {
    * \brief create dictionary containing the given id_property.
    */
   virtual std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const = 0;
+      const IDProperty *id_property) const = 0;
 
   /**
    * \brief convert the entry to an id property.
@@ -86,7 +86,7 @@ class IDPropertySerializer {
    *
    * Only fill the dictionary with common attributes (name, type).
    */
-  std::shared_ptr<DictionaryValue> create_dictionary(const struct IDProperty *id_property) const
+  std::shared_ptr<DictionaryValue> create_dictionary(const IDProperty *id_property) const
   {
     std::shared_ptr<DictionaryValue> result = std::make_shared<DictionaryValue>();
     DictionaryValue::Items &attributes = result->elements();
@@ -277,7 +277,7 @@ class IDPStringSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -317,7 +317,7 @@ class IDPIntSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -357,7 +357,7 @@ class IDPFloatSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -397,7 +397,7 @@ class IDPDoubleSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -437,7 +437,7 @@ class IDPArraySerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -602,7 +602,7 @@ class IDPGroupSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty *id_property) const override
+      const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
     DictionaryValue::Items &attributes = result->elements();
@@ -664,7 +664,7 @@ class IDPUnknownSerializer : public IDPropertySerializer {
   }
 
   std::shared_ptr<DictionaryValue> idprop_to_dictionary(
-      const struct IDProperty * /*id_property*/) const override
+      const IDProperty * /*id_property*/) const override
   {
     BLI_assert_unreachable();
     return nullptr;
@@ -748,12 +748,12 @@ static const IDPropertySerializer &serializer_for(StringRef idprop_typename)
 /* -------------------------------------------------------------------- */
 /** \name IDProperty to Value
  * \{ */
-std::unique_ptr<ArrayValue> convert_to_serialize_values(const struct IDProperty *properties)
+std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *properties)
 {
   BLI_assert(properties != nullptr);
   std::unique_ptr<ArrayValue> result = std::make_unique<ArrayValue>();
   ArrayValue::Items &elements = result->elements();
-  const struct IDProperty *current_property = properties;
+  const IDProperty *current_property = properties;
   while (current_property != nullptr) {
     const IDPropertySerializer &serializer = serializer_for(
         static_cast<eIDPropertyType>(current_property->type));

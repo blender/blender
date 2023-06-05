@@ -528,7 +528,7 @@ void RE_RenderBuffer_assign_shared(RenderBuffer *lhs, const RenderBuffer *rhs);
 void RE_RenderBuffer_data_free(RenderBuffer *render_buffer);
 
 /* Implementation of above, but for byte buffer. */
-/* TODO(sergey): Once everything is C++ we can remove the duplicated API.  */
+/* TODO(sergey): Once everything is C++ we can remove the duplicated API. */
 RenderByteBuffer RE_RenderByteBuffer_new(uint8_t *data);
 void RE_RenderByteBuffer_assign_data(RenderByteBuffer *render_buffer, uint8_t *data);
 void RE_RenderByteBuffer_assign_shared(RenderByteBuffer *lhs, const RenderByteBuffer *rhs);

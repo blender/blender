@@ -82,7 +82,7 @@ struct RenderJob {
    */
   Depsgraph *depsgraph;
   Render *re;
-  struct Object *camera_override;
+  Object *camera_override;
   bool v3d_override;
   bool anim, write_still;
   Image *image;
@@ -312,7 +312,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   Main *mainp = CTX_data_main(C);
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
 
   /* Cannot do render if there is not this function. */
   if (re_type->render == nullptr) {
@@ -939,7 +939,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
   View3D *v3d = use_viewport ? CTX_wm_view3d(C) : nullptr;
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
   const char *name;
   ScrArea *area;
 

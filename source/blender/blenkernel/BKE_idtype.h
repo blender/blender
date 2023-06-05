@@ -220,6 +220,10 @@ typedef struct IDTypeInfo {
    * Allow an ID type to preserve some of its data across (memfile) undo steps.
    *
    * \note Called from #setup_app_data when undoing or redoing a memfile step.
+   *
+   * \note In case the whole ID should be fully preserved across undo steps, it is better to flag
+   * its type with `IDTYPE_FLAGS_NO_MEMFILE_UNDO`, since that flag allows more aggressive
+   * optimizations in readfile code for memfile undo.
    */
   IDTypeBlendReadUndoPreserve blend_read_undo_preserve;
 

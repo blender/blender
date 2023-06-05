@@ -99,12 +99,12 @@ typedef struct LatticeRenderData {
   } dims;
   bool show_only_outside;
 
-  struct EditLatt *edit_latt;
+  EditLatt *edit_latt;
   BPoint *bp;
 
   int actbp;
 
-  const struct MDeformVert *dvert;
+  const MDeformVert *dvert;
 } LatticeRenderData;
 
 enum {

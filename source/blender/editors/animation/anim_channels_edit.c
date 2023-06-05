@@ -900,7 +900,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
   BKE_fcurve_free(fcu);
 }
 
-bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt)
+bool ANIM_remove_empty_action_from_animdata(AnimData *adt)
 {
   if (adt->action != NULL) {
     bAction *act = adt->action;
@@ -2782,9 +2782,9 @@ static bool animchannels_select_filter_poll(bContext *C)
   return ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA);
 }
 
-static int animchannels_select_filter_invoke(struct bContext *C,
-                                             struct wmOperator *op,
-                                             const struct wmEvent *UNUSED(event))
+static int animchannels_select_filter_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent *UNUSED(event))
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region_ctx = CTX_wm_region(C);
@@ -3354,7 +3354,7 @@ static int click_select_channel_object(bContext *C,
    * to avoid getting stuck there, see: #48747. */
   ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
-  /* Similar to outliner, do not change active element when selecting elements in range.*/
+  /* Similar to outliner, do not change active element when selecting elements in range. */
   if ((adt) && (adt->flag & ADT_UI_SELECTED) && (selectmode != SELECT_EXTEND_RANGE)) {
     adt->flag |= ADT_UI_ACTIVE;
   }

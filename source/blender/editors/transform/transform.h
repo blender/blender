@@ -158,6 +158,7 @@ typedef enum {
   MOD_CONSTRAINT_SELECT_PLANE = 1 << 4,
   MOD_NODE_ATTACH = 1 << 5,
   MOD_SNAP_FORCED = 1 << 6,
+  MOD_EDIT_SNAP_SOURCE = 1 << 7,
 } eTModifier;
 ENUM_OPERATORS(eTModifier, MOD_NODE_ATTACH)
 
@@ -271,6 +272,9 @@ enum {
   TFM_MODAL_VERT_EDGE_SLIDE = 31,
   TFM_MODAL_TRACKBALL = 32,
   TFM_MODAL_ROTATE_NORMALS = 33,
+
+  TFM_MODAL_EDIT_SNAP_SOURCE_ON = 34,
+  TFM_MODAL_EDIT_SNAP_SOURCE_OFF = 35,
 };
 
 /** \} */
@@ -309,14 +313,6 @@ typedef struct TransSnap {
   double last;
   void (*snap_target_fn)(struct TransInfo *, float *);
   void (*snap_source_fn)(struct TransInfo *);
-  /**
-   * Get the transform distance between two points (used by Closest snap)
-   *
-   * \note Return value can be anything,
-   * where the smallest absolute value defines what's closest.
-   */
-  float (*snap_mode_distance_fn)(struct TransInfo *t, const float p1[3], const float p2[3]);
-  void (*snap_mode_apply_fn)(struct TransInfo *, float *);
 
   /**
    * Re-usable snap context data.
@@ -508,6 +504,11 @@ typedef struct TransInfo {
   /** TODO: It should be a member of #TransDataContainer. */
   struct TransConvertTypeInfo *data_type;
 
+  /** Mode indicator as set for the operator.
+   * NOTE: A same `mode_info` can have different `mode`s. */
+  eTfmMode mode;
+  struct TransModeInfo *mode_info;
+
   /** Current context/options for transform. */
   eTContext options;
   /** Generic flags for special behaviors. */
@@ -520,20 +521,6 @@ typedef struct TransInfo {
   eRedrawFlag redraw;
   /** Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
   eTHelpline helpline;
-  /** Current mode. */
-  eTfmMode mode;
-
-  /** Main transform mode function. */
-  void (*transform)(struct TransInfo *, const int[2]);
-  /* Event handler function that determines whether the viewport needs to be redrawn. */
-  eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
-
-  /**
-   * Optional callback to transform a single matrix.
-   *
-   * \note used by the gizmo to transform the matrix used to position it.
-   */
-  void (*transform_matrix)(struct TransInfo *t, float mat_xform[4][4]);
 
   /** Constraint Data. */
   TransCon con;
@@ -770,6 +757,7 @@ void applyMouseInput(struct TransInfo *t,
                      float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
+void transform_input_reset(TransInfo *t, const int mval[2]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);

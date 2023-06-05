@@ -170,7 +170,7 @@ typedef struct GreasePencilLayerFramesMapStorage {
   /* Array of `frames` values (order matches the keys array). */
   GreasePencilFrame *values;
   /* Size of the map (number of key-value pairs). */
-  int size;
+  int num;
   /* Flag for the status of the storage. */
   int flag;
 } GreasePencilLayerFramesMapStorage;
@@ -394,7 +394,7 @@ typedef struct GreasePencil {
    * is done by the layers. See the `Layer` class in `BKE_grease_pencil.hh`.
    */
   GreasePencilDrawingBase **drawing_array;
-  int drawing_array_size;
+  int drawing_array_num;
   char _pad[4];
 
   /* Root group of the layer tree. */
@@ -410,7 +410,7 @@ typedef struct GreasePencil {
    * An array of materials.
    */
   struct Material **material_array;
-  short material_array_size;
+  short material_array_num;
   char _pad2[2];
   /**
    * Global flag on the data-block.
@@ -449,7 +449,7 @@ typedef struct GreasePencil {
   const blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name) const;
   blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name);
 
-  void add_empty_drawings(int add_size);
+  void add_empty_drawings(int add_num);
   void remove_drawing(int index);
 
   void foreach_visible_drawing(int frame,

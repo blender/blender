@@ -354,9 +354,9 @@ typedef struct BevelParams {
   bool harden_normals;
   char _pad[1];
   /** The struct used to store the custom profile input. */
-  const struct CurveProfile *custom_profile;
+  const CurveProfile *custom_profile;
   /** Vertex group array, maybe set if vertex only. */
-  const struct MDeformVert *dvert;
+  const MDeformVert *dvert;
   /** Vertex group index, maybe set if vertex only. */
   int vertex_group;
   /** If >= 0, material number for bevel; else material comes from adjacent faces. */
@@ -7736,7 +7736,7 @@ void BM_mesh_bevel(BMesh *bm,
                    const bool affect_type,
                    const bool use_weights,
                    const bool limit_offset,
-                   const struct MDeformVert *dvert,
+                   const MDeformVert *dvert,
                    const int vertex_group,
                    const int mat,
                    const bool loop_slide,
@@ -7748,7 +7748,7 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_inner,
                    const float spread,
                    const float smoothresh,
-                   const struct CurveProfile *custom_profile,
+                   const CurveProfile *custom_profile,
                    const int vmesh_method)
 {
   BMIter iter, liter;

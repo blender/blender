@@ -45,6 +45,8 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
 bool transform_snap_increment(const TransInfo *t, float *val);
 float transform_snap_increment_get(const TransInfo *t);
 
+void tranform_snap_source_restore_context(TransInfo *t);
+
 void transform_snap_flag_from_modifiers_set(TransInfo *t);
 bool transform_snap_is_active(const TransInfo *t);
 

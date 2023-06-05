@@ -190,7 +190,7 @@ void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
   }
 }
 
-void WM_msg_id_update(struct wmMsgBus *mbus, struct ID *id_src, struct ID *id_dst)
+void WM_msg_id_update(struct wmMsgBus *mbus, ID *id_src, ID *id_dst)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -200,7 +200,7 @@ void WM_msg_id_update(struct wmMsgBus *mbus, struct ID *id_src, struct ID *id_ds
   }
 }
 
-void WM_msg_id_remove(struct wmMsgBus *mbus, const struct ID *id)
+void WM_msg_id_remove(struct wmMsgBus *mbus, const ID *id)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];

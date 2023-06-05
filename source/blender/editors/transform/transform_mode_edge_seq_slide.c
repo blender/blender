@@ -108,11 +108,8 @@ static void applySeqSlide(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initSeqSlide(TransInfo *t)
+static void initSeqSlide(TransInfo *t, wmOperator *UNUSED(op))
 {
-  t->transform = applySeqSlide;
-  t->tsnap.snap_mode_apply_fn = transform_snap_sequencer_apply_translate;
-
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
   t->idx_max = 1;
@@ -136,3 +133,14 @@ void initSeqSlide(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_seqslide = {
+    /*flags*/ 0,
+    /*init_fn*/ initSeqSlide,
+    /*transform_fn*/ applySeqSlide,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ transform_snap_sequencer_apply_translate,
+    /*draw_fn*/ NULL,
+};

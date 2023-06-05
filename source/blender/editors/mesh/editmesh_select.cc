@@ -2811,7 +2811,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
  * \{ */
 
 struct BMFaceLink {
-  struct BMFaceLink *next, *prev;
+  BMFaceLink *next, *prev;
   BMFace *face;
   float area;
 };

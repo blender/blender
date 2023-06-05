@@ -47,7 +47,7 @@ static void boxsample(ImBuf *ibuf,
 /* *********** IMAGEWRAPPING ****************** */
 
 /* x and y have to be checked for image size */
-static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
+static void ibuf_get_color(float col[4], ImBuf *ibuf, int x, int y)
 {
   int ofs = y * ibuf->x + x;
 
@@ -461,7 +461,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
   return 1.0;
 }
 
-static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
+static void boxsampleclip(ImBuf *ibuf, rctf *rf, TexResult *texres)
 {
   /* Sample box, is clipped already, and minx etc. have been set at ibuf size.
    * Enlarge with anti-aliased edges of the pixels. */

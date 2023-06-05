@@ -823,7 +823,7 @@ static void curves_apply_threaded(int width,
   }
 }
 
-static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void curves_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
@@ -955,7 +955,7 @@ static void hue_correct_apply_threaded(int width,
   }
 }
 
-static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void hue_correct_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
   HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
 
@@ -1060,7 +1060,7 @@ static void brightcontrast_apply_threaded(int width,
   }
 }
 
-static void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void brightcontrast_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
   BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
   BrightContrastThreadData data;
@@ -1137,7 +1137,7 @@ static void maskmodifier_apply_threaded(int width,
   }
 }
 
-static void maskmodifier_apply(struct SequenceModifierData *UNUSED(smd), ImBuf *ibuf, ImBuf *mask)
+static void maskmodifier_apply(SequenceModifierData *UNUSED(smd), ImBuf *ibuf, ImBuf *mask)
 {
   // SequencerMaskModifierData *bcmd = (SequencerMaskModifierData *)smd;
 
@@ -1163,7 +1163,7 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
 
 typedef struct AvgLogLum {
   SequencerTonemapModifierData *tmmd;
-  struct ColorSpace *colorspace;
+  ColorSpace *colorspace;
   float al;
   float auto_key;
   float lav;
@@ -1307,7 +1307,7 @@ static void tonemapmodifier_apply_threaded_photoreceptor(int width,
   }
 }
 
-static void tonemapmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+static void tonemapmodifier_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 {
   SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
   AvgLogLum data;

@@ -170,7 +170,7 @@ static void image_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void image_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -244,7 +244,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_tile_fill);
 }
 
-static void image_keymap(struct wmKeyConfig *keyconf)
+static void image_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Image Generic", SPACE_IMAGE, 0);
   WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, 0);

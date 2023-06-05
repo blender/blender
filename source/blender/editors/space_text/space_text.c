@@ -94,7 +94,7 @@ static void text_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void text_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
@@ -213,7 +213,7 @@ static void text_operatortypes(void)
   WM_operatortype_append(TEXT_OT_autocomplete);
 }
 
-static void text_keymap(struct wmKeyConfig *keyconf)
+static void text_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Text Generic", SPACE_TEXT, 0);
   WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, 0);

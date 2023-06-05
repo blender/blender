@@ -38,6 +38,19 @@ void gather_group_sizes(const OffsetIndices<int> offsets,
   });
 }
 
+OffsetIndices<int> gather_selected_offsets(const OffsetIndices<int> src_offsets,
+                                           const IndexMask &selection,
+                                           MutableSpan<int> dst_offsets)
+{
+  if (selection.is_empty()) {
+    return {};
+  }
+  BLI_assert(selection.size() == (dst_offsets.size() - 1));
+  gather_group_sizes(src_offsets, selection, dst_offsets);
+  accumulate_counts_to_offsets(dst_offsets);
+  return OffsetIndices<int>(dst_offsets);
+}
+
 void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map)
 {
   threading::parallel_for(offsets.index_range(), 1024, [&](const IndexRange range) {

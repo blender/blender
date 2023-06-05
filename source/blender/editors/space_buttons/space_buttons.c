@@ -109,7 +109,7 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void buttons_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
 
@@ -317,7 +317,7 @@ const char *ED_buttons_search_string_get(SpaceProperties *sbuts)
   return sbuts->runtime->search_string;
 }
 
-int ED_buttons_search_string_length(struct SpaceProperties *sbuts)
+int ED_buttons_search_string_length(SpaceProperties *sbuts)
 {
   return BLI_strnlen(sbuts->runtime->search_string, sizeof(sbuts->runtime->search_string));
 }
@@ -532,7 +532,7 @@ static void buttons_operatortypes(void)
   WM_operatortype_append(BUTTONS_OT_directory_browse);
 }
 
-static void buttons_keymap(struct wmKeyConfig *keyconf)
+static void buttons_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, 0);
 }

@@ -219,9 +219,9 @@ struct ElemData_MetaBall {
   float rad;
 };
 
-static void metaball_coords_and_quats_get(const MetaBall *mb, struct ElemData_MetaBall *elem_array)
+static void metaball_coords_and_quats_get(const MetaBall *mb, ElemData_MetaBall *elem_array)
 {
-  struct ElemData_MetaBall *elem = elem_array;
+  ElemData_MetaBall *elem = elem_array;
   for (const MetaElem *ml = static_cast<const MetaElem *>(mb->elems.first); ml;
        ml = ml->next, elem++)
   {
@@ -233,10 +233,10 @@ static void metaball_coords_and_quats_get(const MetaBall *mb, struct ElemData_Me
 }
 
 static void metaball_coords_and_quats_apply_with_mat4(MetaBall *mb,
-                                                      const struct ElemData_MetaBall *elem_array,
+                                                      const ElemData_MetaBall *elem_array,
                                                       const float mat[4][4])
 {
-  const struct ElemData_MetaBall *elem = elem_array;
+  const ElemData_MetaBall *elem = elem_array;
   for (MetaElem *ml = static_cast<MetaElem *>(mb->elems.first); ml; ml = ml->next, elem++) {
     copy_v3_v3(&ml->x, elem->co);
     copy_qt_qt(ml->quat, elem->quat);
@@ -246,8 +246,7 @@ static void metaball_coords_and_quats_apply_with_mat4(MetaBall *mb,
   BKE_mball_transform(mb, mat, true);
 }
 
-static void metaball_coords_and_quats_apply(MetaBall *mb,
-                                            const struct ElemData_MetaBall *elem_array)
+static void metaball_coords_and_quats_apply(MetaBall *mb, const ElemData_MetaBall *elem_array)
 {
   /* Avoid code duplication by using a unit matrix. */
   float mat[4][4];
@@ -487,17 +486,17 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
   return xod_base;
 }
 
-struct XFormObjectData *ED_object_data_xform_create(ID *id)
+XFormObjectData *ED_object_data_xform_create(ID *id)
 {
   return ED_object_data_xform_create_ex(id, false);
 }
 
-struct XFormObjectData *ED_object_data_xform_create_from_edit_mode(ID *id)
+XFormObjectData *ED_object_data_xform_create_from_edit_mode(ID *id)
 {
   return ED_object_data_xform_create_ex(id, true);
 }
 
-void ED_object_data_xform_destroy(struct XFormObjectData *xod_base)
+void ED_object_data_xform_destroy(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -528,7 +527,7 @@ void ED_object_data_xform_destroy(struct XFormObjectData *xod_base)
   MEM_freeN(xod_base);
 }
 
-void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float mat[4][4])
+void ED_object_data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -635,7 +634,7 @@ void ED_object_data_xform_by_mat4(struct XFormObjectData *xod_base, const float 
   }
 }
 
-void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
+void ED_object_data_xform_restore(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -734,7 +733,7 @@ void ED_object_data_xform_restore(struct XFormObjectData *xod_base)
   }
 }
 
-void ED_object_data_xform_tag_update(struct XFormObjectData *xod_base)
+void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {

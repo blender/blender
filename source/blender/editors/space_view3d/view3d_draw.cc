@@ -381,7 +381,7 @@ void ED_view3d_draw_setup_view(const wmWindowManager *wm,
  * \{ */
 
 static void view3d_camera_border(const Scene *scene,
-                                 struct Depsgraph *depsgraph,
+                                 Depsgraph *depsgraph,
                                  const ARegion *region,
                                  const View3D *v3d,
                                  const RegionView3D *rv3d,
@@ -1664,7 +1664,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
   /* Store `orig` variables. */
   struct {
-    struct bThemeState theme_state;
+    bThemeState theme_state;
 
     /* #View3D */
     eDrawType v3d_shading_type;
@@ -1678,7 +1678,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
      * Needed so the value won't be left overwritten,
      * Without this the #wmPaintCursor can't use the pixel size & view matrices for drawing.
      */
-    struct RV3DMatrixStore *rv3d_mats;
+    RV3DMatrixStore *rv3d_mats;
   } orig{};
   orig.v3d_shading_type = eDrawType(v3d->shading.type);
   orig.region_winx = region->winx;
@@ -2163,7 +2163,7 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 /**
  * \note Only use in object mode.
  */
-static void validate_object_select_id(struct Depsgraph *depsgraph,
+static void validate_object_select_id(Depsgraph *depsgraph,
                                       const Scene *scene,
                                       ViewLayer *view_layer,
                                       ARegion *region,
@@ -2350,7 +2350,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
       return;
     }
   }
-  struct bThemeState theme_state;
+  bThemeState theme_state;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -2514,9 +2514,9 @@ struct RV3DMatrixStore {
   float pixsize;
 };
 
-struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d)
+RV3DMatrixStore *ED_view3d_mats_rv3d_backup(RegionView3D *rv3d)
 {
-  struct RV3DMatrixStore *rv3dmat = static_cast<RV3DMatrixStore *>(
+  RV3DMatrixStore *rv3dmat = static_cast<RV3DMatrixStore *>(
       MEM_mallocN(sizeof(*rv3dmat), __func__));
   copy_m4_m4(rv3dmat->winmat, rv3d->winmat);
   copy_m4_m4(rv3dmat->viewmat, rv3d->viewmat);
@@ -2528,9 +2528,9 @@ struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d)
   return rv3dmat;
 }
 
-void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat_pt)
+void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt)
 {
-  struct RV3DMatrixStore *rv3dmat = rv3dmat_pt;
+  RV3DMatrixStore *rv3dmat = rv3dmat_pt;
   copy_m4_m4(rv3d->winmat, rv3dmat->winmat);
   copy_m4_m4(rv3d->viewmat, rv3dmat->viewmat);
   copy_m4_m4(rv3d->persmat, rv3dmat->persmat);

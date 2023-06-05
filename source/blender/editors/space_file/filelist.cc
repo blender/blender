@@ -1147,16 +1147,16 @@ void filelist_free_icons(void)
 
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
-                                 char r_path[/*FILE_MAX_LIBEXTRA*/])
+                                 char r_filepath[/*FILE_MAX_LIBEXTRA*/])
 {
   if (file->asset) {
     const std::string asset_path = AS_asset_representation_full_path_get(file->asset);
-    BLI_strncpy(r_path, asset_path.c_str(), FILE_MAX_LIBEXTRA);
+    BLI_strncpy(r_filepath, asset_path.c_str(), FILE_MAX_LIBEXTRA);
     return;
   }
 
   const char *root = filelist_dir(filelist);
-  BLI_path_join(r_path, FILE_MAX_LIBEXTRA, root, file->relpath);
+  BLI_path_join(r_filepath, FILE_MAX_LIBEXTRA, root, file->relpath);
 }
 
 static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int index)
@@ -1389,7 +1389,7 @@ static bool filelist_checkdir_main(FileList *filelist,
   return filelist_checkdir_lib(filelist, dirpath, do_change);
 }
 
-static bool filelist_checkdir_return_always_valid(struct FileList * /*filelist*/,
+static bool filelist_checkdir_return_always_valid(FileList * /*filelist*/,
                                                   char /*dirpath*/[FILE_MAX_LIBEXTRA],
                                                   const bool /*do_change*/)
 {
@@ -2237,7 +2237,7 @@ ID *filelist_file_get_id(const FileDirEntry *file)
   return file->id;
 }
 
-const char *filelist_entry_get_relpath(const struct FileList *filelist, int index)
+const char *filelist_entry_get_relpath(const FileList *filelist, int index)
 {
   const FileListInternEntry *intern_entry = filelist_entry_intern_get(filelist, index);
   return intern_entry->relpath;

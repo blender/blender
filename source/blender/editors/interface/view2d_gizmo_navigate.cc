@@ -54,7 +54,7 @@ struct NavigateGizmoInfo {
   uint icon;
 };
 
-static struct NavigateGizmoInfo g_navigate_params_for_space_image[GZ_INDEX_TOTAL] = {
+static NavigateGizmoInfo g_navigate_params_for_space_image[GZ_INDEX_TOTAL] = {
     {
         "IMAGE_OT_view_pan",
         "GIZMO_GT_button_2d",
@@ -67,7 +67,7 @@ static struct NavigateGizmoInfo g_navigate_params_for_space_image[GZ_INDEX_TOTAL
     },
 };
 
-static struct NavigateGizmoInfo g_navigate_params_for_space_clip[GZ_INDEX_TOTAL] = {
+static NavigateGizmoInfo g_navigate_params_for_space_clip[GZ_INDEX_TOTAL] = {
     {
         "CLIP_OT_view_pan",
         "GIZMO_GT_button_2d",
@@ -80,7 +80,7 @@ static struct NavigateGizmoInfo g_navigate_params_for_space_clip[GZ_INDEX_TOTAL]
     },
 };
 
-static struct NavigateGizmoInfo g_navigate_params_for_view2d[GZ_INDEX_TOTAL] = {
+static NavigateGizmoInfo g_navigate_params_for_view2d[GZ_INDEX_TOTAL] = {
     {
         "VIEW2D_OT_pan",
         "GIZMO_GT_button_2d",
@@ -93,7 +93,7 @@ static struct NavigateGizmoInfo g_navigate_params_for_view2d[GZ_INDEX_TOTAL] = {
     },
 };
 
-static struct NavigateGizmoInfo *navigate_params_from_space_type(short space_type)
+static NavigateGizmoInfo *navigate_params_from_space_type(short space_type)
 {
   switch (space_type) {
     case SPACE_IMAGE:
@@ -153,11 +153,11 @@ static void WIDGETGROUP_navigate_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 {
   NavigateWidgetGroup *navgroup = MEM_cnew<NavigateWidgetGroup>(__func__);
 
-  const struct NavigateGizmoInfo *navigate_params = navigate_params_from_space_type(
+  const NavigateGizmoInfo *navigate_params = navigate_params_from_space_type(
       gzgroup->type->gzmap_params.spaceid);
 
   for (int i = 0; i < GZ_INDEX_TOTAL; i++) {
-    const struct NavigateGizmoInfo *info = &navigate_params[i];
+    const NavigateGizmoInfo *info = &navigate_params[i];
     navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, nullptr);
     wmGizmo *gz = navgroup->gz_array[i];
     gz->flag |= WM_GIZMO_MOVE_CURSOR | WM_GIZMO_DRAW_MODAL;

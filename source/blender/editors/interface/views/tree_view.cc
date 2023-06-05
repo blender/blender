@@ -119,9 +119,7 @@ void AbstractTreeView::change_state_delayed()
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
-                                             void *but_arg1,
-                                             void * /*arg2*/)
+void AbstractTreeViewItem::tree_row_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *item_but = (uiButViewItem *)but_arg1;
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
@@ -161,7 +159,7 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
   UI_block_layout_set_current(block, &row);
 }
 
-void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
+void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
                                                      void * /*but_arg1*/,
                                                      void * /*arg2*/)
 {

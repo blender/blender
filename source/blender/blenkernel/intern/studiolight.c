@@ -104,7 +104,7 @@ static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
     } \
   } while (0)
 
-static void studiolight_free(struct StudioLight *sl)
+static void studiolight_free(StudioLight *sl)
 {
 #define STUDIOLIGHT_DELETE_ICON(s) \
   do { \
@@ -139,9 +139,9 @@ static void studiolight_free(struct StudioLight *sl)
   MEM_SAFE_FREE(sl);
 }
 
-static struct StudioLight *studiolight_create(int flag)
+static StudioLight *studiolight_create(int flag)
 {
-  struct StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
+  StudioLight *sl = MEM_callocN(sizeof(*sl), __func__);
   sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->path_irr_cache = NULL;
@@ -1445,13 +1445,13 @@ void BKE_studiolight_init(void)
 
 void BKE_studiolight_free(void)
 {
-  struct StudioLight *sl;
+  StudioLight *sl;
   while ((sl = BLI_pophead(&studiolights))) {
     studiolight_free(sl);
   }
 }
 
-struct StudioLight *BKE_studiolight_find_default(int flag)
+StudioLight *BKE_studiolight_find_default(int flag)
 {
   const char *default_name = "";
 
@@ -1476,7 +1476,7 @@ struct StudioLight *BKE_studiolight_find_default(int flag)
   return NULL;
 }
 
-struct StudioLight *BKE_studiolight_find(const char *name, int flag)
+StudioLight *BKE_studiolight_find(const char *name, int flag)
 {
   LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
     if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
@@ -1492,7 +1492,7 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
   return BKE_studiolight_find_default(flag);
 }
 
-struct StudioLight *BKE_studiolight_findindex(int index, int flag)
+StudioLight *BKE_studiolight_findindex(int index, int flag)
 {
   LISTBASE_FOREACH (StudioLight *, sl, &studiolights) {
     if (sl->index == index) {
@@ -1503,7 +1503,7 @@ struct StudioLight *BKE_studiolight_findindex(int index, int flag)
   return BKE_studiolight_find_default(flag);
 }
 
-struct ListBase *BKE_studiolight_listbase(void)
+ListBase *BKE_studiolight_listbase(void)
 {
   return &studiolights;
 }

@@ -51,7 +51,7 @@ SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene, wmGizmo *U
   return ED_view3d_cursor_snap_context_ensure(scene);
 }
 
-void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *gz, int flag)
+void ED_gizmotypes_snap_3d_flag_set(wmGizmo *gz, int flag)
 {
   V3DSnapCursorState *snap_state = ((SnapGizmo3D *)gz)->snap_state;
   snap_state->flag |= flag;
@@ -63,7 +63,7 @@ bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *UNUSED(gz))
   return snap_data->is_enabled;
 }
 
-void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
+void ED_gizmotypes_snap_3d_data_get(const bContext *C,
                                     wmGizmo *gz,
                                     float r_loc[3],
                                     float r_nor[3],
@@ -111,7 +111,7 @@ static SnapGizmo3D *gizmo_snap_rna_find_operator(PointerRNA *ptr)
   return (SnapGizmo3D *)gizmo_find_from_properties(ptr->data, SPACE_VIEW3D, RGN_TYPE_WINDOW);
 }
 
-static V3DSnapCursorState *gizmo_snap_state_from_rna_get(struct PointerRNA *ptr)
+static V3DSnapCursorState *gizmo_snap_state_from_rna_get(PointerRNA *ptr)
 {
   SnapGizmo3D *snap_gizmo = gizmo_snap_rna_find_operator(ptr);
   if (snap_gizmo) {
@@ -121,8 +121,8 @@ static V3DSnapCursorState *gizmo_snap_state_from_rna_get(struct PointerRNA *ptr)
   return ED_view3d_cursor_snap_state_active_get();
 }
 
-static void gizmo_snap_rna_prevpoint_get_fn(struct PointerRNA *ptr,
-                                            struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_prevpoint_get_fn(PointerRNA *ptr,
+                                            PropertyRNA *UNUSED(prop),
                                             float *values)
 {
   V3DSnapCursorState *snap_state = gizmo_snap_state_from_rna_get(ptr);
@@ -131,40 +131,40 @@ static void gizmo_snap_rna_prevpoint_get_fn(struct PointerRNA *ptr,
   }
 }
 
-static void gizmo_snap_rna_prevpoint_set_fn(struct PointerRNA *ptr,
-                                            struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_prevpoint_set_fn(PointerRNA *ptr,
+                                            PropertyRNA *UNUSED(prop),
                                             const float *values)
 {
   V3DSnapCursorState *snap_state = gizmo_snap_state_from_rna_get(ptr);
   ED_view3d_cursor_snap_state_prevpoint_set(snap_state, values);
 }
 
-static void gizmo_snap_rna_location_get_fn(struct PointerRNA *UNUSED(ptr),
-                                           struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_location_get_fn(PointerRNA *UNUSED(ptr),
+                                           PropertyRNA *UNUSED(prop),
                                            float *values)
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   copy_v3_v3(values, snap_data->loc);
 }
 
-static void gizmo_snap_rna_location_set_fn(struct PointerRNA *UNUSED(ptr),
-                                           struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_location_set_fn(PointerRNA *UNUSED(ptr),
+                                           PropertyRNA *UNUSED(prop),
                                            const float *values)
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   copy_v3_v3(snap_data->loc, values);
 }
 
-static void gizmo_snap_rna_normal_get_fn(struct PointerRNA *UNUSED(ptr),
-                                         struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_normal_get_fn(PointerRNA *UNUSED(ptr),
+                                         PropertyRNA *UNUSED(prop),
                                          float *values)
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   copy_v3_v3(values, snap_data->nor);
 }
 
-static void gizmo_snap_rna_snap_elem_index_get_fn(struct PointerRNA *UNUSED(ptr),
-                                                  struct PropertyRNA *UNUSED(prop),
+static void gizmo_snap_rna_snap_elem_index_get_fn(PointerRNA *UNUSED(ptr),
+                                                  PropertyRNA *UNUSED(prop),
                                                   int *values)
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();

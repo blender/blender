@@ -56,7 +56,7 @@ typedef enum eGP_EyeMode {
 } eGP_EyeMode;
 
 struct EyedropperGPencil {
-  struct ColorManagedDisplay *display;
+  ColorManagedDisplay *display;
   /** color under cursor RGB */
   float color[3];
   /** Mode */

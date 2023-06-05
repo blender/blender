@@ -148,7 +148,7 @@ static bool mball_undosys_poll(bContext *C)
   return editmball_object_from_context(C) != NULL;
 }
 
-static bool mball_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool mball_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   MBallUndoStep *us = (MBallUndoStep *)us_p;
 
@@ -179,8 +179,8 @@ static bool mball_undosys_step_encode(struct bContext *C, struct Main *bmain, Un
   return true;
 }
 
-static void mball_undosys_step_decode(struct bContext *C,
-                                      struct Main *bmain,
+static void mball_undosys_step_decode(bContext *C,
+                                      Main *bmain,
                                       UndoStep *us_p,
                                       const eUndoStepDir UNUSED(dir),
                                       bool UNUSED(is_final))

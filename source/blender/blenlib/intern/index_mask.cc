@@ -152,14 +152,6 @@ IndexMask IndexMask::slice_and_offset(const int64_t start,
   return sliced_mask;
 }
 
-IndexMask IndexMask::complement(const IndexRange universe, IndexMaskMemory &memory) const
-{
-  /* TODO: Implement more efficient solution. */
-  return IndexMask::from_predicate(universe, GrainSize(512), memory, [&](const int64_t index) {
-    return !this->contains(index);
-  });
-}
-
 /**
  * Merges consecutive segments in some cases. Having fewer but larger segments generally allows for
  * better performance when using the mask later on.
@@ -331,6 +323,168 @@ struct ParallelSegmentsCollector {
                   [](const IndexMaskSegment a, const IndexMaskSegment b) { return a[0] < b[0]; });
   }
 };
+
+/**
+ * Convert a range to potentially multiple index mask segments.
+ */
+static void range_to_segments(const IndexRange range, Vector<IndexMaskSegment, 16> &r_segments)
+{
+  const Span<int16_t> static_indices = get_static_indices_array();
+  for (int64_t start = 0; start < range.size(); start += max_segment_size) {
+    const int64_t size = std::min(max_segment_size, range.size() - start);
+    r_segments.append_as(range.start() + start, static_indices.take_front(size));
+  }
+}
+
+static int64_t get_size_before_gap(const Span<int16_t> indices)
+{
+  BLI_assert(indices.size() >= 2);
+  if (indices[1] > indices[0] + 1) {
+    /* For sparse indices, often the next gap is just after the next index.
+     * In this case we can skip the logarithmic check below. */
+    return 1;
+  }
+  return unique_sorted_indices::find_size_of_next_range(indices);
+}
+
+static void inverted_indices_to_segments(const IndexMaskSegment segment,
+                                         LinearAllocator<> &allocator,
+                                         Vector<IndexMaskSegment, 16> &r_segments)
+{
+  constexpr int64_t range_threshold = 64;
+  const int64_t offset = segment.offset();
+  const Span<int16_t> static_indices = get_static_indices_array();
+
+  int64_t inverted_index_count = 0;
+  std::array<int16_t, max_segment_size> inverted_indices_array;
+  auto add_indices = [&](const int16_t start, const int16_t num) {
+    int16_t *new_indices_begin = inverted_indices_array.data() + inverted_index_count;
+    std::iota(new_indices_begin, new_indices_begin + num, start);
+    inverted_index_count += num;
+  };
+
+  auto finish_indices = [&]() {
+    if (inverted_index_count == 0) {
+      return;
+    }
+    MutableSpan<int16_t> offset_indices = allocator.allocate_array<int16_t>(inverted_index_count);
+    offset_indices.copy_from(Span(inverted_indices_array).take_front(inverted_index_count));
+    r_segments.append_as(offset, offset_indices);
+    inverted_index_count = 0;
+  };
+
+  Span<int16_t> indices = segment.base_span();
+  while (indices.size() > 1) {
+    const int64_t size_before_gap = get_size_before_gap(indices);
+    if (size_before_gap == indices.size()) {
+      break;
+    }
+
+    const int16_t gap_first = indices[size_before_gap - 1] + 1;
+    const int16_t next = indices[size_before_gap];
+    const int16_t gap_size = next - gap_first;
+    if (gap_size > range_threshold) {
+      finish_indices();
+      r_segments.append_as(offset + gap_first, static_indices.take_front(gap_size));
+    }
+    else {
+      add_indices(gap_first, gap_size);
+    }
+
+    indices = indices.drop_front(size_before_gap);
+  }
+
+  finish_indices();
+}
+
+static void invert_segments(const IndexMask &mask,
+                            const IndexRange segment_range,
+                            LinearAllocator<> &allocator,
+                            Vector<IndexMaskSegment, 16> &r_segments)
+{
+  for (const int64_t segment_i : segment_range) {
+    const IndexMaskSegment segment = mask.segment(segment_i);
+    inverted_indices_to_segments(segment, allocator, r_segments);
+
+    const IndexMaskSegment next_segment = mask.segment(segment_i + 1);
+    const int64_t between_start = segment.last() + 1;
+    const int64_t size_between_segments = next_segment[0] - segment.last() - 1;
+    const IndexRange range_between_segments(between_start, size_between_segments);
+    if (!range_between_segments.is_empty()) {
+      range_to_segments(range_between_segments, r_segments);
+    }
+  }
+}
+
+IndexMask IndexMask::complement(const IndexRange universe, IndexMaskMemory &memory) const
+{
+  if (this->is_empty()) {
+    return universe;
+  }
+  if (universe.is_empty()) {
+    return {};
+  }
+  const std::optional<IndexRange> this_range = this->to_range();
+  if (this_range) {
+    const bool first_in_range = this_range->first() <= universe.first();
+    const bool last_in_range = this_range->last() >= universe.last();
+    if (first_in_range && last_in_range) {
+      /* This mask fills the entire universe, so the complement is empty. */
+      return {};
+    }
+    if (first_in_range) {
+      /* This mask is a range that contains the start of the universe.
+       * The complement is a range that contains the end of the universe. */
+      const int64_t complement_start = this_range->one_after_last();
+      const int64_t complement_size = universe.one_after_last() - complement_start;
+      return IndexRange(complement_start, complement_size);
+    }
+    if (last_in_range) {
+      /* This mask is a range that contains the end of the universe.
+       * The complement is a range that contains the start of the universe. */
+      const int64_t complement_start = universe.first();
+      const int64_t complement_size = this_range->first() - complement_start;
+      return IndexRange(complement_start, complement_size);
+    }
+  }
+
+  Vector<IndexMaskSegment, 16> segments;
+
+  if (universe.start() < this->first()) {
+    range_to_segments(universe.take_front(this->first() - universe.start()), segments);
+  }
+
+  if (!this_range) {
+    const int64_t segments_num = this->segments_num();
+
+    constexpr int64_t min_grain_size = 16;
+    constexpr int64_t max_grain_size = 4096;
+    const int64_t threads_num = BLI_system_thread_count();
+    const int64_t grain_size = std::clamp(
+        segments_num / threads_num, min_grain_size, max_grain_size);
+
+    const IndexRange non_last_segments = IndexRange(segments_num).drop_back(1);
+    if (segments_num < min_grain_size) {
+      invert_segments(*this, non_last_segments, memory, segments);
+    }
+    else {
+      ParallelSegmentsCollector segments_collector;
+      threading::parallel_for(non_last_segments, grain_size, [&](const IndexRange range) {
+        ParallelSegmentsCollector::LocalData &local_data =
+            segments_collector.data_by_thread.local();
+        invert_segments(*this, range, local_data.allocator, local_data.segments);
+      });
+      segments_collector.reduce(memory, segments);
+    }
+    inverted_indices_to_segments(this->segment(segments_num - 1), memory, segments);
+  }
+
+  if (universe.last() > this->first()) {
+    range_to_segments(universe.take_back(universe.last() - this->last()), segments);
+  }
+
+  return mask_from_segments(segments, memory);
+}
 
 template<typename T>
 IndexMask IndexMask::from_indices(const Span<T> indices, IndexMaskMemory &memory)

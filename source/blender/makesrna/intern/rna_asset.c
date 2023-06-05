@@ -604,7 +604,7 @@ static void rna_def_asset_library_reference(BlenderRNA *brna)
       srna, "Asset Library Reference", "Identifier to refer to the asset library");
 }
 
-PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
+PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,
                                                     const char *get,
                                                     const char *set)
 {

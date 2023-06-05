@@ -260,7 +260,7 @@ IDTypeInfo IDType_ID_MSK = {
 
 static struct {
   ListBase splines;
-  struct GHash *id_hash;
+  GHash *id_hash;
 } mask_clipboard = {{nullptr}};
 
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline,

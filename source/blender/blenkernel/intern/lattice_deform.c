@@ -442,14 +442,14 @@ void BKE_lattice_deform_coords_with_mesh(const Object *ob_lattice,
                              NULL);
 }
 
-void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
-                                             const struct Object *ob_target,
+void BKE_lattice_deform_coords_with_editmesh(const Object *ob_lattice,
+                                             const Object *ob_target,
                                              float (*vert_coords)[3],
                                              const int vert_coords_len,
                                              const short flag,
                                              const char *defgrp_name,
                                              const float fac,
-                                             struct BMEditMesh *em_target)
+                                             BMEditMesh *em_target)
 {
   lattice_deform_coords_impl(ob_lattice,
                              ob_target,

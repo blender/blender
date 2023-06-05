@@ -504,7 +504,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
+void MBALL_OT_select_random_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";

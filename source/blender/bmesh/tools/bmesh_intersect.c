@@ -944,7 +944,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
 #endif /* USE_BVH */
 
 bool BM_mesh_intersect(BMesh *bm,
-                       struct BMLoop *(*looptris)[3],
+                       BMLoop *(*looptris)[3],
                        const int looptris_tot,
                        int (*test_fn)(BMFace *f, void *user_data),
                        void *user_data,

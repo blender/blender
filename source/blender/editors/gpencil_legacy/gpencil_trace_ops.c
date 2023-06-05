@@ -45,7 +45,7 @@
 
 typedef struct TraceJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
 

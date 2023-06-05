@@ -187,11 +187,9 @@ static void applyTrackballMatrix(TransInfo *t, float mat_xform[4][4])
   mul_m4_m4m4(mat_xform, mat4, mat_xform);
 }
 
-void initTrackball(TransInfo *t)
+static void initTrackball(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_TRACKBALL;
-  t->transform = applyTrackball;
-  t->transform_matrix = applyTrackballMatrix;
 
   initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
 
@@ -205,8 +203,17 @@ void initTrackball(TransInfo *t)
   t->num.unit_use_radians = (t->scene->unit.system_rotation == USER_UNIT_ROT_RADIANS);
   t->num.unit_type[0] = B_UNIT_ROTATION;
   t->num.unit_type[1] = B_UNIT_ROTATION;
-
-  t->flag |= T_NO_CONSTRAINT;
 }
 
 /** \} */
+
+TransModeInfo TransMode_trackball = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initTrackball,
+    /*transform_fn*/ applyTrackball,
+    /*transform_matrix_fn*/ applyTrackballMatrix,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

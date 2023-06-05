@@ -115,6 +115,16 @@ char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_m
     ATTR_NONNULL(1, 2);
 
 /**
+ * A version of `strchr` that returns the end of the string (point to `\0`)
+ * if the character is not found.
+ *
+ * Useful for stepping over newlines up until the last line.
+ */
+const char *BLI_strchr_or_end(const char *str,
+                              char ch) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL
+    ATTR_NONNULL(1);
+
+/**
  * Return the range of the quoted string (excluding quotes) `str` after `prefix`.
  *
  * A version of #BLI_str_quoted_substrN that calculates the range
@@ -435,6 +445,15 @@ void BLI_str_rstrip(char *str) ATTR_NONNULL(1);
  * \return The number of zeros stripped.
  */
 int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL(1);
+
+/**
+ * Strip trailing digits.
+ *   ABC123 -> ABC
+ *
+ * \param str:
+ * \return The number of digits stripped.
+ */
+int BLI_str_rstrip_digits(char *str) ATTR_NONNULL();
 
 /**
  * Return index of a string in a string array.

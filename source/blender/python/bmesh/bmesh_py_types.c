@@ -1079,7 +1079,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   PyObject *py_object;
   PyObject *py_depsgraph;
   Object *ob, *ob_eval;
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
   struct Scene *scene_eval;
   const Mesh *me_eval;
   BMesh *bm;
@@ -2797,7 +2797,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpy_bmesh_methods[] = {
+static PyMethodDef bpy_bmesh_methods[] = {
     /* utility */
     {"copy", (PyCFunction)bpy_bmesh_copy, METH_NOARGS, bpy_bmesh_copy_doc},
     {"clear", (PyCFunction)bpy_bmesh_clear, METH_NOARGS, bpy_bmesh_clear_doc},
@@ -2841,7 +2841,7 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmvert_methods[] = {
+static PyMethodDef bpy_bmvert_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
@@ -2871,7 +2871,7 @@ static struct PyMethodDef bpy_bmvert_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmedge_methods[] = {
+static PyMethodDef bpy_bmedge_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
@@ -2900,7 +2900,7 @@ static struct PyMethodDef bpy_bmedge_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmface_methods[] = {
+static PyMethodDef bpy_bmface_methods[] = {
     {"select_set", (PyCFunction)bpy_bm_elem_select_set, METH_O, bpy_bm_elem_select_set_doc},
     {"hide_set", (PyCFunction)bpy_bm_elem_hide_set, METH_O, bpy_bm_elem_hide_set_doc},
 
@@ -2955,7 +2955,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmloop_methods[] = {
+static PyMethodDef bpy_bmloop_methods[] = {
     {"copy_from", (PyCFunction)bpy_bm_elem_copy_from, METH_O, bpy_bm_elem_copy_from_doc},
     {"copy_from_face_interp",
      (PyCFunction)bpy_bmloop_copy_from_face_interp,
@@ -2971,7 +2971,7 @@ static struct PyMethodDef bpy_bmloop_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmelemseq_methods[] = {
+static PyMethodDef bpy_bmelemseq_methods[] = {
     /* odd function, initializes index values */
     {"index_update",
      (PyCFunction)bpy_bmelemseq_index_update,
@@ -2980,7 +2980,7 @@ static struct PyMethodDef bpy_bmelemseq_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmvertseq_methods[] = {
+static PyMethodDef bpy_bmvertseq_methods[] = {
     {"new", (PyCFunction)bpy_bmvertseq_new, METH_VARARGS, bpy_bmvertseq_new_doc},
     {"remove", (PyCFunction)bpy_bmvertseq_remove, METH_O, bpy_bmvertseq_remove_doc},
 
@@ -3000,7 +3000,7 @@ static struct PyMethodDef bpy_bmvertseq_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmedgeseq_methods[] = {
+static PyMethodDef bpy_bmedgeseq_methods[] = {
     {"new", (PyCFunction)bpy_bmedgeseq_new, METH_VARARGS, bpy_bmedgeseq_new_doc},
     {"remove", (PyCFunction)bpy_bmedgeseq_remove, METH_O, bpy_bmedgeseq_remove_doc},
     /* 'bpy_bmelemseq_get' for different purpose */
@@ -3022,7 +3022,7 @@ static struct PyMethodDef bpy_bmedgeseq_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmfaceseq_methods[] = {
+static PyMethodDef bpy_bmfaceseq_methods[] = {
     {"new", (PyCFunction)bpy_bmfaceseq_new, METH_VARARGS, bpy_bmfaceseq_new_doc},
     {"remove", (PyCFunction)bpy_bmfaceseq_remove, METH_O, bpy_bmfaceseq_remove_doc},
     /* 'bpy_bmelemseq_get' for different purpose */
@@ -3044,7 +3044,7 @@ static struct PyMethodDef bpy_bmfaceseq_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmloopseq_methods[] = {
+static PyMethodDef bpy_bmloopseq_methods[] = {
     /* odd function, initializes index values */
     /* no: index_update() function since we can't iterate over loops */
     /* no: sort() function since we can't iterate over loops */
@@ -3744,7 +3744,7 @@ void BPy_BM_init_types(void)
 /* bmesh.types submodule
  * ********************* */
 
-static struct PyModuleDef BPy_BM_types_module_def = {
+static PyModuleDef BPy_BM_types_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.types",
     /*m_doc*/ NULL,

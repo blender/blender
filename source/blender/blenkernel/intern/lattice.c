@@ -498,7 +498,7 @@ float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3]
   return vert_coords;
 }
 
-void BKE_lattice_vert_coords_apply_with_mat4(struct Lattice *lt,
+void BKE_lattice_vert_coords_apply_with_mat4(Lattice *lt,
                                              const float (*vert_coords)[3],
                                              const float mat[4][4])
 {
@@ -516,7 +516,7 @@ void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3])
   }
 }
 
-void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
+void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
   if (ob->runtime.curve_cache == NULL) {
@@ -573,14 +573,14 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
   MEM_freeN(vert_coords);
 }
 
-struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *oblatt)
+MDeformVert *BKE_lattice_deform_verts_get(const Object *oblatt)
 {
   BLI_assert(oblatt->type == OB_LATTICE);
   Lattice *lt = BKE_object_get_lattice(oblatt);
   return lt->dvert;
 }
 
-struct BPoint *BKE_lattice_active_point_get(Lattice *lt)
+BPoint *BKE_lattice_active_point_get(Lattice *lt)
 {
   BLI_assert(GS(lt->id.name) == ID_LT);
 
@@ -759,7 +759,7 @@ bool BKE_lattice_is_any_selected(const Lattice *lt)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph), Lattice *UNUSED(latt)) {}
+void BKE_lattice_eval_geometry(Depsgraph *UNUSED(depsgraph), Lattice *UNUSED(latt)) {}
 
 /* Draw Engine */
 

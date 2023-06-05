@@ -146,7 +146,7 @@ static bool wm_ply_export_check(bContext *UNUSED(C), wmOperator *op)
   return changed;
 }
 
-void WM_OT_ply_export(struct wmOperatorType *ot)
+void WM_OT_ply_export(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -274,7 +274,7 @@ static int wm_ply_import_execute(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void WM_OT_ply_import(struct wmOperatorType *ot)
+void WM_OT_ply_import(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

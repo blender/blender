@@ -1511,7 +1511,7 @@ void IDP_BlendReadLib(BlendLibReader *reader, ID *self_id, IDProperty *prop)
   }
 }
 
-void IDP_BlendReadExpand(struct BlendExpander *expander, IDProperty *prop)
+void IDP_BlendReadExpand(BlendExpander *expander, IDProperty *prop)
 {
   if (!prop) {
     return;

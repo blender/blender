@@ -861,6 +861,7 @@ class Texture : NonCopyable {
     }
     GPU_TEXTURE_FREE_SAFE(stencil_view_);
     mip_views_.clear();
+    layer_views_.clear();
   }
 
   /**

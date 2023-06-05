@@ -20,7 +20,7 @@ class VKUniformBuffer;
 class VKVertexBuffer;
 
 class VKStateManager : public StateManager {
-  /* Dummy sampler for now.*/
+  /* Dummy sampler for now. */
   VKSampler sampler_;
 
   uint texture_unpack_row_length_ = 0;
@@ -48,7 +48,7 @@ class VKStateManager : public StateManager {
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
-  /** Apply resources to the bindings of the active shader.*/
+  /** Apply resources to the bindings of the active shader. */
   void apply_bindings();
 
   void texture_bind(Texture *tex, GPUSamplerState sampler, int unit) override;

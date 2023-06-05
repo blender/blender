@@ -33,7 +33,7 @@ typedef struct SequenceLookup {
   eSequenceLookupTag tag;
 } SequenceLookup;
 
-static void seq_sequence_lookup_init(struct SequenceLookup *lookup)
+static void seq_sequence_lookup_init(SequenceLookup *lookup)
 {
   lookup->seq_by_name = BLI_ghash_str_new(__func__);
   lookup->meta_by_seq = BLI_ghash_ptr_new(__func__);
@@ -43,7 +43,7 @@ static void seq_sequence_lookup_init(struct SequenceLookup *lookup)
 
 static void seq_sequence_lookup_append_effect(Sequence *input,
                                               Sequence *effect,
-                                              struct SequenceLookup *lookup)
+                                              SequenceLookup *lookup)
 {
   if (input == NULL) {
     return;
@@ -58,7 +58,7 @@ static void seq_sequence_lookup_append_effect(Sequence *input,
   SEQ_collection_append_strip(effect, effects);
 }
 
-static void seq_sequence_lookup_build_effect(Sequence *seq, struct SequenceLookup *lookup)
+static void seq_sequence_lookup_build_effect(Sequence *seq, SequenceLookup *lookup)
 {
   if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
     return;
@@ -70,7 +70,7 @@ static void seq_sequence_lookup_build_effect(Sequence *seq, struct SequenceLooku
 
 static void seq_sequence_lookup_build_from_seqbase(Sequence *parent_meta,
                                                    const ListBase *seqbase,
-                                                   struct SequenceLookup *lookup)
+                                                   SequenceLookup *lookup)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     BLI_ghash_insert(lookup->seq_by_name, seq->name + 2, seq);
@@ -83,7 +83,7 @@ static void seq_sequence_lookup_build_from_seqbase(Sequence *parent_meta,
   }
 }
 
-static void seq_sequence_lookup_build(const struct Scene *scene, struct SequenceLookup *lookup)
+static void seq_sequence_lookup_build(const Scene *scene, SequenceLookup *lookup)
 {
   Editing *ed = SEQ_editing_get(scene);
   seq_sequence_lookup_build_from_seqbase(NULL, &ed->seqbase, lookup);
@@ -97,7 +97,7 @@ static SequenceLookup *seq_sequence_lookup_new(void)
   return lookup;
 }
 
-static void seq_sequence_lookup_free(struct SequenceLookup **lookup)
+static void seq_sequence_lookup_free(SequenceLookup **lookup)
 {
   if (*lookup == NULL) {
     return;
@@ -113,20 +113,19 @@ static void seq_sequence_lookup_free(struct SequenceLookup **lookup)
   *lookup = NULL;
 }
 
-static void seq_sequence_lookup_rebuild(const struct Scene *scene, struct SequenceLookup **lookup)
+static void seq_sequence_lookup_rebuild(const Scene *scene, SequenceLookup **lookup)
 {
   seq_sequence_lookup_free(lookup);
   *lookup = seq_sequence_lookup_new();
   seq_sequence_lookup_build(scene, *lookup);
 }
 
-static bool seq_sequence_lookup_is_valid(const struct SequenceLookup *lookup)
+static bool seq_sequence_lookup_is_valid(const SequenceLookup *lookup)
 {
   return (lookup->tag & SEQ_LOOKUP_TAG_INVALID) == 0;
 }
 
-static void seq_sequence_lookup_update_if_needed(const struct Scene *scene,
-                                                 struct SequenceLookup **lookup)
+static void seq_sequence_lookup_update_if_needed(const Scene *scene, SequenceLookup **lookup)
 {
   if (!scene->ed) {
     return;

@@ -1776,7 +1776,7 @@ void nodeModifySocketType(bNodeTree *ntree,
     if (sock->type != socktype->type) {
       /* Only reallocate the default value if the type changed so that UI data like min and max
        * isn't removed. This assumes that the default value is stored in the same format for all
-       * socket types with the same #eNodeSocketDatatype.  */
+       * socket types with the same #eNodeSocketDatatype. */
       socket_id_user_decrement(sock);
       MEM_freeN(sock->default_value);
       sock->default_value = nullptr;

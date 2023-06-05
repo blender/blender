@@ -261,7 +261,7 @@ void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChil
 
 void ED_object_xform_skip_child_container_update_all(struct XFormObjectSkipChild_Container *xcs,
                                                      struct Main *bmain,
-                                                     struct Depsgraph *depsgraph)
+                                                     Depsgraph *depsgraph)
 {
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 

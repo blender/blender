@@ -1239,7 +1239,7 @@ static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *so
   return true;
 }
 
-bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info)
+bool BKE_sound_info_get(Main *main, bSound *sound, SoundInfo *sound_info)
 {
   if (sound->playback_handle != NULL) {
     return sound_info_from_playback_handle(sound->playback_handle, sound_info);
@@ -1253,7 +1253,7 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   return result;
 }
 
-bool BKE_sound_stream_info_get(struct Main *main,
+bool BKE_sound_stream_info_get(Main *main,
                                const char *filepath,
                                int stream,
                                SoundStreamInfo *sound_info)
@@ -1434,7 +1434,7 @@ void BKE_sound_reset_scene_runtime(Scene *scene)
   scene->speaker_handles = NULL;
 }
 
-void BKE_sound_ensure_scene(struct Scene *scene)
+void BKE_sound_ensure_scene(Scene *scene)
 {
   if (scene->sound_scene != NULL) {
     return;

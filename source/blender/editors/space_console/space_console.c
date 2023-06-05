@@ -88,7 +88,7 @@ static void console_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void console_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void console_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *console_duplicate(SpaceLink *sl)
 {
@@ -241,7 +241,7 @@ static void console_operatortypes(void)
   WM_operatortype_append(CONSOLE_OT_select_word);
 }
 
-static void console_keymap(struct wmKeyConfig *keyconf)
+static void console_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Console", SPACE_CONSOLE, 0);
 }

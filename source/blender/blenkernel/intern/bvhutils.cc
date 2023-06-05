@@ -629,7 +629,7 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
 
 static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
                                              const BVHCacheType bvh_cache_type,
-                                             struct BMEditMesh *em,
+                                             BMEditMesh *em,
                                              BVHTreeFromEditMesh *r_data)
 {
   memset(r_data, 0, sizeof(*r_data));
@@ -1108,7 +1108,7 @@ BVHTree *bvhtree_from_editmesh_looptri(
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const float (*vert_positions)[3],
                                       const int *corner_verts,
-                                      const struct MLoopTri *looptri,
+                                      const MLoopTri *looptri,
                                       const int looptri_num,
                                       const BitSpan looptri_mask,
                                       int looptri_num_active,
@@ -1174,8 +1174,8 @@ static BitVector<> looptri_no_hidden_map_get(const blender::OffsetIndices<int> p
   return looptri_mask;
 }
 
-BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
-                                   const struct Mesh *mesh,
+BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
+                                   const Mesh *mesh,
                                    const BVHCacheType bvh_cache_type,
                                    const int tree_type)
 {
@@ -1301,7 +1301,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 }
 
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
-                                       struct BMEditMesh *em,
+                                       BMEditMesh *em,
                                        const int tree_type,
                                        const BVHCacheType bvh_cache_type,
                                        BVHCache **bvh_cache_p,
@@ -1373,7 +1373,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 /** \name Free Functions
  * \{ */
 
-void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
+void free_bvhtree_from_editmesh(BVHTreeFromEditMesh *data)
 {
   if (data->tree) {
     if (!data->cached) {
@@ -1383,7 +1383,7 @@ void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
   }
 }
 
-void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
+void free_bvhtree_from_mesh(BVHTreeFromMesh *data)
 {
   if (data->tree && !data->cached) {
     BLI_bvhtree_free(data->tree);

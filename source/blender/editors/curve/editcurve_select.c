@@ -253,7 +253,7 @@ bool ED_curve_deselect_all_multi_ex(Base **bases, int bases_len)
   return changed_multi;
 }
 
-bool ED_curve_deselect_all_multi(struct bContext *C)
+bool ED_curve_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;

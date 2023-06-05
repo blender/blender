@@ -527,7 +527,7 @@ void GLTexture::mip_range_set(int min, int max)
   }
 }
 
-struct GPUFrameBuffer *GLTexture::framebuffer_get()
+GPUFrameBuffer *GLTexture::framebuffer_get()
 {
   if (framebuffer_) {
     return framebuffer_;

@@ -55,7 +55,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
 
-  GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, NULL);
+  GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, nullptr);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_draw(batch);
 

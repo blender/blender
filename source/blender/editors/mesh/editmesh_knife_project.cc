@@ -44,7 +44,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *region = CTX_wm_region(C);
-  const struct Mesh *me_eval;
+  const Mesh *me_eval;
   bool me_eval_needs_free;
 
   if (ob->type == OB_MESH || ob->runtime.data_eval) {

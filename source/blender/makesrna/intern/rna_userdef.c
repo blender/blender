@@ -1268,7 +1268,7 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Widget Color Set", "Theme settings for widget color sets");
 
   prop = RNA_def_property(srna, "outline", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Outline", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -1850,7 +1850,7 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "tab_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Tab Outline", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -6303,6 +6303,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, NULL, "dirpath");
   RNA_def_property_ui_text(
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_userdef_asset_library_path_set");

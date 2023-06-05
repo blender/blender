@@ -143,7 +143,7 @@ static bool text_undosys_poll(bContext * /*C*/)
   return (ustack->step_init && (ustack->step_init->type == BKE_UNDOSYS_TYPE_TEXT));
 }
 
-static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
+static void text_undosys_step_encode_init(bContext *C, UndoStep *us_p)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
   BLI_assert(BLI_array_is_zeroed(us->states, ARRAY_SIZE(us->states)));
@@ -169,7 +169,7 @@ static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
   us->text_ref.ptr = text;
 }
 
-static bool text_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
+static bool text_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   TextUndoStep *us = (TextUndoStep *)us_p;
 
@@ -184,11 +184,8 @@ static bool text_undosys_step_encode(struct bContext *C, struct Main * /*bmain*/
   return true;
 }
 
-static void text_undosys_step_decode(struct bContext *C,
-                                     struct Main * /*bmain*/,
-                                     UndoStep *us_p,
-                                     const eUndoStepDir dir,
-                                     bool is_final)
+static void text_undosys_step_decode(
+    bContext *C, Main * /*bmain*/, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
   BLI_assert(dir != STEP_INVALID);
 

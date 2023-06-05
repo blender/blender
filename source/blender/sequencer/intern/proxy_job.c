@@ -92,7 +92,7 @@ ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
   return pj;
 }
 
-struct wmJob *ED_seq_proxy_wm_job_get(const bContext *C)
+wmJob *ED_seq_proxy_wm_job_get(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),

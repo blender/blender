@@ -2688,10 +2688,10 @@ void node_set_cursor(wmWindow &win, SpaceNode &snode, const float2 &cursor)
     WM_cursor_set(&win, WM_CURSOR_DEFAULT);
     return;
   }
-  const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
+  const NodeResizeDirection dir = node_get_resize_direction(snode, node, cursor[0], cursor[1]);
   if (node->is_frame() && dir == NODE_RESIZE_NONE) {
     /* Indicate that frame nodes can be moved/selected on their borders. */
-    const rctf frame_inside = node_frame_rect_inside(*node);
+    const rctf frame_inside = node_frame_rect_inside(snode, *node);
     if (!BLI_rctf_isect_pt(&frame_inside, cursor[0], cursor[1])) {
       WM_cursor_set(&win, WM_CURSOR_NSEW_SCROLL);
       return;

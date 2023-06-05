@@ -341,7 +341,7 @@ void BKE_blendfile_link_append_context_item_library_index_enable(
   BLI_BITMAP_ENABLE(item->libraries, library_index);
 }
 
-bool BKE_blendfile_link_append_context_is_empty(struct BlendfileLinkAppendContext *lapp_context)
+bool BKE_blendfile_link_append_context_is_empty(BlendfileLinkAppendContext *lapp_context)
 {
   return lapp_context->num_items == 0;
 }
@@ -365,14 +365,13 @@ ID *BKE_blendfile_link_append_context_item_liboverrideid_get(
 }
 
 short BKE_blendfile_link_append_context_item_idcode_get(
-    struct BlendfileLinkAppendContext *UNUSED(lapp_context),
-    struct BlendfileLinkAppendContextItem *item)
+    BlendfileLinkAppendContext *UNUSED(lapp_context), BlendfileLinkAppendContextItem *item)
 {
   return item->idcode;
 }
 
 void BKE_blendfile_link_append_context_item_foreach(
-    struct BlendfileLinkAppendContext *lapp_context,
+    BlendfileLinkAppendContext *lapp_context,
     BKE_BlendfileLinkAppendContexteItemFunction callback_function,
     const eBlendfileLinkAppendForeachItemFlag flag,
     void *userdata)
@@ -1768,7 +1767,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     BKE_lib_override_library_main_resync(bmain,
                                          lapp_context->params->context.scene,
                                          lapp_context->params->context.view_layer,
-                                         &(struct BlendFileReadReport){
+                                         &(BlendFileReadReport){
                                              .reports = reports,
                                          });
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */

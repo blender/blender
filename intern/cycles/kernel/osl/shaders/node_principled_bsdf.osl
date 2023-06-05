@@ -4,7 +4,7 @@
 #include "node_fresnel.h"
 #include "stdcycles.h"
 
-shader node_principled_bsdf(string distribution = "Multiscatter GGX",
+shader node_principled_bsdf(string distribution = "multi_ggx",
                             string subsurface_method = "random_walk",
                             color BaseColor = color(0.8, 0.8, 0.8),
                             float Subsurface = 0.0,
@@ -34,6 +34,7 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
   float diffuse_weight = (1.0 - clamp(Metallic, 0.0, 1.0)) * (1.0 - clamp(Transmission, 0.0, 1.0));
   float final_transmission = clamp(Transmission, 0.0, 1.0) * (1.0 - clamp(Metallic, 0.0, 1.0));
   float specular_weight = (1.0 - final_transmission);
+  float r2 = Roughness * Roughness;
 
   vector T = Tangent;
 
@@ -65,52 +66,35 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
     }
 
     if (Sheen > 1e-5) {
-      color sheen_color = color(1.0, 1.0, 1.0) * (1.0 - SheenTint) + m_ctint * SheenTint;
+      color sheen_color = mix(color(1.0), m_ctint, SheenTint);
 
-      BSDF = BSDF + sheen_color * Sheen * principled_sheen(Normal);
+      BSDF += sheen_color * Sheen * principled_sheen(Normal);
     }
 
-    BSDF = BSDF * diffuse_weight;
+    BSDF *= diffuse_weight;
   }
 
   if (specular_weight > 1e-5) {
     float aspect = sqrt(1.0 - Anisotropic * 0.9);
-    float r2 = Roughness * Roughness;
-
     float alpha_x = r2 / aspect;
     float alpha_y = r2 * aspect;
 
-    color tmp_col = color(1.0, 1.0, 1.0) * (1.0 - SpecularTint) + m_ctint * SpecularTint;
+    color tmp_col = mix(color(1.0), m_ctint, SpecularTint);
 
     color Cspec0 = (Specular * 0.08 * tmp_col) * (1.0 - Metallic) + BaseColor * Metallic;
 
-    if (distribution == "GGX" || Roughness <= 0.075) {
-      BSDF = BSDF + specular_weight *
-                        microfacet_ggx_aniso_fresnel(Normal,
-                                                     T,
-                                                     alpha_x,
-                                                     alpha_y,
-                                                     (2.0 / (1.0 - sqrt(0.08 * Specular))) - 1.0,
-                                                     BaseColor,
-                                                     Cspec0);
-    }
-    else {
-      BSDF = BSDF + specular_weight * microfacet_multi_ggx_aniso_fresnel(
-                                          Normal,
-                                          T,
-                                          alpha_x,
-                                          alpha_y,
-                                          (2.0 / (1.0 - sqrt(0.08 * Specular))) - 1.0,
-                                          BaseColor,
-                                          Cspec0);
-    }
+    float eta = (2.0 / (1.0 - sqrt(0.08 * Specular))) - 1.0;
+
+    string spec_dist = (Roughness <= 0.075) ? "ggx" : distribution;
+    BSDF += specular_weight * microfacet_aniso_fresnel(
+                                  Normal, T, alpha_x, alpha_y, Cspec0, color(1.0), eta, spec_dist);
   }
 
   if (final_transmission > 1e-5) {
-    color Cspec0 = BaseColor * SpecularTint + color(1.0, 1.0, 1.0) * (1.0 - SpecularTint);
+    color Cspec0 = mix(color(1.0), BaseColor, SpecularTint);
     float eta = backfacing() ? 1.0 / f : f;
 
-    if (distribution == "GGX" || Roughness <= 5e-2) {
+    if (distribution == "ggx" || Roughness <= 5e-2) {
       float cosNI = dot(Normal, I);
       float Fr = fresnel_dielectric_cos(cosNI, eta);
 
@@ -119,26 +103,23 @@ shader node_principled_bsdf(string distribution = "Multiscatter GGX",
         refl_roughness = 0.0;
 
       float transmission_roughness = refl_roughness;
-      if (distribution == "GGX")
+      if (distribution == "ggx")
         transmission_roughness = 1.0 - (1.0 - refl_roughness) * (1.0 - TransmissionRoughness);
 
-      BSDF = BSDF +
-             final_transmission *
-                 (Fr * microfacet_ggx_fresnel(
-                           Normal, refl_roughness * refl_roughness, eta, BaseColor, Cspec0) +
-                  (1.0 - Fr) * BaseColor *
-                      microfacet_ggx_refraction(
-                          Normal, transmission_roughness * transmission_roughness, eta));
+      closure color refraction = microfacet(
+          "ggx", Normal, transmission_roughness * transmission_roughness, eta, 1);
+      closure color reflection = microfacet_aniso_fresnel(
+          Normal, T, r2, r2, Cspec0, color(1.0), eta, "ggx");
+      BSDF += final_transmission * mix(BaseColor * refraction, reflection, Fr);
     }
     else {
-      BSDF = BSDF +
-             final_transmission * microfacet_multi_ggx_glass_fresnel(
-                                      Normal, Roughness * Roughness, eta, BaseColor, Cspec0);
+      BSDF += final_transmission *
+              dielectric_bsdf(Normal, vector(0.0), Cspec0, BaseColor, r2, r2, eta, "multi_ggx");
     }
   }
 
   if (Clearcoat > 1e-5) {
-    BSDF = BSDF + principled_clearcoat(
-                      ClearcoatNormal, Clearcoat, ClearcoatRoughness * ClearcoatRoughness);
+    BSDF += principled_clearcoat(
+        ClearcoatNormal, Clearcoat, ClearcoatRoughness * ClearcoatRoughness);
   }
 }

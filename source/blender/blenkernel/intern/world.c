@@ -58,7 +58,7 @@ static void world_free_data(ID *id)
 
   GPU_material_free(&wrld->gpumaterial);
 
-  BKE_icon_id_delete((struct ID *)wrld);
+  BKE_icon_id_delete((ID *)wrld);
   BKE_previewimg_free(&wrld->preview);
 
   MEM_SAFE_FREE(wrld->lightgroup);
@@ -227,7 +227,7 @@ World *BKE_world_add(Main *bmain, const char *name)
   return wrld;
 }
 
-void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
+void BKE_world_eval(Depsgraph *depsgraph, World *world)
 {
   DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
   GPU_material_free(&world->gpumaterial);

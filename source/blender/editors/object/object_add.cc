@@ -105,6 +105,7 @@
 #include "ED_curve.h"
 #include "ED_curves.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -378,9 +379,7 @@ float ED_object_new_primitive_matrix(bContext *C,
 /** \name Add Object Operator
  * \{ */
 
-static void view_align_update(struct Main * /*main*/,
-                              struct Scene * /*scene*/,
-                              struct PointerRNA *ptr)
+static void view_align_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   RNA_struct_idprops_unset(ptr, "rotation");
 }
@@ -1306,7 +1305,7 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add Gpencil Operator
+/** \name Add Gpencil (legacy) Operator
  * \{ */
 
 static bool object_gpencil_add_poll(bContext *C)
@@ -1529,8 +1528,8 @@ static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Grease Pencil";
-  ot->description = "Add a Grease Pencil object to the scene";
+  ot->name = "Add Grease Pencil (legacy)";
+  ot->description = "Add a Grease Pencil (legacy) object to the scene";
   ot->idname = "OBJECT_OT_gpencil_add";
 
   /* api callbacks */
@@ -1572,6 +1571,118 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
       GP_DRAWMODE_3D,
       "Stroke Depth Order",
       "Defines how the strokes are ordered in 3D space (for objects not displayed 'In Front')");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Grease Pencil Operator
+ * \{ */
+
+static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::ed;
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  /* TODO: For now, only support adding the 'Stroke' type. */
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  ushort local_view_bits;
+  float loc[3], rot[3];
+
+  /* NOTE: We use 'Y' here (not 'Z'), as. */
+  WM_operator_view3d_unit_defaults(C, op);
+  if (!ED_object_add_generic_get_opts(
+          C, op, 'Y', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
+    return OPERATOR_CANCELLED;
+  }
+
+  const char *ob_name = nullptr;
+  switch (type) {
+    case GP_EMPTY: {
+      ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "GPencil");
+      break;
+    }
+    case GP_STROKE: {
+      ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Stroke");
+      break;
+    }
+    case GP_MONKEY: {
+      ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Suzanne");
+      break;
+    }
+    case GP_LRT_OBJECT:
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION: {
+      ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "LineArt");
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  Object *object = ED_object_add_type(
+      C, OB_GREASE_PENCIL, ob_name, loc, rot, false, local_view_bits);
+  GreasePencil &grease_pencil_id = *static_cast<GreasePencil *>(object->data);
+  switch (type) {
+    case GP_EMPTY: {
+      greasepencil::create_blank(*bmain, *object, scene->r.cfra);
+      break;
+    }
+    case GP_STROKE: {
+      const float radius = RNA_float_get(op->ptr, "radius");
+      const float3 scale(radius);
+
+      float4x4 mat;
+      ED_object_new_primitive_matrix(C, object, loc, rot, scale, mat.ptr());
+
+      greasepencil::create_stroke(*bmain, *object, mat, scene->r.cfra);
+      break;
+    }
+    case GP_MONKEY: {
+      const float radius = RNA_float_get(op->ptr, "radius");
+      const float3 scale(radius);
+
+      float4x4 mat;
+      ED_object_new_primitive_matrix(C, object, loc, rot, scale, mat.ptr());
+
+      greasepencil::create_suzanne(*bmain, *object, mat, scene->r.cfra);
+      break;
+    }
+    case GP_LRT_OBJECT:
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION: {
+      /* TODO. */
+      break;
+    }
+  }
+
+  DEG_id_tag_update(&grease_pencil_id.id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, &grease_pencil_id.id);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Grease Pencil";
+  ot->description = "Add a Grease Pencil object to the scene";
+  ot->idname = "OBJECT_OT_grease_pencil_add";
+
+  /* api callbacks */
+  ot->exec = object_grease_pencil_add_exec;
+  ot->poll = ED_operator_objectmode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+
+  ED_object_add_unit_props_radius(ot);
+  ED_object_add_generic_props(ot, false);
 }
 
 /** \} */

@@ -244,7 +244,7 @@ static void eevee_view_layer_init(EEVEE_ViewLayerData *sldata)
   sldata->common_ubo = GPU_uniformbuf_create(sizeof(sldata->common_data));
 }
 
-EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
+EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(ViewLayer *view_layer)
 {
   EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure_ex(
       view_layer, &draw_engine_eevee_type, &EEVEE_view_layer_data_free);

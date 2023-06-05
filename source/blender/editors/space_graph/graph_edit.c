@@ -1087,24 +1087,24 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
   Scene *scene = NULL;
   int start, end;
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_is_file(path)) {
-    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+  if (!BLI_is_file(filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", filepath);
     return OPERATOR_CANCELLED;
   }
 
   scene = ac.scene; /* Current scene. */
 
   /* Store necessary data for the baking steps. */
-  sbi.samples = AUD_readSoundBuffer(path,
+  sbi.samples = AUD_readSoundBuffer(filepath,
                                     RNA_float_get(op->ptr, "low"),
                                     RNA_float_get(op->ptr, "high"),
                                     RNA_float_get(op->ptr, "attack"),
@@ -2359,7 +2359,7 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool graph_has_selected_control_points(struct bContext *C)
+static bool graph_has_selected_control_points(bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {NULL, NULL};
@@ -2389,9 +2389,9 @@ static bool graph_has_selected_control_points(struct bContext *C)
   return has_selected_control_points;
 }
 
-static int graphkeys_selected_control_points_invoke(struct bContext *C,
-                                                    struct wmOperator *op,
-                                                    const struct wmEvent *event)
+static int graphkeys_selected_control_points_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   if (!graph_has_selected_control_points(C)) {
     BKE_report(op->reports, RPT_ERROR, "No control points are selected");

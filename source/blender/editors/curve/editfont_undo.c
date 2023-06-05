@@ -54,7 +54,7 @@ static CLG_LogRef LOG = {"ed.undo.font"};
 
 typedef struct UndoFont {
   char32_t *textbuf;
-  struct CharInfo *textbufinfo;
+  CharInfo *textbufinfo;
 
   int len, pos, selstart, selend;
 
@@ -342,7 +342,7 @@ static bool font_undosys_poll(bContext *C)
   return editfont_object_from_context(C) != NULL;
 }
 
-static bool font_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool font_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   FontUndoStep *us = (FontUndoStep *)us_p;
   us->obedit_ref.ptr = editfont_object_from_context(C);
@@ -355,8 +355,8 @@ static bool font_undosys_step_encode(struct bContext *C, struct Main *bmain, Und
   return true;
 }
 
-static void font_undosys_step_decode(struct bContext *C,
-                                     struct Main *bmain,
+static void font_undosys_step_decode(bContext *C,
+                                     Main *bmain,
                                      UndoStep *us_p,
                                      const eUndoStepDir UNUSED(dir),
                                      bool UNUSED(is_final))

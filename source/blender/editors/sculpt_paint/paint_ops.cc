@@ -1540,6 +1540,7 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_face_select_more);
   WM_operatortype_append(PAINT_OT_face_select_less);
   WM_operatortype_append(PAINT_OT_face_select_hide);
+  WM_operatortype_append(PAINT_OT_face_select_loop);
 
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
 

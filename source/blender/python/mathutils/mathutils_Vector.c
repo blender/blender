@@ -3135,7 +3135,7 @@ static PyGetSetDef Vector_getseters[] = {
 /** \name Vector Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Vector_methods[] = {
+static PyMethodDef Vector_methods[] = {
     /* Class Methods */
     {"Fill", (PyCFunction)C_Vector_Fill, METH_VARARGS | METH_CLASS, C_Vector_Fill_doc},
     {"Range", (PyCFunction)C_Vector_Range, METH_VARARGS | METH_CLASS, C_Vector_Range_doc},

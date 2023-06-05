@@ -123,8 +123,6 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bsdf_diffuse.h
   closure/bsdf_diffuse_ramp.h
   closure/bsdf_microfacet.h
-  closure/bsdf_microfacet_multi.h
-  closure/bsdf_microfacet_multi_impl.h
   closure/bsdf_oren_nayar.h
   closure/bsdf_phong_ramp.h
   closure/bsdf_toon.h

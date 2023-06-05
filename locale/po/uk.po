@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -10013,12 +10013,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
-msgstr "Частота дискретизації"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Частота дискретизації звуку (вибірок/с)"
+msgid "Sample Rate"
+msgstr "Частота Вибірки"
 
 
 msgctxt "Sound"
@@ -20664,24 +20660,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "Точка в напрямі U (не може бути змінена, коли є ключі форм)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "Точка в напрямі V (не може бути змінено, коли є ключі форм)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "Точка в напрямі W (не може бути змінено, коли є ключі форм)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -21802,10 +21786,6 @@ msgid "Vertices of the mesh"
 msgstr "Вершини сіті"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "Блок даних метакулі для визначення округлих поверхонь"
-
-
 msgid "Metaball elements"
 msgstr "Елементи метаболів"
 
@@ -21816,10 +21796,6 @@ msgstr "Розмір Рендера"
 
 msgid "Polygonization resolution in rendering"
 msgstr "Роздільність полігонізації при рендерингу"
-
-
-msgid "Wire Size"
-msgstr "Розмір сітки"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -22216,10 +22192,6 @@ msgstr "Габаритна коробка об'єкта в координата�
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "Установки для використання об'єкта в ролі прискорювача при моделюванні фізики"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Колір об'єкта і прозорість, якщо для граней увімкнено режим ObColor"
 
 
 msgid "Constraints"
@@ -23011,10 +22983,6 @@ msgstr "Глобальний Y"
 
 msgid "Global Z"
 msgstr "Глобальний Z"
-
-
-msgid "Effect Children"
-msgstr "Впливати на нащадків"
 
 
 msgid "Apply effectors to children"
@@ -26311,10 +26279,6 @@ msgid "File format to save the rendered images as"
 msgstr "Формат файлу для збереження рендереного зображення"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Параметри кодека для Jpeg2000"
-
-
 msgid "Quality for image formats that support lossy compression"
 msgstr "Якість для графічних форматів, що підтримують стискання з втратами"
 
@@ -26347,16 +26311,8 @@ msgid "Cinema (48)"
 msgstr "Кіно (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Вжити передуставу Openjpeg Cinema (48 кадрів/сек)"
-
-
 msgid "Cinema"
 msgstr "Кіно"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Вжити передуставу Openjpeg Cinema"
 
 
 msgid "YCC"
@@ -30906,10 +30862,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "Вершина у блоці даних сіті"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "Вагомість, використовувана опцією 'Лише вершини'  модифікатора Скіс"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "Вагомості для груп вершин, до яких належить ця вершина"
 
@@ -31012,10 +30964,6 @@ msgstr "Розмір Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "Тугість визначає ступінь заповнення елементу"
-
-
-msgid "Metaball types"
-msgstr "Типи метакуль"
 
 
 msgid "Ball"
@@ -32016,10 +31964,6 @@ msgstr "Виправлення спотворень, викликаних деф
 
 msgid "Lambda Factor"
 msgstr "Коефіцієнт лямбда"
-
-
-msgid "Smooth factor effect"
-msgstr "Рівень ефекту згладжування"
 
 
 msgid "Bind current shape"
@@ -34305,10 +34249,6 @@ msgid "Flat Faces"
 msgstr "Плоскі Грані"
 
 
-msgid "Make faces use the minimal vertex weight assigned to their vertices(ensures new faces remain parallel to their original ones, slow, disable when not needed)"
-msgstr "Змусити грані використовувати мінімальну вагомість вершин, призначену їх вершинам (гарантує, що нові грані залишатимуться паралельними оригінальним, повільно, вимикайте, коли не потрібно)"
-
-
 msgid "Flip Normals"
 msgstr "Переверт нормалей"
 
@@ -35046,10 +34986,6 @@ msgstr "Початкова позиція Y"
 
 msgid "Y coordinate of the start position"
 msgstr "Координата Y стартової позиції"
-
-
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "Початковий кадр (для додатної швидкості) або кінцевий кадр (для від'ємної швидкості)"
 
 
 msgid "Cyclic wave effect"
@@ -37434,10 +37370,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -54823,10 +54755,6 @@ msgid "Move a node to detach links"
 msgstr "Перемістіть вузол щоб відкріпити зв'язки"
 
 
-msgid "Insert Offset"
-msgstr "Зсув при вставці"
-
-
 msgid "Detach Links"
 msgstr "Відкріпити зв'язки"
 
@@ -65637,8 +65565,8 @@ msgid "Fraction"
 msgstr "Дробова частина"
 
 
-msgid "Rotate islands for best fit"
-msgstr "Обертати острівці для кращого заповнення"
+msgid "Pack"
+msgstr "Упакування"
 
 
 msgctxt "Operator"
@@ -73951,10 +73879,6 @@ msgid "Tap Key Timeout"
 msgstr "Перечікування торкання клавіші"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "Кнопка кругового меню, утримувана натисненою довше, ніж це значення, буде закривати меню при відпуску (у 1/100-х секунди)"
-
-
 msgid "Render Display Type"
 msgstr "Тип показу рендера"
 
@@ -78137,10 +78061,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -89448,10 +89368,6 @@ msgid "Buffer"
 msgstr "Буфер"
 
 
-msgid "Sample Rate"
-msgstr "Частота Вибірки"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "Власна (%.4g кзс)"
 
@@ -91926,10 +91842,6 @@ msgstr "Додати Перехід"
 
 msgid "Unpack"
 msgstr "Розпакувати"
-
-
-msgid "Pack"
-msgstr "Упакування"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -102170,6 +102082,10 @@ msgstr "Старе"
 
 msgid "Edge Crease"
 msgstr "Складка на ребрі"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Обертати острівці для кращого заповнення"
 
 
 msgid "Shader Editor"

@@ -559,7 +559,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 }
 
 void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
-                                   struct Mask *mask,
+                                   Mask *mask,
                                    const int width,
                                    const int height,
                                    const bool do_aspect_correct,

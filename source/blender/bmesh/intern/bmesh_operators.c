@@ -217,7 +217,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
                     const char *slot_name_src,
                     BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
                     const char *slot_name_dst,
-                    struct MemArena *arena_dst)
+                    MemArena *arena_dst)
 {
   BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);
   BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
@@ -925,7 +925,7 @@ void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
                              const char *slot_name_dst,
                              BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
                              const char *slot_name_src,
-                             struct MemArena *arena_dst)
+                             MemArena *arena_dst)
 {
   BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
   BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);

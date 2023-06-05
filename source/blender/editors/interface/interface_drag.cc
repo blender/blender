@@ -22,7 +22,7 @@ void UI_but_drag_set_id(uiBut *but, ID *id)
   but->dragpoin = (void *)id;
 }
 
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
+void UI_but_drag_attach_image(uiBut *but, ImBuf *imb, const float scale)
 {
   but->imb = imb;
   but->imb_scale = scale;
@@ -34,7 +34,7 @@ void UI_but_drag_set_asset(uiBut *but,
                            const char *path,
                            int import_type,
                            int icon,
-                           struct ImBuf *imb,
+                           ImBuf *imb,
                            float scale)
 {
   wmDragAsset *asset_drag = WM_drag_create_asset_data(
@@ -85,7 +85,7 @@ void UI_but_drag_set_value(uiBut *but)
   but->dragtype = WM_DRAG_VALUE;
 }
 
-void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale)
+void UI_but_drag_set_image(uiBut *but, const char *path, int icon, ImBuf *imb, float scale)
 {
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   UI_but_drag_set_path(but, path);

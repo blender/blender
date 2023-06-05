@@ -4480,7 +4480,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
+    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, nullptr);
 
     /* Store simulation bake directory in geometry nodes modifier. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -4495,6 +4495,27 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         const std::string bake_dir = blender::bke::sim::get_default_modifier_bake_directory(
             *bmain, *ob, *md);
         nmd->simulation_bake_directory = BLI_strdup(bake_dir.c_str());
+      }
+    }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          /* #107870: Movie Clip Editor hangs in "Clip" view */
+          if (sl->spacetype == SPACE_CLIP) {
+            const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
+            ARegion *region_main = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                       RGN_TYPE_WINDOW);
+            region_main->flag &= ~RGN_FLAG_HIDDEN;
+            ARegion *region_tools = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                        RGN_TYPE_TOOLS);
+            region_tools->alignment = RGN_ALIGN_LEFT;
+            if (!(region_tools->flag & RGN_FLAG_HIDDEN_BY_USER)) {
+              region_tools->flag &= ~RGN_FLAG_HIDDEN;
+            }
+          }
+        }
       }
     }
   }

@@ -38,7 +38,7 @@ template<typename T> class OffsetIndices {
   /** Return the total number of elements in the referenced arrays. */
   T total_size() const
   {
-    return offsets_.size() == 1 ? 0 : offsets_.last();
+    return offsets_.size() > 1 ? offsets_.last() : 0;
   }
 
   /**
@@ -146,6 +146,10 @@ void copy_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, Mutable
 /** Gather the number of indices in each indexed group to sizes. */
 void gather_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, MutableSpan<int> sizes);
 
+/** Build new offsets that contains only the groups chosen by \a selection. */
+OffsetIndices<int> gather_selected_offsets(OffsetIndices<int> src_offsets,
+                                           const IndexMask &selection,
+                                           MutableSpan<int> dst_offsets);
 /**
  * Create a map from indexed elements to the source indices, in other words from the larger array
  * to the smaller array.

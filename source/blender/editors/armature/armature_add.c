@@ -312,7 +312,7 @@ static bPoseChannel *pchan_duplicate_map(const bPose *pose,
   return pchan_dst;
 }
 
-void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
+void postEditBoneDuplicate(ListBase *editbones, Object *ob)
 {
   if (ob->pose == NULL) {
     return;

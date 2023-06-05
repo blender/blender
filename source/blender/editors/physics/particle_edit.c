@@ -2349,7 +2349,7 @@ static void pe_select_cache_free_generic_userdata(void *data)
 
 static void pe_select_cache_init_with_generic_userdata(bContext *C, wmGenericUserData *wm_userdata)
 {
-  struct PEData *data = MEM_callocN(sizeof(*data), __func__);
+  PEData *data = MEM_callocN(sizeof(*data), __func__);
   wm_userdata->data = data;
   wm_userdata->free_fn = pe_select_cache_free_generic_userdata;
   wm_userdata->use_free = true;
@@ -5695,7 +5695,7 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
+void PARTICLE_OT_unify_length(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Unify Length";

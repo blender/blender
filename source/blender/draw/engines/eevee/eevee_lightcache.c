@@ -139,8 +139,8 @@ typedef struct EEVEE_LightBake {
   LightProbe **cube_prb;
 
   /* Dummy Textures */
-  struct GPUTexture *dummy_color, *dummy_depth;
-  struct GPUTexture *dummy_layer_color;
+  GPUTexture *dummy_color, *dummy_depth;
+  GPUTexture *dummy_layer_color;
 
   int total, done; /* to compute progress */
   bool *stop, *do_update;
@@ -748,11 +748,11 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
   lbake->lcache->cube_len = 1;
 }
 
-wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
-                                  struct wmWindow *win,
+wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
+                                  wmWindow *win,
                                   struct Main *bmain,
-                                  struct ViewLayer *view_layer,
-                                  struct Scene *scene,
+                                  ViewLayer *view_layer,
+                                  Scene *scene,
                                   int delay,
                                   int frame)
 {
@@ -818,11 +818,8 @@ wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
   return wm_job;
 }
 
-void *EEVEE_lightbake_job_data_alloc(struct Main *bmain,
-                                     struct ViewLayer *view_layer,
-                                     struct Scene *scene,
-                                     bool run_as_job,
-                                     int frame)
+void *EEVEE_lightbake_job_data_alloc(
+    struct Main *bmain, ViewLayer *view_layer, Scene *scene, bool run_as_job, int frame)
 {
   BLI_assert(BLI_thread_is_main());
 

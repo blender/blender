@@ -331,7 +331,7 @@ void WM_operator_free(wmOperator *op)
   MEM_freeN(op);
 }
 
-void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
+void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op)
 {
   op = op->next;
   while (op != NULL) {
@@ -614,21 +614,6 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
   if (C && CTX_wm_manager(C) == wm) {
     CTX_wm_manager_set(C, NULL);
-  }
-}
-
-void wm_close_and_free_all(bContext *C, ListBase *wmlist)
-{
-  wmWindowManager *wm;
-  while ((wm = wmlist->first)) {
-    wm_close_and_free(C, wm);
-    BLI_remlink(wmlist, wm);
-    /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
-     * #BKE_main_free so any ID's referenced by the window-manager (from ID properties) will crash.
-     * See: #100703. */
-    BKE_libblock_free_data(&wm->id, false);
-    BKE_libblock_free_data_py(&wm->id);
-    MEM_freeN(wm);
   }
 }
 

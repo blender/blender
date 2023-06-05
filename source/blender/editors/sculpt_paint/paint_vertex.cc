@@ -1450,7 +1450,7 @@ void ED_object_wpaintmode_exit(bContext *C)
 static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Object *ob = CTX_data_active_object(C);
   const int mode_flag = OB_MODE_WEIGHT_PAINT;
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -2725,7 +2725,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Object *ob = CTX_data_active_object(C);
   const int mode_flag = OB_MODE_VERTEX_PAINT;
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -2817,7 +2817,7 @@ struct VPaintData : public VPaintDataBase {
 
   Color paintcol;
 
-  struct VertProjHandle *vp_handle;
+  VertProjHandle *vp_handle;
   CoNo *vertexcosnos;
 
   bool is_texbrush;

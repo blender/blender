@@ -51,7 +51,7 @@
 #include "tracking_private.h"
 
 typedef struct MovieDistortion {
-  struct libmv_CameraIntrinsics *intrinsics;
+  libmv_CameraIntrinsics *intrinsics;
   /* Parameters needed for coordinates normalization. */
   float principal_px[2];
   float pixel_aspect;
@@ -610,7 +610,7 @@ void BKE_tracking_tracks_first_last_frame_minmax(/*const*/ MovieTrackingTrack **
   *r_first_frame = INT_MAX;
   *r_last_frame = INT_MIN;
   for (int i = 0; i < num_tracks; ++i) {
-    const struct MovieTrackingTrack *track = tracks[i];
+    const MovieTrackingTrack *track = tracks[i];
     int track_first_frame, track_last_frame;
     BKE_tracking_track_first_last_frame_get(track, &track_first_frame, &track_last_frame);
     *r_first_frame = min_ii(*r_first_frame, track_first_frame);
@@ -1418,9 +1418,7 @@ MovieTrackingMarker *BKE_tracking_marker_ensure(MovieTrackingTrack *track, int f
 }
 
 static const MovieTrackingMarker *get_usable_marker_for_interpolation(
-    struct MovieTrackingTrack *track,
-    const MovieTrackingMarker *anchor_marker,
-    const int direction)
+    MovieTrackingTrack *track, const MovieTrackingMarker *anchor_marker, const int direction)
 {
   BLI_assert(ELEM(direction, -1, 1));
 
@@ -1437,9 +1435,9 @@ static const MovieTrackingMarker *get_usable_marker_for_interpolation(
   return nullptr;
 }
 
-bool BKE_tracking_marker_get_interpolated(struct MovieTrackingTrack *track,
+bool BKE_tracking_marker_get_interpolated(MovieTrackingTrack *track,
                                           const int framenr,
-                                          struct MovieTrackingMarker *r_marker)
+                                          MovieTrackingMarker *r_marker)
 {
   const MovieTrackingMarker *closest_marker = BKE_tracking_marker_get(track, framenr);
   if (closest_marker == nullptr) {
@@ -2173,7 +2171,7 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking * /*trackin
   reconstructed_camera_scale_set(tracking_object, mat);
 }
 
-void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
+void BKE_tracking_camera_principal_point_pixel_get(MovieClip *clip,
                                                    float r_principal_point_pixel[2])
 {
   const MovieTrackingCamera *camera = &clip->tracking.camera;
@@ -2186,7 +2184,7 @@ void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
       camera->principal_point, frame_width, frame_height, r_principal_point_pixel);
 }
 
-void BKE_tracking_camera_principal_point_pixel_set(struct MovieClip *clip,
+void BKE_tracking_camera_principal_point_pixel_set(MovieClip *clip,
                                                    const float principal_point_pixel[2])
 {
   MovieTrackingCamera *camera = &clip->tracking.camera;
@@ -3403,8 +3401,8 @@ MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
   return nullptr;
 }
 
-void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
-                                         const struct MovieTrackingTrack *track,
+void BKE_tracking_get_rna_path_for_track(const MovieTracking *tracking,
+                                         const MovieTrackingTrack *track,
                                          char *rna_path,
                                          size_t rna_path_maxncpy)
 {
@@ -3425,8 +3423,8 @@ void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
   }
 }
 
-void BKE_tracking_get_rna_path_prefix_for_track(const struct MovieTracking *tracking,
-                                                const struct MovieTrackingTrack *track,
+void BKE_tracking_get_rna_path_prefix_for_track(const MovieTracking *tracking,
+                                                const MovieTrackingTrack *track,
                                                 char *rna_path,
                                                 size_t rna_path_maxncpy)
 {
@@ -3441,8 +3439,8 @@ void BKE_tracking_get_rna_path_prefix_for_track(const struct MovieTracking *trac
   }
 }
 
-void BKE_tracking_get_rna_path_for_plane_track(const struct MovieTracking *tracking,
-                                               const struct MovieTrackingPlaneTrack *plane_track,
+void BKE_tracking_get_rna_path_for_plane_track(const MovieTracking *tracking,
+                                               const MovieTrackingPlaneTrack *plane_track,
                                                char *rna_path,
                                                size_t rna_path_maxncpy)
 {
@@ -3464,11 +3462,10 @@ void BKE_tracking_get_rna_path_for_plane_track(const struct MovieTracking *track
   }
 }
 
-void BKE_tracking_get_rna_path_prefix_for_plane_track(
-    const struct MovieTracking *tracking,
-    const struct MovieTrackingPlaneTrack *plane_track,
-    char *rna_path,
-    size_t rna_path_maxncpy)
+void BKE_tracking_get_rna_path_prefix_for_plane_track(const MovieTracking *tracking,
+                                                      const MovieTrackingPlaneTrack *plane_track,
+                                                      char *rna_path,
+                                                      size_t rna_path_maxncpy)
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(tracking,
                                                                                   plane_track);

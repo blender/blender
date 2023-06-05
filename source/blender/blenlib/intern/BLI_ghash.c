@@ -86,7 +86,7 @@ struct GHash {
   GHashCmpFP cmpfp;
 
   Entry **buckets;
-  struct BLI_mempool *entrypool;
+  BLI_mempool *entrypool;
   uint nbuckets;
   uint limit_grow, limit_shrink;
 #ifdef GHASH_USE_MODULO_BUCKETS

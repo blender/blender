@@ -53,7 +53,7 @@ BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
 }
 
 struct ParticleRefineCall {
-  struct ParticleRefineCall *next;
+  ParticleRefineCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;

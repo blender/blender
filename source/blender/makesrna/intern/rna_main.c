@@ -157,7 +157,7 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 #else
 
 /* local convenience types */
-typedef void(CollectionDefFunc)(struct BlenderRNA *brna, struct PropertyRNA *cprop);
+typedef void(CollectionDefFunc)(BlenderRNA *brna, PropertyRNA *cprop);
 
 typedef struct MainCollectionDef {
   const char *identifier;

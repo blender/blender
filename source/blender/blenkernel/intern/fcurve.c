@@ -906,7 +906,7 @@ void BKE_fcurve_keyframe_move_time_with_handles(BezTriple *keyframe, const float
   keyframe->vec[2][0] += time_delta;
 }
 
-void BKE_fcurve_keyframe_move_value_with_handles(struct BezTriple *keyframe, const float new_value)
+void BKE_fcurve_keyframe_move_value_with_handles(BezTriple *keyframe, const float new_value)
 {
   const float value_delta = new_value - keyframe->vec[1][1];
   keyframe->vec[0][1] += value_delta;
@@ -1624,9 +1624,9 @@ static void fcurve_bezt_free(FCurve *fcu)
   fcu->totvert = 0;
 }
 
-bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
-                                       struct BezTriple *prev,
-                                       struct BezTriple *next,
+bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
+                                       BezTriple *prev,
+                                       BezTriple *next,
                                        float *r_pdelta)
 {
   /* The four points that make up this section of the Bezier curve. */
@@ -1686,7 +1686,7 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
   return true;
 }
 
-void BKE_fcurve_bezt_shrink(struct FCurve *fcu, const int new_totvert)
+void BKE_fcurve_bezt_shrink(FCurve *fcu, const int new_totvert)
 {
   BLI_assert(new_totvert >= 0);
   BLI_assert(new_totvert <= fcu->totvert);

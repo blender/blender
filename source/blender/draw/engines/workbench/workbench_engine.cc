@@ -215,7 +215,7 @@ class Instance {
       if (object_state.use_per_material_batches) {
         const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
 
-        struct GPUBatch **batches;
+        GPUBatch **batches;
         if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
           batches = DRW_cache_mesh_surface_texpaint_get(ob_ref.object);
         }
@@ -245,7 +245,7 @@ class Instance {
         }
       }
       else {
-        struct GPUBatch *batch;
+        GPUBatch *batch;
         if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
           batch = DRW_cache_mesh_surface_texpaint_single_get(ob_ref.object);
         }
@@ -484,7 +484,7 @@ static void workbench_view_update(void *vedata)
   }
 }
 
-static void workbench_id_update(void *vedata, struct ID *id)
+static void workbench_id_update(void *vedata, ID *id)
 {
   UNUSED_VARS(vedata, id);
 }
@@ -538,10 +538,10 @@ static bool workbench_render_framebuffers_init(void)
 #  define GPU_FINISH_DELIMITER()
 #endif
 
-static void write_render_color_output(struct RenderLayer *layer,
+static void write_render_color_output(RenderLayer *layer,
                                       const char *viewname,
                                       GPUFrameBuffer *fb,
-                                      const struct rcti *rect)
+                                      const rcti *rect)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_COMBINED, viewname);
   if (rp) {
@@ -558,10 +558,10 @@ static void write_render_color_output(struct RenderLayer *layer,
   }
 }
 
-static void write_render_z_output(struct RenderLayer *layer,
+static void write_render_z_output(RenderLayer *layer,
                                   const char *viewname,
                                   GPUFrameBuffer *fb,
-                                  const struct rcti *rect,
+                                  const rcti *rect,
                                   float4x4 winmat)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_Z, viewname);
@@ -608,9 +608,9 @@ static void write_render_z_output(struct RenderLayer *layer,
 }
 
 static void workbench_render_to_image(void *vedata,
-                                      struct RenderEngine *engine,
-                                      struct RenderLayer *layer,
-                                      const struct rcti *rect)
+                                      RenderEngine *engine,
+                                      RenderLayer *layer,
+                                      const rcti *rect)
 {
   /* TODO(fclem): Remove once it is minimum required. */
   if (!GPU_shader_storage_buffer_objects_support()) {
@@ -659,12 +659,10 @@ static void workbench_render_to_image(void *vedata,
     DRW_manager_get()->begin_sync();
 
     workbench_cache_init(vedata);
-    auto workbench_render_cache = [](void *vedata,
-                                     struct Object *ob,
-                                     struct RenderEngine * /*engine*/,
-                                     struct Depsgraph * /*depsgraph*/) {
-      workbench_cache_populate(vedata, ob);
-    };
+    auto workbench_render_cache =
+        [](void *vedata, Object *ob, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
+          workbench_cache_populate(vedata, ob);
+        };
     DRW_render_object_iter(vedata, engine, depsgraph, workbench_render_cache);
     workbench_cache_finish(vedata);
 

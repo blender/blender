@@ -19,7 +19,7 @@
 #include "transform_convert.h"
 
 typedef struct TransDataPaintCurve {
-  struct PaintCurvePoint *pcp; /* initial curve point */
+  PaintCurvePoint *pcp; /* initial curve point */
   char id;
 } TransDataPaintCurve;
 

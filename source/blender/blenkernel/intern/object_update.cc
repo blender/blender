@@ -293,15 +293,15 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
 {
   switch (ob->type) {
     case OB_MESH:
-      BKE_mesh_batch_cache_dirty_tag((struct Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag((Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       break;
     case OB_LATTICE:
-      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
+      BKE_lattice_batch_cache_dirty_tag((Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
-      BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
+      BKE_curve_batch_cache_dirty_tag((Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case OB_MBALL: {
       /* This function is currently called on original objects, so to properly
@@ -313,20 +313,19 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       break;
     }
     case OB_GPENCIL_LEGACY:
-      BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
+      BKE_gpencil_batch_cache_dirty_tag((bGPdata *)ob->data);
       break;
     case OB_CURVES:
-      BKE_curves_batch_cache_dirty_tag((struct Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
+      BKE_curves_batch_cache_dirty_tag((Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
       break;
     case OB_POINTCLOUD:
-      BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)ob->data,
-                                           BKE_POINTCLOUD_BATCH_DIRTY_ALL);
+      BKE_pointcloud_batch_cache_dirty_tag((PointCloud *)ob->data, BKE_POINTCLOUD_BATCH_DIRTY_ALL);
       break;
     case OB_VOLUME:
-      BKE_volume_batch_cache_dirty_tag((struct Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
+      BKE_volume_batch_cache_dirty_tag((Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
       break;
     case OB_GREASE_PENCIL:
-      BKE_grease_pencil_batch_cache_dirty_tag((struct GreasePencil *)ob->data,
+      BKE_grease_pencil_batch_cache_dirty_tag((GreasePencil *)ob->data,
                                               BKE_GREASEPENCIL_BATCH_DIRTY_ALL);
       break;
     default:
@@ -373,8 +372,7 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
       BKE_curve_batch_cache_dirty_tag((Curve *)object_data, BKE_CURVE_BATCH_DIRTY_SELECT);
       break;
     case ID_LT:
-      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
-                                        BKE_LATTICE_BATCH_DIRTY_SELECT);
+      BKE_lattice_batch_cache_dirty_tag((Lattice *)object_data, BKE_LATTICE_BATCH_DIRTY_SELECT);
       break;
     default:
       break;

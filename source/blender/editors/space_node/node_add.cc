@@ -457,9 +457,9 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
-static char *node_add_group_asset_get_description(struct bContext *C,
-                                                  struct wmOperatorType * /*op*/,
-                                                  struct PointerRNA * /*values*/)
+static char *node_add_group_asset_get_description(bContext *C,
+                                                  wmOperatorType * /*op*/,
+                                                  PointerRNA * /*values*/)
 {
   const AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {

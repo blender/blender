@@ -385,7 +385,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
 
     tgp_layer->geom_ps = DRW_pass_create("GPencil Layer", state);
 
-    struct GPUShader *sh = GPENCIL_shader_geometry_get();
+    GPUShader *sh = GPENCIL_shader_geometry_get();
     DRWShadingGroup *grp = tgp_layer->base_shgrp = DRW_shgroup_create(sh, tgp_layer->geom_ps);
 
     DRW_shgroup_uniform_texture(grp, "gpSceneDepthTexture", depth_tex);

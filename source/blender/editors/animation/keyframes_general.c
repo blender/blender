@@ -90,7 +90,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
 /** \name Various Tools
  * \{ */
 
-void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
+void clean_fcurve(bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
   FCurve *fcu = (FCurve *)ale->key_data;
   BezTriple *old_bezts, *bezt, *beztn;
@@ -309,19 +309,18 @@ static const BezTriple *fcurve_segment_end_get(FCurve *fcu, int index)
 
 void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
-  const float blend_factor = fabs(factor * 2 - 1);
   const BezTriple *target_bezt;
   /* Find which key to blend towards. */
-  if (factor < 0.5f) {
+  if (factor < 0) {
     target_bezt = fcurve_segment_start_get(fcu, segment->start_index);
   }
   else {
     target_bezt = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
   }
+  const float lerp_factor = fabs(factor);
   /* Blend each key individually. */
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    const float key_y_value = interpf(
-        target_bezt->vec[1][1], fcu->bezt[i].vec[1][1], blend_factor);
+    const float key_y_value = interpf(target_bezt->vec[1][1], fcu->bezt[i].vec[1][1], lerp_factor);
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
@@ -458,8 +457,8 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
 
   /* In order to have a curve that favors the right key, the curve needs to be mirrored in x and y.
    * Having an exponent that is a fraction of 1 would produce a similar but inferior result. */
-  const bool inverted = factor > 0.5;
-  const float exponent = 1 + fabs(factor * 2 - 1) * 4;
+  const bool inverted = factor > 0;
+  const float exponent = 1 + fabs(factor) * 4;
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
     /* For easy calculation of the curve, the  values are normalized. */
@@ -486,8 +485,9 @@ void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float f
   const BezTriple *right_bezt = fcurve_segment_end_get(fcu,
                                                        segment->start_index + segment->length);
 
+  const float lerp_factor = (factor + 1) / 2;
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    const float key_y_value = interpf(right_bezt->vec[1][1], left_bezt->vec[1][1], factor);
+    const float key_y_value = interpf(right_bezt->vec[1][1], left_bezt->vec[1][1], lerp_factor);
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }

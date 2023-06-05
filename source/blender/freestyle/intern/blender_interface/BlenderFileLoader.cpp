@@ -260,7 +260,7 @@ void BlenderFileLoader::clipTriangle(int numTris,
   (void)numTris; /* Ignored in release builds. */
 }
 
-void BlenderFileLoader::addTriangle(struct LoaderState *ls,
+void BlenderFileLoader::addTriangle(LoaderState *ls,
                                     float v1[3],
                                     float v2[3],
                                     float v3[3],
@@ -502,7 +502,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   uint *NIndices = new uint[niSize];
   uint *MIndices = new uint[viSize];  // Material Indices
 
-  struct LoaderState ls;
+  LoaderState ls;
   ls.pv = vertices;
   ls.pn = normals;
   ls.pm = faceEdgeMarks;

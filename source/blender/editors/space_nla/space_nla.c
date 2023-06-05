@@ -126,7 +126,7 @@ static void nla_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *wm, ScrArea *area)
+static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceNla *snla = (SpaceNla *)area->spacedata.first;
 

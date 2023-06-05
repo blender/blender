@@ -221,8 +221,13 @@ static void node_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
+NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
+                                              const bNode *node,
+                                              const int x,
+                                              const int y)
 {
+  const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f);
+
   if (node->type == NODE_FRAME) {
     NodeFrame *data = (NodeFrame *)node->storage;
 
@@ -234,7 +239,6 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
     const rctf &totr = node->runtime->totr;
-    const float size = NODE_RESIZE_MARGIN;
 
     if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
       dir |= NODE_RESIZE_RIGHT;
@@ -263,7 +267,6 @@ NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, co
     return NODE_RESIZE_NONE;
   }
 
-  const float size = NODE_RESIZE_MARGIN;
   const rctf &totr = node->runtime->totr;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
@@ -1295,8 +1298,9 @@ static void std_node_socket_draw(
     return;
   }
 
-  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_IS_LINKED) ||
-      (sock->flag & SOCK_HIDE_VALUE)) {
+  if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
+      ((sock->flag & SOCK_IS_LINKED) && !(sock->link->is_muted())))
+  {
     node_socket_button_label(C, layout, ptr, node_ptr, text);
     return;
   }

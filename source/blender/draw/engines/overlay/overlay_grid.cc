@@ -260,7 +260,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
   {
     DRWShadingGroup *grp;
-    struct GPUBatch *geom = DRW_cache_grid_get();
+    GPUBatch *geom = DRW_cache_grid_get();
 
     GPUShader *sh = OVERLAY_shader_grid();
 

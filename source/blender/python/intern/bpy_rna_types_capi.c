@@ -46,7 +46,7 @@
 /** \name Blend Data
  * \{ */
 
-static struct PyMethodDef pyrna_blenddata_methods[] = {
+static PyMethodDef pyrna_blenddata_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_user_map_method_def */
     {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_batch_remove_method_def */
     {NULL, NULL, 0, NULL}, /* #BPY_rna_id_collection_orphans_purge_method_def */
@@ -60,7 +60,7 @@ static struct PyMethodDef pyrna_blenddata_methods[] = {
 /** \name Blend Data Libraries
  * \{ */
 
-static struct PyMethodDef pyrna_blenddatalibraries_methods[] = {
+static PyMethodDef pyrna_blenddatalibraries_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_library_load_method_def */
     {NULL, NULL, 0, NULL}, /* #BPY_library_write_method_def */
     {NULL, NULL, 0, NULL},
@@ -72,7 +72,7 @@ static struct PyMethodDef pyrna_blenddatalibraries_methods[] = {
 /** \name UI Layout
  * \{ */
 
-static struct PyMethodDef pyrna_uilayout_methods[] = {
+static PyMethodDef pyrna_uilayout_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_uilayout_introspect_method_def */
     {NULL, NULL, 0, NULL},
 };
@@ -83,7 +83,7 @@ static struct PyMethodDef pyrna_uilayout_methods[] = {
 /** \name Operator
  * \{ */
 
-static struct PyMethodDef pyrna_operator_methods[] = {
+static PyMethodDef pyrna_operator_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_operator_poll_message_set */
     {NULL, NULL, 0, NULL},
 };
@@ -94,7 +94,7 @@ static struct PyMethodDef pyrna_operator_methods[] = {
 /** \name Text Editor
  * \{ */
 
-static struct PyMethodDef pyrna_text_methods[] = {
+static PyMethodDef pyrna_text_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_region_as_string_method_def */
     {NULL, NULL, 0, NULL}, /* #BPY_rna_region_from_string_method_def */
     {NULL, NULL, 0, NULL},
@@ -175,7 +175,7 @@ PyDoc_STRVAR(pyrna_draw_cursor_remove_doc,
              "   :arg handler: The draw cursor handler that should be removed.\n"
              "   :type handler: object\n");
 
-static struct PyMethodDef pyrna_windowmanager_methods[] = {
+static PyMethodDef pyrna_windowmanager_methods[] = {
     {"draw_cursor_add",
      (PyCFunction)pyrna_callback_classmethod_add,
      METH_VARARGS | METH_CLASS,
@@ -187,7 +187,7 @@ static struct PyMethodDef pyrna_windowmanager_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyGetSetDef pyrna_windowmanager_getset[] = {
+static PyGetSetDef pyrna_windowmanager_getset[] = {
     {"clipboard",
      pyrna_WindowManager_clipboard_get,
      pyrna_WindowManager_clipboard_set,
@@ -202,7 +202,7 @@ static struct PyGetSetDef pyrna_windowmanager_getset[] = {
 /** \name Context Type
  * \{ */
 
-static struct PyMethodDef pyrna_context_methods[] = {
+static PyMethodDef pyrna_context_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_context_temp_override_method_def */
     {NULL, NULL, 0, NULL},
 };
@@ -247,7 +247,7 @@ PyDoc_STRVAR(pyrna_draw_handler_remove_doc,
              "   :arg region_type: Region type the callback was added to.\n"
              "   :type region_type: str\n");
 
-static struct PyMethodDef pyrna_space_methods[] = {
+static PyMethodDef pyrna_space_methods[] = {
     {"draw_handler_add",
      (PyCFunction)pyrna_callback_classmethod_add,
      METH_VARARGS | METH_CLASS,

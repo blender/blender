@@ -279,7 +279,7 @@ const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
   return column;
 }
 
-const ActKeyColumn *ED_keylist_array(const struct AnimKeylist *keylist)
+const ActKeyColumn *ED_keylist_array(const AnimKeylist *keylist)
 {
   BLI_assert_msg(
       keylist->is_runtime_initialized,
@@ -287,17 +287,17 @@ const ActKeyColumn *ED_keylist_array(const struct AnimKeylist *keylist)
   return keylist->runtime.key_columns.data();
 }
 
-int64_t ED_keylist_array_len(const struct AnimKeylist *keylist)
+int64_t ED_keylist_array_len(const AnimKeylist *keylist)
 {
   return keylist->column_len;
 }
 
-bool ED_keylist_is_empty(const struct AnimKeylist *keylist)
+bool ED_keylist_is_empty(const AnimKeylist *keylist)
 {
   return keylist->column_len == 0;
 }
 
-const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
+const ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
 {
   if (keylist->is_runtime_initialized) {
     return &keylist->runtime.list_wrapper;
@@ -305,9 +305,9 @@ const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
   return &keylist->key_columns;
 }
 
-static void keylist_first_last(const struct AnimKeylist *keylist,
-                               const struct ActKeyColumn **first_column,
-                               const struct ActKeyColumn **last_column)
+static void keylist_first_last(const AnimKeylist *keylist,
+                               const ActKeyColumn **first_column,
+                               const ActKeyColumn **last_column)
 {
   if (keylist->is_runtime_initialized) {
     *first_column = keylist->runtime.key_columns.data();
@@ -319,7 +319,7 @@ static void keylist_first_last(const struct AnimKeylist *keylist,
   }
 }
 
-bool ED_keylist_all_keys_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range)
+bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
 {
   BLI_assert(r_frame_range);
 
@@ -336,8 +336,7 @@ bool ED_keylist_all_keys_frame_range(const struct AnimKeylist *keylist, Range2f 
   return true;
 }
 
-bool ED_keylist_selected_keys_frame_range(const struct AnimKeylist *keylist,
-                                          Range2f *r_frame_range)
+bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
 {
   BLI_assert(r_frame_range);
 

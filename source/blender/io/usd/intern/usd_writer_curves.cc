@@ -275,7 +275,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
                                            const bool is_cyclic)
 {
   /* Order and range, when representing a batched NurbsCurve should be authored one value per
-   * curve.*/
+   * curve. */
   const int num_curves = geometry.curve_num;
   orders.resize(num_curves);
 

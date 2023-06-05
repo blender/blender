@@ -405,7 +405,7 @@ static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
   mul_m4_m4m4(mat_xform, mat4, mat_xform);
 }
 
-void initRotation(TransInfo *t)
+static void initRotation(TransInfo *t, wmOperator *UNUSED(op))
 {
   if (t->spacetype == SPACE_ACTION) {
     BKE_report(t->reports, RPT_ERROR, "Rotation is not supported in the Dope Sheet Editor");
@@ -413,10 +413,6 @@ void initRotation(TransInfo *t)
   }
 
   t->mode = TFM_ROTATION;
-  t->transform = applyRotation;
-  t->transform_matrix = applyRotationMatrix;
-  t->tsnap.snap_mode_apply_fn = ApplySnapRotation;
-  t->tsnap.snap_mode_distance_fn = RotationBetween;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
@@ -438,3 +434,14 @@ void initRotation(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_rotate = {
+    /*flags*/ 0,
+    /*init_fn*/ initRotation,
+    /*transform_fn*/ applyRotation,
+    /*transform_matrix_fn*/ applyRotationMatrix,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ RotationBetween,
+    /*snap_apply_fn*/ ApplySnapRotation,
+    /*draw_fn*/ NULL,
+};

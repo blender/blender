@@ -32,7 +32,7 @@ typedef struct TransDataMasking {
 
   float handle[2], orig_handle[2];
   float vec[3][3];
-  struct MaskSplinePoint *point;
+  MaskSplinePoint *point;
   float parent_matrix[3][3];
   float parent_inverse_matrix[3][3];
   char orig_handle_type;

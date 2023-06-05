@@ -508,7 +508,7 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(const WorkSpace *workspace,
   return nullptr;
 }
 
-void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tref)
+void BKE_workspace_tool_remove(WorkSpace *workspace, bToolRef *tref)
 {
   if (tref->runtime) {
     MEM_freeN(tref->runtime);
@@ -520,7 +520,7 @@ void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tre
   MEM_freeN(tref);
 }
 
-void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
+void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
                                          const int space_type,
                                          const int mode,
                                          const char *idname_prefix_skip,

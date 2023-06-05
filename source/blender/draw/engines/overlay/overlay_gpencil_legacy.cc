@@ -23,11 +23,11 @@
 #include "draw_common.h"
 #include "draw_manager_text.h"
 
-void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
+void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   /* Default: Display nothing. */
@@ -205,11 +205,11 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
+void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   /* Default: Display nothing. */
@@ -338,7 +338,7 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_wires_grp);
     DRW_shgroup_uniform_vec4_copy(grp, "gpEditColor", gpd->line_color);
 
-    struct GPUBatch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
+    GPUBatch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(pd->edit_gpencil_wires_grp, geom, ob);
   }
 
@@ -348,19 +348,19 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_points_grp);
     DRW_shgroup_uniform_float_copy(grp, "doStrokeEndpoints", show_direction);
 
-    struct GPUBatch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
+    GPUBatch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(grp, geom, ob);
   }
 
   if (pd->edit_gpencil_curve_handle_grp) {
-    struct GPUBatch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
+    GPUBatch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
     if (geom) {
       DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_handle_grp, geom, ob);
     }
   }
 
   if (pd->edit_gpencil_curve_points_grp) {
-    struct GPUBatch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
+    GPUBatch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
     if (geom) {
       DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_points_grp, geom, ob);
     }
@@ -402,7 +402,7 @@ static void overlay_gpencil_draw_stroke_color_name(bGPDlayer * /*gpl*/,
         float fpt[3];
         mul_v3_m4v3(fpt, ob->object_to_world, &pt->x);
 
-        struct DRWTextStore *dt = DRW_text_cache_ensure();
+        DRWTextStore *dt = DRW_text_cache_ensure();
         DRW_text_cache_add(dt,
                            fpt,
                            ma->id.name + 2,
@@ -426,7 +426,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
       nullptr, ob, nullptr, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
 }
 
-void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
+void OVERLAY_gpencil_legacy_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
@@ -450,7 +450,7 @@ void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 }
 
-void OVERLAY_gpencil_draw(OVERLAY_Data *vedata)
+void OVERLAY_gpencil_legacy_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
 
@@ -459,7 +459,7 @@ void OVERLAY_gpencil_draw(OVERLAY_Data *vedata)
   }
 }
 
-void OVERLAY_edit_gpencil_draw(OVERLAY_Data *vedata)
+void OVERLAY_edit_gpencil_legacy_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
 

@@ -3144,9 +3144,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   /* children */
 
-  /* NOTE(@ideasman42): name is not following conventions: `nbr`.
-   * Could be changed next major version. */
-  prop = RNA_def_property(srna, "child_nbr", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "child_percent", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(
       prop, NULL, "child_percent"); /* Optional if prop names are the same. */
   RNA_def_property_range(prop, 0, 100000);

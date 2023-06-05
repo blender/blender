@@ -99,7 +99,7 @@ typedef struct tGPsdata {
   Main *bmain;
   /** current scene from context. */
   Scene *scene;
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
 
   /** window where painting originated. */
   wmWindow *win;

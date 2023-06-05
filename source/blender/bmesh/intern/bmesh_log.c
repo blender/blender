@@ -34,7 +34,7 @@
 #include "BLI_strict_flags.h"
 
 struct BMLogEntry {
-  struct BMLogEntry *next, *prev;
+  BMLogEntry *next, *prev;
 
   /* The following #GHash members map from an element ID to one of the log types above. */
 
@@ -65,7 +65,7 @@ struct BMLogEntry {
 
 struct BMLog {
   /** Tree of free IDs */
-  struct RangeTreeUInt *unused_ids;
+  RangeTreeUInt *unused_ids;
 
   /**
    * Mapping from unique IDs to vertices and faces

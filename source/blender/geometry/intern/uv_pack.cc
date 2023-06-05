@@ -185,7 +185,7 @@ static bool can_rotate(const Span<PackIsland *> islands, const UVPackIsland_Para
   return true;
 }
 
-/** Angle rounding helper for "D4" transforms.  */
+/** Angle rounding helper for "D4" transforms. */
 static float angle_match(float angle_radians, float target_radians)
 {
   if (fabsf(angle_radians - target_radians) < DEG2RADF(0.1f)) {
@@ -194,7 +194,7 @@ static float angle_match(float angle_radians, float target_radians)
   return angle_radians;
 }
 
-/** Angle rounding helper for "D4" transforms.  */
+/** Angle rounding helper for "D4" transforms. */
 static float plusminus_90_angle(float angle_radians)
 {
   angle_radians = angle_radians - floorf((angle_radians + M_PI_2) / M_PI) * M_PI;
@@ -339,7 +339,7 @@ UVPackIsland_Params::UVPackIsland_Params()
   only_selected_faces = false;
   use_seams = false;
   correct_aspect = false;
-  pin_method = ED_UVPACK_PIN_DEFAULT;
+  pin_method = ED_UVPACK_PIN_PACK;
   pin_unselected = false;
   merge_overlap = false;
   margin = 0.001f;
@@ -375,7 +375,7 @@ class UVAABBIsland {
  */
 static void pack_islands_alpaca_turbo(const int64_t exclude_index,
                                       const rctf &exclude,
-                                      const Span<UVAABBIsland *> islands,
+                                      const Span<std::unique_ptr<UVAABBIsland>> islands,
                                       const float target_aspect_y,
                                       MutableSpan<uv_phi> r_phis,
                                       rctf *r_extent)
@@ -390,9 +390,9 @@ static void pack_islands_alpaca_turbo(const int64_t exclude_index,
 
   /* Visit every island in order, except the excluded islands at the start. */
   for (int64_t index = exclude_index; index < islands.size(); index++) {
-    UVAABBIsland *island = islands[index];
-    const float dsm_u = island->uv_diagonal.x;
-    const float dsm_v = island->uv_diagonal.y;
+    UVAABBIsland &island = *islands[index];
+    const float dsm_u = island.uv_diagonal.x;
+    const float dsm_v = island.uv_diagonal.y;
 
     bool restart = false;
     if (zigzag) {
@@ -409,7 +409,7 @@ static void pack_islands_alpaca_turbo(const int64_t exclude_index,
     }
 
     /* Place the island. */
-    uv_phi &phi = r_phis[island->index];
+    uv_phi &phi = r_phis[island.index];
     phi.rotation = 0.0f;
     phi.translation.x = u0 + dsm_u * 0.5f;
     phi.translation.y = v0 + dsm_v * 0.5f;
@@ -486,7 +486,7 @@ static void update_hole_rotate(float2 &hole,
  */
 static void pack_islands_alpaca_rotate(const int64_t exclude_index,
                                        const rctf &exclude,
-                                       const Span<UVAABBIsland *> islands,
+                                       const Span<std::unique_ptr<UVAABBIsland>> islands,
                                        const float target_aspect_y,
                                        MutableSpan<uv_phi> r_phis,
                                        rctf *r_extent)
@@ -506,30 +506,30 @@ static void pack_islands_alpaca_rotate(const int64_t exclude_index,
 
   /* Visit every island in order, except the excluded islands at the start. */
   for (int64_t index = exclude_index; index < islands.size(); index++) {
-    UVAABBIsland *island = islands[index];
-    uv_phi &phi = r_phis[island->index];
-    const float uvdiag_x = island->uv_diagonal.x * island->aspect_y;
-    float min_dsm = std::min(uvdiag_x, island->uv_diagonal.y);
-    float max_dsm = std::max(uvdiag_x, island->uv_diagonal.y);
+    UVAABBIsland &island = *islands[index];
+    uv_phi &phi = r_phis[island.index];
+    const float uvdiag_x = island.uv_diagonal.x * island.aspect_y;
+    float min_dsm = std::min(uvdiag_x, island.uv_diagonal.y);
+    float max_dsm = std::max(uvdiag_x, island.uv_diagonal.y);
 
     if (min_dsm < hole_diagonal.x && max_dsm < hole_diagonal.y) {
       /* Place island in the hole. */
-      if (hole_rotate == (min_dsm == island->uv_diagonal.x)) {
+      if (hole_rotate == (min_dsm == island.uv_diagonal.x)) {
         phi.rotation = DEG2RADF(90.0f);
-        phi.translation.x = hole[0] + island->uv_diagonal.y * 0.5f / island->aspect_y;
-        phi.translation.y = hole[1] + island->uv_diagonal.x * 0.5f * island->aspect_y;
+        phi.translation.x = hole[0] + island.uv_diagonal.y * 0.5f / island.aspect_y;
+        phi.translation.y = hole[1] + island.uv_diagonal.x * 0.5f * island.aspect_y;
       }
       else {
         phi.rotation = 0.0f;
-        phi.translation.x = hole[0] + island->uv_diagonal.x * 0.5f;
-        phi.translation.y = hole[1] + island->uv_diagonal.y * 0.5f;
+        phi.translation.x = hole[0] + island.uv_diagonal.x * 0.5f;
+        phi.translation.y = hole[1] + island.uv_diagonal.y * 0.5f;
       }
 
       /* Update space left in the hole. */
       float p[6];
       p[0] = hole[0];
       p[1] = hole[1];
-      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm) / island->aspect_y;
+      p[2] = hole[0] + (hole_rotate ? max_dsm : min_dsm) / island.aspect_y;
       p[3] = hole[1] + (hole_rotate ? min_dsm : max_dsm);
       p[4] = hole[0] + (hole_rotate ? hole_diagonal.y : hole_diagonal.x);
       p[5] = hole[1] + (hole_rotate ? hole_diagonal.x : hole_diagonal.y);
@@ -546,7 +546,7 @@ static void pack_islands_alpaca_rotate(const int64_t exclude_index,
       restart = (next_v1 < v0 + min_dsm);
     }
     else {
-      restart = (next_u1 < u0 + min_dsm / island->aspect_y);
+      restart = (next_u1 < u0 + min_dsm / island.aspect_y);
     }
     if (restart) {
       update_hole_rotate(hole, hole_diagonal, hole_rotate, u0, v0, next_u1, next_v1);
@@ -559,25 +559,25 @@ static void pack_islands_alpaca_rotate(const int64_t exclude_index,
     /* Place the island. */
     if (zigzag == (min_dsm == uvdiag_x)) {
       phi.rotation = DEG2RADF(90.0f);
-      phi.translation.x = u0 + island->uv_diagonal.y * 0.5f / island->aspect_y;
-      phi.translation.y = v0 + island->uv_diagonal.x * 0.5f * island->aspect_y;
+      phi.translation.x = u0 + island.uv_diagonal.y * 0.5f / island.aspect_y;
+      phi.translation.y = v0 + island.uv_diagonal.x * 0.5f * island.aspect_y;
     }
     else {
       phi.rotation = 0.0f;
-      phi.translation.x = u0 + island->uv_diagonal.x * 0.5f;
-      phi.translation.y = v0 + island->uv_diagonal.y * 0.5f;
+      phi.translation.x = u0 + island.uv_diagonal.x * 0.5f;
+      phi.translation.y = v0 + island.uv_diagonal.y * 0.5f;
     }
 
     /* Move according to the "Alpaca rules", with rotation. */
     if (zigzag) {
       /* Move upwards. */
       v0 += min_dsm;
-      next_u1 = max_ff(next_u1, u0 + max_dsm / island->aspect_y);
+      next_u1 = max_ff(next_u1, u0 + max_dsm / island.aspect_y);
       next_v1 = max_ff(next_v1, v0);
     }
     else {
       /* Move sideways. */
-      u0 += min_dsm / island->aspect_y;
+      u0 += min_dsm / island.aspect_y;
       next_v1 = max_ff(next_v1, v0 + max_dsm);
       next_u1 = max_ff(next_u1, u0);
     }
@@ -592,7 +592,7 @@ static void pack_islands_alpaca_rotate(const int64_t exclude_index,
  */
 static void pack_islands_fast(const int64_t exclude_index,
                               const rctf &exclude,
-                              const Span<UVAABBIsland *> aabbs,
+                              const Span<std::unique_ptr<UVAABBIsland>> aabbs,
                               const bool rotate,
                               const float target_aspect_y,
                               MutableSpan<uv_phi> r_phis,
@@ -607,7 +607,7 @@ static void pack_islands_fast(const int64_t exclude_index,
 }
 
 /** Frits Göbel, 1979. */
-static void pack_gobel(const Span<UVAABBIsland *> aabbs,
+static void pack_gobel(const Span<std::unique_ptr<UVAABBIsland>> aabbs,
                        const float scale,
                        const int m,
                        MutableSpan<uv_phi> r_phis)
@@ -642,8 +642,38 @@ static void pack_gobel(const Span<UVAABBIsland *> aabbs,
     }
   }
 }
+
+static bool pack_islands_optimal_pack_table(const int table_count,
+                                            const float max_extent,
+                                            const float *optimal,
+                                            const char * /* unused_comment */,
+                                            int64_t island_count,
+                                            const float large_uv,
+                                            const Span<std::unique_ptr<UVAABBIsland>> aabbs,
+                                            const UVPackIsland_Params &params,
+                                            MutableSpan<uv_phi> r_phis,
+                                            rctf *r_extent)
+{
+  if (table_count < island_count) {
+    return false;
+  }
+  rctf extent = {0.0f, large_uv * max_extent, 0.0f, large_uv * max_extent};
+  if (is_larger(extent, *r_extent, params)) {
+    return false;
+  }
+  *r_extent = extent;
+
+  for (int i = 0; i < island_count; i++) {
+    uv_phi &phi = r_phis[aabbs[i]->index];
+    phi.translation.x = optimal[i * 3 + 0] * large_uv;
+    phi.translation.y = optimal[i * 3 + 1] * large_uv;
+    phi.rotation = optimal[i * 3 + 2];
+  }
+  return true;
+}
+
 /* Attempt to find an "Optimal" packing of the islands, e.g. assuming squares or circles. */
-static void pack_islands_optimal_pack(const Span<UVAABBIsland *> aabbs,
+static void pack_islands_optimal_pack(const Span<std::unique_ptr<UVAABBIsland>> aabbs,
                                       const UVPackIsland_Params &params,
                                       MutableSpan<uv_phi> r_phis,
                                       rctf *r_extent)
@@ -654,6 +684,9 @@ static void pack_islands_optimal_pack(const Span<UVAABBIsland *> aabbs,
   if (params.target_aspect_y != 1.0f) {
     return;
   }
+  if (params.rotate_method != ED_UVPACK_ROTATION_ANY) {
+    return;
+  }
 
   float large_uv = 0.0f;
   for (const int64_t i : aabbs.index_range()) {
@@ -662,6 +695,285 @@ static void pack_islands_optimal_pack(const Span<UVAABBIsland *> aabbs,
   }
 
   int64_t island_count_patch = aabbs.size();
+
+  const float opt_11[] = {
+      /* Walter Trump, 1979. */
+      2.6238700165660708840676f,
+      2.4365065643739085565755f,
+      0.70130710554829878145f,
+      1.9596047386700836678841f,
+      1.6885655318806973568257f,
+      0.70130710554829878145f,
+      1.9364970731945949644626f,
+      3.1724566890997589752033f,
+      0.70130710554829878145f,
+      1.2722458068219282267819f,
+      2.4245322476118422727609f,
+      0.70130710554829878145f,
+      3.1724918301381124230431f,
+      1.536261617698265524723f,
+      0.70130710554829878145f,
+      3.3770999999999999907629f,
+      3.3770999999999999907629f,
+      0.0f,
+      0.5f,
+      1.5f,
+      0.0f,
+      2.5325444557069398676674f,
+      0.5f,
+      0.0f,
+      0.5f,
+      3.3770999999999999907629f,
+      0.0f,
+      1.5f,
+      0.5f,
+      0.0f,
+      0.5f,
+      0.5f,
+      0.0f,
+  };
+  pack_islands_optimal_pack_table(11,
+                                  3.8770999999999999907629f,
+                                  opt_11,
+                                  "Walter Trump, 1979",
+                                  island_count_patch,
+                                  large_uv,
+                                  aabbs,
+                                  params,
+                                  r_phis,
+                                  r_extent);
+
+  const float opt_18[] = {
+      /* Pertti Hamalainen, 1979. */
+      2.4700161985907582717914f,
+      2.4335783708246112588824f,
+      0.42403103949074028022892f,
+      1.3528594569415370862941f,
+      2.3892972847076845432923f,
+      0.42403103949074028022892f,
+      2.0585783708246108147932f,
+      1.5221405430584633577951f,
+      0.42403103949074028022892f,
+      1.7642972847076845432923f,
+      3.3007351124738324443797f,
+      0.42403103949074028022892f,
+      3.3228756555322949139963f,
+      1.5f,
+      0.0f,
+      3.3228756555322949139963f,
+      3.3228756555322949139963f,
+      0.0f,
+      0.5f,
+      1.5f,
+      0.0f,
+      2.3228756555322949139963f,
+      4.3228756555322949139963f,
+      0.0f,
+      0.5f,
+      3.3228756555322949139963f,
+      0.0f,
+      1.5f,
+      0.5f,
+      0.0f,
+      3.3228756555322949139963f,
+      0.5f,
+      0.0f,
+      3.3228756555322949139963f,
+      4.3228756555322949139963f,
+      0.0f,
+      4.3228756555322949139963f,
+      1.5f,
+      0.0f,
+      4.3228756555322949139963f,
+      3.3228756555322949139963f,
+      0.0f,
+      0.5f,
+      0.5f,
+      0.0f,
+      0.5f,
+      4.3228756555322949139963f,
+      0.0f,
+      4.3228756555322949139963f,
+      0.5f,
+      0.0f,
+      4.3228756555322949139963f,
+      4.3228756555322949139963f,
+      0.0f,
+  };
+  pack_islands_optimal_pack_table(18,
+                                  4.8228756555322949139963f,
+                                  opt_18,
+                                  "Pertti Hamalainen, 1979",
+                                  island_count_patch,
+                                  large_uv,
+                                  aabbs,
+                                  params,
+                                  r_phis,
+                                  r_extent);
+
+  const float opt_19[] = {
+      /* Robert Wainwright, 1979. */
+      2.1785113019775792508881f,
+      1.9428090415820631342569f,
+      0.78539816339744827899949f,
+      1.4714045207910317891731f,
+      2.6499158227686105959719f,
+      0.78539816339744827899949f,
+      2.9428090415820640224354f,
+      2.7071067811865479058042f,
+      0.78539816339744827899949f,
+      2.2357022603955165607204f,
+      3.4142135623730953675192f,
+      0.78539816339744827899949f,
+      1.4428090415820635783462f,
+      1.2642977396044836613243f,
+      0.78539816339744827899949f,
+      3.3856180831641271566923f,
+      1.5f,
+      0.0f,
+      0.73570226039551600560884f,
+      1.9714045207910311230393f,
+      0.78539816339744827899949f,
+      3.6213203435596432733234f,
+      3.4428090415820635783462f,
+      0.78539816339744827899949f,
+      2.9142135623730958116084f,
+      4.1499158227686105959719f,
+      0.78539816339744827899949f,
+      2.3856180831641271566923f,
+      0.5f,
+      0.0f,
+      0.5f,
+      3.3856180831641271566923f,
+      0.0f,
+      1.5f,
+      4.3856180831641271566923f,
+      0.0f,
+      4.3856180831641271566923f,
+      2.5f,
+      0.0f,
+      3.3856180831641271566923f,
+      0.5f,
+      0.0f,
+      4.3856180831641271566923f,
+      1.5f,
+      0.0f,
+      0.5f,
+      0.5f,
+      0.0f,
+      0.5f,
+      4.3856180831641271566923f,
+      0.0f,
+      4.3856180831641271566923f,
+      0.5f,
+      0.0f,
+      4.3856180831641271566923f,
+      4.3856180831641271566923f,
+      0.0f,
+  };
+  pack_islands_optimal_pack_table(19,
+                                  4.8856180831641271566923f,
+                                  opt_19,
+                                  "Robert Wainwright, 1979",
+                                  island_count_patch,
+                                  large_uv,
+                                  aabbs,
+                                  params,
+                                  r_phis,
+                                  r_extent);
+
+  const float opt_26[] = {
+      /* Erich Friedman, 1997. */
+      2.3106601717798209705279f,
+      2.8106601717798214146171f,
+      0.78539816339744827899949f,
+      1.6035533905932735088129f,
+      2.1035533905932739529021f,
+      0.78539816339744827899949f,
+      3.0177669529663684322429f,
+      2.1035533905932739529021f,
+      0.78539816339744827899949f,
+      2.3106601717798209705279f,
+      1.3964466094067264911871f,
+      0.78539816339744827899949f,
+      1.6035533905932735088129f,
+      3.5177669529663688763321f,
+      0.78539816339744827899949f,
+      0.89644660940672593607559f,
+      2.8106601717798214146171f,
+      0.78539816339744827899949f,
+      3.0177669529663684322429f,
+      3.5177669529663688763321f,
+      0.78539816339744827899949f,
+      3.7248737341529158939579f,
+      2.8106601717798214146171f,
+      0.78539816339744827899949f,
+      2.3106601717798209705279f,
+      4.2248737341529167821363f,
+      0.78539816339744827899949f,
+      0.5f,
+      1.5f,
+      0.0f,
+      1.5f,
+      0.5f,
+      0.0f,
+      3.1213203435596419410558f,
+      0.5f,
+      0.0f,
+      4.1213203435596419410558f,
+      1.5f,
+      0.0f,
+      0.5f,
+      4.1213203435596419410558f,
+      0.0f,
+      0.5f,
+      0.5f,
+      0.0f,
+      4.1213203435596419410558f,
+      4.1213203435596419410558f,
+      0.0f,
+      4.1213203435596419410558f,
+      0.5f,
+      0.0f,
+      1.5f,
+      5.1213203435596419410558f,
+      0.0f,
+      3.1213203435596419410558f,
+      5.1213203435596419410558f,
+      0.0f,
+      5.1213203435596419410558f,
+      2.5f,
+      0.0f,
+      5.1213203435596419410558f,
+      1.5f,
+      0.0f,
+      0.5f,
+      5.1213203435596419410558f,
+      0.0f,
+      4.1213203435596419410558f,
+      5.1213203435596419410558f,
+      0.0f,
+      5.1213203435596419410558f,
+      4.1213203435596419410558f,
+      0.0f,
+      5.1213203435596419410558f,
+      0.5f,
+      0.0f,
+      5.1213203435596419410558f,
+      5.1213203435596419410558f,
+      0.0f,
+  };
+  pack_islands_optimal_pack_table(26,
+                                  5.6213203435596419410558f,
+                                  opt_26,
+                                  "Erich Friedman, 1997",
+                                  island_count_patch,
+                                  large_uv,
+                                  aabbs,
+                                  params,
+                                  r_phis,
+                                  r_extent);
+
   if (island_count_patch == 37) {
     island_count_patch = 38; /* TODO, Cantrell 2002. */
   }
@@ -694,7 +1006,7 @@ static void pack_islands_optimal_pack(const Span<UVAABBIsland *> aabbs,
 }
 
 /* Wrapper around #BLI_box_pack_2d. */
-static void pack_island_box_pack_2d(const Span<UVAABBIsland *> aabbs,
+static void pack_island_box_pack_2d(const Span<std::unique_ptr<UVAABBIsland>> aabbs,
                                     const UVPackIsland_Params &params,
                                     MutableSpan<uv_phi> r_phis,
                                     rctf *r_extent)
@@ -1093,7 +1405,7 @@ class UVMinimumEnclosingSquareFinder {
  * If that square is smaller than `r_extent`, then update `r_phis` accordingly.
  * \return True if `r_phis` and `r_extent` are modified.
  */
-static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
+static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> island_indices,
                                  const Span<PackIsland *> islands,
                                  const UVPackIsland_Params &params,
                                  const float scale,
@@ -1109,7 +1421,7 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
   }
   if (params.shape_method == ED_UVPACK_SHAPE_AABB) {
     /* AABB margin calculations are not preserved under rotations. */
-    if (island_indices.size() > 1) { /* Unless there's only one island...*/
+    if (island_indices.size() > 1) { /* Unless there's only one island. */
 
       if (params.target_aspect_y != 1.0f) {
         /* TODO: Check for possible 90 degree rotation. */
@@ -1146,10 +1458,10 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
   /* Now we have all the points in the correct space, compute the 2D convex hull. */
   const float(*source)[2] = reinterpret_cast<const float(*)[2]>(square_finder.points.data());
 
-  square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case.*/
+  square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case. */
   int convex_size = BLI_convexhull_2d(
       source, int(square_finder.points.size()), square_finder.indices.data());
-  square_finder.indices.resize(convex_size); /* Resize to actual size.*/
+  square_finder.indices.resize(convex_size); /* Resize to actual size. */
 
   /* Run the computation to find the best angle. (Slow!) */
   const float quad_180 = square_finder.update(DEG2RADF(-180.0f));
@@ -1194,7 +1506,7 @@ static bool rotate_inside_square(const Span<UVAABBIsland *> island_indices,
  * Performance would normally be `O(n^4)`, however the occupancy
  * bitmap_radix is fixed, which gives a reduced time complexity of `O(n^3)`.
  */
-static int64_t pack_island_xatlas(const Span<UVAABBIsland *> island_indices,
+static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> island_indices,
                                   const Span<PackIsland *> islands,
                                   const float scale,
                                   const float margin,
@@ -1402,69 +1714,69 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   const bool all_can_rotate = can_rotate(islands, params);
 
   /* First, copy information from our input into the AABB structure. */
-  Array<UVAABBIsland *> aabbs(islands.size());
+  Array<std::unique_ptr<UVAABBIsland>> aabbs(islands.size());
   for (const int64_t i : islands.index_range()) {
     PackIsland *pack_island = islands[i];
     float island_scale = scale;
     if (!pack_island->can_scale_(params)) {
       island_scale = 1.0f;
     }
-    UVAABBIsland *aabb = new UVAABBIsland();
+    std::unique_ptr<UVAABBIsland> aabb = std::make_unique<UVAABBIsland>();
     aabb->index = i;
     aabb->uv_diagonal.x = pack_island->half_diagonal_.x * 2 * island_scale + 2 * margin;
     aabb->uv_diagonal.y = pack_island->half_diagonal_.y * 2 * island_scale + 2 * margin;
     aabb->aspect_y = pack_island->aspect_y;
-    aabbs[i] = aabb;
+    aabbs[i] = std::move(aabb);
   }
 
   /* Sort from "biggest" to "smallest". */
 
   if (all_can_rotate) {
-    std::stable_sort(aabbs.begin(),
-                     aabbs.end(),
-                     [&params, &islands](const UVAABBIsland *a, const UVAABBIsland *b) {
-                       const bool can_translate_a = islands[a->index]->can_translate_(params);
-                       const bool can_translate_b = islands[b->index]->can_translate_(params);
-                       if (can_translate_a != can_translate_b) {
-                         return can_translate_b; /* Locked islands are placed first. */
-                       }
-                       /* TODO: Fix when (params.target_aspect_y != 1.0f) */
+    std::stable_sort(
+        aabbs.begin(),
+        aabbs.end(),
+        [&](const std::unique_ptr<UVAABBIsland> &a, const std::unique_ptr<UVAABBIsland> &b) {
+          const bool can_translate_a = islands[a->index]->can_translate_(params);
+          const bool can_translate_b = islands[b->index]->can_translate_(params);
+          if (can_translate_a != can_translate_b) {
+            return can_translate_b; /* Locked islands are placed first. */
+          }
+          /* TODO: Fix when (params.target_aspect_y != 1.0f) */
 
-                       /* Choose the AABB with the longest large edge. */
-                       float a_u = a->uv_diagonal.x * a->aspect_y;
-                       float a_v = a->uv_diagonal.y;
-                       float b_u = b->uv_diagonal.x * b->aspect_y;
-                       float b_v = b->uv_diagonal.y;
-                       if (a_u > a_v) {
-                         std::swap(a_u, a_v);
-                       }
-                       if (b_u > b_v) {
-                         std::swap(b_u, b_v);
-                       }
-                       float diff_u = a_u - b_u;
-                       float diff_v = a_v - b_v;
-                       diff_v += diff_u * 0.05f; /* Robust sort, smooth over round-off errors. */
-                       if (diff_v == 0.0f) {     /* Tie break. */
-                         return diff_u > 0.0f;
-                       }
-                       return diff_v > 0.0f;
-                     });
+          /* Choose the AABB with the longest large edge. */
+          float a_u = a->uv_diagonal.x * a->aspect_y;
+          float a_v = a->uv_diagonal.y;
+          float b_u = b->uv_diagonal.x * b->aspect_y;
+          float b_v = b->uv_diagonal.y;
+          if (a_u > a_v) {
+            std::swap(a_u, a_v);
+          }
+          if (b_u > b_v) {
+            std::swap(b_u, b_v);
+          }
+          float diff_u = a_u - b_u;
+          float diff_v = a_v - b_v;
+          diff_v += diff_u * 0.05f; /* Robust sort, smooth over round-off errors. */
+          if (diff_v == 0.0f) {     /* Tie break. */
+            return diff_u > 0.0f;
+          }
+          return diff_v > 0.0f;
+        });
   }
   else {
+    std::stable_sort(
+        aabbs.begin(),
+        aabbs.end(),
+        [&](const std::unique_ptr<UVAABBIsland> &a, const std::unique_ptr<UVAABBIsland> &b) {
+          const bool can_translate_a = islands[a->index]->can_translate_(params);
+          const bool can_translate_b = islands[b->index]->can_translate_(params);
+          if (can_translate_a != can_translate_b) {
+            return can_translate_b; /* Locked islands are placed first. */
+          }
 
-    std::stable_sort(aabbs.begin(),
-                     aabbs.end(),
-                     [&params, &islands](const UVAABBIsland *a, const UVAABBIsland *b) {
-                       const bool can_translate_a = islands[a->index]->can_translate_(params);
-                       const bool can_translate_b = islands[b->index]->can_translate_(params);
-                       if (can_translate_a != can_translate_b) {
-                         return can_translate_b; /* Locked islands are placed first. */
-                       }
-
-                       /* Choose the AABB with larger rectangular area. */
-                       return b->uv_diagonal.x * b->uv_diagonal.y <
-                              a->uv_diagonal.x * a->uv_diagonal.y;
-                     });
+          /* Choose the AABB with larger rectangular area. */
+          return b->uv_diagonal.x * b->uv_diagonal.y < a->uv_diagonal.x * a->uv_diagonal.y;
+        });
   }
 
   /* If some of the islands are locked, we build a summary about them here. */
@@ -1499,7 +1811,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
 
   alpaca_cutoff = std::max(alpaca_cutoff, locked_island_count); /* ...TODO... */
 
-  Span<UVAABBIsland *> slow_aabbs = aabbs.as_span().take_front(
+  Span<std::unique_ptr<UVAABBIsland>> slow_aabbs = aabbs.as_span().take_front(
       std::min(alpaca_cutoff, islands.size()));
   rctf extent = {0.0f, 1e30f, 0.0f, 1e30f};
 
@@ -1981,7 +2293,6 @@ bool PackIsland::can_translate_(const UVPackIsland_Params &params) const
   }
   switch (params.pin_method) {
     case ED_UVPACK_PIN_LOCK_ALL:
-    case ED_UVPACK_PIN_LOCK_TRANSLATION:
       return false;
     default:
       return true;

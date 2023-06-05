@@ -1134,7 +1134,7 @@ void buf_rectfill_area(uchar *rect,
                        int width,
                        int height,
                        const float col[4],
-                       struct ColorManagedDisplay *display,
+                       ColorManagedDisplay *display,
                        int x1,
                        int y1,
                        int x2,
@@ -1240,13 +1240,8 @@ void buf_rectfill_area(uchar *rect,
   }
 }
 
-void IMB_rectfill_area(ImBuf *ibuf,
-                       const float col[4],
-                       int x1,
-                       int y1,
-                       int x2,
-                       int y2,
-                       struct ColorManagedDisplay *display)
+void IMB_rectfill_area(
+    ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, ColorManagedDisplay *display)
 {
   if (!ibuf) {
     return;

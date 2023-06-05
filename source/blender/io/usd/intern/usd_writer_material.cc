@@ -112,9 +112,9 @@ static void export_texture(bNode *node,
                            const bool allow_overwrite = false);
 static bNode *find_bsdf_node(Material *material);
 static void get_absolute_path(Image *ima, char *r_path);
-static std::string get_tex_image_asset_path(bNode *node,
-                                            const pxr::UsdStageRefPtr stage,
-                                            const USDExportParams &export_params);
+static std::string get_tex_image_asset_filepath(bNode *node,
+                                                const pxr::UsdStageRefPtr stage,
+                                                const USDExportParams &export_params);
 static InputSpecMap &preview_surface_input_map();
 static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
@@ -582,7 +582,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
   }
 
   /* For texture image nodes we set the image path and color space. */
-  std::string imagePath = get_tex_image_asset_path(
+  std::string imagePath = get_tex_image_asset_filepath(
       node, usd_export_context.stage, usd_export_context.export_params);
   if (!imagePath.empty()) {
     shader.CreateInput(usdtokens::file, pxr::SdfValueTypeNames->Asset)
@@ -597,7 +597,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
   return shader;
 }
 
-static std::string get_tex_image_asset_path(Image *ima)
+static std::string get_tex_image_asset_filepath(Image *ima)
 {
   char filepath[FILE_MAX];
   get_absolute_path(ima, filepath);
@@ -612,9 +612,9 @@ static std::string get_tex_image_asset_path(Image *ima)
  * generated based on the image name for in-memory textures when exporting textures.
  * This function may return an empty string if the image does not have a filepath
  * assigned and no asset path could be determined. */
-static std::string get_tex_image_asset_path(bNode *node,
-                                            const pxr::UsdStageRefPtr stage,
-                                            const USDExportParams &export_params)
+static std::string get_tex_image_asset_filepath(bNode *node,
+                                                const pxr::UsdStageRefPtr stage,
+                                                const USDExportParams &export_params)
 {
   Image *ima = reinterpret_cast<Image *>(node->id);
   if (!ima) {
@@ -625,7 +625,7 @@ static std::string get_tex_image_asset_path(bNode *node,
 
   if (strlen(ima->filepath) > 0) {
     /* Get absolute path. */
-    path = get_tex_image_asset_path(ima);
+    path = get_tex_image_asset_filepath(ima);
   }
   else if (export_params.export_textures) {
     /* Image has no filepath, but since we are exporting textures,

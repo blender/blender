@@ -379,8 +379,7 @@ static void collection_blend_read_lib(BlendLibReader *reader, ID *id)
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
-void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
-                                             struct SceneCollection *sc)
+void BKE_collection_compat_blend_read_expand(BlendExpander *expander, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
     BLO_expand(expander, link->data);
@@ -803,7 +802,7 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
   MEM_freeN(name);
 }
 
-const char *BKE_collection_ui_name_get(struct Collection *collection)
+const char *BKE_collection_ui_name_get(Collection *collection)
 {
   if (collection->flag & COLLECTION_IS_MASTER) {
     return IFACE_("Scene Collection");
@@ -1944,7 +1943,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   }
 }
 
-bool BKE_collection_validate(struct Collection *collection)
+bool BKE_collection_validate(Collection *collection)
 {
   if (!BLI_listbase_validate(&collection->children)) {
     return false;
@@ -2204,7 +2203,7 @@ void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
   iter->current = data->array[data->cur];
 }
 
-void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
+void BKE_scene_collections_iterator_next(BLI_Iterator *iter)
 {
   CollectionsIteratorData *data = iter->data;
 
@@ -2216,7 +2215,7 @@ void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
   }
 }
 
-void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter)
+void BKE_scene_collections_iterator_end(BLI_Iterator *iter)
 {
   CollectionsIteratorData *data = iter->data;
 
@@ -2301,7 +2300,7 @@ void BKE_scene_objects_iterator_begin_ex(BLI_Iterator *iter, void *data_in)
   scene_objects_iterator_skip_invalid_flag(iter);
 }
 
-void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter)
+void BKE_scene_objects_iterator_next_ex(BLI_Iterator *iter)
 {
   /* Unpack the data. */
   SceneObjectsIteratorExData *data = iter->data;
@@ -2316,7 +2315,7 @@ void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter)
   scene_objects_iterator_skip_invalid_flag(iter);
 }
 
-void BKE_scene_objects_iterator_end_ex(struct BLI_Iterator *iter)
+void BKE_scene_objects_iterator_end_ex(BLI_Iterator *iter)
 {
   /* Unpack the data. */
   SceneObjectsIteratorExData *data = iter->data;

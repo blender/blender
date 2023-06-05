@@ -67,12 +67,12 @@ static std::string get_default_collection_name(const Object *object,
   }
 
   char name[MAX_ID_NAME];
-  BLI_snprintf(name, sizeof(name), format, object->id.name + 2);
+  SNPRINTF(name, format, object->id.name + 2);
 
   return name;
 }
 
-Collection *BKE_light_linking_collection_new(struct Main *bmain,
+Collection *BKE_light_linking_collection_new(Main *bmain,
                                              Object *object,
                                              const LightLinkingType link_type)
 {
@@ -85,8 +85,8 @@ Collection *BKE_light_linking_collection_new(struct Main *bmain,
   return new_collection;
 }
 
-void BKE_light_linking_collection_assign_only(struct Object *object,
-                                              struct Collection *new_collection,
+void BKE_light_linking_collection_assign_only(Object *object,
+                                              Collection *new_collection,
                                               const LightLinkingType link_type)
 {
   /* Remove user from old collection. */
@@ -122,9 +122,9 @@ void BKE_light_linking_collection_assign_only(struct Object *object,
   }
 }
 
-void BKE_light_linking_collection_assign(struct Main *bmain,
-                                         struct Object *object,
-                                         struct Collection *new_collection,
+void BKE_light_linking_collection_assign(Main *bmain,
+                                         Object *object,
+                                         Collection *new_collection,
                                          const LightLinkingType link_type)
 {
   BKE_light_linking_collection_assign_only(object, new_collection, link_type);

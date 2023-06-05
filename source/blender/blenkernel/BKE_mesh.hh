@@ -120,6 +120,14 @@ struct CornerNormalSpaceArray {
    * same as #Mesh::totloop). Rare -1 values define face corners without a coordinate space.
    */
   Array<int> corner_space_indices;
+
+  /**
+   * A map containing the face corners that make up each space,
+   * in the order that they were processed (winding around a vertex).
+   */
+  Array<Array<int>> corners_by_space;
+  /** Whether to create the above map when calculating normals. */
+  bool create_corners_by_space;
 };
 
 void lnor_space_custom_normal_to_data(const CornerNormalSpace *lnor_space,

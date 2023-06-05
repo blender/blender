@@ -343,7 +343,7 @@ uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
       region, event->xy, event->modifier & KM_CTRL, false, nullptr, nullptr);
 }
 
-uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
+uiBut *ui_but_find_rect_over(const ARegion *region, const rcti *rect_px)
 {
   if (!ui_region_contains_rect_px(region, rect_px)) {
     return nullptr;
@@ -596,12 +596,8 @@ size_t ui_but_tip_len_only_first_line(const uiBut *but)
   if (but->tip == nullptr) {
     return 0;
   }
-
-  const char *str_sep = strchr(but->tip, '\n');
-  if (str_sep != nullptr) {
-    return (str_sep - but->tip);
-  }
-  return strlen(but->tip);
+  const char *str_sep = BLI_strchr_or_end(but->tip, '\n');
+  return (str_sep - but->tip);
 }
 
 /** \} */

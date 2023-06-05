@@ -525,8 +525,7 @@ static MovieTrackingTrack *tracking_marker_check_slide(
   return track_pick.track;
 }
 
-struct MovieTrackingTrack *tracking_find_slidable_track_in_proximity(struct bContext *C,
-                                                                     const float co[2])
+MovieTrackingTrack *tracking_find_slidable_track_in_proximity(bContext *C, const float co[2])
 {
   return tracking_marker_check_slide(C, co, nullptr, nullptr, nullptr);
 }

@@ -543,6 +543,20 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 static bool transform_modal_item_poll(const wmOperator *op, int value)
 {
   const TransInfo *t = op->customdata;
+  if (t->modifiers & MOD_EDIT_SNAP_SOURCE) {
+    if (value == TFM_MODAL_EDIT_SNAP_SOURCE_OFF) {
+      return true;
+    }
+    else if (!ELEM(value,
+                   TFM_MODAL_CANCEL,
+                   TFM_MODAL_CONFIRM,
+                   TFM_MODAL_ADD_SNAP,
+                   TFM_MODAL_REMOVE_SNAP))
+    {
+      return false;
+    }
+  }
+
   switch (value) {
     case TFM_MODAL_CANCEL: {
       /* TODO: Canceling with LMB is not possible when the operator is activated
@@ -670,6 +684,20 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
+    case TFM_MODAL_EDIT_SNAP_SOURCE_OFF:
+      return false;
+    case TFM_MODAL_EDIT_SNAP_SOURCE_ON: {
+      if (t->spacetype != SPACE_VIEW3D) {
+        return false;
+      }
+      if (!ELEM(
+              t->mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE, TFM_EDGE_SLIDE, TFM_VERT_SLIDE))
+      {
+        /* More modes can be added over time if this feature proves useful for them. */
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }
@@ -686,6 +714,8 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Y Plane", ""},
       {TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Z Plane", ""},
       {TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Clear Constraints", ""},
+      {TFM_MODAL_EDIT_SNAP_SOURCE_ON, "EDIT_SNAP_SOURCE_ON", 0, "Set Snap Base", ""},
+      {TFM_MODAL_EDIT_SNAP_SOURCE_OFF, "EDIT_SNAP_SOURCE_OFF", 0, "Set Snap Base (Off)", ""},
       {TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Snap Invert", ""},
       {TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Snap Invert (Off)", ""},
       {TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
@@ -956,12 +986,16 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   else if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
       case TFM_MODAL_CANCEL:
-        t->state = TRANS_CANCEL;
-        handled = true;
+        if (!(t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
+          t->state = TRANS_CANCEL;
+          handled = true;
+        }
         break;
       case TFM_MODAL_CONFIRM:
-        t->state = TRANS_CONFIRM;
-        handled = true;
+        if (!(t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
+          t->state = TRANS_CONFIRM;
+          handled = true;
+        }
         break;
       case TFM_MODAL_TRANSLATE:
       case TFM_MODAL_ROTATE:
@@ -1246,6 +1280,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_HARD;
         }
         break;
+      case TFM_MODAL_EDIT_SNAP_SOURCE_ON:
+        transform_mode_snap_source_init(t, NULL);
+        t->redraw |= TREDRAW_HARD;
+        break;
       default:
         break;
     }
@@ -1332,11 +1370,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
   }
 
   /* Per transform event, if present */
-  if (t->handleEvent && (!handled ||
-                         /* Needed for vertex slide, see #38756. */
-                         (event->type == MOUSEMOVE)))
+  if (t->mode_info && t->mode_info->handle_event_fn &&
+      (!handled ||
+       /* Needed for vertex slide, see #38756. */
+       (event->type == MOUSEMOVE)))
   {
-    t->redraw |= t->handleEvent(t, event);
+    t->redraw |= t->mode_info->handle_event_fn(t, event);
   }
 
   /* Try to init modal numinput now, if possible. */
@@ -1408,7 +1447,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   return success;
 }
 
-static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *region)
+static bool transinfo_show_overlay(const bContext *C, TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
   bool ok = false;
@@ -1427,7 +1466,7 @@ static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegi
   return ok;
 }
 
-static void drawTransformView(const struct bContext *C, ARegion *region, void *arg)
+static void drawTransformView(const bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 
@@ -1441,10 +1480,8 @@ static void drawTransformView(const struct bContext *C, ARegion *region, void *a
   drawPropCircle(C, t);
   drawSnapping(C, t);
 
-  if (region == t->region) {
-    /* edge slide, vert slide */
-    drawEdgeSlide(t);
-    drawVertSlide(t);
+  if (region == t->region && t->mode_info && t->mode_info->draw_fn) {
+    t->mode_info->draw_fn(t);
   }
 }
 
@@ -1484,7 +1521,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void drawTransformPixel(const struct bContext *C, ARegion *region, void *arg)
+static void drawTransformPixel(const bContext *C, ARegion *region, void *arg)
 {
   TransInfo *t = arg;
 
@@ -2066,8 +2103,8 @@ void transformApply(bContext *C, TransInfo *t)
 
   if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
-    if (t->transform) {
-      t->transform(t, t->mval); /* calls recalcData() */
+    if (t->mode_info) {
+      t->mode_info->transform_fn(t, t->mval); /* calls recalcData() */
     }
   }
 
@@ -2143,8 +2180,8 @@ bool checkUseAxisMatrix(TransInfo *t)
 
 bool transform_apply_matrix(TransInfo *t, float mat[4][4])
 {
-  if (t->transform_matrix != NULL) {
-    t->transform_matrix(t, mat);
+  if (t->mode_info && t->mode_info->transform_matrix_fn) {
+    t->mode_info->transform_matrix_fn(t, mat);
     return true;
   }
   return false;

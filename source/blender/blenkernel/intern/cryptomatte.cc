@@ -144,26 +144,25 @@ CryptomatteSession *BKE_cryptomatte_init()
   return session;
 }
 
-struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
-    const struct RenderResult *render_result)
+CryptomatteSession *BKE_cryptomatte_init_from_render_result(const RenderResult *render_result)
 {
   CryptomatteSession *session = new CryptomatteSession(render_result->stamp_data);
   return session;
 }
 
-struct CryptomatteSession *BKE_cryptomatte_init_from_scene(const struct Scene *scene)
+CryptomatteSession *BKE_cryptomatte_init_from_scene(const Scene *scene)
 {
   CryptomatteSession *session = new CryptomatteSession(scene);
   return session;
 }
 
-struct CryptomatteSession *BKE_cryptomatte_init_from_view_layer(const struct ViewLayer *view_layer)
+CryptomatteSession *BKE_cryptomatte_init_from_view_layer(const ViewLayer *view_layer)
 {
   CryptomatteSession *session = new CryptomatteSession(view_layer);
   return session;
 }
 
-void BKE_cryptomatte_add_layer(struct CryptomatteSession *session, const char *layer_name)
+void BKE_cryptomatte_add_layer(CryptomatteSession *session, const char *layer_name)
 {
   session->add_layer(layer_name);
 }
@@ -327,7 +326,7 @@ static void add_render_result_meta_data(RenderResult *render_result,
       value.data());
 }
 
-void BKE_cryptomatte_store_metadata(const struct CryptomatteSession *session,
+void BKE_cryptomatte_store_metadata(const CryptomatteSession *session,
                                     RenderResult *render_result,
                                     const ViewLayer *view_layer)
 {

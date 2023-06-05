@@ -40,10 +40,10 @@ using namespace blender;
 using blender::fn::ValueOrField;
 using blender::nodes::SocketDeclarationPtr;
 
-struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
-                                                  struct bNode *node,
-                                                  struct bNodeSocketTemplate *stemp,
-                                                  eNodeSocketInOut in_out)
+bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
+                                           bNode *node,
+                                           bNodeSocketTemplate *stemp,
+                                           eNodeSocketInOut in_out)
 {
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);

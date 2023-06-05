@@ -30,7 +30,7 @@ bUUID BLI_uuid_generate_random()
     static_assert(std::mt19937_64::min() == 0LL);
     static_assert(std::mt19937_64::max() == 0xffffffffffffffffLL);
 
-    struct timespec ts;
+    timespec ts;
 #ifdef __APPLE__
     /* `timespec_get()` is only available on macOS 10.15+, so until that's the minimum version
      * supported by Blender, use another function to get the timespec.

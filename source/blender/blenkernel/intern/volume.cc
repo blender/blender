@@ -900,7 +900,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
   }
 
-  /* Add grids read from file to own vector, filtering out any NULL pointers. */
+  /* Add grids read from file to own vector, filtering out any null pointers. */
   for (const openvdb::GridBase::Ptr &vdb_grid : vdb_grids) {
     if (vdb_grid) {
       VolumeFileCache::Entry template_entry(filepath, vdb_grid);
@@ -1086,8 +1086,8 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 #endif
 }
 
-static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                      struct Scene *scene,
+static void volume_evaluate_modifiers(Depsgraph *depsgraph,
+                                      Scene *scene,
                                       Object *object,
                                       GeometrySet &geometry_set)
 {
@@ -1121,7 +1121,7 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
+void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
 {
   volume_update_simplify_level(volume, depsgraph);
 
@@ -1160,7 +1160,7 @@ static Volume *take_volume_ownership_from_geometry_set(GeometrySet &geometry_set
   return volume;
 }
 
-void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
+void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);

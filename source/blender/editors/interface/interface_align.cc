@@ -46,7 +46,7 @@ struct ButAlign {
   uiBut *but;
 
   /* Neighbor buttons */
-  struct ButAlign *neighbors[4];
+  ButAlign *neighbors[4];
 
   /* Pointers to coordinates (rctf values) of the button. */
   float *borders[4];

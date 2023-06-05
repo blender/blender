@@ -13,6 +13,7 @@
 #include "BLI_task.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -75,7 +76,7 @@ static void transdata_elem_shrink_fatten_fn(void *__restrict iter_data_v,
 /** \name Transform (Shrink-Fatten)
  * \{ */
 
-static eRedrawFlag shrinkfatten_handleEvent(struct TransInfo *t, const wmEvent *event)
+static eRedrawFlag shrinkfatten_handleEvent(TransInfo *t, const wmEvent *event)
 {
   BLI_assert(t->mode == TFM_SHRINKFATTEN);
   const wmKeyMapItem *kmi = t->custom.mode.data;
@@ -169,37 +170,41 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initShrinkFatten(TransInfo *t)
+static void initShrinkFatten(TransInfo *t, wmOperator *UNUSED(op))
 {
-  /* If not in mesh edit mode, fallback to Resize. */
   if ((t->flag & T_EDIT) == 0 || (t->obedit_type != OB_MESH)) {
-    float no_mouse_dir_constraint[3];
-    zero_v3(no_mouse_dir_constraint);
-    initResize(t, no_mouse_dir_constraint);
+    BKE_report(t->reports, RPT_ERROR, "'Shrink/Fatten' meshes is only supported in edit mode");
+    t->state = TRANS_CANCEL;
   }
-  else {
-    t->mode = TFM_SHRINKFATTEN;
-    t->transform = applyShrinkFatten;
-    t->handleEvent = shrinkfatten_handleEvent;
 
-    initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
+  t->mode = TFM_SHRINKFATTEN;
 
-    t->idx_max = 0;
-    t->num.idx_max = 0;
-    t->snap[0] = 1.0f;
-    t->snap[1] = t->snap[0] * 0.1f;
+  initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 
-    copy_v3_fl(t->num.val_inc, t->snap[0]);
-    t->num.unit_sys = t->scene->unit.system;
-    t->num.unit_type[0] = B_UNIT_LENGTH;
+  t->idx_max = 0;
+  t->num.idx_max = 0;
+  t->snap[0] = 1.0f;
+  t->snap[1] = t->snap[0] * 0.1f;
 
-    t->flag |= T_NO_CONSTRAINT;
+  copy_v3_fl(t->num.val_inc, t->snap[0]);
+  t->num.unit_sys = t->scene->unit.system;
+  t->num.unit_type[0] = B_UNIT_LENGTH;
 
-    if (t->keymap) {
-      /* Workaround to use the same key as the modal keymap. */
-      t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
-    }
+  if (t->keymap) {
+    /* Workaround to use the same key as the modal keymap. */
+    t->custom.mode.data = (void *)WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
   }
 }
 
 /** \} */
+
+TransModeInfo TransMode_shrinkfatten = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initShrinkFatten,
+    /*transform_fn*/ applyShrinkFatten,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ shrinkfatten_handleEvent,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

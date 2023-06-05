@@ -323,7 +323,7 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
   extract_lines_loose_subbuffer(mr, cache);
 }
 
-static void extract_lines_with_lines_loose_finish_subdiv(const struct DRWSubdivCache *subdiv_cache,
+static void extract_lines_with_lines_loose_finish_subdiv(const DRWSubdivCache *subdiv_cache,
                                                          const MeshRenderData * /*mr*/,
                                                          MeshBatchCache *cache,
                                                          void * /*buf*/,

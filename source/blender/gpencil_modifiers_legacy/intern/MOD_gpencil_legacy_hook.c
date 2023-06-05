@@ -53,7 +53,7 @@
 
 /* temp struct to hold data */
 struct GPHookData_cb {
-  struct CurveMapping *curfalloff;
+  CurveMapping *curfalloff;
 
   char falloff_type;
   float falloff;

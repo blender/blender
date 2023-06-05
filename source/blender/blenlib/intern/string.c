@@ -989,6 +989,21 @@ size_t BLI_strnlen(const char *s, const size_t maxlen)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Scanning
+ * \{ */
+
+const char *BLI_strchr_or_end(const char *str, const char ch)
+{
+  const char *p = str;
+  while (!ELEM(*p, ch, '\0')) {
+    p++;
+  }
+  return p;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Case Conversion
  * \{ */
 
@@ -1055,6 +1070,17 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
     }
   }
 
+  return totstrip;
+}
+
+int BLI_str_rstrip_digits(char *str)
+{
+  int totstrip = 0;
+  int str_len = strlen(str);
+  while (str_len > 0 && isdigit(str[--str_len])) {
+    str[str_len] = '\0';
+    totstrip++;
+  }
   return totstrip;
 }
 

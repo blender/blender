@@ -354,7 +354,7 @@ Mesh *BKE_mesh_new_nomain_from_curve(const Object *ob)
 }
 
 struct EdgeLink {
-  struct EdgeLink *next, *prev;
+  EdgeLink *next, *prev;
   const void *edge;
 };
 

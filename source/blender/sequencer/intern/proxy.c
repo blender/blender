@@ -189,7 +189,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   return true;
 }
 
-bool SEQ_can_use_proxy(const struct SeqRenderData *context, Sequence *seq, int psize)
+bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize)
 {
   if (seq->strip->proxy == NULL || !context->use_proxies) {
     return false;
@@ -342,25 +342,24 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq,
   }
 
   if ((seq->type == SEQ_TYPE_IMAGE) && (seq->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-    char filepath[FILE_MAX];
-
     if (view_id == 0) {
       /* Clear on first use. */
       prefix_vars->prefix[0] = '\0';
       prefix_vars->ext = NULL;
 
-      char path[FILE_MAX];
-      BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-      BLI_path_abs(path, BKE_main_blendfile_path_from_global());
-      BKE_scene_multiview_view_prefix_get(scene, path, prefix_vars->prefix, &prefix_vars->ext);
+      char filepath[FILE_MAX];
+      BLI_path_join(
+          filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+      BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &prefix_vars->ext);
     }
 
     if (prefix_vars->prefix[0] == '\0') {
       return view_id != 0;
     }
 
+    char filepath[FILE_MAX];
     seq_multiview_name(scene, view_id, prefix_vars->prefix, prefix_vars->ext, filepath, FILE_MAX);
-
     if (BLI_access(filepath, R_OK) == 0) {
       return false;
     }
@@ -422,7 +421,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
                                Scene *scene,
                                Sequence *seq,
-                               struct GSet *file_list,
+                               GSet *file_list,
                                ListBase *queue,
                                bool build_only_on_bad_performance)
 {
@@ -587,7 +586,7 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
   MEM_freeN(context);
 }
 
-void SEQ_proxy_set(struct Sequence *seq, bool value)
+void SEQ_proxy_set(Sequence *seq, bool value)
 {
   if (value) {
     seq->flag |= SEQ_USE_PROXY;

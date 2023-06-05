@@ -92,7 +92,7 @@ static void unique_name(bNode *node)
   }
 }
 
-static void assign_index(struct bNode *node)
+static void assign_index(bNode *node)
 {
   bNode *tnode;
   int index = 1;

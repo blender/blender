@@ -98,7 +98,7 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
   BLI_ghash_insert(global_gizmogrouptype_hash, (void *)gzgt->idname, gzgt);
 }
 
-wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoGroupType *))
+wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(wmGizmoGroupType *))
 {
   wmGizmoGroupType *gzgt = wm_gizmogrouptype_append__begin();
   wtfunc(gzgt);
@@ -106,7 +106,7 @@ wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoGroupTyp
   return gzgt;
 }
 
-wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGizmoGroupType *, void *),
+wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(wmGizmoGroupType *, void *),
                                                void *userdata)
 {
   wmGizmoGroupType *gzgt = wm_gizmogrouptype_append__begin();
@@ -116,7 +116,7 @@ wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGizmoGrou
 }
 
 wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_type,
-                                                       void (*wtfunc)(struct wmGizmoGroupType *))
+                                                       void (*wtfunc)(wmGizmoGroupType *))
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_append(wtfunc);
 

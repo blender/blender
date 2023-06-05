@@ -1667,7 +1667,8 @@ static void sculpt_update_object(
 
   BLI_assert(me_eval != nullptr);
 
-  /* This is for handling a newly opened file with no object visible, causing me_eval==NULL. */
+  /* This is for handling a newly opened file with no object visible,
+   * causing `me_eval == nullptr`. */
   if (me_eval == nullptr) {
     return;
   }
@@ -2647,7 +2648,7 @@ static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)
   return nullptr;
 }
 
-SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
+SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
                                           eAttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name)

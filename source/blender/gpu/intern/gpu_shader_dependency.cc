@@ -39,7 +39,7 @@ extern "C" {
 namespace blender::gpu {
 
 using GPUSourceDictionnary = Map<StringRef, struct GPUSource *>;
-using GPUFunctionDictionnary = Map<StringRef, struct GPUFunction *>;
+using GPUFunctionDictionnary = Map<StringRef, GPUFunction *>;
 
 struct GPUSource {
   StringRefNull fullpath;

@@ -167,7 +167,7 @@ struct BPyPropStore {
  */
 static ListBase g_bpy_prop_store_list = {NULL, NULL};
 
-static struct BPyPropStore *bpy_prop_py_data_ensure(struct PropertyRNA *prop)
+static struct BPyPropStore *bpy_prop_py_data_ensure(PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   if (prop_store == NULL) {
@@ -523,9 +523,7 @@ static void bpy_prop_array_matrix_swap_row_column_vn(
  * \{ */
 
 /* callbacks */
-static void bpy_prop_update_fn(struct bContext *C,
-                               struct PointerRNA *ptr,
-                               struct PropertyRNA *prop)
+static void bpy_prop_update_fn(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyGILState_STATE gilstate;
@@ -581,7 +579,7 @@ static void bpy_prop_update_fn(struct bContext *C,
 /** \name Boolean Property Callbacks
  * \{ */
 
-static bool bpy_prop_boolean_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static bool bpy_prop_boolean_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -644,7 +642,7 @@ static bool bpy_prop_boolean_get_fn(struct PointerRNA *ptr, struct PropertyRNA *
   return value;
 }
 
-static void bpy_prop_boolean_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value)
+static void bpy_prop_boolean_set_fn(PointerRNA *ptr, PropertyRNA *prop, bool value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -700,9 +698,7 @@ static void bpy_prop_boolean_set_fn(struct PointerRNA *ptr, struct PropertyRNA *
   }
 }
 
-static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
-                                          struct PropertyRNA *prop,
-                                          bool *values)
+static void bpy_prop_boolean_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, bool *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -771,9 +767,7 @@ static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
-                                          struct PropertyRNA *prop,
-                                          const bool *values)
+static void bpy_prop_boolean_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, const bool *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -846,7 +840,7 @@ static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
 /** \name Int Property Callbacks
  * \{ */
 
-static int bpy_prop_int_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_int_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -906,7 +900,7 @@ static int bpy_prop_int_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
   return value;
 }
 
-static void bpy_prop_int_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
+static void bpy_prop_int_set_fn(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -962,9 +956,7 @@ static void bpy_prop_int_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop
   }
 }
 
-static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
-                                      struct PropertyRNA *prop,
-                                      int *values)
+static void bpy_prop_int_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, int *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1033,9 +1025,7 @@ static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
-                                      struct PropertyRNA *prop,
-                                      const int *values)
+static void bpy_prop_int_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, const int *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1109,7 +1099,7 @@ static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
 /** \name Float Property Callbacks
  * \{ */
 
-static float bpy_prop_float_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static float bpy_prop_float_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1169,7 +1159,7 @@ static float bpy_prop_float_get_fn(struct PointerRNA *ptr, struct PropertyRNA *p
   return value;
 }
 
-static void bpy_prop_float_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, float value)
+static void bpy_prop_float_set_fn(PointerRNA *ptr, PropertyRNA *prop, float value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1225,9 +1215,7 @@ static void bpy_prop_float_set_fn(struct PointerRNA *ptr, struct PropertyRNA *pr
   }
 }
 
-static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
-                                        struct PropertyRNA *prop,
-                                        float *values)
+static void bpy_prop_float_array_get_fn(PointerRNA *ptr, PropertyRNA *prop, float *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1300,9 +1288,7 @@ static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
-                                        struct PropertyRNA *prop,
-                                        const float *values)
+static void bpy_prop_float_array_set_fn(PointerRNA *ptr, PropertyRNA *prop, const float *values)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1376,7 +1362,7 @@ static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
 /** \name String Property Callbacks
  * \{ */
 
-static void bpy_prop_string_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
+static void bpy_prop_string_get_fn(PointerRNA *ptr, PropertyRNA *prop, char *value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1436,7 +1422,7 @@ static void bpy_prop_string_get_fn(struct PointerRNA *ptr, struct PropertyRNA *p
   }
 }
 
-static int bpy_prop_string_length_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_string_length_fn(PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1499,9 +1485,7 @@ static int bpy_prop_string_length_fn(struct PointerRNA *ptr, struct PropertyRNA 
   return length;
 }
 
-static void bpy_prop_string_set_fn(struct PointerRNA *ptr,
-                                   struct PropertyRNA *prop,
-                                   const char *value)
+static void bpy_prop_string_set_fn(PointerRNA *ptr, PropertyRNA *prop, const char *value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1612,8 +1596,8 @@ static bool bpy_prop_string_visit_fn_call(PyObject *py_func,
 }
 
 static void bpy_prop_string_visit_for_search_fn(const struct bContext *C,
-                                                struct PointerRNA *ptr,
-                                                struct PropertyRNA *prop,
+                                                PointerRNA *ptr,
+                                                PropertyRNA *prop,
                                                 const char *edit_text,
                                                 StringPropertySearchVisitFunc visit_fn,
                                                 void *visit_user_data)
@@ -1728,9 +1712,7 @@ static void bpy_prop_string_visit_for_search_fn(const struct bContext *C,
 /** \name Pointer Property Callbacks
  * \{ */
 
-static bool bpy_prop_pointer_poll_fn(struct PointerRNA *self,
-                                     PointerRNA candidate,
-                                     struct PropertyRNA *prop)
+static bool bpy_prop_pointer_poll_fn(PointerRNA *self, PointerRNA candidate, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_self;
@@ -1783,7 +1765,7 @@ static bool bpy_prop_pointer_poll_fn(struct PointerRNA *self,
 /** \name Enum Property Callbacks
  * \{ */
 
-static int bpy_prop_enum_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_enum_get_fn(PointerRNA *ptr, PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1843,7 +1825,7 @@ static int bpy_prop_enum_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop
   return value;
 }
 
-static void bpy_prop_enum_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
+static void bpy_prop_enum_set_fn(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -2236,7 +2218,7 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
 /** \name Shared Callback Assignment
  * \{ */
 
-static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *update_fn)
+static void bpy_prop_callback_assign_update(PropertyRNA *prop, PyObject *update_fn)
 {
   /* assume this is already checked for type and arg length */
   if (update_fn && update_fn != Py_None) {
@@ -2249,7 +2231,7 @@ static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *
   }
 }
 
-static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject *poll_fn)
+static void bpy_prop_callback_assign_pointer(PropertyRNA *prop, PyObject *poll_fn)
 {
   if (poll_fn && poll_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
@@ -2259,9 +2241,7 @@ static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject 
   }
 }
 
-static void bpy_prop_callback_assign_boolean(struct PropertyRNA *prop,
-                                             PyObject *get_fn,
-                                             PyObject *set_fn)
+static void bpy_prop_callback_assign_boolean(PropertyRNA *prop, PyObject *get_fn, PyObject *set_fn)
 {
   BooleanPropertyGetFunc rna_get_fn = NULL;
   BooleanPropertySetFunc rna_set_fn = NULL;
@@ -2283,7 +2263,7 @@ static void bpy_prop_callback_assign_boolean(struct PropertyRNA *prop,
   RNA_def_property_boolean_funcs_runtime(prop, rna_get_fn, rna_set_fn);
 }
 
-static void bpy_prop_callback_assign_boolean_array(struct PropertyRNA *prop,
+static void bpy_prop_callback_assign_boolean_array(PropertyRNA *prop,
                                                    PyObject *get_fn,
                                                    PyObject *set_fn)
 {
@@ -2307,9 +2287,7 @@ static void bpy_prop_callback_assign_boolean_array(struct PropertyRNA *prop,
   RNA_def_property_boolean_array_funcs_runtime(prop, rna_get_fn, rna_set_fn);
 }
 
-static void bpy_prop_callback_assign_int(struct PropertyRNA *prop,
-                                         PyObject *get_fn,
-                                         PyObject *set_fn)
+static void bpy_prop_callback_assign_int(PropertyRNA *prop, PyObject *get_fn, PyObject *set_fn)
 {
   IntPropertyGetFunc rna_get_fn = NULL;
   IntPropertySetFunc rna_set_fn = NULL;
@@ -2331,7 +2309,7 @@ static void bpy_prop_callback_assign_int(struct PropertyRNA *prop,
   RNA_def_property_int_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
-static void bpy_prop_callback_assign_int_array(struct PropertyRNA *prop,
+static void bpy_prop_callback_assign_int_array(PropertyRNA *prop,
                                                PyObject *get_fn,
                                                PyObject *set_fn)
 {
@@ -2355,9 +2333,7 @@ static void bpy_prop_callback_assign_int_array(struct PropertyRNA *prop,
   RNA_def_property_int_array_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
-static void bpy_prop_callback_assign_float(struct PropertyRNA *prop,
-                                           PyObject *get_fn,
-                                           PyObject *set_fn)
+static void bpy_prop_callback_assign_float(PropertyRNA *prop, PyObject *get_fn, PyObject *set_fn)
 {
   FloatPropertyGetFunc rna_get_fn = NULL;
   FloatPropertySetFunc rna_set_fn = NULL;
@@ -2379,7 +2355,7 @@ static void bpy_prop_callback_assign_float(struct PropertyRNA *prop,
   RNA_def_property_float_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
-static void bpy_prop_callback_assign_float_array(struct PropertyRNA *prop,
+static void bpy_prop_callback_assign_float_array(PropertyRNA *prop,
                                                  PyObject *get_fn,
                                                  PyObject *set_fn)
 {
@@ -2403,7 +2379,7 @@ static void bpy_prop_callback_assign_float_array(struct PropertyRNA *prop,
   RNA_def_property_float_array_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
-static void bpy_prop_callback_assign_string(struct PropertyRNA *prop,
+static void bpy_prop_callback_assign_string(PropertyRNA *prop,
                                             PyObject *get_fn,
                                             PyObject *set_fn,
                                             PyObject *search_fn,
@@ -2441,7 +2417,7 @@ static void bpy_prop_callback_assign_string(struct PropertyRNA *prop,
   }
 }
 
-static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
+static void bpy_prop_callback_assign_enum(PropertyRNA *prop,
                                           PyObject *get_fn,
                                           PyObject *set_fn,
                                           PyObject *itemf_fn)
@@ -4646,7 +4622,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 /** \name Main Module `bpy.props`
  * \{ */
 
-static struct PyMethodDef props_methods[] = {
+static PyMethodDef props_methods[] = {
     {"BoolProperty",
      (PyCFunction)BPy_BoolProperty,
      METH_VARARGS | METH_KEYWORDS,
@@ -4726,7 +4702,7 @@ PyDoc_STRVAR(
     "\n"
     ".. note:: All parameters to these functions must be passed as keywords.\n");
 
-static struct PyModuleDef props_module = {
+static PyModuleDef props_module = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.props",
     /*m_doc*/ props_module_doc,

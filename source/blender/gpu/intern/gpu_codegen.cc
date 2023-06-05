@@ -87,7 +87,7 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
 };
 
 struct GPUPass {
-  struct GPUPass *next;
+  GPUPass *next;
 
   GPUShader *shader;
   GPUCodegenCreateInfo *create_info = nullptr;

@@ -84,7 +84,8 @@ void ED_operatormacros_action(void)
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "ACTION_OT_duplicate");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
-  RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+  RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_TRANSLATE);
+  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 

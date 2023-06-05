@@ -110,7 +110,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     MEM_freeN(objects);
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
-    struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     uint objects_len = 0;
     Object **objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d, &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -171,7 +171,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     /* Object mode. */
     Main *bmain = CTX_data_main(C);
 
-    struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
     const bool use_transform_skip_children = (scene->toolsettings->transform_flag &
                                               SCE_XFORM_SKIP_CHILDREN);
@@ -377,7 +377,7 @@ static bool snap_selected_to_location(bContext *C,
     MEM_freeN(objects);
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
-    struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
@@ -457,7 +457,7 @@ static bool snap_selected_to_location(bContext *C,
     MEM_freeN(objects);
   }
   else {
-    struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+    KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     Main *bmain = CTX_data_main(C);
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 

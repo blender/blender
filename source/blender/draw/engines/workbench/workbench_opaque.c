@@ -49,7 +49,7 @@ void workbench_opaque_cache_init(WORKBENCH_Data *vedata)
   WORKBENCH_PassList *psl = vedata->psl;
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   const bool use_matcap = (wpd->shading.light == V3D_LIGHTING_MATCAP);
@@ -122,8 +122,8 @@ void workbench_opaque_cache_init(WORKBENCH_Data *vedata)
       BKE_studiolight_ensure_flag(wpd->studio_light,
                                   STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
                                       STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
-      struct GPUTexture *diff_tx = wpd->studio_light->matcap_diffuse.gputexture;
-      struct GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
+      GPUTexture *diff_tx = wpd->studio_light->matcap_diffuse.gputexture;
+      GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
       const bool use_spec = workbench_is_specular_highlight_enabled(wpd);
       spec_tx = (use_spec && spec_tx) ? spec_tx : diff_tx;
       DRW_shgroup_uniform_texture(grp, "matcap_diffuse_tx", diff_tx);

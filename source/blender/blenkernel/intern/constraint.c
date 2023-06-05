@@ -805,7 +805,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 /* This function should be used for the get_target_matrix member of all
  * constraints that are not picky about what happens to their target matrix.
  */
-static void default_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void default_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                bConstraint *con,
                                bConstraintOb *cob,
                                bConstraintTarget *ct,
@@ -828,7 +828,7 @@ static void default_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 
 /* This is a variant that extracts full transformation from B-Bone segments.
  */
-static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
+static void default_get_tarmat_full_bbone(Depsgraph *UNUSED(depsgraph),
                                           bConstraint *con,
                                           bConstraintOb *cob,
                                           bConstraintTarget *ct,
@@ -1359,7 +1359,7 @@ static void kinematic_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void kinematic_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void kinematic_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                  bConstraint *con,
                                  bConstraintOb *cob,
                                  bConstraintTarget *ct,
@@ -1459,7 +1459,7 @@ static void followpath_flush_tars(bConstraint *con, ListBase *list, bool no_copy
   }
 }
 
-static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void followpath_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                   bConstraint *con,
                                   bConstraintOb *UNUSED(cob),
                                   bConstraintTarget *ct,
@@ -2432,7 +2432,7 @@ static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userd
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
-static void pycon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void pycon_get_tarmat(Depsgraph *UNUSED(depsgraph),
                              bConstraint *con,
                              bConstraintOb *cob,
                              bConstraintTarget *ct,
@@ -2547,7 +2547,7 @@ static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
 }
 
 /* Compute the world space pose matrix of the target bone. */
-static void armdef_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void armdef_get_tarmat(Depsgraph *UNUSED(depsgraph),
                               bConstraint *UNUSED(con),
                               bConstraintOb *UNUSED(cob),
                               bConstraintTarget *ct,
@@ -2807,7 +2807,7 @@ static void actcon_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void actcon_get_tarmat(struct Depsgraph *depsgraph,
+static void actcon_get_tarmat(Depsgraph *depsgraph,
                               bConstraint *con,
                               bConstraintOb *cob,
                               bConstraintTarget *ct,
@@ -3807,7 +3807,7 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void clampto_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void clampto_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                bConstraint *UNUSED(con),
                                bConstraintOb *UNUSED(cob),
                                bConstraintTarget *ct,
@@ -4208,7 +4208,7 @@ static void shrinkwrap_flush_tars(bConstraint *con, ListBase *list, bool no_copy
   }
 }
 
-static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void shrinkwrap_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                   bConstraint *con,
                                   bConstraintOb *cob,
                                   bConstraintTarget *ct,
@@ -4629,7 +4629,7 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void splineik_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
+static void splineik_get_tarmat(Depsgraph *UNUSED(depsgraph),
                                 bConstraint *UNUSED(con),
                                 bConstraintOb *UNUSED(cob),
                                 bConstraintTarget *ct,
@@ -5848,7 +5848,7 @@ static bConstraint *add_new_constraint(Object *ob,
   return con;
 }
 
-bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *ct)
+bool BKE_constraint_target_uses_bbone(bConstraint *con, bConstraintTarget *ct)
 {
   if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
     return false;
@@ -6158,7 +6158,7 @@ bool BKE_constraint_is_nonlocal_in_liboverride(const Object *ob, const bConstrai
 
 /* -------- Target-Matrix Stuff ------- */
 
-int BKE_constraint_targets_get(struct bConstraint *con, struct ListBase *r_targets)
+int BKE_constraint_targets_get(bConstraint *con, ListBase *r_targets)
 {
   BLI_listbase_clear(r_targets);
 
@@ -6187,7 +6187,7 @@ int BKE_constraint_targets_get(struct bConstraint *con, struct ListBase *r_targe
   return count;
 }
 
-void BKE_constraint_targets_flush(struct bConstraint *con, struct ListBase *targets, bool no_copy)
+void BKE_constraint_targets_flush(bConstraint *con, ListBase *targets, bool no_copy)
 {
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
@@ -6215,7 +6215,7 @@ void BKE_constraint_targets_flush(struct bConstraint *con, struct ListBase *targ
   }
 }
 
-void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
+void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
                                       Scene *scene,
                                       bConstraint *con,
                                       int index,
@@ -6294,11 +6294,8 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
-                                            bConstraint *con,
-                                            bConstraintOb *cob,
-                                            ListBase *targets,
-                                            float ctime)
+void BKE_constraint_targets_for_solving_get(
+    Depsgraph *depsgraph, bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
 {
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
@@ -6353,7 +6350,7 @@ void BKE_constraint_custom_object_space_init(bConstraintOb *cob, bConstraint *co
 
 /* ---------- Evaluation ----------- */
 
-void BKE_constraints_solve(struct Depsgraph *depsgraph,
+void BKE_constraints_solve(Depsgraph *depsgraph,
                            ListBase *conlist,
                            bConstraintOb *cob,
                            float ctime)

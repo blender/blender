@@ -133,17 +133,33 @@ const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item)
   return get_simulation_item_cpp_type(eNodeSocketDatatype(item.socket_type));
 }
 
+static void remove_materials(Material ***materials, short *materials_num)
+{
+  MEM_SAFE_FREE(*materials);
+  *materials_num = 0;
+}
+
+/**
+ * Removes parts of the geometry that can't be stored in the simulation state:
+ * - Anonymous attributes can't be stored because it is not known which of them will or will not be
+ *   used in the future.
+ * - Materials can't be stored directly, because they are linked ID data blocks that can't be
+ *   restored from baked data currently.
+ */
 static void cleanup_geometry_for_simulation_state(GeometrySet &main_geometry)
 {
   main_geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       mesh->attributes_for_write().remove_anonymous();
+      remove_materials(&mesh->mat, &mesh->totcol);
     }
     if (Curves *curves = geometry.get_curves_for_write()) {
       curves->geometry.wrap().attributes_for_write().remove_anonymous();
+      remove_materials(&curves->mat, &curves->totcol);
     }
     if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
       pointcloud->attributes_for_write().remove_anonymous();
+      remove_materials(&pointcloud->mat, &pointcloud->totcol);
     }
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
@@ -1137,7 +1153,7 @@ void NOD_geometry_simulation_output_remove_item(NodeGeometrySimulationOutput *si
   MEM_SAFE_FREE(old_items);
 }
 
-void NOD_geometry_simulation_output_clear_items(struct NodeGeometrySimulationOutput *sim)
+void NOD_geometry_simulation_output_clear_items(NodeGeometrySimulationOutput *sim)
 {
   for (NodeSimulationItem &item : sim->items_span_for_write()) {
     MEM_SAFE_FREE(item.name);

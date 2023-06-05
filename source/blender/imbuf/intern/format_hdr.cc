@@ -39,7 +39,7 @@ ImBuf *imb_load_hdr(const uchar *mem, size_t size, int flags, char colorspace[IM
   return ibuf;
 }
 
-bool imb_save_hdr(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_hdr(ImBuf *ibuf, const char *filepath, int flags)
 {
   const int file_channels = 3;
   const TypeDesc data_format = TypeDesc::FLOAT;

@@ -137,7 +137,7 @@ static void graph_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void graph_init(struct wmWindowManager *wm, ScrArea *area)
+static void graph_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 

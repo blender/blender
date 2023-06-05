@@ -89,9 +89,9 @@ FCurve *verify_driver_fcurve(ID *id,
   return fcu;
 }
 
-struct FCurve *alloc_driver_fcurve(const char rna_path[],
-                                   const int array_index,
-                                   eDriverFCurveCreationMode creation_mode)
+FCurve *alloc_driver_fcurve(const char rna_path[],
+                            const int array_index,
+                            eDriverFCurveCreationMode creation_mode)
 {
   FCurve *fcu = BKE_fcurve_create();
 
@@ -796,7 +796,7 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 
 /* -------------------------------------------------- */
 
-void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const char *var_name)
+void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var_name)
 {
   /* Clear copy/paste buffer first (for consistency with other copy/paste buffers). */
   ANIM_drivers_copybuf_free();

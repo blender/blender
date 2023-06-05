@@ -866,7 +866,7 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
                              const int coords_sign,
                              uint32_t (*r_tris)[3],
 
-                             struct MemArena *arena)
+                             MemArena *arena)
 {
   PolyFill pf;
   PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_num);

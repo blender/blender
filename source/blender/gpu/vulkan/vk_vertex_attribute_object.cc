@@ -22,7 +22,7 @@ VKVertexAttributeObject::VKVertexAttributeObject()
 void VKVertexAttributeObject::clear()
 {
   is_valid = false;
-  info.pNext = NULL;
+  info.pNext = nullptr;
   bindings.clear();
   attributes.clear();
   vbos.clear();

@@ -813,7 +813,7 @@ ListBase BLI_listbase_from_link(Link *some_link)
 
 void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 {
-  struct Link *dst_link, *src_link;
+  Link *dst_link, *src_link;
 
   /* in this order, to ensure it works if dst == src */
   src_link = static_cast<Link *>(src->first);
@@ -829,9 +829,9 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 
 void BLI_listbase_reverse(ListBase *lb)
 {
-  struct Link *curr = static_cast<Link *>(lb->first);
-  struct Link *prev = nullptr;
-  struct Link *next = nullptr;
+  Link *curr = static_cast<Link *>(lb->first);
+  Link *prev = nullptr;
+  Link *next = nullptr;
   while (curr) {
     next = curr->next;
     curr->next = prev;

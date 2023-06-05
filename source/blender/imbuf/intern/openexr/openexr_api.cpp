@@ -431,7 +431,7 @@ static void openexr_header_compression(Header *header, int compression)
   }
 }
 
-static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
+static void openexr_header_metadata(Header *header, ImBuf *ibuf)
 {
   if (ibuf->metadata) {
     IDProperty *prop;
@@ -654,7 +654,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
   return true;
 }
 
-bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int flags)
 {
   if (flags & IB_mem) {
     imb_addencodedbufferImBuf(ibuf);
@@ -685,7 +685,7 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *filepath, int flags)
 static ListBase exrhandles = {nullptr, nullptr};
 
 struct ExrHandle {
-  struct ExrHandle *next, *prev;
+  ExrHandle *next, *prev;
   char name[FILE_MAX];
 
   IStream *ifile_stream;
@@ -714,10 +714,10 @@ struct ExrHandle {
 
 /* flattened out channel */
 struct ExrChannel {
-  struct ExrChannel *next, *prev;
+  ExrChannel *next, *prev;
 
   char name[EXR_TOT_MAXNAME + 1]; /* full name with everything */
-  struct MultiViewChannelName *m; /* struct to store all multipart channel info */
+  MultiViewChannelName *m;        /* struct to store all multipart channel info */
   int xstride, ystride;           /* step to next pixel, to next scan-line. */
   float *rect;                    /* first pointer to write in */
   char chan_id;                   /* quick lookup of channel char */
@@ -727,11 +727,11 @@ struct ExrChannel {
 
 /* hierarchical; layers -> passes -> channels[] */
 struct ExrPass {
-  struct ExrPass *next, *prev;
+  ExrPass *next, *prev;
   char name[EXR_PASS_MAXNAME];
   int totchan;
   float *rect;
-  struct ExrChannel *chan[EXR_PASS_MAXCHAN];
+  ExrChannel *chan[EXR_PASS_MAXCHAN];
   char chan_id[EXR_PASS_MAXCHAN];
 
   char internal_name[EXR_PASS_MAXNAME]; /* name with no view */
@@ -740,7 +740,7 @@ struct ExrPass {
 };
 
 struct ExrLayer {
-  struct ExrLayer *next, *prev;
+  ExrLayer *next, *prev;
   char name[EXR_LAY_MAXNAME + 1];
   ListBase passes;
 };
@@ -1994,12 +1994,9 @@ bool IMB_exr_has_multilayer(void *handle)
   return imb_exr_is_multi(*data->ifile);
 }
 
-struct ImBuf *imb_load_openexr(const uchar *mem,
-                               size_t size,
-                               int flags,
-                               char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-  struct ImBuf *ibuf = nullptr;
+  ImBuf *ibuf = nullptr;
   IMemStream *membuf = nullptr;
   MultiPartInputFile *file = nullptr;
 
@@ -2202,12 +2199,12 @@ struct ImBuf *imb_load_openexr(const uchar *mem,
   }
 }
 
-struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                                  const int /*flags*/,
-                                                  const size_t max_thumb_size,
-                                                  char colorspace[],
-                                                  size_t *r_width,
-                                                  size_t *r_height)
+ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
+                                           const int /*flags*/,
+                                           const size_t max_thumb_size,
+                                           char colorspace[],
+                                           size_t *r_width,
+                                           size_t *r_height)
 {
   IStream *stream = nullptr;
   Imf::RgbaInputFile *file = nullptr;
@@ -2262,7 +2259,7 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     int dest_w = MAX2(int(source_w * scale_factor), 1);
     int dest_h = MAX2(int(source_h * scale_factor), 1);
 
-    struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
+    ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
 
     /* A single row of source pixels. */
     Imf::Array<Imf::Rgba> pixels(source_w);

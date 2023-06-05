@@ -272,7 +272,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
 
 static void outliner_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
   ARegion *region = params->region;
   SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
@@ -396,7 +396,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)space_outliner_new;
 }
 
-static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRemapper *mappings)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
@@ -441,7 +441,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
   }
 }
 
-static void outliner_deactivate(struct ScrArea *area)
+static void outliner_deactivate(ScrArea *area)
 {
   /* Remove hover highlights */
   SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);

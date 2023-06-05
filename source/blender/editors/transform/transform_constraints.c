@@ -872,7 +872,7 @@ void drawConstraint(TransInfo *t)
   }
 }
 
-void drawPropCircle(const struct bContext *C, TransInfo *t)
+void drawPropCircle(const bContext *C, TransInfo *t)
 {
   if (t->flag & T_PROP_EDIT) {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);

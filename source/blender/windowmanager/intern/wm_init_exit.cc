@@ -289,7 +289,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * Creating a dummy window-manager early, or moving the key-maps into the preferences
    * would resolve this and may be worth looking into long-term, see: D12184 for details.
    */
-  struct wmFileReadPost_Params *params_file_read_post = nullptr;
+  wmFileReadPost_Params *params_file_read_post = nullptr;
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = true;
   read_homefile_params.use_userdef = true;
@@ -350,7 +350,6 @@ void WM_init(bContext *C, int argc, const char **argv)
     }
   }
 
-  BKE_material_copybuf_clear();
   ED_render_clear_mtex_copybuf();
 
   wm_history_file_read();
@@ -488,9 +487,9 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
-      struct MemFile *undo_memfile = wm->undo_stack ?
-                                         ED_undosys_stack_memfile_get_active(wm->undo_stack) :
-                                         nullptr;
+      MemFile *undo_memfile = wm->undo_stack ?
+                                  ED_undosys_stack_memfile_get_active(wm->undo_stack) :
+                                  nullptr;
       if (undo_memfile != nullptr) {
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);
@@ -547,7 +546,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
    * Don't run this code when `C` is null because #pyrna_unregister_class
    * passes in `CTX_data_main(C)` to un-registration functions.
    * Further: `addon_utils.disable_all()` may call into functions that expect a valid context,
-   * supporting all these code-paths with a NULL context is quite involved for such a corner-case.
+   * supporting all these code-paths with a null context is quite involved for such a corner-case.
    */
   if (C) {
     const char *imports[2] = {"addon_utils", nullptr};
@@ -622,7 +621,6 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
     DRW_subdiv_free();
   }
 
-  BKE_material_copybuf_free();
   ANIM_fcurves_copybuf_free();
   ANIM_drivers_copybuf_free();
   ANIM_driver_vars_copybuf_free();

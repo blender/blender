@@ -1053,7 +1053,7 @@ static PyGetSetDef Color_getseters[] = {
 /** \name Color Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Color_methods[] = {
+static PyMethodDef Color_methods[] = {
     {"copy", (PyCFunction)Color_copy, METH_NOARGS, Color_copy_doc},
     {"__copy__", (PyCFunction)Color_copy, METH_NOARGS, Color_copy_doc},
     {"__deepcopy__", (PyCFunction)Color_deepcopy, METH_VARARGS, Color_copy_doc},

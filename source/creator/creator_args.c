@@ -555,7 +555,7 @@ static void print_help(bArgs *ba, bool all)
   struct BuildDefs defs;
   build_defs_init(&defs, all);
 
-/* All printing must go via `PRINT` macro.  */
+/* All printing must go via `PRINT` macro. */
 #  define printf __ERROR__
 
 #  define PRINT(...) BLI_args_printf(ba, __VA_ARGS__)

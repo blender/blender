@@ -117,7 +117,7 @@ BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm)
   if (ese && ese->prev) {
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_VERT) && (ese_prev->htype == BM_FACE)) {
-      /* May be NULL. */
+      /* May be null. */
       return BM_face_vert_share_loop((BMFace *)ese_prev->ele, (BMVert *)ese->ele);
     }
   }
@@ -139,7 +139,7 @@ BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm)
   if (ese && ese->prev) {
     BMEditSelection *ese_prev = ese->prev;
     if ((ese->htype == BM_EDGE) && (ese_prev->htype == BM_FACE)) {
-      /* May be NULL. */
+      /* May be null. */
       return BM_face_edge_share_loop((BMFace *)ese_prev->ele, (BMEdge *)ese->ele);
     }
   }
@@ -2541,7 +2541,7 @@ static bool uv_mouse_select_multi(bContext *C,
     }
     else {
       /* Vertex or island. For island (if we were using #uv_find_nearest_face_multi_ex, see above),
-       * `hit.l` is NULL, use `hit.efa` instead. */
+       * `hit.l` is null, use `hit.efa` instead. */
       if (hit.l != nullptr) {
         is_selected = uvedit_uv_select_test(scene, hit.l, offsets);
       }
