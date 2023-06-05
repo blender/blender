@@ -310,7 +310,7 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
   bsdf->energy_scale = 1.0f + missing_factor;
 
   /* Check if we need to account for extra darkening/saturation due to multi-bounce Fresnel. */
-  if (Fss != one_spectrum()) {
+  if (!isequal(Fss, one_spectrum())) {
     /* Fms here is based on the appendix of "Revisiting Physically Based Shading at Imageworks"
      * by Christopher Kulla and Alejandro Conty,
      * with one Fss cancelled out since this is just a multiplier on top of
