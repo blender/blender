@@ -100,7 +100,7 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 

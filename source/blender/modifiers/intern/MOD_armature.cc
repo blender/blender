@@ -206,7 +206,7 @@ static void deformMatrices(ModifierData *md,
                            int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,

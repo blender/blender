@@ -514,7 +514,7 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   laplaciansmoothModifier_do(
       (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
@@ -537,7 +537,7 @@ static void deformVertsEM(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != nullptr) {

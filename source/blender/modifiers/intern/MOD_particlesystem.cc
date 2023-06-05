@@ -118,10 +118,11 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, true);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos);
     if (mesh_src == nullptr) {
       return;
     }
+    BKE_mesh_orco_ensure(ctx->object, mesh_src);
   }
 
   /* Clear old evaluated mesh. */

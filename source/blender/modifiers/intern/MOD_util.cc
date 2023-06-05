@@ -164,8 +164,7 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
   /* lattice/mesh modifier too */
 }
 
-Mesh *MOD_deform_mesh_eval_get(
-    Object *ob, BMEditMesh *em, Mesh *mesh, const float (*vertexCos)[3], const bool use_orco)
+Mesh *MOD_deform_mesh_eval_get(Object *ob, BMEditMesh *em, Mesh *mesh, const float (*vertexCos)[3])
 {
   if (mesh != nullptr) {
     /* pass */
@@ -191,10 +190,6 @@ Mesh *MOD_deform_mesh_eval_get(
      * we really need vertexCos here. */
     else if (vertexCos) {
       BKE_mesh_vert_coords_apply(mesh, vertexCos);
-    }
-
-    if (use_orco) {
-      BKE_mesh_orco_ensure(ob, mesh);
     }
   }
 

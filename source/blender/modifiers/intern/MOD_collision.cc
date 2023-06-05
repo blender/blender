@@ -107,7 +107,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr, false);
+    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices

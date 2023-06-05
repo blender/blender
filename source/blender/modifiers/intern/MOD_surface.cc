@@ -113,7 +113,7 @@ static void deformVerts(ModifierData *md,
         nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
   else {
-    surmd->runtime.mesh = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr, false);
+    surmd->runtime.mesh = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr);
   }
 
   if (!ctx->object->pd) {
