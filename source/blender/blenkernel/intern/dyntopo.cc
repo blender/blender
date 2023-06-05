@@ -2445,15 +2445,16 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   /* Look for node in srounding geometry. */
   BMLoop *l = f->l_first;
   do {
-    ni = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
+    int ni2 = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
 
-    if (ni >= 0 && (!(pbvh->nodes[ni].flag & PBVH_Leaf) || ni >= pbvh->totnode)) {
-      printf("%s: error: ni: %d totnode: %d\n", __func__, ni, pbvh->totnode);
+    if (ni2 >= 0 && (ni2 >= pbvh->totnode || !(pbvh->nodes[ni2].flag & PBVH_Leaf))) {
+      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, pbvh->totnode);
       l = l->next;
       continue;
     }
 
-    if (ni >= 0 && (pbvh->nodes[ni].flag & PBVH_Leaf)) {
+    if (ni2 >= 0 && (pbvh->nodes[ni2].flag & PBVH_Leaf)) {
+      ni = ni2;
       break;
     }
 
@@ -2504,7 +2505,7 @@ ATTR_NO_OPT static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
 
     do {
       pbvh_boundary_update_bmesh(pbvh, l2->v);
-      dyntopo_add_flag(pbvh, l2->v, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+      dyntopo_add_flag(pbvh, l2->v, SCULPTFLAG_NEED_VALENCE);
     } while ((l2 = l2->next) != l->f->l_first);
   } while ((l = l->radial_next) != e->l);
 
@@ -2535,6 +2536,10 @@ ATTR_NO_OPT static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
   pbvh_boundary_update_bmesh(pbvh, newv);
 
   for (BMFace *f : fs) {
+    BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+  }
+
+  for (BMFace *f : fs) {
     BMLoop *l = f->l_first;
     do {
       if (l->v == newv) {
@@ -2559,11 +2564,12 @@ ATTR_NO_OPT static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
     }
 
     BM_ELEM_CD_SET_INT(newf, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
+    BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f));
+    BKE_pbvh_bmesh_add_face(pbvh, newf, true, false);
 
     if (!exist_e) {
-      BM_log_edge_added(bm, pbvh->bm_log, newl->e);
       BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newl->e));
-      BKE_pbvh_bmesh_add_face(pbvh, newf, true, false);
+      BM_log_edge_added(bm, pbvh->bm_log, newl->e);
     }
 
     newl->e->head.hflag &= ~EDGE_QUEUE_FLAG;
