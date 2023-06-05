@@ -267,8 +267,7 @@ struct uiBut {
   double *editval = nullptr;
   float *editvec = nullptr;
 
-  uiButPushedStateFunc pushed_state_func = nullptr;
-  const void *pushed_state_arg = nullptr;
+  std::function<bool(const uiBut &)> pushed_state_func;
 
   /** Little indicator (e.g., counter) displayed on top of some icons. */
   IconTextOverlay icon_overlay_text = {};

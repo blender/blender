@@ -2204,7 +2204,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 {
   int is_push = 0;
   if (but->pushed_state_func) {
-    return but->pushed_state_func(but, but->pushed_state_arg);
+    return but->pushed_state_func(*but);
   }
 
   if (but->bit) {
@@ -6089,10 +6089,9 @@ void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFre
   but->tip_arg_free = free_arg;
 }
 
-void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, const void *arg)
+void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func)
 {
   but->pushed_state_func = func;
-  but->pushed_state_arg = arg;
   ui_but_update(but);
 }
 
