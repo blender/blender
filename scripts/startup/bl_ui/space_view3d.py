@@ -4222,46 +4222,25 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
 class VIEW3D_MT_edit_mesh_extrude(Menu):
     bl_label = "Extrude"
 
-    _extrude_funcs = {
-        'VERT': lambda layout:
-        layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices"),
-        'EDGE': lambda layout:
-        layout.operator("mesh.extrude_edges_move", text="Extrude Edges"),
-        'REGION': lambda layout:
-        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces"),
-        'REGION_VERT_NORMAL': lambda layout:
-        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals"),
-        'FACE': lambda layout:
-        layout.operator("mesh.extrude_faces_move", text="Extrude Individual Faces"),
-        'MANIFOLD': lambda layout:
-        layout.operator("view3d.edit_mesh_extrude_manifold_normal", text="Extrude Manifold"),
-    }
-
-    @staticmethod
-    def extrude_options(context):
-        tool_settings = context.tool_settings
-        select_mode = tool_settings.mesh_select_mode
-        mesh = context.object.data
-
-        menu = []
-        if mesh.total_face_sel:
-            menu += ['REGION', 'REGION_VERT_NORMAL', 'FACE', 'MANIFOLD']
-        if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
-            menu += ['EDGE']
-        if mesh.total_vert_sel and select_mode[0]:
-            menu += ['VERT']
-
-        # should never get here
-        return menu
-
     def draw(self, context):
         from math import pi
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        for menu_id in self.extrude_options(context):
-            self._extrude_funcs[menu_id](layout)
+        tool_settings = context.tool_settings
+        select_mode = tool_settings.mesh_select_mode
+        mesh = context.object.data
+
+        if mesh.total_face_sel:
+            layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+            layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
+            layout.operator("mesh.extrude_faces_move", text="Extrude Individual Faces")
+            layout.operator("view3d.edit_mesh_extrude_manifold_normal", text="Extrude Manifold")
+        if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
+            layout.operator("mesh.extrude_edges_move", text="Extrude Edges")
+        if mesh.total_vert_sel and select_mode[0]:
+            layout.operator("mesh.extrude_vertices_move", text="Extrude Vertices")
 
         layout.separator()
 
