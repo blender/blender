@@ -1335,7 +1335,7 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
   }
 }
 
-#ifdef WITH_GHOST_X11
+#if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND_LIBDECOR)
 /**
  * Check if the system is running X11.
  * This is not intended to be a fool-proof check (the `DISPLAY` is not validated for e.g.).
@@ -1349,7 +1349,7 @@ static bool ghost_wayland_is_x11_available()
   }
   return false;
 }
-#endif /* WITH_GHOST_X11 */
+#endif /* WITH_GHOST_X11 && WITH_GHOST_WAYLAND_LIBDECOR */
 
 static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 {
