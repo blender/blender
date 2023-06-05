@@ -246,7 +246,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
   /* WORKAROUND: Needed because node_tree isn't present in test shaders. */
   if (pipeline_type == MAT_PIPE_DEFERRED) {
-    info.define("MAT_RENDER_PASS_SUPPORT");
+    info.additional_info("eevee_render_pass_out");
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
