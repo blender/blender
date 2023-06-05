@@ -6272,6 +6272,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, NULL, "dirpath");
   RNA_def_property_ui_text(
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_userdef_asset_library_path_set");

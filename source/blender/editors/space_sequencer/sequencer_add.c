@@ -179,10 +179,10 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
     Sequence *last_seq = SEQ_select_active_get(scene);
     if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
       Main *bmain = CTX_data_main(C);
-      char path[FILE_MAX];
-      STRNCPY(path, last_seq->strip->dirpath);
-      BLI_path_abs(path, BKE_main_blendfile_path(bmain));
-      RNA_string_set(op->ptr, identifier, path);
+      char dirpath[FILE_MAX];
+      STRNCPY(dirpath, last_seq->strip->dirpath);
+      BLI_path_abs(dirpath, BKE_main_blendfile_path(bmain));
+      RNA_string_set(op->ptr, identifier, dirpath);
     }
   }
 }

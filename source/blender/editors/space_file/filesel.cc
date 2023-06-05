@@ -446,7 +446,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
       break;
     case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
-      STRNCPY(base_params->dir, user_library->path);
+      STRNCPY(base_params->dir, user_library->dirpath);
       base_params->type = FILE_ASSET_LIBRARY;
       break;
   }
@@ -1232,14 +1232,14 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
           /* pass */
         }
         else {
-          char path[FILE_MAX];
+          char dirpath[FILE_MAX];
           BLI_stat_t status;
 
-          BLI_path_join(path, sizeof(path), dirname, de->d_name);
+          BLI_path_join(dirpath, sizeof(dirpath), dirname, de->d_name);
 
-          if (BLI_stat(path, &status) == 0) {
+          if (BLI_stat(dirpath, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */
-              UI_autocomplete_update_name(autocpl, path);
+              UI_autocomplete_update_name(autocpl, dirpath);
             }
           }
         }

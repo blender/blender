@@ -37,7 +37,7 @@
 
 bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
                                                      const char *name,
-                                                     const char *path)
+                                                     const char *dirpath)
 {
   bUserAssetLibrary *library = MEM_callocN(sizeof(*library), "bUserAssetLibrary");
   memcpy(library, DNA_struct_default_get(bUserAssetLibrary), sizeof(*library));
@@ -47,8 +47,8 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
   if (name) {
     BKE_preferences_asset_library_name_set(userdef, library, name);
   }
-  if (path) {
-    STRNCPY(library->path, path);
+  if (dirpath) {
+    STRNCPY(library->dirpath, dirpath);
   }
 
   return library;
@@ -74,9 +74,9 @@ void BKE_preferences_asset_library_name_set(UserDef *userdef,
 
 void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const char *path)
 {
-  STRNCPY(library->path, path);
-  if (BLI_is_file(library->path)) {
-    BLI_path_parent_dir(library->path);
+  STRNCPY(library->dirpath, path);
+  if (BLI_is_file(library->dirpath)) {
+    BLI_path_parent_dir(library->dirpath);
   }
 }
 
@@ -95,7 +95,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_containing_path(const UserDef *
                                                                  const char *path)
 {
   LISTBASE_FOREACH (bUserAssetLibrary *, asset_lib_pref, &userdef->asset_libraries) {
-    if (BLI_path_contains(asset_lib_pref->path, path)) {
+    if (BLI_path_contains(asset_lib_pref->dirpath, path)) {
       return asset_lib_pref;
     }
   }
@@ -121,7 +121,8 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
       userdef, DATA_(BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME), NULL);
 
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
-  BLI_path_join(library->path, sizeof(library->path), documents_path, N_("Blender"), N_("Assets"));
+  BLI_path_join(
+      library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
 }
 
 /** \} */

@@ -854,7 +854,7 @@ static bool is_contained_in_selected_asset_library(wmOperator *op, const char *f
   if (!lib) {
     return false;
   }
-  return BLI_path_contains(lib->path, filepath);
+  return BLI_path_contains(lib->dirpath, filepath);
 }
 
 /**
@@ -876,7 +876,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
   }
 
   char file_path[PATH_MAX];
-  BLI_path_join(file_path, sizeof(file_path), lib->path, blend_filename);
+  BLI_path_join(file_path, sizeof(file_path), lib->dirpath, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 
   return true;

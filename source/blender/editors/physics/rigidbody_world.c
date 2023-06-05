@@ -135,7 +135,7 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   RigidBodyWorld *rbw = scene->rigidbody_world;
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
   /* sanity checks */
   if (ELEM(NULL, scene, rbw)) {
@@ -148,9 +148,9 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 #ifdef WITH_BULLET
-  RB_dworld_export(rbw->shared->physics_world, path);
+  RB_dworld_export(rbw->shared->physics_world, filepath);
 #endif
   return OPERATOR_FINISHED;
 }

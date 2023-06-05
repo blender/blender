@@ -153,24 +153,24 @@ static bool gather_objects_paths(const IObject &object, ListBase *object_paths)
 }
 
 CacheArchiveHandle *ABC_create_handle(Main *bmain,
-                                      const char *filename,
+                                      const char *filepath,
                                       const CacheFileLayer *layers,
                                       ListBase *object_paths)
 {
-  std::vector<const char *> filenames;
-  filenames.push_back(filename);
+  std::vector<const char *> filepaths;
+  filepaths.push_back(filepath);
 
   while (layers) {
     if ((layers->flag & CACHEFILE_LAYER_HIDDEN) == 0) {
-      filenames.push_back(layers->filepath);
+      filepaths.push_back(layers->filepath);
     }
     layers = layers->next;
   }
 
   /* We need to reverse the order as overriding archives should come first. */
-  std::reverse(filenames.begin(), filenames.end());
+  std::reverse(filepaths.begin(), filepaths.end());
 
-  ArchiveReader *archive = ArchiveReader::get(bmain, filenames);
+  ArchiveReader *archive = ArchiveReader::get(bmain, filepaths);
 
   if (!archive || !archive->valid()) {
     delete archive;
@@ -426,7 +426,7 @@ struct ImportJobData {
   ViewLayer *view_layer;
   wmWindowManager *wm;
 
-  char filename[1024];
+  char filepath[1024];
   ImportSettings settings;
 
   ArchiveReader *archive;
@@ -446,7 +446,7 @@ struct ImportJobData {
 static void report_job_duration(const ImportJobData *data)
 {
   blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
-  std::cout << "Alembic import of '" << data->filename << "' took ";
+  std::cout << "Alembic import of '" << data->filepath << "' took ";
   blender::timeit::print_duration(duration);
   std::cout << '\n';
 }
@@ -464,7 +464,7 @@ static void import_startjob(void *user_data, bool *stop, bool *do_update, float 
 
   WM_set_locked_interface(data->wm, true);
 
-  ArchiveReader *archive = ArchiveReader::get(data->bmain, {data->filename});
+  ArchiveReader *archive = ArchiveReader::get(data->bmain, {data->filepath});
 
   if (!archive || !archive->valid()) {
     data->error_code = ABC_ARCHIVE_FAIL;
@@ -473,7 +473,7 @@ static void import_startjob(void *user_data, bool *stop, bool *do_update, float 
   }
 
   CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filename)));
+      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
 
   /* Decrement the ID ref-count because it is going to be incremented for each
    * modifier and constraint that it will be attached to, so since currently
@@ -482,7 +482,7 @@ static void import_startjob(void *user_data, bool *stop, bool *do_update, float 
 
   cache_file->is_sequence = data->settings.is_sequence;
   cache_file->scale = data->settings.scale;
-  STRNCPY(cache_file->filepath, data->filename);
+  STRNCPY(cache_file->filepath, data->filepath);
 
   data->archive = archive;
   data->settings.cache_file = cache_file;
@@ -525,7 +525,7 @@ static void import_startjob(void *user_data, bool *stop, bool *do_update, float 
       max_time = std::max(max_time, reader->maxTime());
     }
     else {
-      std::cerr << "Object " << reader->name() << " in Alembic file " << data->filename
+      std::cerr << "Object " << reader->name() << " in Alembic file " << data->filepath
                 << " is invalid.\n";
     }
 
@@ -686,7 +686,7 @@ bool ABC_import(bContext *C,
   job->view_layer = CTX_data_view_layer(C);
   job->wm = CTX_wm_manager(C);
   job->import_ok = false;
-  STRNCPY(job->filename, filepath);
+  STRNCPY(job->filepath, filepath);
 
   job->settings.scale = params->global_scale;
   job->settings.is_sequence = params->is_sequence;

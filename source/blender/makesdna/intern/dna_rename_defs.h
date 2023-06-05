@@ -192,6 +192,7 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tstatusbar, space_statusbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
+DNA_STRUCT_RENAME_ELEM(bUserAssetLibrary, path, dirpath)
 /* Write with a different name, old Blender versions crash loading files with non-NULL
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)

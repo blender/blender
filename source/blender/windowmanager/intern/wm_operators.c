@@ -1291,15 +1291,15 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
-    char path[FILE_MAX];
+    char filepath[FILE_MAX];
     bool exists = false;
 
-    RNA_string_get(op->ptr, "filepath", path);
+    RNA_string_get(op->ptr, "filepath", filepath);
 
     errno = 0;
 
     if (idcode == ID_IM) {
-      id = (ID *)BKE_image_load_exists_ex(bmain, path, &exists);
+      id = (ID *)BKE_image_load_exists_ex(bmain, filepath, &exists);
     }
     else {
       BLI_assert_unreachable();
@@ -1310,7 +1310,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
                   RPT_ERROR,
                   "Cannot read %s '%s': %s",
                   BKE_idtype_idcode_to_name(idcode),
-                  path,
+                  filepath,
                   errno ? strerror(errno) : TIP_("unsupported format"));
       return NULL;
     }

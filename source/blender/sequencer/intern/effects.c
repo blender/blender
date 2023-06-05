@@ -3243,12 +3243,12 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     data->text_blf_id = BLF_load_mem(name, pf->data, pf->size);
   }
   else {
-    char path[FILE_MAX];
-    STRNCPY(path, vfont->filepath);
+    char filepath[FILE_MAX];
+    STRNCPY(filepath, vfont->filepath);
     BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
-    data->text_blf_id = BLF_load(path);
+    data->text_blf_id = BLF_load(filepath);
   }
 }
 

@@ -594,8 +594,8 @@ enum {
 typedef struct bUserAssetLibrary {
   struct bUserAssetLibrary *next, *prev;
 
-  char name[64];   /* MAX_NAME */
-  char path[1024]; /* FILE_MAX */
+  char name[64];      /* MAX_NAME */
+  char dirpath[1024]; /* FILE_MAX */
 
   short import_method; /* eAssetImportMethod */
   short flag;          /* eAssetLibrary_Flag */

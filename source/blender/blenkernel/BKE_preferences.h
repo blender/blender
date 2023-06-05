@@ -22,7 +22,7 @@ struct bUserAssetLibrary;
 
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
-                                                            const char *path) ATTR_NONNULL(1);
+                                                            const char *dirpath) ATTR_NONNULL(1);
 /**
  * Unlink and free a library preference member.
  * \note Free's \a library itself.

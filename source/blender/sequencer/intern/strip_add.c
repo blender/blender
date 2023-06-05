@@ -515,7 +515,6 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
 void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const bool lock_range)
 {
-  char path[FILE_MAX];
   int prev_startdisp = 0, prev_enddisp = 0;
   /* NOTE: don't rename the strip, will break animation curves. */
 
@@ -551,13 +550,15 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       break;
     }
     case SEQ_TYPE_MOVIE: {
+      char filepath[FILE_MAX];
       StripAnim *sanim;
       bool is_multiview_loaded = false;
       const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                                 (scene->r.scemode & R_MULTIVIEW) != 0;
 
-      BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-      BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+      BLI_path_join(
+          filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
       SEQ_relations_sequence_free_anim(seq);
 
@@ -567,15 +568,15 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
         const int totfiles = seq_num_files(scene, seq->views_format, true);
         int i = 0;
 
-        BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
+        BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
             struct anim *anim;
-            char filepath[FILE_MAX];
+            char filepath_view[FILE_MAX];
 
-            seq_multiview_name(scene, i, prefix, ext, filepath, sizeof(filepath));
-            anim = openanim(filepath,
+            seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
+            anim = openanim(filepath_view,
                             IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                             seq->streamindex,
                             seq->strip->colorspace_settings.name);
@@ -593,7 +594,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
       if (is_multiview_loaded == false) {
         struct anim *anim;
-        anim = openanim(path,
+        anim = openanim(filepath,
                         IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                         seq->streamindex,
                         seq->strip->colorspace_settings.name);

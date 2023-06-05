@@ -2613,7 +2613,7 @@ static bool new_folder_path(const char *parent,
 static int file_directory_new_exec(bContext *C, wmOperator *op)
 {
   char dirname[FILE_MAXFILE];
-  char path[FILE_MAX];
+  char dirpath[FILE_MAX];
   bool generate_name = true;
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -2626,19 +2626,19 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  path[0] = '\0';
+  dirpath[0] = '\0';
 
   {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "directory");
-    RNA_property_string_get(op->ptr, prop, path);
-    if (path[0] != '\0') {
+    RNA_property_string_get(op->ptr, prop, dirpath);
+    if (dirpath[0] != '\0') {
       generate_name = false;
     }
   }
 
   if (generate_name) {
     /* create a new, non-existing folder name */
-    if (!new_folder_path(params->dir, path, dirname)) {
+    if (!new_folder_path(params->dir, dirpath, dirname)) {
       BKE_report(op->reports, RPT_ERROR, "Could not create new folder name");
       return OPERATOR_CANCELLED;
     }
@@ -2646,22 +2646,22 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   else { /* We assume we are able to generate a valid name! */
     char org_path[FILE_MAX];
 
-    STRNCPY(org_path, path);
-    if (BLI_path_make_safe(path)) {
+    STRNCPY(org_path, dirpath);
+    if (BLI_path_make_safe(dirpath)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "'%s' given path is OS-invalid, creating '%s' path instead",
                   org_path,
-                  path);
+                  dirpath);
     }
   }
 
   /* create the file */
   errno = 0;
-  if (!BLI_dir_create_recursive(path) ||
+  if (!BLI_dir_create_recursive(dirpath) ||
       /* Should no more be needed,
        * now that BLI_dir_create_recursive returns a success state - but kept just in case. */
-      !BLI_exists(path))
+      !BLI_exists(dirpath))
   {
     BKE_reportf(op->reports,
                 RPT_ERROR,
@@ -2688,7 +2688,7 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   ED_fileselect_clear(wm, sfile);
 
   if (do_diropen) {
-    STRNCPY(params->dir, path);
+    STRNCPY(params->dir, dirpath);
     ED_file_change_dir(C);
   }
 
@@ -2809,10 +2809,10 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
       char *group, *name;
 
       if (BLI_is_file(params->dir)) {
-        char path[sizeof(params->dir)];
-        STRNCPY(path, params->dir);
+        char dirpath[sizeof(params->dir)];
+        STRNCPY(dirpath, params->dir);
         BLI_path_split_dir_file(
-            path, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
+            dirpath, params->dir, sizeof(params->dir), params->file, sizeof(params->file));
       }
       else if (BKE_blendfile_library_path_explode(params->dir, tdir, &group, &name)) {
         if (group) {

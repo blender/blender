@@ -28,7 +28,8 @@ typedef enum eSeqLoadFlags {
 typedef struct SeqLoadData {
   int start_frame;
   int channel;
-  char name[64];   /* Strip name. */
+  char name[64]; /* Strip name. */
+  /** Typically a `filepath` but may reference any kind of path. */
   char path[1024]; /* 1024 = FILE_MAX */
   struct {
     int len;

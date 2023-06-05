@@ -1087,24 +1087,24 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
   Scene *scene = NULL;
   int start, end;
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_is_file(path)) {
-    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+  if (!BLI_is_file(filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", filepath);
     return OPERATOR_CANCELLED;
   }
 
   scene = ac.scene; /* Current scene. */
 
   /* Store necessary data for the baking steps. */
-  sbi.samples = AUD_readSoundBuffer(path,
+  sbi.samples = AUD_readSoundBuffer(filepath,
                                     RNA_float_get(op->ptr, "low"),
                                     RNA_float_get(op->ptr, "high"),
                                     RNA_float_get(op->ptr, "attack"),

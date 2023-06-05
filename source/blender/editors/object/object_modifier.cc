@@ -2420,7 +2420,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_active_context(C);
   Mesh *me = (ob) ? static_cast<Mesh *>(ob->data) : static_cast<Mesh *>(op->customdata);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   const bool relative = RNA_boolean_get(op->ptr, "relative_path");
 
   if (!me) {
@@ -2431,13 +2431,13 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   if (relative) {
-    BLI_path_rel(path, BKE_main_blendfile_path(bmain));
+    BLI_path_rel(filepath, BKE_main_blendfile_path(bmain));
   }
 
-  CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
+  CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, filepath);
   CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH.lmask, me->totloop, 0);
 
   return OPERATOR_FINISHED;
@@ -2447,7 +2447,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
 {
   Object *ob = ED_object_active_context(C);
   Mesh *me = static_cast<Mesh *>(ob->data);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!edit_modifier_invoke_properties(C, op)) {
     return OPERATOR_CANCELLED;
@@ -2470,8 +2470,8 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, const wmEv
 
   op->customdata = me;
 
-  SNPRINTF(path, "//%s.btx", me->id.name + 2);
-  RNA_string_set(op->ptr, "filepath", path);
+  SNPRINTF(filepath, "//%s.btx", me->id.name + 2);
+  RNA_string_set(op->ptr, "filepath", filepath);
 
   WM_event_add_fileselect(C, op);
 

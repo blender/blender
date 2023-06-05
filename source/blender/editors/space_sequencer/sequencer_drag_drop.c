@@ -507,6 +507,10 @@ static bool generic_drop_draw_handling(wmDropBox *drop)
 }
 
 typedef struct DropJobData {
+  /**
+   * This is practically always a `filepath`, however that isn't a requirement
+   * for drag-and-drop, so keep the name generic.
+   */
   char path[FILE_MAX];
   bool only_audio;
   float scene_fps;

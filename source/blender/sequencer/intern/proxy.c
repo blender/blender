@@ -342,25 +342,24 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq,
   }
 
   if ((seq->type == SEQ_TYPE_IMAGE) && (seq->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-    char filepath[FILE_MAX];
-
     if (view_id == 0) {
       /* Clear on first use. */
       prefix_vars->prefix[0] = '\0';
       prefix_vars->ext = NULL;
 
-      char path[FILE_MAX];
-      BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-      BLI_path_abs(path, BKE_main_blendfile_path_from_global());
-      BKE_scene_multiview_view_prefix_get(scene, path, prefix_vars->prefix, &prefix_vars->ext);
+      char filepath[FILE_MAX];
+      BLI_path_join(
+          filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+      BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &prefix_vars->ext);
     }
 
     if (prefix_vars->prefix[0] == '\0') {
       return view_id != 0;
     }
 
+    char filepath[FILE_MAX];
     seq_multiview_name(scene, view_id, prefix_vars->prefix, prefix_vars->ext, filepath, FILE_MAX);
-
     if (BLI_access(filepath, R_OK) == 0) {
       return false;
     }

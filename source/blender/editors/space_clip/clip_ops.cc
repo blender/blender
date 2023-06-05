@@ -156,9 +156,9 @@ static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float 
 /** \name Open Clip Operator
  * \{ */
 
-static void clip_filesel(bContext *C, wmOperator *op, const char *path)
+static void clip_filesel(bContext *C, wmOperator *op, const char *dirpath)
 {
-  RNA_string_set(op->ptr, "directory", path);
+  RNA_string_set(op->ptr, "directory", dirpath);
 
   WM_event_add_fileselect(C, op);
 }
@@ -261,7 +261,7 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  char path[FILE_MAX];
+  char dirpath[FILE_MAX];
   MovieClip *clip = nullptr;
 
   if (sc) {
@@ -269,13 +269,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
   }
 
   if (clip) {
-    STRNCPY(path, clip->filepath);
+    STRNCPY(dirpath, clip->filepath);
 
-    BLI_path_abs(path, CTX_data_main(C)->filepath);
-    BLI_path_parent_dir(path);
+    BLI_path_abs(dirpath, CTX_data_main(C)->filepath);
+    BLI_path_parent_dir(dirpath);
   }
   else {
-    STRNCPY(path, U.textudir);
+    STRNCPY(dirpath, U.textudir);
   }
 
   if (RNA_struct_property_is_set(op->ptr, "files")) {
@@ -288,7 +288,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 
   open_init(C, op);
 
-  clip_filesel(C, op, path);
+  clip_filesel(C, op, dirpath);
 
   return OPERATOR_RUNNING_MODAL;
 }
