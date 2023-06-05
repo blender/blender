@@ -1043,17 +1043,9 @@ class VIEW3D_MT_transform_base:
             "use_transform_navigation",
             False)
 
-        props = layout.operator("transform.translate")
-        props.release_confirm = False
-        props.allow_navigation = allow_navigation
-
-        props = layout.operator("transform.rotate")
-        props.release_confirm = False
-        props.allow_navigation = allow_navigation
-
-        props = layout.operator("transform.resize", text="Scale")
-        props.release_confirm = False
-        props.allow_navigation = allow_navigation
+        layout.operator("transform.translate").allow_navigation = allow_navigation
+        layout.operator("transform.rotate").allow_navigation = allow_navigation
+        layout.operator("transform.resize", text="Scale").allow_navigation = allow_navigation
 
         layout.separator()
 
