@@ -1137,10 +1137,6 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 {
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (data->info[0] != '\0') {
-      char *chr_current = data->info;
-      char *chr_start = chr_current;
-      int line_len = 0;
-
       const int font_id = BLF_default();
       UI_FontThemeColor(font_id, TH_TEXT_HI);
 
@@ -1148,24 +1144,14 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
       BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
       BLF_shadow_offset(font_id, 1, -1);
 
-      while (*chr_current++ != '\0') {
-        line_len++;
-        if (*chr_current == '\n') {
-          char info[GPU_INFO_SIZE];
-          BLI_strncpy(info, chr_start, line_len + 1);
-          *yoffset -= line_height;
-          BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
-
-          /* Re-start counting. */
-          chr_start = chr_current + 1;
-          line_len = -1;
-        }
-      }
-
-      char info[GPU_INFO_SIZE];
-      BLI_strncpy(info, chr_start, line_len + 1);
-      *yoffset -= line_height;
-      BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
+      const char *buf_step = data->info;
+      do {
+        const char *buf = buf_step;
+        buf_step = BLI_strchr_or_end(buf, '\n');
+        const int buf_len = buf_step - buf;
+        *yoffset -= line_height;
+        BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
+      } while (*buf_step ? ((void)buf_step++, true) : false);
 
       BLF_disable(font_id, BLF_SHADOW);
     }
