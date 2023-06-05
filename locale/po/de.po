@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -8890,12 +8890,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
+msgid "Sample Rate"
 msgstr "Abtastrate"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Audio Sampelrate(samples/s)"
 
 
 msgctxt "Sound"
@@ -15624,10 +15620,6 @@ msgid "Render Size"
 msgstr "Renderdauer"
 
 
-msgid "Wire Size"
-msgstr "Drahtgröße"
-
-
 msgid "Influence of metaball elements"
 msgstr "Einfluss von Metaballelementen"
 
@@ -15870,10 +15862,6 @@ msgstr "Aktuelle Szene"
 
 msgid "Bounding Box"
 msgstr "Begrenzungsrahmen"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Objektfarbe und Alpha, verwenden wenn Flächen den ObColor-Modus aktiviert haben"
 
 
 msgid "Constraints"
@@ -16401,10 +16389,6 @@ msgstr "Global Y"
 
 msgid "Global Z"
 msgstr "Global Z"
-
-
-msgid "Effect Children"
-msgstr "Kinder"
 
 
 msgid "Random Bending Stiffness"
@@ -18343,10 +18327,6 @@ msgstr "DWAA (verlustbehaftet)"
 
 msgid "File format to save the rendered images as"
 msgstr "Dateiformat, in dem gerenderte Bilder gespeichert werden"
-
-
-msgid "Codec settings for Jpeg2000"
-msgstr "Codec-Einstellungen für Jpeg2000"
 
 
 msgid "JP2"
@@ -21911,10 +21891,6 @@ msgid "Lambda Factor"
 msgstr "Dämpfungsfaktor"
 
 
-msgid "Smooth factor effect"
-msgstr "Weicher Abfall"
-
-
 msgid "Length Weight"
 msgstr "Längengewicht"
 
@@ -24935,10 +24911,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "JPEG"
 
 
 msgid "Combine YUVA"
@@ -35284,10 +35256,6 @@ msgid "Detach"
 msgstr "Trennen"
 
 
-msgid "Insert Offset"
-msgstr "Versatz einfügen"
-
-
 msgid "Detach Links"
 msgstr "Verbindungen abhängen"
 
@@ -40890,8 +40858,8 @@ msgid "Fraction"
 msgstr "Bruch"
 
 
-msgid "Bounding box"
-msgstr "Begrenzungsrahmen"
+msgid "Pack"
+msgstr "Packen"
 
 
 msgctxt "Operator"
@@ -48515,10 +48483,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (JPEG)"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Y-Position des Sequenzstreifens"
 
@@ -55549,10 +55513,6 @@ msgid "Buffer"
 msgstr "Puffer"
 
 
-msgid "Sample Rate"
-msgstr "Abtastrate"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "Benutzerdefiniert (%.4g fps)"
 
@@ -57604,10 +57564,6 @@ msgstr "Übergang hinzufügen"
 
 msgid "Unpack"
 msgstr "Entpacken"
-
-
-msgid "Pack"
-msgstr "Packen"
 
 
 msgid "Source Channel"
@@ -64202,6 +64158,10 @@ msgstr "Faltenkanten"
 
 msgid "Fac"
 msgstr "Faktor"
+
+
+msgid "Bounding box"
+msgstr "Begrenzungsrahmen"
 
 
 msgid "Color Space:"

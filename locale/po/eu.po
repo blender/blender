@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"

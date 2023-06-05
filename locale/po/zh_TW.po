@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -8307,12 +8307,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
+msgid "Sample Rate"
 msgstr "取樣率"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "音訊取樣率(取樣次數/秒)"
 
 
 msgctxt "Sound"
@@ -13740,24 +13736,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "U 方向的點 (有外形鍵時無法更改)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "V 方向的點 (有外形鍵時無法更改)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "W 方向的點 (有外形鍵時無法更改)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -14318,10 +14302,6 @@ msgid "Polygonization resolution in rendering"
 msgstr "算繪時的多角化解析度"
 
 
-msgid "Wire Size"
-msgstr "線大小"
-
-
 msgid "Polygonization resolution in the 3D viewport"
 msgstr "3D 視接口中的多角形化解析度"
 
@@ -14672,10 +14652,6 @@ msgstr "物體空間座標系中物體的邊界方塊，當不可用時所有的
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "於物理模擬中將物體作為碰撞子的設定"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "物體色彩與 alpha，當其面啟用物體色彩時可以使用"
 
 
 msgid "Constraints"
@@ -15163,10 +15139,6 @@ msgstr "全域 Y"
 
 msgid "Global Z"
 msgstr "全域 Z"
-
-
-msgid "Effect Children"
-msgstr "影響子代"
 
 
 msgid "Apply effectors to children"
@@ -19802,10 +19774,6 @@ msgid "Mesh Vertex"
 msgstr "網格頂點"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "倒角修改器「僅頂點」選項使用的權重"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "此頂點為何頂點群組成員之一的權重"
 
@@ -19848,10 +19816,6 @@ msgstr "大小 Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "剛度定義元素要填補多少"
-
-
-msgid "Metaball types"
-msgstr "變幻球類型"
 
 
 msgid "Ball"
@@ -20344,10 +20308,6 @@ msgstr "設定"
 
 msgid "Lambda Factor"
 msgstr "Lambda 係數"
-
-
-msgid "Smooth factor effect"
-msgstr "平滑係數效果"
 
 
 msgid "Curve Modifier"
@@ -22250,10 +22210,6 @@ msgid "Y coordinate of the start position"
 msgstr "起始位置的 Y 座標軸"
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "起始幀 (正速度) 或結束幀 (負速度)"
-
-
 msgid "Cyclic wave effect"
 msgstr "循環波形效果"
 
@@ -24108,10 +24064,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -41452,14 +41404,6 @@ msgid "Space between islands"
 msgstr "島塊間的空間"
 
 
-msgid "Rotate islands for best fit"
-msgstr "旋轉島塊以最佳適應"
-
-
-msgid "Bounding box"
-msgstr "邊界方塊"
-
-
 msgctxt "Operator"
 msgid "Pin"
 msgstr "釘住"
@@ -48043,10 +47987,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
-
-
 msgid "Sequence strip in the sequence editor"
 msgstr "序段編輯器中的序段片段"
 
@@ -54128,10 +54068,6 @@ msgstr "日期"
 
 msgid "Buffer"
 msgstr "緩衝"
-
-
-msgid "Sample Rate"
-msgstr "取樣率"
 
 
 msgid "Pressure Masking"
@@ -60312,6 +60248,10 @@ msgid "Determinator"
 msgstr "判定器"
 
 
+msgid "Bounding box"
+msgstr "邊界方塊"
+
+
 msgid "Color Space:"
 msgstr "色彩空間："
 
@@ -60462,6 +60402,10 @@ msgstr "老舊"
 
 msgid "Edge Crease"
 msgstr "邊線皺摺"
+
+
+msgid "Rotate islands for best fit"
+msgstr "旋轉島塊以最佳適應"
 
 
 msgid "Missing Data-Block"
