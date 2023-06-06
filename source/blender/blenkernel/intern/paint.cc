@@ -1740,6 +1740,8 @@ static void sculpt_check_face_areas(Object *ob, PBVH *pbvh)
 
   if (!ss->attrs.face_areas) {
     SculptAttributeParams params = {0};
+
+    params.nointerp = true;
     ss->attrs.face_areas = sculpt_attribute_ensure_ex(ob,
                                                       ATTR_DOMAIN_FACE,
                                                       CD_PROP_FLOAT2,
@@ -3580,6 +3582,9 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
   SculptAttribute *attr = BKE_sculpt_attribute_get(ob, domain, proptype, name);
 
   if (attr) {
+    attr->params.nocopy = params->nocopy;
+    attr->params.nointerp = params->nointerp;
+
     sculpt_attr_update(ob, attr);
 
     /* Since "stroke_only" is not a CustomData flag we have
@@ -4021,6 +4026,7 @@ void BKE_sculpt_ensure_origfset(struct Object *ob)
 void BKE_sculpt_ensure_sculpt_layers(struct Object *ob)
 {
   SculptAttributeParams params = {};
+  params.nointerp = params.nocopy = true;
 
   if (!ob->sculpt->attrs.flags) {
     ob->sculpt->attrs.flags = BKE_sculpt_attribute_ensure(

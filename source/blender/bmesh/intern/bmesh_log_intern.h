@@ -154,12 +154,11 @@ void BM_log_edge_added(BMesh *bm, BMLog *log, BMEdge *e);
 
 void BM_log_edge_modified(BMesh *bm, BMLog *log, BMEdge *e);
 
-/* Log a face before it is modified
- *
- * This is intended to handle only header flags and we always
- * assume face has been added before
- */
+/* Log a face's flags and customdata. */
 void BM_log_face_modified(BMesh *bm, BMLog *log, struct BMFace *f);
+
+/* Log a face's flags and customdata if it doesn't exist in the log already. */
+void BM_log_face_if_modified(BMesh *bm, BMLog *log, struct BMFace *f);
 
 /* Log a new face as added to the BMesh */
 /* Log a new face as added to the BMesh

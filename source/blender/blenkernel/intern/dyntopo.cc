@@ -308,12 +308,32 @@ static void edge_queue_insert_unified(EdgeQueueContext *eq_ctx, BMEdge *e, float
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
     eq_ctx->edge_heap.insert(w, e);
     e->head.hflag |= EDGE_QUEUE_FLAG;
+
+    if (e->l) {
+      BMLoop *l = e->l;
+      do {
+        BM_log_face_if_modified(eq_ctx->bm, eq_ctx->pbvh->bm_log, l->f);
+      } while ((l = l->radial_next) != e->l);
+    }
   }
 }
 
 static void edge_queue_insert_val34_vert(EdgeQueueContext *eq_ctx, BMVert *v)
 {
   eq_ctx->used_verts.append(v);
+
+  BMEdge *e = v->e;
+  do {
+    BMLoop *l = e->l;
+    if (!l) {
+      continue;
+    }
+
+    BMLoop *l2 = l;
+    do {
+      BM_log_face_if_modified(eq_ctx->bm, eq_ctx->pbvh->bm_log, l2->f);
+    } while ((l2 = l2->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
 /*
@@ -1021,13 +1041,16 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
   }
 
-  int nupdateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTriAreas;
-  nupdateflag = nupdateflag | PBVH_UpdateNormals | PBVH_UpdateTris | PBVH_RebuildDrawBuffers;
+  int node_updateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTriAreas;
+  node_updateflag = node_updateflag | PBVH_UpdateNormals | PBVH_UpdateTris |
+                    PBVH_RebuildDrawBuffers;
 
   if (!minfs.size()) {
     bm_logstack_pop();
     return false;
   }
+
+  const int updateflag = SCULPTFLAG_NEED_VALENCE;
 
   // printf("manifold fin size: %d\n", (int)minfs.size());
   const int tag = BM_ELEM_TAG_ALT;
@@ -1061,6 +1084,8 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     do {
       if (!(l->v->head.hflag & tag)) {
         l->v->head.hflag |= tag;
+        pbvh_boundary_update_bmesh(pbvh, l->v);
+        dyntopo_add_flag(pbvh, l->v, updateflag);
         vs.append(l->v);
       }
 
@@ -1090,15 +1115,13 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
     int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
     if (ni >= 0 && ni < pbvh->totnode) {
-      pbvh->nodes[ni].flag |= (PBVHNodeFlags)nupdateflag;
+      pbvh->nodes[ni].flag |= (PBVHNodeFlags)node_updateflag;
     }
 
     pbvh_bmesh_face_remove(pbvh, f, true, true, false);
     BM_idmap_release(pbvh->bm_idmap, (BMElem *)f, true);
     BM_face_kill(pbvh->header.bm, f);
   }
-
-  const int mupdateflag = SCULPTFLAG_NEED_VALENCE;
 
   for (int i = 0; i < es.size(); i++) {
     BMEdge *e = es[i];
@@ -1107,6 +1130,13 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
       BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
       BM_idmap_release(pbvh->bm_idmap, (BMElem *)e, true);
       BM_edge_kill(pbvh->header.bm, e);
+    }
+    else {
+      pbvh_boundary_update_bmesh(pbvh, e->v1);
+      dyntopo_add_flag(pbvh, e->v1, updateflag);
+
+      pbvh_boundary_update_bmesh(pbvh, e->v2);
+      dyntopo_add_flag(pbvh, e->v2, updateflag);
     }
   }
 
@@ -1122,7 +1152,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
     else {
       pbvh_boundary_update_bmesh(pbvh, v);
-      dyntopo_add_flag(pbvh, v, mupdateflag);
+      dyntopo_add_flag(pbvh, v, updateflag);
     }
   }
 
@@ -1296,6 +1326,13 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
     }
 
     for (BMFace *f : *node->bm_faces) {
+      if (BM_elem_is_free(reinterpret_cast<BMElem *>(f), BM_FACE)) {
+        printf("%s: freed face in node!\n", __func__);
+        node->bm_faces->remove(f);
+
+        continue;
+      }
+
       BMLoop *l = f->l_first;
       do {
         l->e->head.hflag &= ~EDGE_QUEUE_FLAG;
@@ -1370,9 +1407,30 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   for (BMEdge *e : eq_ctx->edge_heap.values()) {
     e->head.hflag |= EDGE_QUEUE_FLAG;
+
+    if (!e->l) {
+      continue;
+    }
+
+    /* Log face/loop attributes. */
+    for (int i = 0; i < 2; i++) {
+      BMVert *v = i ? e->v2 : e->v1;
+      BMEdge *e2 = e;
+
+      do {
+        BMLoop *l = e2->l;
+        if (!l) {
+          continue;
+        }
+
+        do {
+          BM_log_face_modified(eq_ctx->bm, eq_ctx->pbvh->bm_log, l->f);
+        } while ((l = l->radial_next) != e2->l);
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+    }
   }
 
-  if (push_subentry) {
+  if (1 || push_subentry) {
     BM_log_entry_add_ex(pbvh->header.bm, pbvh->bm_log, true);
   }
 }
@@ -1660,8 +1718,7 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
 
     validate_vert(pbvh, v, CHECK_VERT_ALL);
 
-    BKE_pbvh_bmesh_check_valence(pbvh, {(intptr_t)v});
-    int val = BM_ELEM_CD_GET_INT(v, pbvh->cd_valence);
+    int val = BM_vert_edge_count(v);
 
     if (val != 4 && val != 3) {
       continue;
@@ -2101,6 +2158,16 @@ EdgeQueueContext::~EdgeQueueContext() {}
 void EdgeQueueContext::start()
 {
   current_i = 0;
+
+  for (int i : IndexRange(pbvh->totnode)) {
+    PBVHNode *node = &pbvh->nodes[i];
+
+    if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology)) {
+      for (BMFace *f : *node->bm_faces) {
+        BM_log_face_if_modified(bm, pbvh->bm_log, f);
+      }
+    }
+  }
 }
 
 bool EdgeQueueContext::done()
@@ -3654,6 +3721,40 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     return;
   }
 
+  Vector<BMLoop *, 16> loops;
+  Vector<CustomDataLayer *, 16> layers;
+  typemask = CD_MASK_PROP_FLOAT2;  // | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
+                             //CD_MASK_PROP_COLOR;
+  for (int i = 0; i < ldata->totlayer; i++) {
+    CustomDataLayer *layer = ldata->layers + i;
+
+    if (!(CD_TYPE_AS_MASK(layer->type) & typemask)) {
+      continue;
+    }
+    if (layer->flag & CD_FLAG_ELEM_NOINTERP) {
+      continue;
+    }
+    layers.append(layer);
+  }
+
+  e = v->e;
+  do {
+    BMLoop *l = e->l;
+    if (!l) {
+      continue;
+    }
+
+    BMLoop *l2 = l;
+    do {
+      BMLoop *l3 = l2->v == v ? l2 : l2->next;
+      if (!loops.contains(l3)) {
+        loops.append(l3);
+      }
+    } while ((l2 = l2->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  blender::bke::sculpt::VertLoopSnapper snapper = {loops, layers};
+  
   int totstep = 2;
   for (int step = 0; step < totstep; step++) {
     float3 startco2;
@@ -3776,6 +3877,8 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     tots[i] = 0;
   }
 
+  snapper.snap();
+  return;  // XXX
   /* Re-snap uvs. */
   v = (BMVert *)vertex.i;
 

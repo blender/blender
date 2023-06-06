@@ -4120,11 +4120,12 @@ static void do_brush_action(Sculpt *sd,
   PBVHType type = BKE_pbvh_type(ss->pbvh);
 
   if (SCULPT_tool_is_paint(brush->sculpt_tool) && SCULPT_has_loop_colors(ob)) {
-    if (type != PBVH_FACES) {
+    if (type == PBVH_GRIDS) {
       return;
     }
-
-    BKE_pbvh_ensure_node_loops(ss->pbvh);
+    else if (type == PBVH_FACES) {
+      BKE_pbvh_ensure_node_loops(ss->pbvh);
+    }
   }
 
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) || !ss->cache->accum;
@@ -4263,6 +4264,11 @@ static void do_brush_action(Sculpt *sd,
     }
 
     for (int i : nodes.index_range()) {
+      /* Will save all face/loop customdata. */
+      if (brush->autosmooth_factor > 0.0f || brush->topology_rake_factor > 0.0f) {
+        extra_type = SCULPT_UNDO_FACE_SETS;
+      }
+
       SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], undo_type, extra_type);
 
       switch (undo_type) {

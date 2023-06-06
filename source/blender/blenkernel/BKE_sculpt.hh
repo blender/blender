@@ -10,7 +10,11 @@
 #include "BKE_attribute.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+
 #include "BLI_compiler_compat.h"
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
+#include "BLI_math_vector_types.hh"
 
 /*
  * Stroke ID API.  This API is used to detect if
@@ -93,4 +97,162 @@ BLI_INLINE bool test_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t 
 {
   return blender::bke::paint::vertex_attr_get<uint8_t>(vertex, ss->attrs.flags) & flag;
 }
+void interp_face_corners(
+    PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor);
+bool loop_is_corner(BMLoop *l, int cd_offset);
+
+
+static bool prop_eq(float a, float b, float limit)
+{
+  return std::fabs(a - b) < limit;
+}
+static bool prop_eq(float2 a, float2 b, float limit)
+{
+  return prop_eq(a[0], b[0], limit) &&  //
+         prop_eq(a[1], b[1], limit);
+}
+static bool prop_eq(float3 a, float3 b, float limit)
+{
+  return prop_eq(a[0], b[0], limit) &&  //
+         prop_eq(a[1], b[1], limit) &&  //
+         prop_eq(a[2], b[2], limit);
+}
+static bool prop_eq(float4 a, float4 b, float limit)
+{
+  return prop_eq(a[0], b[0], limit) &&  //
+         prop_eq(a[1], b[1], limit) &&  //
+         prop_eq(a[2], b[2], limit) &&  //
+         prop_eq(a[3], b[3], limit);
+}
+
+static bool prop_eq_type(void *a, void *b, float limit, eCustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return prop_eq(*static_cast<float *>(a), *static_cast<float *>(b), limit);
+    case CD_PROP_FLOAT2:
+      return prop_eq(*static_cast<float2 *>(a), *static_cast<float2 *>(b), limit);
+    case CD_PROP_FLOAT3:
+      return prop_eq(*static_cast<float3 *>(a), *static_cast<float3 *>(b), limit);
+    case CD_PROP_COLOR:
+      return prop_eq(*static_cast<float4 *>(a), *static_cast<float4 *>(b), limit);
+  }
+  return false;
+}
+
+/* Finds sets of loops with the same vertex data
+ * prior to an operation, then re-snaps them afterwards.
+ */
+struct VertLoopSnapper {
+  Vector<Vector<short>, 16> snap_sets;
+  Span<CustomDataLayer *> layers;
+  Span<BMLoop *> &ls;
+  Vector<int, 16> max_indices;
+  float limit = 0.1;
+
+  VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : ls(ls_)
+  {
+    snap_sets.resize(ls.size());
+    for (auto &snap_set : snap_sets) {
+      for (int i = 0; i < layers.size(); i++) {
+        snap_set.append(0);
+      }
+    }
+
+    for (int i : layers.index_range()) {
+      switch (layers[i]->type) {
+        case CD_PROP_FLOAT:
+          begin<float>(i);
+          break;
+        case CD_PROP_FLOAT2:
+          begin<float2>(i);
+          break;
+        case CD_PROP_FLOAT3:
+          begin<float3>(i);
+          break;
+        case CD_PROP_COLOR:
+          begin<float4>(i);
+          break;
+      }
+    }
+  }
+
+  void snap()
+  {
+    for (int i : layers.index_range()) {
+      switch (layers[i]->type) {
+        case CD_PROP_FLOAT:
+          do_snap<float>(i);
+          break;
+        case CD_PROP_FLOAT2:
+          do_snap<float2>(i);
+          break;
+        case CD_PROP_FLOAT3:
+          do_snap<float3>(i);
+          break;
+        case CD_PROP_COLOR:
+          do_snap<float4>(i);
+          break;
+      }
+    }
+  }
+
+ private:
+  template<typename T> void begin(int layer_i)
+  {
+    CustomDataLayer *layer = layers[layer_i];
+    int idx_base = 1;
+
+    for (int i : ls.index_range()) {
+      if (snap_sets[i][layer_i] != 0) {
+        continue;
+      }
+
+      T a = *BM_ELEM_CD_PTR<T *>(ls[i], layer->offset);
+      int set = snap_sets[i][layer_i] = idx_base++;
+
+      for (int j : ls.index_range()) {
+        if (snap_sets[j][layer_i] != 0) {
+          continue;
+        }
+
+        T b = *BM_ELEM_CD_PTR<T *>(ls[j], layer->offset);
+        if (prop_eq(a, b, limit)) {
+          snap_sets[j][layer_i] = set;
+        }
+      }
+    }
+
+    max_indices.append(idx_base);
+  }
+
+  template<typename T> void do_snap(int layer_i)
+  {
+    const int cd_offset = layers[layer_i]->offset;
+
+    for (int set_i : IndexRange(max_indices[layer_i])) {
+      T sum = {};
+      float tot = 0.0f;
+
+      for (int i : ls.index_range()) {
+        if (snap_sets[i][layer_i] == set_i) {
+          sum += *BM_ELEM_CD_PTR<T *>(ls[i], cd_offset);
+          tot += 1.0f;
+        }
+      }
+
+      if (tot == 0.0f) {
+        continue;
+      }
+
+      sum /= tot;
+
+      for (int i : ls.index_range()) {
+        if (snap_sets[i][layer_i] == set_i) {
+          *BM_ELEM_CD_PTR<T *>(ls[i], cd_offset) = sum;
+        }
+      }
+    }
+  }
+};
 }  // namespace blender::bke::sculpt

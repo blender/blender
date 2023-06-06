@@ -1056,7 +1056,7 @@ static bool point_in_node(const PBVHNode *node, const float co[3])
          co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
 }
 
-ATTR_NO_OPT void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
+void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
 {
   PBVHNode *node = pbvh->nodes + ni;
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
@@ -2041,17 +2041,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
   int seamcount = 0;
   int quadcount = 0;
 
-#ifdef MV_COLOR_BOUNDARY
-  int last_key = -1;
-#endif
-
-#if 0
-  struct FaceSetRef {
-    int fset;
-    BMVert *v2;
-    BMEdge *e;
-  } *fsets = nullptr;
-#endif
   Vector<int, 16> fsets;
 
   float(*lastuv)[2] = do_uvs ? (float(*)[2])BLI_array_alloca(lastuv, totuv) : nullptr;
@@ -2156,6 +2145,7 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
             bool corner = len_squared_v2v2(lastuv[i], lastuv2[i]) > uv_snap_limit &&
                           len_squared_v2v2(lastuv[i], luv) > uv_snap_limit &&
                           len_squared_v2v2(lastuv2[i], luv) > uv_snap_limit;
+            corner = blender::bke::sculpt::loop_is_corner(l, cd_uvs[i]);
 
             if (!same) {
               boundflag |= SCULPT_BOUNDARY_UV;
@@ -2163,6 +2153,7 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
 
             if (corner) {
               boundflag |= SCULPT_CORNER_UV;
+              l->v->head.hflag |= BM_ELEM_SELECT;
             }
 
             if (!same) {
@@ -2237,7 +2228,7 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
       }
     }
 
-    if (!e->l || e->l->radial_next == e->l) {
+    if (e->l && e->l->radial_next == e->l) {
       boundflag |= SCULPT_BOUNDARY_MESH;
     }
 
@@ -2300,8 +2291,8 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_valence,
                                   v,
                                   &pbvh->header.bm->ldata,
-                                  pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv,
-                                  pbvh->flags & PBVH_IGNORE_UVS,
+                                  pbvh->totuv,
+                                  true,
                                   pbvh->sharp_angle_limit);
   }
 }
@@ -4027,3 +4018,281 @@ void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sh
   BM_ELEM_CD_SET_INT(v, cd_boundary_flag, flag);
 }
 }  // namespace blender::bke::pbvh
+
+namespace blender::bke::sculpt {
+
+bool loop_is_corner(BMLoop *l, int cd_offset)
+{
+  BMVert *v = l->v;
+
+  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
+  float limit = 0.1;
+
+  Vector<BMLoop *, 16> ls;
+  Vector<int, 16> keys;
+
+  BMEdge *e = v->e;
+  do {
+    BMLoop *l2 = e->l;
+
+    if (!l2) {
+      continue;
+    }
+
+    do {
+      BMLoop *l3 = l2->v == v ? l2 : l2->next;
+      if (!ls.contains(l3)) {
+        ls.append(l3);
+      }
+    } while ((l2 = l2->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  int count = 0;
+  for (BMLoop *l2 : ls) {
+    float2 value2 = *BM_ELEM_CD_PTR<float2 *>(l2, cd_offset);
+    float2 dv = value2 - value;
+
+    double f = dv[0] * dv[0] + dv[1] * dv[1];
+    int key = int(f * 200.0);
+    if (!keys.contains(key)) {
+      keys.append(key);
+    }
+  }
+
+  bool ret = keys.size() > 2;
+  if (ret) {
+    l->v->head.hflag |= BM_ELEM_SELECT;
+  }
+
+  return ret;
+}
+
+#if 0
+/* Angle test */
+ATTR_NO_OPT bool loop_is_corner(BMLoop *l, int cd_offset)
+{
+  BMVert *v = l->v;
+  BMEdge *e = v->e;
+
+  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
+  float limit = 0.1;
+
+  BMLoop *outer1 = nullptr, *outer2 = nullptr;
+  do {
+    BMLoop *l2 = e->l;
+    if (!l2) {
+      continue;
+    }
+
+    do {
+      BMLoop *l3 = l2->v == v ? l2 : l2->next;
+      float2 value3 = *BM_ELEM_CD_PTR<float2 *>(l3, cd_offset);
+
+      if (!prop_eq(value, value3, limit)) {
+        continue;
+      }
+
+      bool outer = true;
+
+      BMLoop *l4 = l2->radial_next;
+      while (l4 != l2) {
+        BMLoop *l5 = l4->v == v ? l4 : l4->next;
+        float2 value5 = *BM_ELEM_CD_PTR<float2 *>(l5, cd_offset);
+
+        if (prop_eq(value, value5, limit)) {
+          outer = false;
+          break;
+        }
+        l4 = l4->radial_next;
+      }
+
+      if (outer) {
+        BMLoop *l3 = l2->v == v ? l2->next : l2;
+
+        if (!outer1) {
+          outer1 = l3;
+        }
+        else if (!outer2 && l3 != outer2) {
+          outer2 = l3;
+        }
+
+        break;
+      }
+    } while ((l2 = l2->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != l->e);
+
+  if (!outer1 || !outer2) {
+    return outer1 != nullptr;
+  }
+
+  float2 t1 = *BM_ELEM_CD_PTR<float2 *>(outer1, cd_offset) - value;
+  float2 t2 = *BM_ELEM_CD_PTR<float2 *>(outer2, cd_offset) - value;
+
+  normalize_v2(t1);
+  normalize_v2(t2);
+  float angle_limit = 110.0f / 180.0f * M_PI;
+  float angle = saacos(dot_v2v2(t1, t2));
+
+  if (angle < angle_limit) {
+    l->v->head.hflag |= BM_ELEM_SELECT;
+  }
+
+  return angle < angle_limit;
+}
+#endif
+
+template<typename T = float>
+static void corner_interp(CustomDataLayer *layer,
+                          BMLoop *l,
+                          Span<BMLoop *> loops,
+                          Span<float> ws,
+                          int cd_offset,
+                          float factor)
+{
+  float *ws2 = (float *)BLI_array_alloca(ws2, loops.size() + 1);
+  T sum = {};
+  float totsum = 0.0f;
+
+  T value = *BM_ELEM_CD_PTR<T *>(l, cd_offset);
+
+  float limit = 0.0001;
+
+  if (layer->type == CD_PROP_FLOAT2) {
+    limit = 0.01;
+  }
+  else {
+    /* Do not restrict to islands for non-UVs */
+    limit = FLT_MAX;
+  }
+
+  for (int i : loops.index_range()) {
+    BMLoop *l2 = loops[i];
+    BMLoop *l3 = l2->next->v == l->v ? l2->next : l2->prev;
+    T value3 = *BM_ELEM_CD_PTR<T *>(l3, cd_offset);
+
+    if (prop_eq(value, value3, 0.01)) {
+      T value2 = *BM_ELEM_CD_PTR<T *>(l2, cd_offset);
+      sum += value2 * ws[i];
+      totsum += ws[i];
+    }
+  }
+
+  if (totsum == 0.0f) {
+    return;
+  }
+
+  sum /= totsum;
+
+  *BM_ELEM_CD_PTR<T *>(l, cd_offset) = value + (sum - value) * factor;
+}
+
+/* Interpolates loops surrounding a vertex, splitting any UV map by
+ * island as appropriate and enforcing proper boundary conditions. 
+ */
+void interp_face_corners(
+    PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor)
+{
+  if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
+    return; /* Only for PBVH_BMESH. */
+  }
+
+  eCustomDataMask mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
+                         CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR;
+
+  BMesh *bm = pbvh->header.bm;
+  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+  BMEdge *e = v->e;
+  BMLoop *l = e->l;
+  CustomData *cdata = &bm->ldata;
+
+  Vector<BMLoop *, 16> ls;
+
+  /* Tag loops around vertex. */
+  do {
+    l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      BMLoop *l2 = l->v == v ? l : l->next;
+      BM_elem_flag_enable(l2, BM_ELEM_TAG);
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  /* Build loop list. */
+  do {
+    l = e->l;
+
+    if (!l) {
+      continue;
+    }
+
+    do {
+      BMLoop *l2 = l->v == v ? l : l->next;
+      if (BM_elem_flag_test(l2, BM_ELEM_TAG)) {
+        BM_elem_flag_disable(l2, BM_ELEM_TAG);
+        ls.append(l2);
+      }
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+  Vector<CustomDataLayer *, 16> layers;
+  for (int layer_i : IndexRange(cdata->totlayer)) {
+    CustomDataLayer *layer = cdata->layers + layer_i;
+    eCustomDataType type = eCustomDataType(layer->type);
+    const int cd_offset = layer->offset;
+
+    if ((layer->flag & CD_FLAG_ELEM_NOINTERP) || !(CD_TYPE_AS_MASK(layer->type) & mask)) {
+      continue;
+    }
+    if (layer->flag & CD_FLAG_TEMPORARY) {
+      continue;
+    }
+
+    layers.append(layer);
+  }
+
+  /* Interpolate. */
+  if (loops.size() > 1) {
+    VertLoopSnapper corner_snap = {Span<BMLoop *>(ls), Span<CustomDataLayer *>(layers)};
+
+    for (CustomDataLayer *layer : layers) {
+      Vector<bool, 16> corners;
+
+      if (layer->type == CD_PROP_FLOAT2) {
+        for (BMLoop *l : ls) {
+          corners.append(loop_is_corner(l, layer->offset));
+        }
+      }
+
+      for (int i : ls.index_range()) {
+        BMLoop *l = ls[i];
+
+        if (layer->type == CD_PROP_FLOAT2 && corners[i]) {
+          continue;
+        }
+
+        switch (layer->type) {
+          case CD_PROP_FLOAT:
+            corner_interp<float>(layer, l, loops, ws, layer->offset, factor);
+            break;
+          case CD_PROP_FLOAT2:
+            corner_interp<float2>(layer, l, loops, ws, layer->offset, factor);
+            break;
+          case CD_PROP_FLOAT3:
+            corner_interp<float3>(layer, l, loops, ws, layer->offset, factor);
+            break;
+          case CD_PROP_COLOR:
+            corner_interp<float4>(layer, l, loops, ws, layer->offset, factor);
+            break;
+        }
+      }
+    }
+
+    /* Snap. */
+    corner_snap.snap();
+  }
+}
+}  // namespace blender::bke::sculpt

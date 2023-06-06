@@ -364,6 +364,7 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int dest_index,
                                 int count);
 
+/* Swap attributes.  Does not respect CD_FLAG_ELEM_NOCOPY. */
 void CustomData_bmesh_swap_data(struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,

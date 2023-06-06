@@ -4074,6 +4074,11 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
 
       do {
         float w = 0.0f;
+        BMVert *v2 = BM_edge_other_vert(e, v);
+
+        if (*BM_ELEM_CD_PTR<uint8_t *>(v2, pbvh->cd_flag) & SCULPTFLAG_VERT_FSET_HIDDEN) {
+          continue;
+        }
 
         if (!e->l) {
           w = 0.0f;
@@ -4087,15 +4092,17 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
         }
 
         if (j >= valence) {
-          printf(
-              "%s: error, corrupt edge cycle, valence was %d expected %d\n", __func__, j, valence);
+          printf("%s: error, corrupt edge cycle, valence was %d expected %d\n",
+                 __func__,
+                 j + 1,
+                 valence);
+          uint8_t *flags = BM_ELEM_CD_PTR<uint8_t *>(v, pbvh->cd_flag);
+          *flags |= SCULPTFLAG_NEED_VALENCE;
           break;
         }
 
         r_areas[j++] = w;
-
-        e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
-      } while (e != v->e);
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
       for (; j < valence; j++) {
         r_areas[j] = 1.0f;

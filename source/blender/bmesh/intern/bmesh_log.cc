@@ -577,8 +577,8 @@ struct BMLogEntry {
     if (elem->head.htype != htype) {
       printf("%s: error: expected %s, got %s; id: %d\n",
              __func__,
-             get_elem_htype_str(elem->head.htype),
              get_elem_htype_str(htype),
+             get_elem_htype_str(elem->head.htype),
              id.id);
       return nullptr;
     }
@@ -637,6 +637,17 @@ struct BMLogEntry {
     }
 
     return static_cast<BMLogSetDiff *>(sets[sets.size() - 1]);
+  }
+
+  BMLogSetDiff *first_diff_set(BMesh *bm)
+  {
+    for (BMLogSetBase *set : sets) {
+      if (set->type == LOG_SET_DIFF) {
+        return static_cast<BMLogSetDiff *>(set);
+      }
+    }
+
+    return current_diff_set(bm);
   }
 
   void update_logvert(BMesh *bm, BMVert *v, BMLogVert *lv)
@@ -859,6 +870,29 @@ struct BMLogEntry {
   {
     current_diff_set(bm)->modify_face(bm, f);
   }
+  void modify_if_face(BMesh *bm, BMFace *f)
+  {
+    BMID<BMFace> id = get_elem_id(bm, f);
+
+    bool exists = 0;
+
+    for (int i = sets.size() - 1; i >= 0; i--) {
+      BMLogSetBase *set = sets[i];
+
+      if (set->type != LOG_SET_DIFF) {
+        continue;
+      }
+      // BMLogSetDiff *diff = current_diff_set(bm);
+      BMLogSetDiff *diff = static_cast<BMLogSetDiff *>(set);
+      if (diff->modified_faces.contains(id) || diff->removed_faces.contains(id) ||
+          diff->added_faces.contains(id))
+      {
+        return;
+      }
+    }
+
+    first_diff_set(bm)->modify_face(bm, f);
+  }
 
   void undo(BMesh *bm, BMLogCallbacks *callbacks)
   {
@@ -1054,6 +1088,12 @@ struct BMLog {
     current_entry->modify_face(bm, f);
   }
 
+  void modify_if_face(BMesh *bm, BMFace *f)
+  {
+    ensure_entry(bm);
+    current_entry->modify_if_face(bm, f);
+  }
+
   void full_mesh(BMesh *bm)
   {
     ensure_entry(bm);
@@ -1087,17 +1127,7 @@ void BMLogSetDiff::add_vert(BMesh *bm, BMVert *v)
   BMID<BMVert> id = entry->get_elem_id(bm, v);
 
   BMLogVert *lv = nullptr;
-  BMLogVert **modified_lv = modified_verts.lookup_ptr(id);
-
-  if (modified_lv) {
-    modified_verts.remove(id);
-    lv = *modified_lv;
-  }
-
   if (added_verts.contains(id)) {
-    if (lv) {
-      entry->free_logvert(lv);
-    }
     return;
   }
 
@@ -1151,15 +1181,7 @@ void BMLogSetDiff::add_edge(BMesh *bm, BMEdge *e)
   BMID<BMEdge> id = entry->get_elem_id(bm, e);
   BMLogEdge *le;
 
-  BMLogEdge **modified_le = modified_edges.lookup_ptr(id);
-  if (modified_le) {
-    le = *modified_le;
-    modified_edges.remove(id);
-  }
-  else {
-    le = entry->alloc_logedge(bm, e);
-  }
-
+  le = entry->alloc_logedge(bm, e);
   added_edges.add_or_modify(
       id, [&](BMLogEdge **le_out) { *le_out = le; }, [&](BMLogEdge **le_out) { *le_out = le; });
 }
@@ -1206,18 +1228,7 @@ void BMLogSetDiff::add_face(BMesh *bm, BMFace *f)
     return;
   }
 
-  BMLogFace *lf;
-
-  if (BMLogFace **ptr = modified_faces.lookup_ptr(id)) {
-    lf = *ptr;
-    modified_faces.remove(id);
-    entry->update_logface(bm, lf, f);
-  }
-  else {
-    lf = entry->alloc_logface(bm, f);
-  }
-
-  added_faces.add(id, lf);
+  added_faces.add(id, entry->alloc_logface(bm, f));
 }
 
 void BMLogSetDiff::remove_face(BMesh *bm, BMFace *f, bool no_check)
@@ -1701,6 +1712,10 @@ void BM_log_face_added(BMesh *bm, BMLog *log, BMFace *f)
 void BM_log_face_modified(BMesh *bm, BMLog *log, BMFace *f)
 {
   log->modify_face(bm, f);
+}
+void BM_log_face_if_modified(BMesh *bm, BMLog *log, BMFace *f)
+{
+  log->modify_if_face(bm, f);
 }
 void BM_log_face_removed(BMesh *bm, BMLog *log, BMFace *f)
 {

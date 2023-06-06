@@ -700,6 +700,16 @@ typedef struct BmeshUndoData {
   bool is_redo;
 } BmeshUndoData;
 
+static void bmesh_undo_vert_update(BmeshUndoData *data, BMVert *v, bool triangulate = false)
+{
+  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE;
+  if (triangulate) {
+    *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_TRIANGULATE;
+  }
+
+  BKE_sculpt_boundary_flag_update(data->ob->sculpt, {reinterpret_cast<intptr_t>(v)});
+}
+
 static void bmesh_undo_on_vert_kill(BMVert *v, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
@@ -730,14 +740,12 @@ static void bmesh_undo_on_vert_add(BMVert *v, void *userdata)
 
   data->balance_pbvh = true;
 
+  bmesh_undo_vert_update(data, v, true);
+
   /* Flag vert as unassigned to a PBVH node; it'll be added to pbvh when
    * its owning faces are.
    */
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
-
-  *(int *)BM_ELEM_CD_GET_VOID_P(v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
-                                                   SCULPTFLAG_NEED_TRIANGULATE;
 }
 
 static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
@@ -754,8 +762,7 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE;
-    *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
+    bmesh_undo_vert_update(data, l->v, true);
   } while ((l = l->next) != f->l_first);
 
   // data->do_full_recalc = true;
@@ -775,16 +782,9 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 
   BMLoop *l = f->l_first;
   do {
-    *(int *)BM_ELEM_CD_GET_VOID_P(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
-    *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE;
-
-    if (f->len > 3) {
-      *BM_ELEM_CD_PTR<uint8_t *>(l->v, data->cd_flags) |= SCULPTFLAG_NEED_TRIANGULATE;
-    }
+    bmesh_undo_vert_update(data, l->v, f->len > 3);
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
-
     if (ni_l < 0 && ni >= 0) {
       BM_ELEM_CD_SET_INT(l->v, ni_l, ni);
       DyntopoSet<BMVert> *bm_unique_verts = BKE_pbvh_bmesh_node_unique_verts(node);
@@ -807,7 +807,7 @@ static void bmesh_undo_full_mesh(void *userdata)
     BMVert *v;
 
     BM_ITER_MESH (v, &iter, data->bm, BM_VERTS_OF_MESH) {
-      BKE_pbvh_bmesh_update_valence(data->pbvh, BKE_pbvh_make_vref((intptr_t)v));
+      bmesh_undo_vert_update(data, v, true);
     }
 
     data->pbvh = nullptr;
@@ -826,31 +826,23 @@ static void bmesh_undo_on_edge_kill(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-  *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
-                                                       SCULPTFLAG_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
-                                                       SCULPTFLAG_NEED_TRIANGULATE;
+  bmesh_undo_vert_update(data, e->v1, true);
+  bmesh_undo_vert_update(data, e->v2, true);
 };
 ;
 static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  *(int *)BM_ELEM_CD_GET_VOID_P(e->v1, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-  *(int *)BM_ELEM_CD_GET_VOID_P(e->v2, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v1, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
-                                                       SCULPTFLAG_NEED_TRIANGULATE;
-  *BM_ELEM_CD_PTR<uint8_t *>(e->v2, data->cd_flags) |= SCULPTFLAG_NEED_VALENCE |
-                                                       SCULPTFLAG_NEED_TRIANGULATE;
+  bmesh_undo_vert_update(data, e->v1, true);
+  bmesh_undo_vert_update(data, e->v2, true);
 }
 
 static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_customdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
+
+  bmesh_undo_vert_update(data, v, false);
 
   if (!old_customdata) {
     BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);

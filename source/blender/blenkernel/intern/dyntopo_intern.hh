@@ -136,7 +136,6 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
  */
 #define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
 
-
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
 #endif
@@ -383,6 +382,9 @@ BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
  * to work in RelWithDebInfo builds.
  */
 //#define CHECKMESH
+namespace blender::bmesh {
+int bmesh_elem_check_all(void *elem, char htype);
+}
 
 enum eValidateVertFlags {
   CHECK_VERT_NONE = 0,
@@ -428,7 +430,6 @@ inline bool check_face_is_manifold(PBVH *, BMFace *)
   return true;
 }
 #else
-extern "C" int bmesh_elem_check_all(void *element, char htype);
 #  include <cstdarg>
 #  include <type_traits>
 
@@ -493,7 +494,7 @@ static const char *get_type_name(char htype)
 }
 }  // namespace blender::bke::dyntopo::debug
 
-extern "C" char *bm_get_err_str(int err);
+extern "C" const char *bm_get_error_str(int err);
 
 template<typename T = BMVert> ATTR_NO_OPT static bool validate_elem(PBVH *pbvh, T *elem)
 {
@@ -513,13 +514,13 @@ template<typename T = BMVert> ATTR_NO_OPT static bool validate_elem(PBVH *pbvh, 
     return false;
   }
 
-  int ret = bmesh_elem_check_all(static_cast<void *>(elem), get_type_htype<T>());
+  int ret = blender::bmesh::bmesh_elem_check_all(static_cast<void *>(elem), get_type_htype<T>());
 
   if (ret) {
     blender::bke::dyntopo::debug::debug_printf("%s (%p) failed integrity checks with code %s\n",
                                                get_type_name<T>(),
                                                elem,
-                                               bm_get_err_str(ret));
+                                               bm_get_error_str(ret));
     return false;
   }
 
@@ -536,7 +537,8 @@ ATTR_NO_OPT static bool check_face_is_manifold(PBVH *pbvh, BMFace *f)
     BMLoop *l2 = l;
     do {
       if (count++ > 10) {
-        blender::bke::dyntopo::debug::debug_printf("Face %p has highly non-manifold edge %p\n", f, l->e);
+        blender::bke::dyntopo::debug::debug_printf(
+            "Face %p has highly non-manifold edge %p\n", f, l->e);
         return false;
       }
     } while ((l2 = l2->radial_next) != l);
@@ -560,7 +562,8 @@ ATTR_NO_OPT static bool validate_face(PBVH *pbvh, BMFace *f, eValidateFaceFlags 
   int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
   if (ni < 0 || ni >= pbvh->totnode) {
     if (ni != DYNTOPO_NODE_NONE || flags & CHECK_FACE_NODE_ASSIGNED) {
-      //blender::bke::dyntopo::debug::debug_printf("face %p has corrupted node index %d\n", f, ni);
+      // blender::bke::dyntopo::debug::debug_printf("face %p has corrupted node index %d\n", f,
+      // ni);
       return false;
     }
     else {
@@ -570,7 +573,7 @@ ATTR_NO_OPT static bool validate_face(PBVH *pbvh, BMFace *f, eValidateFaceFlags 
 
   PBVHNode *node = &pbvh->nodes[ni];
   if (!(node->flag & PBVH_Leaf)) {
-    //printf("face %p has corrupted node index.", f);
+    // printf("face %p has corrupted node index.", f);
     return false;
   }
 
@@ -619,7 +622,8 @@ ATTR_NO_OPT static bool validate_vert(PBVH *pbvh, BMVert *v, eValidateVertFlags 
 
   if (ni < 0 || ni >= pbvh->totnode) {
     if (ni != DYNTOPO_NODE_NONE || flags & CHECK_VERT_NODE_ASSIGNED) {
-      //blender::bke::dyntopo::debug::debug_printf("vertex %p has corrupted node index %d\n", v, ni);
+      // blender::bke::dyntopo::debug::debug_printf("vertex %p has corrupted node index %d\n", v,
+      // ni);
       return false;
     }
     else {
@@ -629,7 +633,7 @@ ATTR_NO_OPT static bool validate_vert(PBVH *pbvh, BMVert *v, eValidateVertFlags 
 
   PBVHNode *node = &pbvh->nodes[ni];
   if (!(node->flag & PBVH_Leaf)) {
-    //printf("Vertex %p has corrupted node index.", v);
+    // printf("Vertex %p has corrupted node index.", v);
     return false;
   }
 

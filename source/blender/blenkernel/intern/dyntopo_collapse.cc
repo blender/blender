@@ -28,6 +28,7 @@
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_sculpt.h"
 
 #include "../../bmesh/intern/bmesh_collapse.hh"
 #include "bmesh.h"
@@ -44,7 +45,9 @@ using blender::float3;
 using blender::float4;
 using blender::IndexRange;
 using blender::Map;
+using blender::MutableSpan;
 using blender::Set;
+using blender::Span;
 using blender::Vector;
 
 namespace blender::bke::dyntopo {
@@ -453,7 +456,11 @@ static void vert_ring_do(BMesh *bm,
 bool pbvh_bmesh_collapse_edge_uvs(
     PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
 {
+  BMesh *bm = pbvh->header.bm;
+
   bm_logstack_push();
+  pbvh_check_vert_boundary(pbvh, v_conn);
+  pbvh_check_vert_boundary(pbvh, v_del);
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
@@ -485,7 +492,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
     return false;
   }
 
-  bool snap = !(boundflag2 & SCULPTVERT_ALL_CORNER);
+  bool snap = !(boundflag1 & SCULPTVERT_ALL_CORNER);
 
   /* Snap non-UV attributes. */
   if (snap) {
@@ -499,9 +506,10 @@ bool pbvh_bmesh_collapse_edge_uvs(
 
     const float v_ws[2] = {0.5f, 0.5f};
     const void *v_blocks[2] = {v_del->head.data, v_conn->head.data};
+    eCustomDataMask typemask = CD_MASK_PROP_ALL;
 
-    CustomData_bmesh_interp(
-        &pbvh->header.bm->vdata, v_blocks, v_ws, nullptr, 2, v_conn->head.data);
+    CustomData_bmesh_interp_ex(
+        &pbvh->header.bm->vdata, v_blocks, v_ws, nullptr, 2, v_conn->head.data, typemask);
 
     /* Restore node index. */
     BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
@@ -515,17 +523,116 @@ bool pbvh_bmesh_collapse_edge_uvs(
     }
   }
 
+#if 0
+  if (!e->l) {
+    return snap;
+  }
+
   /* Deal with UVs. */
-  if (e->l) {
-    BMLoop *l = e->l;
+  BMLoop *l = e->l;
+  float ws[2];
+  BMLoop *ls[2];
+  const void *blocks[2];
 
-    for (int step = 0; step < 2; step++) {
-      BMVert *v = step ? e->v2 : e->v1;
-      BMEdge *e2 = v->e;
+  do {
+    if (l->v == v_conn) {
+      ls[0] = l;
+      ls[1] = l->next;
+    }
+    else {
+      ls[0] = l->next;
+      ls[1] = l;
+    }
 
-      if (!e2) {
+    if (snap) {
+      ws[0] = ws[1] = 0.5f;
+    }
+    else {
+      ws[0] = l->v == v_conn ? 1.0f : 0.0f;
+      ws[1] = l->v == v_conn ? 0.0f : 0.0f;
+    }
+
+    blocks[0] = ls[0]->head.data;
+    blocks[1] = ls[1]->head.data;
+
+#  if 0
+    CustomData_bmesh_interp(&bm->ldata, blocks, ws, nullptr, 2, l->head.data);
+    CustomData_bmesh_copy_data(
+        &bm->ldata, &pbvh->header.bm->ldata, l->head.data, &l->next->head.data);
+#  else
+
+    PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v_conn)};
+    blender::bke::sculpt::interp_face_corners(
+        pbvh, vertex, Span<BMLoop *>(ls, 2), Span<float>(ws, 2), 1.0f);
+#  endif
+  } while ((l = l->radial_next) != e->l);
+
+  return snap;
+#endif
+
+  const float limit = 0.005;
+  BMLoop *l = e->l;
+
+  for (int step = 0; step < 2; step++) {
+    BMVert *v = step ? e->v2 : e->v1;
+    BMEdge *e2 = v->e;
+
+    if (!e2) {
+      continue;
+    }
+
+    do {
+      BMLoop *l2 = e2->l;
+
+      if (!l2) {
         continue;
       }
+
+      do {
+        BMLoop *l3 = l2->v != v ? l2->next : l2;
+
+        /* store visit bits for each uv layer in l3->head.index */
+        l3->head.index = 0;
+      } while ((l2 = l2->radial_next) != e2->l);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+  }
+
+  float(*uv)[2] = static_cast<float(*)[2]>(BLI_array_alloca(uv, 4 * totuv));
+
+  l = e->l;
+  if (!l) {
+    return snap;
+  }
+
+  do {
+    const void *ls2[2] = {l->head.data, l->next->head.data};
+    float ws2[2] = {0.5f, 0.5f};
+
+    if (!snap) {
+      const int axis = l->v == v_del ? 0 : 1;
+
+      ws2[axis] = 0.0f;
+      ws2[axis ^ 1] = 1.0f;
+    }
+
+    for (int step = 0; uv_layer && step < 2; step++) {
+      BMLoop *l1 = step ? l : l->next;
+
+      for (int k = 0; k < totuv; k++) {
+        float *luv = (float *)BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
+
+        copy_v2_v2(uv[k * 2 + step], luv);
+      }
+    }
+
+    CustomData_bmesh_interp(&pbvh->header.bm->ldata, ls2, ws2, nullptr, 2, l->head.data);
+    CustomData_bmesh_copy_data(
+        &pbvh->header.bm->ldata, &pbvh->header.bm->ldata, l->head.data, &l->next->head.data);
+
+    for (int step = 0; totuv >= 0 && step < 2; step++) {
+      BMVert *v = step ? l->next->v : l->v;
+      BMLoop *l1 = step ? l->next : l;
+      BMEdge *e2 = v->e;
 
       do {
         BMLoop *l2 = e2->l;
@@ -537,85 +644,36 @@ bool pbvh_bmesh_collapse_edge_uvs(
         do {
           BMLoop *l3 = l2->v != v ? l2->next : l2;
 
-          /* store visit bits for each uv layer in l3->head.index */
-          l3->head.index = 0;
-        } while ((l2 = l2->radial_next) != e2->l);
-      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-    }
-
-    float(*uv)[2] = static_cast<float(*)[2]>(BLI_array_alloca(uv, 4 * totuv));
-
-    do {
-      const void *ls2[2] = {l->head.data, l->next->head.data};
-      float ws2[2] = {0.5f, 0.5f};
-
-      if (!snap) {
-        const int axis = l->v == v_del ? 0 : 1;
-
-        ws2[axis] = 0.0f;
-        ws2[axis ^ 1] = 1.0f;
-      }
-
-      for (int step = 0; uv_layer && step < 2; step++) {
-        BMLoop *l1 = step ? l : l->next;
-
-        for (int k = 0; k < totuv; k++) {
-          float *luv = (float *)BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
-
-          copy_v2_v2(uv[k * 2 + step], luv);
-        }
-      }
-
-      CustomData_bmesh_interp(&pbvh->header.bm->ldata, ls2, ws2, nullptr, 2, l->head.data);
-      CustomData_bmesh_copy_data(
-          &pbvh->header.bm->ldata, &pbvh->header.bm->ldata, l->head.data, &l->next->head.data);
-
-      for (int step = 0; totuv >= 0 && step < 2; step++) {
-        BMVert *v = step ? l->next->v : l->v;
-        BMLoop *l1 = step ? l->next : l;
-        BMEdge *e2 = v->e;
-
-        do {
-          BMLoop *l2 = e2->l;
-
-          if (!l2) {
+          if (!l3 || l3 == l1 || l3 == l || l3 == l->next) {
             continue;
           }
 
-          do {
-            BMLoop *l3 = l2->v != v ? l2->next : l2;
+          for (int k = 0; k < totuv; k++) {
+            const int flag = 1 << k;
 
-            if (!l3 || l3 == l1 || l3 == l || l3 == l->next) {
+            if (l3->head.index & flag) {
               continue;
             }
 
-            for (int k = 0; k < totuv; k++) {
-              const int flag = 1 << k;
+            const int cd_uv = uv_layer[k].offset;
 
-              if (l3->head.index & flag) {
-                continue;
-              }
+            float *luv1 = (float *)BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
+            float *luv2 = (float *)BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
 
-              const int cd_uv = uv_layer[k].offset;
+            float dx = luv2[0] - uv[k * 2 + step][0];
+            float dy = luv2[1] - uv[k * 2 + step][1];
 
-              float *luv1 = (float *)BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
-              float *luv2 = (float *)BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
+            float delta = dx * dx + dy * dy;
 
-              float dx = luv2[0] - uv[k * 2 + step][0];
-              float dy = luv2[1] - uv[k * 2 + step][1];
-
-              float delta = dx * dx + dy * dy;
-
-              if (delta < 0.001) {
-                l3->head.index |= flag;
-                copy_v2_v2(luv2, luv1);
-              }
+            if (delta < limit) {
+              l3->head.index |= flag;
+              copy_v2_v2(luv2, luv1);
             }
-          } while ((l2 = l2->radial_next) != e2->l);
-        } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-      }
-    } while ((l = l->radial_next) != e->l);
-  }
+          }
+        } while ((l2 = l2->radial_next) != e2->l);
+      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+    }
+  } while ((l = l->radial_next) != e->l);
 
   bm_logstack_pop();
   return snap;
@@ -651,7 +709,7 @@ class DyntopoCollapseCallbacks {
   inline void on_vert_create(BMVert *v)
   {
     dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
-
+    pbvh_boundary_update_bmesh(pbvh, v);
     check_new_elem_id(v, pbvh);
     BM_log_vert_added(bm, pbvh->bm_log, v);
   }
@@ -666,6 +724,11 @@ class DyntopoCollapseCallbacks {
     BM_log_face_added(bm, pbvh->bm_log, f);
     BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
     BKE_pbvh_bmesh_add_face(pbvh, f, false, false);
+
+    BMLoop *l = f->l_first;
+    do {
+      pbvh_boundary_update_bmesh(pbvh, l->v);
+    } while ((l = l->next) != f->l_first);
   }
 };
 
@@ -713,22 +776,30 @@ BMVert *pbvh_bmesh_collapse_edge(
     return nullptr;
   }
 
-  /* one of the two vertices may be masked, select the correct one for deletion */
-  if (!(boundflag1 & SCULPTVERT_ALL_CORNER) || DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
-                                                   DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2))
-  {
+  float w1 = DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1);
+  float w2 = DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2);
+
+  bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
+  bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
+
+  if (corner1 && corner2) {
+    return nullptr;
+  }
+
+  /* One of the two vertices may be masked or a corner,
+   * select the correct one for deletion.
+   */
+  if (corner2 && !corner1) {
     v_del = v1;
     v_conn = v2;
   }
   else {
     v_del = v2;
     v_conn = v1;
-
-    SWAP(int, boundflag1, boundflag2);
   }
 
   /* Don't collapse across boundaries. */
-  if ((boundflag1 & SCULPTVERT_ALL_CORNER) ||
+  if (boundflag2 != 0 &&
       (boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY))
   {
     bm_logstack_pop();
@@ -779,19 +850,8 @@ BMVert *pbvh_bmesh_collapse_edge(
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   BMEdge *e2;
-  if (!uvs_snapped) {
-    float co[3];
-
-    copy_v3_v3(co, v_conn->co);
-    copy_v3_v3(v_conn->co, co);
-  }
-  else {
-    float co[3];
-
-    add_v3_v3v3(co, v_del->co, v_conn->co);
-    mul_v3_fl(co, 0.5f);
-
-    copy_v3_v3(v_conn->co, co);
+  if (uvs_snapped) {
+    interp_v3_v3v3(v_conn->co, v_del->co, v_conn->co, 0.5f);
   }
 
   /* Full non-manifold collapse. */
@@ -812,6 +872,16 @@ BMVert *pbvh_bmesh_collapse_edge(
                vert_ring_maxdepth);
 #endif
 
+  if (BM_elem_is_free((BMElem *)v_conn, BM_VERT)) {
+    printf("v_conn was freed\n");
+    return nullptr;
+  }
+
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
+
+  pbvh_boundary_update_bmesh(pbvh, v_conn);
+  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
+
   if (!v_conn->e) {
     printf("%s: pbvh error, v_conn->e was null\n", __func__);
     return v_conn;
@@ -822,43 +892,53 @@ BMVert *pbvh_bmesh_collapse_edge(
     do {
       validate_edge(pbvh, e2);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
-  }
-  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
-  /* Flag boundaries for update. */
-  e2 = v_conn->e;
-  do {
-    BMLoop *l = e2->l;
-
-    if (!l) {
-      continue;
-    }
-
+    /* Flag boundaries for update. */
+    e2 = v_conn->e;
     do {
-      BMLoop *l2 = l->f->l_first;
+      BMLoop *l = e2->l;
+
+      if (!l) {
+        BMVert *v2 = BM_edge_other_vert(e2, v_conn);
+        pbvh_boundary_update_bmesh(pbvh, v2);
+        dyntopo_add_flag(pbvh, v2, mupdateflag);
+        continue;
+      }
+
       do {
-        pbvh_boundary_update_bmesh(pbvh, l2->v);
-        dyntopo_add_flag(pbvh, l2->v, mupdateflag);
-      } while ((l2 = l2->next) != l->f->l_first);
-    } while ((l = l->radial_next) != e2->l);
-  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+        BMLoop *l2 = l->f->l_first;
+        do {
+          pbvh_boundary_update_bmesh(pbvh, l2->v);
+          dyntopo_add_flag(pbvh, l2->v, mupdateflag);
+        } while ((l2 = l2->next) != l->f->l_first);
+      } while ((l = l->radial_next) != e2->l);
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+  }
 
   pbvh_bmesh_check_nodes(pbvh);
 
-  if (!v_conn) {
-    bm_logstack_pop();
-    return nullptr;
-  }
-
-  if (0) {  // XXX v_conn->e && !v_conn->e->l) {
-    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, v_conn->e);
-    if (BM_idmap_get_id(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e)) != BM_ID_NONE) {
-      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn->e), true);
+#if 0
+  /* Destroy wire edges */
+  Vector<BMEdge *, 16> es;
+  e2 = v_conn->e;
+  do {
+    if (!e2->l) {
+      es.append(e2);
     }
-    BM_edge_kill(pbvh->header.bm, v_conn->e);
+  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+
+  for (BMEdge *e2 : es) {
+    BMVert *v2 = BM_edge_other_vert(e2, v_conn);
+
+    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e2);
+    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e2), true);
+    BM_edge_kill(pbvh->header.bm, e2);
+
+    dyntopo_add_flag(pbvh, v2, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+    BKE_sculpt_boundary_flag_update(eq_ctx->ss, {reinterpret_cast<intptr_t>(v2)});
   }
 
-  if (0) {  // XXX !v_conn->e) {
+  if (!v_conn->e) {
     /* Delete isolated vertex. */
     if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
       blender::bke::dyntopo::pbvh_bmesh_vert_remove(pbvh, v_conn);
@@ -871,9 +951,7 @@ BMVert *pbvh_bmesh_collapse_edge(
     bm_logstack_pop();
     return nullptr;
   }
-
-  pbvh_boundary_update_bmesh(pbvh, v_conn);
-  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
+#endif
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
     printf("%s: error: failed to remove vert from pbvh?  v_conn->e: %p v_conn->e->l\n",
@@ -882,8 +960,14 @@ BMVert *pbvh_bmesh_collapse_edge(
            v_conn->e ? v_conn->e->l : nullptr);
   }
 
+  validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
+
   if (v_conn) {
     check_for_fins(pbvh, v_conn);
+
+    if (BM_elem_is_free((BMElem *)v_conn, BM_VERT)) {
+      v_conn = nullptr;
+    }
   }
 
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);

@@ -1123,6 +1123,10 @@ void SCULPT_cloth_brush_simulation_init(SculptSession *ss, SculptClothSimulation
   const int totverts = SCULPT_vertex_count_get(ss);
   const bool has_deformation_pos = cloth_sim->deformation_pos != nullptr;
   const bool has_softbody_pos = cloth_sim->softbody_pos != nullptr;
+
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
+
   for (int i = 0; i < totverts; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 

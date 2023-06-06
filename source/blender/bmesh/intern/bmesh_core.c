@@ -400,7 +400,7 @@ BMFace *BM_face_copy(
  *
  * \note Caller needs to handle customdata.
  */
-static ATTR_NO_OPT BMFace *bm_face_create__internal(BMesh *bm)
+static BMFace *bm_face_create__internal(BMesh *bm)
 {
   BMFace *f;
 

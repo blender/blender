@@ -1902,7 +1902,8 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     PBVHVertRef index,
                                     float projection,
                                     float hard_corner_pin,
-                                    bool weighted);
+                                    bool weighted,
+                                    float factor = 1.0f);
 float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef index);
 
@@ -1914,11 +1915,13 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float projection,
                                              float hard_corner_pin,
                                              bool use_area_weights,
-                                             bool smooth_origco = false);
+                                             bool smooth_origco = false,
+                                             float factor = 1.0f);
 
 BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
 {
-  return ss->reproject_smooth && ss->bm; // && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
+  return ss->reproject_smooth &&
+         ss->bm;  // && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
 }
 
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
