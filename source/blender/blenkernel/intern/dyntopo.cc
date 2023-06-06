@@ -226,9 +226,8 @@ ATTR_NO_OPT static void surface_smooth_v_safe(
   /* Reproject attributes. */
   if (reproject_cdata) {
     BKE_sculpt_reproject_cdata(ss, vertex, startco, startno, false);
+    blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac);
   }
-
-  blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac);
 
   float *start_origco = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 
