@@ -114,39 +114,23 @@ AnimData *BKE_animdata_ensure_id(ID *id)
   return NULL;
 }
 
-/* Action Setter --------------------------------------- */
-
-bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
+/* Action / Tmpact Setter shared code -------------------------
+ *
+ * Both the action and tmpact setter functions have essentially
+ * identical semantics, because tmpact is just a place to temporarily
+ * store the main action during tweaking.  This function contains the
+ * shared code between those two setter functions, setting the action
+ * of the passed `act_slot` to `act`.
+ *
+ * Preconditions:
+ * - `id` and `act_slot` must be non-null (but the pointer `act_slot`
+ *   points to can be null).
+ * - `id` must have animation data.
+ * - `act_slot` must be a pointer to either the `action` or `tmpact`
+ *   field of `id`'s animation data.
+ */
+static bool animdata_set_action(ReportList *reports, ID *id, bAction **act_slot, bAction *act)
 {
-  AnimData *adt = BKE_animdata_from_id(id);
-
-  /* Animdata validity check. */
-  if (adt == NULL) {
-    BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
-    return false;
-  }
-
-  if (adt->action == act) {
-    /* Don't bother reducing and increasing the user count when there is nothing changing. */
-    return true;
-  }
-
-  if (!BKE_animdata_action_editable(adt)) {
-    /* Cannot remove, otherwise things turn to custard. */
-    BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
-    return false;
-  }
-
-  /* Unassign current action. */
-  if (adt->action) {
-    id_us_min((ID *)adt->action);
-    adt->action = NULL;
-  }
-
-  if (act == NULL) {
-    return true;
-  }
-
   /* Action must have same type as owner. */
   if (!BKE_animdata_action_ensure_idroot(id, act)) {
     /* Cannot set to this type. */
@@ -160,10 +144,57 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
-  adt->action = act;
-  id_us_plus((ID *)adt->action);
+  if (*act_slot == act) {
+    /* Don't bother reducing and increasing the user count when there is nothing changing. */
+    return true;
+  }
+
+  /* Unassign current action. */
+  if (*act_slot) {
+    id_us_min((ID *)*act_slot);
+    *act_slot = NULL;
+  }
+
+  if (act == NULL) {
+    return true;
+  }
+
+  *act_slot = act;
+  id_us_plus((ID *)*act_slot);
 
   return true;
+}
+
+/* Tmpact Setter --------------------------------------- */
+bool BKE_animdata_set_tmpact(ReportList *reports, ID *id, bAction *act)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+
+  if (adt == NULL) {
+    BKE_report(reports, RPT_WARNING, "No AnimData to set tmpact on");
+    return false;
+  }
+
+  return animdata_set_action(reports, id, &adt->tmpact, act);
+}
+
+/* Action Setter --------------------------------------- */
+bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+
+  if (adt == NULL) {
+    BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
+    return false;
+  }
+
+  if (!BKE_animdata_action_editable(adt)) {
+    /* Cannot remove, otherwise things turn to custard. */
+    BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
+    return false;
+  }
+
+  return animdata_set_action(reports, id, &adt->action, act);
 }
 
 bool BKE_animdata_action_editable(const AnimData *adt)
