@@ -1891,10 +1891,12 @@ bool gpu::MTLTexture::texture_is_baked()
 /* Prepare texture parameters after initialization, but before baking. */
 void gpu::MTLTexture::prepare_internal()
 {
-  /* Derive implicit usage flags for Depth/Stencil attachments. */
-  if (format_flag_ & GPU_FORMAT_DEPTH || format_flag_ & GPU_FORMAT_STENCIL) {
-    gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
-  }
+  /* Metal: Texture clearing is done using frame-buffer clear. This has no performance impact or
+   * bandwidth implications for lossless compression and is considered best-practise.
+   *
+   * Attachment usage also required for depth-stencil attachment targets, for depth-update support.
+   */
+  gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Derive maximum number of mip levels by default.
    * TODO(Metal): This can be removed if max mip counts are specified upfront. */
