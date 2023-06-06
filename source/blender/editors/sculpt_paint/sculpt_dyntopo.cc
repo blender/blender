@@ -290,10 +290,10 @@ static void SCULPT_dynamic_topology_disable_ex(
   Mesh *me = static_cast<Mesh *>(ob->data);
 
   /* Destroy temporary layers. */
-  BKE_sculpt_attribute_destroy_temporary_all(ob);
+  //BKE_sculpt_attribute_destroy_temporary_all(ob);
 
   if (ss->attrs.dyntopo_node_id_vertex) {
-    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+    //BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
   }
 
   if (ss->attrs.dyntopo_node_id_face) {

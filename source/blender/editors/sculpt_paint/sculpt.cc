@@ -2456,11 +2456,10 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   if (use_original && data->has_bm_orco) {
     PBVHTriBuf *tribuf = BKE_pbvh_bmesh_get_tris(ss->pbvh, data->nodes[n]);
 
-    for (int i = 0; i < tribuf->tottri; i++) {
-      PBVHTri *tri = tribuf->tris + i;
-      PBVHVertRef v1 = tribuf->verts[tri->v[0]];
-      PBVHVertRef v2 = tribuf->verts[tri->v[1]];
-      PBVHVertRef v3 = tribuf->verts[tri->v[2]];
+    for (PBVHTri &tri : tribuf->tris) {
+      PBVHVertRef v1 = tribuf->verts[tri.v[0]];
+      PBVHVertRef v2 = tribuf->verts[tri.v[1]];
+      PBVHVertRef v3 = tribuf->verts[tri.v[2]];
 
       const float *co_tri[3] = {
           SCULPT_vertex_origco_get(ss, v1),

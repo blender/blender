@@ -139,11 +139,12 @@ typedef struct PBVHTri {
 } PBVHTri;
 
 typedef struct PBVHTriBuf {
-  PBVHTri *tris;
-  PBVHVertRef *verts;
-  int *edges;
-  int totvert, totedge, tottri;
-  int verts_size, edges_size, tris_size;
+  blender::Vector<PBVHTri> tris;
+  blender::Vector<PBVHVertRef> verts;
+  blender::Vector<int> edges;
+  blender::Vector<uintptr_t> loops;
+
+  int mat_nr = 0;
 
 #  ifdef __cplusplus
   blender::Map<void *, int> vertmap;
@@ -151,9 +152,6 @@ typedef struct PBVHTriBuf {
   void *vertmap;
 #  endif
 
-  // private field
-  intptr_t *loops;
-  int totloop, mat_nr;
   float min[3], max[3];
 } PBVHTriBuf;
 #else

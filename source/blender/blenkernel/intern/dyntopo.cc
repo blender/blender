@@ -70,7 +70,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     PBVHTopologyUpdateMode local_mode);
 
-ATTR_NO_OPT static void surface_smooth_v_safe(
+static void surface_smooth_v_safe(
     SculptSession *ss, PBVH *pbvh, BMVert *v, float fac, bool reproject_cdata)
 {
   float co[3];
@@ -778,8 +778,8 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
 #endif
 
   PBVHTriBuf *tribuf = node->tribuf;
-  for (int i = 0; i < node->tribuf->tottri; i++) {
-    PBVHTri *tri = node->tribuf->tris + i;
+  for (int i = 0; i < node->tribuf->tris.size(); i++) {
+    PBVHTri *tri = &node->tribuf->tris[i];
     BMFace *f = (BMFace *)tri->f.i;
 
     if (f->head.hflag & facetag) {
@@ -2200,7 +2200,7 @@ bool EdgeQueueContext::done()
   return totop == 0 || edge_heap.empty() || current_i >= max_steps;
 }
 
-ATTR_NO_OPT void EdgeQueueContext::finish()
+void EdgeQueueContext::finish()
 {
   while (!edge_heap.empty()) {
     BMEdge *e = edge_heap.pop_max();
@@ -2569,7 +2569,7 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
 }
 
 namespace blender::bke::dyntopo {
-ATTR_NO_OPT static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
+static void pbvh_split_edge(EdgeQueueContext *eq_ctx, BMEdge *e)
 {
   PBVH *pbvh = eq_ctx->pbvh;
   BMesh *bm = pbvh->header.bm;
@@ -3907,7 +3907,7 @@ void BKE_sculpt_reproject_cdata(
   snapper.snap();
   return;
 
-  //XXX delete the below code after testing new snap code.
+  // XXX delete the below code after testing new snap code.
 
   /* Re-snap uvs. */
   v = (BMVert *)vertex.i;

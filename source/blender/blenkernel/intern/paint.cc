@@ -3418,7 +3418,8 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
         attr->data = nullptr;
       }
       else {
-        attr->data = cdata->layers[layer_index].data;
+        attr->data = CustomData_get_layer_named_for_write(
+            cdata, attr->proptype, attr->name, elem_num);
       }
     }
 
@@ -3426,8 +3427,22 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
       if (attr->params.nocopy) {
         cdata->layers[layer_index].flag |= CD_FLAG_ELEM_NOCOPY;
       }
+      else {
+        cdata->layers[layer_index].flag &= ~CD_FLAG_ELEM_NOCOPY;
+      }
+
       if (attr->params.nointerp) {
         cdata->layers[layer_index].flag |= CD_FLAG_ELEM_NOINTERP;
+      }
+      else {
+        cdata->layers[layer_index].flag &= ~CD_FLAG_ELEM_NOINTERP;
+      }
+
+      if (attr->params.permanent) {
+        cdata->layers[layer_index].flag &= ~(CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY);
+      }
+      else {
+        cdata->layers[layer_index].flag |= CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
       }
     }
   }
@@ -3549,14 +3564,16 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
       if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES ||
           (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && domain == ATTR_DOMAIN_FACE))
       {
-        attr->data = cdata->layers[index].data;
+        attr->data = CustomData_get_layer_named_for_write(
+            cdata, attr->proptype, attr->name, totelem);
       }
 
+      attr->params.nointerp = cdata->layers[index].flag & CD_FLAG_ELEM_NOINTERP;
+      attr->params.nocopy = cdata->layers[index].flag & CD_FLAG_ELEM_NOCOPY;
       attr->params.permanent = !(cdata->layers[index].flag & CD_FLAG_TEMPORARY);
       attr->used = true;
       attr->domain = domain;
       attr->proptype = proptype;
-      attr->data = cdata->layers[index].data;
       attr->bmesh_cd_offset = cdata->layers[index].offset;
       attr->elem_num = totelem;
       attr->layer = cdata->layers + index;
@@ -3584,6 +3601,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
   if (attr) {
     attr->params.nocopy = params->nocopy;
     attr->params.nointerp = params->nointerp;
+    attr->params.permanent = params->permanent;
 
     sculpt_attr_update(ob, attr);
 
@@ -3903,7 +3921,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);
-
+  ;
   if (attr->simple_array) {
     MEM_SAFE_FREE(attr->data);
   }
@@ -3940,12 +3958,12 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
     if (layer_i != 0) {
       CustomData_free_layer(cdata, attr->proptype, totelem, layer_i);
     }
-
-    sculpt_attribute_update_refs(ob);
   }
 
   attr->data = nullptr;
   attr->used = false;
+
+  sculpt_attribute_update_refs(ob);
 
   return true;
 }

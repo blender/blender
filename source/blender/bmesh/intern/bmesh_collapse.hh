@@ -534,8 +534,8 @@ BMVert *join_vert_kill_edge(BMesh *bm,
   /* Destroy any valence-3 verts that might turn into non-manifold "fins." */
   bmesh_kernel_check_val3_vert<Callbacks>(bm, e, callbacks);
 
-  Set<BMEdge *> es;
-  Set<BMFace *> fs;
+  Set<BMEdge *, 32> es;
+  Set<BMFace *, 32> fs;
 
   const int dup_tag = _FLAG_OVERLAP;
 

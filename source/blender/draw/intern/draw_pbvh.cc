@@ -53,6 +53,8 @@
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
 
+#define USE_BMESH_INDEX_BUFFERS
+
 using blender::char3;
 using blender::float2;
 using blender::float3;
@@ -213,7 +215,7 @@ struct PBVHBatches {
         break;
       }
       case PBVH_BMESH: {
-        count = args->tribuf->tottri;
+        count = args->tribuf->tris.size();
       }
     }
 
@@ -223,10 +225,6 @@ struct PBVHBatches {
   PBVHBatches(PBVH_GPU_Args *args)
   {
     faces_count = count_faces(args);
-
-    if (args->pbvh_type == PBVH_BMESH) {
-      tris_count = faces_count;
-    }
   }
 
   ~PBVHBatches()
@@ -314,13 +312,37 @@ struct PBVHBatches {
   PBVHBatch &ensure_batch(PBVHAttrReq *attrs,
                           int attrs_num,
                           PBVH_GPU_Args *args,
-                          bool do_coarse_grids)
+                          bool do_coarse_grids,
+                          bool need_lines = false)
   {
     if (!has_batch(attrs, attrs_num, do_coarse_grids)) {
-      create_batch(attrs, attrs_num, args, do_coarse_grids);
+      create_batch(attrs, attrs_num, args, do_coarse_grids, need_lines);
     }
 
-    return batches.lookup(build_key(attrs, attrs_num, do_coarse_grids));
+    PBVHBatch &batch = batches.lookup(build_key(attrs, attrs_num, do_coarse_grids));
+
+    if (need_lines && !lines_count) {
+      if (lines_index) {
+        GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+        lines_index = nullptr;
+      }
+
+      check_index_buffers(args, true);
+
+      for (PBVHBatch &batch : batches.values()) {
+        GPU_BATCH_DISCARD_SAFE(batch.lines);
+
+        batch.lines = GPU_batch_create(
+            GPU_PRIM_LINES, nullptr, do_coarse_grids ? lines_index_coarse : lines_index);
+        batch.lines_count = do_coarse_grids ? lines_count_coarse : lines_count;
+
+        for (PBVHVbo &vbo : vbos) {
+          GPU_batch_vertbuf_add(batch.lines, vbo.vert_buf, false);
+        }
+      }
+    }
+
+    return batch;
   }
 
   void fill_vbo_normal_faces(
@@ -749,7 +771,7 @@ struct PBVHBatches {
 
   void update(PBVH_GPU_Args *args)
   {
-    check_index_buffers(args);
+    check_index_buffers(args, false);
 
     for (PBVHVbo &vbo : vbos) {
       fill_vbo(vbo, args);
@@ -758,8 +780,16 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
+#ifdef USE_BMESH_INDEX_BUFFERS
     auto foreach_bmesh = [&](std::function<void(BMLoop * l)> callback) {
-      for (int i : IndexRange(args->tribuf->tottri)) {
+      for (int i : IndexRange(args->tribuf->loops.size())) {
+        BMLoop *l = reinterpret_cast<BMLoop *>(args->tribuf->loops[i]);
+        callback(l);
+      }
+    };
+#else
+    auto foreach_bmesh = [&](std::function<void(BMLoop * l)> callback) {
+      for (int i : IndexRange(args->tribuf->tris.size())) {
         PBVHTri *tri = args->tribuf->tris + i;
         BMFace *f = reinterpret_cast<BMFace *>(tri->f.i);
 
@@ -772,13 +802,23 @@ struct PBVHBatches {
         }
       }
     };
+#endif
 
-    faces_count = tris_count = args->tribuf->tottri;
+#ifdef USE_BMESH_INDEX_BUFFERS
+    int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
+    void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
+
+    int vert_count = args->tribuf->loops.size();
+
+    // printf("%s: vert_count: %d of %d possible\n", __func__, vert_count, tris_count * 3);
+#else
+    faces_count = tris_count = args->tribuf->tris.size();
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
 
     int vert_count = tris_count * 3;
+#endif
 
     if (existing_data == nullptr || existing_num != vert_count) {
       /* Allocate buffer if not allocated yet or size changed. */
@@ -1124,9 +1164,17 @@ struct PBVHBatches {
       int count = count_faces(args);
 
       if (faces_count != count) {
+        for (PBVHBatch &batch : batches.values()) {
+          GPU_BATCH_DISCARD_SAFE(batch.tris);
+          GPU_BATCH_DISCARD_SAFE(batch.lines);
+        }
+
         for (PBVHVbo &vbo : vbos) {
           vbo.clear_data();
         }
+
+        vbos.clear();
+        batches.clear();
 
         GPU_INDEXBUF_DISCARD_SAFE(tri_index);
         GPU_INDEXBUF_DISCARD_SAFE(lines_index);
@@ -1134,7 +1182,8 @@ struct PBVHBatches {
         GPU_INDEXBUF_DISCARD_SAFE(lines_index_coarse);
 
         tri_index = lines_index = tri_index_coarse = lines_index_coarse = nullptr;
-        faces_count = tris_count = count;
+        faces_count = count;
+        tris_count = lines_count = 0;
       }
     }
   }
@@ -1209,36 +1258,61 @@ struct PBVHBatches {
     lines_index = GPU_indexbuf_build(&elb_lines);
   }
 
-  void create_index_bmesh(PBVH_GPU_Args *args)
+  void create_index_bmesh_lines(PBVH_GPU_Args *args)
   {
+    printf("%s: Creating line index buffer\n", __func__);
+
     GPUIndexBufBuilder elb_lines;
-    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, tris_count * 3 * 2, INT_MAX);
+    GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, args->tribuf->edges.size(), INT_MAX);
 
-    int v_index = 0;
-    lines_count = 0;
-
-    for (int i : IndexRange(args->tribuf->tottri)) {
-      PBVHTri *tri = args->tribuf->tris + i;
-
-      if (tri->eflag & 1) {
-        GPU_indexbuf_add_line_verts(&elb_lines, v_index, v_index + 1);
-        lines_count++;
-      }
-
-      if (tri->eflag & 2) {
-        GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
-        lines_count++;
-      }
-
-      if (tri->eflag & 4) {
-        GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index);
-        lines_count++;
-      }
-
-      v_index += 3;
+    int edges_size = args->tribuf->edges.size();
+    for (int i = 0; i < edges_size; i += 2) {
+      int v1 = args->tribuf->edges[i], v2 = args->tribuf->edges[i + 1];
+      GPU_indexbuf_add_line_verts(&elb_lines, v1, v2);
     }
 
     lines_index = GPU_indexbuf_build(&elb_lines);
+    lines_count = args->tribuf->edges.size() * 2;
+  }
+
+  void create_index_bmesh_faces(PBVH_GPU_Args *args)
+  {
+    GPUIndexBufBuilder elb_tris;
+    GPU_indexbuf_init(&elb_tris, GPU_PRIM_TRIS, args->tribuf->tris.size(), args->tribuf->verts.size());
+    needs_tri_index = true;
+
+    for (int i = 0; i < args->tribuf->tris.size(); i++) {
+      PBVHTri *tri = &args->tribuf->tris[i];
+      GPU_indexbuf_add_tri_verts(&elb_tris, tri->v[0], tri->v[1], tri->v[2]);
+    }
+
+    tris_count = args->tribuf->tris.size();
+    tri_index = GPU_indexbuf_build(&elb_tris);
+  }
+
+  void create_index_bmesh(PBVH_GPU_Args *args, bool need_lines)
+  {
+    if (!tri_index) {
+      create_index_bmesh_faces(args);
+    }
+
+    if (need_lines && !lines_count && lines_index) {
+      GPU_INDEXBUF_DISCARD_SAFE(lines_index);
+      lines_index = nullptr;
+    }
+
+    if (!lines_index) {
+      if (need_lines) {
+        create_index_bmesh_lines(args);
+      }
+      else {
+        GPUIndexBufBuilder elb_lines;
+        GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, 0, INT_MAX);
+
+        lines_index = GPU_indexbuf_build(&elb_lines);
+        lines_count = 0;
+      }
+    }
   }
 
   void create_index_grids(PBVH_GPU_Args *args, bool do_coarse)
@@ -1410,14 +1484,14 @@ struct PBVHBatches {
     }
   }
 
-  void create_index(PBVH_GPU_Args *args)
+  void create_index(PBVH_GPU_Args *args, bool need_lines)
   {
     switch (args->pbvh_type) {
       case PBVH_FACES:
         create_index_faces(args);
         break;
       case PBVH_BMESH:
-        create_index_bmesh(args);
+        create_index_bmesh(args, need_lines);
         break;
       case PBVH_GRIDS:
         create_index_grids(args, false);
@@ -1438,22 +1512,26 @@ struct PBVHBatches {
         batch.tris->flag |= GPU_BATCH_DIRTY;
       }
 
-      if (lines_index) {
+      if (batch.lines && lines_index) {
         GPU_batch_elembuf_set(batch.lines, lines_index, false);
       }
     }
   }
 
-  void check_index_buffers(PBVH_GPU_Args *args)
+  void check_index_buffers(PBVH_GPU_Args *args, bool need_lines)
   {
-    if (!lines_index) {
-      create_index(args);
+    if (!tri_index || (need_lines && !lines_index)) {
+      create_index(args, need_lines);
     }
   }
 
-  void create_batch(PBVHAttrReq *attrs, int attrs_num, PBVH_GPU_Args *args, bool do_coarse_grids)
+  void create_batch(PBVHAttrReq *attrs,
+                    int attrs_num,
+                    PBVH_GPU_Args *args,
+                    bool do_coarse_grids,
+                    bool need_lines)
   {
-    check_index_buffers(args);
+    check_index_buffers(args, need_lines);
 
     PBVHBatch batch;
 
@@ -1468,6 +1546,9 @@ struct PBVHBatches {
       batch.lines = GPU_batch_create(
           GPU_PRIM_LINES, nullptr, do_coarse_grids ? lines_index_coarse : lines_index);
       batch.lines_count = do_coarse_grids ? lines_count_coarse : lines_count;
+    }
+    else {
+      batch.lines_count = 0;
     }
 
     for (int i : IndexRange(attrs_num)) {
@@ -1543,7 +1624,7 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
 {
   do_coarse_grids &= args->pbvh_type == PBVH_GRIDS;
 
-  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids);
+  PBVHBatch &batch = batches->ensure_batch(attrs, attrs_num, args, do_coarse_grids, true);
 
   *r_prim_count = batch.lines_count;
 

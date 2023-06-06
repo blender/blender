@@ -1820,6 +1820,10 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
   BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
 
+  if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+    BKE_pbvh_bmesh_check_tris(pbvh, node);
+  }
+
   if (node->flag & PBVH_RebuildDrawBuffers) {
     PBVH_GPU_Args args;
     pbvh_draw_args_init(pbvh, &args, node);
@@ -3828,7 +3832,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       BKE_pbvh_bmesh_check_tris(pbvh, node);
     }
 
-    if (!node->tribuf || !node->tribuf->tottri) {
+    if (!node->tribuf || !node->tribuf->tris.size()) {
       return;
     }
   }
@@ -3882,13 +3886,11 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         areabuf[cur_i] = 0.0f;
       }
 
-      for (int i = 0; i < node->tribuf->tottri; i++) {
-        PBVHTri *tri = node->tribuf->tris + i;
-
-        BMVert *v1 = (BMVert *)(node->tribuf->verts[tri->v[0]].i);
-        BMVert *v2 = (BMVert *)(node->tribuf->verts[tri->v[1]].i);
-        BMVert *v3 = (BMVert *)(node->tribuf->verts[tri->v[2]].i);
-        BMFace *f = (BMFace *)tri->f.i;
+      for (PBVHTri &tri : node->tribuf->tris) {
+        BMVert *v1 = (BMVert *)(node->tribuf->verts[tri.v[0]].i);
+        BMVert *v2 = (BMVert *)(node->tribuf->verts[tri.v[1]].i);
+        BMVert *v3 = (BMVert *)(node->tribuf->verts[tri.v[2]].i);
+        BMFace *f = (BMFace *)tri.f.i;
 
         float *areabuf = (float *)BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
         areabuf[cur_i] += area_tri_v3(v1->co, v2->co, v3->co);

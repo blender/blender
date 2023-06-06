@@ -227,6 +227,11 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
     }
   }
   BKE_pbvh_face_iter_end(fd);
+
+  if (changed) {
+    BKE_pbvh_vert_tag_update_normal_triangulation(data->nodes[n]);
+    BKE_pbvh_node_mark_rebuild_draw(data->nodes[n]);
+  }
 }
 
 static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,

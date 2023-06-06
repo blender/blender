@@ -1396,12 +1396,11 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
 
-  for (int i = 0; i < node->tribuf->tottri; i++) {
-    PBVHTri *tri = node->tribuf->tris + i;
+  for (PBVHTri &tri : node->tribuf->tris) {
     BMVert *verts[3] = {
-        (BMVert *)node->tribuf->verts[tri->v[0]].i,
-        (BMVert *)node->tribuf->verts[tri->v[1]].i,
-        (BMVert *)node->tribuf->verts[tri->v[2]].i,
+        (BMVert *)node->tribuf->verts[tri.v[0]].i,
+        (BMVert *)node->tribuf->verts[tri.v[1]].i,
+        (BMVert *)node->tribuf->verts[tri.v[2]].i,
     };
 
     float *cos[3];
@@ -1449,7 +1448,7 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
       }
 
       if (r_active_face) {
-        *r_active_face = tri->f;
+        *r_active_face = tri.f;
       }
     }
   }
@@ -1469,12 +1468,11 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
   }
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
-  for (int i = 0; i < node->tribuf->tottri; i++) {
-    PBVHTri *tri = node->tribuf->tris + i;
-    BMVert *v1 = (BMVert *)node->tribuf->verts[tri->v[0]].i;
-    BMVert *v2 = (BMVert *)node->tribuf->verts[tri->v[1]].i;
-    BMVert *v3 = (BMVert *)node->tribuf->verts[tri->v[2]].i;
-    BMFace *f = (BMFace *)tri->f.i;
+  for (PBVHTri &tri : node->tribuf->tris) {
+    BMVert *v1 = (BMVert *)node->tribuf->verts[tri.v[0]].i;
+    BMVert *v2 = (BMVert *)node->tribuf->verts[tri.v[1]].i;
+    BMVert *v3 = (BMVert *)node->tribuf->verts[tri.v[2]].i;
+    BMFace *f = (BMFace *)tri.f.i;
 
     if (pbvh_poly_hidden(pbvh, f)) {
       continue;
@@ -1513,17 +1511,16 @@ bool pbvh_bmesh_node_nearest_to_ray(SculptSession *ss,
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   PBVHTriBuf *tribuf = node->tribuf;
 
-  for (int i = 0; i < tribuf->tottri; i++) {
-    PBVHTri *tri = tribuf->tris + i;
-    BMFace *f = (BMFace *)tri->f.i;
+  for (PBVHTri &tri : tribuf->tris) {
+    BMFace *f = (BMFace *)tri.f.i;
 
     if (pbvh_poly_hidden(pbvh, f)) {
       continue;
     }
 
-    BMVert *v1 = (BMVert *)tribuf->verts[tri->v[0]].i;
-    BMVert *v2 = (BMVert *)tribuf->verts[tri->v[1]].i;
-    BMVert *v3 = (BMVert *)tribuf->verts[tri->v[2]].i;
+    BMVert *v1 = (BMVert *)tribuf->verts[tri.v[0]].i;
+    BMVert *v2 = (BMVert *)tribuf->verts[tri.v[1]].i;
+    BMVert *v3 = (BMVert *)tribuf->verts[tri.v[2]].i;
 
     float *co1, *co2, *co3;
 
@@ -2402,7 +2399,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter = l_first;
 
-    // check for currupted faceset
+    /* Check for currupted faceset. */
     if (pbvh->cd_faceset_offset != -1 && BM_ELEM_CD_GET_INT(f, pbvh->cd_faceset_offset) == 0) {
       BM_ELEM_CD_SET_INT(f, pbvh->cd_faceset_offset, 1);
     }
@@ -2578,25 +2575,6 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
 }
 }  // namespace blender::bke::dyntopo
 
-static void pbvh_free_tribuf(PBVHTriBuf *tribuf)
-{
-  MEM_SAFE_FREE(tribuf->verts);
-  MEM_SAFE_FREE(tribuf->tris);
-  MEM_SAFE_FREE(tribuf->loops);
-  MEM_SAFE_FREE(tribuf->edges);
-
-  tribuf->verts = nullptr;
-  tribuf->tris = nullptr;
-  tribuf->loops = nullptr;
-  tribuf->edges = nullptr;
-
-  tribuf->totloop = tribuf->tottri = tribuf->totedge = tribuf->totvert = 0;
-
-  tribuf->verts_size = 0;
-  tribuf->tris_size = 0;
-  tribuf->edges_size = 0;
-}
-
 PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node)
 {
   BKE_pbvh_bmesh_check_tris(pbvh, node);
@@ -2607,90 +2585,26 @@ PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node)
 void BKE_pbvh_bmesh_free_tris(PBVH * /*pbvh*/, PBVHNode *node)
 {
   if (node->tribuf) {
-    pbvh_free_tribuf(node->tribuf);
     MEM_delete<PBVHTriBuf>(node->tribuf);
     node->tribuf = nullptr;
   }
 
   if (node->tri_buffers) {
-    for (PBVHTriBuf &tri : *node->tri_buffers) {
-      pbvh_free_tribuf(&tri);
-    }
-
     MEM_delete<blender::Vector<PBVHTriBuf>>(node->tri_buffers);
     node->tri_buffers = nullptr;
   }
 }
 
-BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
-{
-  tribuf->tottri++;
-
-  if (tribuf->tottri >= tribuf->tris_size) {
-    size_t newsize = (size_t)32 + (size_t)tribuf->tris_size + (size_t)(tribuf->tris_size >> 1);
-
-    if (!tribuf->tris) {
-      tribuf->tris = MEM_cnew_array<PBVHTri>(newsize, "tribuf tris");
-    }
-    else {
-      tribuf->tris = (PBVHTri *)MEM_reallocN_id(
-          (void *)tribuf->tris, sizeof(*tribuf->tris) * newsize, "tribuf tris");
-    }
-
-    tribuf->tris_size = newsize;
-  }
-
-  return tribuf->tris + tribuf->tottri - 1;
-}
-
 BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, PBVHVertRef vertex, BMLoop *l)
 {
-  tribuf->totvert++;
-  tribuf->totloop++;
-
-  if (tribuf->totvert >= tribuf->verts_size) {
-    size_t newsize = (size_t)32 + (size_t)(tribuf->verts_size << 1);
-
-    if (!tribuf->verts) {
-      tribuf->verts = MEM_cnew_array<PBVHVertRef>(newsize, "tribuf verts");
-      tribuf->loops = MEM_cnew_array<intptr_t>(newsize, "tribuf loops");
-    }
-    else {
-      tribuf->verts = (PBVHVertRef *)MEM_reallocN_id(
-          (void *)tribuf->verts, sizeof(*tribuf->verts) * newsize, "tribuf verts");
-      tribuf->loops = (intptr_t *)MEM_reallocN_id(
-          (void *)tribuf->loops, sizeof(*tribuf->loops) * newsize, "tribuf loops");
-    }
-
-    tribuf->verts_size = newsize;
-  }
-
-  tribuf->verts[tribuf->totvert - 1] = vertex;
-  tribuf->loops[tribuf->totloop - 1] = (uintptr_t)l;
+  tribuf->verts.append(vertex);
+  tribuf->loops.append((uintptr_t)l);
 }
 
 BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
 {
-  tribuf->totedge++;
-
-  if (tribuf->totedge >= tribuf->edges_size) {
-    size_t newsize = (size_t)32 + (size_t)(tribuf->edges_size << 1);
-
-    if (!tribuf->edges) {
-      tribuf->edges = MEM_cnew_array<int>(2ULL * newsize, "tribuf edges");
-    }
-    else {
-      tribuf->edges = (int *)MEM_reallocN_id(
-          (void *)tribuf->edges, sizeof(*tribuf->edges) * 2ULL * newsize, "tribuf edges");
-    }
-
-    tribuf->edges_size = newsize;
-  }
-
-  int i = (tribuf->totedge - 1) * 2;
-
-  tribuf->edges[i] = v1;
-  tribuf->edges[i + 1] = v2;
+  tribuf->edges.append(v1);
+  tribuf->edges.append(v2);
 }
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node)
@@ -2720,30 +2634,24 @@ void pbvh_bmesh_check_other_verts(PBVHNode *node)
 
 static void pbvh_init_tribuf(PBVHNode * /*node*/, PBVHTriBuf *tribuf)
 {
-  tribuf->tottri = 0;
-  tribuf->tris_size = 0;
-  tribuf->verts_size = 0;
   tribuf->mat_nr = 0;
-  tribuf->tottri = 0;
-  tribuf->totvert = 0;
-  tribuf->totloop = 0;
-  tribuf->totedge = 0;
 
-  tribuf->edges = nullptr;
-  tribuf->verts = nullptr;
-  tribuf->tris = nullptr;
-  tribuf->loops = nullptr;
+  tribuf->edges.clear();
+  tribuf->verts.clear();
+  tribuf->tris.clear();
+  tribuf->loops.clear();
 }
 
 static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv)
 {
-  uintptr_t key = (uintptr_t)mat_nr;
+  uintptr_t key = ((uintptr_t)l->v) << 12ULL;
+  int i = 0;
 
-  key ^= (uintptr_t)l->v;
+  key ^= (uintptr_t)BLI_hash_int(mat_nr + i++);
 
   if (cd_fset >= 0) {
     // key ^= (uintptr_t)BLI_hash_int(BM_ELEM_CD_GET_INT(l->f, cd_fset));
-    key ^= (uintptr_t)BM_ELEM_CD_GET_INT(l->f, cd_fset);
+    key ^= (uintptr_t)BLI_hash_int(BM_ELEM_CD_GET_INT(l->f, cd_fset) + i++);
   }
 
   for (int i = 0; i < totuv; i++) {
@@ -2754,11 +2662,12 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
     uintptr_t y = (uintptr_t)(luv[1] * snap);
 
     uintptr_t key2 = y * snap + x;
-    key ^= key2;
+    key ^= BLI_hash_int(key2 + i++);
   }
 
   return key;
 }
+
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
  *
@@ -2770,6 +2679,8 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   if (!(node->flag & PBVH_UpdateTris) && node->tribuf) {
     return false;
   }
+
+  node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
 
   int totuv = CustomData_number_of_layers(&bm->ldata, CD_PROP_FLOAT2);
   int *cd_uvs = (int *)BLI_array_alloca(cd_uvs, totuv);
@@ -2809,16 +2720,16 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       continue;
     }
 
-    /* Clear edgeflag for building edge indices later. */
+    /* Set edgeflag for building edge indices later. */
     BMLoop *l = f->l_first;
     do {
-      l->e->head.hflag &= ~edgeflag;
+      l->e->head.hflag |= edgeflag;
     } while ((l = l->next) != f->l_first);
 
     const int mat_nr = f->mat_nr;
 
     if (mat_map[mat_nr] == -1) {
-      PBVHTriBuf _tribuf = {0};
+      PBVHTriBuf _tribuf = {};
 
       mat_map[mat_nr] = tribufs->size();
 
@@ -2834,93 +2745,84 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
     BM_face_calc_tessellation(f, true, loops.data(), (uint(*)[3])loops_idx.data());
 
-    for (int i = 0; i < tottri; i++) {
-      PBVHTri *tri = pbvh_tribuf_add_tri(node->tribuf);
-      PBVHTriBuf *mat_tribuf = &(*tribufs)[mat_map[mat_nr]];
-      PBVHTri *mat_tri = pbvh_tribuf_add_tri(mat_tribuf);
+    auto add_tri_verts =
+        [cd_uvs, totuv, pbvh, &min, &max](
+            PBVHTriBuf *tribuf, PBVHTri &tri, BMLoop *l, BMLoop *l2, int mat_nr, int j) {
+          int tri_v;
 
-      tri->eflag = mat_tri->eflag = 0;
+          if ((l->f->head.hflag & BM_ELEM_SMOOTH)) {
+            void *loopkey = reinterpret_cast<void *>(
+                tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+
+            tri_v = tribuf->vertmap.lookup_or_add(loopkey, tribuf->verts.size());
+          }
+          else { /* Flat shaded faces. */
+            tri_v = tribuf->verts.size();
+          }
+
+          /* Newly added to the set? */
+          if (tri_v == tribuf->verts.size()) {
+            PBVHVertRef sv = {(intptr_t)l->v};
+            minmax_v3v3_v3(min, max, l->v->co);
+            pbvh_tribuf_add_vert(tribuf, sv, l);
+          }
+
+          tri.v[j] = (intptr_t)tri_v;
+          tri.l[j] = (intptr_t)l;
+        };
+
+    /* Build index buffers. */
+    for (int i = 0; i < tottri; i++) {
+      PBVHTriBuf *mat_tribuf = &(*tribufs)[mat_map[mat_nr]];
+
+      node->tribuf->tris.resize(node->tribuf->tris.size() + 1);
+      mat_tribuf->tris.resize(mat_tribuf->tris.size() + 1);
+
+      PBVHTri &tri = node->tribuf->tris.last();
+      PBVHTri &mat_tri = mat_tribuf->tris.last();
+
+      tri.eflag = mat_tri.eflag = 0;
 
       for (int j = 0; j < 3; j++) {
-        // BMLoop *l0 = loops[loops_idx[i][(j + 2) % 3]];
-        BMLoop *l = loops[loops_idx[i][j]];
+        BMLoop *l1 = loops[loops_idx[i][j]];
         BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
 
-        BMEdge *e = BM_edge_exists(l->v, l2->v);
-
-        if (e) {
-          tri->eflag |= 1 << j;
-          mat_tri->eflag |= 1 << j;
-        }
-
-        void *loopkey = reinterpret_cast<void *>(
-            tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
-
-        int &tri_v = node->tribuf->vertmap.lookup_or_add(loopkey, node->tribuf->totvert);
-
-        /* Newly added to the set? */
-        if (tri_v == node->tribuf->totvert) {
-          PBVHVertRef sv = {(intptr_t)l->v};
-          minmax_v3v3_v3(min, max, l->v->co);
-          pbvh_tribuf_add_vert(node->tribuf, sv, l);
-        }
-
-        tri->v[j] = (intptr_t)tri_v;
-        tri->l[j] = (intptr_t)l;
-
-        int &mattri_v = mat_tribuf->vertmap.lookup_or_add(loopkey, mat_tribuf->totvert);
-
-        /* Newly added to the set? */
-        if (mattri_v == mat_tribuf->totvert) {
-          PBVHVertRef sv = {(intptr_t)l->v};
-          minmax_v3v3_v3(min, max, l->v->co);
-          pbvh_tribuf_add_vert(mat_tribuf, sv, l);
-        }
-
-        mat_tri->v[j] = (intptr_t)mattri_v;
-        mat_tri->l[j] = (intptr_t)l;
+        add_tri_verts(node->tribuf, tri, l1, l2, mat_nr, j);
+        add_tri_verts(mat_tribuf, mat_tri, l1, l2, mat_nr, j);
       }
 
-      copy_v3_v3(tri->no, f->no);
-      copy_v3_v3(mat_tri->no, f->no);
-      tri->f.i = (intptr_t)f;
-      mat_tri->f.i = (intptr_t)f;
-    }
-  }
+      for (int j = 0; j < 3; j++) {
+        BMLoop *l1 = loops[loops_idx[i][j]];
+        BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
+        BMEdge *e = nullptr;
 
-  for (BMFace *f : *node->bm_faces) {
-    if (pbvh_poly_hidden(pbvh, f)) {
-      continue;
-    }
+        if (e = BM_edge_exists(l1->v, l2->v)) {
+          tri.eflag |= 1 << j;
 
-    int mat_nr = f->mat_nr;
-    PBVHTriBuf *mat_tribuf = &(*tribufs)[mat_map[mat_nr]];
-
-    BMLoop *l = f->l_first;
-    do {
-      if (l->e->head.hflag & edgeflag) {
-        continue;
+          if (e->head.hflag & edgeflag) {
+            e->head.hflag &= ~edgeflag;
+            pbvh_tribuf_add_edge(node->tribuf, tri.v[j], tri.v[(j + 1) % 3]);
+            pbvh_tribuf_add_edge(mat_tribuf, tri.v[j], tri.v[(j + 1) % 3]);
+          }
+        }
       }
 
-      l->e->head.hflag |= edgeflag;
-
-      int v1 = node->tribuf->vertmap.lookup_default((void *)l->e->v1, 0);
-      int v2 = node->tribuf->vertmap.lookup_default((void *)l->e->v2, 0);
-
-      pbvh_tribuf_add_edge(node->tribuf, v1, v2);
-
-      v1 = mat_tribuf->vertmap.lookup_default((void *)l->e->v1, 0);
-      v2 = mat_tribuf->vertmap.lookup_default((void *)l->e->v2, 0);
-
-      pbvh_tribuf_add_edge(mat_tribuf, v1, v2);
-    } while ((l = l->next) != f->l_first);
+      copy_v3_v3(tri.no, f->no);
+      copy_v3_v3(mat_tri.no, f->no);
+      tri.f.i = (intptr_t)f;
+      mat_tri.f.i = (intptr_t)f;
+    }
   }
+  /*
+                void *loopkey = reinterpret_cast<void *>(
+                tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+   */
 
   bm->elem_index_dirty |= BM_VERT;
 
   node->tri_buffers = tribufs;
 
-  if (node->tribuf->totvert) {
+  if (node->tribuf->verts.size()) {
     copy_v3_v3(node->tribuf->min, min);
     copy_v3_v3(node->tribuf->max, max);
   }
@@ -3923,22 +3825,20 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
         break;
       }
 
-      for (int k = 0; k < tribuf->totvert; k++) {
+      for (int k = 0; k < tribuf->verts.size(); k++) {
         tribuf->verts[k].i = (intptr_t)pbvh->header.bm->vtable[tribuf->verts[k].i];
       }
 
-      for (int k = 0; k < tribuf->totloop; k++) {
+      for (int k = 0; k < tribuf->loops.size(); k++) {
         tribuf->loops[k] = (uintptr_t)ltable[tribuf->loops[k]];
       }
 
-      for (int k = 0; k < tribuf->tottri; k++) {
-        PBVHTri *tri = tribuf->tris + k;
-
+      for (PBVHTri &tri : tribuf->tris) {
         for (int l = 0; l < 3; l++) {
-          tri->l[l] = (uintptr_t)ltable[tri->l[l]];
+          tri.l[l] = (uintptr_t)ltable[tri.l[l]];
         }
 
-        tri->f.i = (intptr_t)pbvh->header.bm->ftable[tri->f.i];
+        tri.f.i = (intptr_t)pbvh->header.bm->ftable[tri.f.i];
       }
     }
 
@@ -4189,7 +4089,7 @@ static void corner_interp(CustomDataLayer *layer,
 /* Interpolates loops surrounding a vertex, splitting any UV map by
  * island as appropriate and enforcing proper boundary conditions.
  */
-ATTR_NO_OPT void interp_face_corners(
+void interp_face_corners(
     PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
@@ -4292,7 +4192,7 @@ ATTR_NO_OPT void interp_face_corners(
     }
 
     /* Snap. */
-    //corner_snap.snap();
+    // corner_snap.snap();
   }
 }
 }  // namespace blender::bke::sculpt
