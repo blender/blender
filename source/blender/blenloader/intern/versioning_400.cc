@@ -156,42 +156,20 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
 
-          /* TODO for old files saved with the branch only. */
+          if (ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF_FOOTER,
+                  "asset shelf footer for view3d (versioning)",
+                  RGN_TYPE_UI))
           {
-            SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
-
-            if (ARegion *asset_shelf = BKE_region_find_in_listbase_by_type(regionbase,
-                                                                           RGN_TYPE_ASSET_SHELF)) {
-              BLI_remlink(regionbase, asset_shelf);
-              BKE_area_region_free(space_type, asset_shelf);
-              MEM_freeN(asset_shelf);
-            }
-
-            if (ARegion *asset_shelf_footer = BKE_region_find_in_listbase_by_type(
-                    regionbase, RGN_TYPE_ASSET_SHELF_FOOTER))
-            {
-              BLI_remlink(regionbase, asset_shelf_footer);
-              BKE_area_region_free(space_type, asset_shelf_footer);
-              MEM_freeN(asset_shelf_footer);
-            }
+            new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
           }
-
+          if (ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF,
+                  "asset shelf for view3d (versioning)",
+                  RGN_TYPE_ASSET_SHELF_FOOTER))
           {
-            ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
-                regionbase,
-                RGN_TYPE_ASSET_SHELF_FOOTER,
-                "asset shelf footer for view3d (versioning)",
-                RGN_TYPE_UI);
-            if (new_asset_shelf_footer != nullptr) {
-              new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
-            }
-          }
-          {
-            ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
-                regionbase,
-                RGN_TYPE_ASSET_SHELF,
-                "asset shelf for view3d (versioning)",
-                RGN_TYPE_ASSET_SHELF_FOOTER);
             new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
           }
         }
