@@ -1109,7 +1109,6 @@ static void bm_vert_table_build(BMesh &bm,
     BM_elem_index_set(vert, i); /* set_inline */
     table[i] = vert;
     hflag |= vert->head.hflag;
-    BM_CHECK_ELEMENT(vert);
   }
   need_select_vert = (hflag & BM_ELEM_SELECT) != 0;
   need_hide_vert = (hflag & BM_ELEM_HIDDEN) != 0;
@@ -1131,7 +1130,6 @@ static void bm_edge_table_build(BMesh &bm,
     table[i] = edge;
     hflag |= edge->head.hflag;
     need_sharp_edge |= (edge->head.hflag & BM_ELEM_SMOOTH) == 0;
-    BM_CHECK_ELEMENT(edge);
   }
   need_select_edge = (hflag & BM_ELEM_SELECT) != 0;
   need_hide_edge = (hflag & BM_ELEM_HIDDEN) != 0;
@@ -1197,7 +1195,6 @@ static void bm_face_loop_table_build(BMesh &bm,
     hflag |= face->head.hflag;
     need_sharp_face |= (face->head.hflag & BM_ELEM_SMOOTH) == 0;
     need_material_index |= face->mat_nr != 0;
-    BM_CHECK_ELEMENT(face);
 
     BMLoop *loop = BM_FACE_FIRST_LOOP(face);
     for ([[maybe_unused]] const int i : IndexRange(face->len)) {
@@ -1218,7 +1215,6 @@ static void bm_face_loop_table_build(BMesh &bm,
           need_pin[i] = true;
         }
       }
-      BM_CHECK_ELEMENT(loop);
       loop = loop->next;
       loop_i++;
     }
