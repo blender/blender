@@ -612,11 +612,6 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   block->flag |= UI_BLOCK_LOOP;
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  /* TODO does this flag need to be checked in more cases? */
-  if (block->flag & UI_BLOCK_POPUP_CAN_REFRESH) {
-    handle->can_refresh = true;
-  }
-
   /* defer this until blocks are translated (below) */
   block->oldblock = nullptr;
 

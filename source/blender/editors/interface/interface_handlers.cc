@@ -832,6 +832,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
   else {
     after->func = but->func;
   }
+
   after->func_arg1 = but->func_arg1;
   after->func_arg2 = but->func_arg2;
 

@@ -872,7 +872,6 @@ static bool is_filtered_lib_type(FileListInternEntry *file,
   if (file->typeflag & FILE_TYPE_BLENDERLIB) {
     return is_filtered_id_file_type(file, file->blentype, file->name, filter);
   }
-
   return is_filtered_file_type(file, filter);
 }
 

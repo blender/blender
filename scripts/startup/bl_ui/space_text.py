@@ -287,6 +287,7 @@ class TEXT_MT_templates_py(Menu):
             "text.open",
             props_default={"internal": True},
             filter_ext=lambda ext: (ext.lower() == ".py"),
+            # Filter out asset shelf template depending on experimental "Asset Shelf" option.
             filter_path=lambda path, use_asset_shelf=use_asset_shelf:
                 (use_asset_shelf or not path.endswith("ui_asset_shelf.py")),
         )

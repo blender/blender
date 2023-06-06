@@ -579,6 +579,11 @@ wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
   asset_drag->id_type = ED_asset_handle_get_id_type(asset);
   asset_drag->import_method = import_type;
   asset_drag->use_relative_path = ED_asset_handle_get_use_relative_path(asset);
+  /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
+   * #wmDropBox.
+   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
+   * copy callback.
+   * */
   asset_drag->evil_C = static_cast<bContext *>(evil_C);
 
   return asset_drag;

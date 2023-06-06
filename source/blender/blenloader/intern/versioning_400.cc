@@ -187,7 +187,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
             }
           }
           {
-            /* TODO for old files saved with the branch only. */
             ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
                 regionbase,
                 RGN_TYPE_ASSET_SHELF,

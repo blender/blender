@@ -272,7 +272,7 @@ void *AssetDragController::create_drag_data() const
   const eAssetImportMethod import_method = ED_asset_handle_get_import_method(&asset_).value_or(
       ASSET_IMPORT_APPEND_REUSE);
 
-  AssetView &asset_view = get_view<AssetView>();
+  const AssetView &asset_view = get_view<AssetView>();
   return static_cast<void *>(WM_drag_create_asset_data(
       &asset_, BLI_strdup(asset_blend_path), import_method, &asset_view.evil_C_));
 }

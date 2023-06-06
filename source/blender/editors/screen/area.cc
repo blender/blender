@@ -3467,6 +3467,7 @@ void ED_region_header_init(ARegion *region)
 {
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 }
+
 int ED_area_headersize(void)
 {
   /* Accommodate widget and padding. */
