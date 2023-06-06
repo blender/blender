@@ -658,7 +658,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_CURSOR_WRAP;
   }
 
-  if (op && (t->flag & T_MODAL) && !(t->flag & T_RELEASE_CONFIRM) &&
+  if (op && (t->flag & T_MODAL) &&
       (prop = RNA_struct_find_property(op->ptr, "allow_navigation")) &&
       RNA_property_boolean_get(op->ptr, prop))
   {

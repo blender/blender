@@ -1091,7 +1091,7 @@ static void TRANSFORM_OT_shrink_fatten(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
+  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_VIEW3D_NAVIGATION);
 }
 
 static void TRANSFORM_OT_tosphere(wmOperatorType *ot)

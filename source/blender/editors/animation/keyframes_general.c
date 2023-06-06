@@ -991,42 +991,44 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 
 static void flip_names(tAnimCopybufItem *aci, char **r_name)
 {
-  if (aci->is_bone) {
-    int ofs_start;
-    int ofs_end;
-
-    if (BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
-      char *str_start = aci->rna_path + ofs_start;
-      const char *str_end = aci->rna_path + ofs_end;
-
-      /* Swap out the name.
-       * Note that there is no need to un-escape the string to flip it. */
-      char bname_new[MAX_VGROUP_NAME];
-      char *str_iter;
-      int length, prefix_l, postfix_l;
-
-      prefix_l = str_start - aci->rna_path;
-
-      length = str_end - str_start;
-      postfix_l = strlen(str_end);
-
-      /* Temporary substitute with NULL terminator. */
-      BLI_assert(str_start[length] == '\"');
-      str_start[length] = 0;
-      BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
-      str_start[length] = '\"';
-
-      str_iter = *r_name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1),
-                                       "flipped_path");
-
-      BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
-      str_iter += prefix_l;
-      BLI_strncpy(str_iter, bname_new, length + 1);
-      str_iter += length;
-      BLI_strncpy(str_iter, str_end, postfix_l + 1);
-      str_iter[postfix_l] = '\0';
-    }
+  if (!aci->is_bone) {
+    return;
   }
+  int ofs_start, ofs_end;
+  if (!BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
+    return;
+  }
+
+  char *str_start = aci->rna_path + ofs_start;
+  const char *str_end = aci->rna_path + ofs_end;
+
+  /* Swap out the name.
+   * NOTE: there is no need to un-escape the string to flip it.
+   * However the buffer does need to be twice the size. */
+  char bname_new[MAX_VGROUP_NAME * 2];
+  char *str_iter;
+  int len_old, prefix_l, postfix_l;
+
+  prefix_l = str_start - aci->rna_path;
+
+  len_old = str_end - str_start;
+  postfix_l = strlen(str_end);
+
+  /* Temporary substitute with NULL terminator. */
+  BLI_assert(str_start[len_old] == '\"');
+  str_start[len_old] = 0;
+  const int len_new = BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
+  str_start[len_old] = '\"';
+
+  str_iter = *r_name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + len_new + 1),
+                                   "flipped_path");
+
+  memcpy(str_iter, aci->rna_path, prefix_l);
+  str_iter += prefix_l;
+  memcpy(str_iter, bname_new, len_new);
+  str_iter += len_new;
+  memcpy(str_iter, str_end, postfix_l);
+  str_iter[postfix_l] = '\0';
 }
 
 /* ------------------- */

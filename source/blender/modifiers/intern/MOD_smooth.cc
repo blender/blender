@@ -183,10 +183,9 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
-  Mesh *mesh_src = nullptr;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, verts_num);
 
@@ -203,10 +202,9 @@ static void deformVertsEM(ModifierData *md,
                           int verts_num)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
-  Mesh *mesh_src = nullptr;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   BKE_mesh_wrapper_ensure_mdata(mesh_src);

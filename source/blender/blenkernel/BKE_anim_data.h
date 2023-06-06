@@ -58,6 +58,11 @@ struct AnimData *BKE_animdata_ensure_id(struct ID *id);
  */
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
 
+/**
+ * Same as BKE_animdata_set_action(), except sets `tmpact` instead of `action`.
+ */
+bool BKE_animdata_set_tmpact(struct ReportList *reports, struct ID *id, struct bAction *act);
+
 bool BKE_animdata_action_editable(const struct AnimData *adt);
 
 /**

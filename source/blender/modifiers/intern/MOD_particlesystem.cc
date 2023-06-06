@@ -100,7 +100,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int verts_num)
+                        int /*verts_num*/)
 {
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
@@ -118,10 +118,11 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, verts_num, true);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos);
     if (mesh_src == nullptr) {
       return;
     }
+    BKE_mesh_orco_ensure(ctx->object, mesh_src);
   }
 
   /* Clear old evaluated mesh. */
@@ -227,30 +228,6 @@ static void deformVerts(ModifierData *md,
   }
 }
 
-/* disabled particles in editmode for now, until support for proper evaluated mesh
- * updates is coded */
-#if 0
-static void deformVertsEM(ModifierData *md,
-                          Object *ob,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  const bool do_temp_mesh = (mesh == nullptr);
-  if (do_temp_mesh) {
-    mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
-    BM_mesh_bm_to_me(nullptr, editData->bm, mesh, &((BMeshToMeshParams){0}));
-  }
-
-  deformVerts(md, ob, mesh, vertexCos, verts_num);
-
-  if (derivedData) {
-    BKE_id_free(nullptr, mesh);
-  }
-}
-#endif
-
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -306,11 +283,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /*srna*/ &RNA_ParticleSystemModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_UsesPointCache
-#if 0
-        | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode
-#endif
-    ,
+        eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_PARTICLES,
 
     /*copyData*/ copyData,
