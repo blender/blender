@@ -155,15 +155,6 @@ bool MTLCommandBufferManager::submit(bool wait)
         if (error != nil) {
           NSLog(@"%@", error);
           BLI_assert(false);
-
-          @autoreleasepool {
-            const char *stringAsChar = [[NSString stringWithFormat:@"%@", error] UTF8String];
-
-            std::ofstream outfile;
-            outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-            outfile << stringAsChar;
-            outfile.close();
-          }
         }
       }
     }

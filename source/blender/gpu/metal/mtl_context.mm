@@ -2556,26 +2556,6 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     if (error != nil) {
       NSLog(@"%@", error);
       BLI_assert(false);
-
-      @autoreleasepool {
-        const char *stringAsChar = [[NSString stringWithFormat:@"%@", error] UTF8String];
-
-        std::ofstream outfile;
-        outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-        outfile << stringAsChar;
-        outfile.close();
-      }
-    }
-    else {
-      @autoreleasepool {
-        NSString *str = @"Command buffer completed successfully!\n";
-        const char *stringAsChar = [str UTF8String];
-
-        std::ofstream outfile;
-        outfile.open("command_buffer_error.txt", std::fstream::out | std::fstream::app);
-        outfile << stringAsChar;
-        outfile.close();
-      }
     }
   }
 }
