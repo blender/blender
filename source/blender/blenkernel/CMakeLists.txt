@@ -555,6 +555,7 @@ set(LIB
   bf_rna
   bf_shader_fx
   bf_simulation
+  extern_fmtlib
 
   # For `vfontdata_freetype.c`.
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}

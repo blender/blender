@@ -18,7 +18,6 @@
 
 #include "BLT_translation.h"
 
-#define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 namespace blender::bke {

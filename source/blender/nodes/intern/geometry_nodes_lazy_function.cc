@@ -40,7 +40,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 namespace blender::nodes {
@@ -323,7 +322,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     GField output_field{std::make_shared<AnonymousAttributeFieldInput>(
         std::move(attribute_id),
         value_or_field_cpp_type.value,
-        fmt::format(TIP_("{} node"), node_.label_or_name()))};
+        fmt::format(TIP_("{} node"), std::string_view(node_.label_or_name())))};
     void *r_value = params.get_output_data_ptr(lf_index);
     value_or_field_cpp_type.construct_from_field(r_value, std::move(output_field));
     params.output_set(lf_index);

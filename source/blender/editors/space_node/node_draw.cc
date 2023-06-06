@@ -91,7 +91,6 @@
 
 #include "node_intern.hh" /* own include */
 
-#define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 namespace geo_log = blender::nodes::geo_eval_log;

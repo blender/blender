@@ -59,6 +59,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_editor_screen
+  extern_fmtlib
 )
 
 if(WITH_COMPOSITOR_CPU)
