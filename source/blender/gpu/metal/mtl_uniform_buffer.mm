@@ -98,7 +98,7 @@ void MTLUniformBuf::clear_to_zero()
 void MTLUniformBuf::bind(int slot)
 {
   if (slot < 0) {
-    MTL_LOG_WARNING("Failed to bind UBO %p. uniform location %d invalid.\n", this, slot);
+    MTL_LOG_WARNING("Failed to bind UBO %p. uniform location %d invalid.", this, slot);
     return;
   }
 
@@ -130,7 +130,7 @@ void MTLUniformBuf::bind(int slot)
 void MTLUniformBuf::bind_as_ssbo(int slot)
 {
   if (slot < 0) {
-    MTL_LOG_WARNING("Failed to bind UBO %p as SSBO. uniform location %d invalid.\n", this, slot);
+    MTL_LOG_WARNING("Failed to bind UBO %p as SSBO. uniform location %d invalid.", this, slot);
     return;
   }
 
@@ -196,4 +196,4 @@ size_t MTLUniformBuf::get_size()
   return size_in_bytes_;
 }
 
-}  // blender::gpu
+}  // namespace blender::gpu

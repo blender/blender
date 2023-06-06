@@ -192,7 +192,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
                                slices:NSMakeRange(mip_texture_base_layer_, num_slices)
                               swizzle:mtl_swizzle_mask_];
     MTL_LOG_INFO(
-        "Updating texture view - MIP TEXTURE BASE LEVEL: %d, MAX LEVEL: %d (Range len: %d)\n",
+        "Updating texture view - MIP TEXTURE BASE LEVEL: %d, MAX LEVEL: %d (Range len: %d)",
         mip_texture_base_level_,
         min_ii(mip_texture_max_level_, (int)texture_.mipmapLevelCount),
         range_len);
@@ -215,7 +215,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
     if (buf != vert_buffer_mtl_) {
       MTL_LOG_INFO(
           "MTLTexture '%p' using MTL_TEXTURE_MODE_VBO requires re-generation due to updated "
-          "Vertex-Buffer.\n",
+          "Vertex-Buffer.",
           this);
       /* Clear state. */
       this->reset();
@@ -305,8 +305,8 @@ void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
 
   if (this->format_get() != dest->format_get()) {
     MTL_LOG_WARNING(
-        "[Warning] gpu::MTLTexture: Cannot copy between two textures of different types using a "
-        "blit encoder. TODO: Support this operation\n");
+        "gpu::MTLTexture: Cannot copy between two textures of different types using a "
+        "blit encoder. TODO: Support this operation");
     return;
   }
 
@@ -484,8 +484,8 @@ void gpu::MTLTexture::update_sub(
         return;
       default:
         MTL_LOG_ERROR(
-            "[Error] gpu::MTLTexture::update_sub not yet supported for other depth "
-            "configurations\n");
+            "gpu::MTLTexture::update_sub not yet supported for other depth "
+            "configurations");
         return;
     }
   }
@@ -524,7 +524,7 @@ void gpu::MTLTexture::update_sub(
     if (totalsize <= 0 || extent[0] <= 0) {
       MTL_LOG_WARNING(
           "MTLTexture::update_sub called with extent size of zero for one or more dimensions. "
-          "(%d, %d, %d) - DimCount: %u\n",
+          "(%d, %d, %d) - DimCount: %u",
           extent[0],
           extent[1],
           extent[2],
@@ -575,7 +575,7 @@ void gpu::MTLTexture::update_sub(
     if (format_ == GPU_SRGB8_A8 && !can_use_direct_blit) {
       MTL_LOG_WARNING(
           "SRGB data upload does not work correctly using compute upload. "
-          "texname '%s'\n",
+          "texname '%s'",
           name_);
     }
 
@@ -591,7 +591,7 @@ void gpu::MTLTexture::update_sub(
       MTL_LOG_WARNING(
           "gpu::MTLTexture::update_sub supplied bpp is %lu bytes (%d components per "
           "pixel), but backing texture bpp is %lu bytes (%d components per pixel) "
-          "(TODO(Metal): Channel Conversion needed) (w: %d, h: %d, d: %d)\n",
+          "(TODO(Metal): Channel Conversion needed) (w: %d, h: %d, d: %d)",
           input_bytes_per_pixel,
           num_channels,
           expected_dst_bytes_per_pixel,
@@ -603,7 +603,7 @@ void gpu::MTLTexture::update_sub(
       /* Check mip compatibility. */
       if (mip != 0) {
         MTL_LOG_ERROR(
-            "[Error]: Updating texture layers other than mip=0 when data is mismatched is not "
+            "Updating texture layers other than mip=0 when data is mismatched is not "
             "possible in METAL on macOS using texture->write\n");
         return;
       }
@@ -611,7 +611,7 @@ void gpu::MTLTexture::update_sub(
       /* Check Format write-ability. */
       if (mtl_format_get_writeable_view_format(destination_format) == MTLPixelFormatInvalid) {
         MTL_LOG_ERROR(
-            "[Error]: Updating texture -- destination MTLPixelFormat '%d' does not support write "
+            "Updating texture -- destination MTLPixelFormat '%d' does not support write "
             "operations, and no suitable TextureView format exists.\n",
             *(int *)(&destination_format));
         return;
@@ -1167,7 +1167,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
                      "Texture requires a higher mipmap level count. Please specify the required "
                      "amount upfront.");
       is_dirty_ = true;
-      MTL_LOG_WARNING("Texture requires regenerating due to increase in mip-count\n");
+      MTL_LOG_WARNING("Texture requires regenerating due to increase in mip-count");
     }
   }
   this->mip_range_set(0, mipmaps_);
@@ -1193,7 +1193,7 @@ void gpu::MTLTexture::generate_mipmap()
   BLI_assert_msg(is_baked_ && texture_, "MTLTexture is not valid");
 
   if (mipmaps_ == 1 || mtl_max_mips_ == 1) {
-    MTL_LOG_WARNING("Call to generate mipmaps on texture with 'mipmaps_=1\n'");
+    MTL_LOG_WARNING("Call to generate mipmaps on texture with 'mipmaps_=1'");
     return;
   }
 
@@ -1202,7 +1202,7 @@ void gpu::MTLTexture::generate_mipmap()
       format_ == GPU_DEPTH_COMPONENT16 || format_ == GPU_DEPTH32F_STENCIL8 ||
       format_ == GPU_DEPTH24_STENCIL8)
   {
-    MTL_LOG_WARNING("Cannot generate mipmaps for textures using DEPTH formats\n");
+    MTL_LOG_WARNING("Cannot generate mipmaps for textures using DEPTH formats");
     return;
   }
 
@@ -1398,7 +1398,7 @@ void *gpu::MTLTexture::read(int mip, eGPUDataFormat type)
   }
   else {
     /* Clear return values? */
-    MTL_LOG_WARNING("MTLTexture::read - reading from texture with no image data\n");
+    MTL_LOG_WARNING("MTLTexture::read - reading from texture with no image data");
   }
 
   return data;
@@ -1419,7 +1419,7 @@ void gpu::MTLTexture::read_internal(int mip,
 {
   /* Verify textures are baked. */
   if (!is_baked_) {
-    MTL_LOG_WARNING("gpu::MTLTexture::read_internal - Trying to read from a non-baked texture!\n");
+    MTL_LOG_WARNING("gpu::MTLTexture::read_internal - Trying to read from a non-baked texture!");
     return;
   }
   /* Fetch active context. */
@@ -1654,7 +1654,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
             texture_array_relative_offset += bytes_per_image;
           }
-          MTL_LOG_INFO("Copying texture data to buffer GPU_TEXTURE_CUBE_ARRAY\n");
+          MTL_LOG_INFO("Copying texture data to buffer GPU_TEXTURE_CUBE_ARRAY");
           copy_successful = true;
         }
         else {
@@ -1664,8 +1664,8 @@ void gpu::MTLTexture::read_internal(int mip,
 
       default:
         MTL_LOG_WARNING(
-            "[Warning] gpu::MTLTexture::read_internal simple-copy not yet supported for texture "
-            "type: %d\n",
+            "gpu::MTLTexture::read_internal simple-copy not yet supported for texture "
+            "type: %d",
             (int)type_);
         break;
     }
@@ -1686,13 +1686,13 @@ void gpu::MTLTexture::read_internal(int mip,
 
       /* Copy data from Shared Memory into ptr. */
       memcpy(r_data, destination_buffer_host_ptr, total_bytes);
-      MTL_LOG_INFO("gpu::MTLTexture::read_internal success! %lu bytes read\n", total_bytes);
+      MTL_LOG_INFO("gpu::MTLTexture::read_internal success! %lu bytes read", total_bytes);
     }
     else {
       MTL_LOG_WARNING(
-          "[Warning] gpu::MTLTexture::read_internal not yet supported for this config -- data "
+          "gpu::MTLTexture::read_internal not yet supported for this config -- data "
           "format different (src %lu bytes, dst %lu bytes) (src format: %d, dst format: %d), or "
-          "varying component counts (src %d, dst %d)\n",
+          "varying component counts (src %d, dst %d)",
           image_bpp,
           desired_output_bpp,
           (int)data_format,
@@ -1746,7 +1746,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 
   /* Verify size. */
   if (w_ <= 0) {
-    MTL_LOG_WARNING("Allocating texture buffer of width 0!\n");
+    MTL_LOG_WARNING("Allocating texture buffer of width 0!");
     w_ = 1;
   }
 
@@ -2070,8 +2070,7 @@ void gpu::MTLTexture::ensure_baked()
 
 void gpu::MTLTexture::reset()
 {
-
-  MTL_LOG_INFO("Texture %s reset. Size %d, %d, %d\n", this->get_name(), w_, h_, d_);
+  MTL_LOG_INFO("Texture %s reset. Size %d, %d, %d", this->get_name(), w_, h_, d_);
   /* Delete associated METAL resources. */
   if (texture_ != nil) {
     [texture_ release];
