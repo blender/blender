@@ -315,6 +315,17 @@ static void asset_shelf_region_snap_height_to_closest(ScrArea *area, ARegion *re
   }
 }
 
+/**
+ * The asset shelf always uses the "All" library for now.
+ */
+static const AssetLibraryReference &asset_shelf_library_ref()
+{
+  static AssetLibraryReference all_library_ref = {};
+  all_library_ref.type = ASSET_LIBRARY_ALL;
+  all_library_ref.custom_library_index = -1;
+  return all_library_ref;
+}
+
 void ED_asset_shelf_region_layout(const bContext *C, ARegion *region, AssetShelfHook *shelf_hook)
 {
   const SpaceLink *space = CTX_wm_space_data(C);
@@ -325,9 +336,7 @@ void ED_asset_shelf_region_layout(const bContext *C, ARegion *region, AssetShelf
     return;
   }
 
-  AssetLibraryReference all_library_ref = {};
-  all_library_ref.type = ASSET_LIBRARY_ALL;
-  all_library_ref.custom_library_index = -1;
+  const AssetLibraryReference &library_ref = asset_shelf_library_ref();
 
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
@@ -344,7 +353,7 @@ void ED_asset_shelf_region_layout(const bContext *C, ARegion *region, AssetShelf
                                      0,
                                      style);
 
-  shelf::build_asset_view(*layout, all_library_ref, *active_shelf, *C, *region);
+  shelf::build_asset_view(*layout, library_ref, *active_shelf, *C, *region);
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);
@@ -409,6 +418,7 @@ int ED_asset_shelf_context(const bContext *C,
 {
   static const char *context_dir[] = {
       "asset_shelf",
+      "asset_library_ref",
       "active_file", /* XXX yuk... */
       nullptr,
   };
@@ -423,6 +433,14 @@ int ED_asset_shelf_context(const bContext *C,
   if (CTX_data_equals(member, "asset_shelf")) {
     CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, shelf_hook->active_shelf);
 
+    return CTX_RESULT_OK;
+  }
+
+  if (CTX_data_equals(member, "asset_library_ref")) {
+    CTX_data_pointer_set(result,
+                         &screen->id,
+                         &RNA_AssetLibraryReference,
+                         const_cast<AssetLibraryReference *>(&asset_shelf_library_ref()));
     return CTX_RESULT_OK;
   }
 
