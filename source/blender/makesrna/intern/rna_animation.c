@@ -143,6 +143,16 @@ static void rna_AnimData_action_set(PointerRNA *ptr,
   BKE_animdata_set_action(NULL, ownerId, value.data);
 }
 
+static void rna_AnimData_tmpact_set(PointerRNA *ptr,
+                                    PointerRNA value,
+                                    struct ReportList *UNUSED(reports))
+{
+  ID *ownerId = ptr->owner_id;
+
+  /* set action */
+  BKE_animdata_set_tmpact(NULL, ownerId, value.data);
+}
+
 static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
 {
   AnimData *adt = (AnimData *)ptr->data;
@@ -158,6 +168,34 @@ static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
   else {
     BKE_nla_tweakmode_exit(adt);
   }
+}
+
+/* This is used to avoid the check for NLA tracks when enabling tweak
+ * mode while loading overrides.  This is necessary because the normal
+ * RNA tweak-mode setter refuses to enable tweak mode if there are no
+ * NLA tracks since that's normally an invalid state... but the
+ * overriden NLA tracks are only added *after* setting the tweak mode
+ * override. */
+bool rna_AnimData_tweakmode_override_apply(Main *UNUSED(bmain),
+                                           PointerRNA *ptr_dst,
+                                           PointerRNA *ptr_src,
+                                           PointerRNA *UNUSED(ptr_storage),
+                                           PropertyRNA *UNUSED(prop_dst),
+                                           PropertyRNA *UNUSED(prop_src),
+                                           PropertyRNA *UNUSED(prop_storage),
+                                           const int UNUSED(len_dst),
+                                           const int UNUSED(len_src),
+                                           const int UNUSED(len_storage),
+                                           PointerRNA *UNUSED(ptr_item_dst),
+                                           PointerRNA *UNUSED(ptr_item_src),
+                                           PointerRNA *UNUSED(ptr_item_storage),
+                                           IDOverrideLibraryPropertyOperation *UNUSED(opop))
+{
+  AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
+  AnimData *anim_data_src = (AnimData *)ptr_src->data;
+
+  anim_data_dst->flag =(anim_data_dst->flag & ~ADT_NLA_EDIT_ON) | (anim_data_src->flag & ADT_NLA_EDIT_ON);
+  return true;
 }
 
 /* ****************************** */
@@ -1370,6 +1408,16 @@ static void rna_def_animdata(BlenderRNA *brna)
                            "Amount the Active Action contributes to the result of the NLA stack");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update"); /* this will do? */
 
+  /* Temporary action slot for tweak mode. */
+  prop = RNA_def_property(srna, "action_tweak_storage", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "tmpact");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_pointer_funcs(
+      prop, NULL, "rna_AnimData_tmpact_set", NULL, "rna_Action_id_poll");
+  RNA_def_property_ui_text(
+      prop, "Tweak Mode Action Storage", "Slot to temporarily hold the main action while in tweak mode");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
+
   /* Drivers */
   prop = RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
@@ -1395,6 +1443,7 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use NLA Tweak Mode", "Whether to enable or disable tweak mode in NLA");
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update");
+  RNA_def_property_override_funcs(prop, NULL, NULL, "rna_AnimData_tweakmode_override_apply");
 
   prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
