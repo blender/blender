@@ -7097,7 +7097,7 @@ void SCULPT_topology_islands_ensure(Object *ob)
     return;
   }
 
-  SculptAttributeParams params;
+  SculptAttributeParams params = {};
   params.permanent = params.stroke_only = params.simple_array = false;
 
   ss->attrs.topology_island_key = BKE_sculpt_attribute_ensure(

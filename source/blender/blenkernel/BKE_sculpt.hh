@@ -12,9 +12,11 @@
 #include "BKE_pbvh.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
-#include "BLI_math_vector_types.hh"
+
+#include <type_traits>
 
 /*
  * Stroke ID API.  This API is used to detect if
@@ -39,10 +41,8 @@ enum StrokeIDUser {
 };
 ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
 
-void BKE_sculpt_reproject_cdata(SculptSession *ss,
-                                PBVHVertRef vertex,
-                                float startco[3],
-                                float startno[3]);
+void BKE_sculpt_reproject_cdata(
+    SculptSession *ss, PBVHVertRef vertex, float startco[3], float startno[3], bool do_uvs = true);
 
 namespace blender::bke::sculpt {
 BLI_INLINE bool stroke_id_clear(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
@@ -101,7 +101,6 @@ void interp_face_corners(
     PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor);
 bool loop_is_corner(BMLoop *l, int cd_offset);
 
-
 static bool prop_eq(float a, float b, float limit)
 {
   return std::fabs(a - b) < limit;
@@ -148,9 +147,9 @@ struct VertLoopSnapper {
   Span<CustomDataLayer *> layers;
   Span<BMLoop *> &ls;
   Vector<int, 16> max_indices;
-  float limit = 0.1;
+  float limit = 0.001;
 
-  VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : ls(ls_)
+  VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : ls(ls_), layers(layers_)
   {
     snap_sets.resize(ls.size());
     for (auto &snap_set : snap_sets) {
@@ -202,6 +201,26 @@ struct VertLoopSnapper {
   {
     CustomDataLayer *layer = layers[layer_i];
     int idx_base = 1;
+
+    float limit = 0.001;
+
+    if constexpr (std::is_same_v<T, float2>) {
+      /* Set UV snap limit as 1/10th the average uv edge length. */
+      limit = 0.1;
+      float len = 0.0;
+
+      for (BMLoop *l : ls) {
+        T value1 = *BM_ELEM_CD_PTR<T *>(l, layer->offset);
+        T value2 = *BM_ELEM_CD_PTR<T *>(l->next, layer->offset);
+
+        len += fabsf(value1[0] - value2[0]) * 0.5;
+        len += fabsf(value1[1] - value2[1]) * 0.5;
+      }
+
+      len /= ls.size();
+      limit *= len;
+      // printf("limit: %.5f  len: %.5f\n", limit, len);
+    }
 
     for (int i : ls.index_range()) {
       if (snap_sets[i][layer_i] != 0) {

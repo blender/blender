@@ -4026,7 +4026,7 @@ bool loop_is_corner(BMLoop *l, int cd_offset)
   BMVert *v = l->v;
 
   float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
-  float limit = 0.1;
+  float limit = 0.01;
 
   Vector<BMLoop *, 16> ls;
   Vector<int, 16> keys;
@@ -4075,7 +4075,7 @@ ATTR_NO_OPT bool loop_is_corner(BMLoop *l, int cd_offset)
   BMEdge *e = v->e;
 
   float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
-  float limit = 0.1;
+  float limit = 0.01;
 
   BMLoop *outer1 = nullptr, *outer2 = nullptr;
   do {
@@ -4187,9 +4187,9 @@ static void corner_interp(CustomDataLayer *layer,
 }
 
 /* Interpolates loops surrounding a vertex, splitting any UV map by
- * island as appropriate and enforcing proper boundary conditions. 
+ * island as appropriate and enforcing proper boundary conditions.
  */
-void interp_face_corners(
+ATTR_NO_OPT void interp_face_corners(
     PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
@@ -4292,7 +4292,7 @@ void interp_face_corners(
     }
 
     /* Snap. */
-    corner_snap.snap();
+    //corner_snap.snap();
   }
 }
 }  // namespace blender::bke::sculpt

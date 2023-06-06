@@ -70,7 +70,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     PBVHTopologyUpdateMode local_mode);
 
-static void surface_smooth_v_safe(
+ATTR_NO_OPT static void surface_smooth_v_safe(
     SculptSession *ss, PBVH *pbvh, BMVert *v, float fac, bool reproject_cdata)
 {
   float co[3];
@@ -82,6 +82,23 @@ static void surface_smooth_v_safe(
   if (BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) > 12) {
     return;
   }
+
+  Vector<BMLoop *, 32> loops;
+  Vector<float, 32> ws;
+
+  auto addblock = [&](BMEdge *e, float w) {
+    if (!e->l) {
+      return;
+    }
+
+    BMLoop *l = e->l;
+    do {
+      BMLoop *l2 = l->v != v ? l : l->next;
+
+      loops.append(l2);
+      ws.append(w);
+    } while ((l = l->radial_next) != e->l);
+  };
 
   PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v)};
   if (stroke_id_test(ss, vertex, STROKEID_USER_ORIGINAL)) {
@@ -136,11 +153,11 @@ static void surface_smooth_v_safe(
         float w2 = area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co);
         w = (w1 + w2) * 0.5f;
       }
-      else {
+      else { /* Backup weight if bad areas */
         w = len_squared_v3v3(e->v1->co, e->v2->co);
       }
     }
-    else {
+    else { /* Backup weight if bad areas */
       w = len_squared_v3v3(e->v1->co, e->v2->co);
     }
     /* Note: we can't validate the boundary flags from with a thread
@@ -153,6 +170,8 @@ static void surface_smooth_v_safe(
     if (bound1 && !bound2) {
       continue;
     }
+
+    addblock(e, w);
 
     sub_v3_v3v3(tan, v2->co, v->co);
 
@@ -199,10 +218,17 @@ static void surface_smooth_v_safe(
   atomic_cas_float(&v->co[1], y, ny);
   atomic_cas_float(&v->co[2], z, nz);
 
-  /* Note: threading is disabled if reproject_cdata is on. */
+  /*
+   * Use reprojection for non-UV attributes.  UV attributes
+   * use blender::bke::sculpt::interp_face_corners using
+   * the weights we built earlier.
+   */
+  /* Reproject attributes. */
   if (reproject_cdata) {
-    BKE_sculpt_reproject_cdata(ss, vertex, startco, startno);
+    BKE_sculpt_reproject_cdata(ss, vertex, startco, startno, false);
   }
+
+  blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac);
 
   float *start_origco = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 
@@ -3525,10 +3551,8 @@ inline void reproject_bm_data(
   }
 }
 
-void BKE_sculpt_reproject_cdata(SculptSession *ss,
-                                PBVHVertRef vertex,
-                                float startco[3],
-                                float startno[3])
+void BKE_sculpt_reproject_cdata(
+    SculptSession *ss, PBVHVertRef vertex, float startco[3], float startno[3], bool do_uvs)
 {
   int boundary_flag = blender::bke::paint::vertex_attr_get<int>(vertex, ss->attrs.boundary_flags);
   if (boundary_flag & (SCULPT_BOUNDARY_UV)) {
@@ -3610,7 +3634,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
       l2->head.hflag |= tag;
       ls.append(l2);
 
-      for (int i = 0; i < totuv; i++) {
+      for (int i = 0; do_uvs && i < totuv; i++) {
         const int cd_uv = uvlayer[i].offset;
         float *luv = BM_ELEM_CD_PTR<float *>(l2, cd_uv);
 
@@ -3677,6 +3701,10 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   eCustomDataMask typemask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
                              CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_COLOR;
 
+  if (!do_uvs) {
+    typemask &= ~CD_MASK_PROP_FLOAT2;
+  }
+
   CustomData *cdatas[2] = {&ss->bm->vdata, &ss->bm->ldata};
   bool ok = false;
 
@@ -3694,7 +3722,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
         continue;
       }
 
-      /* We don't reproject origco/origno. */
+      /* Don't reproject original data from start of stroke. */
       if (i == 0) {
         bool bad = false;
 
@@ -3723,12 +3751,12 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
 
   Vector<BMLoop *, 16> loops;
   Vector<CustomDataLayer *, 16> layers;
-  typemask = CD_MASK_PROP_FLOAT2;  // | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
-                             //CD_MASK_PROP_COLOR;
+  eCustomDataMask snap_typemask = CD_MASK_PROP_FLOAT2;
+
   for (int i = 0; i < ldata->totlayer; i++) {
     CustomDataLayer *layer = ldata->layers + i;
 
-    if (!(CD_TYPE_AS_MASK(layer->type) & typemask)) {
+    if (!(CD_TYPE_AS_MASK(layer->type) & snap_typemask)) {
       continue;
     }
     if (layer->flag & CD_FLAG_ELEM_NOINTERP) {
@@ -3754,7 +3782,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
   blender::bke::sculpt::VertLoopSnapper snapper = {loops, layers};
-  
+
   int totstep = 2;
   for (int step = 0; step < totstep; step++) {
     float3 startco2;
@@ -3878,7 +3906,10 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
   }
 
   snapper.snap();
-  return;  // XXX
+  return;
+
+  //XXX delete the below code after testing new snap code.
+
   /* Re-snap uvs. */
   v = (BMVert *)vertex.i;
 

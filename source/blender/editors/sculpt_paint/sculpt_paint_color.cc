@@ -398,7 +398,7 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   SculptAttribute *buffer_scl;
 
-  SculptAttributeParams params;
+  SculptAttributeParams params = {};
   params.stroke_only = true;
 
   SculptAttributeParams params_id = {};
