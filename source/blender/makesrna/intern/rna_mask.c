@@ -913,6 +913,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MASK_SPLINE_NOFILL);
   RNA_def_property_ui_text(prop, "Fill", "Make this spline filled");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MASK);
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
 
   /* self-intersection check */
