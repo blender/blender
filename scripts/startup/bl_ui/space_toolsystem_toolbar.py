@@ -1972,7 +1972,7 @@ class _defs_gpencil_paint:
     def generate_from_brushes(context):
         if context and context.preferences.experimental.use_grease_pencil_version3:
             return tuple([ToolDef.from_dict(dict(
-                idname="builtin_brush.draw",
+                idname="builtin_brush.Draw",
                 label="Draw",
                 icon="brush.gpencil_draw.draw",
                 data_block='DRAW',
