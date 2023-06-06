@@ -1023,11 +1023,11 @@ static void flip_names(tAnimCopybufItem *aci, char **r_name)
   str_iter = *r_name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + len_new + 1),
                                    "flipped_path");
 
-  BLI_strncpy(str_iter, aci->rna_path, prefix_l + 1);
+  memcpy(str_iter, aci->rna_path, prefix_l);
   str_iter += prefix_l;
-  BLI_strncpy(str_iter, bname_new, len_new + 1);
+  memcpy(str_iter, bname_new, len_new);
   str_iter += len_new;
-  BLI_strncpy(str_iter, str_end, postfix_l + 1);
+  memcpy(str_iter, str_end, postfix_l);
   str_iter[postfix_l] = '\0';
 }
 
