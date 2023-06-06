@@ -124,21 +124,7 @@ bool ui_but_is_popover_once_compat(const uiBut *but)
 
 bool ui_but_has_array_value(const uiBut *but)
 {
-  return (but->rnapoin.data && but->rnaprop &&
-          ELEM(RNA_property_subtype(but->rnaprop),
-               PROP_COLOR,
-               PROP_TRANSLATION,
-               PROP_DIRECTION,
-               PROP_VELOCITY,
-               PROP_ACCELERATION,
-               PROP_MATRIX,
-               PROP_EULER,
-               PROP_QUATERNION,
-               PROP_AXISANGLE,
-               PROP_XYZ,
-               PROP_XYZ_LENGTH,
-               PROP_COLOR_GAMMA,
-               PROP_COORDS));
+  return (but->rnapoin.data && but->rnaprop && RNA_property_array_check(but->rnaprop));
 }
 
 static wmOperatorType *g_ot_tool_set_by_id = nullptr;
