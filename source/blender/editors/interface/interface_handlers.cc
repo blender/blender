@@ -8875,7 +8875,7 @@ uiBut *UI_region_active_but_prop_get(const ARegion *region,
   else {
     memset(r_ptr, 0, sizeof(*r_ptr));
     *r_prop = nullptr;
-    *r_index = -1;
+    *r_index = 0;
   }
 
   return activebut;

@@ -188,7 +188,7 @@ void MTLShader::vertex_shader_from_glsl(MutableSpan<const char *> sources)
 
 void MTLShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
 {
-  MTL_LOG_ERROR("MTLShader::geometry_shader_from_glsl - Geometry shaders unsupported!\n");
+  MTL_LOG_ERROR("MTLShader::geometry_shader_from_glsl - Geometry shaders unsupported!");
 }
 
 void MTLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
@@ -229,7 +229,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 {
   /* Check if Shader has already been finalized. */
   if (this->is_valid()) {
-    MTL_LOG_ERROR("Shader (%p) '%s' has already been finalized!\n", this, this->name_get());
+    MTL_LOG_ERROR("Shader (%p) '%s' has already been finalized!", this, this->name_get());
   }
 
   /* Compute shaders. */
@@ -338,7 +338,8 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       if (error) {
         /* Only exit out if genuine error and not warning. */
         if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-            NSNotFound) {
+            NSNotFound)
+        {
           const char *errors_c_str = [[error localizedDescription] UTF8String];
           const char *sources_c_str = shd_builder_->glsl_fragment_source_.c_str();
 
@@ -472,7 +473,7 @@ void MTLShader::bind()
   if (interface == nullptr || !this->is_valid()) {
     MTL_LOG_WARNING(
         "MTLShader::bind - Shader '%s' has no valid implementation in Metal, draw calls will be "
-        "skipped.\n",
+        "skipped.",
         this->name_get());
   }
   ctx->pipeline_state.active_shader = this;
@@ -492,7 +493,7 @@ void MTLShader::uniform_float(int location, int comp_len, int array_size, const 
   }
   MTLShaderInterface *mtl_interface = get_interface();
   if (location < 0 || location >= mtl_interface->get_total_uniforms()) {
-    MTL_LOG_WARNING("Uniform location %d is not valid in Shader %s\n", location, this->name_get());
+    MTL_LOG_WARNING("Uniform location %d is not valid in Shader %s", location, this->name_get());
     return;
   }
 
@@ -601,14 +602,13 @@ void MTLShader::uniform_int(int location, int comp_len, int array_size, const in
   {
     MTL_LOG_WARNING(
         "Texture uniform location re-mapping unsupported in Metal. (Possibly also bad uniform "
-        "location %d)\n",
+        "location %d)",
         location);
     return;
   }
 
   if (location < 0 || location >= mtl_interface->get_total_uniforms()) {
-    MTL_LOG_WARNING(
-        "Uniform is not valid at location %d - Shader %s\n", location, this->name_get());
+    MTL_LOG_WARNING("Uniform is not valid at location %d - Shader %s", location, this->name_get());
     return;
   }
 
@@ -877,7 +877,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     }
     else {
       for (const uint i :
-           IndexRange(pipeline_descriptor.vertex_descriptor.max_attribute_value + 1)) {
+           IndexRange(pipeline_descriptor.vertex_descriptor.max_attribute_value + 1))
+      {
 
         /* Metal back-end attribute descriptor state. */
         const MTLVertexAttributeDescriptorPSO &attribute_desc =
@@ -898,7 +899,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
           /* If attributes are non-contiguous, we can skip over gaps. */
           MTL_LOG_WARNING(
               "MTLShader: baking pipeline state for '%s'- skipping input attribute at "
-              "index '%d' but none was specified in the current vertex state\n",
+              "index '%d' but none was specified in the current vertex state",
               mtl_interface->get_name(),
               i);
 
@@ -995,7 +996,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
             }
             using_null_buffer = true;
 #if MTL_DEBUG_SHADER_ATTRIBUTES == 1
-            MTL_LOG_INFO("Setting up buffer binding for null attribute with buffer index %d\n",
+            MTL_LOG_INFO("Setting up buffer binding for null attribute with buffer index %d",
                          null_buffer_index);
 #endif
           }
@@ -1070,7 +1071,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
     bool null_pointsize = true;
     float MTL_pointsize = pipeline_descriptor.point_size;
     if (pipeline_descriptor.vertex_descriptor.prim_topology_class ==
-        MTLPrimitiveTopologyClassPoint) {
+        MTLPrimitiveTopologyClassPoint)
+    {
       /* `if pointsize is > 0.0`, PROGRAM_POINT_SIZE is enabled, and `gl_PointSize` shader keyword
        * overrides the value. Otherwise, if < 0.0, use global constant point size. */
       if (MTL_pointsize < 0.0) {
@@ -1142,7 +1144,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
     /* Setup pixel format state */
     for (int color_attachment = 0; color_attachment < GPU_FB_MAX_COLOR_ATTACHMENT;
-         color_attachment++) {
+         color_attachment++)
+    {
       /* Fetch color attachment pixel format in back-end pipeline state. */
       MTLPixelFormat pixel_format = pipeline_descriptor.color_attachment_format[color_attachment];
       /* Populate MTL API PSO attachment descriptor. */
@@ -1383,7 +1386,8 @@ bool MTLShader::bake_compute_pipeline_state(MTLContext *ctx)
 
       /* Only exit out if genuine error and not warning */
       if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
-          NSNotFound) {
+          NSNotFound)
+      {
         BLI_assert(false);
         return false;
       }
@@ -1560,7 +1564,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(id<MTLRenderCommandEncoder
         MTL_LOG_WARNING(
             "SSBO Vertex Fetch missing attribute with index: %d. Shader: %s, Attr "
             "Name: "
-            "%s - Null buffer bound\n",
+            "%s - Null buffer bound",
             i,
             this->name_get(),
             mtl_shader_attribute->name);
@@ -1571,7 +1575,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(id<MTLRenderCommandEncoder
         ssbo_vertex_fetch_bind_attribute(ssbo_attr);
         MTL_LOG_WARNING(
             "Unassigned Shader attribute: %s, Attr Name: %s -- Binding NULL BUFFER to "
-            "slot %d\n",
+            "slot %d",
             this->name_get(),
             mtl_interface->get_name_at_offset(mtl_shader_attribute->name_offset),
             null_attr_buffer_slot);

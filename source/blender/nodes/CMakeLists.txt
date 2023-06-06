@@ -30,6 +30,7 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
+  ../../../extern/fmtlib/include
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h
@@ -88,6 +89,7 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
+  extern_fmtlib
 )
 
 if(WITH_BULLET)

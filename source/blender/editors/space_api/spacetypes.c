@@ -35,6 +35,7 @@
 #include "ED_geometry.h"
 #include "ED_gizmo_library.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil.h"
 #include "ED_grease_pencil_draw.h"
 #include "ED_lattice.h"
 #include "ED_markers.h"
@@ -93,8 +94,9 @@ void ED_spacetypes_init(void)
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();
   ED_operatortypes_asset();
+  ED_operatortypes_gpencil_legacy();
   ED_operatortypes_grease_pencil_draw();
-  ED_operatortypes_gpencil();
+  ED_operatortypes_grease_pencil();
   ED_operatortypes_object();
   ED_operatortypes_lattice();
   ED_operatortypes_mesh();
@@ -183,7 +185,8 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
   ED_keymap_screen(keyconf);
   ED_keymap_anim(keyconf);
   ED_keymap_animchannels(keyconf);
-  ED_keymap_gpencil(keyconf);
+  ED_keymap_gpencil_legacy(keyconf);
+  ED_keymap_grease_pencil(keyconf);
   ED_keymap_object(keyconf);
   ED_keymap_lattice(keyconf);
   ED_keymap_mesh(keyconf);

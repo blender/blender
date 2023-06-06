@@ -95,7 +95,7 @@ void MTLIndexBuf::upload_data()
 
   /* If new data ready, and index buffer already exists, release current. */
   if ((ibo_ != nullptr) && (this->data_ != nullptr)) {
-    MTL_LOG_INFO("Re-creating index buffer with new data. IndexBuf %p\n", this);
+    MTL_LOG_INFO("Re-creating index buffer with new data. IndexBuf %p", this);
     ibo_->free();
     ibo_ = nullptr;
   }
@@ -104,7 +104,7 @@ void MTLIndexBuf::upload_data()
   if (ibo_ == nullptr && data_ != nullptr) {
     alloc_size_ = this->size_get();
     if (alloc_size_ == 0) {
-      MTL_LOG_WARNING("[Metal] Warning! Trying to allocate index buffer with size=0 bytes\n");
+      MTL_LOG_WARNING("Warning! Trying to allocate index buffer with size=0 bytes");
     }
     else {
       ibo_ = MTLContext::get_global_memory_manager()->allocate_with_data(alloc_size_, true, data_);
@@ -424,7 +424,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         /* TODO(Metal): Line strip topology types would benefit from optimization to remove
          * primitive restarts, however, these do not occur frequently, nor with
          * significant geometry counts. */
-        MTL_LOG_INFO("TODO: Primitive topology: Optimize line strip topology types\n");
+        MTL_LOG_INFO("TODO: Primitive topology: Optimize line strip topology types");
       } break;
 
       case GPU_PRIM_LINE_LOOP: {
@@ -433,7 +433,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
          * does not currently appear to be used alongside an index buffer. */
         MTL_LOG_WARNING(
             "TODO: Primitive topology: Line Loop Index buffer optimization required for "
-            "emulation.\n");
+            "emulation.");
       } break;
 
       case GPU_PRIM_TRIS:
@@ -527,4 +527,4 @@ void MTLIndexBuf::strip_restart_indices()
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

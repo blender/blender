@@ -17,6 +17,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -389,7 +391,8 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PAINT_MODE_TEXTURE_3D,
              PAINT_MODE_TEXTURE_2D,
              PAINT_MODE_VERTEX,
-             PAINT_MODE_SCULPT)) {
+             PAINT_MODE_SCULPT))
+    {
       copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
       color->value = 0.0;
     }
@@ -1011,6 +1014,8 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
     const char *prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
     prop = RNA_def_enum(
         ot->srna, prop_id, BKE_paint_get_tool_enum_from_paintmode(paint_mode), 0, prop_id, "");
+    RNA_def_property_translation_context(
+        prop, BKE_paint_get_tool_enum_translation_context_from_paintmode(paint_mode));
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 

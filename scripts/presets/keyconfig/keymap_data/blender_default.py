@@ -4494,6 +4494,21 @@ def km_grease_pencil_stroke_vertex_replace(_params):
     return keymap
 
 
+def km_grease_pencil_edit(params):
+    items = []
+    keymap = (
+        "Grease Pencil Edit Mode",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        *_template_items_select_actions(params, "grease_pencil.select_all"),
+    ])
+
+    return keymap
+
+
 def km_face_mask(params):
     items = []
     keymap = (
@@ -8217,7 +8232,7 @@ def generate_keymaps(params=None):
         km_animation_channels(params),
 
         # Modes.
-        km_grease_pencil(params),
+        km_grease_pencil(params),  # TODO: Rename to km_annotate
         km_grease_pencil_stroke_curve_edit_mode(params),
         km_grease_pencil_stroke_edit_mode(params),
         km_grease_pencil_stroke_paint_mode(params),
@@ -8246,6 +8261,7 @@ def generate_keymaps(params=None):
         km_grease_pencil_stroke_vertex_average(params),
         km_grease_pencil_stroke_vertex_smear(params),
         km_grease_pencil_stroke_vertex_replace(params),
+        km_grease_pencil_edit(params),
         km_face_mask(params),
         km_weight_paint_vertex_selection(params),
         km_pose(params),

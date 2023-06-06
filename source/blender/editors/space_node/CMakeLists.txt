@@ -23,6 +23,7 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+  ../../../../extern/fmtlib/include
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
@@ -58,6 +59,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_editor_screen
+  extern_fmtlib
 )
 
 if(WITH_COMPOSITOR_CPU)

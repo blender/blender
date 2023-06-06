@@ -439,20 +439,17 @@ void apply_selection_operation_at_index(GMutableSpan selection,
 }
 
 static std::optional<FindClosestData> find_closest_point_to_screen_co(
-    const Depsgraph &depsgraph,
     const ARegion *region,
     const RegionView3D *rv3d,
     const Object &object,
     const bke::CurvesGeometry &curves,
+    Span<float3> deformed_positions,
     float2 mouse_pos,
     float radius,
     const FindClosestData &initial_closest)
 {
   float4x4 projection;
   ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
-
-  const bke::crazyspace::GeometryDeformation deformation =
-      bke::crazyspace::get_evaluated_curves_deformation(depsgraph, object);
 
   const float radius_sq = pow2f(radius);
   const FindClosestData new_closest_data = threading::parallel_reduce(
@@ -462,7 +459,7 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
       [&](const IndexRange point_range, const FindClosestData &init) {
         FindClosestData best_match = init;
         for (const int point_i : point_range) {
-          const float3 pos = deformation.positions[point_i];
+          const float3 pos = deformed_positions[point_i];
 
           /* Find the position of the point in screen space. */
           float2 pos_proj;
@@ -498,20 +495,17 @@ static std::optional<FindClosestData> find_closest_point_to_screen_co(
 }
 
 static std::optional<FindClosestData> find_closest_curve_to_screen_co(
-    const Depsgraph &depsgraph,
     const ARegion *region,
     const RegionView3D *rv3d,
     const Object &object,
     const bke::CurvesGeometry &curves,
+    Span<float3> deformed_positions,
     float2 mouse_pos,
     float radius,
     const FindClosestData &initial_closest)
 {
   float4x4 projection;
   ED_view3d_ob_project_mat_get(rv3d, &object, projection.ptr());
-
-  const bke::crazyspace::GeometryDeformation deformation =
-      bke::crazyspace::get_evaluated_curves_deformation(depsgraph, object);
 
   const float radius_sq = pow2f(radius);
 
@@ -525,7 +519,7 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
         for (const int curve_i : curves_range) {
           const IndexRange points = points_by_curve[curve_i];
           if (points.size() == 1) {
-            const float3 pos = deformation.positions[points.first()];
+            const float3 pos = deformed_positions[points.first()];
 
             /* Find the position of the point in screen space. */
             float2 pos_proj;
@@ -548,8 +542,8 @@ static std::optional<FindClosestData> find_closest_curve_to_screen_co(
           }
 
           for (const int segment_i : points.drop_back(1)) {
-            const float3 pos1 = deformation.positions[segment_i];
-            const float3 pos2 = deformation.positions[segment_i + 1];
+            const float3 pos1 = deformed_positions[segment_i];
+            const float3 pos2 = deformed_positions[segment_i + 1];
 
             float2 pos1_proj, pos2_proj;
             ED_view3d_project_float_v2_m4(region, pos1, pos1_proj, projection.ptr());
@@ -591,26 +585,27 @@ std::optional<FindClosestData> closest_elem_find_screen_space(
     const ViewContext &vc,
     const Object &object,
     bke::CurvesGeometry &curves,
+    const Span<float3> deformed_positions,
     const eAttrDomain domain,
     const int2 coord,
     const FindClosestData &initial_closest)
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      return find_closest_point_to_screen_co(*vc.depsgraph,
-                                             vc.region,
+      return find_closest_point_to_screen_co(vc.region,
                                              vc.rv3d,
                                              object,
                                              curves,
+                                             deformed_positions,
                                              float2(coord),
                                              ED_view3d_select_dist_px(),
                                              initial_closest);
     case ATTR_DOMAIN_CURVE:
-      return find_closest_curve_to_screen_co(*vc.depsgraph,
-                                             vc.region,
+      return find_closest_curve_to_screen_co(vc.region,
                                              vc.rv3d,
                                              object,
                                              curves,
+                                             deformed_positions,
                                              float2(coord),
                                              ED_view3d_select_dist_px(),
                                              initial_closest);
@@ -622,6 +617,7 @@ std::optional<FindClosestData> closest_elem_find_screen_space(
 
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
+                const Span<float3> deformed_positions,
                 const eAttrDomain selection_domain,
                 const rcti &rect,
                 const eSelectOp sel_op)
@@ -638,15 +634,13 @@ bool select_box(const ViewContext &vc,
   float4x4 projection;
   ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact, projection.ptr());
 
-  const bke::crazyspace::GeometryDeformation deformation =
-      bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obact);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
     threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange point_range) {
       for (const int point_i : point_range) {
         float2 pos_proj;
         ED_view3d_project_float_v2_m4(
-            vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+            vc.region, deformed_positions[point_i], pos_proj, projection.ptr());
         if (BLI_rcti_isect_pt_v(&rect, int2(pos_proj))) {
           apply_selection_operation_at_index(selection.span, point_i, sel_op);
           changed = true;
@@ -661,7 +655,7 @@ bool select_box(const ViewContext &vc,
         if (points.size() == 1) {
           float2 pos_proj;
           ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[points.first()], pos_proj, projection.ptr());
+              vc.region, deformed_positions[points.first()], pos_proj, projection.ptr());
           if (BLI_rcti_isect_pt_v(&rect, int2(pos_proj))) {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
@@ -669,8 +663,8 @@ bool select_box(const ViewContext &vc,
           continue;
         }
         for (const int segment_i : points.drop_back(1)) {
-          const float3 pos1 = deformation.positions[segment_i];
-          const float3 pos2 = deformation.positions[segment_i + 1];
+          const float3 pos1 = deformed_positions[segment_i];
+          const float3 pos2 = deformed_positions[segment_i + 1];
 
           float2 pos1_proj, pos2_proj;
           ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());
@@ -692,6 +686,7 @@ bool select_box(const ViewContext &vc,
 
 bool select_lasso(const ViewContext &vc,
                   bke::CurvesGeometry &curves,
+                  const Span<float3> deformed_positions,
                   const eAttrDomain selection_domain,
                   const Span<int2> coords,
                   const eSelectOp sel_op)
@@ -712,15 +707,13 @@ bool select_lasso(const ViewContext &vc,
   float4x4 projection;
   ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact, projection.ptr());
 
-  const bke::crazyspace::GeometryDeformation deformation =
-      bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obact);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
     threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange point_range) {
       for (const int point_i : point_range) {
         float2 pos_proj;
         ED_view3d_project_float_v2_m4(
-            vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+            vc.region, deformed_positions[point_i], pos_proj, projection.ptr());
         /* Check the lasso bounding box first as an optimization. */
         if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
             BLI_lasso_is_point_inside(
@@ -739,7 +732,7 @@ bool select_lasso(const ViewContext &vc,
         if (points.size() == 1) {
           float2 pos_proj;
           ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[points.first()], pos_proj, projection.ptr());
+              vc.region, deformed_positions[points.first()], pos_proj, projection.ptr());
           /* Check the lasso bounding box first as an optimization. */
           if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
               BLI_lasso_is_point_inside(
@@ -751,8 +744,8 @@ bool select_lasso(const ViewContext &vc,
           continue;
         }
         for (const int segment_i : points.drop_back(1)) {
-          const float3 pos1 = deformation.positions[segment_i];
-          const float3 pos2 = deformation.positions[segment_i + 1];
+          const float3 pos1 = deformed_positions[segment_i];
+          const float3 pos2 = deformed_positions[segment_i + 1];
 
           float2 pos1_proj, pos2_proj;
           ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());
@@ -783,6 +776,7 @@ bool select_lasso(const ViewContext &vc,
 
 bool select_circle(const ViewContext &vc,
                    bke::CurvesGeometry &curves,
+                   const Span<float3> deformed_positions,
                    const eAttrDomain selection_domain,
                    const int2 coord,
                    const float radius,
@@ -801,15 +795,13 @@ bool select_circle(const ViewContext &vc,
   float4x4 projection;
   ED_view3d_ob_project_mat_get(vc.rv3d, vc.obact, projection.ptr());
 
-  const bke::crazyspace::GeometryDeformation deformation =
-      bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obact);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   if (selection_domain == ATTR_DOMAIN_POINT) {
     threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange point_range) {
       for (const int point_i : point_range) {
         float2 pos_proj;
         ED_view3d_project_float_v2_m4(
-            vc.region, deformation.positions[point_i], pos_proj, projection.ptr());
+            vc.region, deformed_positions[point_i], pos_proj, projection.ptr());
         if (math::distance_squared(pos_proj, float2(coord)) <= radius_sq) {
           apply_selection_operation_at_index(selection.span, point_i, sel_op);
           changed = true;
@@ -824,7 +816,7 @@ bool select_circle(const ViewContext &vc,
         if (points.size() == 1) {
           float2 pos_proj;
           ED_view3d_project_float_v2_m4(
-              vc.region, deformation.positions[points.first()], pos_proj, projection.ptr());
+              vc.region, deformed_positions[points.first()], pos_proj, projection.ptr());
           if (math::distance_squared(pos_proj, float2(coord)) <= radius_sq) {
             apply_selection_operation_at_index(selection.span, curve_i, sel_op);
             changed = true;
@@ -832,8 +824,8 @@ bool select_circle(const ViewContext &vc,
           continue;
         }
         for (const int segment_i : points.drop_back(1)) {
-          const float3 pos1 = deformation.positions[segment_i];
-          const float3 pos2 = deformation.positions[segment_i + 1];
+          const float3 pos1 = deformed_positions[segment_i];
+          const float3 pos2 = deformed_positions[segment_i + 1];
 
           float2 pos1_proj, pos2_proj;
           ED_view3d_project_float_v2_m4(vc.region, pos1, pos1_proj, projection.ptr());

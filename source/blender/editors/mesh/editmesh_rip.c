@@ -18,6 +18,8 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
+#include "BLT_translation.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -1102,6 +1104,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 void MESH_OT_rip(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Rip";
   ot->idname = "MESH_OT_rip";
@@ -1116,5 +1120,6 @@ void MESH_OT_rip(wmOperatorType *ot)
 
   /* to give to transform */
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
-  RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill the ripped region");
+  prop = RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill the ripped region");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
 }

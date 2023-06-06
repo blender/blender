@@ -23,6 +23,7 @@
 #include "tree_element_id_curve.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_mesh.hh"
+#include "tree_element_id_metaball.hh"
 #include "tree_element_id_scene.hh"
 
 #include "tree_element_id.hh"
@@ -45,8 +46,9 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
       return std::make_unique<TreeElementIDMesh>(legacy_te, (Mesh &)id);
     case ID_CU_LEGACY:
       return std::make_unique<TreeElementIDCurve>(legacy_te, (Curve &)id);
-    case ID_OB:
     case ID_MB:
+      return std::make_unique<TreeElementIDMetaBall>(legacy_te, (MetaBall &)id);
+    case ID_OB:
     case ID_MA:
     case ID_TE:
     case ID_LT:

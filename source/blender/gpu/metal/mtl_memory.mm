@@ -128,7 +128,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
           found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_))
       {
         MTL_LOG_INFO(
-            "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld\n",
+            "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld",
             found_size,
             aligned_alloc_size);
 
@@ -141,8 +141,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
       else {
         MTL_LOG_INFO(
             "[MemoryAllocator] Buffer of size %lld found, but was incompatible with requested "
-            "size: "
-            "%lld\n",
+            "size: %lld",
             found_size,
             aligned_alloc_size);
         new_buffer = nullptr;
@@ -307,19 +306,18 @@ void MTLBufferPool::update_memory_pools()
         deletion_time_threshold_s = 2;
       }
       else
-          /* Spare pool memory >= 1GB. */
-          if (allocations_in_pool_ >= MEMORY_SIZE_1GB)
-      {
-        deletion_time_threshold_s = 4;
-      }
-      /* Spare pool memory >= 512MB.*/
-      else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
-        deletion_time_threshold_s = 15;
-      }
-      /* Spare pool memory >= 256MB. */
-      else if (allocations_in_pool_ >= MEMORY_SIZE_256MB) {
-        deletion_time_threshold_s = 60;
-      }
+        /* Spare pool memory >= 1GB. */
+        if (allocations_in_pool_ >= MEMORY_SIZE_1GB) {
+          deletion_time_threshold_s = 4;
+        }
+        /* Spare pool memory >= 512MB.*/
+        else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
+          deletion_time_threshold_s = 15;
+        }
+        /* Spare pool memory >= 256MB. */
+        else if (allocations_in_pool_ >= MEMORY_SIZE_256MB) {
+          deletion_time_threshold_s = 60;
+        }
 
       if (time_passed > deletion_time_threshold_s) {
 
@@ -786,7 +784,7 @@ void MTLScratchBufferManager::ensure_increment_scratch_buffer()
     active_scratch_buf = scratch_buffers_[current_scratch_buffer_];
     active_scratch_buf->reset();
     BLI_assert(&active_scratch_buf->own_context_ == &context_);
-    MTL_LOG_INFO("Scratch buffer %d reset - (ctx %p)(Frame index: %d)\n",
+    MTL_LOG_INFO("Scratch buffer %d reset - (ctx %p)(Frame index: %d)",
                  current_scratch_buffer_,
                  &context_,
                  context_.get_current_frame_index());
@@ -873,12 +871,11 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
          * maximum */
         if (aligned_alloc_size > MTLScratchBufferManager::mtl_scratch_buffer_max_size_) {
           new_size = aligned_alloc_size;
-          MTL_LOG_INFO("Temporarily growing Scratch buffer to %d MB\n",
-                       (int)new_size / 1024 / 1024);
+          MTL_LOG_INFO("Temporarily growing Scratch buffer to %d MB", (int)new_size / 1024 / 1024);
         }
         else {
           new_size = MTLScratchBufferManager::mtl_scratch_buffer_max_size_;
-          MTL_LOG_INFO("Shrinking Scratch buffer back to %d MB\n", (int)new_size / 1024 / 1024);
+          MTL_LOG_INFO("Shrinking Scratch buffer back to %d MB", (int)new_size / 1024 / 1024);
         }
       }
       BLI_assert(aligned_alloc_size <= new_size);
@@ -901,7 +898,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
     else {
       MTL_LOG_WARNING(
           "Performance Warning: Reached the end of circular buffer of size: %llu, but cannot "
-          "resize. Starting new buffer\n",
+          "resize. Starting new buffer",
           cbuffer_->get_size());
       BLI_assert(aligned_alloc_size <= new_size);
 
@@ -931,7 +928,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
     if (G.debug & G_DEBUG_GPU) {
       cbuffer_->set_label(@"Circular Scratch Buffer");
     }
-    MTL_LOG_INFO("Resized Metal circular buffer to %llu bytes\n", new_size);
+    MTL_LOG_INFO("Resized Metal circular buffer to %llu bytes", new_size);
 
     /* Reset allocation Status. */
     aligned_current_offset = 0;
@@ -988,4 +985,4 @@ void MTLCircularBuffer::reset()
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

@@ -1988,7 +1988,7 @@ class VIEW3D_MT_paint_gpencil(Menu):
 class VIEW3D_MT_select_edit_gpencil(Menu):
     bl_label = "Select"
 
-    def draw(self, context):
+    def draw_legacy(self, context):
         layout = self.layout
 
         layout.operator("gpencil.select_all", text="All").action = 'SELECT'
@@ -2020,6 +2020,18 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
 
         layout.operator("gpencil.select_more")
         layout.operator("gpencil.select_less")
+
+    def draw(self, context):
+        if not context.preferences.experimental.use_grease_pencil_version3:
+            self.draw_legacy(context)
+
+        layout = self.layout
+
+        layout.operator("grease_pencil.select_all", text="All").action = 'SELECT'
+        layout.operator("grease_pencil.select_all", text="None").action = 'DESELECT'
+        layout.operator("grease_pencil.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()     
 
 
 class VIEW3D_MT_select_paint_mask(Menu):

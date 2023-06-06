@@ -438,7 +438,9 @@ void MESH_OT_bisect(wmOperatorType *ot)
                               1.0f);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill in the cut");
+  prop = RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill in the cut");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MASK);
+
   RNA_def_boolean(
       ot->srna, "clear_inner", false, "Clear Inner", "Remove geometry behind the plane");
   RNA_def_boolean(

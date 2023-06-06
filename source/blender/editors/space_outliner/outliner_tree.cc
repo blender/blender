@@ -553,22 +553,11 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     case ID_SCE:
     case ID_ME:
     case ID_CU_LEGACY:
+    case ID_MB:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
       outliner_add_object_contents(space_outliner, te, tselem, (Object *)id);
-      break;
-    }
-    case ID_MB: {
-      MetaBall *mb = (MetaBall *)id;
-
-      if (outliner_animdata_test(mb->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < mb->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, mb->mat[a], te, TSE_SOME_ID, a);
-      }
       break;
     }
     case ID_MA: {
