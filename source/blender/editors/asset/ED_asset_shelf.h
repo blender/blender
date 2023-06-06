@@ -12,7 +12,6 @@ extern "C" {
 
 struct ARegion;
 struct ARegionType;
-struct AssetShelfSettings;
 struct bContext;
 struct bContextDataResult;
 struct BlendDataReader;
@@ -21,7 +20,18 @@ struct wmWindowManager;
 struct RegionPollParams;
 
 /* -------------------------------------------------------------------- */
-/* Asset Shelf Regions */
+/** \name Asset Shelf Regions
+ *
+ * Naming conventions:
+ * - #ED_asset_shelf_regions_xxx(): Applies to both regions (#RGN_TYPE_ASSET_SHELF and
+ *   #RGN_TYPE_ASSET_SHELF_FOOTER).
+ * - #ED_asset_shelf_region_xxx(): Applies to the main shelf region (#RGN_TYPE_ASSET_SHELF).
+ * - #ED_asset_shelf_footer_region_xxx(): Applies to the shelf footer region
+ *   (#RGN_TYPE_ASSET_SHELF_FOOTER).
+ * - #ED_asset_shelf_footer_xxx(): Applies to the shelf footer region-type
+ *   (#RGN_TYPE_ASSET_SHELF_FOOTER).
+ *
+ * \{ */
 
 bool ED_asset_shelf_regions_poll(const struct RegionPollParams *params);
 
@@ -33,8 +43,6 @@ void ED_asset_shelf_region_layout(const bContext *C,
                                   struct ARegion *region,
                                   struct AssetShelfHook *shelf_hook);
 void ED_asset_shelf_region_draw(const bContext *C, struct ARegion *region);
-int ED_asset_shelf_default_tile_width(void);
-int ED_asset_shelf_default_tile_height(void);
 int ED_asset_shelf_region_prefsizey(void);
 
 void ED_asset_shelf_footer_region_init(struct wmWindowManager *wm, struct ARegion *region);
@@ -43,8 +51,11 @@ void ED_asset_shelf_footer_region_listen(const struct wmRegionListenerParams *pa
 int ED_asset_shelf_footer_size(void);
 void ED_asset_shelf_footer_register(struct ARegionType *region_type, const int space_type);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Asset Shelf Hook */
+/** \name Asset Shelf Hook
+ * \{ */
 
 /**
  * Deep-copies \a hook into newly allocated memory. Must be freed using
@@ -61,7 +72,12 @@ void ED_asset_shelf_hook_blend_write(struct BlendWriter *writer,
 void ED_asset_shelf_hook_blend_read_data(struct BlendDataReader *reader,
                                          struct AssetShelfHook **hook);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
+
+int ED_asset_shelf_default_tile_width(void);
+int ED_asset_shelf_default_tile_height(void);
 
 /**
  * Creates an `"asset_shelf"` context member, pointing to the active shelf in \a #shelf_hook.

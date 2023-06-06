@@ -14,7 +14,6 @@
 
 #include "DNA_genfile.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
@@ -23,7 +22,6 @@
 #include "BKE_main.h"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_node.hh"
-#include "BKE_screen.h"
 #include "BKE_tracking.h"
 
 #include "BLO_readfile.h"

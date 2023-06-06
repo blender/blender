@@ -105,6 +105,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_action.simulated_frames);
   }
 
+  /* TODO version bump. */
   {
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.asset_shelf.header_back);
