@@ -215,19 +215,19 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       corner_verts[tot_loop_idx] = mesh_geometry_.global_to_local_vertices_.lookup_default(
           curr_corner.vert_index, 0);
-      tot_loop_idx++;
 
       /* Setup vertex group data, if needed. */
-      if (dverts.is_empty()) {
-        continue;
+      if (!dverts.is_empty()) {
+        const int group_index = curr_face.vertex_group_index;
+        /* Note: face might not belong to any group */
+        if (group_index >= 0 || 1) {
+          MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[corner_verts[tot_loop_idx]],
+                                                       group_index);
+          dw->weight = 1.0f;
+        }
       }
-      const int group_index = curr_face.vertex_group_index;
-      /* Note: face might not belong to any group */
-      if (group_index >= 0 || 1) {
-        MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[corner_verts[tot_loop_idx]],
-                                                     group_index);
-        dw->weight = 1.0f;
-      }
+
+      tot_loop_idx++;
     }
   }
 
