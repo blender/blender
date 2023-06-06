@@ -539,7 +539,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
 
   getSnapPoint(t, dvec);
   sub_v3_v3(dvec, t->tsnap.snap_source);
-  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
+  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_curr_3d, co_orig_3d);
     normalize_v3(co_dir);

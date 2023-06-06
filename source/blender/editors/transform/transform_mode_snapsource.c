@@ -105,7 +105,7 @@ static void snapsource_confirm(TransInfo *t)
   transform_input_reset(t, mval);
 
   /* Remote individual snap projection since this mode does not use the new `snap_source`. */
-  t->tsnap.flag &= ~SCE_SNAP_PROJECT;
+  t->tsnap.mode &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
 }
 
 static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event)

@@ -1057,7 +1057,7 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
     sctx->ret.is_edit = is_edit;
-    return SCE_SNAP_MODE_FACE_RAYCAST;
+    return SCE_SNAP_MODE_FACE;
   }
   return SCE_SNAP_MODE_NONE;
 }
@@ -2072,7 +2072,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
-  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE_RAYCAST) {
+  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE) {
     /* Currently only edge and vert. */
     return retval;
   }
@@ -2553,7 +2553,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                           float r_no[3],
                           int *r_index)
 {
-  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE_RAYCAST);
+  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE);
   if (me_eval->totvert == 0) {
     return SCE_SNAP_MODE_NONE;
   }
@@ -2718,9 +2718,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                               float r_no[3],
                               int *r_index)
 {
-  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE_RAYCAST);
+  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE);
 
-  if ((sctx->runtime.snap_to_flag & ~SCE_SNAP_MODE_FACE_RAYCAST) == SCE_SNAP_MODE_VERTEX) {
+  if ((sctx->runtime.snap_to_flag & ~SCE_SNAP_MODE_FACE) == SCE_SNAP_MODE_VERTEX) {
     if (em->bm->totvert == 0) {
       return SCE_SNAP_MODE_NONE;
     }
@@ -3275,10 +3275,10 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  if (snap_to_flag & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) {
+  if (snap_to_flag & (SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_FACE_NEAREST)) {
     if (params->use_occlusion_test && XRAY_ENABLED(v3d)) {
       /* Remove Snap to Face with Occlusion Test as they are not visible in wireframe mode. */
-      snap_to_flag &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+      snap_to_flag &= ~(SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_FACE_NEAREST);
     }
     else if (prev_co == nullptr || init_co == nullptr) {
       /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
@@ -3312,7 +3312,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
 
-  if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) || use_occlusion_test) {
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE) || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true))
@@ -3329,8 +3329,8 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
         copy_v3_v3(r_face_nor, sctx->ret.no);
       }
 
-      if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
-        retval = SCE_SNAP_MODE_FACE_RAYCAST;
+      if (snap_to_flag & SCE_SNAP_MODE_FACE) {
+        retval = SCE_SNAP_MODE_FACE;
 
         copy_v3_v3(r_loc, sctx->ret.loc);
         if (r_no) {

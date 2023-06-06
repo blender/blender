@@ -124,6 +124,16 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 4)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+#define SCE_SNAP_PROJECT (1 << 3)
+      if (scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) {
+        scene->toolsettings->snap_mode |= SCE_SNAP_MODE_FACE_RAYCAST;
+      }
+#undef SCE_SNAP_PROJECT
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
