@@ -326,8 +326,9 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
         "radius", ATTR_DOMAIN_POINT, 1.0f);
     const VArray<float> opacities = *attributes.lookup_or_default<float>(
         "opacity", ATTR_DOMAIN_POINT, 1.0f);
+    /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
-        ".selection", ATTR_DOMAIN_POINT, false);
+        ".selection", ATTR_DOMAIN_POINT, true);
     const VArray<int8_t> start_caps = *attributes.lookup_or_default<int8_t>(
         "start_cap", ATTR_DOMAIN_CURVE, 0);
     const VArray<int8_t> end_caps = *attributes.lookup_or_default<int8_t>(

@@ -21,6 +21,7 @@ set(INC_SYS
 
 set(SRC
   intern/grease_pencil_add.cc
+  intern/grease_pencil_ops.cc
 )
 
 set(LIB
