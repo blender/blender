@@ -3491,11 +3491,13 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
     }
   }
 
-  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
-
+  /* Free hair_out_mesh before modifying hair_in_mesh in hair_create_input_mesh() to avoid copying
+   * on write since they share some data */
   if (psys->hair_out_mesh) {
     BKE_id_free(NULL, psys->hair_out_mesh);
   }
+
+  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
 
   psys->clmd->point_cache = psys->pointcache;
   /* for hair sim we replace the internal cloth effector weights temporarily
