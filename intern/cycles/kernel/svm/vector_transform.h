@@ -26,23 +26,31 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
 
   Transform tfm;
   bool is_object = (sd->object != OBJECT_NONE);
-  bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR ||
-                       type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+  bool is_normal = (type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+  bool is_direction = (type == NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
 
   /* From world */
   if (from == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD) {
     if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
-      tfm = kernel_data.cam.worldtocamera;
-      if (is_direction)
-        in = transform_direction(&tfm, in);
-      else
-        in = transform_point(&tfm, in);
+      if (is_normal) {
+        tfm = kernel_data.cam.cameratoworld;
+        in = normalize(transform_direction_transposed(&tfm, in));
+      }
+      else {
+        tfm = kernel_data.cam.worldtocamera;
+        in = is_direction ? transform_direction(&tfm, in) : transform_point(&tfm, in);
+      }
     }
     else if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT && is_object) {
-      if (is_direction)
+      if (is_normal) {
+        object_inverse_normal_transform(kg, sd, &in);
+      }
+      else if (is_direction) {
         object_inverse_dir_transform(kg, sd, &in);
-      else
+      }
+      else {
         object_inverse_position_transform(kg, sd, &in);
+      }
     }
   }
 
@@ -51,17 +59,25 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
     if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_WORLD ||
         to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT)
     {
-      tfm = kernel_data.cam.cameratoworld;
-      if (is_direction)
-        in = transform_direction(&tfm, in);
-      else
-        in = transform_point(&tfm, in);
+      if (is_normal) {
+        tfm = kernel_data.cam.worldtocamera;
+        in = normalize(transform_direction_transposed(&tfm, in));
+      }
+      else {
+        tfm = kernel_data.cam.cameratoworld;
+        in = is_direction ? transform_direction(&tfm, in) : transform_point(&tfm, in);
+      }
     }
     if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_OBJECT && is_object) {
-      if (is_direction)
+      if (is_normal) {
+        object_inverse_normal_transform(kg, sd, &in);
+      }
+      else if (is_direction) {
         object_inverse_dir_transform(kg, sd, &in);
-      else
+      }
+      else {
         object_inverse_position_transform(kg, sd, &in);
+      }
     }
   }
 
@@ -71,23 +87,32 @@ ccl_device_noinline void svm_node_vector_transform(KernelGlobals kg,
          to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) &&
         is_object)
     {
-      if (is_direction)
+      if (is_normal) {
+        object_normal_transform(kg, sd, &in);
+      }
+      else if (is_direction) {
         object_dir_transform(kg, sd, &in);
-      else
+      }
+      else {
         object_position_transform(kg, sd, &in);
+      }
     }
     if (to == NODE_VECTOR_TRANSFORM_CONVERT_SPACE_CAMERA) {
-      tfm = kernel_data.cam.worldtocamera;
-      if (is_direction)
-        in = transform_direction(&tfm, in);
-      else
-        in = transform_point(&tfm, in);
+      if (is_normal) {
+        tfm = kernel_data.cam.cameratoworld;
+        in = normalize(transform_direction_transposed(&tfm, in));
+      }
+      else {
+        tfm = kernel_data.cam.worldtocamera;
+        if (is_direction) {
+          in = transform_direction(&tfm, in);
+        }
+        else {
+          in = transform_point(&tfm, in);
+        }
+      }
     }
   }
-
-  /* Normalize Normal */
-  if (type == NODE_VECTOR_TRANSFORM_TYPE_NORMAL)
-    in = normalize(in);
 
   /* Output */
   if (stack_valid(vector_out)) {
