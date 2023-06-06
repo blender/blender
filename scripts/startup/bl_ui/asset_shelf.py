@@ -7,7 +7,8 @@ from bpy.types import (
 
 class ASSETSHELF_PT_display(Panel):
     bl_label = "Display Settings"
-    bl_space_type = 'PREFERENCES'
+    # Doesn't actually matter. Panel is instanced through popover only.
+    bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
 
     def draw(self, context):

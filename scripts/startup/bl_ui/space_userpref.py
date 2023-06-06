@@ -1165,7 +1165,8 @@ class PreferenceThemeSpacePanel:
 
     @classmethod
     def poll(cls, context):
-        # Special exception for expeimental asset shelf.
+        # Special exception for expeimental asset shelf: Hide theme settings if
+        # experimental option is disabled.
         if cls.datapath.endswith(".asset_shelf"):
             prefs = context.preferences
             return prefs.experimental.use_asset_shelf

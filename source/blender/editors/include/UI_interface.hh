@@ -34,6 +34,7 @@ struct uiViewHandle;
 struct uiViewItemHandle;
 struct wmDrag;
 
+void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
 void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
 
 namespace blender::ui {
@@ -182,9 +183,6 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
                                    PointerRNA *dataptr,
                                    const char *propname,
                                    uiListItemGetNameFn get_name_fn = nullptr);
-
-void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
-void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
 
 /**
  * Override this for all available view types.
