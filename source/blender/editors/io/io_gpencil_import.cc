@@ -35,12 +35,12 @@
 
 #  include "ED_gpencil_legacy.h"
 
-#  include "io_gpencil.h"
+#  include "io_gpencil.hh"
 
 #  include "gpencil_io.h"
 
 /* <-------- SVG single frame import. --------> */
-static bool wm_gpencil_import_svg_common_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_gpencil_import_svg_common_check(bContext * /*C*/, wmOperator *op)
 {
 
   char filepath[FILE_MAX];
@@ -55,7 +55,7 @@ static bool wm_gpencil_import_svg_common_check(bContext *UNUSED(C), wmOperator *
   return false;
 }
 
-static int wm_gpencil_import_svg_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_gpencil_import_svg_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   WM_event_add_fileselect(C, op);
 
@@ -74,7 +74,7 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
   }
 
   ARegion *region = get_invoke_region(C);
-  if (region == NULL) {
+  if (region == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unable to find valid 3D View area");
     return OPERATOR_CANCELLED;
   }
@@ -86,33 +86,32 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
   const int resolution = RNA_int_get(op->ptr, "resolution");
   const float scale = RNA_float_get(op->ptr, "scale");
 
-  GpencilIOParams params = {
-      .C = C,
-      .region = region,
-      .v3d = v3d,
-      .ob = NULL,
-      .mode = GP_IMPORT_FROM_SVG,
-      .frame_start = scene->r.cfra,
-      .frame_end = scene->r.cfra,
-      .frame_cur = scene->r.cfra,
-      .flag = flag,
-      .scale = scale,
-      .select_mode = 0,
-      .frame_mode = 0,
-      .stroke_sample = 0.0f,
-      .resolution = resolution,
-  };
+  GpencilIOParams params {};
+  params.C = C;
+  params.region = region;
+  params.v3d = v3d;
+  params.ob = nullptr;
+  params.mode = GP_IMPORT_FROM_SVG;
+  params.frame_start = scene->r.cfra;
+  params.frame_end = scene->r.cfra;
+  params.frame_cur = scene->r.cfra;
+  params.flag = flag;
+  params.scale = scale;
+  params.select_mode = 0;
+  params.frame_mode = 0;
+  params.stroke_sample = 0.0f;
+  params.resolution = resolution;
 
   /* Loop all selected files to import them. All SVG imported shared the same import
    * parameters, but they are created in separated grease pencil objects. */
   PropertyRNA *prop;
   if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
+    char *directory = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
 
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       char file_path[FILE_MAX];
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
+        char *filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
         BLI_path_join(file_path, sizeof(file_path), directory, filename);
         MEM_freeN(filename);
 
@@ -138,18 +137,18 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, imfptr, "resolution", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "resolution", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "scale", 0, nullptr, ICON_NONE);
 }
 
-static void wm_gpencil_import_svg_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_gpencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
 {
   ui_gpencil_import_svg_settings(op->layout, op->ptr);
 }
 
 static bool wm_gpencil_import_svg_poll(bContext *C)
 {
-  if ((CTX_wm_window(C) == NULL) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
+  if ((CTX_wm_window(C) == nullptr) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
     return false;
   }
 

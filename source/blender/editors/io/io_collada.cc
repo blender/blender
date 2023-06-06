@@ -34,9 +34,9 @@
 
 #  include "collada.h"
 
-#  include "io_collada.h"
+#  include "io_collada.hh"
 
-static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".dae");
 
@@ -156,16 +156,16 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
   // Scene *scene = CTX_data_scene(C);
 
-  ExportSettings export_settings;
+  ExportSettings export_settings{};
 
   export_settings.filepath = filepath;
 
   export_settings.apply_modifiers = apply_modifiers != 0;
-  export_settings.global_forward = global_forward;
-  export_settings.global_up = global_up;
+  export_settings.global_forward = BC_global_forward_axis(global_forward);
+  export_settings.global_up = BC_global_up_axis(global_up);
   export_settings.apply_global_orientation = apply_global_orientation != 0;
 
-  export_settings.export_mesh_type = export_mesh_type;
+  export_settings.export_mesh_type = BC_export_mesh_type(export_mesh_type);
   export_settings.selected = selected != 0;
   export_settings.include_children = include_children != 0;
   export_settings.include_armatures = include_armatures != 0;
@@ -178,15 +178,17 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.keep_flat_curves = keep_flat_curves != 0;
 
   export_settings.active_uv_only = active_uv_only != 0;
-  export_settings.export_animation_type = export_animation_type;
+  export_settings.export_animation_type = BC_export_animation_type(export_animation_type);
   export_settings.use_texture_copies = use_texture_copies != 0;
 
   export_settings.triangulate = triangulate != 0;
   export_settings.use_object_instantiation = use_object_instantiation != 0;
   export_settings.use_blender_profile = use_blender_profile != 0;
   export_settings.sort_by_name = sort_by_name != 0;
-  export_settings.object_transformation_type = export_object_transformation_type;
-  export_settings.animation_transformation_type = export_animation_transformation_type;
+  export_settings.object_transformation_type = BC_export_transformation_type(
+      export_object_transformation_type);
+  export_settings.animation_transformation_type = BC_export_transformation_type(
+      export_animation_transformation_type);
   export_settings.keep_smooth_curves = keep_smooth_curves != 0;
 
   if (export_animation_type != BC_ANIMATION_EXPORT_SAMPLES) {
@@ -230,17 +232,17 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   bool include_animations = RNA_boolean_get(imfptr, "include_animations");
   int ui_section = RNA_enum_get(imfptr, "prop_bc_export_ui_section");
 
-  BC_export_animation_type animation_type = RNA_enum_get(imfptr,
-                                                         "export_animation_type_selection");
+  BC_export_animation_type animation_type = BC_export_animation_type(
+      RNA_enum_get(imfptr, "export_animation_type_selection"));
 
-  BC_export_transformation_type animation_transformation_type = RNA_enum_get(
-      imfptr, "export_animation_transformation_type_selection");
+  BC_export_transformation_type animation_transformation_type = BC_export_transformation_type(
+      RNA_enum_get(imfptr, "export_animation_transformation_type_selection"));
 
   bool sampling = animation_type == BC_ANIMATION_EXPORT_SAMPLES;
 
   /* Export Options: */
   row = uiLayoutRow(layout, false);
-  uiItemR(row, imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -249,12 +251,12 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     /* Export data options. */
     box = uiLayoutBox(layout);
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "selected", 0, NULL, ICON_NONE);
+    uiItemR(col, imfptr, "selected", 0, nullptr, ICON_NONE);
     sub = uiLayoutColumn(col, false);
     uiLayoutSetEnabled(sub, RNA_boolean_get(imfptr, "selected"));
-    uiItemR(sub, imfptr, "include_children", 0, NULL, ICON_NONE);
-    uiItemR(sub, imfptr, "include_armatures", 0, NULL, ICON_NONE);
-    uiItemR(sub, imfptr, "include_shapekeys", 0, NULL, ICON_NONE);
+    uiItemR(sub, imfptr, "include_children", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_armatures", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_shapekeys", 0, nullptr, ICON_NONE);
 
     box = uiLayoutBox(layout);
     row = uiLayoutRow(box, false);
@@ -269,7 +271,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(box, IFACE_("Texture Options"), ICON_TEXTURE_DATA);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "use_texture_copies", 0, NULL, ICON_NONE);
+    uiItemR(col, imfptr, "use_texture_copies", 0, nullptr, ICON_NONE);
     row = uiLayoutRowWithHeading(col, true, IFACE_("UV"));
     uiItemR(row, imfptr, "active_uv_only", 0, IFACE_("Only Selected Map"), ICON_NONE);
   }
@@ -279,7 +281,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     col = uiLayoutColumn(box, false);
 
-    uiItemR(col, imfptr, "triangulate", 0, NULL, ICON_NONE);
+    uiItemR(col, imfptr, "triangulate", 0, nullptr, ICON_NONE);
 
     row = uiLayoutRowWithHeading(col, true, IFACE_("Apply Modifiers"));
     uiItemR(row, imfptr, "apply_modifiers", 0, "", ICON_NONE);
@@ -288,10 +290,10 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(sub, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
 
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(col, imfptr, "export_animation_transformation_type_selection", 0, NULL, ICON_NONE);
+      uiItemR(col, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
     else {
-      uiItemR(col, imfptr, "export_object_transformation_type_selection", 0, NULL, ICON_NONE);
+      uiItemR(col, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
   }
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
@@ -300,25 +302,25 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
-    uiItemR(col, imfptr, "open_sim", 0, NULL, ICON_NONE);
+    uiItemR(col, imfptr, "deform_bones_only", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "open_sim", 0, nullptr, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_ANIMATION) {
     /* Animation options. */
     box = uiLayoutBox(layout);
-    uiItemR(box, imfptr, "include_animations", 0, NULL, ICON_NONE);
+    uiItemR(box, imfptr, "include_animations", 0, nullptr, ICON_NONE);
 
     col = uiLayoutColumn(box, false);
     row = uiLayoutRow(col, false);
     uiLayoutSetActive(row, include_animations);
-    uiItemR(row, imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiItemR(row, imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
     uiLayoutSetActive(row, include_animations && animation_type == BC_ANIMATION_EXPORT_SAMPLES);
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(box, imfptr, "export_animation_transformation_type_selection", 0, NULL, ICON_NONE);
+      uiItemR(box, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
     else {
-      uiItemR(box, imfptr, "export_object_transformation_type_selection", 0, NULL, ICON_NONE);
+      uiItemR(box, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
 
     row = uiLayoutColumn(col, false);
@@ -326,17 +328,17 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
                       include_animations &&
                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_DECOMPOSED ||
                            animation_type == BC_ANIMATION_EXPORT_KEYS));
-    uiItemR(row, imfptr, "keep_smooth_curves", 0, NULL, ICON_NONE);
+    uiItemR(row, imfptr, "keep_smooth_curves", 0, nullptr, ICON_NONE);
 
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, sampling && include_animations);
-    uiItemR(sub, imfptr, "sampling_rate", 0, NULL, ICON_NONE);
-    uiItemR(sub, imfptr, "keep_keyframes", 0, NULL, ICON_NONE);
+    uiItemR(sub, imfptr, "sampling_rate", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "keep_keyframes", 0, nullptr, ICON_NONE);
 
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, include_animations);
-    uiItemR(sub, imfptr, "keep_flat_curves", 0, NULL, ICON_NONE);
-    uiItemR(sub, imfptr, "include_all_actions", 0, NULL, ICON_NONE);
+    uiItemR(sub, imfptr, "keep_flat_curves", 0, nullptr, ICON_NONE);
+    uiItemR(sub, imfptr, "include_all_actions", 0, nullptr, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_COLLADA) {
     /* Collada options: */
@@ -345,20 +347,20 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "use_object_instantiation", 1, NULL, ICON_NONE);
-    uiItemR(col, imfptr, "use_blender_profile", 1, NULL, ICON_NONE);
-    uiItemR(col, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
-    uiItemR(col, imfptr, "keep_bind_info", 0, NULL, ICON_NONE);
-    uiItemR(col, imfptr, "limit_precision", 0, NULL, ICON_NONE);
+    uiItemR(col, imfptr, "use_object_instantiation", 1, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_blender_profile", 1, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "sort_by_name", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "keep_bind_info", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "limit_precision", 0, nullptr, ICON_NONE);
   }
 }
 
-static void wm_collada_export_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_collada_export_draw(bContext * /*C*/, wmOperator *op)
 {
   uiCollada_exportSettings(op->layout, op->ptr);
 }
 
-static bool wm_collada_export_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_collada_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -377,7 +379,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
   static const EnumPropertyItem prop_bc_export_mesh_type[] = {
       {BC_MESH_TYPE_VIEW, "view", 0, "Viewport", "Apply modifier's viewport settings"},
       {BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem prop_bc_export_global_forward[] = {
@@ -387,7 +389,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       {BC_GLOBAL_FORWARD_MINUS_X, "-X", 0, "-X", "Global Forward is negative X Axis"},
       {BC_GLOBAL_FORWARD_MINUS_Y, "-Y", 0, "-Y", "Global Forward is negative Y Axis"},
       {BC_GLOBAL_FORWARD_MINUS_Z, "-Z", 0, "-Z", "Global Forward is negative Z Axis"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem prop_bc_export_global_up[] = {
@@ -397,7 +399,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       {BC_GLOBAL_UP_MINUS_X, "-X", 0, "-X", "Global UP is negative X Axis"},
       {BC_GLOBAL_UP_MINUS_Y, "-Y", 0, "-Y", "Global UP is negative Y Axis"},
       {BC_GLOBAL_UP_MINUS_Z, "-Z", 0, "-Z", "Global UP is negative Z Axis"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem prop_bc_export_transformation_type[] = {
@@ -411,7 +413,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
        0,
        "Decomposed",
        "Use <rotate>, <translate> and <scale> representation for exported transformations"},
-      {0, NULL, 0, NULL, NULL}};
+      {0, nullptr, 0, nullptr, nullptr}};
 
   static const EnumPropertyItem prop_bc_export_animation_type[] = {
       {BC_ANIMATION_EXPORT_SAMPLES,
@@ -424,7 +426,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
        0,
        "Curves",
        "Export Curves (note: guided by curve keys)"},
-      {0, NULL, 0, NULL, NULL}};
+      {0, nullptr, 0, nullptr, nullptr}};
 
   static const EnumPropertyItem prop_bc_export_ui_section[] = {
       {BC_UI_SECTION_MAIN, "main", 0, "Main", "Data export section"},
@@ -432,7 +434,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       {BC_UI_SECTION_ARMATURE, "armature", 0, "Arm", "Armature export section"},
       {BC_UI_SECTION_ANIMATION, "animation", 0, "Anim", "Animation export section"},
       {BC_UI_SECTION_COLLADA, "collada", 0, "Extra", "Collada export section"},
-      {0, NULL, 0, NULL, NULL}};
+      {0, nullptr, 0, nullptr, nullptr}};
 
   ot->name = "Export COLLADA";
   ot->description = "Save a Collada file";
@@ -688,7 +690,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
   int keep_bind_info;
   int custom_normals;
-  ImportSettings import_settings;
+  ImportSettings import_settings{};
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -737,24 +739,24 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
 
-  uiItemR(box, imfptr, "import_units", 0, NULL, ICON_NONE);
-  uiItemR(box, imfptr, "custom_normals", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "import_units", 0, nullptr, ICON_NONE);
+  uiItemR(box, imfptr, "custom_normals", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
   col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "fix_orientation", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "find_chains", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "auto_connect", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "min_chain_length", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "fix_orientation", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "find_chains", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "auto_connect", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "min_chain_length", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
 
-  uiItemR(box, imfptr, "keep_bind_info", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "keep_bind_info", 0, nullptr, ICON_NONE);
 }
 
-static void wm_collada_import_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_collada_import_draw(bContext * /*C*/, wmOperator *op)
 {
   uiCollada_importSettings(op->layout, op->ptr);
 }

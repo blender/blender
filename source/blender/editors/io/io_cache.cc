@@ -31,7 +31,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "io_cache.h"
+#include "io_cache.hh"
 
 static void reload_cachefile(bContext *C, CacheFile *cache_file)
 {
@@ -43,11 +43,11 @@ static void cachefile_init(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA *pprop;
 
-  op->customdata = pprop = MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+  op->customdata = pprop = MEM_cnew<PropertyPointerRNA>("OpenPropertyPointerRNA");
   UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
-static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
     char filepath[FILE_MAX];
@@ -63,14 +63,12 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
-
-  UNUSED_VARS(event);
 }
 
-static void open_cancel(bContext *UNUSED(C), wmOperator *op)
+static void open_cancel(bContext * /*C*/, wmOperator *op)
 {
   MEM_freeN(op->customdata);
-  op->customdata = NULL;
+  op->customdata = nullptr;
 }
 
 static int cachefile_open_exec(bContext *C, wmOperator *op)
@@ -85,22 +83,23 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 
   Main *bmain = CTX_data_main(C);
 
-  CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filepath), 0);
+  CacheFile *cache_file = static_cast<CacheFile *>(
+      BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filepath), 0));
   STRNCPY(cache_file->filepath, filepath);
   DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
 
   /* Will be set when running invoke, not exec directly. */
-  if (op->customdata != NULL) {
+  if (op->customdata != nullptr) {
     /* hook into UI */
-    PropertyPointerRNA *pprop = op->customdata;
-    if (pprop->prop) {
+    PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(op->customdata);
+    if (pprop->prop != nullptr) {
       /* When creating new ID blocks, use is already 1, but RNA
        * pointer see also increases user, so this compensates it. */
       id_us_min(&cache_file->id);
 
       PointerRNA idptr;
       RNA_id_pointer_create(&cache_file->id, &idptr);
-      RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, NULL);
+      RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
       RNA_property_update(C, &pprop->ptr, pprop->prop);
     }
 
@@ -131,11 +130,11 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
 
 /* ***************************** Reload Operator **************************** */
 
-static int cachefile_reload_exec(bContext *C, wmOperator *UNUSED(op))
+static int cachefile_reload_exec(bContext *C, wmOperator * /*op*/)
 {
   CacheFile *cache_file = CTX_data_edit_cachefile(C);
 
-  if (!cache_file) {
+  if (cache_file == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -159,7 +158,7 @@ void CACHEFILE_OT_reload(wmOperatorType *ot)
 
 /* ***************************** Add Layer Operator **************************** */
 
-static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
     char filepath[FILE_MAX];
@@ -176,8 +175,6 @@ static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEven
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
-
-  UNUSED_VARS(event);
 }
 
 static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
@@ -187,9 +184,9 @@ static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  CacheFile *cache_file = op->customdata;
+  CacheFile *cache_file = static_cast<CacheFile *>(op->customdata);
 
-  if (!cache_file) {
+  if (cache_file == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -198,13 +195,13 @@ static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
 
   CacheFileLayer *layer = BKE_cachefile_add_layer(cache_file, filepath);
 
-  if (!layer) {
+  if (layer == nullptr) {
     WM_report(RPT_ERROR, "Could not add a layer to the cache file");
     return OPERATOR_CANCELLED;
   }
 
   reload_cachefile(C, cache_file);
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -229,11 +226,11 @@ void CACHEFILE_OT_layer_add(wmOperatorType *ot)
 
 /* ***************************** Remove Layer Operator **************************** */
 
-static int cachefile_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int cachefile_layer_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   CacheFile *cache_file = CTX_data_edit_cachefile(C);
 
-  if (!cache_file) {
+  if (cache_file == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -241,7 +238,7 @@ static int cachefile_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
   BKE_cachefile_remove_layer(cache_file, layer);
 
   reload_cachefile(C, cache_file);
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -264,13 +261,13 @@ static int cachefile_layer_move_exec(bContext *C, wmOperator *op)
 {
   CacheFile *cache_file = CTX_data_edit_cachefile(C);
 
-  if (!cache_file) {
+  if (cache_file == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
   CacheFileLayer *layer = BKE_cachefile_get_active_layer(cache_file);
 
-  if (!layer) {
+  if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -280,7 +277,7 @@ static int cachefile_layer_move_exec(bContext *C, wmOperator *op)
     cache_file->active_layer = BLI_findindex(&cache_file->layers, layer) + 1;
     /* Only reload if something moved, might be expensive. */
     reload_cachefile(C, cache_file);
-    WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+    WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -291,7 +288,7 @@ void CACHEFILE_OT_layer_move(wmOperatorType *ot)
   static const EnumPropertyItem layer_slot_move[] = {
       {-1, "UP", 0, "Up", ""},
       {1, "DOWN", 0, "Down", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   ot->name = "Move layer";

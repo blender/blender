@@ -35,7 +35,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_query.h"
 
-#  include "io_gpencil.h"
+#  include "io_gpencil.hh"
 
 #  include "gpencil_io.h"
 
@@ -48,7 +48,7 @@ static void gpencil_export_common_props_definition(wmOperatorType *ot)
       {GP_EXPORT_ACTIVE, "ACTIVE", 0, "Active", "Include only the active object"},
       {GP_EXPORT_SELECTED, "SELECTED", 0, "Selected", "Include selected objects"},
       {GP_EXPORT_VISIBLE, "VISIBLE", 0, "Visible", "Include all visible objects"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   RNA_def_boolean(ot->srna, "use_fill", true, "Fill", "Export strokes with fill enabled");
@@ -78,7 +78,7 @@ static void gpencil_export_common_props_definition(wmOperatorType *ot)
 
 /* <-------- SVG single frame export. --------> */
 #  ifdef WITH_PUGIXML
-static bool wm_gpencil_export_svg_common_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_gpencil_export_svg_common_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -92,7 +92,7 @@ static bool wm_gpencil_export_svg_common_check(bContext *UNUSED(C), wmOperator *
   return false;
 }
 
-static int wm_gpencil_export_svg_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_gpencil_export_svg_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".svg");
 
@@ -112,7 +112,7 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
   }
 
   ARegion *region = get_invoke_region(C);
-  if (region == NULL) {
+  if (region == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unable to find valid 3D View area");
     return OPERATOR_CANCELLED;
   }
@@ -123,7 +123,8 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
 
   const bool use_fill = RNA_boolean_get(op->ptr, "use_fill");
   const bool use_norm_thickness = RNA_boolean_get(op->ptr, "use_normalized_thickness");
-  const eGpencilExportSelect select_mode = RNA_enum_get(op->ptr, "selected_object_type");
+  const eGpencilExportSelect select_mode = eGpencilExportSelect(
+      RNA_enum_get(op->ptr, "selected_object_type"));
 
   const bool use_clip_camera = RNA_boolean_get(op->ptr, "use_clip_camera");
 
@@ -133,20 +134,21 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
   SET_FLAG_FROM_TEST(flag, use_norm_thickness, GP_EXPORT_NORM_THICKNESS);
   SET_FLAG_FROM_TEST(flag, use_clip_camera, GP_EXPORT_CLIP_CAMERA);
 
-  GpencilIOParams params = {.C = C,
-                            .region = region,
-                            .v3d = v3d,
-                            .ob = ob,
-                            .mode = GP_EXPORT_TO_SVG,
-                            .frame_start = scene->r.cfra,
-                            .frame_end = scene->r.cfra,
-                            .frame_cur = scene->r.cfra,
-                            .flag = flag,
-                            .scale = 1.0f,
-                            .select_mode = select_mode,
-                            .frame_mode = GP_EXPORT_FRAME_ACTIVE,
-                            .stroke_sample = RNA_float_get(op->ptr, "stroke_sample"),
-                            .resolution = 1.0f};
+  GpencilIOParams params{};
+  params.C = C;
+  params.region = region;
+  params.v3d = v3d;
+  params.ob = ob;
+  params.mode = GP_EXPORT_TO_SVG;
+  params.frame_start = scene->r.cfra;
+  params.frame_end = scene->r.cfra;
+  params.frame_cur = scene->r.cfra;
+  params.flag = flag;
+  params.scale = 1.0f;
+  params.select_mode = select_mode;
+  params.frame_mode = GP_EXPORT_FRAME_ACTIVE;
+  params.stroke_sample = RNA_float_get(op->ptr, "stroke_sample");
+  params.resolution = 1.0f;
 
   /* Do export. */
   WM_cursor_wait(true);
@@ -173,27 +175,27 @@ static void ui_gpencil_export_svg_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
 
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "selected_object_type", 0, NULL, ICON_NONE);
+  uiItemR(row, imfptr, "selected_object_type", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
   uiItemL(row, IFACE_("Export Options"), ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "stroke_sample", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "use_fill", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "use_normalized_thickness", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "use_clip_camera", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "stroke_sample", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "use_fill", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "use_normalized_thickness", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "use_clip_camera", 0, nullptr, ICON_NONE);
 }
 
-static void wm_gpencil_export_svg_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_gpencil_export_svg_draw(bContext * /*C*/, wmOperator *op)
 {
   ui_gpencil_export_svg_settings(op->layout, op->ptr);
 }
 
 static bool wm_gpencil_export_svg_poll(bContext *C)
 {
-  if ((CTX_wm_window(C) == NULL) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
+  if ((CTX_wm_window(C) == nullptr) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
     return false;
   }
 
@@ -232,7 +234,7 @@ void WM_OT_gpencil_export_svg(wmOperatorType *ot)
 
 /* <-------- PDF single frame export. --------> */
 #  ifdef WITH_HARU
-static bool wm_gpencil_export_pdf_common_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_gpencil_export_pdf_common_check(bContext * /*C*/, wmOperator *op)
 {
 
   char filepath[FILE_MAX];
@@ -247,7 +249,7 @@ static bool wm_gpencil_export_pdf_common_check(bContext *UNUSED(C), wmOperator *
   return false;
 }
 
-static int wm_gpencil_export_pdf_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_gpencil_export_pdf_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".pdf");
 
@@ -267,7 +269,7 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
   }
 
   ARegion *region = get_invoke_region(C);
-  if (region == NULL) {
+  if (region == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unable to find valid 3D View area");
     return OPERATOR_CANCELLED;
   }
@@ -286,20 +288,21 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
   SET_FLAG_FROM_TEST(flag, use_fill, GP_EXPORT_FILL);
   SET_FLAG_FROM_TEST(flag, use_norm_thickness, GP_EXPORT_NORM_THICKNESS);
 
-  GpencilIOParams params = {.C = C,
-                            .region = region,
-                            .v3d = v3d,
-                            .ob = ob,
-                            .mode = GP_EXPORT_TO_PDF,
-                            .frame_start = scene->r.sfra,
-                            .frame_end = scene->r.efra,
-                            .frame_cur = scene->r.cfra,
-                            .flag = flag,
-                            .scale = 1.0f,
-                            .select_mode = select_mode,
-                            .frame_mode = frame_mode,
-                            .stroke_sample = RNA_float_get(op->ptr, "stroke_sample"),
-                            .resolution = 1.0f};
+  GpencilIOParams params{};
+  params.C = C;
+  params.region = region;
+  params.v3d = v3d;
+  params.ob = ob;
+  params.mode = GP_EXPORT_TO_PDF;
+  params.frame_start = scene->r.sfra;
+  params.frame_end = scene->r.efra;
+  params.frame_cur = scene->r.cfra;
+  params.flag = flag;
+  params.scale = 1.0f;
+  params.select_mode = select_mode;
+  params.frame_mode = frame_mode;
+  params.stroke_sample = RNA_float_get(op->ptr, "stroke_sample");
+  params.resolution = 1.0f;
 
   /* Do export. */
   WM_cursor_wait(true);
@@ -326,7 +329,7 @@ static void ui_gpencil_export_pdf_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
 
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "selected_object_type", 0, NULL, ICON_NONE);
+  uiItemR(row, imfptr, "selected_object_type", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
@@ -339,19 +342,19 @@ static void ui_gpencil_export_pdf_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(box, true);
 
   sub = uiLayoutColumn(col, true);
-  uiItemR(sub, imfptr, "stroke_sample", 0, NULL, ICON_NONE);
-  uiItemR(sub, imfptr, "use_fill", 0, NULL, ICON_NONE);
-  uiItemR(sub, imfptr, "use_normalized_thickness", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "stroke_sample", 0, nullptr, ICON_NONE);
+  uiItemR(sub, imfptr, "use_fill", 0, nullptr, ICON_NONE);
+  uiItemR(sub, imfptr, "use_normalized_thickness", 0, nullptr, ICON_NONE);
 }
 
-static void wm_gpencil_export_pdf_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_gpencil_export_pdf_draw(bContext * /*C*/, wmOperator *op)
 {
   ui_gpencil_export_pdf_settings(op->layout, op->ptr);
 }
 
 static bool wm_gpencil_export_pdf_poll(bContext *C)
 {
-  if ((CTX_wm_window(C) == NULL) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
+  if ((CTX_wm_window(C) == nullptr) || (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)) {
     return false;
   }
 
@@ -382,7 +385,7 @@ void WM_OT_gpencil_export_pdf(wmOperatorType *ot)
       {GP_EXPORT_FRAME_ACTIVE, "ACTIVE", 0, "Active", "Include only active frame"},
       {GP_EXPORT_FRAME_SELECTED, "SELECTED", 0, "Selected", "Include selected frames"},
       {GP_EXPORT_FRAME_SCENE, "SCENE", 0, "Scene", "Include all scene frames"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   gpencil_export_common_props_definition(ot);

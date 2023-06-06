@@ -9,6 +9,10 @@
 struct Main;
 struct Scene;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   IO_AXIS_X = 0,
   IO_AXIS_Y = 1,
@@ -22,3 +26,7 @@ extern const EnumPropertyItem io_transform_axis[];
 
 void io_ui_forward_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
 void io_ui_up_axis_update(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+
+#ifdef __cplusplus
+}
+#endif

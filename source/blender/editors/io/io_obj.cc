@@ -39,7 +39,8 @@
 #  include "IO_orientation.h"
 #  include "IO_path_util_types.h"
 #  include "IO_wavefront_obj.h"
-#  include "io_obj.h"
+
+#  include "io_obj.hh"
 
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
@@ -48,7 +49,7 @@ static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
      0,
      "Viewport",
      "Export objects as they appear in the viewport"},
-    {0, NULL, 0, NULL, NULL}};
+    {0, nullptr, 0, nullptr, nullptr}};
 
 static const EnumPropertyItem io_obj_path_mode[] = {
     {PATH_REFERENCE_AUTO, "AUTO", 0, "Auto", "Use relative paths with subdirectories only"},
@@ -57,9 +58,9 @@ static const EnumPropertyItem io_obj_path_mode[] = {
     {PATH_REFERENCE_MATCH, "MATCH", 0, "Match", "Match absolute/relative setting with input path"},
     {PATH_REFERENCE_STRIP, "STRIP", 0, "Strip", "Write filename only"},
     {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
-    {0, NULL, 0, NULL, NULL}};
+    {0, nullptr, 0, nullptr, nullptr}};
 
-static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
@@ -73,7 +74,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-  struct OBJExportParams export_params;
+  OBJExportParams export_params{};
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
@@ -81,18 +82,18 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.start_frame = RNA_int_get(op->ptr, "start_frame");
   export_params.end_frame = RNA_int_get(op->ptr, "end_frame");
 
-  export_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
-  export_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
-  export_params.export_eval_mode = RNA_enum_get(op->ptr, "export_eval_mode");
+  export_params.export_eval_mode = eEvaluationMode(RNA_enum_get(op->ptr, "export_eval_mode"));
 
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
-  export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
+  export_params.path_mode = ePathReferenceMode(RNA_enum_get(op->ptr, "path_mode"));
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
   export_params.export_pbr_extensions = RNA_boolean_get(op->ptr, "export_pbr_extensions");
@@ -124,7 +125,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", 0, nullptr, ICON_NONE);
   uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
 
@@ -177,10 +178,10 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
 }
 
-static void wm_obj_export_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_obj_export_draw(bContext * /*C*/, wmOperator *op)
 {
   PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(nullptr, op->type->srna, op->properties, &ptr);
   ui_obj_export_settings(op->layout, &ptr);
 }
 
@@ -372,7 +373,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -380,12 +381,12 @@ static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
-  struct OBJImportParams import_params;
+  OBJImportParams import_params{};
   RNA_string_get(op->ptr, "filepath", import_params.filepath);
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
-  import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
-  import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  import_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   import_params.use_split_objects = RNA_boolean_get(op->ptr, "use_split_objects");
   import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
@@ -438,8 +439,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(box, IFACE_("Transform"), ICON_OBJECT_DATA);
   uiLayout *col = uiLayoutColumn(box, false);
   uiLayout *sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
-  uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", 0, nullptr, ICON_NONE);
+  uiItemR(sub, imfptr, "clamp_size", 0, nullptr, ICON_NONE);
   sub = uiLayoutColumn(col, false);
 
   uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
@@ -448,10 +449,10 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "use_split_objects", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "use_split_groups", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "import_vertex_groups", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "use_split_objects", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "use_split_groups", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "import_vertex_groups", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "validate_meshes", 0, nullptr, ICON_NONE);
 }
 
 static void wm_obj_import_draw(bContext *C, wmOperator *op)
@@ -484,6 +485,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
                                      WM_FILESEL_DIRECTORY | WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+
   RNA_def_float(
       ot->srna,
       "global_scale",

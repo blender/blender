@@ -11,22 +11,22 @@
 #include "WM_api.h"
 
 #ifdef WITH_COLLADA
-#  include "io_collada.h"
+#  include "io_collada.hh"
 #endif
 
 #ifdef WITH_ALEMBIC
-#  include "io_alembic.h"
+#  include "io_alembic.hh"
 #endif
 
 #ifdef WITH_USD
-#  include "io_usd.h"
+#  include "io_usd.hh"
 #endif
 
-#include "io_cache.h"
-#include "io_gpencil.h"
-#include "io_obj.h"
-#include "io_ply_ops.h"
-#include "io_stl_ops.h"
+#include "io_cache.hh"
+#include "io_gpencil.hh"
+#include "io_obj.hh"
+#include "io_ply_ops.hh"
+#include "io_stl_ops.hh"
 
 void ED_operatortypes_io(void)
 {
@@ -60,7 +60,6 @@ void ED_operatortypes_io(void)
   WM_operatortype_append(CACHEFILE_OT_layer_add);
   WM_operatortype_append(CACHEFILE_OT_layer_remove);
   WM_operatortype_append(CACHEFILE_OT_layer_move);
-
 #ifdef WITH_IO_WAVEFRONT_OBJ
   WM_operatortype_append(WM_OT_obj_export);
   WM_operatortype_append(WM_OT_obj_import);

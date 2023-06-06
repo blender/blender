@@ -15,8 +15,8 @@
 #    include "BLI_winstuff.h"
 #  endif
 
-#  include <errno.h>
-#  include <string.h>
+#  include <cerrno>
+#  include <cstring>
 
 #  include "MEM_guardedalloc.h"
 
@@ -51,7 +51,7 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "io_alembic.h"
+#  include "io_alembic.hh"
 
 #  include "ABC_alembic.h"
 
@@ -66,10 +66,10 @@ const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
      0,
      "Viewport",
      "Use Viewport settings for object visibility, modifier settings, etc"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "as_background_job")) {
     RNA_boolean_set(op->ptr, "as_background_job", true);
@@ -82,8 +82,6 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
-
-  UNUSED_VARS(event);
 }
 
 static int wm_alembic_export_exec(bContext *C, wmOperator *op)
@@ -96,39 +94,38 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  struct AlembicExportParams params = {
-      .frame_start = RNA_int_get(op->ptr, "start"),
-      .frame_end = RNA_int_get(op->ptr, "end"),
+  AlembicExportParams params{};
+  params.frame_start = RNA_int_get(op->ptr, "start");
+  params.frame_end = RNA_int_get(op->ptr, "end");
 
-      .frame_samples_xform = RNA_int_get(op->ptr, "xsamples"),
-      .frame_samples_shape = RNA_int_get(op->ptr, "gsamples"),
+  params.frame_samples_xform = RNA_int_get(op->ptr, "xsamples");
+  params.frame_samples_shape = RNA_int_get(op->ptr, "gsamples");
 
-      .shutter_open = RNA_float_get(op->ptr, "sh_open"),
-      .shutter_close = RNA_float_get(op->ptr, "sh_close"),
+  params.shutter_open = RNA_float_get(op->ptr, "sh_open");
+  params.shutter_close = RNA_float_get(op->ptr, "sh_close");
 
-      .selected_only = RNA_boolean_get(op->ptr, "selected"),
-      .uvs = RNA_boolean_get(op->ptr, "uvs"),
-      .normals = RNA_boolean_get(op->ptr, "normals"),
-      .vcolors = RNA_boolean_get(op->ptr, "vcolors"),
-      .orcos = RNA_boolean_get(op->ptr, "orcos"),
-      .apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv"),
-      .curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh"),
-      .flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten"),
-      .visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only"),
-      .face_sets = RNA_boolean_get(op->ptr, "face_sets"),
-      .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
-      .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
-      .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
-      .export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties"),
-      .use_instancing = RNA_boolean_get(op->ptr, "use_instancing"),
-      .packuv = RNA_boolean_get(op->ptr, "packuv"),
-      .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
-      .quad_method = RNA_enum_get(op->ptr, "quad_method"),
-      .ngon_method = RNA_enum_get(op->ptr, "ngon_method"),
-      .evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode"),
+  params.selected_only = RNA_boolean_get(op->ptr, "selected");
+  params.uvs = RNA_boolean_get(op->ptr, "uvs");
+  params.normals = RNA_boolean_get(op->ptr, "normals");
+  params.vcolors = RNA_boolean_get(op->ptr, "vcolors");
+  params.orcos = RNA_boolean_get(op->ptr, "orcos");
+  params.apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv");
+  params.curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh");
+  params.flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten");
+  params.visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
+  params.face_sets = RNA_boolean_get(op->ptr, "face_sets");
+  params.use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema");
+  params.export_hair = RNA_boolean_get(op->ptr, "export_hair");
+  params.export_particles = RNA_boolean_get(op->ptr, "export_particles");
+  params.export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
+  params.use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
+  params.packuv = RNA_boolean_get(op->ptr, "packuv");
+  params.triangulate = RNA_boolean_get(op->ptr, "triangulate");
+  params.quad_method = RNA_enum_get(op->ptr, "quad_method");
+  params.ngon_method = RNA_enum_get(op->ptr, "ngon_method");
+  params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
 
-      .global_scale = RNA_float_get(op->ptr, "global_scale"),
-  };
+  params.global_scale = RNA_float_get(op->ptr, "global_scale");
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -155,7 +152,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Manual Transform"), ICON_NONE);
 
-  uiItemR(box, imfptr, "global_scale", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "global_scale", 0, nullptr, ICON_NONE);
 
   /* Scene Options */
   box = uiLayoutBox(layout);
@@ -172,12 +169,12 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(col, imfptr, "gsamples", 0, IFACE_("Geometry"), ICON_NONE);
 
   sub = uiLayoutColumn(col, true);
-  uiItemR(sub, imfptr, "sh_open", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "sh_open", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(sub, imfptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
 
   uiItemS(col);
 
-  uiItemR(col, imfptr, "flatten", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "flatten", 0, nullptr, ICON_NONE);
   uiItemR(sub, imfptr, "use_instancing", 0, IFACE_("Use Instancing"), ICON_NONE);
   uiItemR(sub, imfptr, "export_custom_properties", 0, IFACE_("Custom Properties"), ICON_NONE);
 
@@ -186,7 +183,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "visible_objects_only", 0, IFACE_("Visible Objects"), ICON_NONE);
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, imfptr, "evaluation_mode", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "evaluation_mode", 0, nullptr, ICON_NONE);
 
   /* Object Data */
   box = uiLayoutBox(layout);
@@ -195,16 +192,16 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   col = uiLayoutColumn(box, false);
 
-  uiItemR(col, imfptr, "uvs", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "uvs", 0, nullptr, ICON_NONE);
   row = uiLayoutRow(col, false);
   uiLayoutSetActive(row, RNA_boolean_get(imfptr, "uvs"));
-  uiItemR(row, imfptr, "packuv", 0, NULL, ICON_NONE);
+  uiItemR(row, imfptr, "packuv", 0, nullptr, ICON_NONE);
 
-  uiItemR(col, imfptr, "normals", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "vcolors", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "orcos", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "face_sets", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "curves_as_mesh", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "normals", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "vcolors", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "orcos", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "face_sets", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "curves_as_mesh", 0, nullptr, ICON_NONE);
 
   uiItemS(col);
 
@@ -215,7 +212,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemS(col);
 
   col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "triangulate", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "triangulate", 0, nullptr, ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "triangulate"));
   uiItemR(sub, imfptr, "quad_method", 0, IFACE_("Method Quads"), ICON_NONE);
@@ -227,8 +224,8 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(row, IFACE_("Particle Systems"), ICON_PARTICLE_DATA);
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, imfptr, "export_hair", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "export_particles", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "export_hair", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "export_particles", 0, nullptr, ICON_NONE);
 }
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
@@ -236,7 +233,7 @@ static void wm_alembic_export_draw(bContext *C, wmOperator *op)
   /* Conveniently set start and end frame to match the scene's frame range. */
   Scene *scene = CTX_data_scene(C);
 
-  if (scene != NULL && RNA_boolean_get(op->ptr, "init_scene_frame_range")) {
+  if (scene != nullptr && RNA_boolean_get(op->ptr, "init_scene_frame_range")) {
     RNA_int_set(op->ptr, "start", scene->r.sfra);
     RNA_int_set(op->ptr, "end", scene->r.efra);
 
@@ -246,7 +243,7 @@ static void wm_alembic_export_draw(bContext *C, wmOperator *op)
   ui_alembic_export_settings(op->layout, op->ptr);
 }
 
-static bool wm_alembic_export_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_alembic_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -475,15 +472,15 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
 /* TODO(kevin): check on de-duplicating all this with code in image_ops.c */
 
-typedef struct CacheFrame {
+struct CacheFrame {
   struct CacheFrame *next, *prev;
   int framenr;
-} CacheFrame;
+};
 
 static int cmp_frame(const void *a, const void *b)
 {
-  const CacheFrame *frame_a = a;
-  const CacheFrame *frame_b = b;
+  const CacheFrame *frame_a = static_cast<const CacheFrame *>(a);
+  const CacheFrame *frame_b = static_cast<const CacheFrame *>(b);
 
   if (frame_a->framenr < frame_b->framenr) {
     return -1;
@@ -515,7 +512,7 @@ static int get_sequence_len(const char *filepath, int *ofs)
   }
 
   DIR *dir = opendir(dirpath);
-  if (dir == NULL) {
+  if (dir == nullptr) {
     fprintf(stderr,
             "Error opening directory '%s': %s\n",
             dirpath,
@@ -527,11 +524,11 @@ static int get_sequence_len(const char *filepath, int *ofs)
   const char *basename = BLI_path_basename(filepath);
   const int len = strlen(basename) - (numdigit + strlen(ext));
 
-  ListBase frames;
+  ListBase frames{};
   BLI_listbase_clear(&frames);
 
-  struct dirent *fname;
-  while ((fname = readdir(dir)) != NULL) {
+  dirent *fname;
+  while ((fname = readdir(dir)) != nullptr) {
     /* do we have the right extension? */
     if (!strstr(fname->d_name, ext)) {
       continue;
@@ -541,7 +538,7 @@ static int get_sequence_len(const char *filepath, int *ofs)
       continue;
     }
 
-    CacheFrame *cache_frame = MEM_callocN(sizeof(CacheFrame), "abc_frame");
+    CacheFrame *cache_frame = MEM_cnew<CacheFrame>("abc_frame");
 
     BLI_path_frame_get(fname->d_name, &cache_frame->framenr, &numdigit);
 
@@ -552,9 +549,9 @@ static int get_sequence_len(const char *filepath, int *ofs)
 
   BLI_listbase_sort(&frames, cmp_frame);
 
-  CacheFrame *cache_frame = frames.first;
+  CacheFrame *cache_frame = static_cast<CacheFrame *>(frames.first);
 
-  if (cache_frame) {
+  if (cache_frame != nullptr) {
     int frame_curr = cache_frame->framenr;
     (*ofs) = frame_curr;
 
@@ -583,21 +580,21 @@ static void ui_alembic_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayout *row = uiLayoutRow(box, false);
   uiItemL(row, IFACE_("Manual Transform"), ICON_NONE);
 
-  uiItemR(box, imfptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "scale", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   row = uiLayoutRow(box, false);
   uiItemL(row, IFACE_("Options"), ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(box, false);
-  uiItemR(col, imfptr, "relative_path", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "set_frame_range", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "is_sequence", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
-  uiItemR(col, imfptr, "always_add_cache_reader", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "relative_path", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "set_frame_range", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "is_sequence", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "validate_meshes", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "always_add_cache_reader", 0, nullptr, ICON_NONE);
 }
 
-static void wm_alembic_import_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_alembic_import_draw(bContext * /*C*/, wmOperator *op)
 {
   ui_alembic_import_settings(op->layout, op->ptr);
 }
@@ -645,7 +642,7 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
     ED_object_mode_set(C, OB_MODE_OBJECT);
   }
 
-  struct AlembicImportParams params = {0};
+  AlembicImportParams params = {0};
   params.global_scale = scale;
   params.sequence_len = sequence_len;
   params.sequence_offset = offset;

@@ -36,7 +36,7 @@
 #  include "IO_path_util_types.h"
 
 #  include "IO_ply.h"
-#  include "io_ply_ops.h"
+#  include "io_ply_ops.hh"
 
 static const EnumPropertyItem ply_vertex_colors_mode[] = {
     {PLY_VERTEX_COLOR_NONE, "NONE", 0, "None", "Do not import/export color attributes"},
@@ -50,9 +50,9 @@ static const EnumPropertyItem ply_vertex_colors_mode[] = {
      0,
      "Linear",
      "Vertex colors in the file are in linear color space"},
-    {0, NULL, 0, NULL, NULL}};
+    {0, nullptr, 0, nullptr, nullptr}};
 
-static int wm_ply_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_ply_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".ply");
 
@@ -66,20 +66,20 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-  struct PLYExportParams export_params = {"\0"};
+  PLYExportParams export_params = {"\0"};
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
 
-  export_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
-  export_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
 
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
-  export_params.vertex_colors = RNA_enum_get(op->ptr, "export_colors");
+  export_params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "export_colors"));
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
 
@@ -102,7 +102,7 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "ascii_format", 0, IFACE_("ASCII"), ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "global_scale", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", 0, nullptr, ICON_NONE);
 
   uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
@@ -122,17 +122,17 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
 }
 
-static void wm_ply_export_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_ply_export_draw(bContext * /*C*/, wmOperator *op)
 {
   PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(nullptr, op->type->srna, op->properties, &ptr);
   ui_ply_export_settings(op->layout, &ptr);
 }
 
 /**
  * Return true if any property in the UI is changed.
  */
-static bool wm_ply_export_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_ply_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool changed = false;
@@ -232,13 +232,13 @@ static int wm_ply_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int wm_ply_import_execute(bContext *C, wmOperator *op)
 {
-  struct PLYImportParams params;
-  params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
-  params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  PLYImportParams params{};
+  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
-  params.vertex_colors = RNA_enum_get(op->ptr, "import_colors");
+  params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
 
   int files_len = RNA_collection_length(op->ptr, "files");
 

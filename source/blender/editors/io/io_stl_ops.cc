@@ -22,7 +22,7 @@
 #  include "RNA_define.h"
 
 #  include "IO_stl.h"
-#  include "io_stl_ops.h"
+#  include "io_stl_ops.hh"
 
 static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -31,9 +31,9 @@ static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int wm_stl_import_execute(bContext *C, wmOperator *op)
 {
-  struct STLImportParams params;
-  params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
-  params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  STLImportParams params{};
+  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
+  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
@@ -73,7 +73,7 @@ static int wm_stl_import_execute(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool wm_stl_import_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_stl_import_check(bContext * /*C*/, wmOperator *op)
 {
   const int num_axes = 3;
   /* Both forward and up axes cannot be the same (or same except opposite sign). */

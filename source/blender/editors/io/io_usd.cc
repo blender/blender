@@ -9,7 +9,8 @@
 #ifdef WITH_USD
 #  include "DNA_modifier_types.h"
 #  include "DNA_space_types.h"
-#  include <string.h>
+
+#  include <cstring>
 
 #  include "BKE_context.h"
 #  include "BKE_main.h"
@@ -40,10 +41,10 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "io_usd.h"
+#  include "io_usd.hh"
 #  include "usd.h"
 
-#  include <stdio.h>
+#  include <cstdio>
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,
@@ -56,7 +57,7 @@ const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
      0,
      "Viewport",
      "Use Viewport settings for object visibility, modifier settings, etc"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
@@ -70,14 +71,14 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
      0,
      "Reference Existing",
      "If a material with the same name already exists, reference that instead of importing"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_tex_import_mode_items[] = {
     {USD_TEX_IMPORT_NONE, "IMPORT_NONE", 0, "None", "Don't import textures"},
     {USD_TEX_IMPORT_PACK, "IMPORT_PACK", 0, "Packed", "Import textures as packed data"},
     {USD_TEX_IMPORT_COPY, "IMPORT_COPY", 0, "Copy", "Copy files to textures directory"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_usd_tex_name_collision_mode_items[] = {
@@ -87,21 +88,21 @@ const EnumPropertyItem rna_enum_usd_tex_name_collision_mode_items[] = {
      "Use Existing",
      "If a file with the same name already exists, use that instead of copying"},
     {USD_TEX_NAME_COLLISION_OVERWRITE, "OVERWRITE", 0, "Overwrite", "Overwrite existing files"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
-typedef struct eUSDOperatorOptions {
+struct eUSDOperatorOptions {
   bool as_background_job;
-} eUSDOperatorOptions;
+};
 
 /* Ensure that the prim_path is not set to
  * the absolute root path '/'. */
 static void process_prim_path(char *prim_path)
 {
-  if (prim_path == NULL || prim_path[0] == '\0') {
+  if (prim_path == nullptr || prim_path[0] == '\0') {
     return;
   }
 
@@ -112,9 +113,9 @@ static void process_prim_path(char *prim_path)
   }
 }
 
-static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  eUSDOperatorOptions *options = MEM_callocN(sizeof(eUSDOperatorOptions), "eUSDOperatorOptions");
+  eUSDOperatorOptions *options = MEM_cnew<eUSDOperatorOptions>("eUSDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 
@@ -135,8 +136,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  eUSDOperatorOptions *options = (eUSDOperatorOptions *)op->customdata;
-  const bool as_background_job = (options != NULL && options->as_background_job);
+  eUSDOperatorOptions *options = static_cast<eUSDOperatorOptions *>(op->customdata);
+  const bool as_background_job = (options != nullptr && options->as_background_job);
   MEM_SAFE_FREE(op->customdata);
 
   const bool selected_objects_only = RNA_boolean_get(op->ptr, "selected_objects_only");
@@ -158,7 +159,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
 
-  struct USDExportParams params = {
+  USDExportParams params = {
       export_animation,
       export_hair,
       export_uvmaps,
@@ -167,7 +168,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       selected_objects_only,
       visible_objects_only,
       use_instancing,
-      evaluation_mode,
+      eEvaluationMode(evaluation_mode),
       generate_preview_surface,
       export_textures,
       overwrite_textures,
@@ -181,75 +182,75 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *col;
-  struct PointerRNA *ptr = op->ptr;
+  PointerRNA *ptr = op->ptr;
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayout *box = uiLayoutBox(layout);
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "selected_objects_only", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "visible_objects_only", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "selected_objects_only", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "visible_objects_only", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "export_animation", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "export_hair", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "export_uvmaps", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "export_normals", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "export_materials", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "root_prim_path", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "export_animation", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_hair", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_uvmaps", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_normals", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_materials", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "root_prim_path", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "evaluation_mode", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "evaluation_mode", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
-  uiItemR(col, ptr, "generate_preview_surface", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "generate_preview_surface", 0, nullptr, ICON_NONE);
   const bool export_mtl = RNA_boolean_get(ptr, "export_materials");
   uiLayoutSetActive(col, export_mtl);
 
   uiLayout *row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "export_textures", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "export_textures", 0, nullptr, ICON_NONE);
   const bool preview = RNA_boolean_get(ptr, "generate_preview_surface");
   uiLayoutSetActive(row, export_mtl && preview);
 
   row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "overwrite_textures", 0, nullptr, ICON_NONE);
   const bool export_tex = RNA_boolean_get(ptr, "export_textures");
   uiLayoutSetActive(row, export_mtl && preview && export_tex);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
-  uiItemR(col, ptr, "relative_paths", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "relative_paths", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Experimental"), ICON_NONE);
-  uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "use_instancing", 0, nullptr, ICON_NONE);
 }
 
 static void free_operator_customdata(wmOperator *op)
 {
   if (op->customdata) {
     MEM_freeN(op->customdata);
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 }
 
-static void wm_usd_export_cancel(bContext *UNUSED(C), wmOperator *op)
+static void wm_usd_export_cancel(bContext * /*C*/, wmOperator *op)
 {
   free_operator_customdata(op);
 }
 
-static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
+static bool wm_usd_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", ".usdz", NULL)) {
+  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", ".usdz", nullptr)) {
     BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
@@ -258,7 +259,7 @@ static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
   return false;
 }
 
-void WM_OT_usd_export(struct wmOperatorType *ot)
+void WM_OT_usd_export(wmOperatorType *ot)
 {
   ot->name = "Export USD";
   ot->description = "Export current scene in a USD archive";
@@ -363,7 +364,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "root_prim_path",
-                 NULL,
+                 nullptr,
                  FILE_MAX,
                  "Root Prim",
                  "If set, add a transform primitive with the given path to the stage "
@@ -374,7 +375,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
 
 static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  eUSDOperatorOptions *options = MEM_callocN(sizeof(eUSDOperatorOptions), "eUSDOperatorOptions");
+  eUSDOperatorOptions *options = MEM_cnew<eUSDOperatorOptions>("eUSDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 
@@ -391,8 +392,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  eUSDOperatorOptions *options = (eUSDOperatorOptions *)op->customdata;
-  const bool as_background_job = (options != NULL && options->as_background_job);
+  eUSDOperatorOptions *options = static_cast<eUSDOperatorOptions *>(op->customdata);
+  const bool as_background_job = (options != nullptr && options->as_background_job);
   MEM_SAFE_FREE(op->customdata);
 
   const float scale = RNA_float_get(op->ptr, "scale");
@@ -426,7 +427,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
 
-  char *prim_path_mask = RNA_string_get_alloc(op->ptr, "prim_path_mask", NULL, 0, NULL);
+  char *prim_path_mask = RNA_string_get_alloc(op->ptr, "prim_path_mask", nullptr, 0, nullptr);
 
   const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
   const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
@@ -439,8 +440,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
 
-  const eUSDMtlNameCollisionMode mtl_name_collision_mode = RNA_enum_get(op->ptr,
-                                                                        "mtl_name_collision_mode");
+  const eUSDMtlNameCollisionMode mtl_name_collision_mode = eUSDMtlNameCollisionMode(
+      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
 
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
@@ -456,44 +457,46 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool validate_meshes = false;
   const bool use_instancing = false;
 
-  const eUSDTexImportMode import_textures_mode = RNA_enum_get(op->ptr, "import_textures_mode");
+  const eUSDTexImportMode import_textures_mode = eUSDTexImportMode(
+      RNA_enum_get(op->ptr, "import_textures_mode"));
 
   char import_textures_dir[FILE_MAXDIR];
   RNA_string_get(op->ptr, "import_textures_dir", import_textures_dir);
 
-  const eUSDTexNameCollisionMode tex_name_collision_mode = RNA_enum_get(op->ptr,
-                                                                        "tex_name_collision_mode");
+  const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
+      RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
-  struct USDImportParams params = {.scale = scale,
-                                   .is_sequence = is_sequence,
-                                   .set_frame_range = set_frame_range,
-                                   .sequence_len = sequence_len,
-                                   .offset = offset,
-                                   .validate_meshes = validate_meshes,
-                                   .mesh_read_flag = mesh_read_flag,
-                                   .import_cameras = import_cameras,
-                                   .import_curves = import_curves,
-                                   .import_lights = import_lights,
-                                   .import_materials = import_materials,
-                                   .import_meshes = import_meshes,
-                                   .import_volumes = import_volumes,
-                                   .import_shapes = import_shapes,
-                                   .prim_path_mask = prim_path_mask,
-                                   .import_subdiv = import_subdiv,
-                                   .import_instance_proxies = import_instance_proxies,
-                                   .create_collection = create_collection,
-                                   .import_guide = import_guide,
-                                   .import_proxy = import_proxy,
-                                   .import_render = import_render,
-                                   .import_visible_only = import_visible_only,
-                                   .use_instancing = use_instancing,
-                                   .import_usd_preview = import_usd_preview,
-                                   .set_material_blend = set_material_blend,
-                                   .light_intensity_scale = light_intensity_scale,
-                                   .mtl_name_collision_mode = mtl_name_collision_mode,
-                                   .import_textures_mode = import_textures_mode,
-                                   .tex_name_collision_mode = tex_name_collision_mode,
-                                   .import_all_materials = import_all_materials};
+  USDImportParams params{};
+  params.scale = scale;
+  params.is_sequence = is_sequence;
+  params.set_frame_range = set_frame_range;
+  params.sequence_len = sequence_len;
+  params.offset = offset;
+  params.validate_meshes = validate_meshes;
+  params.mesh_read_flag = mesh_read_flag;
+  params.import_cameras = import_cameras;
+  params.import_curves = import_curves;
+  params.import_lights = import_lights;
+  params.import_materials = import_materials;
+  params.import_meshes = import_meshes;
+  params.import_volumes = import_volumes;
+  params.import_shapes = import_shapes;
+  params.prim_path_mask = prim_path_mask;
+  params.import_subdiv = import_subdiv;
+  params.import_instance_proxies = import_instance_proxies;
+  params.create_collection = create_collection;
+  params.import_guide = import_guide;
+  params.import_proxy = import_proxy;
+  params.import_render = import_render;
+  params.import_visible_only = import_visible_only;
+  params.use_instancing = use_instancing;
+  params.import_usd_preview = import_usd_preview;
+  params.set_material_blend = set_material_blend;
+  params.light_intensity_scale = light_intensity_scale;
+  params.mtl_name_collision_mode = mtl_name_collision_mode;
+  params.import_textures_mode = import_textures_mode;
+  params.tex_name_collision_mode = tex_name_collision_mode;
+  params.import_all_materials = import_all_materials;
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
@@ -502,73 +505,73 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void wm_usd_import_cancel(bContext *UNUSED(C), wmOperator *op)
+static void wm_usd_import_cancel(bContext * /*C*/, wmOperator *op)
 {
   free_operator_customdata(op);
 }
 
-static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  struct PointerRNA *ptr = op->ptr;
+  PointerRNA *ptr = op->ptr;
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *box = uiLayoutBox(layout);
   uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("Data Types"));
-  uiItemR(col, ptr, "import_cameras", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_curves", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_lights", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_materials", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_meshes", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_volumes", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_shapes", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "prim_path_mask", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_cameras", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_curves", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_lights", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_materials", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_meshes", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_volumes", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_shapes", 0, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "prim_path_mask", 0, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "scale", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Mesh Data"));
-  uiItemR(col, ptr, "read_mesh_uvs", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "read_mesh_colors", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_uvs", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_colors", 0, nullptr, ICON_NONE);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
   uiItemR(col, ptr, "import_subdiv", 0, IFACE_("Subdivision"), ICON_NONE);
-  uiItemR(col, ptr, "import_instance_proxies", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_visible_only", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_guide", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_proxy", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_render", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_instance_proxies", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_visible_only", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_guide", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_proxy", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_render", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Options"));
-  uiItemR(col, ptr, "set_frame_range", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
-  uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "set_frame_range", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "relative_path", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "create_collection", 0, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "light_intensity_scale", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
-  uiItemR(col, ptr, "import_all_materials", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "import_usd_preview", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_all_materials", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_usd_preview", 0, nullptr, ICON_NONE);
   uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
   uiLayout *row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "set_material_blend", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "set_material_blend", 0, nullptr, ICON_NONE);
   uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
-  uiItemR(col, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "mtl_name_collision_mode", 0, nullptr, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "import_textures_mode", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_textures_mode", 0, nullptr, ICON_NONE);
   bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
   row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "import_textures_dir", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "import_textures_dir", 0, nullptr, ICON_NONE);
   uiLayoutSetEnabled(row, copy_textures);
   row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "tex_name_collision_mode", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "tex_name_collision_mode", 0, nullptr, ICON_NONE);
   uiLayoutSetEnabled(row, copy_textures);
   uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
 }
 
-void WM_OT_usd_import(struct wmOperatorType *ot)
+void WM_OT_usd_import(wmOperatorType *ot)
 {
   ot->name = "Import USD";
   ot->description = "Import USD stage into current scene";
@@ -652,7 +655,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   RNA_def_string(ot->srna,
                  "prim_path_mask",
-                 NULL,
+                 nullptr,
                  0,
                  "Path Mask",
                  "Import only the primitive at the given path and its descendents.  "
