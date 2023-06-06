@@ -164,7 +164,7 @@ typedef struct RegionPollParams {
   const struct ScrArea *area;
   const struct ARegion *region;
 
-  /* Full context, if WM context above is not enough. */
+  /** Full context, if WM context above is not enough. */
   const struct bContext *context;
 } RegionPollParams;
 
@@ -421,7 +421,7 @@ typedef struct Menu {
 /* #AssetShelfType.flag */
 typedef enum AssetShelfTypeFlag {
   /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
-     keymap items then. */
+   * keymap items then. */
   ASSET_SHELF_TYPE_NO_ASSET_DRAG = (1 << 0),
 
   ASSET_SHELF_TYPE_FLAG_MAX
@@ -437,13 +437,14 @@ typedef struct AssetShelfType {
 
   AssetShelfTypeFlag flag;
 
-  /* Determine if the asset shelf should be visible or not. */
+  /** Determine if asset shelves of this type should be available in current context or not. */
   bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);
 
-  /* Determine if an individual asset should be visible or not. May be a temporary design,
-   * visibility should be first and foremost controlled by asset traits. */
+  /** Determine if an individual asset should be visible or not. May be a temporary design,
+   * visibility should first and foremost be controlled by asset traits. */
   bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
 
+  /** Asset shelves can define their own context menu via this layout definition callback. */
   void (*draw_context_menu)(const struct bContext *C,
                             const struct AssetShelfType *shelf_type,
                             const struct AssetHandle *asset,

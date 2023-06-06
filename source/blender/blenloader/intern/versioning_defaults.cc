@@ -262,9 +262,6 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
       BKE_workspace_tool_remove(workspace, static_cast<bToolRef *>(workspace->tools.first));
     }
 
-    workspace->asset_library_ref.type = ASSET_LIBRARY_ALL;
-    workspace->asset_library_ref.custom_library_index = -1;
-
     /* For 2D animation template. */
     if (STREQ(workspace->id.name + 2, "Drawing")) {
       workspace->object_mode = OB_MODE_PAINT_GPENCIL;
