@@ -4516,6 +4516,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_300 in this file.
    * - "versioning_userdef.c", #blo_do_versions_userdef
    * - "versioning_userdef.c", #do_versions_theme
    *
