@@ -4461,18 +4461,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 11)) {
     /* Convert anisotropic BSDF node to glossy BSDF. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       versioning_replace_legacy_glossy_node(ntree);
@@ -4480,7 +4469,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
 
-    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, nullptr);
+    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
 
     /* Store simulation bake directory in geometry nodes modifier. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -4518,5 +4507,19 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_300 in this file.
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
