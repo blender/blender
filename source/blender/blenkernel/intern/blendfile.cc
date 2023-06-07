@@ -970,18 +970,32 @@ void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace
 /** \name Blend File Write (Partial)
  * \{ */
 
-void BKE_blendfile_write_partial_begin(Main *bmain_src)
+static void blendfile_write_partial_clear_flags(Main *bmain_src)
 {
-  BKE_main_id_tag_all(bmain_src, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
+  ListBase *lbarray[INDEX_ID_MAX];
+  int a = set_listbasepointers(bmain_src, lbarray);
+  while (a--) {
+    LISTBASE_FOREACH (ID *, id, lbarray[a]) {
+      id->tag &= ~(LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT);
+      id->flag &= ~(LIB_CLIPBOARD_MARK);
+    }
+  }
+}
+
+void BKE_blendfile_write_partial_begin(Main *bmain)
+{
+  blendfile_write_partial_clear_flags(bmain);
 }
 
 void BKE_blendfile_write_partial_tag_ID(ID *id, bool set)
 {
   if (set) {
     id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
+    id->flag |= LIB_CLIPBOARD_MARK;
   }
   else {
     id->tag &= ~(LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT);
+    id->flag &= ~LIB_CLIPBOARD_MARK;
   }
 }
 
@@ -1080,7 +1094,7 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
 
 void BKE_blendfile_write_partial_end(Main *bmain_src)
 {
-  BKE_main_id_tag_all(bmain_src, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
+  blendfile_write_partial_clear_flags(bmain_src);
 }
 
 /** \} */

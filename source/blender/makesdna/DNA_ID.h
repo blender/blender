@@ -709,6 +709,15 @@ enum {
    * was kept around (because e.g. detected as user-edited).
    */
   LIB_LIB_OVERRIDE_RESYNC_LEFTOVER = 1 << 13,
+  /**
+   * This `id` was explicitly copied as part of a clipboard copy operation.
+   * When reading the clipboard back, this can be used to check which ID's are
+   * intended to be part of the clipboard, compared with ID's that were indirectly referenced.
+   *
+   * While the flag is typically cleared, a saved file may have this set for some data-blocks,
+   * so it must be treated as dirty.
+   */
+  LIB_CLIPBOARD_MARK = 1 << 14,
 };
 
 /**

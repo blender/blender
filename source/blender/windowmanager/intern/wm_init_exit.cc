@@ -349,7 +349,6 @@ void WM_init(bContext *C, int argc, const char **argv)
     }
   }
 
-  BKE_material_copybuf_clear();
   ED_render_clear_mtex_copybuf();
 
   wm_history_file_read();
@@ -608,7 +607,6 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
     DRW_subdiv_free();
   }
 
-  BKE_material_copybuf_free();
   ANIM_fcurves_copybuf_free();
   ANIM_drivers_copybuf_free();
   ANIM_driver_vars_copybuf_free();
