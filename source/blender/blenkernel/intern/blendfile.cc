@@ -214,7 +214,7 @@ static void setup_app_userdef(BlendFileData *bfd)
      * to load the preferences defined in the users home dir.
      *
      * This means we will never accidentally (or maliciously)
-     * enable scripts auto-execution by loading a '.blend' file.
+     * enable scripts auto-execution by loading a `.blend` file.
      */
     U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
   }
@@ -251,7 +251,7 @@ typedef struct ReuseOldBMainData {
  * NOTE: The case where the `old_bmain` would be a library in the newly read one is not handled
  * here, as it does not create explicit issues. The local data from `old_bmain` is either
  * discarded, or added to the `new_bmain` as local data as well. Worst case, there will be a
- * doublon of a linked data as a local one, without any known relationships between them. In
+ * double of a linked data as a local one, without any known relationships between them. In
  * practice, this latter case is not expected to commonly happen.
  */
 static IDRemapper *reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse_data)
@@ -747,7 +747,7 @@ static void setup_app_data(bContext *C,
   wmWindow *win = nullptr;
   bScreen *curscreen = nullptr;
 
-  /* Ensure that there is a valid scene and viewlayer. */
+  /* Ensure that there is a valid scene and view-layer. */
   if (curscene == nullptr) {
     curscene = static_cast<Scene *>(bfd->main->scenes.first);
   }
@@ -904,7 +904,7 @@ static void setup_app_data(bContext *C,
     bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of autosave or quit.blend, use original filepath instead. */
+    /* In case of auto-save or quit.blend, use original filepath instead. */
     bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }

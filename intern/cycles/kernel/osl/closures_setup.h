@@ -224,7 +224,7 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
       sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
   }
-  /* GGX (either single- or multiscattering) */
+  /* GGX (either single- or multi-scattering). */
   else {
     if (has_reflection && has_transmission) {
       sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
@@ -278,7 +278,7 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
   if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
     sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
   }
-  /* GGX (either single- or multiscattering) */
+  /* GGX (either single- or multi-scattering) */
   else {
     sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
@@ -338,7 +338,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
       sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
     }
   }
-  /* GGX (either single- or multiscattering) */
+  /* GGX (either single- or multi-scattering) */
   else {
     if (has_reflection && has_transmission) {
       sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
@@ -414,7 +414,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
   else if (closure->distribution == make_string("ashikhmin_shirley", 11318482998918370922ull)) {
     sd->flag |= bsdf_ashikhmin_shirley_setup(bsdf);
   }
-  /* GGX (either single- or multiscattering) */
+  /* GGX (either single- or multi-scattering) */
   else {
     if (closure->refract == 1) {
       sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
@@ -523,7 +523,7 @@ ccl_device void osl_closure_microfacet_aniso_fresnel_setup(
   bsdf->ior = closure->ior;
   bsdf->T = closure->T;
 
-  /* Only GGX (either single- or multiscattering) supported here */
+  /* Only GGX (either single- or multi-scattering) supported here */
   sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
 
   const bool preserve_energy = (closure->distribution ==

@@ -1892,7 +1892,7 @@ bool gpu::MTLTexture::texture_is_baked()
 void gpu::MTLTexture::prepare_internal()
 {
   /* Metal: Texture clearing is done using frame-buffer clear. This has no performance impact or
-   * bandwidth implications for lossless compression and is considered best-practise.
+   * bandwidth implications for lossless compression and is considered best-practice.
    *
    * Attachment usage also required for depth-stencil attachment targets, for depth-update support.
    */

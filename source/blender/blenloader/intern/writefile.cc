@@ -971,10 +971,10 @@ static void write_libraries(WriteData *wd, Main *main)
       }
     }
 
-    /* To be able to restore 'quit.blend' and temp saves,
+    /* To be able to restore `quit.blend` and temp saves,
      * the packed blend has to be in undo buffers... */
     /* XXX needs rethink, just like save UI in undo files now -
-     * would be nice to append things only for the 'quit.blend' and temp saves. */
+     * would be nice to append things only for the `quit.blend` and temp saves. */
     if (found_one) {
       /* Not overridable. */
 

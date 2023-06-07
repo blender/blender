@@ -206,7 +206,7 @@ bool BLO_memfile_write_file(MemFile *memfile, const char *filepath)
   MemFileChunk *chunk;
   int file, oflags;
 
-  /* NOTE: This is currently used for autosave and 'quit.blend',
+  /* NOTE: This is currently used for auto-save and `quit.blend`,
    * where _not_ following symlinks is OK,
    * however if this is ever executed explicitly by the user,
    * we may want to allow writing to symlinks.

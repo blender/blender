@@ -66,8 +66,10 @@ typedef struct BlendFileData {
   eBlenFileType type;
 } BlendFileData;
 
-/** Data used by WM readfile code and BKE's setup_app_data to handle the complex preservation logic
- * of WindowManager and other UI data-blocks across blendfile reading prcess. */
+/**
+ * Data used by WM readfile code and BKE's setup_app_data to handle the complex preservation logic
+ * of WindowManager and other UI data-blocks across blend-file reading process.
+ */
 typedef struct BlendFileReadWMSetupData {
   struct wmWindowManager *old_wm; /** The existing WM when filereading process is started. */
 } BlendFileReadWMSetupData;

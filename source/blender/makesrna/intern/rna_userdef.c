@@ -6541,7 +6541,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Animation Player Preset", "Preset configs for external animation players");
 
-  /* Autosave. */
+  /* Auto-save. */
 
   prop = RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "versions");

@@ -65,7 +65,7 @@ void BKE_blendfile_read_setup_readfile(struct bContext *C,
                                        const char *startup_app_template);
 
 /**
- * Simpler version of #BKE_blendfile_read_setup_readfile used when reading undoe steps from
+ * Simpler version of #BKE_blendfile_read_setup_readfile used when reading undo steps from
  * memfile. */
 void BKE_blendfile_read_setup_undo(struct bContext *C,
                                    struct BlendFileData *bfd,

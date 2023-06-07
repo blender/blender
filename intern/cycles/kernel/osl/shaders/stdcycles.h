@@ -26,7 +26,7 @@ closure color principled_diffuse(normal N, float roughness) BUILTIN;
 closure color principled_sheen(normal N) BUILTIN;
 closure color principled_clearcoat(normal N, float clearcoat, float clearcoat_roughness) BUILTIN;
 
-/* Needed to pass along the color for multiscattering saturation adjustment,
+/* Needed to pass along the color for multi-scattering saturation adjustment,
  * otherwise could be replaced by microfacet() */
 closure color microfacet_multi_ggx_glass(normal N, float ag, float eta, color C) BUILTIN;
 closure color microfacet_multi_ggx_aniso(normal N, vector T, float ax, float ay, color C) BUILTIN;

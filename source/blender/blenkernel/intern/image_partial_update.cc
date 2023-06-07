@@ -14,7 +14,7 @@
  *
  * Usage:
  *
- * ```
+ * \code{.cc}
  * Image *image = ...;
  * ImBuf *image_buffer = ...;
  *
@@ -44,8 +44,7 @@
  *
  * // Free partial_update_user.
  * BKE_image_partial_update_free(partial_update_user);
- *
- * ```
+ * \endcode
  */
 
 #include <optional>

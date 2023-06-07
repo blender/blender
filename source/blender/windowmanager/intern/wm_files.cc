@@ -495,7 +495,7 @@ static void wm_init_userdef(Main *bmain)
 /* -------------------------------------------------------------------- */
 /** \name Read Exotic File Formats
  *
- * Currently only supports '.blend' files,
+ * Currently only supports `.blend` files,
  * we could support registering other file formats and their loaders.
  * \{ */
 
@@ -1869,7 +1869,7 @@ static bool wm_file_write(bContext *C,
   BlendThumbnail *thumb = nullptr, *main_thumb = nullptr;
   ImBuf *ibuf_thumb = nullptr;
 
-  /* NOTE: used to replace the file extension (to ensure '.blend'),
+  /* NOTE: used to replace the file extension (to ensure `.blend`),
    * no need to now because the operator ensures,
    * its handy for scripts to save to a predefined name without blender editing it */
 
@@ -1902,7 +1902,7 @@ static bool wm_file_write(bContext *C,
      *
      * - Save before exiting edit-mode, otherwise evaluated-mesh for shared data gets corrupted.
      *   See #27765.
-     * - Main can store a '.blend' thumbnail,
+     * - Main can store a `.blend` thumbnail,
      *   useful for background-mode or thumbnail customization.
      */
     main_thumb = thumb = bmain->blen_thumb;
