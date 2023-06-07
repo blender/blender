@@ -55,7 +55,6 @@ endif()
 
 set(INC_SYS
   ${Epoxy_INCLUDE_DIRS}
-  ${IMATH_INCLUDE_DIR}
 )
 
 set(SRC
@@ -358,11 +357,6 @@ if(WITH_VULKAN_BACKEND)
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)
-  if(WIN32)
-    if(EXISTS ${LIBDIR}/imath/bin/imath.dll)
-      add_definitions(-DIMATH_DLL)
-    endif()
-  endif()
 endif()
 
 if(WITH_VULKAN_GUARDEDALLOC)
@@ -821,7 +815,6 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
     bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
-    ${IMATH_LIBRARIES}
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -868,6 +861,7 @@ if(WITH_GTESTS)
     if(WITH_VULKAN_BACKEND)
       list(APPEND TEST_SRC
         tests/memory_layout_test.cc
+        vulkan/vk_data_conversion_test.cc
       )
     endif()
 
