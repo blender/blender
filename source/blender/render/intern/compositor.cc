@@ -174,7 +174,7 @@ class Context : public realtime_compositor::Context {
                 /* TODO: conversion could be done as part of GPU upload somehow? */
                 const float *rgb_buffer = rpass->buffer.data;
                 Vector<float> rgba_buffer(4 * size.x * size.y);
-                for (size_t i = 0; (size_t)size.x * (size_t)size.y; i++) {
+                for (size_t i = 0; i < (size_t)size.x * (size_t)size.y; i++) {
                   rgba_buffer[i * 4 + 0] = rgb_buffer[i * 3 + 0];
                   rgba_buffer[i * 4 + 1] = rgb_buffer[i * 3 + 1];
                   rgba_buffer[i * 4 + 2] = rgb_buffer[i * 3 + 2];
@@ -292,7 +292,7 @@ void RealtimeCompositor::execute()
   DRW_render_context_disable(&render_);
 }
 
-void RealtimeCompositor::update(const Depsgraph *depsgraph)
+void RealtimeCompositor::update(const Depsgraph * /* depsgraph */)
 {
   /* TODO: implement */
 }
