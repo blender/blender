@@ -72,6 +72,8 @@ typedef struct BlendFileData {
  */
 typedef struct BlendFileReadWMSetupData {
   struct wmWindowManager *old_wm; /** The existing WM when filereading process is started. */
+
+  bool is_read_homefile;
 } BlendFileReadWMSetupData;
 
 struct BlendFileReadParams {

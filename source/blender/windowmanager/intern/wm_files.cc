@@ -182,11 +182,14 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
  * Clear several WM/UI runtime data that would make later complex WM handling impossible.
  *
  * Return data should be cleared by #wm_file_read_setup_wm_finalize. */
-static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C, Main *bmain)
+static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
+                                                            Main *bmain,
+                                                            const bool is_read_homefile)
 {
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
+  wm_setup_data->is_read_homefile = is_read_homefile;
 
   if (wm == nullptr) {
     return wm_setup_data;
@@ -400,6 +403,13 @@ static void wm_file_read_setup_wm_finalize(bContext *C,
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   BLI_assert(wm_setup_data != nullptr);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+
+  /* If reading home (startup) file, and there was no previous WM, clear the size of the windows in
+   * newly read WM so that they get resized to occupy the whole available space on current monitor.
+   */
+  if (wm_setup_data->is_read_homefile && wm_setup_data->old_wm == nullptr) {
+    wm_clear_default_size(C);
+  }
 
   if (wm == nullptr) {
     /* Add a default WM in case none exists in newly read main (should only happen when opening
@@ -994,7 +1004,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
       /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
        * message bus, and so on). */
-      BlendFileReadWMSetupData *wm_setup_data = wm_file_read_setup_wm_init(C, bmain);
+      BlendFileReadWMSetupData *wm_setup_data = wm_file_read_setup_wm_init(C, bmain, false);
 
       /* This flag is initialized by the operator but overwritten on read.
        * need to re-enable it here else drivers and registered scripts won't work. */
@@ -1117,7 +1127,6 @@ void wm_homefile_read_ex(bContext *C,
   /* Context does not always have valid main pointer here. */
   Main *bmain = G_MAIN;
 #endif
-  ListBase wmbase;
   bool success = false;
 
   /* May be enabled, when the user configuration doesn't exist. */
@@ -1223,7 +1232,7 @@ void wm_homefile_read_ex(bContext *C,
   if (use_data) {
     /* Put WM into a stable state for post-readfile processes (kill jobs, removes event handlers,
      * message bus, and so on). */
-    wm_setup_data = wm_file_read_setup_wm_init(C, bmain);
+    wm_setup_data = wm_file_read_setup_wm_init(C, bmain, true);
   }
 
   filepath_startup[0] = '\0';
@@ -1356,10 +1365,6 @@ void wm_homefile_read_ex(bContext *C,
           C, bfd, &read_file_params, wm_setup_data, &read_report, true, nullptr);
       success = true;
       bmain = CTX_data_main(C);
-    }
-
-    if (use_data && BLI_listbase_is_empty(&wmbase)) {
-      wm_clear_default_size(C);
     }
   }
 
