@@ -29,9 +29,23 @@
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
-void do_versions_after_linking_400(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_400(FileData * /*fd*/, Main * /*bmain*/)
 {
-  UNUSED_VARS(bmain);
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #blo_do_versions_400 in this file.
+   * - "versioning_cycles.cc", #blo_do_versions_cycles
+   * - "versioning_cycles.cc", #do_versions_after_linking_cycles
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+  }
 }
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
@@ -180,6 +194,9 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_400 in this file.
+   * - "versioning_cycles.cc", #blo_do_versions_cycles
+   * - "versioning_cycles.cc", #do_versions_after_linking_cycles
    * - "versioning_userdef.c", #blo_do_versions_userdef
    * - "versioning_userdef.c", #do_versions_theme
    *
