@@ -20,7 +20,7 @@ void main()
   /* View position is passed to keep accuracy. */
   g_data.N = normal_view_to_world(viewCameraVec(interp.P));
   g_data.Ng = g_data.N;
-  g_data.P = -g_data.N + cameraPos;
+  g_data.P = -g_data.N;
   attrib_load();
 
   nodetree_surface();
