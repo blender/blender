@@ -79,6 +79,7 @@ struct CCLShadowContext
 #endif
   IntegratorShadowState isect_s;
   float throughput;
+  float max_t;
   bool opaque_hit;
   numhit_t max_hits;
   numhit_t num_hits;
@@ -301,7 +302,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   /* Current implementation in Cycles assumes only single-ray intersection queries. */
   assert(args->N == 1);
 
-  RTCRay *ray = (RTCRay *)args->ray;
+  const RTCRay *ray = (RTCRay *)args->ray;
   RTCHit *hit = (RTCHit *)args->hit;
 #if EMBREE_MAJOR_VERSION >= 4
   CCLShadowContext *ctx = (CCLShadowContext *)(args->context);
@@ -363,6 +364,12 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   /* If the maximum number of hits was reached, replace the furthest intersection
    * with a closer one so we get the N closest intersections. */
   if (isect_index >= max_record_hits) {
+    /* When recording only N closest hits, max_t will always only decrease.
+     * So let's test if we are already not meeting criteria and can skip max_t recalculation. */
+    if (current_isect.t >= ctx->max_t) {
+      return;
+    }
+
     float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
     numhit_t max_recorded_hit = numhit_t(0);
 
@@ -377,7 +384,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     isect_index = max_recorded_hit;
 
     /* Limit the ray distance and avoid processing hits beyond this. */
-    ray->tfar = max_t;
+    ctx->max_t = max_t;
 
     /* If it's further away than max_t, we don't record this transparent intersection. */
     if (current_isect.t >= max_t) {
