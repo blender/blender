@@ -269,7 +269,7 @@ typedef struct wmWindow {
   int winid;
   /** Window coords. */
   short posx, posy, sizex, sizey;
-  /** Borderless, full. */
+  /** Normal, maximized, full-screen, #GHOST_TWindowState. */
   char windowstate;
   /** Set to 1 if an active window, for quick rejects. */
   char active;

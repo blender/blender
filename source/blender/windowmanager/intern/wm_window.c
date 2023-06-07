@@ -109,7 +109,7 @@ static struct WMInitStruct {
   int size_x, size_y;
   int start_x, start_y;
 
-  int windowstate;
+  GHOST_TWindowState windowstate;
   eWinOverrideFlag override_flag;
 
   bool window_focus;
@@ -735,7 +735,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Clear double buffer to avoids flickering of new windows on certain drivers. (See #97600) */
     GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
-    // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
     GPU_render_end();
   }
   else {

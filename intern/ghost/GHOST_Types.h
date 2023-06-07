@@ -170,14 +170,15 @@ typedef enum {
   GHOST_kModifierKeyNum
 } GHOST_TModifierKey;
 
+/**
+ * \note these values are stored in #wmWindow::windowstate,
+ * don't change, only add new values.
+ */
 typedef enum {
   GHOST_kWindowStateNormal = 0,
-  GHOST_kWindowStateMaximized,
-  GHOST_kWindowStateMinimized,
-  GHOST_kWindowStateFullScreen,
-  GHOST_kWindowStateEmbedded,
-  // GHOST_kWindowStateModified,
-  // GHOST_kWindowStateUnModified,
+  GHOST_kWindowStateMaximized = 1,
+  GHOST_kWindowStateMinimized = 2,
+  GHOST_kWindowStateFullScreen = 3,
 } GHOST_TWindowState;
 
 typedef enum {
