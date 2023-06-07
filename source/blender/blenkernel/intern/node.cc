@@ -331,7 +331,6 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_STRING:
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
@@ -479,7 +478,6 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
     case SOCK_CUSTOM:
       /* Custom node sockets where default_value is defined uses custom properties for storage. */
       break;
-    case SOCK_MESH_DEPRECATED:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
       BLI_assert_unreachable();
@@ -923,7 +921,6 @@ static void lib_link_node_socket(BlendLibReader *reader, ID *self_id, bNodeSocke
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_STRING:
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
@@ -1016,7 +1013,6 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_STRING:
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
@@ -1705,7 +1701,6 @@ static void socket_id_user_increment(bNodeSocket *sock)
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_STRING:
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
@@ -1751,7 +1746,6 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_STRING:
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
@@ -1804,7 +1798,6 @@ void nodeModifySocketType(bNodeTree *ntree,
         case SOCK_SHADER:
         case SOCK_BOOLEAN:
         case SOCK_CUSTOM:
-        case SOCK_MESH_DEPRECATED:
         case SOCK_OBJECT:
         case SOCK_IMAGE:
         case SOCK_GEOMETRY:
@@ -1944,7 +1937,6 @@ const char *nodeStaticSocketType(const int type, const int subtype)
     case SOCK_MATERIAL:
       return "NodeSocketMaterial";
     case SOCK_CUSTOM:
-    case SOCK_MESH_DEPRECATED:
       break;
   }
   return nullptr;
@@ -2024,7 +2016,6 @@ const char *nodeStaticSocketInterfaceType(const int type, const int subtype)
     case SOCK_MATERIAL:
       return "NodeSocketInterfaceMaterial";
     case SOCK_CUSTOM:
-    case SOCK_MESH_DEPRECATED:
       break;
   }
   return nullptr;
@@ -2060,7 +2051,6 @@ const char *nodeStaticSocketLabel(const int type, const int /*subtype*/)
     case SOCK_MATERIAL:
       return "Material";
     case SOCK_CUSTOM:
-    case SOCK_MESH_DEPRECATED:
       break;
   }
   return nullptr;
@@ -2582,7 +2572,6 @@ static void *socket_value_storage(bNodeSocket &socket)
     case SOCK_STRING:
       /* We don't want do this now! */
       return nullptr;
-    case SOCK_MESH_DEPRECATED:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:

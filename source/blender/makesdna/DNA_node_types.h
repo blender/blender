@@ -230,7 +230,6 @@ typedef enum eNodeSocketDatatype {
   SOCK_RGBA = 2,
   SOCK_SHADER = 3,
   SOCK_BOOLEAN = 4,
-  SOCK_MESH_DEPRECATED = 5,
   SOCK_INT = 6,
   SOCK_STRING = 7,
   SOCK_OBJECT = 8,

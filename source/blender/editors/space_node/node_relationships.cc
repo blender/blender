@@ -2222,8 +2222,6 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
 static int get_main_socket_priority(const bNodeSocket *socket)
 {
   switch ((eNodeSocketDatatype)socket->type) {
-    case SOCK_MESH_DEPRECATED:
-      return -1;
     case SOCK_CUSTOM:
       return 0;
     case SOCK_BOOLEAN:
