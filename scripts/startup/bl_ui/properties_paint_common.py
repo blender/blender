@@ -937,7 +937,6 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         col = layout.column(heading="Auto-Masking", align=True)
 
-        col = layout.column(align=True)
         col.prop(brush, "use_automasking_topology", text="Topology")
         col.prop(brush, "use_automasking_face_sets", text="Face Sets")
 
