@@ -372,7 +372,9 @@ static void try_convert_single_object(Object &curves_ob,
 
       HairKey &key = hair_keys[key_i];
       copy_v3_v3(key.co, key_pos_ha);
-      key.time = 100.0f * key_i / float(hair_keys.size() - 1);
+      const float key_fac = key_i / float(hair_keys.size() - 1);
+      key.time = 100.0f * key_fac;
+      key.weight = 1.0f - key_fac;
     }
   }
 
