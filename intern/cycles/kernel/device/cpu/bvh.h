@@ -347,47 +347,45 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     }
   }
 
+  numhit_t isect_index = ctx->num_recorded_hits;
+
+  /* Always increase the number of recorded hits, even beyond the maximum,
+   * so that we can detect this and trace another ray if needed.
+   * More details about the related logic can be found in implementation of
+   * "shadow_intersections_has_remaining" and "integrate_transparent_shadow"
+   * functions. */
+  ++ctx->num_recorded_hits;
+
   /* This tells Embree to continue tracing. */
   *args->valid = 0;
 
-  /* Test if we need to record this transparent intersection. */
   const numhit_t max_record_hits = min(ctx->max_hits, numhit_t(INTEGRATOR_SHADOW_ISECT_SIZE));
-  if (ctx->num_recorded_hits < max_record_hits) {
-    /* If maximum number of hits was reached, replace the intersection with the
-     * highest distance. We want to find the N closest intersections. */
-    const numhit_t num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
-    numhit_t isect_index = num_recorded_hits;
-    if (num_recorded_hits + 1 >= max_record_hits) {
-      float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
-      numhit_t max_recorded_hit = numhit_t(0);
+  /* If the maximum number of hits was reached, replace the furthest intersection
+   * with a closer one so we get the N closest intersections. */
+  if (isect_index >= max_record_hits) {
+    float max_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, 0, t);
+    numhit_t max_recorded_hit = numhit_t(0);
 
-      for (numhit_t i = numhit_t(1); i < num_recorded_hits; ++i) {
-        const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
-        if (isect_t > max_t) {
-          max_recorded_hit = i;
-          max_t = isect_t;
-        }
-      }
-
-      if (num_recorded_hits >= max_record_hits) {
-        isect_index = max_recorded_hit;
-      }
-
-      /* Limit the ray distance and avoid processing hits beyond this. */
-      ray->tfar = max_t;
-
-      /* If it's further away than max_t, we don't record this transparent intersection. */
-      if (current_isect.t >= max_t) {
-        return;
+    for (numhit_t i = numhit_t(1); i < max_record_hits; ++i) {
+      const float isect_t = INTEGRATOR_STATE_ARRAY(ctx->isect_s, shadow_isect, i, t);
+      if (isect_t > max_t) {
+        max_recorded_hit = i;
+        max_t = isect_t;
       }
     }
 
-    /* Always increase the number of recorded hits, even beyond the maximum,
-     * so that we can detect this and trace another ray if needed. */
-    ++ctx->num_recorded_hits;
+    isect_index = max_recorded_hit;
 
-    integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
+    /* Limit the ray distance and avoid processing hits beyond this. */
+    ray->tfar = max_t;
+
+    /* If it's further away than max_t, we don't record this transparent intersection. */
+    if (current_isect.t >= max_t) {
+      return;
+    }
   }
+
+  integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
 }
 
 ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
