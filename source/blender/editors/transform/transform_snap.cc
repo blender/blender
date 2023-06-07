@@ -1388,7 +1388,7 @@ eSnapMode snapObjectsTransform(
   SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = t->tsnap.target_operation;
   snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
-  snap_object_params.use_occlusion_test = t->settings->snap_mode != SCE_SNAP_MODE_FACE_RAYCAST;
+  snap_object_params.use_occlusion_test = true;
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
 
   float *target = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : t->center_global;
