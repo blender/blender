@@ -72,7 +72,6 @@ set(SRC
   intern/usd_asset_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
-  intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_writer_abstract.cc
   intern/usd_writer_camera.cc
@@ -101,7 +100,6 @@ set(SRC
   usd.h
 
   intern/usd_asset_utils.h
-  intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_writer_abstract.h
@@ -161,8 +159,6 @@ if(WITH_GTESTS)
     tests/usd_curves_test.cc
     tests/usd_export_test.cc
     tests/usd_stage_creation_test.cc
-    tests/usd_tests_common.cc
-    tests/usd_tests_common.h
     tests/usd_usdz_export_test.cc
     intern/usd_writer_material.h
   )

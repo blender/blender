@@ -38,7 +38,6 @@
 #include "WM_api.h"
 
 #include "usd.h"
-#include "usd_tests_common.h"
 #include "usd_writer_material.h"
 
 namespace blender::io::usd {
@@ -73,10 +72,6 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
   virtual void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    std::string usd_plugin_path = register_usd_plugins_for_tests();
-    if (usd_plugin_path.empty()) {
-      FAIL() << "Unable to find the USD Plugins path.";
-    }
   }
 
   virtual void TearDown() override
