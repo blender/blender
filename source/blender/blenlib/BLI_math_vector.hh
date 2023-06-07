@@ -301,6 +301,61 @@ template<typename T, int Size>
   return result;
 }
 
+/**
+ * Per-element square root.
+ * Negative elements are evaluated to NaN.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> sqrt(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::sqrt(a[i]);
+  }
+  return result;
+}
+
+/**
+ * Per-element square root.
+ * Negative elements are evaluated to zero.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_sqrt(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = a[i] >= T(0) ? math ::sqrt(a[i]) : T(0);
+  }
+  return result;
+}
+
+/**
+ * Per-element inverse.
+ * Zero elements are evaluated to NaN.
+ */
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> rcp(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::rcp(a[i]);
+  }
+  return result;
+}
+
+/**
+ * Per-element inverse.
+ * Zero elements are evaluated to zero.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_rcp(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::safe_rcp(a[i]);
+  }
+  return result;
+}
+
 template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> fract(const VecBase<T, Size> &a)
 {

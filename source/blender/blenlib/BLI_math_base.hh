@@ -132,6 +132,20 @@ template<typename T> inline T sqrt(const T &a)
   return std::sqrt(a);
 }
 
+/* Inverse value.
+ * If the input is zero the output is NaN. */
+template<typename T> inline T rcp(const T &a)
+{
+  return T(1) / a;
+}
+
+/* Inverse value.
+ * If the input is zero the output is zero. */
+template<typename T> inline T safe_rcp(const T &a)
+{
+  return a ? T(1) / a : T(0);
+}
+
 template<typename T> inline T cos(const T &a)
 {
   return std::cos(a);
