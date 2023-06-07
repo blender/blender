@@ -91,6 +91,11 @@ template<typename T> inline T floor(const T &a)
   return std::floor(a);
 }
 
+template<typename T> inline T round(const T &a)
+{
+  return std::round(a);
+}
+
 /**
  * Repeats the saw-tooth pattern even on negative numbers.
  * ex: `mod_periodic(-3, 4) = 1`, `mod(-3, 4)= -3`
