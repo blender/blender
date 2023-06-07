@@ -205,6 +205,7 @@ static void text_operatortypes(void)
   WM_operatortype_append(TEXT_OT_replace_set_selected);
 
   WM_operatortype_append(TEXT_OT_start_find);
+  WM_operatortype_append(TEXT_OT_jump_to_file_at_point_internal);
 
   WM_operatortype_append(TEXT_OT_to_3d_object);
 

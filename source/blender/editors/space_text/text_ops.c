@@ -3837,6 +3837,77 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Jump to File at Point (Internal)
+ *
+ * \note This is the internal implementation, typically `TEXT_OT_jump_to_file_at_point`
+ * should be used because it respects the "External Editor" preference.
+ * \{ */
+
+static int text_jump_to_file_at_point_internal_exec(bContext *C, wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+  const int line = RNA_int_get(op->ptr, "line");
+  const int column = RNA_int_get(op->ptr, "column");
+
+  Main *bmain = CTX_data_main(C);
+  Text *text = NULL;
+
+  LISTBASE_FOREACH (Text *, text_iter, &bmain->texts) {
+    if (text_iter->filepath && BLI_path_cmp(text_iter->filepath, filepath) == 0) {
+      text = text_iter;
+      break;
+    }
+  }
+
+  if (text == NULL) {
+    text = BKE_text_load(bmain, filepath, BKE_main_blendfile_path(bmain));
+  }
+
+  if (text == NULL) {
+    BKE_reportf(op->reports, RPT_WARNING, "File '%s' cannot be opened", filepath);
+    return OPERATOR_CANCELLED;
+  }
+
+  txt_move_to(text, line, column, false);
+
+  /* naughty!, find text area to set, not good behavior
+   * but since this is a developer tool lets allow it - campbell */
+  if (!ED_text_activate_in_screen(C, text)) {
+    BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
+  }
+
+  WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+
+  return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_jump_to_file_at_point_internal(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Jump to File at Point (Internal)";
+  ot->idname = "TEXT_OT_jump_to_file_at_point_internal";
+  ot->description = "Jump to a file for the internal text editor";
+
+  /* api callbacks */
+  ot->exec = text_jump_to_file_at_point_internal_exec;
+
+  /* flags */
+  ot->flag = 0;
+
+  prop = RNA_def_string(ot->srna, "filepath", NULL, FILE_MAX, "Filepath", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "line", 0, 0, INT_MAX, "Line", "Line to jump to", 1, 10000);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "column", 0, 0, INT_MAX, "Column", "Column to jump to", 1, 10000);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Resolve Conflict Operator
  * \{ */
 

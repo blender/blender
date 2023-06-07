@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import bpy
 from bpy.types import Operator
 from bpy.props import (
     IntProperty,
@@ -31,6 +32,14 @@ class TEXT_OT_jump_to_file_at_point(Operator):
 
         text_editor = context.preferences.filepaths.text_editor
         text_editor_args = context.preferences.filepaths.text_editor_args
+
+        # Use the internal text editor.
+        if not text_editor:
+            return bpy.ops.text.jump_to_file_at_point_internal(
+                filepath=self.filepath,
+                line=self.line,
+                column=self.column,
+            )
 
         if not text_editor_args:
             self.report(
