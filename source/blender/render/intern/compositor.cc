@@ -216,7 +216,7 @@ class Context : public realtime_compositor::Context {
      * incomplete support, and leave more specific message to individual nodes? */
   }
 
-  IDRecalcFlag query_id_recalc_flag(ID *id) const override
+  IDRecalcFlag query_id_recalc_flag(ID * /* id */) const override
   {
     /* TODO: implement? */
     return IDRecalcFlag(0);

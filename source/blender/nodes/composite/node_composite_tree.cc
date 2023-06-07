@@ -182,7 +182,7 @@ void ntreeCompositExecTree(Render *render,
 #ifdef WITH_COMPOSITOR_CPU
   COM_execute(render, rd, scene, ntree, rendering, view_name);
 #else
-  UNUSED_VARS(scene, ntree, rd, rendering, view_name);
+  UNUSED_VARS(render, scene, ntree, rd, rendering, view_name);
 #endif
 
   UNUSED_VARS(do_preview);
