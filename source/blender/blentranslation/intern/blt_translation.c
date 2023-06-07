@@ -66,8 +66,7 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid)
 bool BLT_translate(void)
 {
 #ifdef WITH_INTERNATIONAL
-  return true;
-  /* return BLI_thread_is_main(); */
+  return BLI_thread_is_main();
 #else
   return false;
 #endif
