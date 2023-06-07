@@ -23,7 +23,7 @@ class TEXT_OT_jump_to_file_at_point(Operator):
         from string import Template
 
         if not self.properties.is_property_set("filepath"):
-            text = context.space_data.text
+            text = getattr(getattr(context, "space_data", None), "text", None)
             if not text:
                 return {'CANCELLED'}
             self.filepath = text.filepath
