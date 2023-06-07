@@ -124,7 +124,9 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 400, 4)) {
+  /* 400 4 did not require any do_version here. */
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
 #define SCE_SNAP_PROJECT (1 << 3)
       if (scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) {
