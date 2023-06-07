@@ -347,6 +347,9 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     }
   }
 
+  /* This tells Embree to continue tracing. */
+  *args->valid = 0;
+
   /* Test if we need to record this transparent intersection. */
   const numhit_t max_record_hits = min(ctx->max_hits, numhit_t(INTEGRATOR_SHADOW_ISECT_SIZE));
   if (ctx->num_recorded_hits < max_record_hits) {
@@ -370,19 +373,21 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
         isect_index = max_recorded_hit;
       }
 
-      /* Limit the ray distance and stop counting hits beyond this. */
-      ray->tfar = max(current_isect.t, max_t);
+      /* Limit the ray distance and avoid processing hits beyond this. */
+      ray->tfar = max_t;
+
+      /* If it's further away than max_t, we don't record this transparent intersection. */
+      if (current_isect.t >= max_t) {
+        return;
+      }
     }
+
+    /* Always increase the number of recorded hits, even beyond the maximum,
+     * so that we can detect this and trace another ray if needed. */
+    ++ctx->num_recorded_hits;
 
     integrator_state_write_shadow_isect(ctx->isect_s, &current_isect, isect_index);
   }
-
-  /* Always increase the number of recorded hits, even beyond the maximum,
-   * so that we can detect this and trace another ray if needed. */
-  ++ctx->num_recorded_hits;
-
-  /* This tells Embree to continue tracing. */
-  *args->valid = 0;
 }
 
 ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
