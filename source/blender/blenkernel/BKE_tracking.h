@@ -21,6 +21,7 @@ struct MovieClipUser;
 struct MovieDistortion;
 struct MovieReconstructContext;
 struct MovieTracking;
+struct MovieTrackingCamera;
 struct MovieTrackingMarker;
 struct MovieTrackingObject;
 struct MovieTrackingPlaneMarker;
@@ -463,6 +464,16 @@ void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
                                                    float r_principal_point_pixel[2]);
 void BKE_tracking_camera_principal_point_pixel_set(struct MovieClip *clip,
                                                    const float principal_point_pixel[2]);
+
+/* Compares distortion related parameters of camera. Ideally, this implementation will be
+ * abstracted away in the future, but for now, one needs to be careful about it and handle any
+ * extra parameters of distortions models. */
+bool BKE_tracking_camera_distortion_equal(const struct MovieTrackingCamera *a,
+                                          const struct MovieTrackingCamera *b);
+/* Hashes distortion related paramaters of camera. Ideally, this implementation will be
+ * abstracted away in the future, but for now, one needs to be careful about it and handle any
+ * extra parameters of distortions models. */
+uint64_t BKE_tracking_camera_distortion_hash(const struct MovieTrackingCamera *camera);
 
 /* --------------------------------------------------------------------
  * (Un)distortion.

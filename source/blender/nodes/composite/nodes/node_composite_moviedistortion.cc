@@ -8,6 +8,8 @@
 
 #include "BLI_string_utf8.h"
 
+#include "DNA_movieclip_types.h"
+
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"
@@ -15,7 +17,12 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_shader.h"
+#include "GPU_texture.h"
+
+#include "COM_distortion_grid.hh"
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -25,7 +32,9 @@ namespace blender::nodes::node_composite_moviedistortion_cc {
 
 static void cmp_node_moviedistortion_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Image")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
 }
 
@@ -94,8 +103,45 @@ class MovieDistortionOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    context().set_info_message("Viewport compositor setup not fully supported");
+    Result &input_image = get_input("Image");
+    Result &output_image = get_result("Image");
+    if (input_image.is_single_value() || !get_movie_clip()) {
+      input_image.pass_through(output_image);
+      return;
+    }
+
+    const Domain domain = compute_domain();
+    const DistortionGrid &distortion_grid = context().cache_manager().distortion_grids.get(
+        get_movie_clip(), domain.size, get_distortion_type(), context().get_frame_number());
+
+    GPUShader *shader = shader_manager().get("compositor_movie_distortion");
+    GPU_shader_bind(shader);
+
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_filter_mode(input_image.texture(), true);
+    input_image.bind_as_texture(shader, "input_tx");
+
+    distortion_grid.bind_as_texture(shader, "distortion_grid_tx");
+
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    input_image.unbind_as_texture();
+    distortion_grid.unbind_as_texture();
+    output_image.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  DistortionType get_distortion_type()
+  {
+    return bnode().custom1 == 0 ? DistortionType::Distort : DistortionType::Undistort;
+  }
+
+  MovieClip *get_movie_clip()
+  {
+    return reinterpret_cast<MovieClip *>(bnode().id);
   }
 };
 
@@ -119,8 +165,6 @@ void register_node_type_cmp_moviedistortion()
   ntype.initfunc_api = file_ns::init;
   node_type_storage(&ntype, nullptr, file_ns::storage_free, file_ns::storage_copy);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }
