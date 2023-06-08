@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 
@@ -15,7 +15,7 @@
 
 #include "BKE_text.h"
 
-#include "text_format.h"
+#include "text_format.hh"
 
 /* *** Local Functions (for format_line) *** */
 
@@ -239,7 +239,7 @@ static uint txtfmt_py_numeral_string_count_zeros(const char *string)
 
 static int txtfmt_py_find_numeral_inner(const char *string)
 {
-  if (string == NULL || *string == '\0') {
+  if (string == nullptr || *string == '\0') {
     return -1;
   }
 
@@ -281,7 +281,7 @@ static int txtfmt_py_find_numeral_inner(const char *string)
 
 static int txtfmt_py_literal_numeral(const char *string, char prev_fmt)
 {
-  if (string == NULL || *string == '\0') {
+  if (string == nullptr || *string == '\0') {
     return -1;
   }
 
@@ -339,7 +339,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   int len, i;
 
   /* Get continuation from previous line */
-  if (line->prev && line->prev->format != NULL) {
+  if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
     cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
@@ -349,7 +349,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   }
 
   /* Get original continuation from this line */
-  if (line->format != NULL) {
+  if (line->format != nullptr) {
     fmt = line->format;
     cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
@@ -411,7 +411,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       /* Deal with comments first */
       if (*str == '#') {
         /* fill the remaining line */
-        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
+        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
       else if (ELEM(*str, '"', '\'')) {
         /* Strings */
@@ -546,10 +546,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   flatten_string_free(&fs);
 }
 
-void ED_text_format_register_py(void)
+void ED_text_format_register_py()
 {
-  static TextFormatType tft = {NULL};
-  static const char *ext[] = {"py", NULL};
+  static TextFormatType tft = {nullptr};
+  static const char *ext[] = {"py", nullptr};
 
   tft.format_identifier = txtfmt_py_format_identifier;
   tft.format_line = txtfmt_py_format_line;

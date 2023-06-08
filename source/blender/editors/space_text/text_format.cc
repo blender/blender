@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -18,7 +18,7 @@
 
 #include "ED_text.h"
 
-#include "text_format.h"
+#include "text_format.hh"
 
 /****************** flatten string **********************/
 
@@ -31,8 +31,8 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
     int *naccum;
     fs->len *= 2;
 
-    nbuf = MEM_callocN(sizeof(*fs->buf) * fs->len, "fs->buf");
-    naccum = MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum");
+    nbuf = static_cast<char *>(MEM_callocN(sizeof(*fs->buf) * fs->len, "fs->buf"));
+    naccum = static_cast<int *>(MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum"));
 
     memcpy(nbuf, fs->buf, fs->pos * sizeof(*fs->buf));
     memcpy(naccum, fs->accum, fs->pos * sizeof(*fs->accum));
@@ -99,7 +99,7 @@ void flatten_string_free(FlattenString *fs)
 
 int flatten_string_strlen(FlattenString *fs, const char *str)
 {
-  const int len = (fs->pos - (int)(str - fs->buf)) - 1;
+  const int len = (fs->pos - int(str - fs->buf)) - 1;
   BLI_assert(strlen(str) == len);
   return len;
 }
@@ -109,14 +109,14 @@ int text_check_format_len(TextLine *line, uint len)
   if (line->format) {
     if (strlen(line->format) < len) {
       MEM_freeN(line->format);
-      line->format = MEM_mallocN(len + 2, "SyntaxFormat");
+      line->format = static_cast<char *>(MEM_mallocN(len + 2, "SyntaxFormat"));
       if (!line->format) {
         return 0;
       }
     }
   }
   else {
-    line->format = MEM_mallocN(len + 2, "SyntaxFormat");
+    line->format = static_cast<char *>(MEM_mallocN(len + 2, "SyntaxFormat"));
     if (!line->format) {
       return 0;
     }
@@ -164,7 +164,7 @@ void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, c
 }
 
 /* *** Registration *** */
-static ListBase tft_lb = {NULL, NULL};
+static ListBase tft_lb = {nullptr, nullptr};
 void ED_text_format_register(TextFormatType *tft)
 {
   BLI_addtail(&tft_lb, tft);
@@ -179,7 +179,7 @@ TextFormatType *ED_text_format_get(Text *text)
     if (text_ext) {
       text_ext++; /* skip the '.' */
       /* Check all text formats in the static list */
-      for (tft = tft_lb.first; tft; tft = tft->next) {
+      for (tft = static_cast<TextFormatType *>(tft_lb.first); tft; tft = tft->next) {
         /* All formats should have an ext, but just in case */
         const char **ext;
         for (ext = tft->ext; *ext; ext++) {
@@ -193,11 +193,11 @@ TextFormatType *ED_text_format_get(Text *text)
 
     /* If we make it here we never found an extension that worked - return
      * the "default" text format */
-    return tft_lb.first;
+    return static_cast<TextFormatType *>(tft_lb.first);
   }
 
   /* Return the "default" text format */
-  return tft_lb.first;
+  return static_cast<TextFormatType *>(tft_lb.first);
 }
 
 const char *ED_text_format_comment_line_prefix(Text *text)
@@ -208,14 +208,14 @@ const char *ED_text_format_comment_line_prefix(Text *text)
 
 bool ED_text_is_syntax_highlight_supported(Text *text)
 {
-  if (text == NULL) {
+  if (text == nullptr) {
     return false;
   }
 
   TextFormatType *tft;
 
   const char *text_ext = BLI_path_extension(text->id.name + 2);
-  if (text_ext == NULL) {
+  if (text_ext == nullptr) {
     /* Extensionless data-blocks are considered highlightable as Python. */
     return true;
   }
@@ -226,7 +226,7 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
   }
 
   /* Check all text formats in the static list */
-  for (tft = tft_lb.first; tft; tft = tft->next) {
+  for (tft = static_cast<TextFormatType *>(tft_lb.first); tft; tft = tft->next) {
     /* All formats should have an ext, but just in case */
     const char **ext;
     for (ext = tft->ext; *ext; ext++) {

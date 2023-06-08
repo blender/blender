@@ -35,17 +35,17 @@
 #include "RNA_access.h"
 #include "RNA_path.h"
 
-#include "text_format.h"
-#include "text_intern.h" /* own include */
+#include "text_format.hh"
+#include "text_intern.hh" /* own include */
 
 /* ******************** default callbacks for text space ***************** */
 
-static SpaceLink *text_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceText *stext;
 
-  stext = MEM_callocN(sizeof(SpaceText), "inittext");
+  stext = static_cast<SpaceText *>(MEM_callocN(sizeof(SpaceText), "inittext"));
   stext->spacetype = SPACE_TEXT;
 
   stext->lheight = 12;
@@ -55,20 +55,20 @@ static SpaceLink *text_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   stext->showlinenrs = true;
 
   /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for text");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for text"));
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* footer */
-  region = MEM_callocN(sizeof(ARegion), "footer for text");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "footer for text"));
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_FOOTER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
 
   /* properties region */
-  region = MEM_callocN(sizeof(ARegion), "properties region for text");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "properties region for text"));
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
@@ -76,7 +76,7 @@ static SpaceLink *text_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "main region for text");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for text"));
 
   BLI_addtail(&stext->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -89,20 +89,20 @@ static void text_free(SpaceLink *sl)
 {
   SpaceText *stext = (SpaceText *)sl;
 
-  stext->text = NULL;
+  stext->text = nullptr;
   text_free_caches(stext);
 }
 
 /* spacetype; init callback */
-static void text_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void text_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
-  SpaceText *stextn = MEM_dupallocN(sl);
+  SpaceText *stextn = static_cast<SpaceText *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
 
-  stextn->runtime.drawcache = NULL; /* space need its own cache */
+  stextn->runtime.drawcache = nullptr; /* space need its own cache */
 
   return (SpaceLink *)stextn;
 }
@@ -111,13 +111,13 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
   const wmNotifier *wmn = params->notifier;
-  SpaceText *st = area->spacedata.first;
+  SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
     case NC_TEXT:
       /* check if active text was changed, no need to redraw if text isn't active
-       * (reference == NULL) means text was unlinked, should update anyway for this
+       * (reference == nullptr) means text was unlinked, should update anyway for this
        * case -- no way to know was text active before unlinking or not */
       if (wmn->reference && wmn->reference != st->text) {
         break;
@@ -220,7 +220,7 @@ static void text_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Text", SPACE_TEXT, 0);
 }
 
-const char *text_context_dir[] = {"edit_text", NULL};
+const char *text_context_dir[] = {"edit_text", nullptr};
 
 static int /*eContextResult*/ text_context(const bContext *C,
                                            const char *member,
@@ -233,7 +233,7 @@ static int /*eContextResult*/ text_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_text")) {
-    if (st->text != NULL) {
+    if (st->text != nullptr) {
       CTX_data_id_pointer_set(result, &st->text->id);
     }
     return CTX_RESULT_OK;
@@ -286,7 +286,7 @@ static void text_main_region_draw(const bContext *C, ARegion *region)
 
 static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
-  SpaceText *st = area->spacedata.first;
+  SpaceText *st = static_cast<SpaceText *>(area->spacedata.first);
   int wmcursor = WM_CURSOR_TEXT_EDIT;
 
   if (st->text && BLI_rcti_isect_pt(&st->runtime.scroll_region_handle,
@@ -301,10 +301,10 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
 /* ************* dropboxes ************* */
 
-static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool text_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_PYSCRIPT, FILE_TYPE_TEXT)) {
       return true;
     }
@@ -312,18 +312,18 @@ static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
   return false;
 }
 
-static void text_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void text_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
   RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
-static bool text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
+static bool text_drop_paste_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return (drag->type == WM_DRAG_ID);
 }
 
-static void text_drop_paste(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
+static void text_drop_paste(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   char *text;
   ID *id = WM_drag_get_local_ID(drag, 0);
@@ -339,8 +339,8 @@ static void text_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy, NULL, NULL);
-  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste, NULL, NULL);
+  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy, nullptr, nullptr);
+  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste, nullptr, nullptr);
 }
 
 /* ************* end drop *********** */
@@ -348,7 +348,7 @@ static void text_dropboxes(void)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void text_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -390,15 +390,13 @@ static void text_properties_region_draw(const bContext *C, ARegion *region)
   }
 }
 
-static void text_id_remap(ScrArea *UNUSED(area),
-                          SpaceLink *slink,
-                          const struct IDRemapper *mappings)
+static void text_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceText *stext = (SpaceText *)slink;
   BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
-static void text_space_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
   memset(&st->runtime, 0x0, sizeof(st->runtime));
@@ -419,7 +417,7 @@ static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_text(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype text");
+  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype text"));
   ARegionType *art;
 
   st->spaceid = SPACE_TEXT;
@@ -440,7 +438,7 @@ void ED_spacetype_text(void)
   st->blend_write = text_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
   art->regionid = RGN_TYPE_WINDOW;
   art->init = text_main_region_init;
   art->draw = text_main_region_draw;
@@ -450,7 +448,7 @@ void ED_spacetype_text(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: properties */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
@@ -460,7 +458,7 @@ void ED_spacetype_text(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -470,7 +468,7 @@ void ED_spacetype_text(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;

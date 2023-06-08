@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 
@@ -15,7 +15,7 @@
 
 #include "BKE_text.h"
 
-#include "text_format.h"
+#include "text_format.hh"
 
 /* *** POV Keywords (for format_line) *** */
 
@@ -88,6 +88,7 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 
   /* Keep aligned args for readability. */
   /* clang-format off */
+  MSVC_WORKAROUND_INIT(i);
 
   /* Float Functions */
   if        (STR_LITERAL_STARTSWITH(string, "conserve_energy",    len)) { i = len;
@@ -185,6 +186,7 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "sky",                len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "up",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ln",                 len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Color Identifiers */
   } else if (STR_LITERAL_STARTSWITH(string, "transmit",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "filter",              len)) { i = len;
@@ -248,6 +250,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 
   /* Keep aligned args for readability. */
   /* clang-format off */
+  MSVC_WORKAROUND_INIT(i);
 
   /* Language Keywords */
   if        (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) { i = len;
@@ -319,6 +322,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "now",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "pot",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "type",                len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Animation Options */
   } else if (STR_LITERAL_STARTSWITH(string, "global_settings",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) { i = len;
@@ -332,6 +336,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "clock",               len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Spline Identifiers */
   } else if (STR_LITERAL_STARTSWITH(string, "extended_x_spline",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "general_x_spline",    len)) { i = len;
@@ -347,6 +352,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "linear_sweep",        len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "conic_sweep",         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "b_spline",            len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Patterns */
   } else if (STR_LITERAL_STARTSWITH(string, "pigment_pattern",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "image_pattern",       len)) { i = len;
@@ -399,6 +405,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "wood",                len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "agate",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "aoi",                 len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Objects */
   } else if (STR_LITERAL_STARTSWITH(string, "superellipsoid",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "bicubic_patch",       len)) { i = len;
@@ -467,12 +474,11 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
   } else                                                                 { i = 0;
   }
 
-  /* clang-format off */
+  /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
-
 
 /**
  * Checks the specified source string for a POV modifiers. This
@@ -488,6 +494,11 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 static int txtfmt_pov_find_specialvar(const char *string)
 {
   int i, len;
+
+  /* Keep aligned args for readability. */
+  /* clang-format off */
+  MSVC_WORKAROUND_INIT(i);
+
   /* Modifiers */
   if        (STR_LITERAL_STARTSWITH(string, "dispersion_samples", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) { i = len;
@@ -579,6 +590,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "distance",           len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "autostop",           len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "caustics",           len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   } else if (STR_LITERAL_STARTSWITH(string, "octaves",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "aa_level",           len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "frequency",          len)) { i = len;
@@ -633,6 +645,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "ratio",              len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "open",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ior",                len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Light Types and options. */
   } else if (STR_LITERAL_STARTSWITH(string, "area_light",         len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "looks_like",         len)) { i = len;
@@ -643,6 +656,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "point_at",           len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "falloff",            len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "radius",             len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* Camera Types and options. */
   } else if (STR_LITERAL_STARTSWITH(string, "omni_directional_stereo",  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "lambert_cylindrical",      len)) { i = len;
@@ -686,6 +700,8 @@ static int txtfmt_pov_find_specialvar(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "gall",                     len)) { i = len;
   } else                                                                      { i = 0;
   }
+
+  /* clang-format on */
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -772,7 +788,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
   int len, i;
 
   /* Get continuation from previous line */
-  if (line->prev && line->prev->format != NULL) {
+  if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
     cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
@@ -782,7 +798,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
   }
 
   /* Get original continuation from this line */
-  if (line->format != NULL) {
+  if (line->format != nullptr) {
     fmt = line->format;
     cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
@@ -851,7 +867,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
       }
       /* Single line comment */
       else if (*str == '/' && *(str + 1) == '/') {
-        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
+        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
       else if (ELEM(*str, '"', '\'')) {
         /* Strings */
@@ -931,10 +947,10 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
   flatten_string_free(&fs);
 }
 
-void ED_text_format_register_pov(void)
+void ED_text_format_register_pov()
 {
-  static TextFormatType tft = {NULL};
-  static const char *ext[] = {"pov", "inc", "mcr", "mac", NULL};
+  static TextFormatType tft = {nullptr};
+  static const char *ext[] = {"pov", "inc", "mcr", "mac", nullptr};
 
   tft.format_identifier = txtfmt_pov_format_identifier;
   tft.format_line = txtfmt_pov_format_line;

@@ -30,8 +30,8 @@
 
 #include "UI_interface.h"
 
-#include "text_format.h"
-#include "text_intern.h" /* own include */
+#include "text_format.hh"
+#include "text_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Public API
@@ -155,7 +155,7 @@ static GHash *text_autocomplete_build(Text *text)
 
     gh = BLI_ghash_str_new(__func__);
 
-    for (linep = text->lines.first; linep; linep = linep->next) {
+    for (linep = static_cast<TextLine *>(text->lines.first); linep; linep = linep->next) {
       size_t i_start = 0;
       size_t i_end = 0;
       size_t i_pos = 0;
@@ -217,7 +217,7 @@ static GHash *text_autocomplete_build(Text *text)
       tft = ED_text_format_get(text);
 
       GHASH_ITER (gh_iter, gh) {
-        const char *s = BLI_ghashIterator_getValue(&gh_iter);
+        const char *s = static_cast<char *>(BLI_ghashIterator_getValue(&gh_iter));
         texttool_suggest_add(s, tft->format_identifier(s));
       }
     }
@@ -288,7 +288,7 @@ static void confirm_suggestion(Text *text)
 /** \name Auto Complete Operator
  * \{ */
 
-static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
@@ -588,10 +588,10 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 
 static void text_autocomplete_free(bContext *C, wmOperator *op)
 {
-  GHash *gh = op->customdata;
+  GHash *gh = static_cast<GHash *>(op->customdata);
   if (gh) {
-    BLI_ghash_free(gh, NULL, MEM_freeN);
-    op->customdata = NULL;
+    BLI_ghash_free(gh, nullptr, MEM_freeN);
+    op->customdata = nullptr;
   }
 
   /* other stuff */

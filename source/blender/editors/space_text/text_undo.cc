@@ -6,8 +6,8 @@
  * \ingroup sptext
  */
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,8 +40,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "text_format.h"
-#include "text_intern.h"
+#include "text_format.hh"
+#include "text_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -52,12 +52,12 @@
 /**
  * Only stores the state of a text buffer.
  */
-typedef struct TextState {
+struct TextState {
   BArrayState *buf_array_state;
 
   int cursor_line, cursor_line_select;
   int cursor_column, cursor_column_select;
-} TextState;
+};
 
 static void text_state_encode(TextState *state, Text *text, BArrayStore *buffer_store)
 {
@@ -106,7 +106,7 @@ static void text_state_decode(TextState *state, Text *text)
 /** \name Implements ED Undo System
  * \{ */
 
-typedef struct TextUndoStep {
+struct TextUndoStep {
   UndoStep step;
   UndoRefID_Text text_ref;
   /**
@@ -114,7 +114,7 @@ typedef struct TextUndoStep {
    * the second is the state after the operation is done.
    */
   TextState states[2];
-} TextUndoStep;
+};
 
 static struct {
   BArrayStore *buffer_store;

@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 
@@ -15,7 +15,7 @@
 
 #include "BKE_text.h"
 
-#include "text_format.h"
+#include "text_format.hh"
 
 /* *** Local Functions (for format_line) *** */
 
@@ -199,7 +199,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
   int len, i;
 
   /* Get continuation from previous line */
-  if (line->prev && line->prev->format != NULL) {
+  if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
     cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
@@ -209,7 +209,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
   }
 
   /* Get original continuation from this line */
-  if (line->format != NULL) {
+  if (line->format != nullptr) {
     fmt = line->format;
     cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
@@ -271,7 +271,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
       /* Deal with comments first */
       if (*str == '/' && *(str + 1) == '/') {
         /* fill the remaining line */
-        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
+        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
       /* C-Style (multi-line) comments */
       else if (*str == '/' && *(str + 1) == '*') {
@@ -354,10 +354,10 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
   flatten_string_free(&fs);
 }
 
-void ED_text_format_register_osl(void)
+void ED_text_format_register_osl()
 {
-  static TextFormatType tft = {NULL};
-  static const char *ext[] = {"osl", NULL};
+  static TextFormatType tft = {nullptr};
+  static const char *ext[] = {"osl", nullptr};
 
   tft.format_identifier = txtfmt_osl_format_identifier;
   tft.format_line = txtfmt_osl_format_line;

@@ -8,18 +8,20 @@
 
 #pragma once
 
+struct Text;
+
 /* *** Flatten String *** */
-typedef struct FlattenString {
+struct FlattenString {
   char fixedbuf[256];
   int fixedaccum[256];
 
   char *buf;
   int *accum;
   int pos, len;
-} FlattenString;
+};
 
 /**
- * Format continuation flags (stored just after the NULL terminator).
+ * Format continuation flags (stored just after the null terminator).
  */
 enum {
   FMT_CONT_NOP = 0,                /* no continuation */
@@ -75,7 +77,7 @@ typedef struct TextFormatType {
    */
   void (*format_line)(SpaceText *st, TextLine *line, bool do_next);
 
-  const char **ext; /* NULL terminated extensions */
+  const char **ext; /* Null terminated extensions. */
 
   /** The prefix of a single-line line comment (without trailing space). */
   const char *comment_line;
@@ -104,15 +106,34 @@ enum {
   FMT_TYPE_DEFAULT = 'q',
 };
 
-TextFormatType *ED_text_format_get(Text *text);
+TextFormatType *ED_text_format_get(struct Text *text);
 void ED_text_format_register(TextFormatType *tft);
 
 /* formatters */
-void ED_text_format_register_py(void);
-void ED_text_format_register_osl(void);
-void ED_text_format_register_lua(void);
-void ED_text_format_register_pov(void);
-void ED_text_format_register_pov_ini(void);
+void ED_text_format_register_py();
+void ED_text_format_register_osl();
+void ED_text_format_register_lua();
+void ED_text_format_register_pov();
+void ED_text_format_register_pov_ini();
 
 #define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
   (strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)
+
+/* Workaround `C1061` with MSVC (looks like a bug),
+ * this can be removed if the issue is resolved.
+ *
+ * Add #MSVC_WORKAROUND_BREAK to break up else-if's blocks to be under 128.
+ * `_keep_me` just ensures #MSVC_WORKAROUND_BREAK follows an #MSVC_WORKAROUND_INIT. */
+#ifdef _MSC_VER
+#  define MSVC_WORKAROUND_INIT(i) \
+    char _keep_me = 0; \
+    i = -1; \
+    ((void)0)
+#  define MSVC_WORKAROUND_BREAK(i) \
+    } \
+    ((void)_keep_me); \
+    if (i != -1) {
+#else
+#  define MSVC_WORKAROUND_INIT(i) ((void)0)
+#  define MSVC_WORKAROUND_BREAK(i)
+#endif

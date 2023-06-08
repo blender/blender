@@ -21,7 +21,7 @@
 
 #include "UI_interface.h"
 
-#include "text_intern.h"
+#include "text_intern.hh"
 
 /* ************************ header area region *********************** */
 
@@ -40,11 +40,11 @@ static ARegion *text_has_properties_region(ScrArea *area)
   region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
   /* is error! */
-  if (region == NULL) {
-    return NULL;
+  if (region == nullptr) {
+    return nullptr;
   }
 
-  arnew = MEM_callocN(sizeof(ARegion), "properties region");
+  arnew = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "properties region"));
 
   BLI_insertlinkafter(&area->regionbase, region, arnew);
   arnew->regiontype = RGN_TYPE_UI;
@@ -57,10 +57,10 @@ static ARegion *text_has_properties_region(ScrArea *area)
 
 static bool text_properties_poll(bContext *C)
 {
-  return (CTX_wm_space_text(C) != NULL);
+  return (CTX_wm_space_text(C) != nullptr);
 }
 
-static int text_text_search_exec(bContext *C, wmOperator *UNUSED(op))
+static int text_text_search_exec(bContext *C, wmOperator * /*op*/)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = text_has_properties_region(area);

@@ -6,7 +6,7 @@
  * \ingroup sptext
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 
@@ -15,7 +15,7 @@
 
 #include "BKE_text.h"
 
-#include "text_format.h"
+#include "text_format.hh"
 
 /* *** POV INI Keywords (for format_line) *** */
 
@@ -95,7 +95,7 @@ static int txtfmt_ini_find_reserved(const char *string)
 
   /* Keep aligned args for readability. */
   /* clang-format off */
-
+  MSVC_WORKAROUND_INIT(i);
   /* POV-Ray Built-in INI Variables
    * list is from...
    * http://www.povray.org/documentation/view/3.7.0/212/
@@ -158,6 +158,7 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "Bounding_Method",              len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Create_Ini",                   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Display_Gamma",                len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   } else if (STR_LITERAL_STARTSWITH(string, "Display",                      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Version",                      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Pause_When_Done",              len)) { i = len;
@@ -208,6 +209,7 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "WarningColour",                len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "ErrorColour",                  len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "BackgroundColour",             len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   } else if (STR_LITERAL_STARTSWITH(string, "DropToEditor",                 len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "LastRenderName",               len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "LastRenderPath",               len)) { i = len;
@@ -268,6 +270,7 @@ static int txtfmt_ini_find_reserved(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "Dither",                       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Flags",                        len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "Font",                         len)) { i = len;
+  MSVC_WORKAROUND_BREAK(i)
   /* File-types. */
   } else if (STR_LITERAL_STARTSWITH(string, "df3",                          len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "exr",                          len)) { i = len;
@@ -357,7 +360,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
   int len, i;
 
   /* Get continuation from previous line */
-  if (line->prev && line->prev->format != NULL) {
+  if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
     cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
@@ -367,7 +370,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
   }
 
   /* Get original continuation from this line */
-  if (line->format != NULL) {
+  if (line->format != nullptr) {
     fmt = line->format;
     cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
@@ -429,7 +432,7 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
       /* Multi-line comments not supported */
       /* Single line comment */
       if (*str == ';') {
-        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(fmt - line->format));
+        text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
       else if (ELEM(*str, '"', '\'')) {
         /* Strings */
@@ -507,10 +510,10 @@ static void txtfmt_pov_ini_format_line(SpaceText *st, TextLine *line, const bool
   flatten_string_free(&fs);
 }
 
-void ED_text_format_register_pov_ini(void)
+void ED_text_format_register_pov_ini()
 {
-  static TextFormatType tft = {NULL};
-  static const char *ext[] = {"ini", NULL};
+  static TextFormatType tft = {nullptr};
+  static const char *ext[] = {"ini", nullptr};
 
   tft.format_identifier = txtfmt_pov_ini_format_identifier;
   tft.format_line = txtfmt_pov_ini_format_line;
