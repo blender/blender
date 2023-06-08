@@ -2028,7 +2028,7 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
         layout.operator("grease_pencil.select_all", text="None").action = 'DESELECT'
         layout.operator("grease_pencil.select_all", text="Invert").action = 'INVERT'
 
-        layout.separator()     
+        layout.separator()
 
 
 class VIEW3D_MT_select_paint_mask(Menu):
