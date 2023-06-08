@@ -65,7 +65,7 @@ static void pchan_deform_accumulate(const DualQuat *deform_dq,
     BLI_assert(!co_accum);
 
     if (deform_dq->scale_weight) {
-      /* FIX https://projects.blender.org/blender/blender/issues/32022 */
+      /* FIX #32022. */
       DualQuat mdq = *deform_dq;
       float dst[3];
       mul_v3_m4v3(dst, mdq.scale, co_in);

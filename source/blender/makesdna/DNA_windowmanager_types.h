@@ -351,8 +351,10 @@ typedef struct wmWindow {
    */
   struct wmEvent *event_last_handled;
 
-  /* Input Method Editor data - complex character input (especially for Asian character input)
-   * Currently WIN32 and APPLE, runtime-only data. */
+  /**
+   * Input Method Editor data - complex character input (especially for Asian character input)
+   * Currently WIN32 and APPLE, runtime-only data.
+   */
   struct wmIMEData *ime_data;
 
   /** All events #wmEvent (ghost level events were handled). */
@@ -368,10 +370,10 @@ typedef struct wmWindow {
   /** Properties for stereoscopic displays. */
   struct Stereo3dFormat *stereo3d_format;
 
-  /* custom drawing callbacks */
+  /** Custom drawing callbacks. */
   ListBase drawcalls;
 
-  /* Private runtime info to show text in the status bar. */
+  /** Private runtime info to show text in the status bar. */
   void *cursor_keymap_status;
 } wmWindow;
 

@@ -126,7 +126,7 @@
  *     - read associated 'direct data'
  *     - link direct data (internal and to LibBlock)
  * - read #FileGlobal
- * - read #USER data, only when indicated (file is `~/.config/blender/X.XX/config/userpref.blend`)
+ * - read #USER data, only when indicated (file is `~/.config/blender/X.X/config/userpref.blend`)
  * - free file
  * - per Library (per #Main)
  *   - read file
