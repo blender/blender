@@ -221,9 +221,13 @@ ccl_device_forceinline Spectrum microfacet_fresnel(ccl_private const MicrofacetB
                                                    const bool refraction)
 {
   if (bsdf->fresnel_type == MicrofacetFresnel::PRINCIPLED_V1) {
-    kernel_assert(!refraction);
     ccl_private FresnelPrincipledV1 *fresnel = (ccl_private FresnelPrincipledV1 *)bsdf->fresnel;
-    return interpolate_fresnel_color(wi, H, bsdf->ior, fresnel->cspec0);
+    if (refraction) {
+      return fresnel->color;
+    }
+    else {
+      return interpolate_fresnel_color(wi, H, bsdf->ior, fresnel->cspec0);
+    }
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::DIELECTRIC) {
     const float F = fresnel_dielectric_cos(dot(wi, H), bsdf->ior);
