@@ -47,8 +47,8 @@ typedef struct WorkspaceConfigFileData {
 
 typedef enum eBlenFileType {
   BLENFILETYPE_BLEND = 1,
-  /* BLENFILETYPE_PUB = 2, */     /* UNUSED */
-  /* BLENFILETYPE_RUNTIME = 3, */ /* UNUSED */
+  // BLENFILETYPE_PUB = 2,     /* UNUSED */
+  // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
 } eBlenFileType;
 
 typedef struct BlendFileData {
