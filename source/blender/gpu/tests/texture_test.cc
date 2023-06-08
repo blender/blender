@@ -714,13 +714,11 @@ static void test_texture_roundtrip__GPU_DATA_UBYTE__GPU_R8()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UBYTE__GPU_R8);
 
-#if RUN_SRGB_UNIMPLEMENTED
 static void test_texture_roundtrip__GPU_DATA_UBYTE__GPU_SRGB8_A8()
 {
   texture_create_upload_read<GPU_SRGB8_A8, GPU_DATA_UBYTE, uint8_t>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UBYTE__GPU_SRGB8_A8);
-#endif
 
 #if RUN_UNSUPPORTED
 static void test_texture_roundtrip__GPU_DATA_UBYTE__GPU_RGB8I()

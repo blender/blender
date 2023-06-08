@@ -401,6 +401,7 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_RG8:
     case GPU_R8UI:
     case GPU_R8:
+    case GPU_SRGB8_A8:
       return ConversionType::PASS_THROUGH;
 
     case GPU_RGBA8I:
@@ -432,7 +433,6 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_R11F_G11F_B10F:
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-    case GPU_SRGB8_A8:
     case GPU_RGBA8_SNORM:
     case GPU_RGBA16_SNORM:
     case GPU_RGB8UI:
