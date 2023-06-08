@@ -2066,7 +2066,7 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSE
     }
   }
 
-  RNA_enum_item_end(&item, &totitem);
+  RNA_enum_item_end(&item, &totitem_added);
   *r_free = true;
 
   return item;
