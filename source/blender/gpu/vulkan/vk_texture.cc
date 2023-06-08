@@ -220,6 +220,15 @@ bool VKTexture::init_internal()
    * at this moment, so we cannot initialize here. The initialization is postponed until the
    * allocation of the texture on the device. */
 
+  const VKDevice &device = VKBackend::get().device_get();
+  const VKWorkarounds &workarounds = device.workarounds_get();
+  if (format_ == GPU_DEPTH_COMPONENT24 && workarounds.not_aligned_pixel_formats) {
+    format_ = GPU_DEPTH_COMPONENT32F;
+  }
+  if (format_ == GPU_DEPTH24_STENCIL8 && workarounds.not_aligned_pixel_formats) {
+    format_ = GPU_DEPTH32F_STENCIL8;
+  }
+
   /* TODO: return false when texture format isn't supported. */
   return true;
 }

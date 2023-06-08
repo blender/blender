@@ -15,6 +15,17 @@
 #include "vk_descriptor_pools.hh"
 
 namespace blender::gpu {
+class VKBackend;
+
+struct VKWorkarounds {
+  /**
+   * Some devices don't support pixel formats that are aligned to 24 and 48 bits.
+   * In this case we need to use a different texture format.
+   *
+   * If set to true we should work around this issue by using a different texture format.
+   */
+  bool not_aligned_pixel_formats = false;
+};
 
 class VKDevice : public NonCopyable {
  private:
@@ -34,6 +45,9 @@ class VKDevice : public NonCopyable {
 
   /** Functions of vk_ext_debugutils for this device/instance. */
   debug::VKDebuggingTools debugging_tools_;
+
+  /* Workarounds */
+  VKWorkarounds workarounds_;
 
  public:
   VkPhysicalDevice physical_device_get() const
@@ -95,11 +109,19 @@ class VKDevice : public NonCopyable {
   std::string vendor_name() const;
   std::string driver_version() const;
 
+  const VKWorkarounds &workarounds_get() const
+  {
+    return workarounds_;
+  }
+
  private:
   void init_physical_device_properties();
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_descriptor_pools();
+
+  /* During initialization the backend requires access to update the workarounds. */
+  friend VKBackend;
 };
 
 }  // namespace blender::gpu

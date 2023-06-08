@@ -32,6 +32,9 @@ enum class ConversionType {
   FLOAT_TO_SNORM16,
   SNORM16_TO_FLOAT,
 
+  FLOAT_TO_UNORM32,
+  UNORM32_TO_FLOAT,
+
   UI32_TO_UI16,
   UI16_TO_UI32,
 
@@ -239,6 +242,7 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGBA32UI:
     case GPU_RG32UI:
     case GPU_R32UI:
+    case GPU_DEPTH_COMPONENT24:
       return ConversionType::PASS_THROUGH;
 
     case GPU_RGBA16UI:
@@ -251,6 +255,10 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RG8UI:
     case GPU_R8UI:
       return ConversionType::UI32_TO_UI8;
+
+    case GPU_DEPTH_COMPONENT32F:
+    case GPU_DEPTH32F_STENCIL8:
+      return ConversionType::UNORM32_TO_FLOAT;
 
     case GPU_RGBA8I:
     case GPU_RGBA8:
@@ -276,7 +284,6 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGB10_A2:
     case GPU_RGB10_A2UI:
     case GPU_R11F_G11F_B10F:
-    case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
     case GPU_SRGB8_A8:
     case GPU_RGBA8_SNORM:
@@ -304,8 +311,6 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGBA8_DXT5:
     case GPU_SRGB8:
     case GPU_RGB9_E5:
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
       return ConversionType::UNSUPPORTED;
   }
@@ -523,6 +528,7 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(FLOAT, SNORM8)
       CASE_PAIR(FLOAT, UNORM16)
       CASE_PAIR(FLOAT, SNORM16)
+      CASE_PAIR(FLOAT, UNORM32)
       CASE_PAIR(UI32, UI16)
       CASE_PAIR(I32, I16)
       CASE_PAIR(UI32, UI8)
@@ -632,6 +638,7 @@ template<typename InnerType> struct SignedNormalized {
 
 template<typename InnerType> struct UnsignedNormalized {
   static_assert(std::is_same<InnerType, uint8_t>() || std::is_same<InnerType, uint16_t>() ||
+                std::is_same<InnerType, uint32_t>() ||
                 std::is_same<InnerType, DepthComponent24>());
   InnerType value;
 
@@ -645,15 +652,24 @@ template<typename InnerType> struct UnsignedNormalized {
     }
   }
 
-  static constexpr int32_t scalar()
+  static constexpr uint32_t scalar()
   {
-
-    return (1 << (used_byte_size() * 8)) - 1;
+    if constexpr (std::is_same<InnerType, DepthComponent24>()) {
+      return (1 << (used_byte_size() * 8)) - 1;
+    }
+    else {
+      return std::numeric_limits<InnerType>::max();
+    }
   }
 
-  static constexpr int32_t max()
+  static constexpr uint32_t max()
   {
-    return ((1 << (used_byte_size() * 8)) - 1);
+    if constexpr (std::is_same<InnerType, DepthComponent24>()) {
+      return (1 << (used_byte_size() * 8)) - 1;
+    }
+    else {
+      return std::numeric_limits<InnerType>::max();
+    }
   }
 };
 
@@ -674,15 +690,15 @@ template<typename StorageType> void convert(F32 &dst, const SignedNormalized<Sto
 
 template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst, const F32 &src)
 {
-  static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  static constexpr int32_t max = scalar;
-  dst.value = (clamp_i((src.value * scalar), 0, max));
+  static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
+  static constexpr uint32_t max = scalar;
+  dst.value = (clamp_f((src.value * scalar), 0, max));
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
 {
-  static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  dst.value = float(int32_t(src.value)) / scalar;
+  static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
+  dst.value = float(uint32_t(src.value)) / scalar;
 }
 
 /* Copy the contents of src to dst with out performing any actual conversion. */
@@ -857,6 +873,15 @@ static void convert_buffer(void *dst_memory,
       break;
     case ConversionType::UNORM16_TO_FLOAT:
       convert_per_component<F32, UnsignedNormalized<uint16_t>>(
+          dst_memory, src_memory, buffer_size, device_format);
+      break;
+
+    case ConversionType::FLOAT_TO_UNORM32:
+      convert_per_component<UnsignedNormalized<uint32_t>, F32>(
+          dst_memory, src_memory, buffer_size, device_format);
+      break;
+    case ConversionType::UNORM32_TO_FLOAT:
+      convert_per_component<F32, UnsignedNormalized<uint32_t>>(
           dst_memory, src_memory, buffer_size, device_format);
       break;
 
