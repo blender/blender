@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
@@ -169,6 +170,7 @@ struct PBVH {
   int *prim_indices;
   int totprim;
   int totvert;
+  int totloop;
   int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
 
   int leaf_limit;
@@ -184,10 +186,14 @@ struct PBVH {
   bool *hide_vert;
   float (*vert_positions)[3];
   blender::OffsetIndices<int> polys;
+  blender::Span<blender::int2> edges;
   bool *hide_poly;
   /** Only valid for polygon meshes. */
   const int *corner_verts;
   const int *corner_edges;
+  const bool *sharp_edges;
+  const bool *seam_edges;
+
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
   blender::Span<blender::float3> origco, origno;
@@ -260,16 +266,6 @@ struct PBVH {
   int balance_counter;
   int stroke_id;
 
-  bool is_cached;
-
-  /* This data is for validating cached PBVHs;
-   * it is not guaranteed to be valid in any way! */
-  struct {
-    CustomData vdata, edata, ldata, pdata;
-    int totvert, totedge, totloop, totpoly;
-    struct BMesh *bm;
-  } cached_data;
-
   bool invalid;
   blender::GroupedSpan<int> pmap;
   blender::GroupedSpan<int> vemap;
@@ -282,8 +278,8 @@ struct PBVH {
   /* Used by DynTopo to invalidate the draw cache. */
   bool draw_cache_invalid;
 
-  int *boundary_flags;
-  int cd_boundary_flag;
+  int *boundary_flags, *edge_boundary_flags;
+  int cd_boundary_flag, cd_edge_boundary;
   int cd_curvature_dir;
 
   PBVHGPUFormat *vbo_id;
@@ -291,6 +287,8 @@ struct PBVH {
   PBVHPixels pixels;
   bool show_orig;
   float sharp_angle_limit;
+
+  BLI_bitmap *vert_boundary_map;
 };
 
 /* pbvh.cc */
@@ -422,27 +420,25 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
 
-BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
+BLI_INLINE bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, struct BMVert *v)
 {
   int flag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
 
-  if (flag & SCULPT_BOUNDARY_NEEDS_UPDATE) {
-    BKE_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
-                                  pbvh->cd_vert_node_offset,
-                                  pbvh->cd_face_node_offset,
-                                  pbvh->cd_vcol_offset,
-                                  pbvh->cd_boundary_flag,
-                                  pbvh->cd_flag,
-                                  pbvh->cd_valence,
-                                  v,
-                                  &pbvh->header.bm->ldata,
-                                  pbvh->totuv,
-                                  true,
-                                  pbvh->sharp_angle_limit);
+  if (flag & (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV)) {
+    blender::bke::pbvh::update_vert_boundary_bmesh(pbvh->cd_faceset_offset,
+                                                   pbvh->cd_vert_node_offset,
+                                                   pbvh->cd_face_node_offset,
+                                                   pbvh->cd_vcol_offset,
+                                                   pbvh->cd_boundary_flag,
+                                                   pbvh->cd_flag,
+                                                   pbvh->cd_valence,
+                                                   v,
+                                                   &pbvh->header.bm->ldata,
+                                                   pbvh->sharp_angle_limit);
     return true;
   }
   else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
-    blender::bke::pbvh::update_sharp_boundary_bmesh(
+    blender::bke::pbvh::update_sharp_vertex_bmesh(
         v, pbvh->cd_boundary_flag, pbvh->sharp_angle_limit);
   }
 
@@ -465,13 +461,16 @@ BLI_INLINE bool pbvh_boundary_needs_update_bmesh(PBVH *pbvh, BMVert *v)
   return *flags & SCULPT_BOUNDARY_NEEDS_UPDATE;
 }
 
-BLI_INLINE void pbvh_boundary_update_bmesh(PBVH *pbvh, BMVert *v)
+template<typename T = BMVert> inline void pbvh_boundary_update_bmesh(PBVH *pbvh, T *elem)
 {
-  if (pbvh->cd_boundary_flag == -1) {
-    printf("%s: error!\n", __func__);
-    return;
+  int *flags;
+
+  if constexpr (std::is_same_v<T, BMVert>) {
+    flags = (int *)BM_ELEM_CD_GET_VOID_P(elem, pbvh->cd_boundary_flag);
+  }
+  else {
+    flags = (int *)BM_ELEM_CD_GET_VOID_P(elem, pbvh->cd_edge_boundary);
   }
 
-  int *flags = (int *)BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_boundary_flag);
   *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
 }

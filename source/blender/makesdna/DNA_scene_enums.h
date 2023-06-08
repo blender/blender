@@ -28,8 +28,9 @@ typedef enum eSculptBoundary {
   SCULPT_BOUNDARY_UV = 1 << 5,
   SCULPT_BOUNDARY_NEEDS_UPDATE = 1 << 6,
   SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE = 1 << 7,
+  SCULPT_BOUNDARY_UPDATE_UV = 1 << 8,
 
-  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+  SCULPT_BOUNDARY_ALL = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5),
   SCULPT_BOUNDARY_DEFAULT = (1 << 0) | (1 << 3) | (1 << 4)  // mesh and sharp
 } eSculptBoundary;
 ENUM_OPERATORS(eSculptBoundary, SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE);

@@ -45,6 +45,10 @@ namespace blender::bmesh {
 struct NullCollapseCallbacks {
   inline void on_vert_kill(BMVert *) {}
   inline void on_edge_kill(BMEdge *) {}
+  /* Called when verts are combined. */
+  inline void on_vert_combine(BMVert * /*dest*/, BMVert * /*source*/) {}
+  /* Called when edges are combined. */
+  inline void on_edge_combine(BMEdge * /*dest*/, BMEdge * /*source*/) {}
   inline void on_face_kill(BMFace *) {}
   inline void on_vert_create(BMVert *) {}
   inline void on_edge_create(BMEdge *) {}
@@ -539,6 +543,8 @@ BMVert *join_vert_kill_edge(BMesh *bm,
 
   const int dup_tag = _FLAG_OVERLAP;
 
+  callbacks.on_vert_combine(v_conn, v_del);
+
   for (int i = 0; i < 2; i++) {
     BMVert *v = i ? v_del : v_conn;
 
@@ -604,6 +610,8 @@ BMVert *join_vert_kill_edge(BMesh *bm,
       if (e->l) {
         printf("%s: ERROR!\n", __func__);
       }
+
+      callbacks.on_edge_combine(exist, e);
 
       if (combine_flags) {
         exist->head.hflag |= e->head.hflag;

@@ -29,6 +29,8 @@
 #include "bmesh_log.h"
 
 #ifdef __cplusplus
+#  include <type_traits>
+
 extern "C" {
 #endif
 
@@ -608,9 +610,10 @@ typedef struct SculptAttributePointers {
 
   /* Sculpt utility attributes. */
   SculptAttribute *stroke_id;
-  SculptAttribute *boundary_flags;
-  SculptAttribute *valence; /* CD_PROP_INT32,  vert */
-  SculptAttribute *flags;   /* CD_PROP_INT8,   vert */
+  SculptAttribute *boundary_flags;      /* CD_PROP_INT32, vert */
+  SculptAttribute *edge_boundary_flags; /* CD_PROP_INT32, vert */
+  SculptAttribute *valence;             /* CD_PROP_INT32, vert */
+  SculptAttribute *flags;               /* CD_PROP_INT8,  vert */
 
   SculptAttribute *orig_co, *orig_no; /* CD_PROP_FLOAT3, vert */
   SculptAttribute *orig_fsets;        /* CD_PROP_INT32,  face */
@@ -881,6 +884,7 @@ struct SculptSession {
   float last_grab_delta[3];
 
   const float (*vert_normals)[3];
+  blender::Span<blender::float3> poly_normals;
 
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
@@ -951,7 +955,7 @@ struct BMesh *BKE_sculptsession_empty_bmesh_create(void);
 void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 
 /* Ensures non-temporary attributes in me exist in the sculpt mesh, or vice
- * versa if load_to_mesh is true. 
+ * versa if load_to_mesh is true.
  */
 void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me, bool load_to_mesh);
 
@@ -1138,6 +1142,36 @@ static void vertex_attr_set(const PBVHVertRef vertex, const SculptAttribute *att
   *vertex_attr_ptr<T>(vertex, attr) = data;
 }
 
+/*
+ * Get a pointer to attribute data at vertex.
+ *
+ * Example: float *persistent_co = vertex_attr_ptr<float>(vertex, ss->attrs.persistent_co);
+ */
+template<typename T> static T *edge_attr_ptr(const PBVHEdgeRef edge, const SculptAttribute *attr)
+{
+  return elem_attr_ptr<T, PBVHEdgeRef>(edge, attr);
+}
+/*
+ * Get attribute data at vertex.
+ *
+ * Example: float weight = vertex_attr_get<float>(vertex, ss->attrs.automasking_factor);
+ */
+template<typename T> static T edge_attr_get(const PBVHEdgeRef edge, const SculptAttribute *attr)
+{
+  return *edge_attr_ptr<T>(edge, attr);
+}
+
+/*
+ * Set attribute data at vertex.
+ *
+ * vertex_attr_set<float>(vertex, ss->attrs.automasking_factor, 1.0f);
+ */
+template<typename T>
+static void edge_attr_set(const PBVHEdgeRef edge, const SculptAttribute *attr, T data)
+{
+  *edge_attr_ptr<T>(edge, attr) = data;
+}
+
 template<typename T> static T *face_attr_ptr(const PBVHFaceRef face, const SculptAttribute *attr)
 {
   return elem_attr_ptr<T, PBVHFaceRef>(face, attr);
@@ -1163,14 +1197,68 @@ bool get_original_vertex(SculptSession *ss,
 void load_all_original(Object *ob);
 }  // namespace blender::bke::paint
 
-BLI_INLINE void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHVertRef vertex)
+template<typename PBVHElemRef = PBVHVertRef>
+inline void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHElemRef elem)
 {
-  int *flags = blender::bke::paint::vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
+  int *flags;
+
+  if constexpr (std::is_same_v<PBVHElemRef, PBVHVertRef>) {
+    flags = blender::bke::paint::vertex_attr_ptr<int>(elem, ss->attrs.boundary_flags);
+  }
+  else {
+    flags = blender::bke::paint::edge_attr_ptr<int>(elem, ss->attrs.edge_boundary_flags);
+  }
+
   *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
 }
 
-void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss,
-                                           PBVHVertRef vertex,
-                                           bool update_ring = false);
+template<typename PBVHElemRef = PBVHVertRef>
+inline void BKE_sculpt_boundary_flag_uv_update(SculptSession *ss, PBVHElemRef elem)
+{
+  int *flags;
+
+  if constexpr (std::is_same_v<PBVHElemRef, PBVHVertRef>) {
+    flags = blender::bke::paint::vertex_attr_ptr<int>(elem, ss->attrs.boundary_flags);
+  }
+  else {
+    flags = blender::bke::paint::edge_attr_ptr<int>(elem, ss->attrs.edge_boundary_flags);
+  }
+
+  *flags |= SCULPT_BOUNDARY_UPDATE_UV;
+}
+
+template<typename PBVHElemRef = PBVHVertRef>
+inline void BKE_sculpt_sharp_boundary_flag_update(SculptSession *ss,
+                                                  PBVHElemRef elem,
+                                                  bool update_ring = false)
+{
+  int *flags;
+
+  if constexpr (std::is_same_v<PBVHElemRef, PBVHVertRef>) {
+    flags = blender::bke::paint::vertex_attr_ptr<int>(elem, ss->attrs.boundary_flags);
+  }
+  else {
+    flags = blender::bke::paint::edge_attr_ptr<int>(elem, ss->attrs.edge_boundary_flags);
+  }
+
+  *flags |= SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+
+  if constexpr (std::is_same_v<PBVHElemRef, PBVHVertRef>) {
+    if (update_ring && ss->bm) {
+      BMVert *v = reinterpret_cast<BMVert *>(elem.i);
+      if (!v->e) {
+        return;
+      }
+
+      BMEdge *e = v->e;
+      do {
+        PBVHVertRef vertex2 = {reinterpret_cast<intptr_t>(BM_edge_other_vert(e, v))};
+
+        int *flags2 = blender::bke::paint::vertex_attr_ptr<int>(vertex2, ss->attrs.boundary_flags);
+        *flags2 |= SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+      } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+    }
+  }
+}
 
 #endif

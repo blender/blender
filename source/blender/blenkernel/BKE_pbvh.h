@@ -372,6 +372,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
+                          const int cd_edge_boundary,
                           const int cd_flag,
                           const int cd_valence,
                           const int cd_origco,
@@ -384,6 +385,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_face_areas,
                              const int cd_boudnary_flags,
+                             const int cd_edge_boundary,
                              const int cd_flag,
                              const int cd_valence,
                              const int cd_origco,
@@ -547,8 +549,6 @@ int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_face_areas_begin(PBVH *pbvh);
 
-// updates boundaries and valences for whole mesh
-void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
@@ -975,30 +975,12 @@ struct BMVert *BKE_pbvh_vert_create_bmesh(
 PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i);
 
-void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit);
-float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit);
-void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
-                                   int cd_vert_node_offset,
-                                   int cd_face_node_offset,
-                                   int cd_vcol,
-                                   int cd_boundary_flag,
-                                   const int cd_flag,
-                                   const int cd_valence,
-                                   struct BMVert *v,
-                                   const CustomData *ldata,
-                                   const int totuv,
-                                   const bool do_uvs,
-                                   float sharp_angle_limit);
-
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 
 void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence);
 void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
-bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
-
-void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh, PBVHVertRef vertex);
 
 /* Uncomment to enable PBVH NaN debugging. */
 //#define PBVH_CHECK_NANS
@@ -1087,7 +1069,18 @@ void BKE_pbvh_pmap_set(PBVH *pbvh, blender::GroupedSpan<int> pmap);
 namespace blender::bke::pbvh {
 void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence);
 void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno);
-void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit);
+void update_vert_boundary_bmesh(int cd_faceset_offset,
+                                int cd_vert_node_offset,
+                                int cd_face_node_offset,
+                                int cd_vcol,
+                                int cd_boundary_flag,
+                                const int cd_flag,
+                                const int cd_valence,
+                                struct BMVert *v,
+                                const CustomData *ldata,
+                                float sharp_angle_limit);
+void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit);
+
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
@@ -1096,13 +1089,56 @@ void update_vert_boundary_faces(int *boundary_flags,
                                 const int *corner_verts,
                                 const int *corner_edges,
                                 blender::OffsetIndices<int> polys,
-                                int totpoly,
                                 const blender::GroupedSpan<int> &pmap,
                                 PBVHVertRef vertex,
                                 const bool *sharp_edges,
                                 const bool *seam_edges,
                                 uint8_t *flags,
                                 int *valence);
+void update_edge_boundary_bmesh(BMEdge *e,
+                                int cd_faceset_offset,
+                                int cd_edge_boundary,
+                                const int cd_flag,
+                                const int cd_valence,
+                                const CustomData *ldata,
+                                float sharp_angle_limit);
+void update_edge_boundary_faces(int edge,
+                                Span<float3> vertex_positions,
+                                Span<float3> vertex_normals,
+                                Span<blender::int2> edges,
+                                OffsetIndices<int> polys,
+                                Span<float3> poly_normals,
+                                int *edge_boundary_flags,
+                                const int *vert_boundary_flags,
+                                const int *face_sets,
+                                const bool *sharp_edge,
+                                const bool *seam_edge,
+                                const GroupedSpan<int> &pmap,
+                                const GroupedSpan<int> &epmap,
+                                const CustomData *ldata,
+                                float sharp_angle_limit,
+                                blender::Span<int> corner_verts,
+                                blender::Span<int> corner_edges);
+void update_edge_boundary_grids(int edge,
+                                Span<blender::int2> edges,
+                                OffsetIndices<int> polys,
+                                int *edge_boundary_flags,
+                                const int *vert_boundary_flags,
+                                const int *face_sets,
+                                const bool *sharp_edge,
+                                const bool *seam_edge,
+                                const GroupedSpan<int> &pmap,
+                                const GroupedSpan<int> &epmap,
+                                const CustomData *ldata,
+                                SubdivCCG *subdiv_ccg,
+                                const CCGKey *key,
+                                float sharp_angle_limit,
+                                blender::Span<int> corner_verts,
+                                blender::Span<int> corner_edges);
+void update_vert_boundary_grids(PBVH *pbvh, int vertex);
+
+bool check_vert_boundary(PBVH *pbvh, PBVHVertRef vertex);
+bool check_edge_boundary(PBVH *pbvh, PBVHEdgeRef edge);
 
 Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  BKE_pbvh_SearchCallback scb,
@@ -1113,5 +1149,18 @@ Vector<PBVHNode *> get_flagged_nodes(PBVH *pbvh, int flag);
 void set_pmap(PBVH *pbvh, blender::GroupedSpan<int> pmap);
 void set_vemap(PBVH *pbvh, blender::GroupedSpan<int> vemap);
 struct GroupedSpan<int> get_pmap(PBVH *pbvh);
+
+void sharp_limit_set(PBVH *pbvh, float limit);
+float test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit);
+float test_sharp_faces_mesh(int f1,
+                            int f2,
+                            float limit,
+                            blender::Span<blender::float3> positions,
+                            blender::OffsetIndices<int> &polys,
+                            blender::Span<blender::float3> poly_normals,
+                            blender::Span<int> corner_verts);
+
+blender::Span<blender::float3> get_poly_normals(const PBVH *pbvh);
+void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map);
 }  // namespace blender::bke::pbvh
 #endif

@@ -1943,24 +1943,6 @@ static void pbvh_bmesh_create_nodes_fast_recursive_final(PBVH *pbvh,
 
 /***************************** Public API *****************************/
 
-//#define MV_COLOR_BOUNDARY
-
-#ifdef MV_COLOR_BOUNDARY
-static int color_boundary_key(float col[4])
-{
-  const float steps = 2.0f;
-  float hsv[3];
-
-  rgb_to_hsv(col[0], col[1], col[2], hsv, hsv + 1, hsv + 2);
-
-  int x = (int)((hsv[0] * 0.5f + 0.5f) * steps + 0.5f);
-  int y = (int)(hsv[1] * steps + 0.5f);
-  int z = (int)(hsv[2] * steps + 0.5f);
-
-  return z * steps * steps + y * steps + x;
-}
-#endif
-
 static bool test_colinear_tri(BMFace *f)
 {
   BMLoop *l = f->l_first;
@@ -1971,17 +1953,11 @@ static bool test_colinear_tri(BMFace *f)
   return area_tri_v3(l->v->co, l->next->v->co, l->prev->v->co) <= area_limit;
 }
 
-float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit)
+namespace blender::bke::pbvh {
+
+float test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit)
 {
   float angle = saacos(dot_v3v3(f1->no, f2->no));
-
-#if 0  // XXX
-  float no1[3], no2[3];
-  normal_tri_v3(no1, f1->l_first->v->co, f1->l_first->next->v->co, f1->l_first->next->next->v->co);
-  normal_tri_v3(no2, f2->l_first->v->co, f2->l_first->next->v->co, f2->l_first->next->next->v->co);
-
-  angle = saacos(dot_v3v3(no1, no2));
-#endif
 
   /* Detect coincident triangles. */
   if (f1->len == 3 && test_colinear_tri(f1)) {
@@ -1999,32 +1975,178 @@ float BKE_pbvh_test_sharp_faces_bmesh(BMFace *f1, BMFace *f2, float limit)
   return angle > limit;
 }
 
-void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
-                                   int cd_vert_node_offset,
-                                   int cd_face_node_offset,
-                                   int /*cd_vcol*/,
-                                   int cd_boundary_flag,
-                                   const int cd_flag,
-                                   const int cd_valence,
-                                   BMVert *v,
-                                   const CustomData *ldata,
-                                   const int totuv,
-                                   const bool /*do_uvs*/,
-                                   float sharp_angle_limit)
+static void update_edge_boundary_bmesh_uv(BMEdge *e, int cd_edge_boundary, const CustomData *ldata)
 {
-  int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
-  int boundflag = 0;
+  int base = ldata->typemap[CD_PROP_FLOAT2];
 
-  const bool do_uvs = totuv > 0;
+  *BM_ELEM_CD_PTR<int *>(e, cd_edge_boundary) &= ~(SCULPT_BOUNDARY_UPDATE_UV | SCULPT_BOUNDARY_UV);
+
+  for (int i = base; i < ldata->totlayer; i++) {
+    const CustomDataLayer &layer = ldata->layers[i];
+
+    if (layer.type != CD_PROP_FLOAT2) {
+      break;
+    }
+    if (layer.flag & (CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOINTERP)) {
+      continue;
+    }
+
+    BMLoop *l = e->l;
+
+    int cd_uv = layer.offset;
+    float limit = blender::bke::sculpt::calc_uv_snap_limit(l, cd_uv);
+    limit *= limit;
+
+    float2 a1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
+    float2 a2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
+
+    do {
+      float *b1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
+      float *b2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
+
+      if (len_squared_v2v2(a1, b1) > limit || len_squared_v2v2(a2, b2) > limit) {
+        *BM_ELEM_CD_PTR<int *>(e, cd_edge_boundary) |= SCULPT_BOUNDARY_UV;
+        return;
+      }
+    } while ((l = l->radial_next) != e->l);
+  }
+}
+
+void update_edge_boundary_bmesh(BMEdge *e,
+                                int cd_faceset_offset,
+                                int cd_edge_boundary,
+                                const int cd_flag,
+                                const int cd_valence,
+                                const CustomData *ldata,
+                                float sharp_angle_limit)
+{
+  int oldflag = BM_ELEM_CD_GET_INT(e, cd_edge_boundary);
+
+  if (e->l && (oldflag & SCULPT_BOUNDARY_UPDATE_UV) && ldata->typemap[CD_PROP_FLOAT2] != -1) {
+    update_edge_boundary_bmesh_uv(e, cd_edge_boundary, ldata);
+    oldflag = BM_ELEM_CD_GET_INT(e, cd_edge_boundary);
+  }
+
+  if (oldflag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
+    if (e->l && e->l != e->l->radial_next &&
+        test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit))
+    {
+      *BM_ELEM_CD_PTR<int *>(e, cd_edge_boundary) |= SCULPT_BOUNDARY_SHARP_ANGLE;
+    }
+    else {
+      *BM_ELEM_CD_PTR<int *>(e, cd_edge_boundary) &= ~SCULPT_BOUNDARY_SHARP_ANGLE;
+    }
+    oldflag = BM_ELEM_CD_GET_INT(e, cd_edge_boundary);
+  }
+
+  if (!(oldflag & SCULPT_BOUNDARY_NEEDS_UPDATE)) {
+    return;
+  }
+
+  int newflag = oldflag & (SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_SHARP_ANGLE);
+
+  if (!e->l || e->l == e->l->radial_next) {
+    newflag |= SCULPT_BOUNDARY_MESH;
+  }
+
+  if (e->l && e->l != e->l->radial_next && cd_faceset_offset != -1) {
+    int fset1 = BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset);
+    int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset);
+
+    newflag |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
+  }
+
+  newflag |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
+  newflag |= BM_elem_flag_test(e, BM_ELEM_SEAM) ? SCULPT_BOUNDARY_SEAM : 0;
+
+  *BM_ELEM_CD_PTR<int *>(e, cd_edge_boundary) = newflag;
+}
+}  // namespace blender::bke::pbvh
+
+static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v, int cd_boundary, int cd_uv)
+{
+  int *boundflag = BM_ELEM_CD_PTR<int *>(v, cd_boundary);
 
   BMEdge *e = v->e;
+  do {
+    BMLoop *l = e->l;
+    if (!l) {
+      continue;
+    }
+
+    float snap_limit = blender::bke::sculpt::calc_uv_snap_limit(l, cd_uv);
+    snap_limit *= snap_limit;
+
+    float2 uv1a = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l : l->next, cd_uv);
+    float2 uv1b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
+
+    do {
+      float2 uv2a = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l : l->next, cd_uv);
+      float2 uv2b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
+
+      if (len_squared_v2v2(uv1a, uv2a) > snap_limit || len_squared_v2v2(uv1b, uv2b) > snap_limit) {
+        *boundflag |= SCULPT_BOUNDARY_UV;
+      }
+
+      /* Corners are calculated from the number of distinct charts. */
+      BMLoop *l2 = l->v == v ? l : l->next;
+      if (blender::bke::sculpt::loop_is_corner(l2, cd_uv)) {
+        *boundflag |= SCULPT_CORNER_UV;
+        *boundflag |= SCULPT_BOUNDARY_UV;
+      }
+
+    } while ((l = l->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+}
+
+static void pbvh_bmesh_update_uv_boundary(BMVert *v, int cd_boundary, const CustomData *ldata)
+{
+  int base_uv = ldata->typemap[CD_PROP_FLOAT2];
+  int newflag = 0;
+
+  *BM_ELEM_CD_PTR<int *>(v, cd_boundary) &= ~(SCULPT_BOUNDARY_UPDATE_UV | SCULPT_BOUNDARY_UV |
+                                              SCULPT_CORNER_UV);
+
+  for (int i = base_uv; i < ldata->totlayer; i++) {
+    if (ldata->layers[i].type != CD_PROP_FLOAT2) {
+      break;
+    }
+    if (ldata->layers[i].flag & (CD_FLAG_TEMPORARY | CD_FLAG_ELEM_NOINTERP)) {
+      continue;
+    }
+
+    pbvh_bmesh_update_uv_boundary_intern(v, cd_boundary, ldata->layers[i].offset);
+  }
+}
+
+namespace blender::bke::pbvh {
+void update_vert_boundary_bmesh(int cd_faceset_offset,
+                                int cd_vert_node_offset,
+                                int cd_face_node_offset,
+                                int /*cd_vcol*/,
+                                int cd_boundary_flag,
+                                const int cd_flag,
+                                const int cd_valence,
+                                BMVert *v,
+                                const CustomData *ldata,
+                                float sharp_angle_limit)
+{
+  int newflag = *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag);
   newflag &= ~(SCULPTFLAG_VERT_FSET_HIDDEN | SCULPTFLAG_PBVH_BOUNDARY);
 
+  if (BM_ELEM_CD_GET_INT(v, cd_boundary_flag) & SCULPT_BOUNDARY_UPDATE_UV) {
+    pbvh_bmesh_update_uv_boundary(v, cd_boundary_flag, ldata);
+  }
+
+  int boundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag) &
+                  (SCULPT_BOUNDARY_UV | SCULPT_CORNER_UV);
+
+  BMEdge *e = v->e;
   if (!e) {
     boundflag |= SCULPT_BOUNDARY_MESH;
 
     BM_ELEM_CD_SET_INT(v, cd_valence, 0);
-    BM_ELEM_CD_SET_INT(v, cd_boundary_flag, 0);
+    BM_ELEM_CD_SET_INT(v, cd_boundary_flag, boundflag);
     *BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag) = newflag;
 
     return;
@@ -2040,32 +2162,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
 
   Vector<int, 16> fsets;
 
-  float(*lastuv)[2] = do_uvs ? (float(*)[2])BLI_array_alloca(lastuv, totuv) : nullptr;
-  float(*lastuv2)[2] = do_uvs ? (float(*)[2])BLI_array_alloca(lastuv2, totuv) : nullptr;
-
-  int *disjount_uv_count = do_uvs ? (int *)BLI_array_alloca(disjount_uv_count, totuv) : nullptr;
-  int *cd_uvs = (int *)BLI_array_alloca(cd_uvs, totuv);
-  int base_uv_idx = ldata->typemap[CD_PROP_FLOAT2];
-  bool uv_first = true;
-
-  if (do_uvs) {
-    int base = ldata->typemap[CD_PROP_FLOAT2];
-    int uv_i = 0;
-
-    for (int i = base; i < ldata->totlayer; i++) {
-      CustomDataLayer *layer = ldata->layers + i;
-      if (layer->type != CD_PROP_FLOAT2) {
-        break;
-      }
-
-      if (!(layer->flag & CD_FLAG_TEMPORARY)) {
-        cd_uvs[uv_i] = layer->offset;
-        disjount_uv_count[uv_i] = 0;
-        uv_i++;
-      }
-    }
-  }
-
   int sharp_angle_num = 0;
   do {
     BMVert *v2 = v == e->v1 ? e->v2 : e->v1;
@@ -2075,7 +2171,8 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
     }
 
     if (e->l && e->l != e->l->radial_next) {
-      if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+      if (blender::bke::pbvh::test_sharp_faces_bmesh(
+              e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
         boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
         sharp_angle_num++;
       }
@@ -2090,24 +2187,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
       }
     }
 
-#ifdef MV_COLOR_BOUNDARY
-#  error "fix me! need to handle loops too"
-#endif
-
-#ifdef MV_COLOR_BOUNDARY  // CURRENTLY BROKEN
-    if (cd_vcol >= 0) {
-      float *color1 = BM_ELEM_CD_PTR<float *>(v, cd_vcol);
-      float *color2 = BM_ELEM_CD_PTR<float *>(v2, cd_vcol);
-
-      int colorkey1 = color_boundary_key(color1);
-      int colorkey2 = color_boundary_key(color2);
-
-      if (colorkey1 != colorkey2) {
-        boundflag |= SCUKPT_BOUNDARY_FACE_SETS;
-      }
-    }
-#endif
-
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
       boundflag |= SCULPT_BOUNDARY_SHARP_MARK;
       sharpcount++;
@@ -2118,51 +2197,6 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
     }
 
     if (e->l) {
-      /* detect uv island boundaries */
-      if (do_uvs && totuv) {
-        BMLoop *l_iter = e->l;
-        do {
-          BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
-
-          for (int i = 0; i < totuv; i++) {
-            float *luv = BM_ELEM_CD_PTR<float *>(l, cd_uvs[i]);
-
-            if (uv_first) {
-              copy_v2_v2(lastuv[i], luv);
-              copy_v2_v2(lastuv2[i], luv);
-
-              continue;
-            }
-
-            const float uv_snap_limit = 0.01f * 0.01f;
-
-            float dist = len_squared_v2v2(luv, lastuv[i]);
-            bool same = dist <= uv_snap_limit;
-
-            bool corner = len_squared_v2v2(lastuv[i], lastuv2[i]) > uv_snap_limit &&
-                          len_squared_v2v2(lastuv[i], luv) > uv_snap_limit &&
-                          len_squared_v2v2(lastuv2[i], luv) > uv_snap_limit;
-            corner = blender::bke::sculpt::loop_is_corner(l, cd_uvs[i]);
-
-            if (!same) {
-              boundflag |= SCULPT_BOUNDARY_UV;
-            }
-
-            if (corner) {
-              boundflag |= SCULPT_CORNER_UV;
-              l->v->head.hflag |= BM_ELEM_SELECT;
-            }
-
-            if (!same) {
-              copy_v2_v2(lastuv2[i], lastuv[i]);
-              copy_v2_v2(lastuv[i], luv);
-            }
-          }
-
-          uv_first = false;
-        } while ((l_iter = l_iter->radial_next) != e->l);
-      }
-
       if (BM_ELEM_CD_GET_INT(e->l->f, cd_face_node_offset) != ni) {
         newflag |= SCULPTFLAG_PBVH_BOUNDARY;
       }
@@ -2187,35 +2221,20 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
 
       if (cd_faceset_offset != -1) {
         int fset = BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset);
-
-        bool ok = true;
-        for (int i = 0; i < fsets.size(); i++) {
-          if (fsets[i] == fset) {
-            ok = false;
-          }
-        }
-
-        if (ok) {
+        if (!fsets.contains(fset)) {
           fsets.append(fset);
         }
       }
 
-      // also check e->l->radial_next, in case we are not manifold
-      // which can mess up the loop order
+      /* Also check e->l->radial_next, in case we are not manifold
+       * which can mess up the loop order
+       */
       if (e->l->radial_next != e->l) {
         if (cd_faceset_offset != -1) {
-          // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
-          int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset);
+          int fset = BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset);
 
-          bool ok2 = true;
-          for (int i = 0; i < fsets.size(); i++) {
-            if (fsets[i] == fset2) {
-              ok2 = false;
-            }
-          }
-
-          if (ok2) {
-            fsets.append(fset2);
+          if (!fsets.contains(fset)) {
+            fsets.append(fset);
           }
         }
 
@@ -2256,21 +2275,17 @@ void BKE_pbvh_update_vert_boundary(int cd_faceset_offset,
     boundflag |= SCULPT_CORNER_MESH;
   }
 
-  /* XXX: does this need to be threadsafe? */
   BM_ELEM_CD_SET_INT(v, cd_boundary_flag, boundflag);
-  *(BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag)) = newflag;
   BM_ELEM_CD_SET_INT(v, cd_valence, val);
+  *(BM_ELEM_CD_PTR<uint8_t *>(v, cd_flag)) = newflag;
 }
 
-bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, BMVert *v)
-{
-  return pbvh_check_vert_boundary(pbvh, v);
-}
-
-void BKE_pbvh_sharp_limit_set(PBVH *pbvh, float limit)
+void sharp_limit_set(PBVH *pbvh, float limit)
 {
   pbvh->sharp_angle_limit = limit;
 }
+
+}  // namespace blender::bke::pbvh
 
 /*Used by symmetrize to update boundary flags*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
@@ -2279,18 +2294,16 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMIter iter;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    BKE_pbvh_update_vert_boundary(pbvh->cd_faceset_offset,
-                                  pbvh->cd_vert_node_offset,
-                                  pbvh->cd_face_node_offset,
-                                  pbvh->cd_vcol_offset,
-                                  pbvh->cd_boundary_flag,
-                                  pbvh->cd_flag,
-                                  pbvh->cd_valence,
-                                  v,
-                                  &pbvh->header.bm->ldata,
-                                  pbvh->totuv,
-                                  true,
-                                  pbvh->sharp_angle_limit);
+    blender::bke::pbvh::update_vert_boundary_bmesh(pbvh->cd_faceset_offset,
+                                                   pbvh->cd_vert_node_offset,
+                                                   pbvh->cd_face_node_offset,
+                                                   pbvh->cd_vcol_offset,
+                                                   pbvh->cd_boundary_flag,
+                                                   pbvh->cd_flag,
+                                                   pbvh->cd_valence,
+                                                   v,
+                                                   &pbvh->header.bm->ldata,
+                                                   pbvh->sharp_angle_limit);
   }
 }
 
@@ -2341,6 +2354,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
+                          const int cd_edge_boundary,
                           const int /*cd_flag_offset*/,
                           const int /*cd_valence_offset*/,
                           const int cd_origco,
@@ -2353,6 +2367,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   pbvh->cd_boundary_flag = cd_boundary_flag;
+  pbvh->cd_edge_boundary = cd_edge_boundary;
   pbvh->cd_origco = cd_origco;
   pbvh->cd_origno = cd_origno;
 
@@ -2360,8 +2375,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
       &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_flags");
   pbvh->cd_valence = CustomData_get_offset_named(
       &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_valence");
-  pbvh->cd_boundary_flag = CustomData_get_offset_named(
-      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_boundary_flags");
 
   pbvh->mesh = me;
 
@@ -2857,28 +2870,6 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
-  }
-}
-
-void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
-{
-  BMIter iter;
-  BMVert *v;
-
-  for (int i = 0; i < pbvh->totnode; i++) {
-    PBVHNode *node = pbvh->nodes + i;
-
-    if (node->flag & PBVH_Leaf) {
-      node->flag |= PBVH_UpdateTriAreas | PBVH_UpdateCurvatureDir;
-    }
-  }
-
-  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    int *flags = BM_ELEM_CD_PTR<int *>(v, pbvh->cd_boundary_flag);
-    *flags |= SCULPT_BOUNDARY_NEEDS_UPDATE;
-
-    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_TRIANGULATE | SCULPTFLAG_NEED_VALENCE);
     BKE_pbvh_bmesh_update_valence(pbvh, BKE_pbvh_make_vref((intptr_t)v));
   }
 }
@@ -3708,6 +3699,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_face_areas,
                              const int cd_boundary_flag,
+                             const int cd_edge_boundary,
                              const int cd_flag,
                              const int cd_valence,
                              const int cd_origco,
@@ -3731,6 +3723,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   }
 
   pbvh->cd_boundary_flag = cd_boundary_flag;
+  pbvh->cd_edge_boundary = cd_edge_boundary;
+
   pbvh->cd_curvature_dir = cd_curvature_dir;
 
   if (pbvh->bm_idmap) {
@@ -3887,13 +3881,14 @@ float BKE_pbvh_bmesh_detail_size_avg_get(PBVH *pbvh)
 
 namespace blender::bke::pbvh {
 
-void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit)
+void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float sharp_angle_limit)
 {
   int flag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag);
   flag &= ~(SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE | SCULPT_BOUNDARY_SHARP_ANGLE |
             SCULPT_CORNER_SHARP_ANGLE);
 
   if (!v->e) {
+    BM_ELEM_CD_SET_INT(v, cd_boundary_flag, flag);
     return;
   }
 
@@ -3905,7 +3900,8 @@ void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sh
       continue;
     }
 
-    if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
+    if (blender::bke::pbvh::test_sharp_faces_bmesh(
+            e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
       flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
       sharp_num++;
     }
@@ -3918,281 +3914,3 @@ void update_sharp_boundary_bmesh(BMVert *v, int cd_boundary_flag, const float sh
   BM_ELEM_CD_SET_INT(v, cd_boundary_flag, flag);
 }
 }  // namespace blender::bke::pbvh
-
-namespace blender::bke::sculpt {
-
-bool loop_is_corner(BMLoop *l, int cd_offset)
-{
-  BMVert *v = l->v;
-
-  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
-  float limit = 0.01;
-
-  Vector<BMLoop *, 16> ls;
-  Vector<int, 16> keys;
-
-  BMEdge *e = v->e;
-  do {
-    BMLoop *l2 = e->l;
-
-    if (!l2) {
-      continue;
-    }
-
-    do {
-      BMLoop *l3 = l2->v == v ? l2 : l2->next;
-      if (!ls.contains(l3)) {
-        ls.append(l3);
-      }
-    } while ((l2 = l2->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  int count = 0;
-  for (BMLoop *l2 : ls) {
-    float2 value2 = *BM_ELEM_CD_PTR<float2 *>(l2, cd_offset);
-    float2 dv = value2 - value;
-
-    double f = dv[0] * dv[0] + dv[1] * dv[1];
-    int key = int(f * 200.0);
-    if (!keys.contains(key)) {
-      keys.append(key);
-    }
-  }
-
-  bool ret = keys.size() > 2;
-  if (ret) {
-    l->v->head.hflag |= BM_ELEM_SELECT;
-  }
-
-  return ret;
-}
-
-#if 0
-/* Angle test */
-ATTR_NO_OPT bool loop_is_corner(BMLoop *l, int cd_offset)
-{
-  BMVert *v = l->v;
-  BMEdge *e = v->e;
-
-  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
-  float limit = 0.01;
-
-  BMLoop *outer1 = nullptr, *outer2 = nullptr;
-  do {
-    BMLoop *l2 = e->l;
-    if (!l2) {
-      continue;
-    }
-
-    do {
-      BMLoop *l3 = l2->v == v ? l2 : l2->next;
-      float2 value3 = *BM_ELEM_CD_PTR<float2 *>(l3, cd_offset);
-
-      if (!prop_eq(value, value3, limit)) {
-        continue;
-      }
-
-      bool outer = true;
-
-      BMLoop *l4 = l2->radial_next;
-      while (l4 != l2) {
-        BMLoop *l5 = l4->v == v ? l4 : l4->next;
-        float2 value5 = *BM_ELEM_CD_PTR<float2 *>(l5, cd_offset);
-
-        if (prop_eq(value, value5, limit)) {
-          outer = false;
-          break;
-        }
-        l4 = l4->radial_next;
-      }
-
-      if (outer) {
-        BMLoop *l3 = l2->v == v ? l2->next : l2;
-
-        if (!outer1) {
-          outer1 = l3;
-        }
-        else if (!outer2 && l3 != outer2) {
-          outer2 = l3;
-        }
-
-        break;
-      }
-    } while ((l2 = l2->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != l->e);
-
-  if (!outer1 || !outer2) {
-    return outer1 != nullptr;
-  }
-
-  float2 t1 = *BM_ELEM_CD_PTR<float2 *>(outer1, cd_offset) - value;
-  float2 t2 = *BM_ELEM_CD_PTR<float2 *>(outer2, cd_offset) - value;
-
-  normalize_v2(t1);
-  normalize_v2(t2);
-  float angle_limit = 110.0f / 180.0f * M_PI;
-  float angle = saacos(dot_v2v2(t1, t2));
-
-  if (angle < angle_limit) {
-    l->v->head.hflag |= BM_ELEM_SELECT;
-  }
-
-  return angle < angle_limit;
-}
-#endif
-
-template<typename T = float>
-static void corner_interp(CustomDataLayer *layer,
-                          BMLoop *l,
-                          Span<BMLoop *> loops,
-                          Span<float> ws,
-                          int cd_offset,
-                          float factor)
-{
-  float *ws2 = (float *)BLI_array_alloca(ws2, loops.size() + 1);
-  T sum = {};
-  float totsum = 0.0f;
-
-  T value = *BM_ELEM_CD_PTR<T *>(l, cd_offset);
-
-  float limit = 0.0001;
-
-  if (layer->type == CD_PROP_FLOAT2) {
-    limit = 0.01;
-  }
-  else {
-    /* Do not restrict to islands for non-UVs */
-    limit = FLT_MAX;
-  }
-
-  for (int i : loops.index_range()) {
-    BMLoop *l2 = loops[i];
-    BMLoop *l3 = l2->next->v == l->v ? l2->next : l2->prev;
-    T value3 = *BM_ELEM_CD_PTR<T *>(l3, cd_offset);
-
-    if (prop_eq(value, value3, 0.01)) {
-      T value2 = *BM_ELEM_CD_PTR<T *>(l2, cd_offset);
-      sum += value2 * ws[i];
-      totsum += ws[i];
-    }
-  }
-
-  if (totsum == 0.0f) {
-    return;
-  }
-
-  sum /= totsum;
-
-  *BM_ELEM_CD_PTR<T *>(l, cd_offset) = value + (sum - value) * factor;
-}
-
-/* Interpolates loops surrounding a vertex, splitting any UV map by
- * island as appropriate and enforcing proper boundary conditions.
- */
-void interp_face_corners(
-    PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor)
-{
-  if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
-    return; /* Only for PBVH_BMESH. */
-  }
-
-  eCustomDataMask mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
-                         CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR;
-
-  BMesh *bm = pbvh->header.bm;
-  BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
-  BMEdge *e = v->e;
-  BMLoop *l = e->l;
-  CustomData *cdata = &bm->ldata;
-
-  Vector<BMLoop *, 16> ls;
-
-  /* Tag loops around vertex. */
-  do {
-    l = e->l;
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      BMLoop *l2 = l->v == v ? l : l->next;
-      BM_elem_flag_enable(l2, BM_ELEM_TAG);
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  /* Build loop list. */
-  do {
-    l = e->l;
-
-    if (!l) {
-      continue;
-    }
-
-    do {
-      BMLoop *l2 = l->v == v ? l : l->next;
-      if (BM_elem_flag_test(l2, BM_ELEM_TAG)) {
-        BM_elem_flag_disable(l2, BM_ELEM_TAG);
-        ls.append(l2);
-      }
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  Vector<CustomDataLayer *, 16> layers;
-  for (int layer_i : IndexRange(cdata->totlayer)) {
-    CustomDataLayer *layer = cdata->layers + layer_i;
-    eCustomDataType type = eCustomDataType(layer->type);
-    const int cd_offset = layer->offset;
-
-    if ((layer->flag & CD_FLAG_ELEM_NOINTERP) || !(CD_TYPE_AS_MASK(layer->type) & mask)) {
-      continue;
-    }
-    if (layer->flag & CD_FLAG_TEMPORARY) {
-      continue;
-    }
-
-    layers.append(layer);
-  }
-
-  /* Interpolate. */
-  if (loops.size() > 1) {
-    VertLoopSnapper corner_snap = {Span<BMLoop *>(ls), Span<CustomDataLayer *>(layers)};
-
-    for (CustomDataLayer *layer : layers) {
-      Vector<bool, 16> corners;
-
-      if (layer->type == CD_PROP_FLOAT2) {
-        for (BMLoop *l : ls) {
-          corners.append(loop_is_corner(l, layer->offset));
-        }
-      }
-
-      for (int i : ls.index_range()) {
-        BMLoop *l = ls[i];
-
-        if (layer->type == CD_PROP_FLOAT2 && corners[i]) {
-          continue;
-        }
-
-        switch (layer->type) {
-          case CD_PROP_FLOAT:
-            corner_interp<float>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_FLOAT2:
-            corner_interp<float2>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_FLOAT3:
-            corner_interp<float3>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_COLOR:
-            corner_interp<float4>(layer, l, loops, ws, layer->offset, factor);
-            break;
-        }
-      }
-    }
-
-    /* Snap. */
-    // corner_snap.snap();
-  }
-}
-}  // namespace blender::bke::sculpt

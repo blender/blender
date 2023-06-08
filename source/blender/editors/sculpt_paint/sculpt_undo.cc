@@ -906,8 +906,8 @@ static void bmesh_undo_on_face_change(BMFace *f,
 
   BMLoop *l = f->l_first;
   do {
-    int flag = BM_ELEM_CD_GET_INT(l->v, data->cd_boundary_flag);
-    BM_ELEM_CD_SET_INT(l->v, data->cd_boundary_flag, flag | SCULPT_BOUNDARY_NEEDS_UPDATE);
+    *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                            SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
   } while ((l = l->next) != f->l_first);
 
   // attempt to find old node in old_customdata

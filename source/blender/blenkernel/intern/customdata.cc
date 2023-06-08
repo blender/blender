@@ -4348,7 +4348,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
          blender::MutableSpan<CustomDataLayer>(dest->layers, dest->totlayer))
     {
       bool ok = !(layer_src.flag & CD_FLAG_ELEM_NOCOPY);
-      ok = ok && !(layer_dst.flag & mask_exclude);
+      ok = ok && (no_mask || !(layer_dst.flag & mask_exclude));
       ok = ok && layer_src.type == layer_dst.type;
       ok = ok && STREQ(layer_src.name, layer_dst.name);
 

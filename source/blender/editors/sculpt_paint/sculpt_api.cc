@@ -125,44 +125,6 @@ using blender::OffsetIndices;
 
 using namespace blender::bke::paint;
 
-/**
- * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
- * in the base mesh are equal.
- */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSession *ss,
-                                                               int v1,
-                                                               int v2)
-{
-  if (!ss->face_sets) {
-    return true;
-  }
-
-  int p1 = -1, p2 = -1;
-  for (int poly : ss->pmap[v1]) {
-    const IndexRange p = ss->polys[poly];
-
-    for (int l = 0; l < p.size(); l++) {
-      const int *corner_verts = &ss->corner_verts[p.start() + l];
-      if (*corner_verts == v2) {
-        if (p1 == -1) {
-          p1 = poly;
-          break;
-        }
-
-        if (p2 == -1) {
-          p2 = poly;
-          break;
-        }
-      }
-    }
-  }
-
-  if (p1 != -1 && p2 != -1) {
-    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
-  }
-  return true;
-}
-
 static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, int index)
 {
   BLI_assert(ss->vertex_info.boundary);
@@ -170,160 +132,78 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, i
   return BLI_BITMAP_TEST(ss->vertex_info.boundary, index);
 }
 
-static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss,
-                                                      int vertex,
-                                                      bool *r_corner)
-{
-  if (!ss->attrs.face_set) {
-    return true;
-  }
-  int fset1 = -1, fset2 = -1, fset3 = -1;
-
-  for (int poly : ss->pmap[vertex]) {
-    PBVHFaceRef face = {poly};
-    int fset = face_attr_get<int>(face, ss->attrs.face_set);
-
-    if (fset1 == -1) {
-      fset1 = fset;
-    }
-    else if (fset2 == -1 && fset != fset1) {
-      fset2 = fset;
-    }
-    else if (fset3 == -1 && fset != fset1 && fset != fset2) {
-      fset3 = fset;
-    }
-  }
-
-  *r_corner = fset3 != -1;
-  return fset2 == -1;
-}
-
 eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
                                         const PBVHEdgeRef edge,
                                         eSculptBoundary typemask)
 {
+  int oldflag = blender::bke::paint::edge_attr_get<int>(edge, ss->attrs.edge_boundary_flags);
+  bool update = oldflag & (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV |
+                           SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE);
 
-  int ret = 0;
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_BMESH: {
-      BMEdge *e = (BMEdge *)edge.i;
-
-      if (e->l && e->l != e->l->radial_next && typemask & SCULPT_BOUNDARY_SHARP_ANGLE) {
-        if (BKE_pbvh_test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, ss->sharp_angle_limit))
-        {
-          ret |= SCULPT_BOUNDARY_SHARP_ANGLE;
-        }
+  if (update) {
+    switch (BKE_pbvh_type(ss->pbvh)) {
+      case PBVH_BMESH: {
+        BMEdge *e = reinterpret_cast<BMEdge *>(edge.i);
+        blender::bke::pbvh::update_edge_boundary_bmesh(
+            e,
+            ss->attrs.face_set->bmesh_cd_offset,
+            ss->attrs.edge_boundary_flags->bmesh_cd_offset,
+            ss->attrs.flags->bmesh_cd_offset,
+            ss->attrs.valence->bmesh_cd_offset,
+            &ss->bm->ldata,
+            ss->sharp_angle_limit);
+        break;
       }
+      case PBVH_FACES: {
+        Span<float3> pos = {reinterpret_cast<const float3 *>(ss->vert_positions), ss->totvert};
+        Span<float3> nor = {reinterpret_cast<const float3 *>(ss->vert_normals), ss->totvert};
 
-      if (typemask & SCULPT_BOUNDARY_MESH) {
-        ret |= (!e->l || e->l == e->l->radial_next) ? SCULPT_BOUNDARY_MESH : 0;
+        blender::bke::pbvh::update_edge_boundary_faces(edge.i,
+                                                       pos,
+                                                       nor,
+                                                       ss->edges,
+                                                       ss->polys,
+                                                       ss->poly_normals,
+                                                       (int *)ss->attrs.edge_boundary_flags->data,
+                                                       (int *)ss->attrs.boundary_flags->data,
+                                                       (int *)ss->attrs.face_set->data,
+                                                       ss->sharp_edge,
+                                                       ss->seam_edge,
+                                                       ss->pmap,
+                                                       ss->epmap,
+                                                       ss->ldata,
+                                                       ss->sharp_angle_limit,
+                                                       ss->corner_verts,
+                                                       ss->corner_edges);
+        break;
       }
+      case PBVH_GRIDS: {
+        const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-      if ((typemask & SCULPT_BOUNDARY_FACE_SET) && e->l && e->l != e->l->radial_next &&
-          ss->cd_faceset_offset != -1)
-      {
-        int fset1 = BM_ELEM_CD_GET_INT(e->l->f, ss->cd_faceset_offset);
-        int fset2 = BM_ELEM_CD_GET_INT(e->l->radial_next->f, ss->cd_faceset_offset);
+        blender::bke::pbvh::update_edge_boundary_grids(edge.i,
+                                                       ss->edges,
+                                                       ss->polys,
+                                                       (int *)ss->attrs.edge_boundary_flags->data,
+                                                       (int *)ss->attrs.boundary_flags->data,
+                                                       (int *)ss->attrs.face_set->data,
+                                                       ss->sharp_edge,
+                                                       ss->seam_edge,
+                                                       ss->pmap,
+                                                       ss->epmap,
+                                                       ss->ldata,
+                                                       ss->subdiv_ccg,
+                                                       key,
+                                                       ss->sharp_angle_limit,
+                                                       ss->corner_verts,
+                                                       ss->corner_edges);
 
-        ret |= fset1 != fset2 ? SCULPT_BOUNDARY_FACE_SET : 0;
+        break;
       }
-
-      if (e->l && (typemask & SCULPT_BOUNDARY_UV) && ss->bm->ldata.typemap[CD_PROP_FLOAT2] != -1) {
-        CustomData *ldata = &ss->bm->ldata;
-        int base = ldata->typemap[CD_PROP_FLOAT2];
-
-        for (int i = base; i < ldata->totlayer; i++) {
-          CustomDataLayer &layer = ldata->layers[i];
-          if (layer.type != CD_PROP_FLOAT2) {
-            break;
-          }
-          if (layer.flag & CD_FLAG_TEMPORARY) {
-            continue;
-          }
-
-          BMLoop *l = e->l;
-
-          int cd_uv = layer.offset;
-          float limit = 0.01;
-
-          float2 a1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
-          float2 a2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
-
-          do {
-            float *b1 = BM_ELEM_CD_PTR<float *>((l->v == e->v1 ? l : l->next), cd_uv);
-            float *b2 = BM_ELEM_CD_PTR<float *>((l->v == e->v2 ? l : l->next), cd_uv);
-
-            if (len_v2v2(a1, b1) > limit || len_v2v2(a2, b2) > limit) {
-              ret |= SCULPT_BOUNDARY_UV;
-              //e->head.hflag |= BM_ELEM_SELECT;
-              goto uv_outer;
-            }
-          } while ((l = l->radial_next) != e->l);
-        }
-      }
-    uv_outer:
-
-      if (typemask & SCULPT_BOUNDARY_SHARP_MARK) {
-        ret |= !BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
-      }
-
-      if (typemask & SCULPT_BOUNDARY_SEAM) {
-        ret |= BM_elem_flag_test(e, BM_ELEM_SEAM) ? SCULPT_BOUNDARY_SEAM : 0;
-      }
-
-      break;
-    }
-    case PBVH_FACES: {
-      eSculptBoundary epmap_mask = typemask & (SCULPT_BOUNDARY_MESH | SCULPT_BOUNDARY_FACE_SET);
-
-      /* Some boundary types require an edge->poly map to be fully accurate. */
-      if (epmap_mask && !ss->epmap.is_empty()) {
-        if (ss->face_sets && epmap_mask & SCULPT_BOUNDARY_FACE_SET) {
-          int fset = -1;
-
-          for (int poly : ss->epmap[edge.i]) {
-            if (fset == -1) {
-              fset = ss->face_sets[poly];
-            }
-            else if (ss->face_sets[poly] != fset) {
-              ret |= SCULPT_BOUNDARY_FACE_SET;
-              break;
-            }
-          }
-        }
-        if (epmap_mask & SCULPT_BOUNDARY_MESH) {
-          ret |= ss->epmap[edge.i].size() == 1 ? SCULPT_BOUNDARY_MESH : 0;
-        }
-      }
-      else if (epmap_mask)
-      { /* No edge->poly map; approximate from vertices (will give artifacts on corners). */
-        PBVHVertRef v1, v2;
-
-        SCULPT_edge_get_verts(ss, edge, &v1, &v2);
-        eSculptBoundary a = SCULPT_vertex_is_boundary(ss, v1, epmap_mask);
-        eSculptBoundary b = SCULPT_vertex_is_boundary(ss, v2, epmap_mask);
-
-        ret |= a & b;
-      }
-
-      if (typemask & SCULPT_BOUNDARY_SHARP_MARK) {
-        ret |= (ss->sharp_edge && ss->sharp_edge[edge.i]) ? SCULPT_BOUNDARY_SHARP_MARK : 0;
-      }
-
-      if (typemask & SCULPT_BOUNDARY_SEAM) {
-        ret |= (ss->seam_edge && ss->seam_edge[edge.i]) ? SCULPT_BOUNDARY_SEAM : 0;
-      }
-
-      break;
-    }
-    case PBVH_GRIDS: {
-      // not implemented
-      break;
     }
   }
 
-  return (eSculptBoundary)ret;
+  return eSculptBoundary(
+      blender::bke::paint::edge_attr_get<int>(edge, ss->attrs.edge_boundary_flags));
 }
 
 void SCULPT_edge_get_verts(const SculptSession *ss,
@@ -364,53 +244,7 @@ PBVHVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
 
 static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef vertex)
 {
-  int *flag = vertex_attr_ptr<int>(vertex, ss->attrs.boundary_flags);
-
-  *flag = 0;
-
-  int index = (int)vertex.i;
-  const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-  const int grid_index = index / key->grid_area;
-  const int vertex_index = index - grid_index * key->grid_area;
-  SubdivCCGCoord coord{};
-
-  coord.grid_index = grid_index;
-  coord.x = vertex_index % key->grid_size;
-  coord.y = vertex_index / key->grid_size;
-
-  int v1, v2;
-  const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-      ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
-
-  bool fset_corner = false;
-  switch (adjacency) {
-    case SUBDIV_CCG_ADJACENT_VERTEX:
-      if (!sculpt_check_unique_face_set_in_base_mesh(ss, v1, &fset_corner)) {
-        *flag |= SCULPT_BOUNDARY_FACE_SET;
-      }
-      if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1)) {
-        *flag |= SCULPT_BOUNDARY_MESH;
-      }
-      break;
-    case SUBDIV_CCG_ADJACENT_EDGE: {
-      if (!sculpt_check_unique_face_set_for_edge_in_base_mesh(ss, v1, v2)) {
-        *flag |= SCULPT_BOUNDARY_FACE_SET;
-      }
-
-      if (sculpt_check_boundary_vertex_in_base_mesh(ss, v1) &&
-          sculpt_check_boundary_vertex_in_base_mesh(ss, v2))
-      {
-        *flag |= SCULPT_BOUNDARY_MESH;
-      }
-      break;
-    }
-    case SUBDIV_CCG_ADJACENT_NONE:
-      break;
-  }
-
-  if (fset_corner) {
-    *flag |= SCULPT_CORNER_FACE_SET | SCULPT_BOUNDARY_FACE_SET;
-  }
+  blender::bke::pbvh::update_vert_boundary_grids(ss->pbvh, vertex.i);
 }
 
 static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertRef vertex)
@@ -423,7 +257,6 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                                  ss->corner_verts.data(),
                                                  ss->corner_edges.data(),
                                                  ss->polys,
-                                                 ss->totfaces,
                                                  ss->pmap,
                                                  vertex,
                                                  ss->sharp_edge,
@@ -465,30 +298,28 @@ static bool sculpt_vertex_ensure_boundary(const SculptSession *ss,
                                           int mask)
 {
   eSculptBoundary flag = *vertex_attr_ptr<eSculptBoundary>(vertex, ss->attrs.boundary_flags);
-  bool needs_update = flag & SCULPT_BOUNDARY_NEEDS_UPDATE;
+  bool needs_update = flag & (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV);
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
 
       if (needs_update) {
-        BKE_pbvh_update_vert_boundary(ss->cd_faceset_offset,
-                                      ss->cd_vert_node_offset,
-                                      ss->cd_face_node_offset,
-                                      ss->cd_vcol_offset,
-                                      ss->attrs.boundary_flags->bmesh_cd_offset,
-                                      ss->attrs.flags->bmesh_cd_offset,
-                                      ss->attrs.valence->bmesh_cd_offset,
-                                      (BMVert *)vertex.i,
-                                      &ss->bm->ldata,
-                                      ss->totuv,
-                                      true,
-                                      ss->sharp_angle_limit);
+        blender::bke::pbvh::update_vert_boundary_bmesh(ss->cd_faceset_offset,
+                                                       ss->cd_vert_node_offset,
+                                                       ss->cd_face_node_offset,
+                                                       ss->cd_vcol_offset,
+                                                       ss->attrs.boundary_flags->bmesh_cd_offset,
+                                                       ss->attrs.flags->bmesh_cd_offset,
+                                                       ss->attrs.valence->bmesh_cd_offset,
+                                                       (BMVert *)vertex.i,
+                                                       &ss->bm->ldata,
+                                                       ss->sharp_angle_limit);
       }
       else if ((mask & (SCULPT_BOUNDARY_SHARP_ANGLE | SCULPT_CORNER_SHARP_ANGLE)) &&
                flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE)
       {
-        blender::bke::pbvh::update_sharp_boundary_bmesh(
+        blender::bke::pbvh::update_sharp_vertex_bmesh(
             v, ss->attrs.boundary_flags->bmesh_cd_offset, ss->sharp_angle_limit);
       }
 

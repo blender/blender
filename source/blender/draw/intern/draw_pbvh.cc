@@ -1260,8 +1260,6 @@ struct PBVHBatches {
 
   void create_index_bmesh_lines(PBVH_GPU_Args *args)
   {
-    printf("%s: Creating line index buffer\n", __func__);
-
     GPUIndexBufBuilder elb_lines;
     GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, args->tribuf->edges.size(), INT_MAX);
 

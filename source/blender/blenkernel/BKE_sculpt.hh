@@ -18,6 +18,8 @@
 
 #include <type_traits>
 
+struct Object;
+
 /*
  * Stroke ID API.  This API is used to detect if
  * an element has already been processed for some task
@@ -45,6 +47,8 @@ void BKE_sculpt_reproject_cdata(
     SculptSession *ss, PBVHVertRef vertex, float startco[3], float startno[3], bool do_uvs = true);
 
 namespace blender::bke::sculpt {
+void sculpt_vert_boundary_ensure(Object *ob);
+
 BLI_INLINE bool stroke_id_clear(SculptSession *ss, PBVHVertRef vertex, StrokeIDUser user)
 {
   StrokeID *id = blender::bke::paint::vertex_attr_ptr<StrokeID>(vertex, ss->attrs.stroke_id);
@@ -97,24 +101,24 @@ BLI_INLINE bool test_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t 
 {
   return blender::bke::paint::vertex_attr_get<uint8_t>(vertex, ss->attrs.flags) & flag;
 }
+
 void interp_face_corners(
     PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor);
-bool loop_is_corner(BMLoop *l, int cd_offset);
+float calc_uv_snap_limit(BMLoop *l, int cd_uv);
+bool loop_is_corner(BMLoop *l, int cd_uv, float limit = 0.01);
 
+/* NotForPR: TODO: find attribute API substitute for these prop_eq helper functions. */
 static bool prop_eq(float a, float b, float limit)
 {
   return std::fabs(a - b) < limit;
 }
 static bool prop_eq(float2 a, float2 b, float limit)
 {
-  return prop_eq(a[0], b[0], limit) &&  //
-         prop_eq(a[1], b[1], limit);
+  return prop_eq(a[0], b[0], limit) && prop_eq(a[1], b[1], limit);
 }
 static bool prop_eq(float3 a, float3 b, float limit)
 {
-  return prop_eq(a[0], b[0], limit) &&  //
-         prop_eq(a[1], b[1], limit) &&  //
-         prop_eq(a[2], b[2], limit);
+  return prop_eq(a[0], b[0], limit) && prop_eq(a[1], b[1], limit) && prop_eq(a[2], b[2], limit);
 }
 static bool prop_eq(float4 a, float4 b, float limit)
 {

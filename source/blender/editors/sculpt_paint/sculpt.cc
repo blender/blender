@@ -6860,38 +6860,7 @@ struct SculptTopologyIDFloodFillData {
 
 void SCULPT_boundary_info_ensure(Object *object)
 {
-  using namespace blender;
-  SculptSession *ss = object->sculpt;
-
-  /* PBVH_BMESH now handles boundaries itself. */
-  if (ss->bm || ss->vertex_info.boundary) {
-    return;
-  }
-
-  Mesh *base_mesh = BKE_mesh_from_object(object);
-  const blender::Span<int2> edges = base_mesh->edges();
-  const OffsetIndices polys = base_mesh->polys();
-  const Span<int> corner_edges = base_mesh->corner_edges();
-
-  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
-  int *adjacent_faces_edge_count = static_cast<int *>(
-      MEM_calloc_arrayN(base_mesh->totedge, sizeof(int), "Adjacent face edge count"));
-
-  for (const int i : polys.index_range()) {
-    for (const int edge : corner_edges.slice(polys[i])) {
-      adjacent_faces_edge_count[edge]++;
-    }
-  }
-
-  for (const int e : edges.index_range()) {
-    if (adjacent_faces_edge_count[e] < 2) {
-      const int2 &edge = edges[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
-    }
-  }
-
-  MEM_freeN(adjacent_faces_edge_count);
+  blender::bke::sculpt::sculpt_vert_boundary_ensure(object);
 }
 
 void SCULPT_ensure_vemap(SculptSession *ss)

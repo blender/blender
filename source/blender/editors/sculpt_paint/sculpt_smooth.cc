@@ -111,7 +111,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 #endif
 
-  //bound_type |= SCULPT_BOUNDARY_UV;
+  bound_type |= SCULPT_BOUNDARY_UV;
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);

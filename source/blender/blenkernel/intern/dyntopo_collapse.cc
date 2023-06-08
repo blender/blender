@@ -459,8 +459,8 @@ bool pbvh_bmesh_collapse_edge_uvs(
   BMesh *bm = pbvh->header.bm;
 
   bm_logstack_push();
-  pbvh_check_vert_boundary(pbvh, v_conn);
-  pbvh_check_vert_boundary(pbvh, v_del);
+  pbvh_check_vert_boundary_bmesh(pbvh, v_conn);
+  pbvh_check_vert_boundary_bmesh(pbvh, v_del);
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
@@ -708,14 +708,33 @@ class DyntopoCollapseCallbacks {
 
   inline void on_vert_create(BMVert *v)
   {
-    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
-    pbvh_boundary_update_bmesh(pbvh, v);
     check_new_elem_id(v, pbvh);
+    pbvh_boundary_update_bmesh(pbvh, v);
+    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
     BM_log_vert_added(bm, pbvh->bm_log, v);
   }
+
+  inline void on_vert_combine(BMVert *dest, BMVert *source)
+  {
+    /* Combine boundary flags. */
+    int boundflag = BM_ELEM_CD_GET_INT(source, pbvh->cd_boundary_flag);
+    BM_ELEM_CD_SET_INT(dest, pbvh->cd_boundary_flag, boundflag);
+  }
+
+  inline void on_edge_combine(BMEdge *dest, BMEdge *source)
+  {
+    /* Combine boundary flags. */
+    int boundflag = BM_ELEM_CD_GET_INT(source, pbvh->cd_edge_boundary);
+    BM_ELEM_CD_SET_INT(dest, pbvh->cd_edge_boundary, boundflag);
+
+    pbvh_boundary_update_bmesh(pbvh, dest->v1);
+    pbvh_boundary_update_bmesh(pbvh, dest->v2);
+  }
+
   inline void on_edge_create(BMEdge *e)
   {
     check_new_elem_id(e, pbvh);
+    pbvh_boundary_update_bmesh(pbvh, e);
     BM_log_edge_added(bm, pbvh->bm_log, e);
   }
   inline void on_face_create(BMFace *f)
@@ -728,6 +747,7 @@ class DyntopoCollapseCallbacks {
     BMLoop *l = f->l_first;
     do {
       pbvh_boundary_update_bmesh(pbvh, l->v);
+      pbvh_boundary_update_bmesh(pbvh, l->e);
     } while ((l = l->next) != f->l_first);
   }
 };
@@ -756,8 +776,7 @@ BMVert *pbvh_bmesh_collapse_edge(
 
   pbvh_bmesh_check_nodes(pbvh);
 
-  const int mupdateflag = SCULPTFLAG_NEED_VALENCE;
-  // updateflag |= SCULPTFLAG_NEED_TRIANGULATE;  // to check for non-manifold flaps
+  const int updateflag = SCULPTFLAG_NEED_VALENCE;
 
   validate_edge(pbvh, e);
 
@@ -766,13 +785,15 @@ BMVert *pbvh_bmesh_collapse_edge(
 
   pbvh_bmesh_check_nodes(pbvh);
 
-  pbvh_check_vert_boundary(pbvh, v1);
-  pbvh_check_vert_boundary(pbvh, v2);
+  pbvh_check_vert_boundary_bmesh(pbvh, v1);
+  pbvh_check_vert_boundary_bmesh(pbvh, v2);
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
 
-  if ((boundflag1 & SCULPT_BOUNDARY_UV) != (boundflag2 & SCULPT_BOUNDARY_UV)) {
+  /* Don't collapse across boundaries. */
+  if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY)) {
+    bm_logstack_pop();
     return nullptr;
   }
 
@@ -783,6 +804,7 @@ BMVert *pbvh_bmesh_collapse_edge(
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
 
   if (corner1 && corner2) {
+    bm_logstack_pop();
     return nullptr;
   }
 
@@ -796,14 +818,6 @@ BMVert *pbvh_bmesh_collapse_edge(
   else {
     v_del = v2;
     v_conn = v1;
-  }
-
-  /* Don't collapse across boundaries. */
-  if (boundflag2 != 0 &&
-      (boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY))
-  {
-    bm_logstack_pop();
-    return nullptr;
   }
 
   /* Needed for vert_ring_do. */
@@ -880,7 +894,7 @@ BMVert *pbvh_bmesh_collapse_edge(
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   pbvh_boundary_update_bmesh(pbvh, v_conn);
-  dyntopo_add_flag(pbvh, v_conn, mupdateflag);
+  dyntopo_add_flag(pbvh, v_conn, updateflag);
 
   if (!v_conn->e) {
     printf("%s: pbvh error, v_conn->e was null\n", __func__);
@@ -898,10 +912,12 @@ BMVert *pbvh_bmesh_collapse_edge(
     do {
       BMLoop *l = e2->l;
 
+      pbvh_boundary_update_bmesh(pbvh, e2);
+
       if (!l) {
         BMVert *v2 = BM_edge_other_vert(e2, v_conn);
         pbvh_boundary_update_bmesh(pbvh, v2);
-        dyntopo_add_flag(pbvh, v2, mupdateflag);
+        dyntopo_add_flag(pbvh, v2, updateflag);
         continue;
       }
 
@@ -909,7 +925,8 @@ BMVert *pbvh_bmesh_collapse_edge(
         BMLoop *l2 = l->f->l_first;
         do {
           pbvh_boundary_update_bmesh(pbvh, l2->v);
-          dyntopo_add_flag(pbvh, l2->v, mupdateflag);
+          pbvh_boundary_update_bmesh(pbvh, l2->e);
+          dyntopo_add_flag(pbvh, l2->v, updateflag);
         } while ((l2 = l2->next) != l->f->l_first);
       } while ((l = l->radial_next) != e2->l);
     } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);

@@ -1539,6 +1539,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                          sgcontext->ss->cd_face_node_offset,
                          sgcontext->ss->cd_face_areas,
                          sgcontext->ss->attrs.boundary_flags->bmesh_cd_offset,
+                         sgcontext->ss->attrs.edge_boundary_flags->bmesh_cd_offset,
                          sgcontext->ss->attrs.flags->bmesh_cd_offset,
                          sgcontext->ss->attrs.valence->bmesh_cd_offset,
                          sgcontext->ss->attrs.orig_co->bmesh_cd_offset,
