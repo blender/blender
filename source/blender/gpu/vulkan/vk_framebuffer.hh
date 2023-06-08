@@ -15,6 +15,7 @@
 #include "gpu_framebuffer_private.hh"
 
 #include "vk_common.hh"
+#include "vk_image_view.hh"
 
 namespace blender::gpu {
 
@@ -40,6 +41,8 @@ class VKFrameBuffer : public FrameBuffer {
    * during blitting.
    */
   bool flip_viewport_ = false;
+
+  Vector<VKImageView, GPU_FB_MAX_ATTACHMENT> image_views_;
 
  public:
   /**
