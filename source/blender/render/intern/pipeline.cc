@@ -877,44 +877,44 @@ void RE_test_break_cb(Render *re, void *handle, bool (*f)(void *handle))
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name OpenGL Context
+/** \name GPU Context
  * \{ */
 
-void RE_gl_context_create(Render *re)
+void RE_system_gpu_context_create(Render *re)
 {
-  /* Needs to be created in the main OpenGL thread. */
-  re->gl_context = WM_opengl_context_create();
+  /* Needs to be created in the main thread. */
+  re->system_gpu_context = WM_system_gpu_context_create();
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }
 
-void RE_gl_context_destroy(Render *re)
+void RE_system_gpu_context_destroy(Render *re)
 {
-  /* Needs to be called from the thread which used the OpenGL context for rendering. */
-  if (re->gl_context) {
-    if (re->gpu_context) {
-      WM_opengl_context_activate(re->gl_context);
-      GPU_context_active_set(static_cast<GPUContext *>(re->gpu_context));
-      GPU_context_discard(static_cast<GPUContext *>(re->gpu_context));
-      re->gpu_context = nullptr;
+  /* Needs to be called from the thread which used the GPU context for rendering. */
+  if (re->system_gpu_context) {
+    if (re->blender_gpu_context) {
+      WM_system_gpu_context_activate(re->system_gpu_context);
+      GPU_context_active_set(static_cast<GPUContext *>(re->blender_gpu_context));
+      GPU_context_discard(static_cast<GPUContext *>(re->blender_gpu_context));
+      re->blender_gpu_context = nullptr;
     }
 
-    WM_opengl_context_dispose(re->gl_context);
-    re->gl_context = nullptr;
+    WM_system_gpu_context_dispose(re->system_gpu_context);
+    re->system_gpu_context = nullptr;
   }
 }
 
-void *RE_gl_context_get(Render *re)
+void *RE_system_gpu_context_get(Render *re)
 {
-  return re->gl_context;
+  return re->system_gpu_context;
 }
 
-void *RE_gpu_context_get(Render *re)
+void *RE_blender_gpu_context_get(Render *re)
 {
-  if (re->gpu_context == nullptr) {
-    re->gpu_context = GPU_context_create(nullptr, re->gl_context);
+  if (re->blender_gpu_context == nullptr) {
+    re->blender_gpu_context = GPU_context_create(nullptr, re->system_gpu_context);
   }
-  return re->gpu_context;
+  return re->blender_gpu_context;
 }
 
 /** \} */
@@ -1752,7 +1752,7 @@ static void render_pipeline_free(Render *re)
     re->pipeline_scene_eval = nullptr;
   }
   /* Destroy the opengl context in the correct thread. */
-  RE_gl_context_destroy(re);
+  RE_system_gpu_context_destroy(re);
 
   /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in the
    * case of cancelled render) ensure the storage is empty. */

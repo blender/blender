@@ -1899,7 +1899,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   }
 
   const bool own_ofs = (ofs == nullptr);
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   if (own_ofs) {
     /* bind */
@@ -1910,7 +1910,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                                err_out);
     if (ofs == nullptr) {
-      DRW_opengl_context_disable();
+      DRW_gpu_context_disable();
       return nullptr;
     }
   }
@@ -2006,7 +2006,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
     GPU_offscreen_free(ofs);
   }
 
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (old_fb) {
     GPU_framebuffer_bind(old_fb);

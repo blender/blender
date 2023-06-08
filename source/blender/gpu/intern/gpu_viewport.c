@@ -194,7 +194,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   rect_size[0] = BLI_rcti_size_x(rect) + 1;
   rect_size[1] = BLI_rcti_size_y(rect) + 1;
 
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   if (!equals_v2v2_int(viewport->size, rect_size)) {
     copy_v2_v2_int(viewport->size, rect_size);
@@ -562,7 +562,7 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
 void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
 {
   GPU_framebuffer_restore();
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 }
 
 int GPU_viewport_active_view_get(GPUViewport *viewport)

@@ -101,7 +101,7 @@ class GHOST_System : public GHOST_ISystem {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) = 0;
+  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) = 0;
 
   /**
    * Returns whether a window is valid.

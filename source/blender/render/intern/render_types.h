@@ -124,8 +124,8 @@ struct Render {
   char viewname[MAX_NAME];
 
   /* TODO: replace by a whole draw manager. */
-  void *gl_context;
-  void *gpu_context;
+  void *system_gpu_context;
+  void *blender_gpu_context;
 };
 
 /* **************** defines ********************* */

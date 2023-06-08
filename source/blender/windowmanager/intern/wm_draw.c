@@ -1199,11 +1199,11 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_window_clear_drawable(CTX_wm_manager(C));
   wm_surface_make_drawable(surface);
 
-  GPU_context_begin_frame(surface->gpu_ctx);
+  GPU_context_begin_frame(surface->blender_gpu_context);
 
   surface->draw(C);
 
-  GPU_context_end_frame(surface->gpu_ctx);
+  GPU_context_end_frame(surface->blender_gpu_context);
 
   /* Avoid interference with window drawable */
   wm_surface_clear_drawable();

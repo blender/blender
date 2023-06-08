@@ -302,7 +302,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       uchar *gp_rect;
       uchar *render_rect = ibuf_result->byte_buffer.data;
 
-      DRW_opengl_context_enable();
+      DRW_gpu_context_enable();
       GPU_offscreen_bind(oglrender->ofs, true);
 
       GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -324,7 +324,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
         blend_color_mix_byte(&render_rect[i], &render_rect[i], &gp_rect[i]);
       }
       GPU_offscreen_unbind(oglrender->ofs, true);
-      DRW_opengl_context_disable();
+      DRW_gpu_context_disable();
 
       MEM_freeN(gp_rect);
     }
@@ -744,14 +744,14 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   BKE_render_resolution(&scene->r, false, &sizex, &sizey);
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
-  DRW_opengl_context_enable(); /* Off-screen creation needs to be done in DRW context. */
+  DRW_gpu_context_enable(); /* Off-screen creation needs to be done in DRW context. */
   ofs = GPU_offscreen_create(sizex,
                              sizey,
                              true,
                              GPU_RGBA16F,
                              GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                              err_out);
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (!ofs) {
     BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
@@ -925,9 +925,9 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
 
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
   GPU_offscreen_free(oglrender->ofs);
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (oglrender->is_sequencer) {
     MEM_freeN(oglrender->seq_data.ibufs_arr);

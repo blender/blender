@@ -62,13 +62,13 @@
       (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_Y)
 
 /* TODO: should be replace by a more elegant alternative. */
-extern void DRW_opengl_context_enable(void);
-extern void DRW_opengl_context_disable(void);
+extern void DRW_gpu_context_enable(void);
+extern void DRW_gpu_context_disable(void);
 
-extern void DRW_opengl_render_context_enable(void *re_gl_context);
-extern void DRW_opengl_render_context_disable(void *re_gl_context);
-extern void DRW_gpu_render_context_enable(void *re_gpu_context);
-extern void DRW_gpu_render_context_disable(void *re_gpu_context);
+extern void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
+extern void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
+extern void DRW_blender_gpu_render_context_enable(void *re_blender_gpu_context);
+extern void DRW_blender_gpu_render_context_disable(void *re_blender_gpu_context);
 
 typedef struct EEVEE_LightBake {
   Depsgraph *depsgraph;
@@ -157,7 +157,7 @@ typedef struct EEVEE_LightBake {
   int frame;
 
   /** If running in parallel (in a separate thread), use this context. */
-  void *gl_context, *gpu_context;
+  void *system_gpu_context, *blender_gpu_context;
 
   ThreadMutex *mutex;
 } EEVEE_LightBake;
@@ -601,20 +601,20 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
 {
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
     GPU_context_main_lock();
-    DRW_opengl_context_enable();
+    DRW_gpu_context_enable();
     GPU_render_begin();
     return;
   }
 
-  if (lbake->gl_context) {
-    DRW_opengl_render_context_enable(lbake->gl_context);
-    if (lbake->gpu_context == NULL) {
-      lbake->gpu_context = GPU_context_create(NULL, lbake->gl_context);
+  if (lbake->system_gpu_context) {
+    DRW_system_gpu_render_context_enable(lbake->system_gpu_context);
+    if (lbake->blender_gpu_context == NULL) {
+      lbake->blender_gpu_context = GPU_context_create(NULL, lbake->system_gpu_context);
     }
-    DRW_gpu_render_context_enable(lbake->gpu_context);
+    DRW_blender_gpu_render_context_enable(lbake->blender_gpu_context);
   }
   else {
-    DRW_opengl_context_enable();
+    DRW_gpu_context_enable();
   }
   GPU_render_begin();
 }
@@ -623,19 +623,19 @@ static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 {
 
   if (GPU_use_main_context_workaround() && !BLI_thread_is_main()) {
-    DRW_opengl_context_disable();
+    DRW_gpu_context_disable();
     GPU_render_end();
     GPU_context_main_unlock();
     return;
   }
 
-  if (lbake->gl_context) {
-    DRW_gpu_render_context_disable(lbake->gpu_context);
+  if (lbake->system_gpu_context) {
+    DRW_blender_gpu_render_context_disable(lbake->blender_gpu_context);
     GPU_render_end();
-    DRW_opengl_render_context_disable(lbake->gl_context);
+    DRW_system_gpu_render_context_disable(lbake->system_gpu_context);
   }
   else {
-    DRW_opengl_context_disable();
+    DRW_gpu_context_disable();
     GPU_render_end();
   }
 }
@@ -788,13 +788,13 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
     lbake->scene = scene;
     lbake->bmain = bmain;
     lbake->view_layer_input = view_layer;
-    lbake->gl_context = old_lbake->gl_context;
+    lbake->system_gpu_context = old_lbake->system_gpu_context;
     lbake->own_resources = true;
     lbake->delay = delay;
     lbake->frame = frame;
 
-    if (lbake->gl_context == NULL && !GPU_use_main_context_workaround()) {
-      lbake->gl_context = WM_opengl_context_create();
+    if (lbake->system_gpu_context == NULL && !GPU_use_main_context_workaround()) {
+      lbake->system_gpu_context = WM_system_gpu_context_create();
       wm_window_reset_drawable();
     }
 
@@ -835,7 +835,7 @@ void *EEVEE_lightbake_job_data_alloc(
   lbake->frame = frame;
 
   if (run_as_job && !GPU_use_main_context_workaround()) {
-    lbake->gl_context = WM_opengl_context_create();
+    lbake->system_gpu_context = WM_system_gpu_context_create();
     wm_window_reset_drawable();
   }
 
@@ -865,12 +865,12 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
     BLI_mutex_lock(lbake->mutex);
   }
 
-  if (lbake->gl_context) {
-    DRW_opengl_render_context_enable(lbake->gl_context);
-    DRW_gpu_render_context_enable(lbake->gpu_context);
+  if (lbake->system_gpu_context) {
+    DRW_system_gpu_render_context_enable(lbake->system_gpu_context);
+    DRW_blender_gpu_render_context_enable(lbake->blender_gpu_context);
   }
   else if (!lbake->resource_only) {
-    DRW_opengl_context_enable();
+    DRW_gpu_context_enable();
   }
 
   /* XXX: Free the resources contained in the view-layer data
@@ -887,24 +887,24 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
     GPU_FRAMEBUFFER_FREE_SAFE(lbake->rt_fb[i]);
   }
 
-  if (lbake->gpu_context) {
-    DRW_gpu_render_context_disable(lbake->gpu_context);
-    DRW_gpu_render_context_enable(lbake->gpu_context);
-    GPU_context_discard(lbake->gpu_context);
+  if (lbake->blender_gpu_context) {
+    DRW_blender_gpu_render_context_disable(lbake->blender_gpu_context);
+    DRW_blender_gpu_render_context_enable(lbake->blender_gpu_context);
+    GPU_context_discard(lbake->blender_gpu_context);
   }
 
-  if (lbake->gl_context && lbake->own_resources) {
+  if (lbake->system_gpu_context && lbake->own_resources) {
     /* Delete the baking context. */
-    DRW_opengl_render_context_disable(lbake->gl_context);
-    WM_opengl_context_dispose(lbake->gl_context);
-    lbake->gpu_context = NULL;
-    lbake->gl_context = NULL;
+    DRW_system_gpu_render_context_disable(lbake->system_gpu_context);
+    WM_system_gpu_context_dispose(lbake->system_gpu_context);
+    lbake->blender_gpu_context = NULL;
+    lbake->system_gpu_context = NULL;
   }
-  else if (lbake->gl_context) {
-    DRW_opengl_render_context_disable(lbake->gl_context);
+  else if (lbake->system_gpu_context) {
+    DRW_system_gpu_render_context_disable(lbake->system_gpu_context);
   }
   else if (!lbake->resource_only) {
-    DRW_opengl_context_disable();
+    DRW_gpu_context_disable();
   }
 
   if (!lbake->resource_only) {
@@ -1490,10 +1490,10 @@ void EEVEE_lightbake_job(void *custom_data, bool *stop, bool *do_update, float *
   lcache->flag |= LIGHTCACHE_BAKED;
   lcache->flag &= ~LIGHTCACHE_BAKING;
 
-  /* Assume that if lbake->gl_context is NULL
+  /* Assume that if lbake->system_gpu_context is NULL
    * we are not running in this in a job, so update
    * the scene light-cache pointer before deleting it. */
-  if (lbake->gl_context == NULL) {
+  if (lbake->system_gpu_context == NULL) {
     BLI_assert(BLI_thread_is_main());
     EEVEE_lightbake_update(lbake);
   }

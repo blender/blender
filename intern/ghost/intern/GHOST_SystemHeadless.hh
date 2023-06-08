@@ -79,7 +79,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   void getAllDisplayDimensions(uint32_t & /*width*/, uint32_t & /*height*/) const override
   { /* nop */
   }
-  GHOST_IContext *createOffscreenContext(GHOST_GLSettings /*glSettings*/) override
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/) override
   {
 #ifdef __linux__
     GHOST_Context *context;
@@ -150,7 +150,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                               uint32_t width,
                               uint32_t height,
                               GHOST_TWindowState state,
-                              GHOST_GLSettings glSettings,
+                              GHOST_GPUSettings gpuSettings,
                               const bool /*exclusive*/,
                               const bool /*is_dialog*/,
                               const GHOST_IWindow *parentWindow) override
@@ -162,8 +162,8 @@ class GHOST_SystemHeadless : public GHOST_System {
                                 height,
                                 state,
                                 parentWindow,
-                                glSettings.context_type,
-                                ((glSettings.flags & GHOST_glStereoVisual) != 0));
+                                gpuSettings.context_type,
+                                ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0));
   }
 
   GHOST_IWindow *getWindowUnderCursor(int32_t /*x*/, int32_t /*y*/) override

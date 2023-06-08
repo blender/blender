@@ -412,7 +412,7 @@ bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 
 int main(int argc, char **argv)
 {
-  GHOST_GLSettings glSettings = {0};
+  GHOST_GPUSettings gpuSettings = {0};
   char *title1 = "gears - main window";
   char *title2 = "gears - secondary window";
   GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(processEvent, NULL);
@@ -433,7 +433,7 @@ int main(int argc, char **argv)
                                      GHOST_kWindowStateNormal,
                                      false,
                                      GHOST_kDrawingContextTypeOpenGL,
-                                     glSettings);
+                                     gpuSettings);
     if (!sMainWindow) {
       printf("could not create main window\n");
       exit(-1);
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
                                           GHOST_kWindowStateNormal,
                                           false,
                                           GHOST_kDrawingContextTypeOpenGL,
-                                          glSettings);
+                                          gpuSettings);
     if (!sSecondaryWindow) {
       printf("could not create secondary window\n");
       exit(-1);

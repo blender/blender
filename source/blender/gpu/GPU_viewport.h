@@ -60,7 +60,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  float dither);
 
 /**
- * Should be called from DRW after DRW_opengl_context_enable.
+ * Should be called from DRW after DRW_gpu_context_enable.
  */
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
                                       struct GPUOffScreen *ofs,

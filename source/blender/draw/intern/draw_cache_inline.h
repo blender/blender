@@ -61,7 +61,7 @@ BLI_INLINE void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
 BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 {
   /* TODO: do not rely on data uploaded. This prevents multi-threading.
-   * (need access to a OpenGL context). */
+   * (need access to a GPU context). */
   return (ibo != NULL && !GPU_indexbuf_is_init(ibo));
 }
 

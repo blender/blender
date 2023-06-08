@@ -243,7 +243,7 @@ static void compo_initjob(void *cjv)
   }
 
   cj->re = RE_NewSceneRender(scene);
-  RE_gl_context_create(cj->re);
+  RE_system_gpu_context_create(cj->re);
 }
 
 /* Called before redraw notifiers, it moves finished previews over. */
@@ -302,7 +302,7 @@ static void compo_startjob(void *cjv,
     }
   }
 
-  RE_gl_context_destroy(cj->re);
+  RE_system_gpu_context_destroy(cj->re);
 
   ntree->runtime->test_break = nullptr;
   ntree->runtime->stats_draw = nullptr;

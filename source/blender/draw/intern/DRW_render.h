@@ -944,7 +944,7 @@ bool DRW_state_is_scene_render(void);
 /**
  * Whether we are rendering simple opengl render
  */
-bool DRW_state_is_opengl_render(void);
+bool DRW_state_is_viewport_image_render(void);
 bool DRW_state_is_playback(void);
 /**
  * Is the user navigating the region.
