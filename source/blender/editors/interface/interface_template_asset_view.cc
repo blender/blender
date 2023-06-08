@@ -146,9 +146,8 @@ static void asset_view_filter_items(uiList *ui_list,
       });
 }
 
-static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
+static void asset_view_listener(uiList * /*ui_list*/, wmRegionListenerParams *params)
 {
-  AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
   const wmNotifier *notifier = params->notifier;
 
   switch (notifier->category) {
@@ -160,7 +159,7 @@ static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
     }
   }
 
-  if (ED_assetlist_listen(&list_data->asset_library_ref, params->notifier)) {
+  if (ED_assetlist_listen(params->notifier)) {
     ED_region_tag_redraw(params->region);
   }
 }
