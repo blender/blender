@@ -79,15 +79,15 @@ void COM_execute(Render *render,
   if (U.experimental.use_full_frame_compositor &&
       node_tree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
   {
-    /* Realtime GPU compositer. */
+    /* Realtime GPU compositor. */
 
     /* TODO: add persistence and depsgraph updates for better performance. */
-    blender::render::RealtimeCompositor compositer(
+    blender::render::RealtimeCompositor compositor(
         *render, *scene, *render_data, *node_tree, rendering, view_name);
-    compositer.execute();
+    compositor.execute();
   }
   else {
-    /* Tiled and Full Frame compositers. */
+    /* Tiled and Full Frame compositors. */
 
     /* Initialize workscheduler. */
     const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;

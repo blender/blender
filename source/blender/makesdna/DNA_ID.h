@@ -1031,7 +1031,7 @@ typedef enum IDRecalcFlag {
    * changed, and the shader is to be recompiled.
    * For objects it means that the draw batch cache is to be redone. */
   ID_RECALC_SHADING = (1 << 7),
-  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMATERS
+  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMETERS
    * which can be used for cases when only socket value changed, to speed up
    * redraw update in that case. */
 
