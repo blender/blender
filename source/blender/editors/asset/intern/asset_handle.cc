@@ -36,9 +36,9 @@ AssetMetaData *ED_asset_handle_get_metadata(const AssetHandle *asset_handle)
   return AS_asset_representation_metadata_get(asset_handle->file_data->asset);
 }
 
-ID *ED_asset_handle_get_local_id(const AssetHandle *asset)
+ID *ED_asset_handle_get_local_id(const AssetHandle *asset_handle)
 {
-  return asset->file_data->id;
+  return AS_asset_representation_local_id_get(asset_handle->file_data->asset);
 }
 
 ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset)
