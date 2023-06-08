@@ -71,6 +71,11 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
   }
 #endif
 
+  if (sd->type == PRIMITIVE_LAMP && node.y == ATTR_STD_UV) {
+    stack_store_float3(stack, out_offset, make_float3(1.0f - sd->u - sd->v, sd->u, 0.0f));
+    return;
+  }
+
   if (node.y == ATTR_STD_GENERATED && desc.element == ATTR_ELEMENT_NONE) {
     /* No generated attribute, fall back to object coordinates. */
     float3 f = sd->P;

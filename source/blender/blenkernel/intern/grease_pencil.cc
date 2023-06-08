@@ -1061,7 +1061,7 @@ enum ForeachDrawingMode {
 static void foreach_drawing_ex(GreasePencil &grease_pencil,
                                int frame,
                                ForeachDrawingMode mode,
-                               blender::FunctionRef<void(GreasePencilDrawing &)> function)
+                               blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
 {
   using namespace blender::bke::greasepencil;
 
@@ -1089,7 +1089,7 @@ static void foreach_drawing_ex(GreasePencil &grease_pencil,
     GreasePencilDrawingBase *drawing_base = drawings[index];
     if (drawing_base->type == GP_DRAWING) {
       GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-      function(*drawing);
+      function(index, *drawing);
     }
     else if (drawing_base->type == GP_DRAWING_REFERENCE) {
       /* TODO */
@@ -1098,13 +1098,13 @@ static void foreach_drawing_ex(GreasePencil &grease_pencil,
 }
 
 void GreasePencil::foreach_visible_drawing(
-    int frame, blender::FunctionRef<void(GreasePencilDrawing &)> function)
+    int frame, blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
 {
   foreach_drawing_ex(*this, frame, VISIBLE, function);
 }
 
 void GreasePencil::foreach_editable_drawing(
-    int frame, blender::FunctionRef<void(GreasePencilDrawing &)> function)
+    int frame, blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
 {
   foreach_drawing_ex(*this, frame, EDITABLE, function);
 }

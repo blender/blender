@@ -136,6 +136,11 @@ static const EnumPropertyItem rna_enum_execution_mode_items[] = {
      0,
      "Full Frame",
      "Composites full image result as fast as possible"},
+    {NTREE_EXECUTION_MODE_REALTIME,
+     "REALTIME",
+     0,
+     "Realtime GPU",
+     "Use GPU accelerated compositing with more limited functionality"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -4835,8 +4840,8 @@ static const EnumPropertyItem node_principled_distribution_items[] = {
      "MULTI_GGX",
      0,
      "Multiscatter GGX",
-     "Slower than GGX but gives a more energy conserving results, which would otherwise be "
-     "visible as excessive darkening"},
+     "GGX with additional correction to account for multiple scattering, preserve energy and "
+     "prevent unexpected darkening at high roughness"},
     {0, NULL, 0, NULL, NULL},
 };
 

@@ -969,7 +969,8 @@ struct RaycastObjUserData {
   /* read/write args */
   float *ray_depth;
 
-  bool use_occlusion_test;
+  uint use_occlusion_test : 1;
+  uint use_occlusion_test_edit : 1;
 };
 
 /**
@@ -986,21 +987,17 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
 {
   RaycastObjUserData *dt = static_cast<RaycastObjUserData *>(data);
   const uint ob_index = dt->ob_index++;
-  bool use_occlusion_test = dt->use_occlusion_test;
   /* read/write args */
   float *ray_depth = dt->ray_depth;
 
   bool retval = false;
   bool is_edit = false;
-  if (use_occlusion_test) {
-    if (ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
-      /* Do not hit objects that are in wire or bounding box
-       * display mode. */
-      return SCE_SNAP_MODE_NONE;
-    }
-  }
 
   if (ob_data == nullptr) {
+    if (dt->use_occlusion_test_edit && ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
+      /* Do not hit objects that are in wire or bounding box display mode. */
+      return SCE_SNAP_MODE_NONE;
+    }
     if (ob_eval->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
       if (UNLIKELY(!em)) { /* See #mesh_for_snap doc-string. */
@@ -1027,6 +1024,10 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
     else {
       return SCE_SNAP_MODE_NONE;
     }
+  }
+  else if (dt->use_occlusion_test && ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
+    /* Do not hit objects that are in wire or bounding box display mode. */
+    return SCE_SNAP_MODE_NONE;
   }
   else if (GS(ob_data->name) != ID_ME) {
     return SCE_SNAP_MODE_NONE;
@@ -1057,7 +1058,7 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
     sctx->ret.is_edit = is_edit;
-    return SCE_SNAP_MODE_FACE_RAYCAST;
+    return SCE_SNAP_MODE_FACE;
   }
   return SCE_SNAP_MODE_NONE;
 }
@@ -1080,26 +1081,20 @@ static bool raycastObjects(SnapObjectContext *sctx,
                            const SnapObjectParams *params,
                            const float ray_start[3],
                            const float ray_dir[3],
+                           const bool use_occlusion_test,
+                           const bool use_occlusion_test_edit,
                            /* read/write args */
                            /* Parameters below cannot be const, because they are assigned to a
                             * non-const variable (readability-non-const-parameter). */
                            float *ray_depth /* NOLINT */)
 {
-  const View3D *v3d = sctx->runtime.v3d;
-  if (params->use_occlusion_test && v3d && XRAY_FLAG_ENABLED(v3d)) {
-    /* General testing of occlusion geometry is disabled if the snap is not intended for the edit
-     * cage. */
-    if (params->edit_mode_type == SNAP_GEOM_EDIT) {
-      return false;
-    }
-  }
-
   RaycastObjUserData data = {};
   data.ray_start = ray_start;
   data.ray_dir = ray_dir;
   data.ob_index = 0;
   data.ray_depth = ray_depth;
-  data.use_occlusion_test = params->use_occlusion_test;
+  data.use_occlusion_test = use_occlusion_test;
+  data.use_occlusion_test_edit = use_occlusion_test_edit;
 
   return iter_snap_objects(sctx, params, raycast_obj_fn, &data) != SCE_SNAP_MODE_NONE;
 }
@@ -2072,7 +2067,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
-  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE_RAYCAST) {
+  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE) {
     /* Currently only edge and vert. */
     return retval;
   }
@@ -2553,7 +2548,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                           float r_no[3],
                           int *r_index)
 {
-  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE_RAYCAST);
+  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE);
   if (me_eval->totvert == 0) {
     return SCE_SNAP_MODE_NONE;
   }
@@ -2718,9 +2713,9 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
                               float r_no[3],
                               int *r_index)
 {
-  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE_RAYCAST);
+  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE);
 
-  if ((sctx->runtime.snap_to_flag & ~SCE_SNAP_MODE_FACE_RAYCAST) == SCE_SNAP_MODE_VERTEX) {
+  if ((sctx->runtime.snap_to_flag & ~SCE_SNAP_MODE_FACE) == SCE_SNAP_MODE_VERTEX) {
     if (em->bm->totvert == 0) {
       return SCE_SNAP_MODE_NONE;
     }
@@ -3117,7 +3112,14 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
   sctx->ret.dist_sq = FLT_MAX;
   sctx->ret.is_edit = false;
 
-  if (raycastObjects(sctx, params, ray_start, ray_normal, ray_depth)) {
+  if (raycastObjects(sctx,
+                     params,
+                     ray_start,
+                     ray_normal,
+                     params->use_occlusion_test,
+                     params->use_occlusion_test,
+                     ray_depth))
+  {
     copy_v3_v3(r_loc, sctx->ret.loc);
     if (r_no) {
       copy_v3_v3(r_no, sctx->ret.no);
@@ -3167,7 +3169,14 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
   float ray_depth_prev = ray_depth;
 #endif
 
-  if (raycastObjects(sctx, params, ray_start, ray_normal, &ray_depth)) {
+  if (raycastObjects(sctx,
+                     params,
+                     ray_start,
+                     ray_normal,
+                     params->use_occlusion_test,
+                     params->use_occlusion_test,
+                     &ray_depth))
+  {
     if (sort) {
       BLI_listbase_sort(r_hit_list, hit_depth_cmp);
     }
@@ -3275,15 +3284,19 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  if (snap_to_flag & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) {
-    if (params->use_occlusion_test && XRAY_ENABLED(v3d)) {
-      /* Remove Snap to Face with Occlusion Test as they are not visible in wireframe mode. */
-      snap_to_flag &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+  bool use_occlusion_test = params->use_occlusion_test;
+
+  if (use_occlusion_test && XRAY_ENABLED(v3d) && (snap_to_flag & SCE_SNAP_MODE_FACE)) {
+    if (snap_to_flag != SCE_SNAP_MODE_FACE) {
+      /* In theory everything is visible in X-Ray except faces. */
+      snap_to_flag &= ~SCE_SNAP_MODE_FACE;
+      use_occlusion_test = false;
     }
-    else if (prev_co == nullptr || init_co == nullptr) {
-      /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
-      snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
-    }
+  }
+
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE_NEAREST) && ELEM(nullptr, prev_co, init_co)) {
+    /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
+    snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
   }
 
   /* NOTE: if both face ray-cast and face nearest are enabled, first find result of nearest, then
@@ -3310,9 +3323,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
-
-  if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) || use_occlusion_test) {
+  if ((snap_to_flag & SCE_SNAP_MODE_FACE) || use_occlusion_test) {
     float ray_start[3], ray_normal[3];
     if (!ED_view3d_win_to_ray_clipped_ex(
             depsgraph, region, v3d, mval, nullptr, ray_normal, ray_start, true))
@@ -3322,15 +3333,21 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
     float dummy_ray_depth = BVH_RAYCAST_DIST_MAX;
 
-    has_hit = raycastObjects(sctx, params, ray_start, ray_normal, &dummy_ray_depth);
+    has_hit = raycastObjects(sctx,
+                             params,
+                             ray_start,
+                             ray_normal,
+                             use_occlusion_test,
+                             use_occlusion_test && (snap_to_flag & SCE_SNAP_MODE_FACE) == 0,
+                             &dummy_ray_depth);
 
     if (has_hit) {
       if (r_face_nor) {
         copy_v3_v3(r_face_nor, sctx->ret.no);
       }
 
-      if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
-        retval = SCE_SNAP_MODE_FACE_RAYCAST;
+      if (snap_to_flag & SCE_SNAP_MODE_FACE) {
+        retval = SCE_SNAP_MODE_FACE;
 
         copy_v3_v3(r_loc, sctx->ret.loc);
         if (r_no) {

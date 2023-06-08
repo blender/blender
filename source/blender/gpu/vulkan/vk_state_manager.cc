@@ -127,7 +127,7 @@ void VKStateManager::image_unbind(Texture *tex)
 
 void VKStateManager::image_unbind_all()
 {
-  for (TextureBinding &binding : texture_bindings_) {
+  for (ImageBinding &binding : image_bindings_) {
     binding.texture = nullptr;
   }
 }

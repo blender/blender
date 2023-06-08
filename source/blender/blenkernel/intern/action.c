@@ -1852,7 +1852,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
 
     animviz_motionpath_blend_write(writer, chan->mpath);
 
-    /* Prevent crashes with autosave,
+    /* Prevent crashes with auto-save,
      * when a bone duplicated in edit-mode has not yet been assigned to its pose-channel.
      * Also needed with memundo, in some cases we can store a step before pose has been
      * properly rebuilt from previous undo step. */

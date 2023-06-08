@@ -10,8 +10,6 @@
 
 #include "BLI_color.hh"
 
-#include "Imath/half.h"
-
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -34,6 +32,9 @@ enum class ConversionType {
   FLOAT_TO_SNORM16,
   SNORM16_TO_FLOAT,
 
+  FLOAT_TO_UNORM32,
+  UNORM32_TO_FLOAT,
+
   UI32_TO_UI16,
   UI16_TO_UI32,
 
@@ -55,6 +56,9 @@ enum class ConversionType {
 
   FLOAT_TO_DEPTH_COMPONENT24,
   DEPTH_COMPONENT24_TO_FLOAT,
+
+  FLOAT_TO_B10F_G11F_R11F,
+  B10F_G11F_R11F_TO_FLOAT,
 
   /**
    * The requested conversion isn't supported.
@@ -105,6 +109,9 @@ static ConversionType type_of_conversion_float(eGPUTextureFormat device_format)
     case GPU_DEPTH_COMPONENT24:
       return ConversionType::FLOAT_TO_DEPTH_COMPONENT24;
 
+    case GPU_R11F_G11F_B10F:
+      return ConversionType::FLOAT_TO_B10F_G11F_R11F;
+
     case GPU_RGB32F: /* GPU_RGB32F Not supported by vendors. */
     case GPU_RGBA8UI:
     case GPU_RGBA8I:
@@ -126,7 +133,6 @@ static ConversionType type_of_conversion_float(eGPUTextureFormat device_format)
     case GPU_R32I:
     case GPU_RGB10_A2:
     case GPU_RGB10_A2UI:
-    case GPU_R11F_G11F_B10F:
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
     case GPU_RGB8UI:
@@ -236,6 +242,7 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGBA32UI:
     case GPU_RG32UI:
     case GPU_R32UI:
+    case GPU_DEPTH_COMPONENT24:
       return ConversionType::PASS_THROUGH;
 
     case GPU_RGBA16UI:
@@ -248,6 +255,10 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RG8UI:
     case GPU_R8UI:
       return ConversionType::UI32_TO_UI8;
+
+    case GPU_DEPTH_COMPONENT32F:
+    case GPU_DEPTH32F_STENCIL8:
+      return ConversionType::UNORM32_TO_FLOAT;
 
     case GPU_RGBA8I:
     case GPU_RGBA8:
@@ -273,7 +284,6 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGB10_A2:
     case GPU_RGB10_A2UI:
     case GPU_R11F_G11F_B10F:
-    case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
     case GPU_SRGB8_A8:
     case GPU_RGBA8_SNORM:
@@ -301,8 +311,6 @@ static ConversionType type_of_conversion_uint(eGPUTextureFormat device_format)
     case GPU_RGBA8_DXT5:
     case GPU_SRGB8:
     case GPU_RGB9_E5:
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
       return ConversionType::UNSUPPORTED;
   }
@@ -393,6 +401,7 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_RG8:
     case GPU_R8UI:
     case GPU_R8:
+    case GPU_SRGB8_A8:
       return ConversionType::PASS_THROUGH;
 
     case GPU_RGBA8I:
@@ -424,7 +433,6 @@ static ConversionType type_of_conversion_ubyte(eGPUTextureFormat device_format)
     case GPU_R11F_G11F_B10F:
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-    case GPU_SRGB8_A8:
     case GPU_RGBA8_SNORM:
     case GPU_RGBA16_SNORM:
     case GPU_RGB8UI:
@@ -520,6 +528,7 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(FLOAT, SNORM8)
       CASE_PAIR(FLOAT, UNORM16)
       CASE_PAIR(FLOAT, SNORM16)
+      CASE_PAIR(FLOAT, UNORM32)
       CASE_PAIR(UI32, UI16)
       CASE_PAIR(I32, I16)
       CASE_PAIR(UI32, UI8)
@@ -527,6 +536,7 @@ static ConversionType reversed(ConversionType type)
       CASE_PAIR(FLOAT, HALF)
       CASE_PAIR(FLOAT, SRGBA8)
       CASE_PAIR(FLOAT, DEPTH_COMPONENT24)
+      CASE_PAIR(FLOAT, B10F_G11F_R11F)
 
     case ConversionType::UNSUPPORTED:
       return ConversionType::UNSUPPORTED;
@@ -544,6 +554,26 @@ static ConversionType reversed(ConversionType type)
 /** \name Data Conversion
  * \{ */
 
+static uint32_t float_to_uint32_t(float value)
+{
+  union {
+    float fl;
+    uint32_t u;
+  } float_to_bits;
+  float_to_bits.fl = value;
+  return float_to_bits.u;
+}
+
+static float uint32_t_to_float(uint32_t value)
+{
+  union {
+    float fl;
+    uint32_t u;
+  } float_to_bits;
+  float_to_bits.u = value;
+  return float_to_bits.fl;
+}
+
 template<typename InnerType> struct ComponentValue {
   InnerType value;
 };
@@ -560,7 +590,11 @@ using I32 = ComponentValue<int32_t>;
 using F32 = ComponentValue<float>;
 using F16 = ComponentValue<uint16_t>;
 using SRGBA8 = PixelValue<ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>>;
+using FLOAT3 = PixelValue<float3>;
 using FLOAT4 = PixelValue<ColorSceneLinear4f<eAlpha::Premultiplied>>;
+/* NOTE: Vulkan stores R11_G11_B10 in reverse component order. */
+class B10F_G11G_R11F : public PixelValue<uint32_t> {
+};
 
 class DepthComponent24 : public ComponentValue<uint32_t> {
  public:
@@ -604,6 +638,7 @@ template<typename InnerType> struct SignedNormalized {
 
 template<typename InnerType> struct UnsignedNormalized {
   static_assert(std::is_same<InnerType, uint8_t>() || std::is_same<InnerType, uint16_t>() ||
+                std::is_same<InnerType, uint32_t>() ||
                 std::is_same<InnerType, DepthComponent24>());
   InnerType value;
 
@@ -617,15 +652,24 @@ template<typename InnerType> struct UnsignedNormalized {
     }
   }
 
-  static constexpr int32_t scalar()
+  static constexpr uint32_t scalar()
   {
-
-    return (1 << (used_byte_size() * 8)) - 1;
+    if constexpr (std::is_same<InnerType, DepthComponent24>()) {
+      return (1 << (used_byte_size() * 8)) - 1;
+    }
+    else {
+      return std::numeric_limits<InnerType>::max();
+    }
   }
 
-  static constexpr int32_t max()
+  static constexpr uint32_t max()
   {
-    return ((1 << (used_byte_size() * 8)) - 1);
+    if constexpr (std::is_same<InnerType, DepthComponent24>()) {
+      return (1 << (used_byte_size() * 8)) - 1;
+    }
+    else {
+      return std::numeric_limits<InnerType>::max();
+    }
   }
 };
 
@@ -646,15 +690,15 @@ template<typename StorageType> void convert(F32 &dst, const SignedNormalized<Sto
 
 template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst, const F32 &src)
 {
-  static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  static constexpr int32_t max = scalar;
-  dst.value = (clamp_i((src.value * scalar), 0, max));
+  static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
+  static constexpr uint32_t max = scalar;
+  dst.value = (clamp_f((src.value * scalar), 0, max));
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
 {
-  static constexpr int32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  dst.value = float(int32_t(src.value)) / scalar;
+  static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
+  dst.value = float(uint32_t(src.value)) / scalar;
 }
 
 /* Copy the contents of src to dst with out performing any actual conversion. */
@@ -673,12 +717,12 @@ void convert(DestinationType &dst, const SourceType &src)
 
 static void convert(F16 &dst, const F32 &src)
 {
-  dst.value = imath_float_to_half(src.value);
+  dst.value = convert_float_formats<FormatF16, FormatF32>(float_to_uint32_t(src.value));
 }
 
 static void convert(F32 &dst, const F16 &src)
 {
-  dst.value = imath_half_to_float(src.value);
+  dst.value = uint32_t_to_float(convert_float_formats<FormatF32, FormatF16>(src.value));
 }
 
 static void convert(SRGBA8 &dst, const FLOAT4 &src)
@@ -689,6 +733,30 @@ static void convert(SRGBA8 &dst, const FLOAT4 &src)
 static void convert(FLOAT4 &dst, const SRGBA8 &src)
 {
   dst.value = src.value.decode();
+}
+
+constexpr uint32_t MASK_10_BITS = 0b1111111111;
+constexpr uint32_t MASK_11_BITS = 0b11111111111;
+constexpr uint8_t SHIFT_B = 22;
+constexpr uint8_t SHIFT_G = 11;
+constexpr uint8_t SHIFT_R = 0;
+
+static void convert(FLOAT3 &dst, const B10F_G11G_R11F &src)
+{
+  dst.value.x = uint32_t_to_float(
+      convert_float_formats<FormatF32, FormatF11>((src.value >> SHIFT_R) & MASK_11_BITS));
+  dst.value.y = uint32_t_to_float(
+      convert_float_formats<FormatF32, FormatF11>((src.value >> SHIFT_G) & MASK_11_BITS));
+  dst.value.z = uint32_t_to_float(
+      convert_float_formats<FormatF32, FormatF10>((src.value >> SHIFT_B) & MASK_10_BITS));
+}
+
+static void convert(B10F_G11G_R11F &dst, const FLOAT3 &src)
+{
+  uint32_t r = convert_float_formats<FormatF11, FormatF32>(float_to_uint32_t(src.value.x));
+  uint32_t g = convert_float_formats<FormatF11, FormatF32>(float_to_uint32_t(src.value.y));
+  uint32_t b = convert_float_formats<FormatF10, FormatF32>(float_to_uint32_t(src.value.z));
+  dst.value = r << SHIFT_R | g << SHIFT_G | b << SHIFT_B;
 }
 
 /* \} */
@@ -808,6 +876,15 @@ static void convert_buffer(void *dst_memory,
           dst_memory, src_memory, buffer_size, device_format);
       break;
 
+    case ConversionType::FLOAT_TO_UNORM32:
+      convert_per_component<UnsignedNormalized<uint32_t>, F32>(
+          dst_memory, src_memory, buffer_size, device_format);
+      break;
+    case ConversionType::UNORM32_TO_FLOAT:
+      convert_per_component<F32, UnsignedNormalized<uint32_t>>(
+          dst_memory, src_memory, buffer_size, device_format);
+      break;
+
     case ConversionType::FLOAT_TO_HALF:
       convert_per_component<F16, F32>(dst_memory, src_memory, buffer_size, device_format);
       break;
@@ -829,6 +906,14 @@ static void convert_buffer(void *dst_memory,
     case ConversionType::DEPTH_COMPONENT24_TO_FLOAT:
       convert_per_component<F32, UnsignedNormalized<DepthComponent24>>(
           dst_memory, src_memory, buffer_size, device_format);
+      break;
+
+    case ConversionType::FLOAT_TO_B10F_G11F_R11F:
+      convert_per_pixel<B10F_G11G_R11F, FLOAT3>(dst_memory, src_memory, buffer_size);
+      break;
+
+    case ConversionType::B10F_G11F_R11F_TO_FLOAT:
+      convert_per_pixel<FLOAT3, B10F_G11G_R11F>(dst_memory, src_memory, buffer_size);
       break;
   }
 }
@@ -877,7 +962,8 @@ void convert_device_to_host(void *dst_buffer,
                             eGPUTextureFormat device_format)
 {
   ConversionType conversion_type = reversed(host_to_device(host_format, device_format));
-  BLI_assert(conversion_type != ConversionType::UNSUPPORTED);
+  BLI_assert_msg(conversion_type != ConversionType::UNSUPPORTED,
+                 "Data conversion between host_format and device_format isn't supported (yet).");
   convert_buffer(dst_buffer, src_buffer, buffer_size, device_format, conversion_type);
 }
 

@@ -1946,7 +1946,7 @@ void EDBM_project_snap_verts(
                                                     depsgraph,
                                                     region,
                                                     CTX_wm_view3d(C),
-                                                    SCE_SNAP_MODE_FACE_RAYCAST,
+                                                    SCE_SNAP_MODE_FACE,
                                                     &(const struct SnapObjectParams){
                                                         .snap_target_select = target_op,
                                                         .edit_mode_type = SNAP_GEOM_FINAL,

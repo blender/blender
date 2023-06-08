@@ -111,6 +111,17 @@ class VKTexture : public Texture {
    */
   void layout_ensure(VKContext &context, VkImageLayout requested_layout);
 
+ private:
+  /**
+   * Internal function to ensure the layout of a single mipmap level. Note that the caller is
+   * responsible to update the current_layout of the image at the end of the operation and make
+   * sure that all mipmap levels are in that given layout.
+   */
+  void layout_ensure(VKContext &context,
+                     IndexRange mipmap_range,
+                     VkImageLayout current_layout,
+                     VkImageLayout requested_layout);
+
   /** \} */
 };
 

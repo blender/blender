@@ -911,7 +911,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    CTX_data_ensure_evaluated_depsgraph(C),
                                                    region,
                                                    v3d,
-                                                   SCE_SNAP_MODE_FACE_RAYCAST,
+                                                   SCE_SNAP_MODE_FACE,
                                                    &(const struct SnapObjectParams){
                                                        .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                        .edit_mode_type = SNAP_GEOM_FINAL,

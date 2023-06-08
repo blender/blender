@@ -332,9 +332,6 @@ static bool gwl_window_state_set_for_libdecor(libdecor_frame *frame,
       libdecor_frame_set_fullscreen(frame, nullptr);
       break;
     }
-    case GHOST_kWindowStateEmbedded: {
-      return false;
-    }
   }
   return true;
 }
@@ -376,9 +373,6 @@ static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
     case GHOST_kWindowStateFullScreen: {
       xdg_toplevel_set_fullscreen(toplevel, nullptr);
       break;
-    }
-    case GHOST_kWindowStateEmbedded: {
-      return false;
     }
   }
   return true;

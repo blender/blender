@@ -2951,10 +2951,14 @@ static int paste_material_exec(bContext *C, wmOperator *op)
    * TODO(@ideasman42): support merging indirectly referenced data-blocks besides the material,
    * this would be useful for pasting materials with node-groups between files. */
   if (ma->nodetree) {
+    /* This implicitly points to local data, assign after remapping. */
     ma->nodetree->owner_id = nullptr;
+
     /* Map remote ID's to local ones. */
     BKE_library_foreach_ID_link(
         bmain, &ma->nodetree->id, paste_material_nodetree_ids_relink_or_clear, bmain, IDWALK_NOP);
+
+    ma->nodetree->owner_id = &ma->id;
   }
   BKE_main_free(temp_bmain);
 

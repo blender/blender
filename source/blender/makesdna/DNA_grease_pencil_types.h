@@ -453,9 +453,9 @@ typedef struct GreasePencil {
   void remove_drawing(int index);
 
   void foreach_visible_drawing(int frame,
-                               blender::FunctionRef<void(GreasePencilDrawing &)> function);
+                               blender::FunctionRef<void(int, GreasePencilDrawing &)> function);
   void foreach_editable_drawing(int frame,
-                                blender::FunctionRef<void(GreasePencilDrawing &)> function);
+                                blender::FunctionRef<void(int, GreasePencilDrawing &)> function);
 
   bool bounds_min_max(blender::float3 &min, blender::float3 &max) const;
 

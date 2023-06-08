@@ -305,9 +305,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
   const bool is_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+  /* Unclear where to get z-information from, so deactivate it. */
+  const bool show_z_buffer = false;
 
   node_composit_buts_file_output(layout, C, ptr);
-  uiTemplateImageSettings(layout, &imfptr, true);
+  uiTemplateImageSettings(layout, &imfptr, true, show_z_buffer);
 
   /* disable stereo output for multilayer, too much work for something that no one will use */
   /* if someone asks for that we can implement it */
@@ -430,7 +432,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
         col = uiLayoutColumn(layout, false);
-        uiTemplateImageSettings(col, &imfptr, use_color_management);
+        uiTemplateImageSettings(col, &imfptr, use_color_management, show_z_buffer);
 
         if (is_multiview) {
           col = uiLayoutColumn(layout, false);
@@ -449,7 +451,9 @@ class OutputFileOperation : public NodeOperation {
 
   void execute() override
   {
-    context().set_info_message("Viewport compositor setup not fully supported");
+    if (context().use_file_output()) {
+      context().set_info_message("Viewport compositor setup not fully supported");
+    }
   }
 };
 

@@ -3327,6 +3327,12 @@ static bool realtime_compositor_is_in_use(const bContext &context)
     return false;
   }
 
+  if (U.experimental.use_full_frame_compositor &&
+      scene->nodetree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
+  {
+    return true;
+  }
+
   const Main *main = CTX_data_main(&context);
   LISTBASE_FOREACH (const bScreen *, screen, &main->screens) {
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {

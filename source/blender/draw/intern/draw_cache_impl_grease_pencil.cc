@@ -204,7 +204,8 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   /* Get the visible drawings. */
   Vector<const GreasePencilDrawing *> drawings;
   grease_pencil.foreach_visible_drawing(
-      cfra, [&](GreasePencilDrawing &drawing) { drawings.append(&drawing); });
+      cfra,
+      [&](int /*drawing_index*/, GreasePencilDrawing &drawing) { drawings.append(&drawing); });
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */

@@ -171,17 +171,18 @@ void register_node_tree_type_cmp()
   ntreeTypeAdd(tt);
 }
 
-void ntreeCompositExecTree(Scene *scene,
+void ntreeCompositExecTree(Render *render,
+                           Scene *scene,
                            bNodeTree *ntree,
                            RenderData *rd,
-                           int rendering,
+                           bool rendering,
                            int do_preview,
                            const char *view_name)
 {
 #ifdef WITH_COMPOSITOR_CPU
-  COM_execute(rd, scene, ntree, rendering, view_name);
+  COM_execute(render, rd, scene, ntree, rendering, view_name);
 #else
-  UNUSED_VARS(scene, ntree, rd, rendering, view_name);
+  UNUSED_VARS(render, scene, ntree, rd, rendering, view_name);
 #endif
 
   UNUSED_VARS(do_preview);

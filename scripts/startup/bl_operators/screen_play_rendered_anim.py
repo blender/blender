@@ -8,7 +8,6 @@ from bpy.app.translations import pgettext_tip as tip_
 
 
 def guess_player_path(preset):
-    import os
     import sys
 
     if preset == 'INTERNAL':
@@ -17,6 +16,7 @@ def guess_player_path(preset):
     elif preset == 'DJV':
         player_path = "djv"
         if sys.platform == "darwin":
+            import os
             test_path = "/Applications/DJV2.app/Contents/Resources/bin/djv"
             if os.path.exists(test_path):
                 player_path = test_path
@@ -141,7 +141,15 @@ class PlayRenderedAnim(Operator):
             opts = [file, "%d-%d" % (scene.frame_start, scene.frame_end)]
             cmd.extend(opts)
         elif preset == 'RV':
-            opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]
+            opts = ["-fps", str(rd.fps), "-play"]
+            if scene.use_preview_range:
+                opts += [
+                    "%s" % file.replace("#", "", file.count('#') - 1),
+                    "%d-%d" % (frame_start, frame_end),
+                ]
+            else:
+                opts.append(file)
+
             cmd.extend(opts)
         elif preset == 'MPLAYER':
             opts = []

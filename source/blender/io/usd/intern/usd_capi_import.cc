@@ -4,7 +4,6 @@
 
 #include "IO_types.h"
 #include "usd.h"
-#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_reader_geom.h"
 #include "usd_reader_prim.h"
@@ -408,11 +407,6 @@ static void import_freejob(void *user_data)
 }  // namespace blender::io::usd
 
 using namespace blender::io::usd;
-
-void USD_ensure_plugin_path_registered()
-{
-  blender::io::usd::ensure_usd_plugin_path_registered();
-}
 
 bool USD_import(struct bContext *C,
                 const char *filepath,

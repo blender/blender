@@ -50,10 +50,12 @@
  *   - write library block
  *   - per LibBlock
  *     - write the ID of LibBlock
- * - write #TEST (#RenderInfo struct. 128x128 blend file preview is optional).
- * - write #GLOB (#FileGlobal struct) (some global vars).
- * - write #DNA1 (#SDNA struct)
- * - write #USER (#UserDef struct) if filename is `~/.config/blender/X.XX/config/startup.blend`.
+ * - write #BLO_CODE_GLOB (#RenderInfo struct. 128x128 blend file preview is optional).
+ * - write #BLO_CODE_GLOB (#FileGlobal struct) (some global vars).
+ * - write #BLO_CODE_DNA1 (#SDNA struct)
+ * - write #BLO_CODE_USER (#UserDef struct) for file paths:
+     - #BLENDER_STARTUP_FILE (on UNIX `~/.config/blender/X.X/config/startup.blend`).
+     - #BLENDER_USERPREF_FILE (on UNIX `~/.config/blender/X.X/config/userpref.blend`).
  */
 
 #include <cerrno>
@@ -971,10 +973,10 @@ static void write_libraries(WriteData *wd, Main *main)
       }
     }
 
-    /* To be able to restore 'quit.blend' and temp saves,
+    /* To be able to restore `quit.blend` and temp saves,
      * the packed blend has to be in undo buffers... */
     /* XXX needs rethink, just like save UI in undo files now -
-     * would be nice to append things only for the 'quit.blend' and temp saves. */
+     * would be nice to append things only for the `quit.blend` and temp saves. */
     if (found_one) {
       /* Not overridable. */
 

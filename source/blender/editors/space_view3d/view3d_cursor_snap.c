@@ -611,9 +611,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     v3d_cursor_snap_context_ensure(scene);
 
     data_intern->snap_elem_hidden = SCE_SNAP_MODE_NONE;
-    if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE_RAYCAST)) {
-      data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
-      snap_elements |= SCE_SNAP_MODE_FACE_RAYCAST;
+    if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
+      data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
+      snap_elements |= SCE_SNAP_MODE_FACE;
     }
 
     snap_data->is_enabled = true;
@@ -628,7 +628,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
           snap_data->snap_elem = SCE_SNAP_MODE_NONE;
           return;
         }
-        snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
+        snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
       }
     }
 #endif
@@ -771,7 +771,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   {
     snap_elem_index[1] = index;
   }
-  else if (snap_elem == SCE_SNAP_MODE_FACE_RAYCAST) {
+  else if (snap_elem == SCE_SNAP_MODE_FACE) {
     snap_elem_index[2] = index;
   }
 

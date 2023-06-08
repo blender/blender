@@ -39,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.h"
 
@@ -2177,6 +2178,104 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 
   /* Flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool find_closest_frame(const FCurve *fcu,
+                               const float frame,
+                               const bool next,
+                               float *closest_frame)
+{
+  bool replace;
+  int bezt_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
+
+  BezTriple *bezt;
+  if (next) {
+    if (replace) {
+      bezt_index++;
+    }
+    if (bezt_index > fcu->totvert - 1) {
+      return false;
+    }
+    bezt = &fcu->bezt[bezt_index];
+  }
+  else {
+    if (bezt_index - 1 < 0) {
+      return false;
+    }
+    bezt = &fcu->bezt[bezt_index - 1];
+  }
+
+  *closest_frame = bezt->vec[1][0];
+  return true;
+}
+
+static int keyframe_jump_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+  Scene *scene = CTX_data_scene(C);
+
+  bool next = RNA_boolean_get(op->ptr, "next");
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
+                ANIMFILTER_NODUPLIS);
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
+    filter |= ANIMFILTER_SEL;
+  }
+
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  float closest_frame = next ? FLT_MAX : -FLT_MAX;
+  bool found = false;
+
+  const float current_frame = BKE_scene_frame_get(scene);
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    const FCurve *fcu = ale->key_data;
+    if (!fcu->bezt) {
+      continue;
+    }
+    float closest_fcu_frame;
+    if (!find_closest_frame(fcu, current_frame, next, &closest_fcu_frame)) {
+      continue;
+    }
+    if ((next && closest_fcu_frame < closest_frame) ||
+        (!next && closest_fcu_frame > closest_frame)) {
+      closest_frame = closest_fcu_frame;
+      found = true;
+    }
+  }
+
+  if (!found) {
+    BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_scene_frame_set(scene, closest_frame);
+
+  /* Set notifier that things have changed. */
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_keyframe_jump(wmOperatorType *ot)
+{
+  ot->name = "Jump to Keyframe";
+  ot->description = "Jump to previous/next keyframe";
+  ot->idname = "GRAPH_OT_keyframe_jump";
+
+  ot->exec = keyframe_jump_exec;
+
+  ot->poll = graphkeys_framejump_poll;
+  ot->flag = OPTYPE_UNDO_GROUPED;
+  ot->undo_group = "Frame Change";
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "next", true, "Next Keyframe", "");
 }
 
 /* snap 2D cursor value to the average value of selected keyframe */

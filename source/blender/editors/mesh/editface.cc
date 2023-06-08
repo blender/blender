@@ -517,7 +517,11 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
 
-  select_poly.span.fill_indices(polys_to_select.as_span(), select);
+  /* Toggling behavior. When one of the faces of the picked edge is already selected,
+   * it deselects the loop instead. */
+  const bool select_toggle = select && !(select_poly.span[polys_to_closest_edge[0]] ||
+                                         select_poly.span[polys_to_closest_edge[1]]);
+  select_poly.span.fill_indices(polys_to_select.as_span(), select_toggle);
 
   select_poly.finish();
   paintface_flush_flags(C, ob, true, false);

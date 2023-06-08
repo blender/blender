@@ -105,11 +105,20 @@ typedef enum eWinOverrideFlag {
  * These values are typically set by command line arguments.
  */
 static struct WMInitStruct {
-  /* window geometry */
+  /**
+   * Window geometry:
+   * - Defaults to the main screen-size.
+   * - May be set by the `--window-geometry` argument,
+   *   which also forces these values to be used by setting #WIN_OVERRIDE_GEOM.
+   * - When #wmWindow::size_x is zero, these values are used as a fallback,
+   *   needed so the #BLENDER_STARTUP_FILE loads at the size of the users main-screen
+   *   instead of the size stored in the factory startup.
+   *   Otherwise the window geometry saved in the blend-file is used and these values are ignored.
+   */
   int size_x, size_y;
   int start_x, start_y;
 
-  int windowstate;
+  GHOST_TWindowState windowstate;
   eWinOverrideFlag override_flag;
 
   bool window_focus;
@@ -735,7 +744,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Clear double buffer to avoids flickering of new windows on certain drivers. (See #97600) */
     GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
-    // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
     GPU_render_end();
   }
   else {

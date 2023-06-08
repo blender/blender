@@ -119,7 +119,9 @@ static float transdata_get_time_shuffle_offset_side(ListBase *trans_datas, const
     }
 
     total_offset += offset;
-  } while (!IS_EQF(offset, 0.0f));
+  } while (!IS_EQT(offset, 0.0f, 1e-4));
+  /* Needs a eps greater than FLT_EPS because strip->start/end could be non-integral, and after
+   * those calculations, `offset` could fall outside of FLT_EPS. */
 
   return total_offset;
 }

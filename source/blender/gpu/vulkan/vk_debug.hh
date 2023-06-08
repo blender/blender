@@ -78,8 +78,13 @@ void pop_marker(VkCommandBuffer vk_command_buffer);
 void push_marker(const VKDevice &device, const char *name);
 void set_marker(const VKDevice &device, const char *name);
 void pop_marker(const VKDevice &device);
-/* how to use : debug::raise_message(0xB41ca2,VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,"This
- * is a raise message. %llx", (uintptr_t)vk_object); */
+/**
+ * How to use:
+ * \code{.cc}
+ * debug::raise_message(0xB41ca2, VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+ *                      "This is a raise message. %llx", (uintptr_t)vk_object);
+ * \endcode
+ */
 void raise_message(int32_t id_number,
                    VkDebugUtilsMessageSeverityFlagBitsEXT vk_severity_flag_bits,
                    const char *fmt,

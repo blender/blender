@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd.h"
-#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 
 #include <pxr/base/plug/registry.h>

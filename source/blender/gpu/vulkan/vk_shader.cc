@@ -914,6 +914,7 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   {
     return false;
   };
+  debug::object_label(layout_, name_get());
 
   return true;
 }

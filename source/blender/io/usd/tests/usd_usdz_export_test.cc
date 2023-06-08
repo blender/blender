@@ -20,7 +20,6 @@
 #include "WM_api.h"
 
 #include "usd.h"
-#include "usd_tests_common.h"
 
 namespace blender::io::usd {
 
@@ -52,10 +51,6 @@ class UsdUsdzExportTest : public BlendfileLoadingBaseTest {
   virtual void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    std::string usd_plugin_path = register_usd_plugins_for_tests();
-    if (usd_plugin_path.empty()) {
-      FAIL();
-    }
 
     BKE_tempdir_init(nullptr);
     const char *temp_base_dir = BKE_tempdir_base();

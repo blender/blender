@@ -8,4 +8,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ED_operatortypes_io(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -114,10 +114,10 @@ AnimData *BKE_animdata_ensure_id(ID *id)
   return NULL;
 }
 
-/* Action / Tmpact Setter shared code -------------------------
+/* Action / `tmpact` Setter shared code -------------------------
  *
- * Both the action and tmpact setter functions have essentially
- * identical semantics, because tmpact is just a place to temporarily
+ * Both the action and `tmpact` setter functions have essentially
+ * identical semantics, because `tmpact` is just a place to temporarily
  * store the main action during tweaking.  This function contains the
  * shared code between those two setter functions, setting the action
  * of the passed `act_slot` to `act`.

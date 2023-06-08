@@ -41,7 +41,56 @@ void VKTexture::init(VkImage vk_image, VkImageLayout layout)
 
 void VKTexture::generate_mipmap()
 {
-  NOT_YET_IMPLEMENTED
+  if (mipmaps_ <= 1) {
+    return;
+  }
+
+  ensure_allocated();
+
+  VKContext &context = *VKContext::get();
+  VKCommandBuffer &command_buffer = context.command_buffer_get();
+  layout_ensure(context, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  for (int src_mipmap : IndexRange(mipmaps_ - 1)) {
+    int dst_mipmap = src_mipmap + 1;
+    int3 src_size(1);
+    int3 dst_size(1);
+    mip_size_get(src_mipmap, src_size);
+    mip_size_get(dst_mipmap, dst_size);
+
+    layout_ensure(context,
+                  IndexRange(src_mipmap, 1),
+                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    VkImageBlit image_blit = {};
+    image_blit.srcOffsets[0] = {0, 0, 0};
+    image_blit.srcOffsets[1] = {src_size.x, src_size.y, src_size.z};
+    image_blit.srcSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+    image_blit.srcSubresource.mipLevel = src_mipmap;
+    image_blit.srcSubresource.baseArrayLayer = 0;
+    image_blit.srcSubresource.layerCount = layer_count();
+
+    image_blit.dstOffsets[0] = {0, 0, 0};
+    image_blit.dstOffsets[1] = {dst_size.x, dst_size.y, dst_size.z};
+    image_blit.dstSubresource.aspectMask = to_vk_image_aspect_flag_bits(format_);
+    image_blit.dstSubresource.mipLevel = dst_mipmap;
+    image_blit.dstSubresource.baseArrayLayer = 0;
+    image_blit.dstSubresource.layerCount = layer_count();
+
+    command_buffer.blit(*this,
+                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                        *this,
+                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                        Span<VkImageBlit>(&image_blit, 1));
+  }
+  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. All miplevels are
+   * except the last one. */
+  layout_ensure(context,
+                IndexRange(mipmaps_ - 1, 1),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  current_layout_set(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 }
 
 void VKTexture::copy_to(Texture *tex)
@@ -151,10 +200,6 @@ void *VKTexture::read(int mip, eGPUDataFormat format)
 void VKTexture::update_sub(
     int mip, int offset[3], int extent_[3], eGPUDataFormat format, const void *data)
 {
-  if (mip != 0) {
-    NOT_YET_IMPLEMENTED;
-    return;
-  }
   if (!is_allocated()) {
     allocate();
   }
@@ -219,6 +264,15 @@ bool VKTexture::init_internal()
   /* Initialization can only happen after the usage is known. By the current API this isn't set
    * at this moment, so we cannot initialize here. The initialization is postponed until the
    * allocation of the texture on the device. */
+
+  const VKDevice &device = VKBackend::get().device_get();
+  const VKWorkarounds &workarounds = device.workarounds_get();
+  if (format_ == GPU_DEPTH_COMPONENT24 && workarounds.not_aligned_pixel_formats) {
+    format_ = GPU_DEPTH_COMPONENT32F;
+  }
+  if (format_ == GPU_DEPTH24_STENCIL8 && workarounds.not_aligned_pixel_formats) {
+    format_ = GPU_DEPTH32F_STENCIL8;
+  }
 
   /* TODO: return false when texture format isn't supported. */
   return true;
@@ -330,7 +384,7 @@ bool VKTexture::allocate()
   image_info.extent.width = extent[0];
   image_info.extent.height = extent[1];
   image_info.extent.depth = extent[2];
-  image_info.mipLevels = 1;
+  image_info.mipLevels = max_ii(mipmaps_, 1);
   image_info.arrayLayers = 1;
   image_info.format = to_vk_format(format_);
   /* Some platforms (NVIDIA) requires that attached textures are always tiled optimal.
@@ -449,16 +503,27 @@ void VKTexture::layout_ensure(VKContext &context, const VkImageLayout requested_
   if (current_layout == requested_layout) {
     return;
   }
+  layout_ensure(context, IndexRange(0, VK_REMAINING_MIP_LEVELS), current_layout, requested_layout);
+  current_layout_set(requested_layout);
+}
+
+void VKTexture::layout_ensure(VKContext &context,
+                              const IndexRange mipmap_range,
+                              const VkImageLayout current_layout,
+                              const VkImageLayout requested_layout)
+{
+  BLI_assert(is_allocated());
   VkImageMemoryBarrier barrier{};
   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   barrier.oldLayout = current_layout;
   barrier.newLayout = requested_layout;
   barrier.image = vk_image_;
   barrier.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(format_);
-  barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+  barrier.subresourceRange.baseMipLevel = uint32_t(mipmap_range.start());
+  barrier.subresourceRange.levelCount = uint32_t(mipmap_range.size());
+  barrier.subresourceRange.baseArrayLayer = 0;
   barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
   context.command_buffer_get().pipeline_barrier(Span<VkImageMemoryBarrier>(&barrier, 1));
-  current_layout_set(requested_layout);
 }
 /** \} */
 

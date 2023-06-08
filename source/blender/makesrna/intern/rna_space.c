@@ -2063,13 +2063,18 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSE
   BLI_assert(totitem <= ARRAY_SIZE(context_tabs_array));
 
   int totitem_added = 0;
+  bool add_separator = true;
   for (int i = 0; i < totitem; i++) {
     if (context_tabs_array[i] == -1) {
-      RNA_enum_item_add_separator(&item, &totitem_added);
+      if (add_separator) {
+        RNA_enum_item_add_separator(&item, &totitem_added);
+        add_separator = false;
+      }
       continue;
     }
 
     RNA_enum_items_add_value(&item, &totitem_added, buttons_context_items, context_tabs_array[i]);
+    add_separator = true;
 
     /* Add the object data icon dynamically for the data tab. */
     if (context_tabs_array[i] == BCONTEXT_DATA) {

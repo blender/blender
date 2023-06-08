@@ -14,6 +14,8 @@
 #include "COM_WorkScheduler.h"
 #include "COM_compositor.h"
 
+#include "RE_compositor.hh"
+
 static struct {
   bool is_initialized = false;
   ThreadMutex mutex;
@@ -47,10 +49,11 @@ static void compositor_reset_node_tree_status(bNodeTree *node_tree)
   node_tree->runtime->stats_draw(node_tree->runtime->sdh, IFACE_("Compositing"));
 }
 
-void COM_execute(RenderData *render_data,
+void COM_execute(Render *render,
+                 RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
-                 int rendering,
+                 bool rendering,
                  const char *view_name)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
@@ -73,26 +76,41 @@ void COM_execute(RenderData *render_data,
   compositor_init_node_previews(render_data, node_tree);
   compositor_reset_node_tree_status(node_tree);
 
-  /* Initialize workscheduler. */
-  const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
-  blender::compositor::WorkScheduler::initialize(use_opencl, BKE_render_num_threads(render_data));
+  if (U.experimental.use_full_frame_compositor &&
+      node_tree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
+  {
+    /* Realtime GPU compositor. */
 
-  /* Execute. */
-  const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
-  if (twopass) {
-    blender::compositor::ExecutionSystem fast_pass(
-        render_data, scene, node_tree, rendering, true, view_name);
-    fast_pass.execute();
-
-    if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
-      BLI_mutex_unlock(&g_compositor.mutex);
-      return;
-    }
+    /* TODO: add persistence and depsgraph updates for better performance. */
+    blender::render::RealtimeCompositor compositor(
+        *render, *scene, *render_data, *node_tree, rendering, view_name);
+    compositor.execute();
   }
+  else {
+    /* Tiled and Full Frame compositors. */
 
-  blender::compositor::ExecutionSystem system(
-      render_data, scene, node_tree, rendering, false, view_name);
-  system.execute();
+    /* Initialize workscheduler. */
+    const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
+    blender::compositor::WorkScheduler::initialize(use_opencl,
+                                                   BKE_render_num_threads(render_data));
+
+    /* Execute. */
+    const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
+    if (twopass) {
+      blender::compositor::ExecutionSystem fast_pass(
+          render_data, scene, node_tree, rendering, true, view_name);
+      fast_pass.execute();
+
+      if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
+        BLI_mutex_unlock(&g_compositor.mutex);
+        return;
+      }
+    }
+
+    blender::compositor::ExecutionSystem system(
+        render_data, scene, node_tree, rendering, false, view_name);
+    system.execute();
+  }
 
   BLI_mutex_unlock(&g_compositor.mutex);
 }

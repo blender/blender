@@ -194,8 +194,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   }
 
   if (data->tex_target) {
-    BKE_texture_get_value_ex(
-        data->scene, data->tex_target, tex_co[iter], &texres, data->pool, false);
+    BKE_texture_get_value_ex(data->tex_target, tex_co[iter], &texres, data->pool, false);
     delta = texres.tin - dmd->midlevel;
   }
   else {
