@@ -680,7 +680,7 @@ template<typename T> QuaternionBase<T> QuaternionBase<T>::expmap(const VecBase<T
   T angle;
   const VecBase<T, 3> axis = normalize_and_get_length(expmap, angle);
   if (LIKELY(angle != T(0))) {
-    return to_quaternion(AxisAngleT(axis, angle_wrap_rad(angle)));
+    return to_quaternion(AxisAngleT(axis, AngleRadianBase<T>(angle).wrapped()));
   }
   return QuaternionBase<T>::identity();
 }
