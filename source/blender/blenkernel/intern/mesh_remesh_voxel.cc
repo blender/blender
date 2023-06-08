@@ -448,7 +448,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
                * source mesh. */
               const int src_vert = nearest_src_verts[dst_vert];
               T value;
-              typename attribute_math::DefaultMixer<T> mixer({&value, 1});
+              typename blender::bke::attribute_math::DefaultMixer<T> mixer({&value, 1});
               for (const int corner : source_lmap[src_vert]) {
                 mixer.mix_in(0, src_typed[corner]);
               }
