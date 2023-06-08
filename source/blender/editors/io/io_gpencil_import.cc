@@ -86,7 +86,7 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
   const int resolution = RNA_int_get(op->ptr, "resolution");
   const float scale = RNA_float_get(op->ptr, "scale");
 
-  GpencilIOParams params {};
+  GpencilIOParams params{};
   params.C = C;
   params.region = region;
   params.v3d = v3d;

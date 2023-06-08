@@ -290,7 +290,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(sub, imfptr, "export_mesh_type_selection", 0, "", ICON_NONE);
 
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(col, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(
+          col, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
     else {
       uiItemR(col, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);
@@ -317,7 +318,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     uiLayoutSetActive(row, include_animations && animation_type == BC_ANIMATION_EXPORT_SAMPLES);
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(box, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
+      uiItemR(
+          box, imfptr, "export_animation_transformation_type_selection", 0, nullptr, ICON_NONE);
     }
     else {
       uiItemR(box, imfptr, "export_object_transformation_type_selection", 0, nullptr, ICON_NONE);

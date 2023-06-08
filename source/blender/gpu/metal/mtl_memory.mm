@@ -306,18 +306,19 @@ void MTLBufferPool::update_memory_pools()
         deletion_time_threshold_s = 2;
       }
       else
-        /* Spare pool memory >= 1GB. */
-        if (allocations_in_pool_ >= MEMORY_SIZE_1GB) {
-          deletion_time_threshold_s = 4;
-        }
-        /* Spare pool memory >= 512MB.*/
-        else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
-          deletion_time_threshold_s = 15;
-        }
-        /* Spare pool memory >= 256MB. */
-        else if (allocations_in_pool_ >= MEMORY_SIZE_256MB) {
-          deletion_time_threshold_s = 60;
-        }
+          /* Spare pool memory >= 1GB. */
+          if (allocations_in_pool_ >= MEMORY_SIZE_1GB)
+      {
+        deletion_time_threshold_s = 4;
+      }
+      /* Spare pool memory >= 512MB.*/
+      else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
+        deletion_time_threshold_s = 15;
+      }
+      /* Spare pool memory >= 256MB. */
+      else if (allocations_in_pool_ >= MEMORY_SIZE_256MB) {
+        deletion_time_threshold_s = 60;
+      }
 
       if (time_passed > deletion_time_threshold_s) {
 
