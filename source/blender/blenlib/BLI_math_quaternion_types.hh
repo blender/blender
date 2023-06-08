@@ -162,6 +162,11 @@ template<typename T> struct QuaternionBase {
     return (a.w == b.w) && (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
   }
 
+  uint64_t hash() const
+  {
+    return VecBase<T, 4>(*this).hash();
+  }
+
   friend std::ostream &operator<<(std::ostream &stream, const QuaternionBase &rot)
   {
     return stream << "Quaternion" << static_cast<VecBase<T, 4>>(rot);
