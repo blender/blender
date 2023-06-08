@@ -7,6 +7,13 @@
 
 #include "COM_node_operation.hh"
 
+#include "RNA_access.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_composite_util.hh"
+
 /* **************** Kuwahara ******************** */
 
 namespace blender::nodes::node_composite_kuwahara_cc {
