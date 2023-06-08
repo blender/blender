@@ -1061,6 +1061,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_INPAINT 272
 #define CMP_NODE_DESPECKLE 273
 #define CMP_NODE_ANTIALIASING 274
+#define CMP_NODE_KUWAHARA 275
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302

@@ -28,6 +28,8 @@ class FastGaussianBlurOperation : public BlurBaseOperation {
   void deinit_execution() override;
   void init_execution() override;
 
+  void set_size(int size_x, int size_y);
+
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_started(MemoryBuffer *output,
                                     const rcti &area,

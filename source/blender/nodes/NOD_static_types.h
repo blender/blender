@@ -224,6 +224,7 @@ DefNode(CompositorNode, CMP_NODE_COMBINE_XYZ,    0,                      "COMBIN
 DefNode(CompositorNode, CMP_NODE_SEPARATE_XYZ,   0,                      "SEPARATE_XYZ",   SeparateXYZ,      "Separate XYZ",      ""              )
 DefNode(CompositorNode, CMP_NODE_SEPARATE_COLOR, def_cmp_combsep_color,  "SEPARATE_COLOR", SeparateColor,    "Separate Color",    ""              )
 DefNode(CompositorNode, CMP_NODE_COMBINE_COLOR,  def_cmp_combsep_color,  "COMBINE_COLOR",  CombineColor,     "Combine Color",     ""              )
+DefNode(CompositorNode, CMP_NODE_KUWAHARA,       def_cmp_kuwahara,       "KUWAHARA",       Kuwahara,         "Kuwahara",          ""              )
 
 DefNode(TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode(TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )
