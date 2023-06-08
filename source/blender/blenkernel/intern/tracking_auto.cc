@@ -669,7 +669,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
                              &libmv_reference_marker);
   }
   else {
-    BLI_assert(track->pattern_match == TRACK_MATCH_PREVIOS_FRAME);
+    BLI_assert(track->pattern_match == TRACK_MATCH_PREVIOUS_FRAME);
     autotrack_result->libmv_marker.reference_frame = libmv_current_marker->frame;
     libmv_reference_marker = *libmv_current_marker;
   }
