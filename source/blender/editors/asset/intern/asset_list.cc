@@ -109,6 +109,8 @@ class AssetList : NonCopyable {
   AssetList(AssetList &&other) = default;
   ~AssetList() = default;
 
+  static bool listen(const wmNotifier &notifier);
+
   void setup();
   void fetch(const bContext &C);
   void ensurePreviewsJob(const bContext *C);
@@ -120,7 +122,6 @@ class AssetList : NonCopyable {
   bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListIterFn fn) const;
-  static bool listen(const wmNotifier &notifier);
   int size() const;
   void tagMainDataDirty() const;
   void remapID(ID *id_old, ID *id_new) const;
