@@ -1,5 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+if(CMAKE_COMPILER_IS_GNUCC)
+  # NOTE: Resolved up-stream, quiet noisy compiler warnings for now.
+  add_cxx_flag("-Wno-uninitialized")
+endif()
+
 set(INC
   include
 )
