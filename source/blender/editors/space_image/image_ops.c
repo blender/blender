@@ -2006,7 +2006,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render, true);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
