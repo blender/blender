@@ -15,9 +15,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 
@@ -26,6 +26,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -34,6 +35,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_sample.hh"
 
 #include "bmesh_tools.h"
 
@@ -359,117 +361,106 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 
 void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {nullptr};
-  BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
+  using namespace blender;
+  using namespace blender::bke;
+  const AttributeAccessor src_attributes = source->attributes();
+  MutableAttributeAccessor dst_attributes = target->attributes_for_write();
 
-  int i = 0;
-  const CustomDataLayer *layer;
+  Vector<AttributeIDRef> point_ids;
+  Vector<AttributeIDRef> corner_ids;
+  source->attributes().for_all([&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
+    if (CD_TYPE_AS_MASK(meta_data.data_type) & CD_MASK_COLOR_ALL) {
+      if (meta_data.domain == ATTR_DOMAIN_POINT) {
+        point_ids.append(id);
+      }
+      else if (meta_data.domain == ATTR_DOMAIN_CORNER) {
+        corner_ids.append(id);
+      }
+    }
+    return true;
+  });
+
+  if (point_ids.is_empty() && corner_ids.is_empty()) {
+    return;
+  }
 
   MeshElemMap *source_lmap = nullptr;
   int *source_lmap_mem = nullptr;
   MeshElemMap *target_lmap = nullptr;
   int *target_lmap_mem = nullptr;
-
-  while ((layer = BKE_id_attribute_from_index(
-              const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL)))
-  {
-    eAttrDomain domain = BKE_id_attribute_domain(&source->id, layer);
-    const eCustomDataType type = eCustomDataType(layer->type);
-
-    CustomData *target_cdata = domain == ATTR_DOMAIN_POINT ? &target->vdata : &target->ldata;
-    const CustomData *source_cdata = domain == ATTR_DOMAIN_POINT ? &source->vdata : &source->ldata;
-
-    /* Check attribute exists in target. */
-    int layer_i = CustomData_get_named_layer_index(target_cdata, type, layer->name);
-    if (layer_i == -1) {
-      int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
-
-      CustomData_add_layer_named(target_cdata, type, CD_SET_DEFAULT, elem_num, layer->name);
-      layer_i = CustomData_get_named_layer_index(target_cdata, type, layer->name);
-    }
-
-    size_t data_size = CustomData_sizeof(type);
-    void *target_data = target_cdata->layers[layer_i].data;
-    void *source_data = layer->data;
-    const Span<float3> target_positions = target->vert_positions();
-
-    if (domain == ATTR_DOMAIN_POINT) {
-      blender::threading::parallel_for(
-          IndexRange(target->totvert), 4096, [&](const IndexRange range) {
-            for (const int i : range) {
-              BVHTreeNearest nearest;
-              nearest.index = -1;
-              nearest.dist_sq = FLT_MAX;
-              BLI_bvhtree_find_nearest(
-                  bvhtree.tree, target_positions[i], &nearest, bvhtree.nearest_callback, &bvhtree);
-              if (nearest.index != -1) {
-                memcpy(POINTER_OFFSET(target_data, size_t(i) * data_size),
-                       POINTER_OFFSET(source_data, size_t(nearest.index) * data_size),
-                       data_size);
-              }
-            }
-          });
-    }
-    else {
-      /* Lazily init vertex -> loop maps. */
-      if (!source_lmap) {
+  BVHTreeFromMesh bvhtree = {nullptr};
+  threading::parallel_invoke(
+      [&]() { BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2); },
+      [&]() {
         BKE_mesh_vert_loop_map_create(&source_lmap,
                                       &source_lmap_mem,
                                       source->polys(),
                                       source->corner_verts().data(),
                                       source->totvert);
-
+      },
+      [&]() {
         BKE_mesh_vert_loop_map_create(&target_lmap,
                                       &target_lmap_mem,
                                       target->polys(),
                                       target->corner_verts().data(),
                                       target->totvert);
-      }
+      });
 
-      blender::threading::parallel_for(
-          IndexRange(target->totvert), 2048, [&](const IndexRange range) {
-            for (const int i : range) {
-              BVHTreeNearest nearest;
-              nearest.index = -1;
-              nearest.dist_sq = FLT_MAX;
-              BLI_bvhtree_find_nearest(
-                  bvhtree.tree, target_positions[i], &nearest, bvhtree.nearest_callback, &bvhtree);
+  const Span<float3> target_positions = target->vert_positions();
+  Array<int> nearest_src_verts(target_positions.size());
+  threading::parallel_for(target_positions.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      BVHTreeNearest nearest;
+      nearest.index = -1;
+      nearest.dist_sq = FLT_MAX;
+      BLI_bvhtree_find_nearest(
+          bvhtree.tree, target_positions[i], &nearest, bvhtree.nearest_callback, &bvhtree);
+      nearest_src_verts[i] = nearest.index;
+    }
+  });
 
-              if (nearest.index == -1) {
-                continue;
+  for (const AttributeIDRef &id : point_ids) {
+    const GVArraySpan src = *src_attributes.lookup(id, ATTR_DOMAIN_POINT);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        id, ATTR_DOMAIN_POINT, cpp_type_to_custom_data_type(src.type()));
+    attribute_math::gather(src, nearest_src_verts, dst.span);
+    dst.finish();
+  }
+
+  if (!corner_ids.is_empty()) {
+    for (const AttributeIDRef &id : corner_ids) {
+      const GVArraySpan src = *src_attributes.lookup(id, ATTR_DOMAIN_CORNER);
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          id, ATTR_DOMAIN_CORNER, cpp_type_to_custom_data_type(src.type()));
+
+      threading::parallel_for(target_positions.index_range(), 1024, [&](const IndexRange range) {
+        src.type().to_static_type_tag<ColorGeometry4b, ColorGeometry4f>([&](auto type_tag) {
+          using T = typename decltype(type_tag)::type;
+          if constexpr (std::is_void_v<T>) {
+            BLI_assert_unreachable();
+          }
+          else {
+            const Span<T> src_typed = src.typed<T>();
+            MutableSpan<T> dst_typed = dst.span.typed<T>();
+            for (const int dst_vert : range) {
+              /* Find the average value at the corners of the closest vertex on the source mesh. */
+              const int src_vert = nearest_src_verts[dst_vert];
+              T value;
+              attribute_math::DefaultMixer<T> mixer({&value, 1});
+              for (const int corner :
+                   Span(source_lmap[src_vert].indices, source_lmap[src_vert].count)) {
+                mixer.mix_in(0, src_typed[corner]);
               }
 
-              MeshElemMap *source_loops = source_lmap + nearest.index;
-              MeshElemMap *target_loops = target_lmap + i;
-
-              if (target_loops->count == 0 || source_loops->count == 0) {
-                continue;
-              }
-
-              /*
-               * Average color data for loops around the source vertex into
-               * the first target loop around the target vertex
-               */
-
-              CustomData_interp(source_cdata,
-                                target_cdata,
-                                source_loops->indices,
-                                nullptr,
-                                nullptr,
-                                source_loops->count,
-                                target_loops->indices[0]);
-
-              void *elem = POINTER_OFFSET(target_data,
-                                          size_t(target_loops->indices[0]) * data_size);
-
-              /* Copy to rest of target loops. */
-              for (int j = 1; j < target_loops->count; j++) {
-                memcpy(POINTER_OFFSET(target_data, size_t(target_loops->indices[j]) * data_size),
-                       elem,
-                       data_size);
-              }
+              const Span<int> dst_corners(target_lmap[dst_vert].indices,
+                                          target_lmap[dst_vert].count);
+              dst_typed.fill_indices(dst_corners, value);
             }
-          });
+          }
+        });
+      });
+
+      dst.finish();
     }
   }
 
