@@ -22,7 +22,7 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
-#include "textview.h"
+#include "textview.hh"
 
 static void textview_font_begin(const int font_id, const int lheight)
 {
@@ -30,7 +30,7 @@ static void textview_font_begin(const int font_id, const int lheight)
   BLF_size(font_id, 0.8f * lheight);
 }
 
-typedef struct TextViewDrawState {
+struct TextViewDrawState {
   int font_id;
   int cwidth;
   int lheight;
@@ -50,7 +50,7 @@ typedef struct TextViewDrawState {
   int *mval_pick_offset;
   const int *mval;  // [2]
   bool do_draw;
-} TextViewDrawState;
+};
 
 BLI_INLINE void textview_step_sel(TextViewDrawState *tds, const int step)
 {
@@ -99,10 +99,10 @@ static int textview_wrap_offsets(
 
   *r_lines = 1;
 
-  *r_offsets = MEM_callocN(
+  *r_offsets = static_cast<int *>(MEM_callocN(
       sizeof(**r_offsets) *
           (str_len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
-      __func__);
+      __func__));
   (*r_offsets)[0] = 0;
 
   for (i = 0, end = width, j = 0; j < str_len && str[j]; j += BLI_str_utf8_size_safe(str + j)) {
@@ -152,13 +152,13 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
         /* Wrap. */
         if (tot_lines > 1) {
-          int iofs = (int)((float)(y_next - tds->mval[1]) / tds->lheight);
+          int iofs = int(float(y_next - tds->mval[1]) / tds->lheight);
           ofs += offsets[MIN2(iofs, tot_lines - 1)];
         }
 
         /* Last part. */
         ofs += BLI_str_utf8_offset_from_column(str + ofs,
-                                               (int)floor((float)tds->mval[0] / tds->cwidth));
+                                               int(floor(float(tds->mval[0]) / tds->cwidth)));
 
         CLAMP(ofs, 0, str_len);
         *tds->mval_pick_offset += str_len - ofs;
@@ -213,16 +213,14 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     rgba_uchar_to_float(col, icon_bg);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_4fv(
-        &(const rctf){
-            .xmin = hpadding,
-            .xmax = bg_size + hpadding,
-            .ymin = line_top - bg_size - vpadding,
-            .ymax = line_top - vpadding,
-        },
-        true,
-        4 * UI_SCALE_FAC,
-        col);
+
+    rctf roundbox_rect;
+    roundbox_rect.xmin = hpadding;
+    roundbox_rect.xmax = bg_size + hpadding;
+    roundbox_rect.ymin = line_top - bg_size - vpadding;
+    roundbox_rect.ymax = line_top - vpadding;
+
+    UI_draw_roundbox_4fv(&roundbox_rect, true, 4 * UI_SCALE_FAC, col);
   }
 
   if (icon) {
@@ -325,13 +323,13 @@ int textview_draw(TextViewContext *tvc,
           CLAMPIS(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->scroll_ymin,
   };
 
-  if (r_mval_pick_offset != NULL) {
+  if (r_mval_pick_offset != nullptr) {
     *r_mval_pick_offset = 0;
   }
 
   /* Constants for the text-view context. */
   tds.font_id = font_id;
-  tds.cwidth = (int)BLF_fixed_width(font_id);
+  tds.cwidth = int(BLF_fixed_width(font_id));
   BLI_assert(tds.cwidth > 0);
   tds.lheight = tvc->lheight;
   tds.row_vpadding = tvc->row_vpadding;
@@ -382,11 +380,11 @@ int textview_draw(TextViewContext *tvc,
           &tds,
           ext_line,
           ext_len,
-          (data_flag & TVC_LINE_FG) ? fg : NULL,
-          (data_flag & TVC_LINE_BG) ? bg : NULL,
+          (data_flag & TVC_LINE_FG) ? fg : nullptr,
+          (data_flag & TVC_LINE_BG) ? bg : nullptr,
           (data_flag & TVC_LINE_ICON) ? icon : 0,
-          (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
-          (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
+          (data_flag & TVC_LINE_ICON_FG) ? icon_fg : nullptr,
+          (data_flag & TVC_LINE_ICON_BG) ? icon_bg : nullptr,
           bg_sel);
 
       if (do_draw) {

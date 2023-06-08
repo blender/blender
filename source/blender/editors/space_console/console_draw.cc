@@ -6,7 +6,7 @@
  * \ingroup spconsole
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -22,18 +22,18 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "console_intern.h"
+#include "console_intern.hh"
 
-#include "../space_info/textview.h"
+#include "../space_info/textview.hh"
 
 static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
                                                         uchar fg[4],
-                                                        uchar UNUSED(bg[4]),
-                                                        int *UNUSED(icon),
-                                                        uchar UNUSED(icon_fg[4]),
-                                                        uchar UNUSED(icon_bg[4]))
+                                                        uchar /*bg*/[4],
+                                                        int * /*icon*/,
+                                                        uchar /*icon_fg*/[4],
+                                                        uchar /*icon_bg*/[4])
 {
-  const ConsoleLine *cl_iter = tvc->iter;
+  const ConsoleLine *cl_iter = static_cast<const ConsoleLine *>(tvc->iter);
   int fg_id = TH_TEXT;
 
   switch (cl_iter->type) {
@@ -58,13 +58,13 @@ static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
 void console_scrollback_prompt_begin(SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
   /* fake the edit line being in the scroll buffer */
-  ConsoleLine *cl = sc->history.last;
+  ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
   int prompt_len = strlen(sc->prompt);
 
   cl_dummy->type = CONSOLE_LINE_INPUT;
   cl_dummy->len = prompt_len + cl->len;
   cl_dummy->len_alloc = cl_dummy->len + 1;
-  cl_dummy->line = MEM_mallocN(cl_dummy->len_alloc, "cl_dummy");
+  cl_dummy->line = static_cast<char *>(MEM_mallocN(cl_dummy->len_alloc, "cl_dummy"));
   memcpy(cl_dummy->line, sc->prompt, prompt_len);
   memcpy(cl_dummy->line + prompt_len, cl->line, cl->len + 1);
   BLI_addtail(&sc->scrollback, cl_dummy);
@@ -85,7 +85,7 @@ static int console_textview_begin(TextViewContext *tvc)
   /* iterator */
   tvc->iter = sc->scrollback.last;
 
-  return (tvc->iter != NULL);
+  return (tvc->iter != nullptr);
 }
 
 static void console_textview_end(TextViewContext *tvc)
@@ -96,12 +96,12 @@ static void console_textview_end(TextViewContext *tvc)
 
 static int console_textview_step(TextViewContext *tvc)
 {
-  return ((tvc->iter = (void *)((Link *)tvc->iter)->prev) != NULL);
+  return ((tvc->iter = (void *)((Link *)tvc->iter)->prev) != nullptr);
 }
 
 static void console_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
 {
-  const ConsoleLine *cl = tvc->iter;
+  const ConsoleLine *cl = static_cast<const ConsoleLine *>(tvc->iter);
   *r_line = cl->line;
   *r_len = cl->len;
   // printf("'%s' %d\n", *line, cl->len);
@@ -137,12 +137,12 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
     const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
     int offl = 0, offc = 0;
 
-    console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, NULL);
+    console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);
     console_cursor_wrap_offset(cl->line, columns, &offl, &offc, cl->line + cl->cursor);
     pen[0] = cwidth * offc;
     pen[1] = -tvc->lheight * offl;
 
-    console_cursor_wrap_offset(cl->line + cl->cursor, columns, &offl, &offc, NULL);
+    console_cursor_wrap_offset(cl->line + cl->cursor, columns, &offl, &offc, nullptr);
     pen[1] += tvc->lheight * offl;
 
     pen[0] += tvc->draw_rect.xmin;
@@ -160,7 +160,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
   immUnbindProgram();
 }
 
-static void console_textview_const_colors(TextViewContext *UNUSED(tvc), uchar bg_sel[4])
+static void console_textview_const_colors(TextViewContext * /*tvc*/, uchar bg_sel[4])
 {
   UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
@@ -189,7 +189,7 @@ static int console_textview_main__internal(SpaceConsole *sc,
                                            void **r_mval_pick_item,
                                            int *r_mval_pick_offset)
 {
-  ConsoleLine cl_dummy = {NULL};
+  ConsoleLine cl_dummy = {nullptr};
   int ret = 0;
 
   const View2D *v2d = &region->v2d;
@@ -206,7 +206,7 @@ static int console_textview_main__internal(SpaceConsole *sc,
   tvc.const_colors = console_textview_const_colors;
 
   tvc.arg1 = sc;
-  tvc.arg2 = NULL;
+  tvc.arg2 = nullptr;
 
   /* view */
   tvc.sel_start = sc->sel_start;
@@ -227,19 +227,19 @@ static int console_textview_main__internal(SpaceConsole *sc,
 void console_textview_main(SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  console_textview_main__internal(sc, region, true, mval, NULL, NULL);
+  console_textview_main__internal(sc, region, true, mval, nullptr, nullptr);
 }
 
 int console_textview_height(SpaceConsole *sc, const ARegion *region)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  return console_textview_main__internal(sc, region, false, mval, NULL, NULL);
+  return console_textview_main__internal(sc, region, false, mval, nullptr, nullptr);
 }
 
 int console_char_pick(SpaceConsole *sc, const ARegion *region, const int mval[2])
 {
   int r_mval_pick_offset = 0;
-  void *mval_pick_item = NULL;
+  void *mval_pick_item = nullptr;
 
   console_textview_main__internal(sc, region, false, mval, &mval_pick_item, &r_mval_pick_offset);
   return r_mval_pick_offset;

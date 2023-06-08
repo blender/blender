@@ -6,8 +6,8 @@
  * \ingroup spinfo
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,29 +31,29 @@
 
 #include "BLO_read_write.h"
 
-#include "info_intern.h" /* own include */
+#include "info_intern.hh" /* own include */
 
 /* ******************** default callbacks for info space ***************** */
 
-static SpaceLink *info_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceInfo *sinfo;
 
-  sinfo = MEM_callocN(sizeof(SpaceInfo), "initinfo");
+  sinfo = static_cast<SpaceInfo *>(MEM_callocN(sizeof(SpaceInfo), "initinfo"));
   sinfo->spacetype = SPACE_INFO;
 
   sinfo->rpt_mask = INFO_RPT_OP;
 
   /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for info");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for info"));
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "main region for info");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for info"));
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -73,17 +73,17 @@ static SpaceLink *info_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 }
 
 /* not spacelink itself */
-static void info_free(SpaceLink *UNUSED(sl))
+static void info_free(SpaceLink * /*sl*/)
 {
   //  SpaceInfo *sinfo = (SpaceInfo *) sl;
 }
 
 /* spacetype; init callback */
-static void info_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void info_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *info_duplicate(SpaceLink *sl)
 {
-  SpaceInfo *sinfon = MEM_dupallocN(sl);
+  SpaceInfo *sinfon = static_cast<SpaceInfo *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
 
@@ -139,10 +139,10 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
-static void info_operatortypes(void)
+static void info_operatortypes()
 {
   WM_operatortype_append(FILE_OT_autopack_toggle);
   WM_operatortype_append(FILE_OT_pack_all);
@@ -174,7 +174,7 @@ static void info_keymap(wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void info_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void info_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -237,10 +237,10 @@ static void info_header_listener(const wmRegionListenerParams *params)
 
 static void info_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
-  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {NULL};
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {nullptr};
   msg_sub_value_region_tag_redraw.owner = region;
   msg_sub_value_region_tag_redraw.user_data = region;
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
@@ -256,7 +256,7 @@ static void info_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_info(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype info");
+  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype info"));
   ARegionType *art;
 
   st->spaceid = SPACE_INFO;
@@ -271,7 +271,7 @@ void ED_spacetype_info(void)
   st->blend_write = info_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype info region"));
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 
@@ -282,7 +282,7 @@ void ED_spacetype_info(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype info region"));
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
 

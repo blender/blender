@@ -22,11 +22,11 @@ set(INC_SYS
 )
 
 set(SRC
-  console_draw.c
-  console_ops.c
-  space_console.c
+  console_draw.cc
+  console_ops.cc
+  space_console.cc
 
-  console_intern.h
+  console_intern.hh
 )
 
 set(LIB
