@@ -45,11 +45,11 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
   this->flag_can_optimize(false);
   this->free_optimized_buffer();
 
-  /* Ensure we have a valid IBO. */
-  BLI_assert(this->ibo_);
-
   /* Ensure resource is initialized. */
   this->upload_data();
+
+  /* Ensure we have a valid IBO. */
+  BLI_assert(this->ibo_);
 
   /* Create MTLStorageBuffer to wrap this resource and use conventional binding. */
   if (ssbo_wrapper_ == nullptr) {
@@ -61,8 +61,24 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
 void MTLIndexBuf::read(uint32_t *data) const
 {
   if (ibo_ != nullptr) {
+    /* Fetch active context. */
+    MTLContext *ctx = MTLContext::get();
+    BLI_assert(ctx);
+
+    /* Ensure data is flushed for host caches.  */
+    id<MTLBuffer> source_buffer = ibo_->get_metal_buffer();
+    if (source_buffer.storageMode == MTLStorageModeManaged) {
+      id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+      [enc synchronizeResource:source_buffer];
+    }
+
+    /* Ensure GPU has finished operating on commands which may modify data. */
+    GPU_finish();
+
+    /* Read data. */
     void *host_ptr = ibo_->get_host_ptr();
     memcpy(data, host_ptr, size_get());
+    return;
   }
   BLI_assert(false && "Index buffer not ready to be read.");
 }
@@ -101,19 +117,27 @@ void MTLIndexBuf::upload_data()
   }
 
   /* Prepare Buffer and Upload Data. */
-  if (ibo_ == nullptr && data_ != nullptr) {
+  if (ibo_ == nullptr) {
     alloc_size_ = this->size_get();
     if (alloc_size_ == 0) {
       MTL_LOG_WARNING("Warning! Trying to allocate index buffer with size=0 bytes");
     }
     else {
-      ibo_ = MTLContext::get_global_memory_manager()->allocate_with_data(alloc_size_, true, data_);
+      if (data_) {
+        ibo_ = MTLContext::get_global_memory_manager()->allocate_with_data(
+            alloc_size_, true, data_);
+      }
+      else {
+        ibo_ = MTLContext::get_global_memory_manager()->allocate(alloc_size_, true);
+      }
       BLI_assert(ibo_);
       ibo_->set_label(@"Index Buffer");
     }
 
     /* No need to keep copy of data_ in system memory. */
-    MEM_SAFE_FREE(data_);
+    if (data_) {
+      MEM_SAFE_FREE(data_);
+    }
   }
 }
 
