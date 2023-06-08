@@ -140,6 +140,13 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     const Mesh &mesh = *source_.get_mesh_for_read();
     get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
+  }
 };
 
 static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustomDataType data_type)
