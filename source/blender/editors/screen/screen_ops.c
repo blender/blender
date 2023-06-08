@@ -3180,6 +3180,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool keyframe_jump_poll(bContext *C)
+{
+  /* There is a keyframe jump operator specifically for the Graph Editor. */
+  return ED_operator_screenactive_norender(C) && CTX_wm_area(C)->spacetype != SPACE_GRAPH;
+}
+
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 {
   ot->name = "Jump to Keyframe";
@@ -3188,7 +3194,7 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 
   ot->exec = keyframe_jump_exec;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = keyframe_jump_poll;
   ot->flag = OPTYPE_UNDO_GROUPED;
   ot->undo_group = "Frame Change";
 
