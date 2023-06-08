@@ -21,6 +21,7 @@ namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          StringRef name,
+                                         const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
     : identifier_(identifier),
@@ -29,6 +30,7 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
       external_asset_()
 {
   external_asset_.name = name;
+  external_asset_.id_type = id_type;
   external_asset_.metadata_ = std::move(metadata);
 }
 
@@ -85,6 +87,15 @@ StringRefNull AssetRepresentation::get_name() const
   }
 
   return external_asset_.name;
+}
+
+int AssetRepresentation::get_id_type() const
+{
+  if (is_local_id_) {
+    return GS(local_asset_id_->name);
+  }
+
+  return external_asset_.id_type;
 }
 
 AssetMetaData &AssetRepresentation::get_metadata() const
@@ -190,6 +201,13 @@ const char *AS_asset_representation_name_get(const AssetRepresentation *asset_ha
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->get_name().c_str();
+}
+
+int AS_asset_representation_id_type_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->get_id_type();
 }
 
 AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset_handle)

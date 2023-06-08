@@ -37,6 +37,7 @@ class AssetStorage {
   /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_external_asset(AssetIdentifier &&identifier,
                                           StringRef name,
+                                          int id_type,
                                           std::unique_ptr<AssetMetaData> metadata,
                                           const AssetLibrary &owner_asset_library);
   /** See #AssetLibrary::add_external_asset(). */
