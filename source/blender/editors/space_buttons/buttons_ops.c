@@ -51,10 +51,7 @@ static int buttons_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
-  ARegion *region_ctx = CTX_wm_region(C);
-  CTX_wm_region_set(C, region);
   UI_textbutton_activate_rna(C, region, space, "search_filter");
-  CTX_wm_region_set(C, region_ctx);
 
   return OPERATOR_FINISHED;
 }

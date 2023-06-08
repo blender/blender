@@ -185,6 +185,12 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
                                    uiListItemGetNameFn get_name_fn = nullptr);
 
 /**
+ * \param fn: Functor to execute for each view. Can return false to stop iteration.
+ */
+void UI_region_views_foreach(const ARegion *region,
+                             blender::FunctionRef<bool(uiViewHandle &view)> fn);
+
+/**
  * Override this for all available view types.
  */
 blender::ui::AbstractGridView *UI_block_add_view(

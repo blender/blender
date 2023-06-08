@@ -43,6 +43,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 #include "RNA_path.h"
 #include "RNA_prototypes.h"
 #include "RNA_types.h"
@@ -2345,6 +2346,72 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \name UI View Drop Operator
  * \{ */
 
+static int ui_view_start_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+
+  ARegion *region;
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "region_type");
+  if (RNA_property_is_set(op->ptr, prop)) {
+    region = BKE_area_find_region_type(CTX_wm_area(C), RNA_property_enum_get(op->ptr, prop));
+  }
+  else {
+    region = CTX_wm_region(C);
+  }
+
+  if (!region) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  /* Hovered view gets priority. */
+  const uiViewHandle *hovered_view = UI_region_view_find_at(region, event->xy, 0);
+  if (hovered_view && UI_view_begin_filtering(C, hovered_view)) {
+    return OPERATOR_FINISHED;
+  }
+
+  bool filtering_started = false;
+  UI_region_views_foreach(region, [C, &filtering_started](const uiViewHandle &view) {
+    if (UI_view_begin_filtering(C, &view)) {
+      filtering_started = true;
+      return false;
+    }
+    return true;
+  });
+
+  if (!filtering_started) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
+
+  ED_region_tag_redraw(region);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_start_filter(wmOperatorType *ot)
+{
+  ot->name = "View Filter";
+  ot->idname = "UI_OT_view_start_filter";
+  ot->description = "Start entering filter text for the data-set in focus";
+
+  ot->invoke = ui_view_start_filter_invoke;
+  ot->poll = ED_operator_areaactive;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna,
+                      "region_type",
+                      rna_enum_region_type_items,
+                      0,
+                      "Region Type",
+                      "Override the region to look for the search button in");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI View Drop Operator
+ * \{ */
+
 static bool ui_view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
@@ -2528,6 +2595,7 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_list_start_filter);
 
+  WM_operatortype_append(UI_OT_view_start_filter);
   WM_operatortype_append(UI_OT_view_drop);
   WM_operatortype_append(UI_OT_view_item_rename);
 

@@ -931,6 +931,26 @@ def km_user_interface(_params):
         ("ui.reset_default_button", {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("all", True)]}),
         # UI lists (polls check if there's a UI list under the cursor).
         ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        # UI views (polls check if there's a UI view in the region, and
+        # prioritize the one under the cursor if any).
+        ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+    ])
+
+    return keymap
+
+
+def km_asset_shelf(_params):
+    items = []
+    keymap = (
+        "Asset Shelf",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        # Enable Ctrl+F for searching from the shelf footer.
+        ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True},
+          {"properties": [("region_type", 'ASSET_SHELF')]}),
     ])
 
     return keymap
@@ -8191,6 +8211,7 @@ def generate_keymaps(params=None):
         km_view2d(params),
         km_view2d_buttons_list(params),
         km_user_interface(params),
+        km_asset_shelf(params),
         km_property_editor(params),
 
         # Editors.

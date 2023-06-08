@@ -52,6 +52,7 @@ class AssetView : public ui::AbstractGridView {
   AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf, bContext &evil_C);
 
   void build_items() override;
+  bool begin_filtering(const bContext &C) const override;
 
   void set_catalog_filter(const std::optional<asset_system::AssetCatalogFilter> &catalog_filter);
 };
@@ -131,6 +132,18 @@ void AssetView::build_items()
 
     return true;
   });
+}
+
+bool AssetView::begin_filtering(const bContext &C) const
+{
+  const ScrArea *area = CTX_wm_area(&C);
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (UI_textbutton_activate_rna(&C, region, &shelf_, "search_filter")) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void AssetView::set_catalog_filter(

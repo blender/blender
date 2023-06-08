@@ -85,6 +85,12 @@ class AbstractView {
   virtual bool listen(const wmNotifier &) const;
 
   /**
+   * Enable filtering (typically triggered on Ctrl+F).
+   * \return True when filtering was begun successfully.
+   */
+  virtual bool begin_filtering(const bContext &C) const;
+
+  /**
    * Makes \a item valid for display in this view. Behavior is undefined for items not registered
    * with this.
    */
