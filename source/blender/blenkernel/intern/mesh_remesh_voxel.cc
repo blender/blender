@@ -446,7 +446,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
               /* Find the average value at the corners of the closest vertex on the source mesh. */
               const int src_vert = nearest_src_verts[dst_vert];
               T value;
-              typename attribute_math::DefaultMixer<T> mixer({&value, 1});
+              typename blender::bke::attribute_math::DefaultMixer<T> mixer({&value, 1});
               for (const int corner :
                    Span(source_lmap[src_vert].indices, source_lmap[src_vert].count)) {
                 mixer.mix_in(0, src_typed[corner]);
