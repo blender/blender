@@ -710,7 +710,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   /* If light-cache auto-update is enable we tag the relevant part
    * of the cache to update and fire up a baking job. */
-  if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
+  if (!DRW_state_is_image_render() && !DRW_state_is_viewport_image_render() &&
       (pinfo->do_grid_update || pinfo->do_cube_update))
   {
     BLI_assert(draw_ctx->evil_C);

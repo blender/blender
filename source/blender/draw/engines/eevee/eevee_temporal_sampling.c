@@ -245,7 +245,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
    * Reset for each "redraw". When rendering using OpenGL render,
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
    */
-  if (DRW_state_is_opengl_render()) {
+  if (DRW_state_is_viewport_image_render()) {
     effects->taa_render_sample = 1;
   }
   effects->bypass_drawing = false;

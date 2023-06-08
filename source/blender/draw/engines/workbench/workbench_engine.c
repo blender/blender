@@ -630,7 +630,7 @@ static void workbench_draw_scene(void *ved)
   WORKBENCH_Data *vedata = ved;
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
 
-  if (DRW_state_is_opengl_render()) {
+  if (DRW_state_is_viewport_image_render()) {
     while (wpd->taa_sample < max_ii(1, wpd->taa_sample_len)) {
       workbench_update_world_ubo(wpd);
 

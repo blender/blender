@@ -304,7 +304,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GLSettings glSettings,
+                                             GHOST_GPUSettings gpuSettings,
                                              const bool exclusive,
                                              const bool is_dialog,
                                              const GHOST_IWindow *parentWindow)
@@ -324,11 +324,11 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                height,
                                state,
                                (GHOST_WindowX11 *)parentWindow,
-                               glSettings.context_type,
+                               gpuSettings.context_type,
                                is_dialog,
-                               ((glSettings.flags & GHOST_glStereoVisual) != 0),
+                               ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
                                exclusive,
-                               (glSettings.flags & GHOST_glDebugContext) != 0);
+                               (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
 
   if (window) {
     /* Both are now handle in GHOST_WindowX11.cc
@@ -399,7 +399,7 @@ static GHOST_Context *create_glx_context(Display *display,
   return nullptr;
 }
 
-GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
   /* During development:
    *   try 4.x compatibility profile
@@ -411,11 +411,11 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
    *   try 3.3 core profile
    *   no fall-backs. */
 
-  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
   GHOST_Context *context = nullptr;
 
 #ifdef WITH_VULKAN_BACKEND
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     context = new GHOST_ContextVK(
         false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 2, debug_context);
 

@@ -144,7 +144,7 @@ void WM_init_splash_on_startup(struct bContext *C);
  */
 void WM_init_splash(struct bContext *C);
 
-void WM_init_opengl(void);
+void WM_init_gpu(void);
 
 /**
  * Return an identifier for the underlying GHOST implementation.
@@ -313,10 +313,10 @@ void WM_window_ensure_active_view_layer(struct wmWindow *win) ATTR_NONNULL(1);
 
 bool WM_window_is_temp_screen(const struct wmWindow *win) ATTR_WARN_UNUSED_RESULT;
 
-void *WM_opengl_context_create(void);
-void WM_opengl_context_dispose(void *context);
-void WM_opengl_context_activate(void *context);
-void WM_opengl_context_release(void *context);
+void *WM_system_gpu_context_create(void);
+void WM_system_gpu_context_dispose(void *context);
+void WM_system_gpu_context_activate(void *context);
+void WM_system_gpu_context_release(void *context);
 
 /* #WM_window_open alignment */
 typedef enum eWindowAlignment {

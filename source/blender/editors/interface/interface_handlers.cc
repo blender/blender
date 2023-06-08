@@ -11751,6 +11751,7 @@ bool UI_textbutton_activate_rna(const bContext *C,
   if (but_text) {
     ARegion *region_ctx = CTX_wm_region(C);
 
+    /* Temporary context override for activating the button. */
     CTX_wm_region_set(const_cast<bContext *>(C), region);
     UI_but_active_only(C, region, block_text, but_text);
     CTX_wm_region_set(const_cast<bContext *>(C), region_ctx);

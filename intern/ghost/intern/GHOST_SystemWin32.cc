@@ -224,7 +224,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
                                                uint32_t width,
                                                uint32_t height,
                                                GHOST_TWindowState state,
-                                               GHOST_GLSettings glSettings,
+                                               GHOST_GPUSettings gpuSettings,
                                                const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
@@ -237,11 +237,11 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
       width,
       height,
       state,
-      glSettings.context_type,
-      ((glSettings.flags & GHOST_glStereoVisual) != 0),
+      gpuSettings.context_type,
+      ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
       false,
       (GHOST_WindowWin32 *)parentWindow,
-      ((glSettings.flags & GHOST_glDebugContext) != 0),
+      ((gpuSettings.flags & GHOST_gpuDebugContext) != 0),
       is_dialog);
 
   if (window->getValid()) {
@@ -263,15 +263,15 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
-  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
 
   GHOST_Context *context = nullptr;
 
 #ifdef WITH_VULKAN_BACKEND
   /* Vulkan does not need a window. */
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     context = new GHOST_ContextVK(false, (HWND)0, 1, 2, debug_context);
 
     if (!context->initializeDrawingContext()) {

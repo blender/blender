@@ -94,7 +94,7 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     /* Viewport / Spheres size. */
     const rcti *rect;
     rcti fallback_rect;
-    if (DRW_state_is_opengl_render()) {
+    if (DRW_state_is_viewport_image_render()) {
       const float *vp_size = DRW_viewport_size_get();
       fallback_rect.xmax = vp_size[0];
       fallback_rect.ymax = vp_size[1];

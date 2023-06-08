@@ -64,6 +64,7 @@ void register_composite_nodes()
   register_node_type_cmp_invert();
   register_node_type_cmp_keying();
   register_node_type_cmp_keyingscreen();
+  register_node_type_cmp_kuwahara();
   register_node_type_cmp_lensdist();
   register_node_type_cmp_luma_matte();
   register_node_type_cmp_map_range();

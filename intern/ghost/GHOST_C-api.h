@@ -162,7 +162,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height: The height the window.
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
- * \param glSettings: Misc OpenGL options.
+ * \param gpuSettings: Misc GPU options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
@@ -174,17 +174,17 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              uint32_t height,
                                              GHOST_TWindowState state,
                                              bool is_dialog,
-                                             GHOST_GLSettings glSettings);
+                                             GHOST_GPUSettings gpuSettings);
 
 /**
  * Create a new off-screen context.
  * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
- * \param glSettings: Misc OpenGL options.
+ * \param gpuSettings: Misc GPU options.
  * \return A handle to the new context ( == NULL if creation failed).
  */
-extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle,
-                                                     GHOST_GLSettings glSettings);
+extern GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
+                                                  GHOST_GPUSettings gpuSettings);
 
 /**
  * Dispose of a context.
@@ -192,8 +192,8 @@ extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemha
  * \param contexthandle: Handle to the context to be disposed.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
-                                                 GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_DisposeGPUContext(GHOST_SystemHandle systemhandle,
+                                              GHOST_ContextHandle contexthandle);
 
 /**
  * Returns the window user data.
@@ -730,24 +730,24 @@ extern GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle);
  * \param contexthandle: The handle to the context.
  * \return A success indicator.
  */
-extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_ActivateGPUContext(GHOST_ContextHandle contexthandle);
 
 /**
  * Release the drawing context bound to this thread.
  * \param contexthandle: The handle to the context.
  * \return A success indicator.
  */
-extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
+extern GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
+ * Get the GPU frame-buffer handle that serves as a default frame-buffer.
  */
-extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle);
+extern unsigned int GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle);
 
 /**
- * Get the OpenGL frame-buffer handle that serves as a default frame-buffer.
+ * Get the GPU frame-buffer handle that serves as a default frame-buffer.
  */
-extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle);
+extern unsigned int GHOST_GetDefaultGPUFramebuffer(GHOST_WindowHandle windowhandle);
 
 /**
  * Use multi-touch gestures if supported.
@@ -1072,7 +1072,7 @@ int GHOST_XrSessionIsRunning(const GHOST_XrContextHandle xr_context);
 
 /**
  * Check if \a xr_context has a session that requires an upside-down frame-buffer (compared to
- * OpenGL). If true, the render result should be flipped vertically for correct output.
+ * GPU). If true, the render result should be flipped vertically for correct output.
  * \note Only to be called after session start, may otherwise result in a false negative.
  */
 int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context);

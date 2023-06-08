@@ -159,12 +159,12 @@ void WM_init_state_start_with_console_set(bool value)
  * so that it does not break anything that can run in headless mode (as in
  * without display server attached).
  */
-static bool opengl_is_init = false;
+static bool gpu_is_init = false;
 
-void WM_init_opengl(void)
+void WM_init_gpu(void)
 {
   /* Must be called only once. */
-  BLI_assert(opengl_is_init == false);
+  BLI_assert(gpu_is_init == false);
 
   if (G.background) {
     /* Ghost is still not initialized elsewhere in background mode. */
@@ -176,13 +176,13 @@ void WM_init_opengl(void)
   }
 
   /* Needs to be first to have an OpenGL context bound. */
-  DRW_opengl_context_create();
+  DRW_gpu_context_create();
 
   GPU_init();
 
   GPU_pass_cache_init();
 
-  opengl_is_init = true;
+  gpu_is_init = true;
 }
 
 static void sound_jack_sync_callback(Main *bmain, int mode, double time)
@@ -317,7 +317,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     /* Sets 3D mouse dead-zone. */
     WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
-    WM_init_opengl();
+    WM_init_gpu();
 
     if (!WM_platform_support_perform_checks()) {
       /* No attempt to avoid memory leaks here. */
@@ -603,7 +603,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   BKE_subdiv_exit();
 
-  if (opengl_is_init) {
+  if (gpu_is_init) {
     BKE_image_free_unused_gpu_textures();
   }
 
@@ -617,7 +617,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
-  if (opengl_is_init) {
+  if (gpu_is_init) {
     DRW_subdiv_free();
   }
 
@@ -664,13 +664,13 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   /* Delete GPU resources and context. The UI also uses GPU resources and so
    * is also deleted with the context active. */
-  if (opengl_is_init) {
-    DRW_opengl_context_enable_ex(false);
+  if (gpu_is_init) {
+    DRW_gpu_context_enable_ex(false);
     UI_exit();
     GPU_pass_cache_free();
     GPU_exit();
-    DRW_opengl_context_disable_ex(false);
-    DRW_opengl_context_destroy();
+    DRW_gpu_context_disable_ex(false);
+    DRW_gpu_context_destroy();
   }
   else {
     UI_exit();

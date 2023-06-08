@@ -6279,7 +6279,7 @@ static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
   return nullptr;
 }
 
-GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
@@ -6289,9 +6289,9 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
   wl_surface *wl_surface = wl_compositor_create_surface(wl_compositor());
 
 #ifdef WITH_VULKAN_BACKEND
-  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
 
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     GHOST_Context *context = new GHOST_ContextVK(false,
                                                  GHOST_kVulkanPlatformWayland,
                                                  0,
@@ -6310,7 +6310,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glS
     return context;
   }
 #else
-  (void)glSettings;
+  (void)gpuSettings;
 #endif
 
   wl_egl_window *egl_window = wl_surface ? wl_egl_window_create(wl_surface, 1, 1) : nullptr;
@@ -6359,7 +6359,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
                                                  const uint32_t width,
                                                  const uint32_t height,
                                                  const GHOST_TWindowState state,
-                                                 const GHOST_GLSettings glSettings,
+                                                 const GHOST_GPUSettings gpuSettings,
                                                  const bool exclusive,
                                                  const bool is_dialog,
                                                  const GHOST_IWindow *parentWindow)
@@ -6374,9 +6374,9 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
       height,
       state,
       parentWindow,
-      glSettings.context_type,
+      gpuSettings.context_type,
       is_dialog,
-      ((glSettings.flags & GHOST_glStereoVisual) != 0),
+      ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
       exclusive);
 
   if (window) {

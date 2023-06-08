@@ -162,10 +162,10 @@ typedef struct RenderEngine {
   void *update_render_passes_data;
 
   /* GPU context. */
-  void *wm_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
-  ThreadMutex gpu_context_mutex;
+  void *wm_blender_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
+  ThreadMutex blender_gpu_context_mutex;
   bool use_drw_render_context;
-  struct GPUContext *gpu_context;
+  struct GPUContext *blender_gpu_context;
   /* Whether to restore DRWState after RenderEngine display pass. */
   bool gpu_restore_context;
 } RenderEngine;
@@ -271,8 +271,6 @@ void RE_engines_init(void);
 void RE_engines_init_experimental(void);
 void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
-
-bool RE_engine_is_opengl(RenderEngineType *render_type);
 
 /**
  * Return true if the RenderEngineType has native support for direct loading of Alembic data. For

@@ -397,12 +397,12 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                                     const GHOST_DisplaySetting &settings,
                                                     const bool stereoVisual)
 {
-  GHOST_GLSettings glSettings = {0};
+  GHOST_GPUSettings gpuSettings = {0};
 
   if (stereoVisual) {
-    glSettings.flags |= GHOST_glStereoVisual;
+    gpuSettings.flags |= GHOST_gpuStereoVisual;
   }
-  glSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
+  gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
@@ -414,7 +414,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          settings.xPixels,
                                          settings.yPixels,
                                          GHOST_kWindowStateNormal,
-                                         glSettings,
+                                         gpuSettings,
                                          true /* exclusive */);
   return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
 }

@@ -230,7 +230,7 @@ class GHOST_ISystem {
    * \param width: The width the window.
    * \param height: The height the window.
    * \param state: The state of the window when opened.
-   * \param glSettings: Misc OpenGL settings.
+   * \param gpuSettings: Misc GPU settings.
    * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
    * \param parentWindow: Parent (embedder) window
@@ -242,7 +242,7 @@ class GHOST_ISystem {
                                       uint32_t width,
                                       uint32_t height,
                                       GHOST_TWindowState state,
-                                      GHOST_GLSettings glSettings,
+                                      GHOST_GPUSettings gpuSettings,
                                       const bool exclusive = false,
                                       const bool is_dialog = false,
                                       const GHOST_IWindow *parentWindow = NULL) = 0;
@@ -259,7 +259,7 @@ class GHOST_ISystem {
    * Never explicitly delete the context, use #disposeContext() instead.
    * \return The new context (or 0 if creation failed).
    */
-  virtual GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings) = 0;
+  virtual GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) = 0;
 
   /**
    * Dispose of a context.

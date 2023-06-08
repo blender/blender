@@ -666,7 +666,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* All of the queries need to be perform on the drawing context. */
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   G.f |= G_FLAG_PICKSEL;
 
@@ -746,7 +746,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     GPU_depth_test(GPU_DEPTH_NONE);
   }
 
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   UI_Theme_Restore(&theme_state);
 

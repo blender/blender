@@ -9,7 +9,9 @@
 #pragma once
 
 #include "gpu_texture_private.hh"
+
 #include "vk_context.hh"
+#include "vk_image_view.hh"
 
 namespace blender::gpu {
 
@@ -17,14 +19,22 @@ class VKSampler;
 
 class VKTexture : public Texture {
   VkImage vk_image_ = VK_NULL_HANDLE;
-  VkImageView vk_image_view_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
+
+  /* Image view when used in a shader. */
+  std::optional<VKImageView> image_view_;
 
   /* Last image layout of the texture. Frame-buffer and barriers can alter/require the actual
    * layout to be changed. During this it requires to set the current layout in order to know which
    * conversion should happen. #current_layout_ keep track of the layout so the correct conversion
    * can be done. */
   VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  enum eDirtyFlags {
+    IMAGE_VIEW_DIRTY = (1 << 0),
+  };
+
+  int flags_ = IMAGE_VIEW_DIRTY;
 
  public:
   VKTexture(const char *name) : Texture(name) {}
@@ -57,11 +67,6 @@ class VKTexture : public Texture {
   {
     BLI_assert(vk_image_ != VK_NULL_HANDLE);
     return vk_image_;
-  }
-  VkImageView vk_image_view_handle() const
-  {
-    BLI_assert(is_allocated());
-    return vk_image_view_;
   }
 
   void ensure_allocated();
@@ -121,6 +126,23 @@ class VKTexture : public Texture {
                      IndexRange mipmap_range,
                      VkImageLayout current_layout,
                      VkImageLayout requested_layout);
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Image Views
+   * \{ */
+ public:
+  VKImageView &image_view_get()
+  {
+    image_view_ensure();
+    return *image_view_;
+  }
+
+ private:
+  IndexRange mip_map_range() const;
+  void image_view_ensure();
+  void image_view_update();
 
   /** \} */
 };

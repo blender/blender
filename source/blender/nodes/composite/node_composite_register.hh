@@ -60,6 +60,7 @@ void register_node_type_cmp_inpaint();
 void register_node_type_cmp_invert();
 void register_node_type_cmp_keying();
 void register_node_type_cmp_keyingscreen();
+void register_node_type_cmp_kuwahara();
 void register_node_type_cmp_lensdist();
 void register_node_type_cmp_luma_matte();
 void register_node_type_cmp_map_range();
