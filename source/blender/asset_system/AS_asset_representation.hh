@@ -114,6 +114,9 @@ class AssetRepresentation {
 /* C-Handle */
 struct AssetRepresentation;
 
+const blender::StringRefNull AS_asset_representation_library_relative_identifier_get(
+    const AssetRepresentation *asset_handle);
+
 std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
 /**
  * Get the absolute path to the .blend file containing the given asset. String will be empty if

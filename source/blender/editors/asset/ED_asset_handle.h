@@ -44,9 +44,13 @@ bool ED_asset_handle_get_use_relative_path(const struct AssetHandle *asset);
 
 #  include <optional>
 
+#  include "BLI_string_ref.hh"
+
 /** The asset library may have an import method (e.g. append vs. link) defined to use. If so, this
  * returns it. Otherwise a reasonable method should be used, usually "Append (Reuse Data)". */
 std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const struct AssetHandle *asset);
+
+blender::StringRefNull ED_asset_handle_get_library_relative_identifier(const AssetHandle &asset);
 
 #endif
