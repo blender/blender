@@ -50,6 +50,6 @@ bool ED_asset_handle_get_use_relative_path(const struct AssetHandle *asset);
 std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
     const struct AssetHandle *asset);
 
-blender::StringRefNull ED_asset_handle_get_relative_path(const AssetHandle &asset);
+blender::StringRefNull ED_asset_handle_get_library_relative_identifier(const AssetHandle &asset);
 
 #endif

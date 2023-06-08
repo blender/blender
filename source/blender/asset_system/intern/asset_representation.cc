@@ -135,13 +135,13 @@ const AssetLibrary &AssetRepresentation::owner_asset_library() const
 
 using namespace blender;
 
-const StringRefNull AS_asset_representation_relative_path_get(
+const StringRefNull AS_asset_representation_library_relative_identifier_get(
     const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   const asset_system::AssetIdentifier &identifier = asset->get_identifier();
-  return identifier.relative_path();
+  return identifier.library_relative_identifier();
 }
 
 std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)

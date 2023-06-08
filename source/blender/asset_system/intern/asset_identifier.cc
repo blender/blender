@@ -49,9 +49,4 @@ std::string AssetIdentifier::full_library_path() const
   return blend_path;
 }
 
-StringRefNull AssetIdentifier::relative_path() const
-{
-  return relative_asset_path_;
-}
-
 }  // namespace blender::asset_system

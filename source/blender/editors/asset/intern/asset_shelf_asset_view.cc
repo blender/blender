@@ -120,8 +120,7 @@ void AssetView::build_items()
 
     const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
-    /* Use the path within the library as identifier, this should be unique. */
-    const StringRef identifier = ED_asset_handle_get_relative_path(asset);
+    const StringRef identifier = ED_asset_handle_get_library_relative_identifier(asset);
     const StringRef name = show_names ? ED_asset_handle_get_name(&asset) : "";
     const int preview_id = ED_asset_handle_get_preview_icon_id(&asset);
 

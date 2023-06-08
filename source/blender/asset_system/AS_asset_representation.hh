@@ -114,7 +114,7 @@ class AssetRepresentation {
 /* C-Handle */
 struct AssetRepresentation;
 
-const blender::StringRefNull AS_asset_representation_relative_path_get(
+const blender::StringRefNull AS_asset_representation_library_relative_identifier_get(
     const AssetRepresentation *asset_handle);
 std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *asset);
 /**
