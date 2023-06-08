@@ -1134,7 +1134,7 @@ void ED_spacetype_image(void)
   /* regions: tool(bar) */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_TOOLS;
-  art->prefsizex = 58; /* XXX */
+  art->prefsizex = (int)UI_TOOLBAR_WIDTH;
   art->prefsizey = 50; /* XXX */
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_tools_region_listener;
