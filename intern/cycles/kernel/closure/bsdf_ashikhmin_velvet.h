@@ -105,7 +105,7 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
   float cosHI = fabsf(dot(wi, H));
   float cosNH = dot(N, H);
 
-  if (!(fabsf(cosNI) > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHI > 1e-5f)) {
+  if (!(cosNI > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHI > 1e-5f)) {
     *pdf = 0.0f;
     *eval = zero_spectrum();
     return LABEL_NONE;
