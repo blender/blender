@@ -24,6 +24,7 @@
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
@@ -660,6 +661,39 @@ GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
 {
   const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
   return get_evaluated_curves_deformation(ob_eval, ob_orig);
+}
+
+GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object *ob_eval,
+                                                                    const Object &ob_orig,
+                                                                    const int drawing_index)
+{
+  BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
+  const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
+
+  GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawings()[drawing_index];
+
+  GeometryDeformation deformation;
+  if (drawing_base->type == GP_DRAWING) {
+    GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+    /* Use the undeformed positions by default. */
+    deformation.positions = drawing->geometry.wrap().positions();
+  }
+  else if (drawing_base->type == GP_DRAWING_REFERENCE) {
+    /* TODO */
+  }
+
+  if (ob_eval == nullptr) {
+    return deformation;
+  }
+  const GeometrySet *geometry_eval = ob_eval->runtime.geometry_set_eval;
+  if (geometry_eval == nullptr) {
+    return deformation;
+  }
+
+  /* TODO: Read `GeometryComponentEditData` from `geometry_eval` and populate deformation with it.
+   */
+
+  return deformation;
 }
 
 }  // namespace blender::bke::crazyspace

@@ -51,5 +51,8 @@ struct GeometryDeformation {
 GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, const Object &ob_orig);
 GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
                                                      const Object &ob_orig);
+GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object *ob_eval,
+                                                                    const Object &ob_orig,
+                                                                    int drawing_index);
 
 }  // namespace blender::bke::crazyspace

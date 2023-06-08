@@ -48,10 +48,11 @@ static int select_all_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  grease_pencil.foreach_editable_drawing(scene->r.cfra, [action](GreasePencilDrawing &drawing) {
-    // TODO: Support different selection domains.
-    blender::ed::curves::select_all(drawing.geometry.wrap(), ATTR_DOMAIN_POINT, action);
-  });
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [action](int /*drawing_index*/, GreasePencilDrawing &drawing) {
+        // TODO: Support different selection domains.
+        blender::ed::curves::select_all(drawing.geometry.wrap(), ATTR_DOMAIN_POINT, action);
+      });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
    * attribute for now. */
