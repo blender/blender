@@ -1780,7 +1780,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   }
 
   /* If some of the islands are locked, we build a summary about them here. */
-  rctf locked_bounds;              /* AABB of islands which can't translate. */
+  rctf locked_bounds = {0.0f};     /* AABB of islands which can't translate. */
   int64_t locked_island_count = 0; /* Index of first non-locked island. */
   for (int64_t i = 0; i < islands.size(); i++) {
     PackIsland *pack_island = islands[i];
