@@ -1172,6 +1172,43 @@ static bool do_lasso_select_meta(ViewContext *vc,
   return data.is_changed;
 }
 
+static bool do_lasso_select_grease_pencil(ViewContext *vc,
+                                          const int mcoords[][2],
+                                          const int mcoords_len,
+                                          const eSelectOp sel_op)
+{
+  using namespace blender;
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
+                                                   const_cast<Object *>(vc->obedit));
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+
+  bool changed = false;
+  grease_pencil.foreach_editable_drawing(
+      vc->scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
+        bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                ob_eval, *vc->obedit, drawing_index);
+
+        /* TODO: Support different selection domains. */
+        changed = ed::curves::select_lasso(
+            *vc,
+            drawing.geometry.wrap(),
+            deformation.positions,
+            ATTR_DOMAIN_POINT,
+            Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
+            sel_op);
+      });
+
+  if (changed) {
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+     * generic attribute for now. */
+    DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, vc->obedit->data);
+  }
+
+  return changed;
+}
+
 struct LassoSelectUserData_ForMeshVert {
   LassoSelectUserData lasso_data;
   blender::MutableSpan<bool> select_vert;
@@ -1387,6 +1424,10 @@ static bool view3d_lasso_select(bContext *C,
             DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
             WM_event_add_notifier(C, NC_GEOM | ND_DATA, vc->obedit->data);
           }
+          break;
+        }
+        case OB_GREASE_PENCIL: {
+          changed = do_lasso_select_grease_pencil(vc, mcoords, mcoords_len, sel_op);
           break;
         }
         default:
