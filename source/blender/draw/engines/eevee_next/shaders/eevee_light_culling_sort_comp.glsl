@@ -11,6 +11,11 @@ shared float zdists_cache[gl_WorkGroupSize.x];
 
 void main()
 {
+  /* Early exit if no lights are present to prevent out of bounds buffer read. */
+  if (light_cull_buf.visible_count == 0) {
+    return;
+  }
+
   uint src_index = gl_GlobalInvocationID.x;
   bool valid_thread = true;
 
