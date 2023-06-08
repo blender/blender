@@ -33,6 +33,7 @@
 #include "interface_intern.hh"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #ifdef WITH_PYTHON
@@ -342,7 +343,10 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
   }
   if (but->rnaprop) {
     char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
-    const char *prop_id = RNA_property_identifier(but->rnaprop);
+    /* Ignore the actual array index [pass -1] since the index is handled separately. */
+    const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
+                              RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
+                              RNA_property_identifier(but->rnaprop);
     bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
         &um->items, member_id_data_path, prop_id, but->rnaindex);
     MEM_freeN(member_id_data_path);
@@ -417,7 +421,10 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   else if (but->rnaprop) {
     /* NOTE: 'member_id' may be a path. */
     char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
-    const char *prop_id = RNA_property_identifier(but->rnaprop);
+    /* Ignore the actual array index [pass -1] since the index is handled separately. */
+    const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
+                              RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
+                              RNA_property_identifier(but->rnaprop);
     /* NOTE: ignore 'drawstr', use property idname always. */
     ED_screen_user_menu_item_add_prop(&um->items, "", member_id_data_path, prop_id, but->rnaindex);
     MEM_freeN(member_id_data_path);
