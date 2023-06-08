@@ -155,12 +155,15 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
   sd->Ng = Ng;
   sd->wi = I;
   sd->shader = shader;
-  if (prim != PRIM_NONE)
-    sd->type = PRIMITIVE_TRIANGLE;
-  else if (lamp != LAMP_NONE)
+  if (lamp != LAMP_NONE) {
     sd->type = PRIMITIVE_LAMP;
-  else
+  }
+  else if (prim != PRIM_NONE) {
+    sd->type = PRIMITIVE_TRIANGLE;
+  }
+  else {
     sd->type = PRIMITIVE_NONE;
+  }
 
   /* primitive */
   sd->object = object;
