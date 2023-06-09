@@ -86,11 +86,6 @@ static CustomData *rna_mesh_edata_helper(Mesh *me)
   return (me->edit_mesh) ? &me->edit_mesh->bm->edata : &me->edata;
 }
 
-static CustomData *rna_mesh_pdata_helper(Mesh *me)
-{
-  return (me->edit_mesh) ? &me->edit_mesh->bm->pdata : &me->pdata;
-}
-
 static CustomData *rna_mesh_ldata_helper(Mesh *me)
 {
   return (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
@@ -105,11 +100,6 @@ static CustomData *rna_mesh_edata(const PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   return rna_mesh_edata_helper(me);
-}
-static CustomData *rna_mesh_pdata(const PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  return rna_mesh_pdata_helper(me);
 }
 
 static CustomData *rna_mesh_ldata(const PointerRNA *ptr)

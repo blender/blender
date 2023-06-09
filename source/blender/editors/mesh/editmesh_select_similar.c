@@ -202,7 +202,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     Material ***material_array = NULL;
     invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    int custom_data_offset = 0;
 
     if (bm->totfacesel == 0) {
       continue;
@@ -314,7 +313,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     bool changed = false;
     Material ***material_array = NULL;
-    int custom_data_offset;
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world);
