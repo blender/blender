@@ -973,6 +973,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         id->us = 0;
         undo_push_label = "Delete Data-Block";
       }
+      else {
+        undo_push_label = "Unlink Data-Block";
+      }
 
       break;
     case UI_ID_FAKE_USER:
