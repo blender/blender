@@ -171,6 +171,11 @@ template<typename T> inline T pow(const T &x, const T &power)
   return std::pow(x, power);
 }
 
+template<typename T> inline T exp(const T &x)
+{
+  return std::exp(x);
+}
+
 template<typename T> inline T safe_acos(const T &a)
 {
   if (UNLIKELY(a <= T(-1))) {
