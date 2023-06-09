@@ -4,6 +4,7 @@
 
 #include "testing/testing.h"
 
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "gpu_testing.hh"
 
@@ -198,5 +199,53 @@ static void test_framebuffer_scissor_test()
   GPU_texture_free(texture);
 }
 GPU_TEST(framebuffer_scissor_test);
+
+/* Color each side of a cubemap with a different color. */
+static void test_framebuffer_cube()
+{
+  const int SIZE = 32;
+  GPU_render_begin();
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  GPUTexture *tex = GPU_texture_create_cube("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+
+  const float4 clear_colors[6] = {
+      {0.5f, 0.0f, 0.0f, 1.0f},
+      {1.0f, 0.0f, 0.0f, 1.0f},
+      {0.0f, 0.5f, 0.0f, 1.0f},
+      {0.0f, 1.0f, 0.0f, 1.0f},
+      {0.0f, 0.0f, 0.5f, 1.0f},
+      {0.0f, 0.0f, 1.0f, 1.0f},
+  };
+  GPUFrameBuffer *framebuffers[6] = {nullptr};
+
+  for (int i : IndexRange(6)) {
+    GPU_framebuffer_ensure_config(&framebuffers[i],
+                                  {
+                                      GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE_CUBEFACE(tex, i),
+                                  });
+    GPU_framebuffer_bind(framebuffers[i]);
+    GPU_framebuffer_clear_color(framebuffers[i], clear_colors[i]);
+  };
+
+  float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
+  for (int side : IndexRange(6)) {
+    for (int pixel_index : IndexRange(SIZE * SIZE)) {
+      int index = pixel_index + (SIZE * SIZE) * side;
+      EXPECT_EQ(clear_colors[side], data[index]);
+    }
+  }
+  MEM_freeN(data);
+
+  GPU_texture_free(tex);
+
+  for (int i : IndexRange(6)) {
+    GPU_FRAMEBUFFER_FREE_SAFE(framebuffers[i]);
+  }
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_cube)
 
 }  // namespace blender::gpu::tests

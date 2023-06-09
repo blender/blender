@@ -20,7 +20,7 @@ class VKImageView : NonCopyable {
   VkImageView vk_image_view_ = VK_NULL_HANDLE;
 
  public:
-  VKImageView(VKTexture &texture, int mip_level, StringRefNull name);
+  VKImageView(VKTexture &texture, int layer, int mip_level, StringRefNull name);
 
   /**
    * Wrap the given vk_image_view handle. Note that the vk_image_view handle ownership is
@@ -38,7 +38,10 @@ class VKImageView : NonCopyable {
   }
 
  private:
-  static VkImageView create_vk_image_view(VKTexture &texture, int mip_level, StringRefNull name);
+  static VkImageView create_vk_image_view(VKTexture &texture,
+                                          int layer,
+                                          int mip_level,
+                                          StringRefNull name);
 };
 
 }  // namespace blender::gpu
