@@ -226,8 +226,6 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_vertex_weight_normalize_active_vertex);
   WM_operatortype_append(OBJECT_OT_vertex_weight_copy);
 
-
-
   WM_operatortype_append(TRANSFORM_OT_vertex_warp);
 
   WM_operatortype_append(OBJECT_OT_move_to_collection);
