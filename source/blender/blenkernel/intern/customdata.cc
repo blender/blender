@@ -4865,7 +4865,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
    * more than 0.5 of weight. */
   int best_src_idx = 0;
 
-  const eCustomDataType data_type = laymap->data_type;
+  const int data_type = laymap->data_type;
   const int mix_mode = laymap->mix_mode;
 
   size_t data_size;
@@ -4883,7 +4883,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     data_size = laymap->data_size;
   }
   else {
-    const LayerTypeInfo *type_info = layerType_getInfo(data_type);
+    const LayerTypeInfo *type_info = layerType_getInfo(eCustomDataType(data_type));
 
     data_size = size_t(type_info->size);
     interp_cd = type_info->interp;
@@ -4952,7 +4952,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
     }
   }
   else if (!(int(data_type) & CD_FAKE)) {
-    CustomData_data_mix_value(data_type, tmp_dst, data_dst, mix_mode, mix_factor);
+    CustomData_data_mix_value(eCustomDataType(data_type), tmp_dst, data_dst, mix_mode, mix_factor);
   }
   /* Else we can do nothing by default, needs custom interp func!
    * Note this is here only for sake of consistency, not expected to be used much actually? */
@@ -4975,7 +4975,8 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
   BLI_assert(weights != nullptr);
   BLI_assert(count > 0);
 
-  const eCustomDataType data_type = laymap->data_type;
+  const eCustomDataType data_type = eCustomDataType(laymap->data_type);
+  BLI_assert(data_type == CD_NORMAL);
   const int mix_mode = laymap->mix_mode;
 
   SpaceTransform *space_transform = static_cast<SpaceTransform *>(laymap->interp_data);
@@ -4984,8 +4985,6 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
   cd_interp interp_cd = type_info->interp;
 
   float tmp_dst[3];
-
-  BLI_assert(data_type == CD_NORMAL);
 
   if (!sources) {
     /* Not supported here, abort. */
@@ -5007,7 +5006,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   MeshPairRemapItem *mapit = me_remap->items;
   const int totelem = me_remap->items_num;
 
-  const eCustomDataType data_type = laymap->data_type;
+  const int data_type = laymap->data_type;
   const void *data_src = laymap->data_src;
   void *data_dst = laymap->data_dst;
 
@@ -5036,7 +5035,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
     data_offset = laymap->data_offset;
   }
   else {
-    const LayerTypeInfo *type_info = layerType_getInfo(data_type);
+    const LayerTypeInfo *type_info = layerType_getInfo(eCustomDataType(data_type));
 
     /* NOTE: we can use 'fake' CDLayers for crease :/. */
     data_size = size_t(type_info->size);
