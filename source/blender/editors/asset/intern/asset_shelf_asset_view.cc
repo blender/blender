@@ -7,6 +7,8 @@
  */
 
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "BKE_screen.h"
 
@@ -76,10 +78,10 @@ class AssetViewItem : public ui::PreviewGridItem {
 };
 
 class AssetDragController : public ui::AbstractViewItemDragController {
-  AssetHandle asset_;
+  AssetRepresentation &asset_;
 
  public:
-  AssetDragController(ui::AbstractGridView &view, const AssetHandle &asset);
+  AssetDragController(ui::AbstractGridView &view, AssetRepresentation &asset);
 
   eWM_DragDataType get_drag_type() const override;
   void *create_drag_data() const override;
@@ -104,14 +106,15 @@ void AssetView::build_items()
     return;
   }
 
-  ED_assetlist_iterate(library_ref_, [&](AssetHandle asset) {
+  ED_assetlist_iterate(library_ref_, [&](AssetHandle asset_handle) {
     /* TODO calling a (.py defined) callback for every asset isn't exactly great. Should be a
      * temporary solution until there is proper filtering by asset traits. */
-    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset)) {
+    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset_handle)) {
       return true;
     }
 
-    const AssetMetaData *asset_data = ED_asset_handle_get_metadata(&asset);
+    const AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
+    const AssetMetaData *asset_data = AS_asset_representation_metadata_get(asset);
 
     if (catalog_filter_ && !catalog_filter_->contains(asset_data->catalog_id)) {
       /* Skip this asset. */
@@ -120,11 +123,11 @@ void AssetView::build_items()
 
     const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
-    const StringRef identifier = ED_asset_handle_get_library_relative_identifier(asset);
-    const StringRef name = show_names ? ED_asset_handle_get_name(&asset) : "";
-    const int preview_id = ED_asset_handle_get_preview_icon_id(&asset);
+    const StringRef identifier = AS_asset_representation_library_relative_identifier_get(asset);
+    const StringRef name = show_names ? AS_asset_representation_name_get(asset) : "";
+    const int preview_id = ED_asset_handle_get_preview_icon_id(&asset_handle);
 
-    AssetViewItem &item = add_item<AssetViewItem>(asset, identifier, name, preview_id);
+    AssetViewItem &item = add_item<AssetViewItem>(asset_handle, identifier, name, preview_id);
     if (shelf_.type->flag & ASSET_SHELF_TYPE_NO_ASSET_DRAG) {
       item.disable_asset_drag();
     }
@@ -223,7 +226,11 @@ bool AssetViewItem::is_filtered_visible() const
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const
 {
-  return allow_asset_drag_ ? std::make_unique<AssetDragController>(get_view(), asset_) : nullptr;
+  if (!allow_asset_drag_) {
+    return nullptr;
+  }
+  AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_);
+  return std::make_unique<AssetDragController>(get_view(), *asset);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,32 +268,30 @@ void build_asset_view(uiLayout &layout,
 /* ---------------------------------------------------------------------- */
 /* Dragging. */
 
-AssetDragController::AssetDragController(ui::AbstractGridView &view, const AssetHandle &asset)
+AssetDragController::AssetDragController(ui::AbstractGridView &view, AssetRepresentation &asset)
     : ui::AbstractViewItemDragController(view), asset_(asset)
 {
 }
 
 eWM_DragDataType AssetDragController::get_drag_type() const
 {
-  const ID *local_id = ED_asset_handle_get_local_id(&asset_);
+  const ID *local_id = AS_asset_representation_local_id_get(&asset_);
   return local_id ? WM_DRAG_ID : WM_DRAG_ASSET;
 }
 
 void *AssetDragController::create_drag_data() const
 {
-  ID *local_id = ED_asset_handle_get_local_id(&asset_);
+  ID *local_id = AS_asset_representation_local_id_get(&asset_);
   if (local_id) {
     return static_cast<void *>(local_id);
   }
 
-  char asset_blend_path[FILE_MAX_LIBEXTRA];
-  ED_asset_handle_get_full_library_path(&asset_, asset_blend_path);
-  const eAssetImportMethod import_method = ED_asset_handle_get_import_method(&asset_).value_or(
-      ASSET_IMPORT_APPEND_REUSE);
+  const eAssetImportMethod import_method =
+      AS_asset_representation_import_method_get(&asset_).value_or(ASSET_IMPORT_APPEND_REUSE);
 
   const AssetView &asset_view = get_view<AssetView>();
-  return static_cast<void *>(WM_drag_create_asset_data(
-      &asset_, BLI_strdup(asset_blend_path), import_method, &asset_view.evil_C_));
+  return static_cast<void *>(
+      WM_drag_create_asset_data(&asset_, import_method, &asset_view.evil_C_));
 }
 
 }  // namespace blender::ed::asset::shelf
