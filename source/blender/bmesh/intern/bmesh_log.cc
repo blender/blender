@@ -31,28 +31,6 @@ extern "C" {
 #include <functional>
 #include <type_traits>
 
-#ifdef DO_LOG_PRINT
-static int msg_idgen = 1;
-static char msg_buffer[256] = {0};
-
-#  define SET_MSG(le) memcpy(le->msg, msg_buffer, sizeof(le->msg))
-#  define GET_MSG(le) (le)->msg
-#  ifdef DEBUG_LOG_CALL_STACKS
-#    define LOGPRINT(entry, ...) \
-      fprintf(DEBUG_FILE, "%d: %s: ", entry->id, bm_logstack_head()); \
-      fprintf(DEBUG_FILE, __VA_ARGS__)
-#  else
-#    define LOGPRINT(entry, ...) \
-      fprintf(DEBUG_FILE, "%s: ", __func__); \
-      fprintf(DEBUG_FILE, __VA_ARGS__)
-#  endif
-struct Mesh;
-#else
-#  define GET_MSG(le) le ? "" : " "
-#  define SET_MSG(le)
-#  define LOGPRINT(...)
-#endif
-
 extern "C" void bm_log_message(const char *fmt, ...)
 {
   char msg[64];
@@ -61,13 +39,6 @@ extern "C" void bm_log_message(const char *fmt, ...)
   va_start(args, fmt);
   vsnprintf(msg, sizeof(msg), fmt, args);
   va_end(args);
-
-#ifdef DO_LOG_PRINT
-  BLI_snprintf(msg_buffer, 64, "%d %s", msg_idgen, msg);
-  msg_idgen++;
-
-  fprintf(DEBUG_FILE, "%s\n", msg);
-#endif
 }
 
 /* Avoid C++ runtime type ids. */

@@ -2220,9 +2220,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_COORDS:
       case SCULPT_UNDO_MASK:
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          bm_logstack_push();
           BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
-          bm_logstack_pop();
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -2231,9 +2229,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         DyntopoSet<BMFace> *faces = BKE_pbvh_bmesh_node_faces(node);
 
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-          bm_logstack_push();
           BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
-          bm_logstack_pop();
         }
         BKE_pbvh_vertex_iter_end;
 
@@ -2259,9 +2255,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
         if (domain == ATTR_DOMAIN_POINT) {
           BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-            bm_logstack_push();
             BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
-            bm_logstack_pop();
           }
           BKE_pbvh_vertex_iter_end;
         }

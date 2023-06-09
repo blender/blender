@@ -458,7 +458,6 @@ bool pbvh_bmesh_collapse_edge_uvs(
 {
   BMesh *bm = pbvh->header.bm;
 
-  bm_logstack_push();
   pbvh_check_vert_boundary_bmesh(pbvh, v_conn);
   pbvh_check_vert_boundary_bmesh(pbvh, v_del);
 
@@ -484,11 +483,9 @@ bool pbvh_bmesh_collapse_edge_uvs(
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
   if ((boundflag1 & SCULPT_BOUNDARY_SHARP_MARK) && (e->head.hflag & BM_ELEM_SMOOTH)) {
-    bm_logstack_pop();
     return false;
   }
   if ((boundflag1 & SCULPT_BOUNDARY_SEAM) && !(e->head.hflag & BM_ELEM_SEAM)) {
-    bm_logstack_pop();
     return false;
   }
 
@@ -675,7 +672,6 @@ bool pbvh_bmesh_collapse_edge_uvs(
     }
   } while ((l = l->radial_next) != e->l);
 
-  bm_logstack_pop();
   return snap;
 }
 
@@ -759,12 +755,9 @@ class DyntopoCollapseCallbacks {
 BMVert *pbvh_bmesh_collapse_edge(
     PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2, EdgeQueueContext *eq_ctx)
 {
-  bm_logstack_push();
-
   BMVert *v_del, *v_conn;
 
   if (pbvh->dyntopo_stop) {
-    bm_logstack_pop();
     return nullptr;
   }
 
@@ -793,7 +786,6 @@ BMVert *pbvh_bmesh_collapse_edge(
 
   /* Don't collapse across boundaries. */
   if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY)) {
-    bm_logstack_pop();
     return nullptr;
   }
 
@@ -803,16 +795,14 @@ BMVert *pbvh_bmesh_collapse_edge(
   bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
 
-  /* We allow two corners of the example sampe type[s] to collapse */ 
+  /* We allow two corners of the example sampe type[s] to collapse */
   if ((boundflag1 & SCULPTVERT_ALL_CORNER) &&
       (boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER))
   {
-    bm_logstack_pop();
     return nullptr;
   }
 
   if (w1 >= 0.85 && w2 >= 0.85) {
-    bm_logstack_pop();
     return nullptr;
   }
 
@@ -973,7 +963,6 @@ BMVert *pbvh_bmesh_collapse_edge(
     BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v_conn), true);
     BM_vert_kill(pbvh->header.bm, v_conn);
 
-    bm_logstack_pop();
     return nullptr;
   }
 #endif
@@ -997,7 +986,6 @@ BMVert *pbvh_bmesh_collapse_edge(
 
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
-  bm_logstack_pop();
   PBVH_CHECK_NAN(v_conn->co);
 
   return v_conn;

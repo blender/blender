@@ -73,20 +73,6 @@ typedef struct BMLogCallbacks {
   void *userdata;
 } BMLogCallbacks;
 
-//#define DEBUG_LOG_CALL_STACKS
-
-#ifdef DEBUG_LOG_CALL_STACKS
-void _bm_logstack_pop();
-const char *_bm_logstack_head();
-void _bm_logstack_push(const char *name);
-#  define bm_logstack_push() _bm_logstack_push(__func__)
-#  define bm_logstack_pop() _bm_logstack_pop()
-#else
-#  define bm_logstack_push()
-#  define bm_logstack_head ""
-#  define bm_logstack_pop()
-#endif
-
 struct BMIdMap;
 
 /* Allocate and initialize a new BMLog */

@@ -287,7 +287,6 @@ namespace blender::bke::dyntopo {
 void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
 {
   BMEdge *e = v->e;
-  bm_logstack_push();
 
   if (e && log_edges) {
     do {
@@ -318,7 +317,6 @@ void pbvh_kill_vert(PBVH *pbvh, BMVert *v, bool log_vert, bool log_edges)
 
   BM_idmap_release(pbvh->bm_idmap, (BMElem *)v, true);
   BM_vert_kill(pbvh->header.bm, v);
-  bm_logstack_pop();
 }
 
 static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
@@ -666,8 +664,6 @@ void pbvh_bmesh_face_remove(
     return;
   }
 
-  bm_logstack_push();
-
   /* Check if any of this face's vertices need to be removed
    * from the node */
   if (check_verts) {
@@ -731,8 +727,6 @@ void pbvh_bmesh_face_remove(
   /* mark node for update */
   f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateTris |
                   PBVH_UpdateTriAreas | PBVH_UpdateCurvatureDir;
-
-  bm_logstack_pop();
 }
 }  // namespace blender::bke::dyntopo
 

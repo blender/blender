@@ -861,8 +861,6 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
     return false;
   }
 
-  bm_logstack_push();
-
   LinkNode *dbl = nullptr;
 
   Vector<BMFace *, 32> fs;
@@ -1004,7 +1002,6 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
   }
 
   pbvh_bmesh_check_nodes(pbvh);
-  bm_logstack_pop();
 
   return false;
 }
@@ -1012,8 +1009,6 @@ bool check_face_is_tri(PBVH *pbvh, BMFace *f)
 bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 {
 #if !(DYNTOPO_DISABLE_FLAG & DYNTOPO_DISABLE_FIN_REMOVAL)
-  bm_logstack_push();
-
   static int max_faces = 64;
   Vector<BMFace *, 32> stack;
 
@@ -1022,7 +1017,6 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
   Vector<BMFace *, 32> minfs;
 
   if (!l) {
-    bm_logstack_pop();
     return false;
   }
 
@@ -1082,7 +1076,6 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
                     PBVH_RebuildDrawBuffers;
 
   if (!minfs.size()) {
-    bm_logstack_pop();
     return false;
   }
 
@@ -1199,7 +1192,6 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
 
   pbvh_bmesh_check_nodes(pbvh);
 
-  bm_logstack_pop();
   return true;
 #else
   return false;
@@ -1213,8 +1205,6 @@ bool check_for_fins(PBVH *pbvh, BMVert *v)
     return false;
   }
 
-  bm_logstack_push();
-
   do {
     if (!e) {
       printf("%s: e was nullptr\n", __func__);
@@ -1226,7 +1216,6 @@ bool check_for_fins(PBVH *pbvh, BMVert *v)
       do {
         if (l != l->radial_next && l != l->radial_next->radial_next) {
           if (destroy_nonmanifold_fins(pbvh, e)) {
-            bm_logstack_pop();
             return true;
           }
         }
@@ -1234,7 +1223,6 @@ bool check_for_fins(PBVH *pbvh, BMVert *v)
     }
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
-  bm_logstack_pop();
   return false;
 }
 
@@ -1729,8 +1717,6 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
 {
   bool modified = false;
 
-  bm_logstack_push();
-
   bm_log_message("  == cleanup_valence_3_4 == ");
 
   const int cd_vert_node = pbvh->cd_vert_node_offset;
@@ -2042,8 +2028,6 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     pbvh->header.bm->elem_index_dirty |= BM_VERT | BM_FACE | BM_EDGE;
     pbvh->header.bm->elem_table_dirty |= BM_VERT | BM_FACE | BM_EDGE;
   }
-
-  bm_logstack_pop();
 
   return modified;
 }
@@ -2526,9 +2510,7 @@ void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
 void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge)
 {
   if (log_edge) {
-    bm_logstack_push();
     BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e);
-    bm_logstack_pop();
   }
 }
 
@@ -2543,8 +2525,6 @@ void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
 
 void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk)
 {
-  bm_logstack_push();
-
   int ni = DYNTOPO_NODE_NONE;
 
   if (force_tree_walk) {
@@ -2554,7 +2534,6 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
     }
 
-    bm_logstack_pop();
     return;
   }
 
@@ -2588,8 +2567,6 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   if (log_face) {
     BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f);
   }
-
-  bm_logstack_pop();
 }
 
 namespace blender::bke::dyntopo {
