@@ -6332,8 +6332,6 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
           }
           else {
             Scene *scene = CTX_data_scene(C);
-            ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-
             bool updated = false;
 
             if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
@@ -8671,9 +8669,7 @@ static void button_activate_exit(
 #ifdef USE_ALLSELECT
     {
       /* only RNA from this button is used */
-
       uiBut but_temp = *but;
-
       uiSelectContextStore *selctx_data = &data->select_others;
       for (int i = 0; i < selctx_data->elems_len; i++) {
         uiSelectContextElem *other = &selctx_data->elems[i];

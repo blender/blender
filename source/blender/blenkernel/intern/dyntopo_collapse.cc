@@ -38,7 +38,7 @@
 #include "pbvh_intern.hh"
 
 #include <functional>
-#include <stdio.h>
+#include <cstdio>
 
 using blender::float2;
 using blender::float3;
@@ -52,18 +52,14 @@ using blender::Vector;
 
 namespace blender::bke::dyntopo {
 
-typedef struct TraceData {
+struct TraceData {
   PBVH *pbvh;
   BMEdge *e;
   SculptSession *ss;
-} TraceData;
-
-const int COLLAPSE_TAG = 32;
-const int COLLAPSE_FACE_TAG = 64;
+};
 
 template<typename T = BMVert> static void check_new_elem_id(T *elem, PBVH *pbvh)
 {
-#if 1
   int id = BM_ELEM_CD_GET_INT(elem, pbvh->bm_idmap->cd_id_off[int(elem->head.htype)]);
   if (id != BM_ID_NONE) {
     BMElem *existing = id < pbvh->bm_idmap->map_size ? BM_idmap_lookup(pbvh->bm_idmap, id) :
@@ -83,287 +79,6 @@ template<typename T = BMVert> static void check_new_elem_id(T *elem, PBVH *pbvh)
   else {
     BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
   }
-#else
-  BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(elem));
-#endif
-}
-
-static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
-{
-  TraceData *data = static_cast<TraceData *>(userdata);
-
-  BM_idmap_check_assign(data->pbvh->bm_idmap, elem);
-  BMesh *bm = data->pbvh->header.bm;
-
-  switch (elem->head.htype) {
-    case BM_VERT: {
-      BMVert *v = reinterpret_cast<BMVert *>(elem);
-
-      dyntopo_add_flag(data->pbvh, v, SCULPTFLAG_NEED_VALENCE);
-
-      BM_log_vert_removed(bm, data->pbvh->bm_log, v);
-      pbvh_bmesh_vert_remove(data->pbvh, v);
-      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
-      break;
-    }
-    case BM_EDGE: {
-      BMEdge *e = reinterpret_cast<BMEdge *>(elem);
-      BM_log_edge_removed(bm, data->pbvh->bm_log, e);
-      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
-      break;
-    }
-    case BM_FACE: {
-      BMFace *f = reinterpret_cast<BMFace *>(elem);
-      BM_log_face_removed(bm, data->pbvh->bm_log, f);
-      pbvh_bmesh_face_remove(data->pbvh, f, false, true, true);
-      BM_idmap_release(data->pbvh->bm_idmap, elem, false);
-      break;
-    }
-  }
-}
-
-static void collapse_ring_callback_post(BMElem *elem, void *userdata)
-{
-  TraceData *data = static_cast<TraceData *>(userdata);
-  BMesh *bm = data->pbvh->header.bm;
-
-  switch (elem->head.htype) {
-    case BM_VERT: {
-      BMVert *v = reinterpret_cast<BMVert *>(elem);
-
-      dyntopo_add_flag(data->pbvh, v, SCULPTFLAG_NEED_VALENCE);
-
-      check_new_elem_id(v, data->pbvh);
-      BM_log_vert_added(bm, data->pbvh->bm_log, v);
-      break;
-    }
-    case BM_EDGE: {
-      BMEdge *e = reinterpret_cast<BMEdge *>(elem);
-      check_new_elem_id(e, data->pbvh);
-
-      BM_log_edge_added(bm, data->pbvh->bm_log, e);
-      break;
-    }
-    case BM_FACE: {
-      BMFace *f = reinterpret_cast<BMFace *>(elem);
-      check_new_elem_id(f, data->pbvh);
-
-      BM_log_face_added(bm, data->pbvh->bm_log, f);
-      BKE_pbvh_bmesh_add_face(data->pbvh, f, false, false);
-      break;
-    }
-  }
-}
-
-static void tag_vert_ring(BMVert *v, const int tag, const int facetag)
-{
-  v->head.api_flag |= tag;
-
-  BMEdge *e = v->e;
-  do {
-    BMVert *v_other = v == e->v1 ? e->v2 : e->v1;
-
-    e->head.api_flag |= tag;
-    v_other->head.api_flag |= tag;
-
-    BMLoop *l = e->l;
-    if (!l) {
-      continue;
-    }
-    do {
-      l->f->head.api_flag |= tag | facetag;
-      BMLoop *l2 = l;
-      do {
-        l2->v->head.api_flag |= tag;
-        l2->e->head.api_flag |= tag;
-      } while ((l2 = l2->next) != l);
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-}
-
-template<typename T = BMElem, typename Vec = Vector<T *>>
-static void add_elem(T *elem, Vec &vec, int tag)
-{
-  if (elem->head.api_flag & tag) {
-    elem->head.api_flag &= ~tag;
-    vec.append(elem);
-  }
-}
-
-template<typename VV = Vector<BMVert *>,
-         typename EV = Vector<BMVert *>,
-         typename FV = Vector<BMVert *>>
-
-static void add_vert_to_ring(
-    BMVert *v, const int tag, const int facetag, VV &verts, EV &edges, FV &faces)
-{
-  if (v->head.api_flag & tag) {
-    return;
-  }
-
-  v->head.api_flag &= ~tag;
-
-  if (!v->e) {
-    return;
-  }
-
-  BMEdge *e = v->e;
-  do {
-    BMLoop *l = e->l;
-    if (!l) {
-      continue;
-    }
-
-    do {
-      if (!(l->f->head.api_flag & facetag)) {
-        return;
-      }
-    } while ((l = l->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  verts.append(v);
-}
-
-template<typename VV = Vector<BMVert *>,
-         typename EV = Vector<BMVert *>,
-         typename FV = Vector<BMVert *>>
-
-static void build_vert_ring(
-    BMVert *v, const int tag, const int facetag, VV &verts, EV &edges, FV &faces)
-{
-  add_elem(v, verts, tag);
-
-  BMEdge *e = v->e;
-  do {
-    BMVert *v_other = v == e->v1 ? e->v2 : e->v1;
-    add_vert_to_ring(v_other, tag, facetag, verts, edges, faces);
-
-    BMLoop *l = e->l;
-    bool bad = false;
-
-    if (!l) {
-      continue;
-    }
-    do {
-      if (!(l->f->head.api_flag & facetag)) {
-        bad = true;
-        break;
-      }
-
-      add_elem(l->f, faces, tag);
-      BMLoop *l2 = l;
-      do {
-        add_vert_to_ring(l2->v, tag, facetag, verts, edges, faces);
-      } while ((l2 = l2->next) != l);
-    } while ((l = l->radial_next) != e->l);
-
-    if (!bad) {
-      add_elem(e, edges, tag);
-    }
-    else {
-      e->head.api_flag &= ~tag;
-    }
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  e = v->e;
-  do {
-    BMLoop *l = e->l;
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-}
-
-static void vert_ring_do_(BMesh *bm,
-                          BMVert *v,
-                          BMVert *v_extra,
-                          void (*callback)(BMElem *elem, void *userdata),
-                          void *userdata,
-                          const int tag,
-                          const int facetag,
-                          const int depth = 0)
-{
-  tag_vert_ring(v, tag, facetag);
-  if (v_extra) {
-    tag_vert_ring(v_extra, tag, facetag);
-  }
-
-  Vector<BMVert *, 32> verts;
-  Vector<BMEdge *, 64> edges;
-  Vector<BMFace *, 80> faces;
-
-  build_vert_ring(v, tag, facetag, verts, edges, faces);
-  if (v_extra) {
-    build_vert_ring(v_extra, tag, facetag, verts, edges, faces);
-  }
-
-  for (BMFace *f : faces) {
-    f->head.api_flag &= ~facetag;
-  }
-
-  // printf("%d %d %d\n", verts.size(), edges.size(), faces.size());
-
-#if 0
-  BMIter iter;
-  BMVert *vi;
-  BMEdge *ei;
-  BMFace *fi;
-  BM_ITER_MESH (vi, &iter, bm, BM_VERTS_OF_MESH) {
-    vi->head.hflag &= ~BM_ELEM_SELECT;
-  }
-  BM_ITER_MESH (ei, &iter, bm, BM_EDGES_OF_MESH) {
-    ei->head.hflag &= ~BM_ELEM_SELECT;
-  }
-  BM_ITER_MESH (fi, &iter, bm, BM_FACES_OF_MESH) {
-    fi->head.hflag &= ~BM_ELEM_SELECT;
-  }
-#endif
-
-  for (BMFace *f : faces) {
-    f->head.hflag |= BM_ELEM_SELECT;
-    callback(reinterpret_cast<BMElem *>(f), userdata);
-  }
-
-  BMEdge *exist_e = v_extra ? BM_edge_exists(v, v_extra) : nullptr;
-  for (BMEdge *e : edges) {
-    if (exist_e == e) {
-      e->head.hflag &= ~BM_ELEM_SELECT;
-    }
-    else {
-      e->head.hflag |= BM_ELEM_SELECT;
-    }
-    callback(reinterpret_cast<BMElem *>(e), userdata);
-  }
-  for (BMVert *v2 : verts) {
-    v2->head.hflag |= BM_ELEM_SELECT;
-    callback(reinterpret_cast<BMElem *>(v2), userdata);
-  }
-}
-
-template<typename FaceSet = blender::Set<BMFace *>>
-static void vert_ring_recurse(BMVert *v, FaceSet &faces, int depth)
-{
-  if (!v->e) {
-    return;
-  }
-
-  BMEdge *e = v->e;
-  do {
-    BMVert *v2 = BM_edge_other_vert(e, v);
-
-    if (!e->l) {
-      if (depth > 0) {
-        vert_ring_recurse(v2, faces, depth - 1);
-      }
-      continue;
-    }
-
-    BMLoop *l = e->l;
-    do {
-      faces.add(l->f);
-    } while ((l = l->radial_next) != e->l);
-
-    if (depth > 0) {
-      vert_ring_recurse(v2, faces, depth - 1);
-    }
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }
 
 static bool vert_is_nonmanifold(BMVert *v)
@@ -382,82 +97,9 @@ static bool vert_is_nonmanifold(BMVert *v)
   return false;
 }
 
-static void vert_ring_do(BMesh *bm,
-                         BMVert *v,
-                         BMVert *v_extra,
-                         void (*callback)(BMElem *elem, void *userdata),
-                         void *userdata,
-                         int /*tag*/,
-                         int /*facetag*/,
-                         int max_depth = 0)
-{
-  blender::Set<BMFace *, 128> faces;
-
-  vert_ring_recurse(v, faces, max_depth);
-  if (v_extra) {
-    vert_ring_recurse(v_extra, faces, max_depth);
-  }
-
-  blender::Set<BMVert *, 64> verts;
-  blender::Set<BMEdge *, 128> edges;
-
-  for (BMFace *f : faces) {
-    BMLoop *l = f->l_first;
-
-    do {
-      bool bad = false;
-
-      BMLoop *l2 = l->radial_next;
-      do {
-        if (!faces.contains(l2->f)) {
-          bad = true;
-          break;
-        }
-      } while ((l2 = l2->radial_next) != l);
-
-      if (!bad) {
-        edges.add(l->e);
-      }
-    } while ((l = l->next) != f->l_first);
-  }
-
-  for (BMFace *f : faces) {
-    BMLoop *l = f->l_first;
-    do {
-      bool bad = false;
-      BMEdge *e = l->v->e;
-
-      do {
-        if (!edges.contains(e)) {
-          bad = true;
-          break;
-        }
-      } while ((e = BM_DISK_EDGE_NEXT(e, l->v)) != l->v->e);
-
-      if (!bad) {
-        verts.add(l->v);
-      }
-    } while ((l = l->next) != f->l_first);
-  }
-
-  // printf("%d %d %d\n", verts.size(), edges.size(), faces.size());
-
-  for (BMFace *f : faces) {
-    callback(reinterpret_cast<BMElem *>(f), userdata);
-  }
-  for (BMEdge *e : edges) {
-    callback(reinterpret_cast<BMElem *>(e), userdata);
-  }
-  for (BMVert *v2 : verts) {
-    callback(reinterpret_cast<BMElem *>(v2), userdata);
-  }
-}
-
 bool pbvh_bmesh_collapse_edge_uvs(
     PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
 {
-  BMesh *bm = pbvh->header.bm;
-
   pbvh_check_vert_boundary_bmesh(pbvh, v_conn);
   pbvh_check_vert_boundary_bmesh(pbvh, v_del);
 
@@ -818,71 +460,32 @@ BMVert *pbvh_bmesh_collapse_edge(
     v_conn = v1;
   }
 
-  /* Needed for vert_ring_do. */
-  const int tag = COLLAPSE_TAG;
-  const int facetag = COLLAPSE_FACE_TAG;
-  int vert_ring_maxdepth = 0;
-
   bool non_manifold_v1 = vert_is_nonmanifold(e->v1);
   bool non_manifold_v2 = vert_is_nonmanifold(e->v2);
 
-  if (non_manifold_v1 && non_manifold_v2) {
-    vert_ring_maxdepth++;
-  }
   /* Do not collapse non-manifold verts into manifold ones. */
-  else if (non_manifold_v1 != non_manifold_v2) {
+  if (non_manifold_v1 != non_manifold_v2) {
     return nullptr;
   }
 
-#define USE_COLLAPSE_CALLBACKS
-
-#ifdef USE_COLLAPSE_CALLBACKS
   DyntopoCollapseCallbacks callbacks(pbvh);
-#endif
 
   /* Make sure original data is initialized before we snap it. */
   BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
   BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
 
-#ifndef USE_COLLAPSE_CALLBACKS
-  /* Remove topology from PBVH and insert into bmlog. */
-  vert_ring_do(pbvh->header.bm,
-               e->v1,
-               e->v2,
-               collapse_ring_callback_pre,
-               &tdata,
-               tag,
-               facetag,
-               vert_ring_maxdepth);
-#endif
   pbvh_bmesh_check_nodes(pbvh);
 
   /* Snap UVS. */
   bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
-  BMEdge *e2;
   if (uvs_snapped) {
     interp_v3_v3v3(v_conn->co, v_del->co, v_conn->co, 0.5f);
   }
 
   /* Full non-manifold collapse. */
-#ifdef USE_COLLAPSE_CALLBACKS
   blender::bmesh::join_vert_kill_edge(pbvh->header.bm, e, v_del, true, true, callbacks);
-#else
-  BM_edge_collapse(pbvh->header.bm, e, v_del, true, true, true, true);
-#endif
-
-#ifndef USE_COLLAPSE_CALLBACKS
-  vert_ring_do(pbvh->header.bm,
-               v_conn,
-               nullptr,
-               collapse_ring_callback_post,
-               static_cast<void *>(&tdata),
-               tag,
-               facetag,
-               vert_ring_maxdepth);
-#endif
 
   if (BM_elem_is_free((BMElem *)v_conn, BM_VERT)) {
     printf("v_conn was freed\n");
@@ -968,7 +571,7 @@ BMVert *pbvh_bmesh_collapse_edge(
 #endif
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-    printf("%s: error: failed to remove vert from pbvh?  v_conn->e: %p v_conn->e->l\n",
+    printf("%s: error: failed to remove vert from pbvh?  v_conn->e: %p v_conn->e->l: %p\n",
            __func__,
            v_conn->e,
            v_conn->e ? v_conn->e->l : nullptr);

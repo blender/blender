@@ -229,7 +229,6 @@ struct uiBut {
   uchar unit_type = 0;
   short iconadd = 0;
 
-  char poison1[512];
   /** #UI_BTYPE_BLOCK data */
   uiBlockCreateFunc block_create_func = nullptr;
 
@@ -244,7 +243,6 @@ struct uiBut {
   int rnaindex = 0;
 
   /* Operator data */
-  char poison2[512];
   wmOperatorType *optype = nullptr;
   PointerRNA *opptr = nullptr;
   wmOperatorCallContext opcontext = WM_OP_INVOKE_DEFAULT;
@@ -259,8 +257,6 @@ struct uiBut {
   void *dragpoin = nullptr;
   ImBuf *imb = nullptr;
   float imb_scale = 0;
-
-  char poison4[512];
 
   /** Active button data (set when the user is hovering or interacting with a button). */
   uiHandleButtonData *active = nullptr;
