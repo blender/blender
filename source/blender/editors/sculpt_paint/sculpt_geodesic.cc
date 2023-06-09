@@ -547,7 +547,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
       int v1_i = BM_elem_index_get(e->v1);
       int v2_i = BM_elem_index_get(e->v2);
 
-      if (dists[v1_i] == FLT_MAX || dists[v2_i] == FLT_MAX) {
+      if ((dists[v1_i] == FLT_MAX || dists[v2_i] == FLT_MAX) && v1 && v2) {
         if (dists[v1_i] > dists[v2_i]) {
           SWAP(BMVert *, v1, v2);
           SWAP(int, v1_i, v2_i);

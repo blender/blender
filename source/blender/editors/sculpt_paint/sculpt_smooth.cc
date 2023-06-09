@@ -112,7 +112,9 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 #endif
 
-  bound_type |= SCULPT_BOUNDARY_UV;
+  eSculptBoundary uvflag = ss->reproject_smooth ? SCULPT_BOUNDARY_UV : SCULPT_BOUNDARY_NONE;
+
+  bound_type |= uvflag;
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
   const eSculptCorner is_corner = SCULPT_vertex_is_corner(ss, vertex, corner_type);
@@ -180,10 +182,9 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
     }
 
-    const eSculptBoundary smooth_types = !ss->hard_edge_mode ?
-                                             SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_UV |
-                                                 SCULPT_BOUNDARY_SEAM :
-                                             SCULPT_BOUNDARY_UV | SCULPT_BOUNDARY_SEAM;
+    const eSculptBoundary smooth_types = !ss->hard_edge_mode ? SCULPT_BOUNDARY_FACE_SET | uvflag |
+                                                                   SCULPT_BOUNDARY_SEAM :
+                                                               uvflag | SCULPT_BOUNDARY_SEAM;
 
     if (is_boundary2) {
       totboundary++;
@@ -193,8 +194,13 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     if (is_boundary) {
       project_ok = false;
 
+      eSculptBoundary smooth_flag = is_boundary & smooth_types;
+      eSculptBoundary smooth_flag2 = is_boundary2 & smooth_types;
+
       /* Handle smooth boundaries. */
-      if (bool(is_boundary2 & smooth_types) != bool(is_boundary & smooth_types)) {
+      if (bool(smooth_flag) != bool(smooth_flag2) &&
+          (smooth_flag == is_boundary && smooth_flag2 == is_boundary2))
+      {
         /* Project to plane. */
         float3 t1 = float3(vertex_co_get(ss, ni.vertex)) - co;
         float fac = dot_v3v3(t1, no);
@@ -207,7 +213,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
         avg += tco * w;
         total += w;
       }
-      else if (is_boundary & is_boundary2) {
+      else if ((is_boundary & ~smooth_flag) & (is_boundary2 & ~smooth_flag2)) {
         avg += float3(vertex_co_get(ss, ni.vertex)) * w;
         total += w;
         project_ok = true;

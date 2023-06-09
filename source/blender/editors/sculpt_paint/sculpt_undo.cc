@@ -696,7 +696,7 @@ typedef struct BmeshUndoData {
   bool balance_pbvh;
   int cd_face_node_offset, cd_vert_node_offset;
   int cd_face_node_offset_old, cd_vert_node_offset_old;
-  int cd_boundary_flag, cd_flags;
+  int cd_boundary_flag, cd_flags, cd_edge_boundary;
   bool regen_all_unique_verts;
   bool is_redo;
 } BmeshUndoData;
@@ -773,7 +773,6 @@ static void bmesh_undo_on_face_kill(BMFace *f, void *userdata)
 static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
-  // data->do_full_recalc = true;
 
   BM_ELEM_CD_SET_INT(f, data->cd_face_node_offset, -1);
   BKE_pbvh_bmesh_add_face(data->pbvh, f, false, true);
@@ -784,6 +783,8 @@ static void bmesh_undo_on_face_add(BMFace *f, void *userdata)
   BMLoop *l = f->l_first;
   do {
     bmesh_undo_vert_update(data, l->v, f->len > 3);
+    *BM_ELEM_CD_PTR<int *>(l->e, data->cd_edge_boundary) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                            SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
 
     int ni_l = BM_ELEM_CD_GET_INT(l->v, data->cd_vert_node_offset);
     if (ni_l < 0 && ni >= 0) {
@@ -835,6 +836,9 @@ static void bmesh_undo_on_edge_add(BMEdge *e, void *userdata)
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
+  *BM_ELEM_CD_PTR<int *>(e, data->cd_edge_boundary) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                       SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+
   bmesh_undo_vert_update(data, e->v1, true);
   bmesh_undo_vert_update(data, e->v2, true);
 }
@@ -843,7 +847,7 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
 {
   BmeshUndoData *data = (BmeshUndoData *)userdata;
 
-  bmesh_undo_vert_update(data, v, false);
+  bmesh_undo_vert_update(data, v, true);
 
   if (!old_customdata) {
     BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, -1);
@@ -907,6 +911,8 @@ static void bmesh_undo_on_face_change(BMFace *f,
 
   BMLoop *l = f->l_first;
   do {
+    *BM_ELEM_CD_PTR<int *>(l->e, data->cd_edge_boundary) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                            SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
     *BM_ELEM_CD_PTR<int *>(l->v, data->cd_boundary_flag) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
                                                             SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
   } while ((l = l->next) != f->l_first);
@@ -966,19 +972,17 @@ static void bmesh_undo_customdata_change(CustomData *domain, char htype, void *u
 
 static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob, SculptSession *ss)
 {
-  BmeshUndoData data = {ob,
-                        ss->pbvh,
-                        ss->bm,
-                        false,
-                        false,
-                        ss->cd_face_node_offset,
-                        ss->cd_vert_node_offset,
-                        -1,
-                        -1,
-                        ss->attrs.boundary_flags->bmesh_cd_offset,
-                        ss->attrs.flags->bmesh_cd_offset,
-                        false,
-                        !unode->applied};
+  BmeshUndoData data = {};
+  data.ob = ob;
+  data.bm = ss->bm;
+  data.pbvh = ss->pbvh;
+  data.cd_face_node_offset = ss->cd_face_node_offset;
+  data.cd_vert_node_offset = ss->cd_vert_node_offset;
+  data.cd_face_node_offset_old = data.cd_vert_node_offset_old = -1;
+  data.cd_boundary_flag = ss->attrs.boundary_flags->bmesh_cd_offset;
+  data.cd_edge_boundary = ss->attrs.edge_boundary_flags->bmesh_cd_offset;
+  data.cd_flags = ss->attrs.flags->bmesh_cd_offset;
+  data.is_redo = !unode->applied;
 
   BMLogCallbacks callbacks = {bmesh_undo_on_vert_add,
                               bmesh_undo_on_vert_kill,
@@ -994,9 +998,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
                               (void *)&data};
 
   BKE_sculptsession_update_attr_refs(ob);
-
   BKE_sculpt_ensure_idmap(ob);
-  // pbvh_bmesh_check_nodes(ss->pbvh);
 
   if (unode->applied) {
     BM_log_undo(ss->bm, ss->bm_log, &callbacks);
@@ -1020,17 +1022,12 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
       }
     }
 
-    // pbvh_bmesh_check_nodes(ss->pbvh);
     BKE_pbvh_bmesh_regen_node_verts(ss->pbvh, false);
-    // pbvh_bmesh_check_nodes(ss->pbvh);
-
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (data.balance_pbvh) {
       blender::bke::dyntopo::after_stroke(ss->pbvh, true);
     }
-
-    // pbvh_bmesh_check_nodes(ss->pbvh);
   }
   else {
     printf("undo triggered pbvh rebuild");

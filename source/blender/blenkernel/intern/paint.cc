@@ -2949,7 +2949,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
   /* Forcibly flag all boundaries for update. */
   sculpt_boundary_flags_ensure(
-      ob, pbvh, BKE_sculptsession_vertex_count(ss), ss->bm->totedge, true);
+      ob, pbvh, BKE_sculptsession_vertex_count(ss), ss->bm ? ss->bm->totedge : ss->totedges, true);
 
   sculpt_attribute_update_refs(ob);
 

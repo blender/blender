@@ -803,7 +803,15 @@ BMVert *pbvh_bmesh_collapse_edge(
   bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
 
-  if (corner1 && corner2) {
+  /* We allow two corners of the example sampe type[s] to collapse */ 
+  if ((boundflag1 & SCULPTVERT_ALL_CORNER) &&
+      (boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER))
+  {
+    bm_logstack_pop();
+    return nullptr;
+  }
+
+  if (w1 >= 0.85 && w2 >= 0.85) {
     bm_logstack_pop();
     return nullptr;
   }

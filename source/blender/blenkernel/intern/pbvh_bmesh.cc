@@ -2069,6 +2069,10 @@ static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v, int cd_boundary, int
 {
   int *boundflag = BM_ELEM_CD_PTR<int *>(v, cd_boundary);
 
+  if (!v->e) {
+    return;
+  }
+
   BMEdge *e = v->e;
   do {
     BMLoop *l = e->l;

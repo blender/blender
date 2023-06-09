@@ -2309,6 +2309,10 @@ void EdgeQueueContext::step()
   RandomNumberGenerator srand(PIL_check_seconds_timer() * 10000);
 
   auto do_smooth = [&](BMVert *v) {
+    if (!surface_relax) {
+      return;
+    }
+
     float prob = ops[curop] == PBVH_Subdivide ? 0.25 : 0.75;
     if (srand.get_float() > prob) {
       surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, true);
