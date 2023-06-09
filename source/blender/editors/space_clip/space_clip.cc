@@ -200,7 +200,7 @@ static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   return (SpaceLink *)sc;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void clip_free(SpaceLink *sl)
 {
   SpaceClip *sc = (SpaceClip *)sl;

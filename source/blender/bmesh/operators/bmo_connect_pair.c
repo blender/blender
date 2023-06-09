@@ -109,7 +109,7 @@ typedef struct PathLinkState {
 } PathLinkState;
 
 /* -------------------------------------------------------------------- */
-/** \name Min Dist Dir Util
+/** \name Min Dist Dir Utilities
  *
  * Simply getting the closest intersecting vert/edge is _not_ good enough. see #43792
  * we need to get the closest in both directions since the absolute closest may be a dead-end.

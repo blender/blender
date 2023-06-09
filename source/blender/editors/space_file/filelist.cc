@@ -3187,7 +3187,7 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
         datablock_info->free_asset_data = false;
 
         entry->asset = &job_params->load_asset_library->add_external_asset(
-            entry->relpath, datablock_info->name, std::move(metadata));
+            entry->relpath, datablock_info->name, idcode, std::move(metadata));
       }
     }
   }

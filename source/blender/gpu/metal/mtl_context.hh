@@ -383,6 +383,21 @@ struct MTLContextTextureUtils {
   }
 };
 
+class MTLContextComputeUtils {
+ private:
+  id<MTLComputePipelineState> buffer_clear_pso_ = nil;
+
+ public:
+  id<MTLComputePipelineState> get_buffer_clear_pso();
+  void cleanup()
+  {
+    if (buffer_clear_pso_) {
+      [buffer_clear_pso_ release];
+      buffer_clear_pso_ = nil;
+    }
+  }
+};
+
 /* Combined sampler state configuration for Argument Buffer caching. */
 struct MTLSamplerArray {
   uint num_samplers;
@@ -703,6 +718,7 @@ class MTLContext : public Context {
 
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
+  MTLContextComputeUtils compute_utils_;
 
   /* Texture Samplers. */
   /* Cache of generated #MTLSamplerState objects based on permutations of the members of
@@ -863,6 +879,12 @@ class MTLContext : public Context {
   MTLContextTextureUtils &get_texture_utils()
   {
     return texture_utils_;
+  }
+
+  /* Compute utilities. */
+  MTLContextComputeUtils &get_compute_utils()
+  {
+    return compute_utils_;
   }
 
   bool get_active()

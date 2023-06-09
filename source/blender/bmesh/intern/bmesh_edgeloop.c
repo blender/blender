@@ -35,7 +35,7 @@ typedef struct BMEdgeLoopStore {
 #define EDGELOOP_EPS 1e-10f
 
 /* -------------------------------------------------------------------- */
-/* BM_mesh_edgeloops_find & Util Functions. */
+/* BM_mesh_edgeloops_find & Utility Functions. */
 
 static int bm_vert_other_tag(BMVert *v, BMVert *v_prev, BMEdge **r_e)
 {

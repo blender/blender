@@ -34,7 +34,6 @@ struct ViewLayer;
 struct XFormObjectData;
 struct bConstraint;
 struct bContext;
-struct bFaceMap;
 struct bPoseChannel;
 struct uiLayout;
 struct wmKeyConfig;
@@ -728,17 +727,6 @@ bool ED_object_jump_to_bone(struct bContext *C,
                             struct Object *ob,
                             const char *bone_name,
                             bool reveal_hidden);
-
-/* object_facemap_ops.c */
-
-/**
- * Called while not in edit-mode.
- */
-void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
-/**
- * Called while not in edit-mode.
- */
-void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);
 
 /* object_data_transform.cc */
 

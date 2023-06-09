@@ -107,7 +107,7 @@ static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   return (SpaceLink *)sfile;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void file_free(SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;

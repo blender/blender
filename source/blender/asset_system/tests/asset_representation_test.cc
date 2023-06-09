@@ -32,7 +32,8 @@ class AssetRepresentationTest : public AssetLibraryTestBase {
   AssetRepresentation &add_dummy_asset(AssetLibrary &library, StringRef relative_path)
   {
     std::unique_ptr<AssetMetaData> dummy_metadata = std::make_unique<AssetMetaData>();
-    return library.add_external_asset(relative_path, "Some asset name", std::move(dummy_metadata));
+    return library.add_external_asset(
+        relative_path, "Some asset name", 0, std::move(dummy_metadata));
   }
 };
 

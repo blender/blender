@@ -6,9 +6,9 @@
  * \ingroup spinfo
  */
 
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -27,13 +27,15 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "info_intern.h"
+#include "info_intern.hh"
 
 static void reports_select_all(ReportList *reports, int report_mask, int action)
 {
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (Report *report = reports->list.last; report; report = report->prev) {
+    for (const Report *report = static_cast<const Report *>(reports->list.last); report;
+         report = report->prev)
+    {
       if ((report->type & report_mask) && (report->flag & SELECT)) {
         action = SEL_DESELECT;
         break;
@@ -41,7 +43,7 @@ static void reports_select_all(ReportList *reports, int report_mask, int action)
     }
   }
 
-  for (Report *report = reports->list.last; report; report = report->prev) {
+  for (Report *report = static_cast<Report *>(reports->list.last); report; report = report->prev) {
     if (report->type & report_mask) {
       switch (action) {
         case SEL_SELECT:
@@ -60,7 +62,7 @@ static void reports_select_all(ReportList *reports, int report_mask, int action)
   }
 }
 
-int info_report_mask(const SpaceInfo *UNUSED(sinfo))
+int info_report_mask(const SpaceInfo * /*sinfo*/)
 {
 #if 0
   int report_mask = 0;
@@ -88,7 +90,7 @@ int info_report_mask(const SpaceInfo *UNUSED(sinfo))
          RPT_ERROR_ALL;
 }
 
-static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
+static int report_replay_exec(bContext *C, wmOperator * /*op*/)
 {
   /* TODO: get this working again! */
 #if 0
@@ -138,7 +140,7 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
   int report_index = RNA_int_get(op->ptr, "report_index");
   bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  Report *report = BLI_findlink(&CTX_wm_reports(C)->list, report_index);
+  Report *report = static_cast<Report *>(BLI_findlink(&CTX_wm_reports(C)->list, report_index));
 
   SpaceInfo *sinfo = CTX_wm_space_info(C);
   ReportList *reports = CTX_wm_reports(C);
@@ -164,7 +166,7 @@ static int select_report_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
   ReportList *reports = CTX_wm_reports(C);
   Report *report;
 
-  report = info_text_pick(sinfo, region, reports, event->mval[1]);
+  report = static_cast<Report *>(info_text_pick(sinfo, region, reports, event->mval[1]));
 
   RNA_int_set(op->ptr, "report_index", BLI_findindex(&reports->list, report));
 
@@ -235,7 +237,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const int select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     LISTBASE_FOREACH (Report *, report, &reports->list) {
@@ -246,11 +248,11 @@ static int box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  report_min = info_text_pick(sinfo, region, reports, rect.ymax);
-  report_max = info_text_pick(sinfo, region, reports, rect.ymin);
+  report_min = static_cast<Report *>(info_text_pick(sinfo, region, reports, rect.ymax));
+  report_max = static_cast<Report *>(info_text_pick(sinfo, region, reports, rect.ymin));
 
   /* get the first report if none found */
-  if (report_min == NULL) {
+  if (report_min == nullptr) {
     // printf("find_min\n");
     LISTBASE_FOREACH (Report *, report, &reports->list) {
       if (report->type & report_mask) {
@@ -260,9 +262,10 @@ static int box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (report_max == NULL) {
+  if (report_max == nullptr) {
     // printf("find_max\n");
-    for (Report *report = reports->list.last; report; report = report->prev) {
+    for (Report *report = static_cast<Report *>(reports->list.last); report; report = report->prev)
+    {
       if (report->type & report_mask) {
         report_max = report;
         break;
@@ -270,7 +273,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (report_min == NULL || report_max == NULL) {
+  if (report_min == nullptr || report_max == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -311,7 +314,7 @@ void INFO_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 }
 
-static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static int report_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceInfo *sinfo = CTX_wm_space_info(C);
   ReportList *reports = CTX_wm_reports(C);
@@ -319,8 +322,7 @@ static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   Report *report, *report_next;
 
-  for (report = reports->list.first; report;) {
-
+  for (report = static_cast<Report *>(reports->list.first); report;) {
     report_next = report->next;
 
     if ((report->type & report_mask) && (report->flag & SELECT)) {
@@ -354,7 +356,7 @@ void INFO_OT_report_delete(wmOperatorType *ot)
   /* properties */
 }
 
-static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
+static int report_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceInfo *sinfo = CTX_wm_space_info(C);
   ReportList *reports = CTX_wm_reports(C);
@@ -365,7 +367,7 @@ static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
   DynStr *buf_dyn = BLI_dynstr_new();
   char *buf_str;
 
-  for (report = reports->list.first; report; report = report->next) {
+  for (report = static_cast<Report *>(reports->list.first); report; report = report->next) {
     if ((report->type & report_mask) && (report->flag & SELECT)) {
       BLI_dynstr_append(buf_dyn, report->message);
       BLI_dynstr_append(buf_dyn, "\n");
@@ -375,7 +377,7 @@ static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
   buf_str = BLI_dynstr_get_cstring(buf_dyn);
   BLI_dynstr_free(buf_dyn);
 
-  WM_clipboard_text_set(buf_str, 0);
+  WM_clipboard_text_set(buf_str, false);
 
   MEM_freeN(buf_str);
   return OPERATOR_FINISHED;

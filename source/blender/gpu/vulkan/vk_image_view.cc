@@ -15,8 +15,8 @@
 
 namespace blender::gpu {
 
-VKImageView::VKImageView(VKTexture &texture, int mip_level, StringRefNull name)
-    : vk_image_view_(create_vk_image_view(texture, mip_level, name))
+VKImageView::VKImageView(VKTexture &texture, int layer, int mip_level, StringRefNull name)
+    : vk_image_view_(create_vk_image_view(texture, layer, mip_level, name))
 {
   BLI_assert(vk_image_view_ != VK_NULL_HANDLE);
 }
@@ -41,6 +41,7 @@ VKImageView::~VKImageView()
   }
 }
 VkImageView VKImageView::create_vk_image_view(VKTexture &texture,
+                                              int layer,
                                               int mip_level,
                                               StringRefNull name)
 {
@@ -49,14 +50,15 @@ VkImageView VKImageView::create_vk_image_view(VKTexture &texture,
   VkImageViewCreateInfo image_view_info = {};
   image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
   image_view_info.image = texture.vk_image_handle();
-  image_view_info.viewType = to_vk_image_view_type(texture.type_get());
+  image_view_info.viewType = to_vk_image_view_type(texture.type_get(),
+                                                   eImageViewUsage::Attachment);
   image_view_info.format = to_vk_format(texture.format_get());
   image_view_info.components = to_vk_component_mapping(texture.format_get());
   image_view_info.subresourceRange.aspectMask = to_vk_image_aspect_flag_bits(texture.format_get());
   image_view_info.subresourceRange.baseMipLevel = mip_level;
   image_view_info.subresourceRange.levelCount = 1;
-  image_view_info.subresourceRange.baseArrayLayer = 0;
-  image_view_info.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+  image_view_info.subresourceRange.baseArrayLayer = layer == -1 ? 0 : layer;
+  image_view_info.subresourceRange.layerCount = 1;
 
   const VKDevice &device = VKBackend::get().device_get();
   VkImageView image_view = VK_NULL_HANDLE;

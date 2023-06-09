@@ -11,6 +11,12 @@
 #include "DNA_asset_types.h"
 
 #ifdef __cplusplus
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -52,8 +58,12 @@ void ED_assetlist_storage_id_remap(struct ID *id_old, struct ID *id_new);
  */
 void ED_assetlist_storage_exit(void);
 
-AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
-                                            int asset_index);
+AssetHandle ED_assetlist_asset_handle_get_by_index(const AssetLibraryReference *library_reference,
+                                                   int asset_index);
+#ifdef __cplusplus
+blender::asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
+    const AssetLibraryReference &library_reference, int asset_index);
+#endif
 
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 

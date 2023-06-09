@@ -72,7 +72,7 @@ set(SRC
   intern/bmesh_edgeloop.c
   intern/bmesh_edgeloop.h
   intern/bmesh_inline.h
-  intern/bmesh_interp.c
+  intern/bmesh_interp.cc
   intern/bmesh_interp.h
   intern/bmesh_iterators.cc
   intern/bmesh_iterators.h

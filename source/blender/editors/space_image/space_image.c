@@ -161,7 +161,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   return (SpaceLink *)simage;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void image_free(SpaceLink *sl)
 {
   SpaceImage *simage = (SpaceImage *)sl;

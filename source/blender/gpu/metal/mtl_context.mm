@@ -287,6 +287,7 @@ MTLContext::~MTLContext()
 
   /* Release update/blit shaders. */
   this->get_texture_utils().cleanup();
+  this->get_compute_utils().cleanup();
 
   /* Detach resource references. */
   GPU_texture_unbind_all();
@@ -1483,10 +1484,10 @@ bool MTLContext::ensure_buffer_bindings(
         uint32_t buffer_bind_index = pipeline_state_instance.base_storage_buffer_index +
                                      buffer_index;
 
-        /* Bind Vertex UBO. */
+        /* Bind Compute SSBO. */
         if (bool(ssbo.stage_mask & ShaderStage::COMPUTE)) {
           BLI_assert(buffer_bind_index >= 0 && buffer_bind_index < MTL_MAX_BUFFER_BINDINGS);
-          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index);
+          cs.bind_compute_buffer(ssbo_buffer, 0, buffer_bind_index, true);
         }
       }
       else {
@@ -2451,6 +2452,77 @@ id<MTLSamplerState> MTLContext::get_default_sampler_state()
     default_sampler_state_ = this->get_sampler_from_state({GPUSamplerState::default_sampler()});
   }
   return default_sampler_state_;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compute Utils Implementation
+ * \{ */
+
+id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()
+{
+  if (buffer_clear_pso_ != nil) {
+    return buffer_clear_pso_;
+  }
+
+  /* Fetch active context. */
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  BLI_assert(ctx);
+
+  @autoreleasepool {
+    /* Source as NSString. */
+    const char *src =
+        "\
+    struct BufferClearParams {\
+      uint clear_value;\
+    };\
+    kernel void compute_buffer_clear(constant BufferClearParams &params [[buffer(0)]],\
+                                     device uint32_t* output_data [[buffer(1)]],\
+                                     uint position [[thread_position_in_grid]])\
+    {\
+      output_data[position] = params.clear_value;\
+    }";
+    NSString *compute_buffer_clear_src = [NSString stringWithUTF8String:src];
+
+    /* Prepare shader library for buffer clearing. */
+    MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
+    options.languageVersion = MTLLanguageVersion2_2;
+
+    NSError *error = nullptr;
+    id<MTLLibrary> temp_lib = [[ctx->device newLibraryWithSource:compute_buffer_clear_src
+                                                         options:options
+                                                           error:&error] autorelease];
+    if (error) {
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
+    }
+
+    /* Fetch compute function. */
+    BLI_assert(temp_lib != nil);
+    id<MTLFunction> temp_compute_function = [[temp_lib newFunctionWithName:@"compute_buffer_clear"]
+        autorelease];
+    BLI_assert(temp_compute_function);
+
+    /* Compile compute PSO */
+    buffer_clear_pso_ = [ctx->device newComputePipelineStateWithFunction:temp_compute_function
+                                                                   error:&error];
+    if (error || buffer_clear_pso_ == nil) {
+      NSLog(@"Failed to prepare compute_buffer_clear MTLComputePipelineState %@", error);
+      BLI_assert(false);
+      return nil;
+    }
+
+    [buffer_clear_pso_ retain];
+  }
+
+  BLI_assert(buffer_clear_pso_ != nil);
+  return buffer_clear_pso_;
 }
 
 /** \} */

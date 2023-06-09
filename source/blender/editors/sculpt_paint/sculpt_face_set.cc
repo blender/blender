@@ -464,7 +464,6 @@ enum eSculptFaceSetsInitMode {
   SCULPT_FACE_SETS_FROM_CREASES = 4,
   SCULPT_FACE_SETS_FROM_SHARP_EDGES = 5,
   SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT = 6,
-  SCULPT_FACE_SETS_FROM_FACE_MAPS = 7,
   SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES = 8,
 };
 
@@ -518,13 +517,7 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
         "Face Sets from Sharp Edges",
         "Create Face Sets using Sharp Edges as boundaries",
     },
-    {
-        SCULPT_FACE_SETS_FROM_FACE_MAPS,
-        "FACE_MAPS",
-        0,
-        "Face Sets from Face Maps",
-        "Create a Face Set per Face Map",
-    },
+
     {
         SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES,
         "FACE_SET_BOUNDARIES",
@@ -608,13 +601,6 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
         "material_index", ATTR_DOMAIN_FACE, 0);
     for (const int i : IndexRange(mesh->totpoly)) {
       ss->face_sets[i] = material_indices[i] + 1;
-    }
-  }
-  else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
-    const int *face_maps = static_cast<const int *>(
-        CustomData_get_layer(&mesh->pdata, CD_FACEMAP));
-    for (const int i : IndexRange(mesh->totpoly)) {
-      ss->face_sets[i] = face_maps ? face_maps[i] : 1;
     }
   }
 }
@@ -717,10 +703,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
           ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
             return face_sets_copy[from_face] == face_sets_copy[to_face];
           });
-      break;
-    }
-    case SCULPT_FACE_SETS_FROM_FACE_MAPS: {
-      sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_FACE_MAPS);
       break;
     }
   }

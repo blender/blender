@@ -28,15 +28,15 @@ set(INC_SYS
 )
 
 set(SRC
-  info_draw.c
-  info_ops.c
-  info_report.c
+  info_draw.cc
+  info_ops.cc
+  info_report.cc
   info_stats.cc
-  space_info.c
-  textview.c
+  space_info.cc
+  textview.cc
 
-  info_intern.h
-  textview.h
+  info_intern.hh
+  textview.hh
 )
 
 set(LIB

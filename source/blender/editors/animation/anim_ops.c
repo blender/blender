@@ -265,6 +265,10 @@ static bool need_extra_redraw_after_scrubbing_ends(bContext *C)
      * scrubbing, the actual result should be shown again. */
     return true;
   }
+  Scene *scene = CTX_data_scene(C);
+  if (scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) {
+    return true;
+  }
   wmWindowManager *wm = CTX_wm_manager(C);
   Object *object = CTX_data_active_object(C);
   if (object && object->type == OB_GPENCIL_LEGACY) {

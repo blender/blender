@@ -114,7 +114,7 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   return (SpaceLink *)snla;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void nla_free(SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;

@@ -101,6 +101,11 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
     }
     output[ch] = mean[min_index];
   }
+
+  /* No changes for alpha channel. */
+  float tmp[4];
+  image_reader_->read_sampled(tmp, x, y, sampler);
+  output[3] = tmp[3];
 }
 
 void KuwaharaClassicOperation::set_kernel_size(int kernel_size)

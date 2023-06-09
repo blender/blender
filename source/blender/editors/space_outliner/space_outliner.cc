@@ -354,7 +354,7 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   return (SpaceLink *)space_outliner;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void outliner_free(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;

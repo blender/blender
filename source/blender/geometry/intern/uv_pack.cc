@@ -1783,7 +1783,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
   rctf locked_bounds = {0.0f};     /* AABB of islands which can't translate. */
   int64_t locked_island_count = 0; /* Index of first non-locked island. */
   for (int64_t i = 0; i < islands.size(); i++) {
-    PackIsland *pack_island = islands[i];
+    PackIsland *pack_island = islands[aabbs[i]->index];
     if (pack_island->can_translate_(params)) {
       break;
     }
@@ -1796,6 +1796,12 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     }
     float2 top_right = pack_island->pivot_ + pack_island->half_diagonal_;
     BLI_rctf_do_minmax_v(&locked_bounds, top_right);
+
+    uv_phi &phi = r_phis[aabbs[i]->index]; /* Lock in place. */
+    phi.translation = pack_island->pivot_;
+    sub_v2_v2(phi.translation, params.udim_base_offset);
+    phi.rotation = 0.0f;
+
     locked_island_count = i + 1;
   }
 

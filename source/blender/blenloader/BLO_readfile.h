@@ -76,7 +76,10 @@ typedef struct BlendFileReadWMSetupData {
   /** The existing WM when filereading process is started. */
   struct wmWindowManager *old_wm;
 
+  /** The startup file is being read. */
   bool is_read_homefile;
+  /** The factory startup file is being read. */
+  bool is_factory_startup;
 } BlendFileReadWMSetupData;
 
 struct BlendFileReadParams {

@@ -6,8 +6,8 @@
  * \ingroup spinfo
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -39,7 +39,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "info_intern.h"
+#include "info_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Pack Blend File Libraries Operator
@@ -87,7 +87,7 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
 /** \name Unpack Blend File Libraries Operator
  * \{ */
 
-static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   return WM_operator_confirm_message(
       C, op, "Unpack Linked Libraries - creates directories, all new paths should work");
@@ -158,13 +158,15 @@ static int pack_all_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
   Image *ima;
 
   /* First check for dirty images. */
-  for (ima = bmain->images.first; ima; ima = ima->id.next) {
+  for (ima = static_cast<Image *>(bmain->images.first); ima;
+       ima = static_cast<Image *>(ima->id.next))
+  {
     if (BKE_image_is_dirty(ima)) {
       break;
     }
@@ -219,13 +221,13 @@ static const EnumPropertyItem unpack_all_method_items[] = {
     {PF_KEEP, "KEEP", 0, "Disable auto-pack, keep all packed files", ""},
     {PF_REMOVE, "REMOVE", 0, "Remove Pack", ""},
     /* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int unpack_all_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  int method = RNA_enum_get(op->ptr, "method");
+  ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
 
   if (method != PF_KEEP) {
     WM_cursor_wait(true);
@@ -237,7 +239,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
   uiPopupMenu *pup;
@@ -314,7 +316,7 @@ static const EnumPropertyItem unpack_item_method_items[] = {
      "Write file to original location (overwrite existing file)",
      ""},
     /* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int unpack_item_exec(bContext *C, wmOperator *op)
@@ -323,12 +325,12 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
   ID *id;
   char idname[MAX_ID_NAME - 2];
   int type = RNA_int_get(op->ptr, "id_type");
-  int method = RNA_enum_get(op->ptr, "method");
+  ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
 
   RNA_string_get(op->ptr, "id_name", idname);
   id = BKE_libblock_find_name(bmain, type, idname);
 
-  if (id == NULL) {
+  if (id == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "No packed file");
     return OPERATOR_CANCELLED;
   }
@@ -344,7 +346,7 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -353,7 +355,12 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
   layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemsFullEnumO(layout, op->type->idname, "method", op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
+  uiItemsFullEnumO(layout,
+                   op->type->idname,
+                   "method",
+                   static_cast<IDProperty *>(op->ptr->data),
+                   WM_OP_EXEC_REGION_WIN,
+                   0);
 
   UI_popup_menu_end(C, pup);
 
@@ -378,7 +385,7 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
   RNA_def_string(
-      ot->srna, "id_name", NULL, BKE_ST_MAXNAME, "ID Name", "Name of ID block to unpack");
+      ot->srna, "id_name", nullptr, BKE_ST_MAXNAME, "ID Name", "Name of ID block to unpack");
   RNA_def_int(ot->srna,
               "id_type",
               ID_IM,
@@ -409,7 +416,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
   BKE_bpath_relative_convert(bmain, blendfile_path, op->reports);
 
   /* redraw everything so any changed paths register */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -447,7 +454,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
   BKE_bpath_absolute_convert(bmain, blendfile_path, op->reports);
 
   /* redraw everything so any changed paths register */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -505,7 +512,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
+  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
   BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);
@@ -514,7 +521,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int find_missing_files_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int find_missing_files_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* XXX file open button text "Find Missing Files" */
   WM_event_add_fileselect(C, op);
@@ -568,7 +575,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 #define FLASH_TIMEOUT 1.0f
 #define COLLAPSE_TIMEOUT 0.25f
 #define BRIGHTEN_AMOUNT 0.1f
-static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ReportList *reports = CTX_wm_reports(C);
@@ -580,8 +587,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   int send_note = 0;
 
   /* escape if not our timer */
-  if ((reports->reporttimer == NULL) || (reports->reporttimer != event->customdata) ||
-      ((report = BKE_reports_last_displayable(reports)) == NULL))
+  if ((reports->reporttimer == nullptr) || (reports->reporttimer != event->customdata) ||
+      ((report = BKE_reports_last_displayable(reports)) == nullptr))
   {
     /* May have been deleted. */
     return OPERATOR_PASS_THROUGH;
@@ -592,11 +599,11 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   timeout = (report->type & RPT_ERROR_ALL) ? ERROR_TIMEOUT : INFO_TIMEOUT;
 
   /* clear the report display after timeout */
-  if ((float)reports->reporttimer->duration > timeout) {
-    WM_event_remove_timer(wm, NULL, reports->reporttimer);
-    reports->reporttimer = NULL;
+  if (float(reports->reporttimer->duration) > timeout) {
+    WM_event_remove_timer(wm, nullptr, reports->reporttimer);
+    reports->reporttimer = nullptr;
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -617,8 +624,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
     rti->widthfac = 1.0f;
   }
 
-  progress = powf((float)reports->reporttimer->duration / timeout, 2.0f);
-  flash_progress = powf((float)reports->reporttimer->duration / flash_timeout, 2.0);
+  progress = powf(float(reports->reporttimer->duration) / timeout, 2.0f);
+  flash_progress = powf(float(reports->reporttimer->duration) / flash_timeout, 2.0);
 
   /* save us from too many draws */
   if (flash_progress <= 1.0f) {
@@ -636,7 +643,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   }
 
   if (send_note) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
   }
 
   return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);

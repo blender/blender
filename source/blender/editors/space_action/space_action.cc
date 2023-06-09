@@ -127,7 +127,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   return (SpaceLink *)saction;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void action_free(SpaceLink * /*sl*/)
 {
   //  SpaceAction *saction = (SpaceAction *) sl;

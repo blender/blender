@@ -808,44 +808,6 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
   }
 }
 
-bool BKE_mesh_ensure_facemap_customdata(Mesh *me)
-{
-  BMesh *bm = me->edit_mesh ? me->edit_mesh->bm : nullptr;
-  bool changed = false;
-  if (bm) {
-    if (!CustomData_has_layer(&bm->pdata, CD_FACEMAP)) {
-      BM_data_layer_add(bm, &bm->pdata, CD_FACEMAP);
-      changed = true;
-    }
-  }
-  else {
-    if (!CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, me->totpoly);
-      changed = true;
-    }
-  }
-  return changed;
-}
-
-bool BKE_mesh_clear_facemap_customdata(Mesh *me)
-{
-  BMesh *bm = me->edit_mesh ? me->edit_mesh->bm : nullptr;
-  bool changed = false;
-  if (bm) {
-    if (CustomData_has_layer(&bm->pdata, CD_FACEMAP)) {
-      BM_data_layer_free(bm, &bm->pdata, CD_FACEMAP);
-      changed = true;
-    }
-  }
-  else {
-    if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      CustomData_free_layers(&me->pdata, CD_FACEMAP, me->totpoly);
-      changed = true;
-    }
-  }
-  return changed;
-}
-
 bool BKE_mesh_has_custom_loop_normals(Mesh *me)
 {
   if (me->edit_mesh) {

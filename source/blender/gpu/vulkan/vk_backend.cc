@@ -108,7 +108,10 @@ void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_
   command_buffer.dispatch(groups_x_len, groups_y_len, groups_z_len);
 }
 
-void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/) {}
+void VKBackend::compute_dispatch_indirect(StorageBuf * /*indirect_buf*/)
+{
+  NOT_YET_IMPLEMENTED;
+}
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {

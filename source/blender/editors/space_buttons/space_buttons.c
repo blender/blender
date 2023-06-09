@@ -87,7 +87,7 @@ static SpaceLink *buttons_create(const ScrArea *UNUSED(area), const Scene *UNUSE
   return (SpaceLink *)sbuts;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void buttons_free(SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;

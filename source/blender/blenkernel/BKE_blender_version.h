@@ -27,13 +27,13 @@ extern "C" {
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
-#define BLENDER_FILE_SUBVERSION 5
+#define BLENDER_FILE_SUBVERSION 6
 
 /* Minimum Blender version that supports reading file written with the current
  * version. Older Blender versions will test this and show a warning if the file
  * was written with too new a version. */
 #define BLENDER_FILE_MIN_VERSION 400
-#define BLENDER_FILE_MIN_SUBVERSION 2
+#define BLENDER_FILE_MIN_SUBVERSION 3
 
 /** User readable version string. */
 const char *BKE_blender_version_string(void);

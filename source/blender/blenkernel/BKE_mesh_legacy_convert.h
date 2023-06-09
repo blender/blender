@@ -84,6 +84,8 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh);
 
 void BKE_mesh_legacy_convert_loops_to_corners(struct Mesh *mesh);
 
+void BKE_mesh_legacy_face_map_to_generic(struct Mesh *mesh);
+
 #endif
 
 #ifdef __cplusplus

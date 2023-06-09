@@ -2183,7 +2183,7 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 static bool find_closest_frame(const FCurve *fcu,
                                const float frame,
                                const bool next,
-                               float *closest_frame)
+                               float *r_closest_frame)
 {
   bool replace;
   int bezt_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
@@ -2205,7 +2205,7 @@ static bool find_closest_frame(const FCurve *fcu,
     bezt = &fcu->bezt[bezt_index - 1];
   }
 
-  *closest_frame = bezt->vec[1][0];
+  *r_closest_frame = bezt->vec[1][0];
   return true;
 }
 

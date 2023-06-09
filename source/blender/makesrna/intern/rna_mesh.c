@@ -86,11 +86,6 @@ static CustomData *rna_mesh_edata_helper(Mesh *me)
   return (me->edit_mesh) ? &me->edit_mesh->bm->edata : &me->edata;
 }
 
-static CustomData *rna_mesh_pdata_helper(Mesh *me)
-{
-  return (me->edit_mesh) ? &me->edit_mesh->bm->pdata : &me->pdata;
-}
-
 static CustomData *rna_mesh_ldata_helper(Mesh *me)
 {
   return (me->edit_mesh) ? &me->edit_mesh->bm->ldata : &me->ldata;
@@ -105,11 +100,6 @@ static CustomData *rna_mesh_edata(const PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   return rna_mesh_edata_helper(me);
-}
-static CustomData *rna_mesh_pdata(const PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  return rna_mesh_pdata_helper(me);
 }
 
 static CustomData *rna_mesh_ldata(const PointerRNA *ptr)
@@ -154,17 +144,6 @@ static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
   }
 }
 #  endif
-static void rna_MeshPolyLayer_name_set(PointerRNA *ptr, const char *value)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
-    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
-  }
-  else {
-    rna_cd_layer_name_set(rna_mesh_pdata(ptr), layer, value);
-  }
-}
 static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
 {
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
@@ -1356,78 +1335,6 @@ static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
 
 /* End paint mask */
 
-/* Face maps */
-
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(face_map, pdata, CD_FACEMAP)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(
-    face_map, pdata, CD_FACEMAP, active, MeshFaceMapLayer)
-
-static char *rna_MeshFaceMapLayer_path(const PointerRNA *ptr)
-{
-  const CustomDataLayer *cdl = ptr->data;
-  char name_esc[sizeof(cdl->name) * 2];
-  BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-  return BLI_sprintfN("face_maps[\"%s\"]", name_esc);
-}
-
-static void rna_MeshFaceMapLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(
-      iter, layer->data, sizeof(int), (me->edit_mesh) ? 0 : me->totpoly, 0, NULL);
-}
-
-static int rna_MeshFaceMapLayer_data_length(PointerRNA *ptr)
-{
-  Mesh *me = rna_mesh(ptr);
-  return (me->edit_mesh) ? 0 : me->totpoly;
-}
-
-static PointerRNA rna_Mesh_face_map_new(struct Mesh *me, ReportList *reports, const char *name)
-{
-  if (BKE_mesh_ensure_facemap_customdata(me) == false) {
-    BKE_report(reports, RPT_ERROR, "Currently only single face map layers are supported");
-    return PointerRNA_NULL;
-  }
-
-  CustomData *pdata = rna_mesh_pdata_helper(me);
-
-  int index = CustomData_get_layer_index(pdata, CD_FACEMAP);
-  BLI_assert(index != -1);
-  CustomDataLayer *cdl = &pdata->layers[index];
-  rna_cd_layer_name_set(pdata, cdl, name);
-
-  PointerRNA ptr;
-  RNA_pointer_create(&me->id, &RNA_MeshFaceMapLayer, cdl, &ptr);
-  return ptr;
-}
-
-static void rna_Mesh_face_map_remove(struct Mesh *me,
-                                     ReportList *reports,
-                                     struct CustomDataLayer *layer)
-{
-  /* just for sanity check */
-  {
-    CustomData *pdata = rna_mesh_pdata_helper(me);
-    int index = CustomData_get_layer_index(pdata, CD_FACEMAP);
-    if (index != -1) {
-      CustomDataLayer *layer_test = &pdata->layers[index];
-      if (layer != layer_test) {
-        /* don't show name, its likely freed memory */
-        BKE_report(reports, RPT_ERROR, "Face map not in mesh");
-        return;
-      }
-    }
-  }
-
-  if (BKE_mesh_clear_facemap_customdata(me) == false) {
-    BKE_report(reports, RPT_ERROR, "Error removing face map");
-  }
-}
-
-/* End face maps */
-
 /* poly.vertices - this is faked loop access for convenience */
 static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
                                             int length[RNA_MAX_ARRAY_DIMENSION])
@@ -1692,27 +1599,6 @@ static char *rna_EdgeCustomData_data_path(const PointerRNA *ptr, const char *col
     if (cdl->type == type) {
       b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(type);
       if (b >= 0 && b < totedge) {
-        char name_esc[sizeof(cdl->name) * 2];
-        BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-        return BLI_sprintfN("%s[\"%s\"].data[%d]", collection, name_esc, b);
-      }
-    }
-  }
-
-  return NULL;
-}
-
-static char *rna_PolyCustomData_data_path(const PointerRNA *ptr, const char *collection, int type)
-{
-  const CustomDataLayer *cdl;
-  const Mesh *me = rna_mesh(ptr);
-  const CustomData *pdata = rna_mesh_pdata(ptr);
-  int a, b, totpoly = (me->edit_mesh) ? 0 : me->totpoly;
-
-  for (cdl = pdata->layers, a = 0; a < pdata->totlayer; cdl++, a++) {
-    if (cdl->type == type) {
-      b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(type);
-      if (b >= 0 && b < totpoly) {
         char name_esc[sizeof(cdl->name) * 2];
         BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
         return BLI_sprintfN("%s[\"%s\"].data[%d]", collection, name_esc, b);
@@ -2053,11 +1939,6 @@ static char *rna_MeshColor_path(const PointerRNA *ptr)
   return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_PROP_BYTE_COLOR);
 }
 
-static char *rna_MeshFaceMap_path(const PointerRNA *ptr)
-{
-  return rna_PolyCustomData_data_path(ptr, "face_maps", CD_FACEMAP);
-}
-
 /***************************************/
 
 static int rna_Mesh_tot_vert_get(PointerRNA *ptr)
@@ -2153,10 +2034,6 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
   (void)rna_Mesh_uv_layer_render_index_get;
   (void)rna_Mesh_uv_layer_render_index_set;
   (void)rna_Mesh_uv_layer_render_set;
-  (void)rna_Mesh_face_map_index_range;
-  (void)rna_Mesh_face_map_active_index_set;
-  (void)rna_Mesh_face_map_active_index_get;
-  (void)rna_Mesh_face_map_active_set;
   (void)rna_Mesh_vertex_crease_index_range;
   (void)rna_Mesh_edge_crease_index_range;
   /* end unused function block */
@@ -3227,85 +3104,6 @@ static void rna_def_paint_mask(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
-static void rna_def_face_map(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "MeshFaceMapLayer", NULL);
-  RNA_def_struct_ui_text(srna, "Mesh Face Map Layer", "Per-face map index");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
-  RNA_def_struct_path_func(srna, "rna_MeshFaceMapLayer_path");
-
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MeshPolyLayer_name_set");
-  RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
-  RNA_def_property_ui_text(prop, "Name", "Name of face map layer");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
-  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "MeshFaceMap");
-  RNA_def_property_ui_text(prop, "Data", "");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshFaceMapLayer_data_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_get",
-                                    "rna_MeshFaceMapLayer_data_length",
-                                    NULL,
-                                    NULL,
-                                    NULL);
-
-  /* FaceMap struct */
-  srna = RNA_def_struct(brna, "MeshFaceMap", NULL);
-  RNA_def_struct_sdna(srna, "MIntProperty");
-  RNA_def_struct_ui_text(srna, "Int Property", "");
-  RNA_def_struct_path_func(srna, "rna_MeshFaceMap_path");
-
-  prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "i");
-  RNA_def_property_ui_text(prop, "Value", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-}
-
-static void rna_def_face_maps(BlenderRNA *brna, PropertyRNA *cprop)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  RNA_def_property_srna(cprop, "MeshFaceMapLayers");
-  srna = RNA_def_struct(brna, "MeshFaceMapLayers", NULL);
-  RNA_def_struct_ui_text(srna, "Mesh Face Map Layer", "Per-face map index");
-  RNA_def_struct_sdna(srna, "Mesh");
-  RNA_def_struct_ui_text(srna, "Mesh Face Maps", "Collection of mesh face maps");
-
-  /* add this since we only ever have one layer anyway, don't bother with active_index */
-  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "MeshFaceMapLayer");
-  RNA_def_property_pointer_funcs(prop, "rna_Mesh_face_map_active_get", NULL, NULL, NULL);
-  RNA_def_property_ui_text(prop, "Active Face Map Layer", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  func = RNA_def_function(srna, "new", "rna_Mesh_face_map_new");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Add a float property layer to Mesh");
-  RNA_def_string(func, "name", "Face Map", 0, "", "Face map name");
-  parm = RNA_def_pointer(func, "layer", "MeshFaceMapLayer", "", "The newly created layer");
-  RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
-  RNA_def_function_return(func, parm);
-
-  func = RNA_def_function(srna, "remove", "rna_Mesh_face_map_remove");
-  RNA_def_function_ui_description(func, "Remove a face map layer");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  parm = RNA_def_pointer(func, "layer", "MeshFaceMapLayer", "", "The layer to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
-}
-
 static void rna_def_looptri_poly_value(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "ReadOnlyInteger", NULL);
@@ -3551,23 +3349,6 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Vertex Colors",
                            "Legacy vertex color layers. Deprecated, use color attributes instead");
   rna_def_loop_colors(brna, prop);
-
-  /* face-maps */
-  prop = RNA_def_property(srna, "face_maps", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "pdata.layers", "pdata.totlayer");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_Mesh_face_maps_begin",
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    "rna_Mesh_face_maps_length",
-                                    NULL,
-                                    NULL,
-                                    NULL);
-  RNA_def_property_struct_type(prop, "MeshFaceMapLayer");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_ui_text(prop, "Face Map", "");
-  rna_def_face_maps(brna, prop);
 
   /* Skin vertices */
   prop = RNA_def_property(srna, "skin_vertices", PROP_COLLECTION, PROP_NONE);
@@ -3866,7 +3647,6 @@ void RNA_def_mesh(BlenderRNA *brna)
   rna_def_mpolygon(brna);
   rna_def_mloopuv(brna);
   rna_def_mloopcol(brna);
-  rna_def_face_map(brna);
 }
 
 #endif

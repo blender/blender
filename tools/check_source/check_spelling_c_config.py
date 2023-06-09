@@ -603,6 +603,10 @@ dict_custom = {
     "shaders",
     "specular",
 
+    # Mathematical terms.
+    "egenvalue",
+    "egenvalues",
+
     # Blender specific terms.
     "animsys",
     "animviz",

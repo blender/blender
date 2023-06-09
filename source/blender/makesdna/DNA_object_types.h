@@ -56,15 +56,6 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
-/** Face Maps. */
-typedef struct bFaceMap {
-  struct bFaceMap *next, *prev;
-  /** MAX_VGROUP_NAME. */
-  char name[64];
-  char flag;
-  char _pad0[7];
-} bFaceMap;
-
 #define MAX_VGROUP_NAME 64
 
 /* bDeformGroup->flag */
@@ -353,8 +344,6 @@ typedef struct Object {
   ListBase modifiers;
   /** List of GpencilModifierData structures. */
   ListBase greasepencil_modifiers;
-  /** List of facemaps. */
-  ListBase fmaps;
   /** List of viewport effects. Actually only used by grease pencil. */
   ListBase shader_fx;
 
@@ -445,8 +434,7 @@ typedef struct Object {
   /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef DNA_DEPRECATED;
   /** Current face map, NOTE: index starts at 1. */
-  unsigned short actfmap;
-  char _pad2[2];
+  char _pad2[4];
   /** Object color (in most cases the material color is used for drawing). */
   float color[4];
 

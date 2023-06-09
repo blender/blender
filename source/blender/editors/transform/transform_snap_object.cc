@@ -3276,7 +3276,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
   sctx->ret.dist_sq = FLT_MAX;
   sctx->ret.is_edit = false;
 
-  BLI_assert((snap_to_flag & SCE_SNAP_MODE_GEOM) != 0);
+  BLI_assert(snap_to_flag & (SCE_SNAP_MODE_GEOM | SCE_SNAP_MODE_FACE_NEAREST));
 
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
@@ -3294,8 +3294,10 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
     }
   }
 
-  if ((snap_to_flag & SCE_SNAP_MODE_FACE_NEAREST) && ELEM(nullptr, prev_co, init_co)) {
-    /* No location to work with #SCE_SNAP_MODE_FACE_NEAREST. */
+  if (prev_co == nullptr) {
+    snap_to_flag &= ~(SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_FACE_NEAREST);
+  }
+  else if (init_co == nullptr) {
     snap_to_flag &= ~SCE_SNAP_MODE_FACE_NEAREST;
   }
 

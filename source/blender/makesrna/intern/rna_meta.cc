@@ -37,7 +37,7 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static int rna_Meta_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
+static int rna_Meta_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   MetaBall *mb = (MetaBall *)ptr->data;
   return (mb->texspace_flag & MB_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
@@ -75,7 +75,7 @@ static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
   copy_v3_v3(mb->texspace_size, values);
 }
 
-static void rna_MetaBall_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_MetaBall_redraw_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
@@ -83,7 +83,7 @@ static void rna_MetaBall_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-static void rna_MetaBall_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_MetaBall_update_data(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   MetaBall *mb = (MetaBall *)ptr->owner_id;
 
@@ -101,7 +101,7 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *UNUSED(scene), PointerR
 
 static void rna_MetaBall_update_rotation(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  MetaElem *ml = ptr->data;
+  MetaElem *ml = static_cast<MetaElem *>(ptr->data);
   normalize_qt(ml->quat);
   rna_MetaBall_update_data(bmain, scene, ptr);
 }
@@ -121,7 +121,7 @@ static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 
 static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, PointerRNA *ml_ptr)
 {
-  MetaElem *ml = ml_ptr->data;
+  MetaElem *ml = static_cast<MetaElem *>(ml_ptr->data);
 
   if (BLI_remlink_safe(&mb->elems, ml) == false) {
     BKE_reportf(
@@ -159,7 +159,7 @@ static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
 static char *rna_MetaElement_path(const PointerRNA *ptr)
 {
   const MetaBall *mb = (MetaBall *)ptr->owner_id;
-  const MetaElem *ml = ptr->data;
+  const MetaElem *ml = static_cast<MetaElem *>(ptr->data);
   int index = -1;
 
   if (mb->editelems) {
@@ -294,7 +294,7 @@ static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "element", "MetaElement", "", "The element to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   func = RNA_def_function(srna, "clear", "rna_MetaBall_elements_clear");
   RNA_def_function_ui_description(func, "Remove all elements from the metaball");

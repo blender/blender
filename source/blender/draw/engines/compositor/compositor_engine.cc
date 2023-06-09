@@ -68,6 +68,14 @@ class Context : public realtime_compositor::Context {
     return false;
   }
 
+  /* The viewport compositor doesn't really support the composite output, it only displays the
+   * viewer output in the viewport. Settings this to false will make the compositor use the
+   * composite output as fallback viewer if no other viewer exists. */
+  bool use_composite_output() const override
+  {
+    return false;
+  }
+
   bool use_texture_color_management() const override
   {
     return BKE_scene_check_color_management_enabled(DRW_context_state_get()->scene);
@@ -141,6 +149,11 @@ class Context : public realtime_compositor::Context {
   }
 
   GPUTexture *get_output_texture() override
+  {
+    return DRW_viewport_texture_list_get()->color;
+  }
+
+  GPUTexture *get_viewer_output_texture() override
   {
     return DRW_viewport_texture_list_get()->color;
   }

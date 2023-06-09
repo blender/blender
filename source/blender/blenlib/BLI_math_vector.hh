@@ -206,6 +206,16 @@ template<typename T, int Size>
   return result;
 }
 
+/* Per-element exponent. */
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> exp(const VecBase<T, Size> &x)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::exp(x[i]);
+  }
+  return result;
+}
+
 /**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.

@@ -82,7 +82,7 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
   }
 }
 
-static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Lattice_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
@@ -94,9 +94,7 @@ static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), P
  * we could split this up differently (one update call per property)
  * but for now that's overkill
  */
-static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain),
-                                             Scene *UNUSED(scene),
-                                             PointerRNA *ptr)
+static void rna_Lattice_update_data_editlatt(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   Lattice *lt = (Lattice *)ptr->owner_id;
@@ -126,7 +124,8 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
   neww = (lt->opntsw > 0) ? lt->opntsw : lt->pntsw;
 
   /* #BKE_lattice_resize needs an object, any object will have the same result */
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
+  for (ob = static_cast<Object *>(bmain->objects.first); ob;
+       ob = static_cast<Object *>(ob->id.next)) {
     if (ob->data == lt) {
       BKE_lattice_resize(lt, newu, newv, neww, ob);
       if (lt->editlatt) {
@@ -149,7 +148,7 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Lattice_use_outside_set(PointerRNA *ptr, bool value)
 {
-  Lattice *lt = ptr->data;
+  Lattice *lt = static_cast<Lattice *>(ptr->data);
 
   if (value) {
     lt->flag |= LT_OUTSIDE;
@@ -172,11 +171,11 @@ static void rna_Lattice_use_outside_set(PointerRNA *ptr, bool value)
   }
 }
 
-static int rna_Lattice_size_editable(PointerRNA *ptr, const char **UNUSED(r_info))
+static int rna_Lattice_size_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   Lattice *lt = (Lattice *)ptr->data;
 
-  return (lt->key == NULL) ? PROP_EDITABLE : 0;
+  return (lt->key == NULL) ? int(PROP_EDITABLE) : 0;
 }
 
 static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
@@ -202,7 +201,7 @@ static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 
 static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 {
-  Lattice *lt = ptr->data;
+  Lattice *lt = static_cast<Lattice *>(ptr->data);
   STRNCPY(lt->vgroup, value);
 
   if (lt->editlatt) {

@@ -1258,20 +1258,6 @@ static void layerSwap_flnor(void *data, const int *corner_indices)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Callbacks for (`int`, #CD_FACEMAP)
- * \{ */
-
-static void layerDefault_fmap(void *data, const int count)
-{
-  int *fmap_num = (int *)data;
-  for (int i = 0; i < count; i++) {
-    fmap_num[i] = -1;
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Callbacks for (#MPropCol, #CD_PROP_COLOR)
  * \{ */
 
@@ -1628,8 +1614,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerCopyValue_normal},
-    /* 9: CD_FACEMAP */
-    {sizeof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, layerDefault_fmap, nullptr},
+    /* 9: CD_FACEMAP */ /* DEPRECATED */
+    {sizeof(int), ""},
     /* 10: CD_PROP_FLOAT */
     {sizeof(MFloatProperty),
      "MFloatProperty",
@@ -1865,7 +1851,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 41: CD_CUSTOMLOOPNORMAL */
     {sizeof(short[2]), "vec2s", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 42: CD_SCULPT_FACE_SETS */ /* DEPRECATED */
-    {sizeof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    {sizeof(int), ""},
     /* 43: CD_LOCATION */
     {sizeof(float[3]), "vec3f", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 44: CD_RADIUS */
@@ -2010,14 +1996,14 @@ const CustomData_MeshMasks CD_MASK_BAREMESH = {
     /*vmask*/ CD_MASK_PROP_FLOAT3,
     /*emask*/ CD_MASK_PROP_INT32_2D,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_FACEMAP,
+    /*pmask*/ 0,
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
     /*vmask*/ CD_MASK_PROP_FLOAT3 | CD_MASK_ORIGINDEX,
     /*emask*/ CD_MASK_PROP_INT32_2D | CD_MASK_ORIGINDEX,
     /*fmask*/ 0,
-    /*pmask*/ CD_MASK_FACEMAP | CD_MASK_ORIGINDEX,
+    /*pmask*/ CD_MASK_ORIGINDEX,
     /*lmask*/ CD_MASK_PROP_INT32,
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
@@ -2027,7 +2013,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     (CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /*fmask*/ 0,
     /*pmask*/
-    (CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
+    (CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
@@ -2039,7 +2025,7 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /*pmask*/
-    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
+    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
      CD_MASK_PROP_ALL), /* XXX: MISSING #CD_MASK_MLOOPTANGENT ? */
@@ -2050,7 +2036,7 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     /*emask*/ (CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/ 0,
     /*pmask*/
-    (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
+    (CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_MDISPS | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
@@ -2066,8 +2052,7 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
      CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
      CD_MASK_PROP_ALL),
     /*pmask*/
-    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE |
-     CD_MASK_PROP_ALL),
+    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /*lmask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL |
      CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP |
@@ -5168,9 +5153,6 @@ void CustomData_blend_write(BlendWriter *writer,
         break;
       case CD_GRID_PAINT_MASK:
         write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
-        break;
-      case CD_FACEMAP:
-        BLO_write_raw(writer, sizeof(int) * count, static_cast<const int *>(layer.data));
         break;
       case CD_PROP_BOOL:
         BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));

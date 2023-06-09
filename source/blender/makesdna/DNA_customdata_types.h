@@ -121,7 +121,9 @@ typedef enum eCustomDataType {
    * lazily. Derived vertex and polygon normals are stored in #Mesh_Runtime.
    */
   CD_NORMAL = 8,
-  CD_FACEMAP = 9, /* exclusive face group, each face can only be part of one */
+#ifdef DNA_DEPRECATED_ALLOW
+  CD_FACEMAP = 9,
+#endif
   CD_PROP_FLOAT = 10,
   CD_PROP_INT32 = 11,
   CD_PROP_STRING = 12,
@@ -190,7 +192,6 @@ typedef enum eCustomDataType {
 #define CD_MASK_MCOL (1 << CD_MCOL)
 #define CD_MASK_ORIGINDEX (1 << CD_ORIGINDEX)
 #define CD_MASK_NORMAL (1 << CD_NORMAL)
-#define CD_MASK_FACEMAP (1 << CD_FACEMAP)
 #define CD_MASK_PROP_FLOAT (1 << CD_PROP_FLOAT)
 #define CD_MASK_PROP_INT32 (1 << CD_PROP_INT32)
 #define CD_MASK_PROP_STRING (1 << CD_PROP_STRING)

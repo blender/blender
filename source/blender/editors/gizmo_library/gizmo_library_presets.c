@@ -99,28 +99,3 @@ void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
   single_axis_convert(OB_POSZ, mat, axis, mat_rotate);
   ed_gizmo_draw_preset_geometry(gz, mat_rotate, select_id, &wm_gizmo_geom_data_dial);
 }
-
-void ED_gizmo_draw_preset_facemap(
-    const bContext *C, const struct wmGizmo *gz, Object *ob, const int facemap, int select_id)
-{
-  /* Dependency graph is supposed to be evaluated prior to draw. */
-  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  const bool is_select = (select_id != -1);
-  const bool is_highlight = is_select && (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
-
-  float color[4];
-  gizmo_color_get(gz, is_highlight, color);
-
-  if (is_select) {
-    GPU_select_load_id(select_id);
-  }
-
-  GPU_matrix_push();
-  GPU_matrix_mul(ob->object_to_world);
-  ED_draw_object_facemap(depsgraph, ob, color, facemap);
-  GPU_matrix_pop();
-
-  if (is_select) {
-    GPU_select_load_id(-1);
-  }
-}

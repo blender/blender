@@ -581,7 +581,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         return false;
       }
       if (value == TFM_MODAL_ADD_SNAP) {
-        if (!validSnap(t)) {
+        if (!(t->tsnap.status & SNAP_TARGET_FOUND)) {
           return false;
         }
       }

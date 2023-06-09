@@ -10,16 +10,11 @@
 
 #include "DNA_ID_enums.h"
 
-struct AssetRepresentation;
 struct Main;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender::asset_system {
+class AssetRepresentation;
+}
 
 struct ID *ED_asset_get_local_id_from_asset_or_append_and_reuse(
-    struct Main *bmain, const struct AssetRepresentation *asset_c_ptr, ID_Type idtype);
-
-#ifdef __cplusplus
-}
-#endif
+    Main *bmain, const blender::asset_system::AssetRepresentation &asset, ID_Type idtype);

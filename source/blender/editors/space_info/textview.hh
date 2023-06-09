@@ -15,6 +15,7 @@ enum eTextViewContext_LineFlag {
   TVC_LINE_ICON_FG = (1 << 3),
   TVC_LINE_ICON_BG = (1 << 4)
 };
+ENUM_OPERATORS(eTextViewContext_LineFlag, TVC_LINE_ICON_BG)
 
 typedef struct TextViewContext {
   /** Font size scaled by the interface size. */

@@ -10,12 +10,11 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AssetFilterSettings;
-struct AssetHandle;
+
+namespace blender::asset_system {
+class AssetRepresentation;
+}
 
 /**
  * Compare \a asset against the settings of \a filter.
@@ -29,9 +28,5 @@ struct AssetHandle;
  * \returns True if the asset should be visible with these filter settings (parameters match).
  * Otherwise returns false (mismatch).
  */
-bool ED_asset_filter_matches_asset(const struct AssetFilterSettings *filter,
-                                   const struct AssetHandle *asset);
-
-#ifdef __cplusplus
-}
-#endif
+bool ED_asset_filter_matches_asset(const AssetFilterSettings *filter,
+                                   const blender::asset_system::AssetRepresentation &asset);

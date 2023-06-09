@@ -186,7 +186,7 @@ bool BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
  */
 bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
 /**
- * Returns the number of free bytes on the volume containing the specified pathname.
+ * Returns the number of free bytes on the volume containing the specified path.
  *
  * \note Not actually used anywhere.
  */

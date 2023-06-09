@@ -215,6 +215,7 @@ class GHOST_DeviceVK {
     device_features.geometryShader = VK_TRUE;
     device_features.dualSrcBlend = VK_TRUE;
     device_features.logicOp = VK_TRUE;
+    device_features.imageCubeArray = VK_TRUE;
 #endif
 
     VkDeviceCreateInfo device_create_info = {};
@@ -309,7 +310,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
 
 #if STRICT_REQUIREMENTS
     if (!device_vk.features.geometryShader || !device_vk.features.dualSrcBlend ||
-        !device_vk.features.logicOp)
+        !device_vk.features.logicOp || !device_vk.features.imageCubeArray)
     {
       continue;
     }

@@ -1625,7 +1625,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
     txt_clean_text(text);
   }
 
-  /* update rects for scroll */
+  /* Update rectangles for scroll. */
   calc_text_rcts(st, region, &scroll, &back); /* scroll will hold the entire bar size */
 
   /* update syntax formatting if needed */

@@ -22,7 +22,7 @@ extern "C" {
 
 struct ARegion;
 struct AssetFilterSettings;
-struct AssetHandle;
+struct AssetRepresentation;
 struct AutoComplete;
 struct EnumPropertyItem;
 struct FileSelectParams;
@@ -1813,8 +1813,7 @@ void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
  */
 void UI_but_drag_set_asset(uiBut *but,
-                           const struct AssetHandle *asset,
-                           const char *path,
+                           const struct AssetRepresentation *asset,
                            int import_type, /* eAssetImportType */
                            int icon,
                            struct ImBuf *imb,
