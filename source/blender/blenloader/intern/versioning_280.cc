@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -1255,7 +1257,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 
             space_outliner->outlinevis = SO_VIEW_LAYER;
 
-            if (BLI_listbase_count_at_most(&layer->layer_collections, 2) == 1) {
+            if (BLI_listbase_is_single(&layer->layer_collections)) {
               if (space_outliner->treestore == nullptr) {
                 space_outliner->treestore = BLI_mempool_create(
                     sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
@@ -3051,7 +3053,10 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
                 MEM_callocN(sizeof(ARegion), "navigation bar for properties"));
             ARegion *region_header = nullptr;
 
-            LISTBASE_FOREACH (ARegion *, region_header, regionbase) {
+            for (region_header = static_cast<ARegion *>(regionbase->first);
+                 region_header != nullptr;
+                 region_header = static_cast<ARegion *>(region_header->next))
+            {
               if (region_header->regiontype == RGN_TYPE_HEADER) {
                 break;
               }
@@ -4093,8 +4098,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
       UnitSettings *unit = &scene->unit;
       if (unit->system == USER_UNIT_NONE) {
-        unit->length_unit = (char)USER_UNIT_ADAPTIVE;
-        unit->mass_unit = (char)USER_UNIT_ADAPTIVE;
+        unit->length_unit = char(USER_UNIT_ADAPTIVE);
+        unit->mass_unit = char(USER_UNIT_ADAPTIVE);
       }
 
       RenderData *render_data = &scene->r;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -1833,7 +1834,7 @@ static void sequencer_preview_get_rect(rctf *preview,
                                        bool draw_overlay,
                                        bool draw_backdrop)
 {
-  struct View2D *v2d = &region->v2d;
+  View2D *v2d = &region->v2d;
   float viewrect[2];
 
   sequencer_display_size(scene, viewrect);
@@ -1981,7 +1982,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
 static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, bool draw_backdrop)
 {
-  struct ImBuf *scope = NULL;
+  ImBuf *scope = NULL;
   SequencerScopes *scopes = &sseq->scopes;
 
   if (!draw_backdrop && (sseq->mainb != SEQ_DRAW_IMG_IMBUF || sseq->zebra != 0)) {
@@ -2148,9 +2149,9 @@ void sequencer_draw_preview(const bContext *C,
 {
   struct Main *bmain = CTX_data_main(C);
   struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  struct View2D *v2d = &region->v2d;
-  struct ImBuf *ibuf = NULL;
-  struct ImBuf *scope = NULL;
+  View2D *v2d = &region->v2d;
+  ImBuf *ibuf = NULL;
+  ImBuf *scope = NULL;
   float viewrect[2];
   const bool show_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
   const bool draw_gpencil = ((sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL) && sseq->gpd);
@@ -2435,7 +2436,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
 }
 
 typedef struct CacheDrawData {
-  struct View2D *v2d;
+  View2D *v2d;
   float stripe_ofs_y;
   float stripe_ht;
   int cache_flag;
@@ -2469,12 +2470,12 @@ static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 
 /* Called as a callback */
 static bool draw_cache_view_iter_fn(void *userdata,
-                                    struct Sequence *seq,
+                                    Sequence *seq,
                                     int timeline_frame,
                                     int cache_type)
 {
   CacheDrawData *drawdata = userdata;
-  struct View2D *v2d = drawdata->v2d;
+  View2D *v2d = drawdata->v2d;
   float stripe_bot, stripe_top, stripe_ofs_y, stripe_ht;
   GPUVertBuf *vbo;
   size_t *vert_count;
@@ -2552,7 +2553,7 @@ static void draw_cache_view(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  struct View2D *v2d = &region->v2d;
+  View2D *v2d = &region->v2d;
 
   if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
     return;
@@ -2663,7 +2664,7 @@ static void draw_cache_view(const bContext *C)
 }
 
 /* Draw sequencer timeline. */
-static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D *v2d)
+static void draw_overlap_frame_indicator(const Scene *scene, const View2D *v2d)
 {
   int overlap_frame = (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_ABS) ?
                           scene->ed->overlay_frame_abs :

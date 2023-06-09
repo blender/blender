@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -23,7 +24,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
+void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
 {
   size_t size;
   uchar rt, *cp = ibuf->byte_buffer.data;
@@ -58,7 +59,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
   }
 }
 
-static void pixel_from_buffer(const struct ImBuf *ibuf, uchar **outI, float **outF, int x, int y)
+static void pixel_from_buffer(const ImBuf *ibuf, uchar **outI, float **outF, int x, int y)
 
 {
   size_t offset = size_t(ibuf->x) * y * 4 + 4 * x;
@@ -76,8 +77,7 @@ static void pixel_from_buffer(const struct ImBuf *ibuf, uchar **outI, float **ou
 /** \name Bi-Cubic Interpolation
  * \{ */
 
-void bicubic_interpolation_color(
-    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
+void bicubic_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bicubic_interpolation_fl(in->float_buffer.data, outF, in->x, in->y, 4, u, v);
@@ -109,7 +109,7 @@ void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xo
  * \{ */
 
 void bilinear_interpolation_color_fl(
-    const struct ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
+    const ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->float_buffer.data);
@@ -117,15 +117,14 @@ void bilinear_interpolation_color_fl(
 }
 
 void bilinear_interpolation_color_char(
-    const struct ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
+    const ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->byte_buffer.data);
   BLI_bilinear_interpolation_char(in->byte_buffer.data, outI, in->x, in->y, 4, u, v);
 }
 
-void bilinear_interpolation_color(
-    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
+void bilinear_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bilinear_interpolation_fl(in->float_buffer.data, outF, in->x, in->y, 4, u, v);
@@ -139,7 +138,7 @@ void bilinear_interpolation_color(
 /* BILINEAR INTERPOLATION */
 
 void bilinear_interpolation_color_wrap(
-    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
+    const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   float *row1, *row2, *row3, *row4, a, b;
   uchar *row1I, *row2I, *row3I, *row4I;
@@ -234,7 +233,7 @@ void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int x
  * \{ */
 
 void nearest_interpolation_color_char(
-    const struct ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
+    const ImBuf *in, uchar outI[4], float /*outF*/[4], float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->byte_buffer.data);
@@ -257,7 +256,7 @@ void nearest_interpolation_color_char(
 }
 
 void nearest_interpolation_color_fl(
-    const struct ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
+    const ImBuf *in, uchar /*outI*/[4], float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->float_buffer.data);
@@ -276,8 +275,7 @@ void nearest_interpolation_color_fl(
   copy_v4_v4(outF, dataF);
 }
 
-void nearest_interpolation_color(
-    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
+void nearest_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     nearest_interpolation_color_fl(in, outI, outF, u, v);
@@ -288,7 +286,7 @@ void nearest_interpolation_color(
 }
 
 void nearest_interpolation_color_wrap(
-    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
+    const ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   const float *dataF;
   uchar *dataI;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -19,6 +21,7 @@ namespace blender::asset_system {
 
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          StringRef name,
+                                         const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
     : identifier_(identifier),
@@ -27,6 +30,7 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
       external_asset_()
 {
   external_asset_.name = name;
+  external_asset_.id_type = id_type;
   external_asset_.metadata_ = std::move(metadata);
 }
 
@@ -85,6 +89,15 @@ StringRefNull AssetRepresentation::get_name() const
   return external_asset_.name;
 }
 
+int AssetRepresentation::get_id_type() const
+{
+  if (is_local_id_) {
+    return GS(local_asset_id_->name);
+  }
+
+  return external_asset_.id_type;
+}
+
 AssetMetaData &AssetRepresentation::get_metadata() const
 {
   return is_local_id_ ? *local_asset_id_->asset_data : *external_asset_.metadata_;
@@ -133,6 +146,15 @@ const AssetLibrary &AssetRepresentation::owner_asset_library() const
 
 using namespace blender;
 
+const StringRefNull AS_asset_representation_library_relative_identifier_get(
+    const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  const asset_system::AssetIdentifier &identifier = asset->get_identifier();
+  return identifier.library_relative_identifier();
+}
+
 std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
@@ -179,6 +201,13 @@ const char *AS_asset_representation_name_get(const AssetRepresentation *asset_ha
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
   return asset->get_name().c_str();
+}
+
+int AS_asset_representation_id_type_get(const AssetRepresentation *asset_handle)
+{
+  const asset_system::AssetRepresentation *asset =
+      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
+  return asset->get_id_type();
 }
 
 AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset_handle)

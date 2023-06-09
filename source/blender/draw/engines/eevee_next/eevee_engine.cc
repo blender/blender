@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 #include "BKE_global.h"
 #include "BLI_rect.h"
@@ -141,9 +142,9 @@ static void eevee_instance_free(void *instance)
 }
 
 static void eevee_render_to_image(void *vedata,
-                                  struct RenderEngine *engine,
-                                  struct RenderLayer *layer,
-                                  const struct rcti * /*rect*/)
+                                  RenderEngine *engine,
+                                  RenderLayer *layer,
+                                  const rcti * /*rect*/)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
@@ -169,7 +170,7 @@ static void eevee_render_to_image(void *vedata,
   ved->instance = instance;
 }
 
-static void eevee_store_metadata(void *vedata, struct RenderResult *render_result)
+static void eevee_store_metadata(void *vedata, RenderResult *render_result)
 {
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;

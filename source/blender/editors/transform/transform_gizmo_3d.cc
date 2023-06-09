@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -1110,9 +1112,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
   return false;
 }
 
-void gizmo_prepare_mat(const struct bContext *C,
-                       struct RegionView3D *rv3d,
-                       const struct TransformBounds *tbounds)
+void gizmo_prepare_mat(const bContext *C, RegionView3D *rv3d, const TransformBounds *tbounds)
 {
   Scene *scene = CTX_data_scene(C);
   gizmo_3d_calc_pos(C, scene, tbounds, scene->toolsettings->transform_pivot_point, rv3d->twmat[3]);
@@ -2303,7 +2303,7 @@ void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 
 static wmGizmoGroup *gizmogroup_xform_find(TransInfo *t)
 {
-  struct wmGizmoMap *gizmo_map = t->region->gizmo_map;
+  wmGizmoMap *gizmo_map = t->region->gizmo_map;
   if (gizmo_map == nullptr) {
     BLI_assert_msg(false, "#T_NO_GIZMO should already be set to return early before.");
     return nullptr;
@@ -2460,9 +2460,7 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t)
   MAN_ITER_AXES_END;
 }
 
-bool ED_transform_calc_pivot_pos(const struct bContext *C,
-                                 const short pivot_type,
-                                 float r_pivot_pos[3])
+bool ED_transform_calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
 {
   Scene *scene = CTX_data_scene(C);
   return gizmo_3d_calc_pos(C, scene, nullptr, pivot_type, r_pivot_pos);

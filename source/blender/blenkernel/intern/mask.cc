@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -259,7 +260,7 @@ IDTypeInfo IDType_ID_MSK = {
 
 static struct {
   ListBase splines;
-  struct GHash *id_hash;
+  GHash *id_hash;
 } mask_clipboard = {{nullptr}};
 
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline,

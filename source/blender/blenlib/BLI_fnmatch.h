@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 1991 1992 1993 Free Software Foundation, Inc. */
+/* SPDX-FileCopyrightText: 1991 1992 1993 Free Software Foundation, Inc.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -58,8 +60,7 @@ struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 /**
  * \return True if the region needs a UI redraw.
  */
-bool ED_assetlist_listen(const struct AssetLibraryReference *library_reference,
-                         const struct wmNotifier *notifier);
+bool ED_assetlist_listen(const struct wmNotifier *notifier);
 /**
  * \return The number of assets stored in the asset list for \a library_reference, or -1 if there
  *         is no list fetched for it.

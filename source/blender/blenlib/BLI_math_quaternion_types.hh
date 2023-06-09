@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -158,6 +160,11 @@ template<typename T> struct QuaternionBase {
   friend bool operator==(const QuaternionBase &a, const QuaternionBase &b)
   {
     return (a.w == b.w) && (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+  }
+
+  uint64_t hash() const
+  {
+    return VecBase<T, 4>(*this).hash();
   }
 
   friend std::ostream &operator<<(std::ostream &stream, const QuaternionBase &rot)

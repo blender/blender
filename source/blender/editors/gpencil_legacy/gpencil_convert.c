@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -1266,7 +1267,7 @@ static void gpencil_layer_to_curve(bContext *C,
                                    const bool link_strokes,
                                    tGpTimingData *gtd)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Collection *collection = CTX_data_collection(C);
   Scene *scene = CTX_data_scene(C);
@@ -1453,9 +1454,9 @@ static bool gpencil_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, 
 }
 
 /* Check end_frame is always > start frame! */
-static void gpencil_convert_set_end_frame(struct Main *UNUSED(main),
-                                          struct Scene *UNUSED(scene),
-                                          struct PointerRNA *ptr)
+static void gpencil_convert_set_end_frame(Main *UNUSED(main),
+                                          Scene *UNUSED(scene),
+                                          PointerRNA *ptr)
 {
   int start_frame = RNA_int_get(ptr, "start_frame");
   int end_frame = RNA_int_get(ptr, "end_frame");

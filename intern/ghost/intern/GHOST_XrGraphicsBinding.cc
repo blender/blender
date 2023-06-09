@@ -142,7 +142,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 #  if defined(WITH_GHOST_WAYLAND)
         /* #GHOST_SystemWayland */
         oxr_binding.wl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
-        oxr_binding.wl.display = (struct wl_display *)ctx_egl.m_nativeDisplay;
+        oxr_binding.wl.display = (wl_display *)ctx_egl.m_nativeDisplay;
 #  else
         GHOST_ASSERT(false, "Unexpected State: logical error, unreachable!");
 #  endif /* !WITH_GHOST_WAYLAND */

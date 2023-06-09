@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -35,11 +36,11 @@
 #include "WM_types.h"
 
 static struct {
-  struct GPUTexture *planar_pool_placeholder;
-  struct GPUTexture *depth_placeholder;
-  struct GPUTexture *depth_array_placeholder;
+  GPUTexture *planar_pool_placeholder;
+  GPUTexture *depth_placeholder;
+  GPUTexture *depth_array_placeholder;
 
-  struct GPUVertFormat *format_probe_display_planar;
+  GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
 
 /* *********** FUNCTIONS *********** */
@@ -307,7 +308,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       World *world = (scene->world) ? scene->world : EEVEE_world_default_get();
 
       const int options = VAR_WORLD_BACKGROUND | VAR_WORLD_PROBE;
-      struct GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
+      GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
 
       grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
@@ -709,7 +710,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   /* If light-cache auto-update is enable we tag the relevant part
    * of the cache to update and fire up a baking job. */
-  if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
+  if (!DRW_state_is_image_render() && !DRW_state_is_viewport_image_render() &&
       (pinfo->do_grid_update || pinfo->do_cube_update))
   {
     BLI_assert(draw_ctx->evil_C);
@@ -752,7 +753,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 typedef struct EEVEE_BakeRenderData {
   EEVEE_Data *vedata;
   EEVEE_ViewLayerData *sldata;
-  struct GPUFrameBuffer **face_fb; /* should contain 6 framebuffer */
+  GPUFrameBuffer **face_fb; /* should contain 6 framebuffer */
 } EEVEE_BakeRenderData;
 
 static void render_cubemap(void (*callback)(int face, EEVEE_BakeRenderData *user_data),
@@ -824,7 +825,7 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
 static void lightbake_render_world_face(int face, EEVEE_BakeRenderData *user_data)
 {
   EEVEE_PassList *psl = user_data->vedata->psl;
-  struct GPUFrameBuffer **face_fb = user_data->face_fb;
+  GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* For world probe, we don't need to clear the color buffer
    * since we render the background directly. */
@@ -835,7 +836,7 @@ static void lightbake_render_world_face(int face, EEVEE_BakeRenderData *user_dat
 
 void EEVEE_lightbake_render_world(EEVEE_ViewLayerData *UNUSED(sldata),
                                   EEVEE_Data *vedata,
-                                  struct GPUFrameBuffer *face_fb[6])
+                                  GPUFrameBuffer *face_fb[6])
 {
   EEVEE_BakeRenderData brdata = {
       .vedata = vedata,
@@ -852,7 +853,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
   EEVEE_PrivateData *g_data = user_data->vedata->stl->g_data;
   DRWView **views = g_data->bake_views;
 
-  struct GPUFrameBuffer **face_fb = user_data->face_fb;
+  GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* Be sure that cascaded shadow maps are updated. */
   EEVEE_shadows_draw(sldata, user_data->vedata, views[face]);
@@ -869,7 +870,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
 
 void EEVEE_lightbake_render_scene(EEVEE_ViewLayerData *sldata,
                                   EEVEE_Data *vedata,
-                                  struct GPUFrameBuffer *face_fb[6],
+                                  GPUFrameBuffer *face_fb[6],
                                   const float pos[3],
                                   float near_clip,
                                   float far_clip)
@@ -973,8 +974,8 @@ static void eevee_lightbake_render_scene_to_planars(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
                                    EEVEE_Data *vedata,
-                                   struct GPUTexture *rt_color,
-                                   struct GPUFrameBuffer *fb,
+                                   GPUTexture *rt_color,
+                                   GPUFrameBuffer *fb,
                                    int probe_idx,
                                    float intensity,
                                    int maxlevel,
@@ -1061,8 +1062,8 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
-                                    struct GPUTexture *rt_color,
-                                    struct GPUFrameBuffer *fb,
+                                    GPUTexture *rt_color,
+                                    GPUFrameBuffer *fb,
                                     int grid_offset,
                                     float intensity)
 {
@@ -1113,8 +1114,8 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
                                        EEVEE_Data *vedata,
-                                       struct GPUTexture *UNUSED(rt_depth),
-                                       struct GPUFrameBuffer *fb,
+                                       GPUTexture *UNUSED(rt_depth),
+                                       GPUFrameBuffer *fb,
                                        int grid_offset,
                                        float clipsta,
                                        float clipend,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -118,9 +119,9 @@ void VKVertexBuffer::resize_data()
 
 void VKVertexBuffer::release_data()
 {
-  if (should_unbind_) {
-    VKContext &context = *VKContext::get();
-    context.state_manager_get().texel_buffer_unbind(this);
+  VKContext *context = VKContext::get();
+  if (should_unbind_ && context) {
+    context->state_manager_get().texel_buffer_unbind(this);
   }
 
   if (vk_buffer_view_ != VK_NULL_HANDLE) {

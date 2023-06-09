@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -428,7 +430,7 @@ static PyObject *pygpu_state_framebuffer_active_get(PyObject *UNUSED(self))
 /** \name Module
  * \{ */
 
-static struct PyMethodDef pygpu_state__tp_methods[] = {
+static PyMethodDef pygpu_state__tp_methods[] = {
     /* Manage Stack */
     {"blend_set", (PyCFunction)pygpu_state_blend_set, METH_O, pygpu_state_blend_set_doc},
     {"blend_get", (PyCFunction)pygpu_state_blend_get, METH_NOARGS, pygpu_state_blend_get_doc},

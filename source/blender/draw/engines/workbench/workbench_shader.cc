@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -23,31 +24,30 @@ enum eWORKBENCH_TextureType {
 };
 
 static struct {
-  struct GPUShader
-      *opaque_prepass_sh_cache[GPU_SHADER_CFG_LEN][WORKBENCH_DATATYPE_MAX][TEXTURE_SH_MAX];
-  struct GPUShader *transp_prepass_sh_cache[GPU_SHADER_CFG_LEN][WORKBENCH_DATATYPE_MAX]
-                                           [MAX_LIGHTING][TEXTURE_SH_MAX];
+  GPUShader *opaque_prepass_sh_cache[GPU_SHADER_CFG_LEN][WORKBENCH_DATATYPE_MAX][TEXTURE_SH_MAX];
+  GPUShader *transp_prepass_sh_cache[GPU_SHADER_CFG_LEN][WORKBENCH_DATATYPE_MAX][MAX_LIGHTING]
+                                    [TEXTURE_SH_MAX];
 
-  struct GPUShader *opaque_composite_sh[MAX_LIGHTING];
-  struct GPUShader *oit_resolve_sh;
-  struct GPUShader *outline_sh;
-  struct GPUShader *merge_infront_sh;
+  GPUShader *opaque_composite_sh[MAX_LIGHTING];
+  GPUShader *oit_resolve_sh;
+  GPUShader *outline_sh;
+  GPUShader *merge_infront_sh;
 
-  struct GPUShader *shadow_depth_pass_sh[2];
-  struct GPUShader *shadow_depth_fail_sh[2][2];
+  GPUShader *shadow_depth_pass_sh[2];
+  GPUShader *shadow_depth_fail_sh[2][2];
 
-  struct GPUShader *cavity_sh[2][2];
+  GPUShader *cavity_sh[2][2];
 
-  struct GPUShader *dof_prepare_sh;
-  struct GPUShader *dof_downsample_sh;
-  struct GPUShader *dof_blur1_sh;
-  struct GPUShader *dof_blur2_sh;
-  struct GPUShader *dof_resolve_sh;
+  GPUShader *dof_prepare_sh;
+  GPUShader *dof_downsample_sh;
+  GPUShader *dof_blur1_sh;
+  GPUShader *dof_blur2_sh;
+  GPUShader *dof_resolve_sh;
 
-  struct GPUShader *aa_accum_sh;
-  struct GPUShader *smaa_sh[3];
+  GPUShader *aa_accum_sh;
+  GPUShader *smaa_sh[3];
 
-  struct GPUShader *volume_sh[2][2][3][2];
+  GPUShader *volume_sh[2][2][3][2];
 
 } e_data = {{{{nullptr}}}};
 
@@ -135,7 +135,7 @@ static GPUShader *workbench_shader_get_ex(WORKBENCH_PrivateData *wpd,
   eWORKBENCH_TextureType tex_type = workbench_texture_type_get(textured, tiled);
   int light = wpd->shading.light;
   BLI_assert(light < MAX_LIGHTING);
-  struct GPUShader **shader =
+  GPUShader **shader =
       (transp) ? &e_data.transp_prepass_sh_cache[wpd->sh_cfg][datatype][light][tex_type] :
                  &e_data.opaque_prepass_sh_cache[wpd->sh_cfg][datatype][tex_type];
 
@@ -182,7 +182,7 @@ GPUShader *workbench_shader_transparent_image_get(WORKBENCH_PrivateData *wpd,
 GPUShader *workbench_shader_composite_get(WORKBENCH_PrivateData *wpd)
 {
   int light = wpd->shading.light;
-  struct GPUShader **shader = &e_data.opaque_composite_sh[light];
+  GPUShader **shader = &e_data.opaque_composite_sh[light];
   BLI_assert(light < MAX_LIGHTING);
 
   if (*shader == nullptr) {
@@ -211,8 +211,8 @@ GPUShader *workbench_shader_transparent_resolve_get(WORKBENCH_PrivateData * /*wp
 
 static GPUShader *workbench_shader_shadow_pass_get_ex(bool depth_pass, bool manifold, bool cap)
 {
-  struct GPUShader **shader = (depth_pass) ? &e_data.shadow_depth_pass_sh[manifold] :
-                                             &e_data.shadow_depth_fail_sh[manifold][cap];
+  GPUShader **shader = (depth_pass) ? &e_data.shadow_depth_pass_sh[manifold] :
+                                      &e_data.shadow_depth_fail_sh[manifold][cap];
 
   if (*shader == nullptr) {
     std::string create_info_name = "workbench_shadow";
@@ -240,7 +240,7 @@ GPUShader *workbench_shader_shadow_fail_get(bool manifold, bool cap)
 GPUShader *workbench_shader_cavity_get(bool cavity, bool curvature)
 {
   BLI_assert(cavity || curvature);
-  struct GPUShader **shader = &e_data.cavity_sh[cavity][curvature];
+  GPUShader **shader = &e_data.cavity_sh[cavity][curvature];
 
   if (*shader == nullptr) {
     std::string create_info_name = "workbench_effect";
@@ -334,35 +334,35 @@ GPUShader *workbench_shader_volume_get(bool slice,
 void workbench_shader_free(void)
 {
   for (int j = 0; j < sizeof(e_data.opaque_prepass_sh_cache) / sizeof(void *); j++) {
-    struct GPUShader **sh_array = &e_data.opaque_prepass_sh_cache[0][0][0];
+    GPUShader **sh_array = &e_data.opaque_prepass_sh_cache[0][0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < sizeof(e_data.transp_prepass_sh_cache) / sizeof(void *); j++) {
-    struct GPUShader **sh_array = &e_data.transp_prepass_sh_cache[0][0][0][0];
+    GPUShader **sh_array = &e_data.transp_prepass_sh_cache[0][0][0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < ARRAY_SIZE(e_data.opaque_composite_sh); j++) {
-    struct GPUShader **sh_array = &e_data.opaque_composite_sh[0];
+    GPUShader **sh_array = &e_data.opaque_composite_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < ARRAY_SIZE(e_data.shadow_depth_pass_sh); j++) {
-    struct GPUShader **sh_array = &e_data.shadow_depth_pass_sh[0];
+    GPUShader **sh_array = &e_data.shadow_depth_pass_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < sizeof(e_data.shadow_depth_fail_sh) / sizeof(void *); j++) {
-    struct GPUShader **sh_array = &e_data.shadow_depth_fail_sh[0][0];
+    GPUShader **sh_array = &e_data.shadow_depth_fail_sh[0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < sizeof(e_data.cavity_sh) / sizeof(void *); j++) {
-    struct GPUShader **sh_array = &e_data.cavity_sh[0][0];
+    GPUShader **sh_array = &e_data.cavity_sh[0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < ARRAY_SIZE(e_data.smaa_sh); j++) {
-    struct GPUShader **sh_array = &e_data.smaa_sh[0];
+    GPUShader **sh_array = &e_data.smaa_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
   for (int j = 0; j < sizeof(e_data.volume_sh) / sizeof(void *); j++) {
-    struct GPUShader **sh_array = &e_data.volume_sh[0][0][0][0];
+    GPUShader **sh_array = &e_data.volume_sh[0][0][0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
 

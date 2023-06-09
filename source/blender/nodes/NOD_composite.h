@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -12,6 +13,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct Scene;
+struct RenderData;
+struct Render;
+struct ViewLayer;
 
 extern struct bNodeTreeType *ntreeType_Composite;
 
@@ -26,10 +32,11 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(bNodeType *ntype);
 
-void ntreeCompositExecTree(struct Scene *scene,
+void ntreeCompositExecTree(struct Render *render,
+                           struct Scene *scene,
                            struct bNodeTree *ntree,
                            struct RenderData *rd,
-                           int rendering,
+                           bool rendering,
                            int do_previews,
                            const char *view_name);
 

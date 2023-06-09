@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup ikplugin
@@ -72,7 +73,7 @@ void BIK_init_tree(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float 
 }
 
 void BIK_execute_tree(
-    struct Depsgraph *depsgraph, struct Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
+    struct Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
 {
   IKPlugin *plugin = get_plugin(ob->pose);
 
@@ -81,7 +82,7 @@ void BIK_execute_tree(
   }
 }
 
-void BIK_release_tree(struct Scene *scene, Object *ob, float ctime)
+void BIK_release_tree(Scene *scene, Object *ob, float ctime)
 {
   IKPlugin *plugin = get_plugin(ob->pose);
 
@@ -90,7 +91,7 @@ void BIK_release_tree(struct Scene *scene, Object *ob, float ctime)
   }
 }
 
-void BIK_clear_data(struct bPose *pose)
+void BIK_clear_data(bPose *pose)
 {
   IKPlugin *plugin = get_plugin(pose);
 
@@ -99,7 +100,7 @@ void BIK_clear_data(struct bPose *pose)
   }
 }
 
-void BIK_clear_cache(struct bPose *pose)
+void BIK_clear_cache(bPose *pose)
 {
   IKPlugin *plugin = get_plugin(pose);
 
@@ -108,7 +109,7 @@ void BIK_clear_cache(struct bPose *pose)
   }
 }
 
-void BIK_update_param(struct bPose *pose)
+void BIK_update_param(bPose *pose)
 {
   IKPlugin *plugin = get_plugin(pose);
 
@@ -117,7 +118,7 @@ void BIK_update_param(struct bPose *pose)
   }
 }
 
-void BIK_test_constraint(struct Object *ob, struct bConstraint *cons)
+void BIK_test_constraint(Object *ob, struct bConstraint *cons)
 {
   IKPlugin *plugin = get_plugin(ob->pose);
 

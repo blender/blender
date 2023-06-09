@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -11101,12 +11101,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
+msgid "Sample Rate"
 msgstr "采样率"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "音频采样率(每秒采样次数)"
 
 
 msgctxt "Sound"
@@ -17637,10 +17633,6 @@ msgid "Image Boundary Trimming"
 msgstr "图像边界修剪"
 
 
-msgid "Trim all edges right at the boundary of image(including overscan region)"
-msgstr "修剪图像边界上的所有边线(包括过扫描区域)"
-
-
 msgid "Use Intersection"
 msgstr "使用交集"
 
@@ -23536,24 +23528,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "在 U 向生效 (当存在形态键时无法更改)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "在 V 向生效 (当存在形态键时无法更改)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "在W向生效 (当存在形态键时无法更改)"
 
 
 msgid "Only display and take into account the outer vertices"
@@ -24803,10 +24783,6 @@ msgid "Vertices of the mesh"
 msgstr "网格的顶点"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "用于定义球团曲面的融球数据块"
-
-
 msgid "Metaball elements"
 msgstr "融球元素"
 
@@ -24817,10 +24793,6 @@ msgstr "渲染尺寸"
 
 msgid "Polygonization resolution in rendering"
 msgstr "渲染过程中的多边形化精度"
-
-
-msgid "Wire Size"
-msgstr "线号"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -25261,10 +25233,6 @@ msgstr "物体空间坐标中的物体边界盒, 当不可用时, 所有的值�
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "在物理模拟中将物体用于碰撞体的设置"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "物体颜色与alpha, 当面的物体颜色模式被激活时可用"
 
 
 msgid "Constraints"
@@ -26165,10 +26133,6 @@ msgstr "全局 Y"
 
 msgid "Global Z"
 msgstr "全局 Z"
-
-
-msgid "Effect Children"
-msgstr "影响子粒子"
 
 
 msgid "Apply effectors to children"
@@ -27803,10 +27767,6 @@ msgstr "6.1声道环绕"
 
 msgid "Sound sample file used by this Sound data-block"
 msgstr "供声音数据块所使用的声音采样文件"
-
-
-msgid "Samplerate of the audio in Hz"
-msgstr "音频采样率(单位Hz）"
 
 
 msgid "Caching"
@@ -29829,10 +29789,6 @@ msgid "File format expects linear color space"
 msgstr "文件格式需要线性色彩空间"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Jpeg2000 的编码设置"
-
-
 msgid "JP2"
 msgstr "JP2"
 
@@ -29881,16 +29837,8 @@ msgid "Cinema (48)"
 msgstr "Cinema (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "使用 Openjpeg Cinema 预设 (48fps)"
-
-
 msgid "Cinema"
 msgstr "Cinema"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "要使用的视角预设"
 
 
 msgid "YCC"
@@ -33905,10 +33853,6 @@ msgid "F-Curve Context Menu"
 msgstr "函数曲线上下文菜单"
 
 
-msgid "Slider Operators"
-msgstr "滑块操作"
-
-
 msgid "Mask Context Menu"
 msgstr "遮罩上下文菜单"
 
@@ -35101,10 +35045,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "网格数据块中的顶点"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "供倒角修改器的'仅顶点'选项所使用的权重值"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "用于此顶点所属顶点组的权重值"
 
@@ -35215,10 +35155,6 @@ msgstr "Z 尺寸"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "刚度定义了元素的充实程度"
-
-
-msgid "Metaball types"
-msgstr "融球类型"
 
 
 msgid "Ball"
@@ -36263,10 +36199,6 @@ msgstr "校正形变导致的扭曲"
 
 msgid "Lambda Factor"
 msgstr "Lambda 系数"
-
-
-msgid "Smooth factor effect"
-msgstr "光滑系数影响量"
 
 
 msgid "Bind current shape"
@@ -38620,10 +38552,6 @@ msgid "Flat Faces"
 msgstr "平直面"
 
 
-msgid "Make faces use the minimal vertex weight assigned to their vertices(ensures new faces remain parallel to their original ones, slow, disable when not needed)"
-msgstr "让面使用顶点中最小的顶点权重(保证新的面与已有的面平行，较慢，不需要时可禁用)"
-
-
 msgid "Flip Normals"
 msgstr "翻转法线"
 
@@ -39429,10 +39357,6 @@ msgstr "起始位置 Y"
 
 msgid "Y coordinate of the start position"
 msgstr "起始位置的 Y 坐标"
-
-
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "起始帧 (为正值时) 或结束帧 (为负值时)"
 
 
 msgid "Cyclic wave effect"
@@ -41951,10 +41875,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -64131,10 +64051,6 @@ msgid "Move a node to detach links"
 msgstr "移动节点并取消链接"
 
 
-msgid "Insert Offset"
-msgstr "插入偏移"
-
-
 msgid "Detach Links"
 msgstr "切断关联"
 
@@ -76457,12 +76373,8 @@ msgid "Specify a precise fraction of final UV output"
 msgstr "指定最终UV输出的精确比例"
 
 
-msgid "Rotate islands for best fit"
-msgstr "旋转孤岛以获得最佳匹配"
-
-
-msgid "Bounding box"
-msgstr "边界框"
+msgid "Pack"
+msgstr "打包"
 
 
 msgid "Pack to"
@@ -86532,10 +86444,6 @@ msgid "Tap Key Timeout"
 msgstr "击键超时"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "长按唤出快捷键超过该时长，将在松开按键后退出饼菜单"
-
-
 msgid "Render Display Type"
 msgstr "渲染显示类型"
 
@@ -91465,10 +91373,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -106778,10 +106682,6 @@ msgid "Buffer"
 msgstr "缓冲区"
 
 
-msgid "Sample Rate"
-msgstr "采样率"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "自定义(%.4g fps)"
 
@@ -109519,10 +109419,6 @@ msgstr "添加过渡"
 
 msgid "Unpack"
 msgstr "解包"
-
-
-msgid "Pack"
-msgstr "打包"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -123257,6 +123153,10 @@ msgid "Determinator"
 msgstr "测定"
 
 
+msgid "Bounding box"
+msgstr "边界框"
+
+
 msgid "Color Space:"
 msgstr "色彩空间:"
 
@@ -124743,6 +124643,10 @@ msgstr "体积缩放低于 OpenVDB的允许值"
 
 msgid "Faces to consider when packing islands"
 msgstr "拼排孤岛时要考虑的面。"
+
+
+msgid "Rotate islands for best fit"
+msgstr "旋转孤岛以获得最佳匹配"
 
 
 msgid "Faces to participate in the unwrap operation"

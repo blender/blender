@@ -951,6 +951,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         sub.prop(context.object.data, "sculpt_dyntopo_relax")
 
+        #NotForPR
         if 0:
             scene = context.scene
             def do_prop(name, text=None):

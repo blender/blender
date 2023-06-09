@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -3458,8 +3459,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 /* **** ID traversal callbacks functions **** */
 
 void DepsgraphRelationBuilder::modifier_walk(void *user_data,
-                                             struct Object * /*object*/,
-                                             struct ID **idpoin,
+                                             Object * /*object*/,
+                                             ID **idpoin,
                                              int /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;

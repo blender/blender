@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -463,7 +464,7 @@ static void scene_free_data(ID *id)
   BLI_assert(scene->layer_properties == nullptr);
 }
 
-static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld * /*rbw*/,
+static void scene_foreach_rigidbodyworldSceneLooper(RigidBodyWorld * /*rbw*/,
                                                     ID **id_pointer,
                                                     void *user_data,
                                                     int cb_flag)
@@ -1219,7 +1220,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Reset last_location and last_hit, so they are not remembered across sessions. In some files
      * these are also NaN, which could lead to crashes in painting. */
-    struct UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
+    UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
     zero_v3(ups->last_location);
     ups->last_hit = 0;
 
@@ -2493,10 +2494,7 @@ int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, in
   return (delta_prev < delta_next) ? second_prev : second_next;
 }
 
-void BKE_scene_remove_rigidbody_object(struct Main *bmain,
-                                       Scene *scene,
-                                       Object *ob,
-                                       const bool free_us)
+void BKE_scene_remove_rigidbody_object(Main *bmain, Scene *scene, Object *ob, const bool free_us)
 {
   /* remove rigid body constraint from world before removing object */
   if (ob->rigidbody_constraint) {
@@ -3091,10 +3089,7 @@ int BKE_scene_num_threads(const Scene *scene)
   return BKE_render_num_threads(&scene->r);
 }
 
-void BKE_render_resolution(const struct RenderData *r,
-                           const bool use_crop,
-                           int *r_width,
-                           int *r_height)
+void BKE_render_resolution(const RenderData *r, const bool use_crop, int *r_width, int *r_height)
 {
   *r_width = (r->xsch * r->size) / 100;
   *r_height = (r->ysch * r->size) / 100;

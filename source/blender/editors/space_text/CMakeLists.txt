@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -21,21 +23,21 @@ set(INC_SYS
 )
 
 set(SRC
-  space_text.c
-  text_autocomplete.c
-  text_draw.c
-  text_format.c
-  text_format_lua.c
-  text_format_osl.c
-  text_format_pov.c
-  text_format_pov_ini.c
-  text_format_py.c
-  text_header.c
-  text_ops.c
+  space_text.cc
+  text_autocomplete.cc
+  text_draw.cc
+  text_format.cc
+  text_format_lua.cc
+  text_format_osl.cc
+  text_format_pov.cc
+  text_format_pov_ini.cc
+  text_format_py.cc
+  text_header.cc
+  text_ops.cc
   text_undo.cc
 
-  text_format.h
-  text_intern.h
+  text_format.hh
+  text_intern.hh
 )
 
 set(LIB

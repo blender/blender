@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -586,14 +587,12 @@ static const char *wm_area_name(ScrArea *area)
 typedef struct WindowDrawCB {
   struct WindowDrawCB *next, *prev;
 
-  void (*draw)(const struct wmWindow *, void *);
+  void (*draw)(const wmWindow *, void *);
   void *customdata;
 
 } WindowDrawCB;
 
-void *WM_draw_cb_activate(wmWindow *win,
-                          void (*draw)(const struct wmWindow *, void *),
-                          void *customdata)
+void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata)
 {
   WindowDrawCB *wdc = MEM_callocN(sizeof(*wdc), "WindowDrawCB");
 
@@ -1202,11 +1201,11 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_window_clear_drawable(CTX_wm_manager(C));
   wm_surface_make_drawable(surface);
 
-  GPU_context_begin_frame(surface->gpu_ctx);
+  GPU_context_begin_frame(surface->blender_gpu_context);
 
   surface->draw(C);
 
-  GPU_context_end_frame(surface->gpu_ctx);
+  GPU_context_end_frame(surface->blender_gpu_context);
 
   /* Avoid interference with window drawable */
   wm_surface_clear_drawable();

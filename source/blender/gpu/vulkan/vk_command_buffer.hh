@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -164,6 +165,11 @@ class VKCommandBuffer : NonCopyable, NonMovable {
   void copy(VKTexture &dst_texture, VKBuffer &src_buffer, Span<VkBufferImageCopy> regions);
   void copy(VKTexture &dst_texture, VKTexture &src_texture, Span<VkImageCopy> regions);
   void blit(VKTexture &dst_texture, VKTexture &src_texture, Span<VkImageBlit> regions);
+  void blit(VKTexture &dst_texture,
+            VkImageLayout dst_layout,
+            VKTexture &src_texture,
+            VkImageLayout src_layout,
+            Span<VkImageBlit> regions);
   void pipeline_barrier(VkPipelineStageFlags source_stages,
                         VkPipelineStageFlags destination_stages);
   void pipeline_barrier(Span<VkImageMemoryBarrier> image_memory_barriers);

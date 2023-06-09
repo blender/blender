@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -386,7 +388,7 @@ void BKE_bpath_missing_files_find(Main *bmain,
                                   ReportList *reports,
                                   const bool find_all)
 {
-  struct BPathFind_Data data = {NULL};
+  BPathFind_Data data = {NULL};
   const int flag = BKE_BPATH_FOREACH_PATH_ABSOLUTE | BKE_BPATH_FOREACH_PATH_RELOAD_EDITED |
                    BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN | BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES;
 

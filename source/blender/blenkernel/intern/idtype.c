@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -450,7 +451,7 @@ short BKE_idtype_idcode_iter_step(int *index)
   return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }
 
-void BKE_idtype_id_foreach_cache(struct ID *id,
+void BKE_idtype_id_foreach_cache(ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data)
 {

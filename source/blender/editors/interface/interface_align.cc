@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -45,7 +46,7 @@ struct ButAlign {
   uiBut *but;
 
   /* Neighbor buttons */
-  struct ButAlign *neighbors[4];
+  ButAlign *neighbors[4];
 
   /* Pointers to coordinates (rctf values) of the button. */
   float *borders[4];

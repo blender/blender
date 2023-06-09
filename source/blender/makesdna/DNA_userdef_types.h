@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -593,8 +594,8 @@ enum {
 typedef struct bUserAssetLibrary {
   struct bUserAssetLibrary *next, *prev;
 
-  char name[64];   /* MAX_NAME */
-  char path[1024]; /* FILE_MAX */
+  char name[64];      /* MAX_NAME */
+  char dirpath[1024]; /* FILE_MAX */
 
   short import_method; /* eAssetImportMethod */
   short flag;          /* eAssetLibrary_Flag */
@@ -727,6 +728,9 @@ typedef struct UserDef {
   char i18ndir[768];
   /** 1024 = FILE_MAX. */
   char image_editor[1024];
+  /** 1024 = FILE_MAX. */
+  char text_editor[1024];
+  char text_editor_args[256];
   /** 1024 = FILE_MAX. */
   char anim_player[1024];
   int anim_player_preset;

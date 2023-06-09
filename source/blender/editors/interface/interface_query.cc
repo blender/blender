@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -122,21 +124,7 @@ bool ui_but_is_popover_once_compat(const uiBut *but)
 
 bool ui_but_has_array_value(const uiBut *but)
 {
-  return (but->rnapoin.data && but->rnaprop &&
-          ELEM(RNA_property_subtype(but->rnaprop),
-               PROP_COLOR,
-               PROP_TRANSLATION,
-               PROP_DIRECTION,
-               PROP_VELOCITY,
-               PROP_ACCELERATION,
-               PROP_MATRIX,
-               PROP_EULER,
-               PROP_QUATERNION,
-               PROP_AXISANGLE,
-               PROP_XYZ,
-               PROP_XYZ_LENGTH,
-               PROP_COLOR_GAMMA,
-               PROP_COORDS));
+  return (but->rnapoin.data && but->rnaprop && RNA_property_array_check(but->rnaprop));
 }
 
 static wmOperatorType *g_ot_tool_set_by_id = nullptr;
@@ -341,7 +329,7 @@ uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
       region, event->xy, event->modifier & KM_CTRL, false, nullptr, nullptr);
 }
 
-uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
+uiBut *ui_but_find_rect_over(const ARegion *region, const rcti *rect_px)
 {
   if (!ui_region_contains_rect_px(region, rect_px)) {
     return nullptr;
@@ -594,12 +582,8 @@ size_t ui_but_tip_len_only_first_line(const uiBut *but)
   if (but->tip == nullptr) {
     return 0;
   }
-
-  const char *str_sep = strchr(but->tip, '\n');
-  if (str_sep != nullptr) {
-    return (str_sep - but->tip);
-  }
-  return strlen(but->tip);
+  const char *str_sep = BLI_strchr_or_end(but->tip, '\n');
+  return (str_sep - but->tip);
 }
 
 /** \} */

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -450,7 +452,7 @@ static void prefair_and_fair_verts(FairingContext *fairing_context,
   delete voronoi_vertex_weights;
 }
 
-void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
+void BKE_mesh_prefair_and_fair_verts(Mesh *mesh,
                                      float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      const eMeshFairingDepth depth)
@@ -464,9 +466,7 @@ void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
   delete fairing_context;
 }
 
-void BKE_bmesh_prefair_and_fair_verts(struct BMesh *bm,
-                                      bool *affect_verts,
-                                      const eMeshFairingDepth depth)
+void BKE_bmesh_prefair_and_fair_verts(BMesh *bm, bool *affect_verts, const eMeshFairingDepth depth)
 {
   BMeshFairingContext *fairing_context = new BMeshFairingContext(bm);
   prefair_and_fair_verts(fairing_context, affect_verts, depth);

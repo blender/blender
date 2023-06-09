@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -259,7 +260,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
   {
     DRWShadingGroup *grp;
-    struct GPUBatch *geom = DRW_cache_grid_get();
+    GPUBatch *geom = DRW_cache_grid_get();
 
     GPUShader *sh = OVERLAY_shader_grid();
 

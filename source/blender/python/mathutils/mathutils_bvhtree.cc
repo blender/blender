@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup mathutils
@@ -752,7 +754,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject * /*cls*/, PyObject *args, PyOb
     /* ngon support (much more involved) */
     const uint polys_len = uint(PySequence_Fast_GET_SIZE(py_tris_fast));
     struct PolyLink {
-      struct PolyLink *next;
+      PolyLink *next;
       uint len;
       uint poly[0];
     } *plink_first = nullptr, **p_plink_prev = &plink_first, *plink = nullptr;

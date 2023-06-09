@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -89,6 +90,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_lightprobe_add);
   WM_operatortype_append(OBJECT_OT_drop_named_image);
   WM_operatortype_append(OBJECT_OT_gpencil_add);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_add);
   WM_operatortype_append(OBJECT_OT_light_add);
   WM_operatortype_append(OBJECT_OT_camera_add);
   WM_operatortype_append(OBJECT_OT_speaker_add);

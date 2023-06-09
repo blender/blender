@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -511,7 +512,7 @@ static void ed_keymap_gpencil_weightpainting_smear(wmKeyConfig *keyconf)
 
 /* ==================== */
 
-void ED_keymap_gpencil(wmKeyConfig *keyconf)
+void ED_keymap_gpencil_legacy(wmKeyConfig *keyconf)
 {
   ed_keymap_gpencil_general(keyconf);
   ed_keymap_gpencil_curve_editing(keyconf);
@@ -546,7 +547,7 @@ void ED_keymap_gpencil(wmKeyConfig *keyconf)
 
 /* ****************************************** */
 
-void ED_operatortypes_gpencil(void)
+void ED_operatortypes_gpencil_legacy(void)
 {
   /* Annotations -------------------- */
 

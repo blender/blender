@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -118,6 +119,7 @@ void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lightprobe_add(struct wmOperatorType *ot);
 void OBJECT_OT_drop_named_image(struct wmOperatorType *ot);
 void OBJECT_OT_gpencil_add(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_add(struct wmOperatorType *ot);
 void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);

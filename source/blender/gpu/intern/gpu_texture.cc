@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -179,9 +180,6 @@ bool Texture::init_view(GPUTexture *src_,
 void Texture::usage_set(eGPUTextureUsage usage_flags)
 {
   gpu_image_usage_flags_ = usage_flags;
-  /* Metal: Texture clearing is done using frame-buffer clear. This has no performance impact. */
-  /* TODO(fclem): Move this to metal backend instead to avoid side effects in other back-ends. */
-  gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
 }
 
 /** \} */
@@ -257,6 +255,8 @@ static inline GPUTexture *gpu_texture_create(const char *name,
 {
   BLI_assert(mip_len > 0);
   Texture *tex = GPUBackend::get()->texture_alloc(name);
+  tex->usage_set(usage);
+
   bool success = false;
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -277,9 +277,6 @@ static inline GPUTexture *gpu_texture_create(const char *name,
     default:
       break;
   }
-
-  /* Assign usage. */
-  tex->usage_set(usage);
 
   if (!success) {
     delete tex;
@@ -384,10 +381,8 @@ GPUTexture *GPU_texture_create_compressed_2d(const char *name,
                                              const void *data)
 {
   Texture *tex = GPUBackend::get()->texture_alloc(name);
-  bool success = tex->init_2D(w, h, 0, miplen, tex_format);
-
-  /* Assign usage. */
   tex->usage_set(usage);
+  bool success = tex->init_2D(w, h, 0, miplen, tex_format);
 
   if (!success) {
     delete tex;

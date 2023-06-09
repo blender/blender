@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_listbase.h"
 #include "BLI_task.hh"
@@ -18,8 +20,6 @@
 #include "FN_multi_function_builder.hh"
 
 #include "attribute_access_intern.hh"
-
-extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -156,15 +156,11 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
   }
 }
 
-}  // namespace blender::bke
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access
  * \{ */
-
-namespace blender::bke {
 
 template<typename T>
 static void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
@@ -738,8 +734,6 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
   return new_varray;
 }
 
-}  // namespace blender::bke
-
 static bool can_simple_adapt_for_single(const Mesh &mesh,
                                         const eAttrDomain from_domain,
                                         const eAttrDomain to_domain)
@@ -778,10 +772,10 @@ static bool can_simple_adapt_for_single(const Mesh &mesh,
   }
 }
 
-static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
-                                                    const blender::GVArray &varray,
-                                                    const eAttrDomain from_domain,
-                                                    const eAttrDomain to_domain)
+static GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
+                                           const GVArray &varray,
+                                           const eAttrDomain from_domain,
+                                           const eAttrDomain to_domain)
 {
   if (!varray) {
     return {};
@@ -796,8 +790,7 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     if (can_simple_adapt_for_single(mesh, from_domain, to_domain)) {
       BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
       varray.get_internal_single(value);
-      return blender::GVArray::ForSingle(
-          varray.type(), mesh.attributes().domain_size(to_domain), value);
+      return GVArray::ForSingle(varray.type(), mesh.attributes().domain_size(to_domain), value);
     }
   }
 
@@ -805,11 +798,11 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     case ATTR_DOMAIN_CORNER: {
       switch (to_domain) {
         case ATTR_DOMAIN_POINT:
-          return blender::bke::adapt_mesh_domain_corner_to_point(mesh, varray);
+          return adapt_mesh_domain_corner_to_point(mesh, varray);
         case ATTR_DOMAIN_FACE:
-          return blender::bke::adapt_mesh_domain_corner_to_face(mesh, varray);
+          return adapt_mesh_domain_corner_to_face(mesh, varray);
         case ATTR_DOMAIN_EDGE:
-          return blender::bke::adapt_mesh_domain_corner_to_edge(mesh, varray);
+          return adapt_mesh_domain_corner_to_edge(mesh, varray);
         default:
           break;
       }
@@ -818,11 +811,11 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     case ATTR_DOMAIN_POINT: {
       switch (to_domain) {
         case ATTR_DOMAIN_CORNER:
-          return blender::bke::adapt_mesh_domain_point_to_corner(mesh, varray);
+          return adapt_mesh_domain_point_to_corner(mesh, varray);
         case ATTR_DOMAIN_FACE:
-          return blender::bke::adapt_mesh_domain_point_to_face(mesh, varray);
+          return adapt_mesh_domain_point_to_face(mesh, varray);
         case ATTR_DOMAIN_EDGE:
-          return blender::bke::adapt_mesh_domain_point_to_edge(mesh, varray);
+          return adapt_mesh_domain_point_to_edge(mesh, varray);
         default:
           break;
       }
@@ -831,11 +824,11 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     case ATTR_DOMAIN_FACE: {
       switch (to_domain) {
         case ATTR_DOMAIN_POINT:
-          return blender::bke::adapt_mesh_domain_face_to_point(mesh, varray);
+          return adapt_mesh_domain_face_to_point(mesh, varray);
         case ATTR_DOMAIN_CORNER:
-          return blender::bke::adapt_mesh_domain_face_to_corner(mesh, varray);
+          return adapt_mesh_domain_face_to_corner(mesh, varray);
         case ATTR_DOMAIN_EDGE:
-          return blender::bke::adapt_mesh_domain_face_to_edge(mesh, varray);
+          return adapt_mesh_domain_face_to_edge(mesh, varray);
         default:
           break;
       }
@@ -844,11 +837,11 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     case ATTR_DOMAIN_EDGE: {
       switch (to_domain) {
         case ATTR_DOMAIN_CORNER:
-          return blender::bke::adapt_mesh_domain_edge_to_corner(mesh, varray);
+          return adapt_mesh_domain_edge_to_corner(mesh, varray);
         case ATTR_DOMAIN_POINT:
-          return blender::bke::adapt_mesh_domain_edge_to_point(mesh, varray);
+          return adapt_mesh_domain_edge_to_point(mesh, varray);
         case ATTR_DOMAIN_FACE:
-          return blender::bke::adapt_mesh_domain_edge_to_face(mesh, varray);
+          return adapt_mesh_domain_edge_to_face(mesh, varray);
         default:
           break;
       }
@@ -860,8 +853,6 @@ static blender::GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
 
   return {};
 }
-
-namespace blender::bke {
 
 static void tag_component_positions_changed(void *owner)
 {
@@ -1267,9 +1258,9 @@ static AttributeAccessorFunctions get_mesh_accessor_functions()
     return ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER);
   };
   fn.adapt_domain = [](const void *owner,
-                       const blender::GVArray &varray,
+                       const GVArray &varray,
                        const eAttrDomain from_domain,
-                       const eAttrDomain to_domain) -> blender::GVArray {
+                       const eAttrDomain to_domain) -> GVArray {
     if (owner == nullptr) {
       return {};
     }

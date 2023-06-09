@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -3248,10 +3248,6 @@ msgstr "एच"
 
 msgid "S"
 msgstr "एस"
-
-
-msgid "Jpeg"
-msgstr "जेपीईजी"
 
 
 msgid "To"

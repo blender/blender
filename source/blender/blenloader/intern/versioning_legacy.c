@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -1369,7 +1370,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (sce) {
       if (sce->toolsettings == NULL) {
-        sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
+        sce->toolsettings = MEM_callocN(sizeof(ToolSettings), "Tool Settings Struct");
         sce->toolsettings->doublimit = 0.001f;
       }
       sce = sce->id.next;

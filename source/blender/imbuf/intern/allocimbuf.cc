@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -585,7 +586,7 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
   }
 }
 
-void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
+void IMB_assign_z_buffer(ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->z_buffer);
   ibuf->flags &= ~IB_zbuf;
@@ -598,7 +599,7 @@ void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ow
   }
 }
 
-void IMB_assign_float_z_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
+void IMB_assign_float_z_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->float_z_buffer);
   ibuf->flags &= ~IB_zbuffloat;
@@ -637,7 +638,7 @@ ImBuf *IMB_allocFromBufferOwn(
   return ibuf;
 }
 
-struct ImBuf *IMB_allocFromBuffer(
+ImBuf *IMB_allocFromBuffer(
     const uint8_t *byte_buffer, const float *float_buffer, uint w, uint h, uint channels)
 {
   ImBuf *ibuf = nullptr;
@@ -683,7 +684,7 @@ ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
   return ibuf;
 }
 
-bool IMB_initImBuf(struct ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
+bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
 {
   memset(ibuf, 0, sizeof(ImBuf));
 

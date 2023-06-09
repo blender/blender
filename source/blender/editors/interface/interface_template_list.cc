@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -87,13 +89,13 @@ struct TemplateListVisualInfo {
   int end_idx;      /* Index of last item to display + 1. */
 };
 
-static void uilist_draw_item_default(struct uiList *ui_list,
-                                     const struct bContext * /*C*/,
-                                     struct uiLayout *layout,
-                                     struct PointerRNA * /*dataptr*/,
-                                     struct PointerRNA *itemptr,
+static void uilist_draw_item_default(uiList *ui_list,
+                                     const bContext * /*C*/,
+                                     uiLayout *layout,
+                                     PointerRNA * /*dataptr*/,
+                                     PointerRNA *itemptr,
                                      int icon,
-                                     struct PointerRNA * /*active_dataptr*/,
+                                     PointerRNA * /*active_dataptr*/,
                                      const char * /*active_propname*/,
                                      int /*index*/,
                                      int /*flt_flag*/)
@@ -118,9 +120,7 @@ static void uilist_draw_item_default(struct uiList *ui_list,
   }
 }
 
-static void uilist_draw_filter_default(struct uiList *ui_list,
-                                       const struct bContext * /*C*/,
-                                       struct uiLayout *layout)
+static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
 {
   PointerRNA listptr;
   RNA_pointer_create(nullptr, &RNA_UIList, ui_list, &listptr);
@@ -308,9 +308,9 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
 /**
  * Default UI List filtering: Filter by name.
  */
-static void uilist_filter_items_default(struct uiList *ui_list,
-                                        const struct bContext *C,
-                                        struct PointerRNA *dataptr,
+static void uilist_filter_items_default(uiList *ui_list,
+                                        const bContext *C,
+                                        PointerRNA *dataptr,
                                         const char *propname)
 {
   if (ui_list->filter_byname[0]) {

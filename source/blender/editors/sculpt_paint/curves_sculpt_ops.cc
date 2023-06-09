@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
@@ -162,7 +164,7 @@ static bool stroke_get_location(bContext *C,
   return true;
 }
 
-static bool stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
+static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
   UNUSED_VARS(C, op, mouse);
   return true;
@@ -254,7 +256,7 @@ static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
   }
 }
 
-static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
+static void SCULPT_CURVES_OT_brush_stroke(wmOperatorType *ot)
 {
   ot->name = "Stroke Curves Sculpt";
   ot->idname = "SCULPT_CURVES_OT_brush_stroke";

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -89,7 +90,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int verts_num)
+                        int /*verts_num*/)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Mesh *mesh_src;
@@ -106,7 +107,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -165,7 +166,7 @@ static bool do_write_image_or_movie(Render *re,
 
 /* default callbacks, set in each new render */
 static void result_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
-static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, struct rcti * /*rect*/) {}
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
 static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
@@ -226,9 +227,7 @@ void RE_FreeRenderResult(RenderResult *rr)
   render_result_free(rr);
 }
 
-RenderBuffer *RE_RenderLayerGetPassBuffer(struct RenderLayer *rl,
-                                          const char *name,
-                                          const char *viewname)
+RenderBuffer *RE_RenderLayerGetPassBuffer(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
   return rpass ? &rpass->buffer : nullptr;
@@ -878,44 +877,44 @@ void RE_test_break_cb(Render *re, void *handle, bool (*f)(void *handle))
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name OpenGL Context
+/** \name GPU Context
  * \{ */
 
-void RE_gl_context_create(Render *re)
+void RE_system_gpu_context_create(Render *re)
 {
-  /* Needs to be created in the main OpenGL thread. */
-  re->gl_context = WM_opengl_context_create();
+  /* Needs to be created in the main thread. */
+  re->system_gpu_context = WM_system_gpu_context_create();
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }
 
-void RE_gl_context_destroy(Render *re)
+void RE_system_gpu_context_destroy(Render *re)
 {
-  /* Needs to be called from the thread which used the OpenGL context for rendering. */
-  if (re->gl_context) {
-    if (re->gpu_context) {
-      WM_opengl_context_activate(re->gl_context);
-      GPU_context_active_set(static_cast<GPUContext *>(re->gpu_context));
-      GPU_context_discard(static_cast<GPUContext *>(re->gpu_context));
-      re->gpu_context = nullptr;
+  /* Needs to be called from the thread which used the GPU context for rendering. */
+  if (re->system_gpu_context) {
+    if (re->blender_gpu_context) {
+      WM_system_gpu_context_activate(re->system_gpu_context);
+      GPU_context_active_set(static_cast<GPUContext *>(re->blender_gpu_context));
+      GPU_context_discard(static_cast<GPUContext *>(re->blender_gpu_context));
+      re->blender_gpu_context = nullptr;
     }
 
-    WM_opengl_context_dispose(re->gl_context);
-    re->gl_context = nullptr;
+    WM_system_gpu_context_dispose(re->system_gpu_context);
+    re->system_gpu_context = nullptr;
   }
 }
 
-void *RE_gl_context_get(Render *re)
+void *RE_system_gpu_context_get(Render *re)
 {
-  return re->gl_context;
+  return re->system_gpu_context;
 }
 
-void *RE_gpu_context_get(Render *re)
+void *RE_blender_gpu_context_get(Render *re)
 {
-  if (re->gpu_context == nullptr) {
-    re->gpu_context = GPU_context_create(nullptr, re->gl_context);
+  if (re->blender_gpu_context == nullptr) {
+    re->blender_gpu_context = GPU_context_create(nullptr, re->system_gpu_context);
   }
-  return re->gpu_context;
+  return re->blender_gpu_context;
 }
 
 /** \} */
@@ -1195,7 +1194,7 @@ static void do_render_compositor(Render *re)
 
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
           ntreeCompositExecTree(
-              re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
+              re, re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
         }
 
         ntree->runtime->stats_draw = nullptr;
@@ -1258,7 +1257,7 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
 static void do_render_sequencer(Render *re)
 {
   static int recurs_depth = 0;
-  struct ImBuf *out;
+  ImBuf *out;
   RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
   int cfra = re->r.cfra;
   SeqRenderData context;
@@ -1753,7 +1752,7 @@ static void render_pipeline_free(Render *re)
     re->pipeline_scene_eval = nullptr;
   }
   /* Destroy the opengl context in the correct thread. */
-  RE_gl_context_destroy(re);
+  RE_system_gpu_context_destroy(re);
 
   /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in the
    * case of cancelled render) ensure the storage is empty. */
@@ -2541,7 +2540,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
   }
 }
 
-bool RE_layers_have_name(struct RenderResult *result)
+bool RE_layers_have_name(RenderResult *result)
 {
   switch (BLI_listbase_count_at_most(&result->layers, 2)) {
     case 0:
@@ -2553,7 +2552,7 @@ bool RE_layers_have_name(struct RenderResult *result)
   }
 }
 
-bool RE_passes_have_name(struct RenderLayer *rl)
+bool RE_passes_have_name(RenderLayer *rl)
 {
   LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
     if (!STREQ(rp->name, "Combined")) {

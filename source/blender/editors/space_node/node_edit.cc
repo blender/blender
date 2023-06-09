@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -94,6 +95,8 @@ struct CompoJob {
   /* Evaluated state/ */
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
+  /* Render instance. */
+  Render *re;
   /* Jon system integration. */
   const bool *stop;
   bool *do_update;
@@ -238,6 +241,9 @@ static void compo_initjob(void *cjv)
   if (cj->recalc_flags) {
     compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
   }
+
+  cj->re = RE_NewSceneRender(scene);
+  RE_system_gpu_context_create(cj->re);
 }
 
 /* Called before redraw notifiers, it moves finished previews over. */
@@ -285,16 +291,18 @@ static void compo_startjob(void *cjv,
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, "");
+    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, "");
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, srv->name);
+      ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name);
     }
   }
+
+  RE_system_gpu_context_destroy(cj->re);
 
   ntree->runtime->test_break = nullptr;
   ntree->runtime->stats_draw = nullptr;
@@ -1028,7 +1036,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   int2 mval;
   WM_event_drag_start_mval(event, region, mval);
   UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &cursor.x, &cursor.y);
-  const NodeResizeDirection dir = node_get_resize_direction(node, cursor.x, cursor.y);
+  const NodeResizeDirection dir = node_get_resize_direction(*snode, node, cursor.x, cursor.y);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -1080,7 +1088,7 @@ bool node_has_hidden_sockets(bNode *node)
   return false;
 }
 
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
+void node_set_hidden_sockets(bNode *node, int set)
 {
   if (set == 0) {
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
@@ -1098,7 +1106,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
       }
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      if (nodeCountSocketLinks(snode->edittree, sock) == 0) {
+      if ((sock->flag & SOCK_IS_LINKED) == 0) {
         sock->flag |= SOCK_HIDDEN;
       }
     }
@@ -1725,7 +1733,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
-      node_set_hidden_sockets(snode, node, !hidden);
+      node_set_hidden_sockets(node, !hidden);
     }
   }
 

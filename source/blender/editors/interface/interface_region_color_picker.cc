@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -892,7 +893,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
   return block;
 }
 
-ColorPicker *ui_block_colorpicker_create(struct uiBlock *block)
+ColorPicker *ui_block_colorpicker_create(uiBlock *block)
 {
   ColorPicker *cpicker = MEM_cnew<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);

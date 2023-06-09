@@ -350,7 +350,7 @@ def main():
         if name.rpartition(".")[2].isdigit():
             continue
 
-        if not ob_eval.data.attributes.active_color:
+        if (not hasattr(ob_eval.data, 'attributes')) or not ob_eval.data.attributes.active_color:
             print("Skipping:", name, "(no vertex colors)")
             continue
 

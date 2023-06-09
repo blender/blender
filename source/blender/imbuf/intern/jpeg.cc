@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -40,11 +41,8 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
 static void term_source(j_decompress_ptr cinfo);
 static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t size);
 static boolean handle_app1(j_decompress_ptr cinfo);
-static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
-                                   int flags,
-                                   int max_size,
-                                   size_t *r_width,
-                                   size_t *r_height);
+static ImBuf *ibJpegImageFromCinfo(
+    jpeg_decompress_struct *cinfo, int flags, int max_size, size_t *r_width, size_t *r_height);
 
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
@@ -63,7 +61,7 @@ bool imb_is_a_jpeg(const uchar *mem, const size_t size)
  *---------------------------------------------------------- */
 
 typedef struct my_error_mgr {
-  struct jpeg_error_mgr pub; /* "public" fields */
+  jpeg_error_mgr pub; /* "public" fields */
 
   jmp_buf setjmp_buffer; /* for return to caller */
 } my_error_mgr;
@@ -96,7 +94,7 @@ typedef struct {
 #endif
 
 typedef struct {
-  struct jpeg_source_mgr pub; /* public fields */
+  jpeg_source_mgr pub; /* public fields */
 
   const uchar *buffer;
   int size;
@@ -150,7 +148,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
   my_src_ptr src;
 
   if (cinfo->src == nullptr) { /* first time for this JPEG object? */
-    cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)(
+    cinfo->src = (jpeg_source_mgr *)(*cinfo->mem->alloc_small)(
         (j_common_ptr)cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
   }
 
@@ -174,7 +172,7 @@ static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t si
   } while (0)
 
 #define INPUT_VARS(cinfo) \
-  struct jpeg_source_mgr *datasrc = (cinfo)->src; \
+  jpeg_source_mgr *datasrc = (cinfo)->src; \
   const JOCTET *next_input_byte = datasrc->next_input_byte; \
   size_t bytes_in_buffer = datasrc->bytes_in_buffer
 
@@ -221,7 +219,7 @@ struct NeoGeo_Word {
   uchar pad3;
   uchar quality;
 };
-BLI_STATIC_ASSERT(sizeof(struct NeoGeo_Word) == 4, "Must be 4 bytes");
+BLI_STATIC_ASSERT(sizeof(NeoGeo_Word) == 4, "Must be 4 bytes");
 
 static boolean handle_app1(j_decompress_ptr cinfo)
 {
@@ -240,7 +238,7 @@ static boolean handle_app1(j_decompress_ptr cinfo)
     }
     length = 0;
     if (STRPREFIX(neogeo, "NeoGeo")) {
-      struct NeoGeo_Word *neogeo_word = (struct NeoGeo_Word *)(neogeo + 6);
+      NeoGeo_Word *neogeo_word = (NeoGeo_Word *)(neogeo + 6);
       ibuf_quality = neogeo_word->quality;
     }
   }
@@ -251,17 +249,14 @@ static boolean handle_app1(j_decompress_ptr cinfo)
   return true;
 }
 
-static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
-                                   int flags,
-                                   int max_size,
-                                   size_t *r_width,
-                                   size_t *r_height)
+static ImBuf *ibJpegImageFromCinfo(
+    jpeg_decompress_struct *cinfo, int flags, int max_size, size_t *r_width, size_t *r_height)
 {
   JSAMPARRAY row_pointer;
   JSAMPLE *buffer = nullptr;
   int row_stride;
   int x, y, depth, r, g, b, k;
-  struct ImBuf *ibuf = nullptr;
+  ImBuf *ibuf = nullptr;
   uchar *rect;
   jpeg_saved_marker_ptr marker;
   char *str, *key, *value;
@@ -448,8 +443,8 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
 
 ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-  struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
-  struct my_error_mgr jerr;
+  jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
+  my_error_mgr jerr;
   ImBuf *ibuf;
 
   if (!imb_is_a_jpeg(buffer, size)) {
@@ -484,15 +479,15 @@ ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspac
 #define JPEG_MARKER_APP1 (0xE1)
 #define JPEG_APP1_MAX (1 << 16)
 
-struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
-                                 const int flags,
-                                 const size_t max_thumb_size,
-                                 char colorspace[IM_MAX_SPACE],
-                                 size_t *r_width,
-                                 size_t *r_height)
+ImBuf *imb_thumbnail_jpeg(const char *filepath,
+                          const int flags,
+                          const size_t max_thumb_size,
+                          char colorspace[IM_MAX_SPACE],
+                          size_t *r_width,
+                          size_t *r_height)
 {
-  struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
-  struct my_error_mgr jerr;
+  jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
+  my_error_mgr jerr;
   FILE *infile = nullptr;
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -561,19 +556,19 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
 #undef JPEG_MARKER_APP1
 #undef JPEG_APP1_MAX
 
-static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
+static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
 {
   JSAMPLE *buffer = nullptr;
   JSAMPROW row_pointer[1];
   uchar *rect;
   int x, y;
   char neogeo[128];
-  struct NeoGeo_Word *neogeo_word;
+  NeoGeo_Word *neogeo_word;
 
   jpeg_start_compress(cinfo, true);
 
   strcpy(neogeo, "NeoGeo");
-  neogeo_word = (struct NeoGeo_Word *)(neogeo + 6);
+  neogeo_word = (NeoGeo_Word *)(neogeo + 6);
   memset(neogeo_word, 0, sizeof(*neogeo_word));
   neogeo_word->quality = ibuf->foptions.quality;
   jpeg_write_marker(cinfo, 0xe1, (JOCTET *)neogeo, 10);
@@ -660,7 +655,7 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
   MEM_freeN(row_pointer[0]);
 }
 
-static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
+static int init_jpeg(FILE *outfile, jpeg_compress_struct *cinfo, ImBuf *ibuf)
 {
   int quality;
 
@@ -715,11 +710,11 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   return 0;
 }
 
-static bool save_stdjpeg(const char *filepath, struct ImBuf *ibuf)
+static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
 {
   FILE *outfile;
-  struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
-  struct my_error_mgr jerr;
+  jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
+  my_error_mgr jerr;
 
   if ((outfile = BLI_fopen(filepath, "wb")) == nullptr) {
     return 0;
@@ -749,7 +744,7 @@ static bool save_stdjpeg(const char *filepath, struct ImBuf *ibuf)
   return 1;
 }
 
-bool imb_savejpeg(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_savejpeg(ImBuf *ibuf, const char *filepath, int flags)
 {
 
   ibuf->flags = flags;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -526,7 +527,7 @@ void GLTexture::mip_range_set(int min, int max)
   }
 }
 
-struct GPUFrameBuffer *GLTexture::framebuffer_get()
+GPUFrameBuffer *GLTexture::framebuffer_get()
 {
   if (framebuffer_) {
     return framebuffer_;

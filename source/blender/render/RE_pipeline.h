@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -425,10 +426,10 @@ void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,
                                 void (*f)(void *handle, struct Scene *scene));
 
-void RE_gl_context_create(Render *re);
-void RE_gl_context_destroy(Render *re);
-void *RE_gl_context_get(Render *re);
-void *RE_gpu_context_get(Render *re);
+void RE_system_gpu_context_create(Render *re);
+void RE_system_gpu_context_destroy(Render *re);
+void *RE_system_gpu_context_get(Render *re);
+void *RE_blender_gpu_context_get(Render *re);
 
 /**
  * \param x: ranges from -1 to 1.
@@ -527,7 +528,7 @@ void RE_RenderBuffer_assign_shared(RenderBuffer *lhs, const RenderBuffer *rhs);
 void RE_RenderBuffer_data_free(RenderBuffer *render_buffer);
 
 /* Implementation of above, but for byte buffer. */
-/* TODO(sergey): Once everything is C++ we can remove the duplicated API.  */
+/* TODO(sergey): Once everything is C++ we can remove the duplicated API. */
 RenderByteBuffer RE_RenderByteBuffer_new(uint8_t *data);
 void RE_RenderByteBuffer_assign_data(RenderByteBuffer *render_buffer, uint8_t *data);
 void RE_RenderByteBuffer_assign_shared(RenderByteBuffer *lhs, const RenderByteBuffer *rhs);

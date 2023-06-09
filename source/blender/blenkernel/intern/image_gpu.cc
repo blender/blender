@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -875,13 +876,8 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 }
 
-void BKE_image_update_gputexture_delayed(struct Image *ima,
-                                         struct ImageTile *image_tile,
-                                         struct ImBuf *ibuf,
-                                         int x,
-                                         int y,
-                                         int w,
-                                         int h)
+void BKE_image_update_gputexture_delayed(
+    Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h)
 {
   /* Check for full refresh. */
   if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&

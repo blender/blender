@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -6488,12 +6488,8 @@ msgid "Vorbis"
 msgstr "ﺲﻴﺑﺭﻮﻓ"
 
 
-msgid "Samplerate"
-msgstr " ﺔﻨﻴﻋ-ﻝﺪﻌﻣ"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "(ﺔﻴﻧﺎﺜﻟﺍ/ﺕﺎﻨﻴﻌﻟﺍ)ﺕﻮﺼﻟﺍ ﺔﻨﻴﻋ-ﻝﺪﻌﻣ"
+msgid "Sample Rate"
+msgstr "ﺕﺎﻨﻴﻌﻟﺍ ﻝﺪﻌﻣ"
 
 
 msgctxt "Sound"
@@ -11491,24 +11487,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "(ﻞﻜﺷ ﺢﻴﺗﺎﻔﻣ ﺩﻮﺟﻭ ﺪﻨﻋ ﺎﻫﺮﻴﻴﻐﺗ ﻦﻤﻳ ﻻ﻿) U ﻩﺎﺠﺗﻹ﻿ ﺮﺷﺍ"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "(ﻞﻜﺷ ﺢﻴﺗﺎﻔﻣ ﺩﻮﺟﻭ ﺪﻨﻋ ﺎﻫﺮﻴﻴﻐﺗ ﻦﻜﻤﻳ ﻻ﻿) V ﻩﺎﺠﺗﺍ ﻲﻓ ﺔﻄﻘﻧ"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "(ﻞﻜﺷ ﺢﻴﺗﺎﻔﻣ ﺩﻮﺟﻭ ﺪﻨﻋ ﺎﻫﺮﻴﻴﻐﺗ ﻦﻜﻤﻳ ﻻ﻿) W ﻩﺎﺠﺗﺍ ﻲﻓ ﺔﻄﻘﻧ"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -12015,10 +11999,6 @@ msgid "Polygonization resolution in rendering"
 msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺪﻨﻋ ﻊﻴﻠﻀﺘﻟﺍ ﺔﻗﺩ"
 
 
-msgid "Wire Size"
-msgstr "ﻚﻠﺴﻟﺍ ﻢﺠﺣ"
-
-
 msgid "Polygonization resolution in the 3D viewport"
 msgstr "ﻲﺛﻼ﻿ﺜﻟﺍ ﺬﻔﻨﻣ ﻲﻓ ﻊﻴﻠﻀﺘﻟﺍ ﺔﻗﺩ"
 
@@ -12365,10 +12345,6 @@ msgstr "ﺔﺣﺎﺘﻣ ﻥﻮﻜﺗ ﻻ﻿ ﺎﻣﺪﻨﻋ 0 ﻭ ,1- ﻥﻮﻜ�
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "ﺔﻴﺋﺎﻳﺮﻔﻟﺍ ﺓﺎﻛﺎﺤﻤﻟﺍ ﻲﻓ ﻡﺪﺼﻤﻛ ﻦﺋﺎﻜﻟﺍ ﻡﺍﺪﺨﺘﺳﺍ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "ﻼ﻿ﻌﻔﻣ ﻪﺟﻭﻸ﻿ﻟ 'ﻦﺋﺎﻜﻟﺍ ﻥﻮﻟ' ﻊﺿﻭ ﻥﻮﻜﻳ ﺎﻣﺪﻨﻋ ﻡﺪﺨﺘﺴﻳ ،ﻦﺋﺎﻜﻟﺍ ﺎﻔﻟﺃ ﻭ ﻥﻮﻟ"
 
 
 msgid "Constraints"
@@ -12833,10 +12809,6 @@ msgstr "Y ﻲﻤﻟﺎﻋ"
 
 msgid "Global Z"
 msgstr "Y ﻲﻤﻟﺎﻋ"
-
-
-msgid "Effect Children"
-msgstr "ﻉﻭﺮﻔﻟﺎﺑ ﺮﺛﺃ"
 
 
 msgid "Apply effectors to children"
@@ -17440,10 +17412,6 @@ msgid "Mesh Vertex"
 msgstr "ﻞﻜﺷ ﺔﻄﻘﻧ"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "'ﻂﻘﻓ ﻂﻘﻧ' ﺭﺎﻴﺧ ﻲﻓ ﺔﻔﻄﺸﻟﺍ ﺮﻴﻐﻣ ﻑﺮﻃ ﻦﻣ ﻞﻤﻌﺘﺴﻤﻟﺍ ﻥﺯﻮﻟﺍ"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "ﺔﻄﻘﻨﻟﺍ ﻩﺬﻫ ﺎﻬﻴﻟﺇ ﻲﻤﺘﻨﺗ ﻲﺘﻟﺍ ﻂﻘﻨﻟﺍ ﺕﺎﻋﻮﻤﺠﻤﻟ ﻥﺍﺯﻭﻷ﻿ﺍ"
 
@@ -17510,10 +17478,6 @@ msgstr "ﻱﺩﻮﻤﻋ ﻢﺠﺣ"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "ﺮﺼﻨﻌﻟﺍ ﻸ﻿ﻣ ﻯﺪﻣ ﻰﻠﻋ ﺪﻤﺘﻌﺗ ﺔﺑﻼ﻿ﺼﻟﺍ"
-
-
-msgid "Metaball types"
-msgstr "ﺔﻠﻋﺎﻔﺘﻤﻟﺍ ﺓﺮﻜﻟﺍ ﻉﺍﻮﻧﺍ"
 
 
 msgid "Ball"
@@ -17778,10 +17742,6 @@ msgstr "ﺕﺍﺩﺍﺪﻋﺇ"
 
 msgid "Lambda Factor"
 msgstr "ﻝﺅﺎﻀﺘﻟﺍ ﻞﻣﺎﻌﻣ"
-
-
-msgid "Smooth factor effect"
-msgstr "ﻢﻴﻌﻨﺘﻟﺍ ﺶﻣﺎﻫ"
 
 
 msgid "Length Weight"
@@ -26019,10 +25979,6 @@ msgstr "ﺓﺪﻳﺪﺠﻟﺍ ﻂﺑﺍﻭﺮﻟﺎﺑ ﺔﺤﺘﻔﻟﺍ ﻂﺑ
 msgctxt "Operator"
 msgid "Cut Links"
 msgstr "ﻂﺑﺍﻭﺮﻟﺍ ﻊﻄﻗﺍ"
-
-
-msgid "Insert Offset"
-msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ ﻝﺎﺧﺩﺍ"
 
 
 msgctxt "Operator"
@@ -37023,10 +36979,6 @@ msgstr "ﺦﻳﺭﺎﺗ"
 
 msgid "Buffer"
 msgstr "ﻥﺰّﺨﻣ"
-
-
-msgid "Sample Rate"
-msgstr "ﺕﺎﻨﻴﻌﻟﺍ ﻝﺪﻌﻣ"
 
 
 msgid "Source Clone Image"

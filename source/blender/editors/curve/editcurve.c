@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -5609,7 +5610,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     Curve *cu;
     float location[3];
     const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
-                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE_RAYCAST));
+                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
     Nurb *nu;
     BezTriple *bezt;
@@ -5634,15 +5635,14 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (use_proj) {
       const float mval[2] = {UNPACK2(event->mval)};
 
-      struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene,
-                                                                                       0);
+      SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene, 0);
 
       ED_transform_snap_object_project_view3d(
           snap_context,
           vc.depsgraph,
           vc.region,
           vc.v3d,
-          SCE_SNAP_MODE_FACE_RAYCAST,
+          SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
               .snap_target_select = (vc.obedit != NULL) ? SCE_SNAP_TARGET_NOT_ACTIVE :
                                                           SCE_SNAP_TARGET_ALL,

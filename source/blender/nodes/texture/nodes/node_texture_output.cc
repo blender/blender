@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup texnodes
@@ -91,7 +92,7 @@ static void unique_name(bNode *node)
   }
 }
 
-static void assign_index(struct bNode *node)
+static void assign_index(bNode *node)
 {
   bNode *tnode;
   int index = 1;

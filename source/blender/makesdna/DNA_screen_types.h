@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -200,7 +201,6 @@ typedef enum uiPanelDataExpansion {
   UI_SUBPANEL_DATA_EXPAND_13 = (1 << 13),
   UI_SUBPANEL_DATA_EXPAND_14 = (1 << 14),
   UI_SUBPANEL_DATA_EXPAND_15 = (1 << 15),
-  UI_SUBPANEL_DATA_EXPAND_16 = (1 << 16),
 } uiPanelDataExpansion;
 
 /**

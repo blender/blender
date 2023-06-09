@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -26,27 +28,27 @@ set(INC_SYS
 )
 
 set(SRC
-  io_alembic.c
-  io_cache.c
-  io_collada.c
-  io_gpencil_export.c
-  io_gpencil_import.c
-  io_gpencil_utils.c
-  io_obj.c
-  io_ops.c
-  io_ply_ops.c
-  io_stl_ops.c
-  io_usd.c
+  io_alembic.cc
+  io_cache.cc
+  io_collada.cc
+  io_gpencil_export.cc
+  io_gpencil_import.cc
+  io_gpencil_utils.cc
+  io_obj.cc
+  io_ops.cc
+  io_ply_ops.cc
+  io_stl_ops.cc
+  io_usd.cc
 
-  io_alembic.h
-  io_cache.h
-  io_collada.h
-  io_gpencil.h
-  io_obj.h
+  io_alembic.hh
+  io_cache.hh
+  io_collada.hh
+  io_gpencil.hh
+  io_obj.hh
   io_ops.h
-  io_ply_ops.h
-  io_stl_ops.h
-  io_usd.h
+  io_ply_ops.hh
+  io_stl_ops.hh
+  io_usd.hh
 )
 
 set(LIB

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -286,7 +288,7 @@ static void id_release_weakref(struct ID *id)
 
 #endif /* USE_PYRNA_INVALIDATE_WEAKREF */
 
-void BPY_id_release(struct ID *id)
+void BPY_id_release(ID *id)
 {
 #ifdef USE_PYRNA_INVALIDATE_GC
   id_release_gc(id);
@@ -5801,7 +5803,7 @@ static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 }
 #endif /* # !USE_PYRNA_ITER */
 
-static struct PyMethodDef pyrna_struct_methods[] = {
+static PyMethodDef pyrna_struct_methods[] = {
 
     /* Only for PointerRNA's with ID'props. */
     {"keys", (PyCFunction)pyrna_struct_keys, METH_NOARGS, pyrna_struct_keys_doc},
@@ -5904,7 +5906,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef pyrna_prop_methods[] = {
+static PyMethodDef pyrna_prop_methods[] = {
     {"path_from_id",
      (PyCFunction)pyrna_prop_path_from_id,
      METH_NOARGS,
@@ -5915,7 +5917,7 @@ static struct PyMethodDef pyrna_prop_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef pyrna_prop_array_methods[] = {
+static PyMethodDef pyrna_prop_array_methods[] = {
     {"foreach_get",
      (PyCFunction)pyrna_prop_array_foreach_get,
      METH_VARARGS,
@@ -5928,7 +5930,7 @@ static struct PyMethodDef pyrna_prop_array_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef pyrna_prop_collection_methods[] = {
+static PyMethodDef pyrna_prop_collection_methods[] = {
     {"foreach_get",
      (PyCFunction)pyrna_prop_collection_foreach_get,
      METH_VARARGS,
@@ -5953,7 +5955,7 @@ static struct PyMethodDef pyrna_prop_collection_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef pyrna_prop_collection_idprop_methods[] = {
+static PyMethodDef pyrna_prop_collection_idprop_methods[] = {
     {"add", (PyCFunction)pyrna_prop_collection_idprop_add, METH_NOARGS, NULL},
     {"remove", (PyCFunction)pyrna_prop_collection_idprop_remove, METH_O, NULL},
     {"clear", (PyCFunction)pyrna_prop_collection_idprop_clear, METH_NOARGS, NULL},
@@ -7779,14 +7781,14 @@ static PyObject *bpy_types_module_dir(PyObject *self)
   return ret;
 }
 
-static struct PyMethodDef bpy_types_module_methods[] = {
+static PyMethodDef bpy_types_module_methods[] = {
     {"__getattr__", (PyCFunction)bpy_types_module_getattro, METH_O, NULL},
     {"__dir__", (PyCFunction)bpy_types_module_dir, METH_NOARGS, NULL},
     {NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpy_types_module_doc, "Access to internal Blender types");
-static struct PyModuleDef bpy_types_module_def = {
+static PyModuleDef bpy_types_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.types",
     /*m_doc*/ bpy_types_module_doc,
@@ -9151,9 +9153,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
   Py_RETURN_NONE;
 }
 
-void pyrna_struct_type_extend_capi(struct StructRNA *srna,
-                                   struct PyMethodDef *method,
-                                   struct PyGetSetDef *getset)
+void pyrna_struct_type_extend_capi(StructRNA *srna, PyMethodDef *method, PyGetSetDef *getset)
 {
   /* See 'add_methods' in Python's 'typeobject.c'. */
   PyTypeObject *type = (PyTypeObject *)pyrna_srna_Subtype(srna);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -176,7 +177,7 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
            (a->flag & KMI_REPEAT_IGNORE) == (b->flag & KMI_REPEAT_IGNORE)));
 }
 
-void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
+void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties)
 {
   if (LIKELY(kmi->ptr)) {
     WM_operator_properties_free(kmi->ptr);
@@ -366,7 +367,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
 
 static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
 {
-  wmKeyMap *km = MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
+  wmKeyMap *km = MEM_callocN(sizeof(wmKeyMap), "keymap list");
 
   STRNCPY(km->idname, idname);
   km->spaceid = spaceid;
@@ -524,7 +525,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
   return kmi;
 }
 
-wmKeyMapItem *WM_keymap_add_item_copy(struct wmKeyMap *keymap, wmKeyMapItem *kmi_src)
+wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src)
 {
   wmKeyMapItem *kmi_dst = wm_keymap_item_copy(kmi_src);
 

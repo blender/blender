@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -243,10 +244,10 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   DRW_PASS_CREATE(psl->volumetric_objects_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
 
   /* World Volumetric */
-  struct World *wo = scene->world;
+  World *wo = scene->world;
   if (wo != NULL && wo->use_nodes && wo->nodetree && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d))
   {
-    struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
+    GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
 
     if (mat && GPU_material_has_volume_output(mat)) {
       grp = DRW_shgroup_material_create(mat, psl->volumetric_world_ps);
@@ -311,7 +312,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
 
   int mat_options = VAR_MAT_VOLUME | VAR_MAT_MESH;
-  struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+  GPUMaterial *mat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
 
   /* If shader failed to compile or is currently compiling. */
   if (mat == NULL) {
@@ -360,7 +361,7 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
     DRWShadingGroup *grp;
-    struct GPUShader *sh;
+    GPUShader *sh;
 
     DRW_PASS_CREATE(psl->volumetric_scatter_ps, DRW_STATE_WRITE_COLOR);
     sh = (common_data->vol_use_lights) ? EEVEE_shaders_volumes_scatter_with_lights_sh_get() :
@@ -543,7 +544,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     DRW_draw_pass(psl->volumetric_integration_ps);
 
-    SWAP(struct GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
+    SWAP(GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
     SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);
     SWAP(GPUTexture *, txl->volume_transmit, txl->volume_transmit_history);
 

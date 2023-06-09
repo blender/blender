@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -1629,12 +1630,12 @@ GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
   return batch.lines;
 }
 
-void DRW_pbvh_update_pre(struct PBVHBatches *batches, struct PBVH_GPU_Args *args)
+void DRW_pbvh_update_pre(PBVHBatches *batches, PBVH_GPU_Args *args)
 {
   batches->update_pre(args);
 }
 
-int drw_pbvh_material_index_get(struct PBVHBatches *batches)
+int drw_pbvh_material_index_get(PBVHBatches *batches)
 {
   return batches->material_index;
 }

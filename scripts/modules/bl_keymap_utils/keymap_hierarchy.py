@@ -68,7 +68,7 @@ _km_hierarchy = [
         ('Font', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'EDIT_TEXT'),
         ]),
-
+        ('Grease Pencil', 'EMPTY', 'WINDOW', []),
         ('Pose', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'POSE'),
         ]),

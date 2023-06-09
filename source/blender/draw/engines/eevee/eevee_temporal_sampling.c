@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -244,7 +245,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
    * Reset for each "redraw". When rendering using OpenGL render,
    * we accumulate the redraw inside the drawing loop in eevee_draw_scene().
    */
-  if (DRW_state_is_opengl_render()) {
+  if (DRW_state_is_viewport_image_render()) {
     effects->taa_render_sample = 1;
   }
   effects->bypass_drawing = false;
@@ -336,7 +337,7 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
   EEVEE_EffectsInfo *effects = stl->effects;
 
   if (effects->enabled_effects & EFFECT_TAA) {
-    struct GPUShader *sh = EEVEE_shaders_taa_resolve_sh_get(effects->enabled_effects);
+    GPUShader *sh = EEVEE_shaders_taa_resolve_sh_get(effects->enabled_effects);
 
     DRW_PASS_CREATE(psl->taa_resolve, DRW_STATE_WRITE_COLOR);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->taa_resolve);
@@ -400,9 +401,9 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
         SWAP_BUFFERS_TAA();
       }
       else {
-        struct GPUFrameBuffer *source_fb = (effects->target_buffer == fbl->main_color_fb) ?
-                                               fbl->effect_color_fb :
-                                               fbl->main_color_fb;
+        GPUFrameBuffer *source_fb = (effects->target_buffer == fbl->main_color_fb) ?
+                                        fbl->effect_color_fb :
+                                        fbl->main_color_fb;
         GPU_framebuffer_blit(source_fb, 0, fbl->taa_history_color_fb, 0, GPU_COLOR_BIT);
       }
     }

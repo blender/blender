@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -474,7 +476,7 @@ static bool bm_face_triangulate(BMesh *bm,
 
                                 MemArena *pf_arena,
                                 /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-                                struct Heap *pf_heap)
+                                Heap *pf_heap)
 {
   const int f_base_len = f_base->len;
   int faces_array_tot = f_base_len - 3;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -14,6 +15,37 @@ struct TransDataContainer;
 struct TransInfo;
 struct bContext;
 struct wmOperator;
+
+typedef struct TransModeInfo {
+  int flags; /* eTFlag */
+
+  void (*init_fn)(TransInfo *, struct wmOperator *);
+
+  /** Main transform mode function. */
+  void (*transform_fn)(TransInfo *, const int[2]);
+
+  /**
+   * Optional callback to transform a single matrix.
+   *
+   * \note used by the gizmo to transform the matrix used to position it.
+   */
+  void (*transform_matrix_fn)(TransInfo *, float[4][4]);
+
+  /* Event handler function that determines whether the viewport needs to be redrawn. */
+  eRedrawFlag (*handle_event_fn)(TransInfo *, const struct wmEvent *);
+
+  /**
+   * Get the transform distance between two points (used by Closest snap)
+   *
+   * \note Return value can be anything,
+   * where the smallest absolute value defines what's closest.
+   */
+  float (*snap_distance_fn)(struct TransInfo *t, const float p1[3], const float p2[3]);
+  void (*snap_apply_fn)(struct TransInfo *, float *);
+
+  /** Custom drawing. */
+  void (*draw_fn)(struct TransInfo *);
+} TransModeInfo;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
 typedef struct TransDataGenericSlideVert {
@@ -67,125 +99,125 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type);
 
 /* transform_mode_align.c */
 
-void initAlign(TransInfo *t);
+extern TransModeInfo TransMode_align;
 
 /* transform_mode_baketime.c */
 
-void initBakeTime(TransInfo *t);
+extern TransModeInfo TransMode_baketime;
 
 /* transform_mode_bbone_resize.c */
 
-void initBoneSize(TransInfo *t);
+extern TransModeInfo TransMode_bboneresize;
 
 /* transform_mode_bend.c */
 
-void initBend(TransInfo *t);
+extern TransModeInfo TransMode_bend;
 
 /* transform_mode_boneenvelope.c */
 
-void initBoneEnvelope(TransInfo *t);
+extern TransModeInfo TransMode_boneenvelope;
 
 /* transform_mode_boneroll.c */
 
-void initBoneRoll(TransInfo *t);
+extern TransModeInfo TransMode_boneroll;
 
 /* transform_mode_curveshrinkfatten.c */
 
-void initCurveShrinkFatten(TransInfo *t);
+extern TransModeInfo TransMode_curveshrinkfatten;
 
 /* transform_mode_customdata.c */
 
-void initEgdeCrease(TransInfo *t);
-void initVertCrease(TransInfo *t);
-void initBevelWeight(TransInfo *t);
+extern TransModeInfo TransMode_edgecrease;
+extern TransModeInfo TransMode_vertcrease;
+extern TransModeInfo TransMode_bevelweight;
 
 /* transform_mode_edge_rotate_normal.c */
 
-void initNormalRotation(TransInfo *t);
+extern TransModeInfo TransMode_rotatenormal;
 
 /* transform_mode_edge_seq_slide.c */
 
-void initSeqSlide(TransInfo *t);
+extern TransModeInfo TransMode_seqslide;
 
 /* transform_mode_edge_slide.c */
 
-void drawEdgeSlide(TransInfo *t);
-void initEdgeSlide_ex(
-    TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp);
-void initEdgeSlide(TransInfo *t);
+extern TransModeInfo TransMode_edgeslide;
 void transform_mode_edge_slide_reproject_input(TransInfo *t);
 
 /* transform_mode_gpopacity.c */
 
-void initGPOpacity(TransInfo *t);
+extern TransModeInfo TransMode_gpopacity;
 
 /* transform_mode_gpshrinkfatten.c */
 
-void initGPShrinkFatten(TransInfo *t);
+extern TransModeInfo TransMode_gpshrinkfatten;
 
 /* transform_mode_maskshrinkfatten.c */
 
-void initMaskShrinkFatten(TransInfo *t);
+extern TransModeInfo TransMode_maskshrinkfatten;
 
 /* transform_mode_mirror.c */
 
-void initMirror(TransInfo *t);
+extern TransModeInfo TransMode_mirror;
 
 /* transform_mode_push_pull.c */
 
-void initPushPull(TransInfo *t);
+extern TransModeInfo TransMode_pushpull;
 
 /* transform_mode_resize.c */
 
-void initResize(TransInfo *t, float mouse_dir_constraint[3]);
+extern TransModeInfo TransMode_resize;
 
 /* transform_mode_rotate.c */
 
-void initRotation(TransInfo *t);
+extern TransModeInfo TransMode_rotate;
 
 /* transform_mode_shear.c */
 
-void initShear(TransInfo *t);
+extern TransModeInfo TransMode_shear;
 
 /* transform_mode_shrink_fatten.c */
 
-void initShrinkFatten(TransInfo *t);
+extern TransModeInfo TransMode_shrinkfatten;
 
 /* transform_mode_skin_resize.c */
 
-void initSkinResize(TransInfo *t);
+extern TransModeInfo TransMode_skinresize;
+
+/* transform_mode_snapsource.c */
+
+extern TransModeInfo TransMode_snapsource;
+void transform_mode_snap_source_init(TransInfo *t, struct wmOperator *op);
 
 /* transform_mode_tilt.c */
 
-void initTilt(TransInfo *t);
+extern TransModeInfo TransMode_tilt;
 
 /* transform_mode_timescale.c */
 
-void initTimeScale(TransInfo *t);
+extern TransModeInfo TransMode_timescale;
 
 /* transform_mode_timeslide.c */
 
-void initTimeSlide(TransInfo *t);
+extern TransModeInfo TransMode_timeslide;
 
 /* transform_mode_timetranslate.c */
 
-void initTimeTranslate(TransInfo *t);
+extern TransModeInfo TransMode_timetranslate;
 
 /* transform_mode_tosphere.c */
 
-void initToSphere(TransInfo *t);
+extern TransModeInfo TransMode_tosphere;
 
 /* transform_mode_trackball.c */
 
-void initTrackball(TransInfo *t);
+extern TransModeInfo TransMode_trackball;
 
 /* transform_mode_translate.c */
 
-void initTranslation(TransInfo *t);
+extern TransModeInfo TransMode_translate;
 
 /* transform_mode_vert_slide.c */
 
-void drawVertSlide(TransInfo *t);
-void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp);
-void initVertSlide(TransInfo *t);
+extern TransModeInfo TransMode_vertslide;
 void transform_mode_vert_slide_reproject_input(TransInfo *t);

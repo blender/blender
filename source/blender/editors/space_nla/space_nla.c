@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnla
@@ -113,7 +114,7 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   return (SpaceLink *)snla;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void nla_free(SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
@@ -125,7 +126,7 @@ static void nla_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *wm, ScrArea *area)
+static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceNla *snla = (SpaceNla *)area->spacedata.first;
 

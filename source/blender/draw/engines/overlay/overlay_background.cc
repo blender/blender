@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -29,7 +30,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     float color_override[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     int background_type;
 
-    if (DRW_state_is_opengl_render() && !DRW_state_draw_background()) {
+    if (DRW_state_is_viewport_image_render() && !DRW_state_draw_background()) {
       background_type = BG_SOLID;
       color_override[3] = 1.0f;
     }
@@ -93,7 +94,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec4_copy(grp, "ucolor", G_draw.block.color_clipping_border);
     DRW_shgroup_uniform_vec3(grp, "boundbox", &bb->vec[0][0], 8);
 
-    struct GPUBatch *cube = DRW_cache_cube_get();
+    GPUBatch *cube = DRW_cache_cube_get();
     DRW_shgroup_call(grp, cube, nullptr);
   }
   else {

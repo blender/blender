@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -402,7 +404,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
   }
 }
 
-void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float values[3]))
+void setInputPostFct(MouseInput *mi, void (*post)(TransInfo *t, float values[3]))
 {
   mi->post = post;
 }
@@ -505,6 +507,18 @@ void transform_input_virtual_mval_reset(TransInfo *t)
   }
   else {
     memset(&mi->virtual_mval, 0, sizeof(mi->virtual_mval));
+  }
+}
+
+void transform_input_reset(TransInfo *t, const int mval[2])
+{
+  MouseInput *mi = &t->mouse;
+  copy_v2_v2_int(mi->imval, mval);
+  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    struct InputAngle_Data *data = mi->data;
+    data->mval_prev[0] = mi->imval[0];
+    data->mval_prev[1] = mi->imval[1];
+    data->angle = 0.0f;
   }
 }
 

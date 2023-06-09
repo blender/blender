@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -6369,11 +6369,7 @@ msgid "FFmpeg audio codec to use"
 msgstr "Zvukový kodek FFmpeg k použití"
 
 
-msgid "Samplerate"
-msgstr "Vzorky"
-
-
-msgid "Audio samplerate(samples/s)"
+msgid "Sample Rate"
 msgstr "Vzorky"
 
 
@@ -10645,10 +10641,6 @@ msgid "Render Size"
 msgstr "Nastavit okraje renderování"
 
 
-msgid "Wire Size"
-msgstr "Velikost fontu:   8"
-
-
 msgid "Update"
 msgstr "Aktualizace"
 
@@ -11254,10 +11246,6 @@ msgstr "Globální Y"
 
 msgid "Global Z"
 msgstr "Globální Z"
-
-
-msgid "Effect Children"
-msgstr "Potomek"
 
 
 msgid "Apply effectors to children"
@@ -14900,10 +14888,6 @@ msgid "Size Z"
 msgstr "Velikost (Z)"
 
 
-msgid "Metaball types"
-msgstr "Metaball"
-
-
 msgid "Ball"
 msgstr "Koule"
 
@@ -15290,10 +15274,6 @@ msgstr "Nastavení"
 
 msgid "Lambda Factor"
 msgstr "Činitel"
-
-
-msgid "Smooth factor effect"
-msgstr "Hladký útlum"
 
 
 msgid "Original Coords"
@@ -31050,6 +31030,10 @@ msgid "Fraction"
 msgstr "Zlomek"
 
 
+msgid "Pack"
+msgstr "Zabalit"
+
+
 msgctxt "Operator"
 msgid "Pin"
 msgstr "Kreslit"
@@ -41351,10 +41335,6 @@ msgid "Buffer"
 msgstr "Z-Buffer"
 
 
-msgid "Sample Rate"
-msgstr "Vzorky"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "Vlastní (%.4g fps)"
 
@@ -42748,10 +42728,6 @@ msgstr "Přidat přechod"
 
 msgid "Unpack"
 msgstr "Rozbalit"
-
-
-msgid "Pack"
-msgstr "Zabalit"
 
 
 msgid "Original frame range: %d-%d (%d)"

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -98,12 +99,12 @@ typedef struct LatticeRenderData {
   } dims;
   bool show_only_outside;
 
-  struct EditLatt *edit_latt;
+  EditLatt *edit_latt;
   BPoint *bp;
 
   int actbp;
 
-  const struct MDeformVert *dvert;
+  const MDeformVert *dvert;
 } LatticeRenderData;
 
 enum {

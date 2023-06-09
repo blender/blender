@@ -166,11 +166,11 @@ void main()
     EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002);
     EXPECT_NEAR(to_scale(m), expect_scale, 0.00001);
 
-    vec4 expect_sz = vec4(3, 2, 2, M_SQRT2);
+    vec4 expect_size = vec4(3, 2, 2, M_SQRT2);
     vec4 size;
     mat4x4 m1 = normalize_and_get_size(m, size);
     EXPECT_TRUE(is_unit_scale(m1));
-    EXPECT_NEAR(size, expect_sz, 0.0002);
+    EXPECT_NEAR(size, expect_size, 0.0002);
 
     mat4x4 m2 = normalize(m);
     EXPECT_TRUE(is_unit_scale(m2));

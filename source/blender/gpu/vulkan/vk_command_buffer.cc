@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -40,7 +41,7 @@ void VKCommandBuffer::init(const VkDevice vk_device,
 
   /* When a the last GHOST context is destroyed the device is deallocate. A moment later the GPU
    * context is destroyed. The first step is to activate it. Activating would retrieve the device
-   * from GHOST which in that case is a VK_NULL_HANDLE.*/
+   * from GHOST which in that case is a #VK_NULL_HANDLE. */
   if (vk_device == VK_NULL_HANDLE) {
     return;
   }
@@ -200,15 +201,28 @@ void VKCommandBuffer::copy(VKTexture &dst_texture,
 }
 
 void VKCommandBuffer::blit(VKTexture &dst_texture,
-                           VKTexture &src_buffer,
+                           VKTexture &src_texture,
+                           Span<VkImageBlit> regions)
+{
+  blit(dst_texture,
+       dst_texture.current_layout_get(),
+       src_texture,
+       src_texture.current_layout_get(),
+       regions);
+}
+
+void VKCommandBuffer::blit(VKTexture &dst_texture,
+                           VkImageLayout dst_layout,
+                           VKTexture &src_texture,
+                           VkImageLayout src_layout,
                            Span<VkImageBlit> regions)
 {
   ensure_no_active_framebuffer();
   vkCmdBlitImage(vk_command_buffer_,
-                 src_buffer.vk_image_handle(),
-                 src_buffer.current_layout_get(),
+                 src_texture.vk_image_handle(),
+                 src_layout,
                  dst_texture.vk_image_handle(),
-                 dst_texture.current_layout_get(),
+                 dst_layout,
                  regions.size(),
                  regions.data(),
                  VK_FILTER_NEAREST);

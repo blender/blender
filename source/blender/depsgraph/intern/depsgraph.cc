@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -274,7 +275,7 @@ Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEval
   return reinterpret_cast<Depsgraph *>(deg_depsgraph);
 }
 
-void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
+void DEG_graph_replace_owners(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
                               ViewLayer *view_layer)
@@ -306,13 +307,13 @@ void DEG_graph_free(Depsgraph *graph)
   delete deg_depsgraph;
 }
 
-bool DEG_is_evaluating(const struct Depsgraph *depsgraph)
+bool DEG_is_evaluating(const Depsgraph *depsgraph)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
   return deg_graph->is_evaluating;
 }
 
-bool DEG_is_active(const struct Depsgraph *depsgraph)
+bool DEG_is_active(const Depsgraph *depsgraph)
 {
   if (depsgraph == nullptr) {
     /* Happens for such cases as work object in what_does_obaction(),
@@ -325,20 +326,20 @@ bool DEG_is_active(const struct Depsgraph *depsgraph)
   return deg_graph->is_active;
 }
 
-void DEG_make_active(struct Depsgraph *depsgraph)
+void DEG_make_active(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->is_active = true;
   /* TODO(sergey): Copy data from evaluated state to original. */
 }
 
-void DEG_make_inactive(struct Depsgraph *depsgraph)
+void DEG_make_inactive(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->is_active = false;
 }
 
-void DEG_disable_visibility_optimization(struct Depsgraph *depsgraph)
+void DEG_disable_visibility_optimization(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->use_visibility_optimization = false;

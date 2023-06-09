@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -27,7 +28,7 @@ namespace blender::eevee {
  *
  * \{ */
 
-static void draw_data_init_cb(struct DrawData *dd)
+static void draw_data_init_cb(DrawData *dd)
 {
   /* Object has just been created or was never evaluated by the engine. */
   dd->recalc = ID_RECALC_ALL;
@@ -36,7 +37,7 @@ static void draw_data_init_cb(struct DrawData *dd)
 ObjectHandle &SyncModule::sync_object(Object *ob)
 {
   DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  struct DrawData *dd = DRW_drawdata_ensure(
+  DrawData *dd = DRW_drawdata_ensure(
       (ID *)ob, owner, sizeof(eevee::ObjectHandle), draw_data_init_cb, nullptr);
   ObjectHandle &eevee_dd = *reinterpret_cast<ObjectHandle *>(dd);
 
@@ -57,7 +58,7 @@ ObjectHandle &SyncModule::sync_object(Object *ob)
 WorldHandle &SyncModule::sync_world(::World *world)
 {
   DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  struct DrawData *dd = DRW_drawdata_ensure(
+  DrawData *dd = DRW_drawdata_ensure(
       (ID *)world, owner, sizeof(eevee::WorldHandle), draw_data_init_cb, nullptr);
   WorldHandle &eevee_dd = *reinterpret_cast<WorldHandle *>(dd);
 
@@ -71,7 +72,7 @@ WorldHandle &SyncModule::sync_world(::World *world)
 SceneHandle &SyncModule::sync_scene(::Scene *scene)
 {
   DrawEngineType *owner = (DrawEngineType *)&DRW_engine_viewport_eevee_next_type;
-  struct DrawData *dd = DRW_drawdata_ensure(
+  DrawData *dd = DRW_drawdata_ensure(
       (ID *)scene, owner, sizeof(eevee::SceneHandle), draw_data_init_cb, nullptr);
   SceneHandle &eevee_dd = *reinterpret_cast<SceneHandle *>(dd);
 

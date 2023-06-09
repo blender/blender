@@ -42,7 +42,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GLSettings glSettings,
+                                             GHOST_GPUSettings gpuSettings,
                                              const bool exclusive,
                                              const bool /* is_dialog */,
                                              const GHOST_IWindow *parentWindow)
@@ -56,8 +56,8 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                width,
                                height,
                                state,
-                               glSettings.context_type,
-                               ((glSettings.flags & GHOST_glStereoVisual) != 0),
+                               gpuSettings.context_type,
+                               ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
                                exclusive,
                                parentWindow);
 
@@ -125,7 +125,7 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/)
 {
   GHOST_Context *context = new GHOST_ContextSDL(false,
                                                 nullptr,

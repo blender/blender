@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -423,7 +425,7 @@ static PyObject *pyop_get_bl_options(PyObject *UNUSED(self), PyObject *value)
   return pyrna_enum_bitfield_as_set(rna_enum_operator_type_flag_items, ot->flag);
 }
 
-static struct PyMethodDef bpy_ops_methods[] = {
+static PyMethodDef bpy_ops_methods[] = {
     {"poll", (PyCFunction)pyop_poll, METH_VARARGS, NULL},
     {"call", (PyCFunction)pyop_call, METH_VARARGS, NULL},
     {"as_string", (PyCFunction)pyop_as_string, METH_VARARGS, NULL},
@@ -434,7 +436,7 @@ static struct PyMethodDef bpy_ops_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef bpy_ops_module = {
+static PyModuleDef bpy_ops_module = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "_bpy.ops",
     /*m_doc*/ NULL,

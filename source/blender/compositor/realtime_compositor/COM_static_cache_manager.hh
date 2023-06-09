@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include "COM_cached_mask.hh"
 #include "COM_cached_texture.hh"
+#include "COM_distortion_grid.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_smaa_precomputed_textures.hh"
@@ -43,6 +46,7 @@ class StaticCacheManager {
   CachedMaskContainer cached_masks;
   SMAAPrecomputedTexturesContainer smaa_precomputed_textures;
   OCIOColorSpaceConversionShaderContainer ocio_color_space_conversion_shaders;
+  DistortionGridContainer distortion_grids;
 
   /* Reset the cache manager by deleting the cached resources that are no longer needed because
    * they weren't used in the last evaluation and prepare the remaining cached resources to track

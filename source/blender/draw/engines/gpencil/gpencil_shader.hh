@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -12,7 +13,7 @@
 namespace blender::draw::greasepencil {
 
 enum eShaderType {
-  /* SMAA antialiasing */
+  /* SMAA anti-aliasing. */
   ANTIALIASING_EDGE_DETECT = 0,
   ANTIALIASING_BLEND_WEIGHT,
   ANTIALIASING_RESOLVE,

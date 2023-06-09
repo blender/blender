@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -38,7 +39,7 @@ extern "C" {
 namespace blender::gpu {
 
 using GPUSourceDictionnary = Map<StringRef, struct GPUSource *>;
-using GPUFunctionDictionnary = Map<StringRef, struct GPUFunction *>;
+using GPUFunctionDictionnary = Map<StringRef, GPUFunction *>;
 
 struct GPUSource {
   StringRefNull fullpath;

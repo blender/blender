@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -396,26 +398,30 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 
   if (entry.has_description()) {
     const StringRefNull description = entry.get_description();
-    char *description_c_str = static_cast<char *>(MEM_mallocN(description.size() + 1, __func__));
-    BLI_strncpy(description_c_str, description.c_str(), description.size() + 1);
+    const size_t c_str_size = description.size() + 1;
+    char *description_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(description_c_str, description.c_str(), c_str_size);
     asset_data->description = description_c_str;
   }
   if (entry.has_author()) {
     const StringRefNull author = entry.get_author();
-    char *author_c_str = static_cast<char *>(MEM_mallocN(author.size() + 1, __func__));
-    BLI_strncpy(author_c_str, author.c_str(), author.size() + 1);
+    const size_t c_str_size = author.size() + 1;
+    char *author_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(author_c_str, author.c_str(), c_str_size);
     asset_data->author = author_c_str;
   }
   if (entry.has_copyright()) {
     const StringRefNull copyright = entry.get_copyright();
-    char *copyright_c_str = static_cast<char *>(MEM_mallocN(copyright.size() + 1, __func__));
-    BLI_strncpy(copyright_c_str, copyright.c_str(), copyright.size() + 1);
+    const size_t c_str_size = copyright.size() + 1;
+    char *copyright_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(copyright_c_str, copyright.c_str(), c_str_size);
     asset_data->copyright = copyright_c_str;
   }
   if (entry.has_license()) {
     const StringRefNull license = entry.get_license();
-    char *license_c_str = static_cast<char *>(MEM_mallocN(license.size() + 1, __func__));
-    BLI_strncpy(license_c_str, license.c_str(), license.size() + 1);
+    const size_t c_str_size = license.size() + 1;
+    char *license_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(license_c_str, license.c_str(), c_str_size);
     asset_data->license = license_c_str;
   }
 
@@ -546,10 +552,10 @@ struct AssetLibraryIndex {
     if (!BLI_is_dir(index_path)) {
       return;
     }
-    struct direntry *dir_entries = nullptr;
+    direntry *dir_entries = nullptr;
     const int dir_entries_num = BLI_filelist_dir_contents(index_path, &dir_entries);
     for (int i = 0; i < dir_entries_num; i++) {
-      struct direntry *entry = &dir_entries[i];
+      direntry *entry = &dir_entries[i];
       if (BLI_str_endswith(entry->relname, ".index.json")) {
         preexisting_file_indices.add_as(std::string(entry->path));
       }

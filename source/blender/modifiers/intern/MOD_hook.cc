@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -430,7 +431,7 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   deformVerts_do(hmd, ctx, ctx->object, mesh_src, nullptr, vertexCos, verts_num);
 

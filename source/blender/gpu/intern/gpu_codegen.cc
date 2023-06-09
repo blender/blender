@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -86,7 +87,7 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
 };
 
 struct GPUPass {
-  struct GPUPass *next;
+  GPUPass *next;
 
   GPUShader *shader;
   GPUCodegenCreateInfo *create_info = nullptr;

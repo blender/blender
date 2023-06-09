@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -123,8 +124,8 @@ struct Render {
   char viewname[MAX_NAME];
 
   /* TODO: replace by a whole draw manager. */
-  void *gl_context;
-  void *gpu_context;
+  void *system_gpu_context;
+  void *blender_gpu_context;
 };
 
 /* **************** defines ********************* */

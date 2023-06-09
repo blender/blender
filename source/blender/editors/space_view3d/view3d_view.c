@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -665,7 +666,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* All of the queries need to be perform on the drawing context. */
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   G.f |= G_FLAG_PICKSEL;
 
@@ -745,7 +746,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     GPU_depth_test(GPU_DEPTH_NONE);
   }
 
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   UI_Theme_Restore(&theme_state);
 
@@ -1228,7 +1229,7 @@ static void view3d_local_collections_reset(Main *bmain, const uint local_view_bi
   }
 }
 
-bool ED_view3d_local_collections_set(Main *bmain, struct View3D *v3d)
+bool ED_view3d_local_collections_set(Main *bmain, View3D *v3d)
 {
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
     return true;
@@ -1252,7 +1253,7 @@ bool ED_view3d_local_collections_set(Main *bmain, struct View3D *v3d)
   return true;
 }
 
-void ED_view3d_local_collections_reset(struct bContext *C, const bool reset_all)
+void ED_view3d_local_collections_reset(bContext *C, const bool reset_all)
 {
   Main *bmain = CTX_data_main(C);
   uint local_view_bit = ~(0);

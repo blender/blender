@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sequencer
@@ -44,7 +45,7 @@ static int sequencer_rename_channel_invoke(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot)
+void SEQUENCER_OT_rename_channel(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Rename Channel";

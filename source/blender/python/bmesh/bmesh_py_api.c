@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -133,8 +134,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
   }
 
   {
-    extern void EDBM_update_extern(
-        struct Mesh * me, const bool do_tessface, const bool is_destructive);
+    extern void EDBM_update_extern(Mesh * me, const bool do_tessface, const bool is_destructive);
 
     EDBM_update_extern(me, do_loop_triangles, is_destructive);
   }
@@ -142,7 +142,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef BPy_BM_methods[] = {
+static PyMethodDef BPy_BM_methods[] = {
     {"new", (PyCFunction)bpy_bm_new, METH_VARARGS | METH_KEYWORDS, bpy_bm_new_doc},
     {"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O, bpy_bm_from_edit_mesh_doc},
     {"update_edit_mesh",
@@ -156,7 +156,7 @@ PyDoc_STRVAR(BPy_BM_doc,
              "This module provides access to blenders bmesh data structures.\n"
              "\n"
              ".. include:: include__bmesh.rst\n");
-static struct PyModuleDef BPy_BM_module_def = {
+static PyModuleDef BPy_BM_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh",
     /*m_doc*/ BPy_BM_doc,

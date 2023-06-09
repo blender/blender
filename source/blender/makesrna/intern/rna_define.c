@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -203,7 +205,7 @@ static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 }
 #endif
 
-static int DNA_struct_find_nr_wrapper(const struct SDNA *sdna, const char *struct_name)
+static int DNA_struct_find_nr_wrapper(const SDNA *sdna, const char *struct_name)
 {
   struct_name = DNA_struct_rename_legacy_hack_static_from_alias(struct_name);
 #ifdef RNA_RUNTIME
@@ -1101,7 +1103,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
   ds->dnaname = structname;
 }
 
-void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *prop)
+void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop)
 {
   if (prop->type != PROP_STRING) {
     CLOG_ERROR(&LOG, "\"%s.%s\", must be a string property.", srna->identifier, prop->identifier);

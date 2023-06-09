@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -324,7 +326,7 @@ static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoS
   }
 }
 
-static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct Main *bmain)
+static bool undosys_stack_push_main(UndoStack *ustack, const char *name, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   BLI_assert(ustack->step_init == nullptr);
@@ -337,7 +339,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
   return (ret & UNDO_PUSH_RET_SUCCESS);
 }
 
-void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
+void BKE_undosys_stack_init_from_main(UndoStack *ustack, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   undosys_stack_push_main(ustack, IFACE_("Original"), bmain);
@@ -384,7 +386,7 @@ UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const Un
 void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit)
 {
   UNDO_NESTED_ASSERT(false);
-  if ((steps == -1) && (memory_limit != 0)) {
+  if ((steps == -1) && (memory_limit == 0)) {
     return;
   }
 
@@ -398,6 +400,12 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     if (memory_limit) {
       data_size_all += us->data_size;
       if (data_size_all > memory_limit) {
+        CLOG_INFO(&LOG,
+                  1,
+                  "At step %zu: data_size_all=%zu >= memory_limit=%zu",
+                  us_count,
+                  data_size_all,
+                  memory_limit);
         break;
       }
     }
@@ -410,6 +418,8 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
       }
     }
   }
+
+  CLOG_INFO(&LOG, 1, "Total steps %zu: data_size_all=%zu", us_count, data_size_all);
 
   if (us) {
 #ifdef WITH_GLOBAL_UNDO_KEEP_ONE

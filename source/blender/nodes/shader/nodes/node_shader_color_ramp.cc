@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -32,7 +33,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
                                GPUNodeStack *in,
                                GPUNodeStack *out)
 {
-  struct ColorBand *coba = (ColorBand *)node->storage;
+  ColorBand *coba = (ColorBand *)node->storage;
   float *array, layer;
   int size;
 

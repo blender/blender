@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -66,7 +67,7 @@ using blender::Vector;
 
 /* Utils. */
 
-int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
+int ED_sculpt_face_sets_find_next_available_id(Mesh *mesh)
 {
   const int *face_sets = static_cast<const int *>(
       CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
@@ -83,7 +84,7 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
   return next_face_set_id;
 }
 
-void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
+void ED_sculpt_face_sets_initialize_none_to_id(Mesh *mesh, const int new_id)
 {
   int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
@@ -1725,7 +1726,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   return sculpt_face_set_edit_exec(C, op);
 }
 
-void SCULPT_OT_face_sets_edit(struct wmOperatorType *ot)
+void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Edit Face Set";

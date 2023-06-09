@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -40,8 +42,17 @@ class Context {
  public:
   Context(TexturePool &texture_pool);
 
-  /* Get the active compositing scene. */
-  virtual const Scene *get_scene() const = 0;
+  /* Get the node tree used for compositing. */
+  virtual const bNodeTree &get_node_tree() const = 0;
+
+  /* True if compositor should do write file outputs, false if only running for viewing. */
+  virtual bool use_file_output() const = 0;
+
+  /* True if color management should be used for texture evaluation. */
+  virtual bool use_texture_color_management() const = 0;
+
+  /* Get the render settings for compositing. */
+  virtual const RenderData &get_render_data() const = 0;
 
   /* Get the width and height of the render passes and of the output texture returned by the
    * get_input_texture and get_output_texture methods respectively. */
@@ -61,7 +72,7 @@ class Context {
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */
-  virtual GPUTexture *get_input_texture(int view_layer, eScenePassType pass_type) = 0;
+  virtual GPUTexture *get_input_texture(int view_layer, const char *pass_name) = 0;
 
   /* Get the name of the view currently being rendered. */
   virtual StringRef get_view_name() = 0;

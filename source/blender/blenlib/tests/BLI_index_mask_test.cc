@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
@@ -221,6 +223,65 @@ TEST(index_mask, FromPredicateFuzzy)
     EXPECT_TRUE(values.contains(int(index)));
     EXPECT_EQ(index, mask[pos]);
   });
+}
+
+TEST(index_mask, Complement)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask(0);
+    const IndexMask complement = mask.complement(IndexRange(100), memory);
+    EXPECT_EQ(100 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+  {
+    const IndexMask mask(10000);
+    const IndexMask complement = mask.complement(IndexRange(10000), memory);
+    EXPECT_EQ(10000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+  {
+    const IndexMask mask(IndexRange(100, 900));
+    const IndexMask complement = mask.complement(IndexRange(1000), memory);
+    EXPECT_EQ(1000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+  {
+    const IndexMask mask(IndexRange(0, 900));
+    const IndexMask complement = mask.complement(IndexRange(1000), memory);
+    EXPECT_EQ(1000 - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
+}
+
+TEST(index_mask, ComplementFuzzy)
+{
+  RandomNumberGenerator rng;
+
+  const int64_t mask_size = 100;
+  const int64_t iter_num = 100;
+  const int64_t universe_size = 110;
+
+  for (const int64_t iter : IndexRange(iter_num)) {
+    Set<int> values;
+    for ([[maybe_unused]] const int64_t _ : IndexRange(iter)) {
+      values.add(rng.get_int32(mask_size));
+    }
+    IndexMaskMemory memory;
+    const IndexMask mask = IndexMask::from_predicate(
+        IndexRange(mask_size), GrainSize(1024), memory, [&](const int64_t i) {
+          return values.contains(int(i));
+        });
+
+    const IndexMask complement = mask.complement(IndexRange(universe_size), memory);
+    EXPECT_EQ(universe_size - mask.size(), complement.size());
+    complement.foreach_index([&](const int64_t i) { EXPECT_FALSE(mask.contains(i)); });
+    mask.foreach_index([&](const int64_t i) { EXPECT_FALSE(complement.contains(i)); });
+  }
 }
 
 }  // namespace blender::index_mask::tests

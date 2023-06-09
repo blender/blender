@@ -2004,7 +2004,7 @@ class _defs_gpencil_paint:
     def generate_from_brushes(context):
         if context and context.preferences.experimental.use_grease_pencil_version3:
             return tuple([ToolDef.from_dict(dict(
-                idname="builtin_brush.draw",
+                idname="builtin_brush.Draw",
                 label="Draw",
                 icon="brush.gpencil_draw.draw",
                 data_block='DRAW',
@@ -3146,8 +3146,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
         ],
-        "EDIT_GPENCIL": [
-            *_tools_gpencil_select,
+        'EDIT_GPENCIL': [
+            *_tools_select,
             _defs_view3d_generic.cursor,
             None,
             *_tools_transform,

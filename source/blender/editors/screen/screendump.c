@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -111,10 +112,10 @@ static int screenshot_exec(bContext *C, wmOperator *op)
   if (scd) {
     if (scd->dumprect) {
       ImBuf *ibuf;
-      char path[FILE_MAX];
+      char filepath[FILE_MAX];
 
-      RNA_string_get(op->ptr, "filepath", path);
-      BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+      RNA_string_get(op->ptr, "filepath", filepath);
+      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
       /* operator ensures the extension */
       ibuf = IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
@@ -132,7 +133,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
         /* bw screenshot? - users will notice if it fails! */
         IMB_color_to_bw(ibuf);
       }
-      if (BKE_imbuf_write(ibuf, path, &scd->im_format)) {
+      if (BKE_imbuf_write(ibuf, filepath, &scd->im_format)) {
         ok = true;
       }
       else {
@@ -217,7 +218,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
   /* image template */
   PointerRNA ptr;
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-  uiTemplateImageSettings(layout, &ptr, false);
+  uiTemplateImageSettings(layout, &ptr, false, true);
 
   /* main draw call */
   uiDefAutoButsRNA(

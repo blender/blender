@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -309,7 +311,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pygpu_vertbuf__tp_methods[] = {
+static PyMethodDef pygpu_vertbuf__tp_methods[] = {
     {"attr_fill",
      (PyCFunction)pygpu_vertbuf_attr_fill,
      METH_VARARGS | METH_KEYWORDS,

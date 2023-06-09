@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -49,7 +50,7 @@ BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 }
 
 struct CurvesEvalCall {
-  struct CurvesEvalCall *next;
+  CurvesEvalCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;

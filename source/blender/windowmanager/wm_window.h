@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -85,7 +86,7 @@ void wm_window_process_events(const bContext *C);
 void wm_window_clear_drawable(wmWindowManager *wm);
 void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win);
 /**
- * Reset active the current window opengl drawing context.
+ * Reset active the current window gpu drawing context.
  */
 void wm_window_reset_drawable(void);
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -27,7 +28,8 @@ typedef enum eSeqLoadFlags {
 typedef struct SeqLoadData {
   int start_frame;
   int channel;
-  char name[64];   /* Strip name. */
+  char name[64]; /* Strip name. */
+  /** Typically a `filepath` but may reference any kind of path. */
   char path[1024]; /* 1024 = FILE_MAX */
   struct {
     int len;

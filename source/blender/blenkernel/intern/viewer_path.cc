@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
@@ -56,7 +58,7 @@ bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b)
   return false;
 }
 
-void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path)
+void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
@@ -81,7 +83,7 @@ void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *v
   }
 }
 
-void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path)
+void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path)
 {
   BLO_read_list(reader, &viewer_path->path);
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {

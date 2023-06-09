@@ -1221,7 +1221,7 @@ class IMAGE_PT_tools_brush_display(Panel, BrushButtonsPanel, DisplayPanel):
     bl_context = ".paint_common_2d"
     bl_parent_id = "IMAGE_PT_paint_settings"
     bl_category = "Tool"
-    bl_label = "Brush Tip"
+    bl_label = "Cursor"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 15
 

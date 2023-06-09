@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -79,11 +80,11 @@ static void freeData(GpencilModifierData *md)
   MEM_SAFE_FREE(gpmd->segments);
 }
 
-static int remapTime(struct GpencilModifierData *md,
-                     struct Depsgraph *UNUSED(depsgraph),
-                     struct Scene *scene,
-                     struct Object *UNUSED(ob),
-                     struct bGPDlayer *gpl,
+static int remapTime(GpencilModifierData *md,
+                     Depsgraph *UNUSED(depsgraph),
+                     Scene *scene,
+                     Object *UNUSED(ob),
+                     bGPDlayer *gpl,
                      int cfra)
 {
   TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
@@ -266,13 +267,13 @@ static int remapTime(struct GpencilModifierData *md,
   return nfra;
 }
 
-static void segment_list_item(struct uiList *UNUSED(ui_list),
-                              const struct bContext *UNUSED(C),
-                              struct uiLayout *layout,
-                              struct PointerRNA *UNUSED(idataptr),
-                              struct PointerRNA *itemptr,
+static void segment_list_item(uiList *UNUSED(ui_list),
+                              const bContext *UNUSED(C),
+                              uiLayout *layout,
+                              PointerRNA *UNUSED(idataptr),
+                              PointerRNA *itemptr,
                               int UNUSED(icon),
-                              struct PointerRNA *UNUSED(active_dataptr),
+                              PointerRNA *UNUSED(active_dataptr),
                               const char *UNUSED(active_propname),
                               int UNUSED(index),
                               int UNUSED(flt_flag))

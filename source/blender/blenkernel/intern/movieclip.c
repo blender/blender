@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -530,7 +531,7 @@ static void movieclip_convert_multilayer_add_pass(void *UNUSED(layer),
 
 #endif /* WITH_OPENEXR */
 
-void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf)
+void BKE_movieclip_convert_multilayer_ibuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
     return;
@@ -562,7 +563,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
                                            int framenr,
                                            int flag)
 {
-  struct ImBuf *ibuf;
+  ImBuf *ibuf;
   char filepath[FILE_MAX];
   int loadflag;
   bool use_proxy = false;
@@ -1965,7 +1966,7 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, const MovieClipUser *u
   return result;
 }
 
-static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+static void movieclip_eval_update_reload(Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   BKE_movieclip_reload(bmain, clip);
   if (DEG_is_active(depsgraph)) {
@@ -1974,7 +1975,7 @@ static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmai
   }
 }
 
-static void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip *clip)
+static void movieclip_eval_update_generic(Depsgraph *depsgraph, MovieClip *clip)
 {
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
   if (DEG_is_active(depsgraph)) {
@@ -1983,7 +1984,7 @@ static void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip
   }
 }
 
-void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+void BKE_movieclip_eval_update(Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
   if (clip->id.recalc & ID_RECALC_SOURCE) {
@@ -2058,7 +2059,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
   return *tex;
 }
 
-void BKE_movieclip_free_gputexture(struct MovieClip *clip)
+void BKE_movieclip_free_gputexture(MovieClip *clip)
 {
   /* Number of gpu textures to keep around as cache.
    * We don't want to keep too many GPU textures for

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgizmolib
@@ -75,7 +77,7 @@ typedef struct MoveInteraction {
   } prev;
 
   /* We could have other snap contexts, for now only support 3D view. */
-  struct SnapObjectContext *snap_context_v3d;
+  SnapObjectContext *snap_context_v3d;
 
 } MoveInteraction;
 
@@ -278,7 +280,7 @@ static int gizmo_move_modal(bContext *C,
               CTX_data_ensure_evaluated_depsgraph(C),
               region,
               CTX_wm_view3d(C),
-              (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST),
+              (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE),
               &(const struct SnapObjectParams){
                   .snap_target_select = SCE_SNAP_TARGET_ALL,
                   .edit_mode_type = SNAP_GEOM_EDIT,

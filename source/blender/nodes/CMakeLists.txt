@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 add_subdirectory(composite)
 add_subdirectory(function)
@@ -29,7 +30,7 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
-  ../../../intern/atomic
+  ../../../extern/fmtlib/include
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h
@@ -88,6 +89,7 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
+  extern_fmtlib
 )
 
 if(WITH_BULLET)

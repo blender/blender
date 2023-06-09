@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -524,7 +526,7 @@ static void draw_circle_in_quad(const float v1[3],
 /** \name Drawing Callbacks
  * \{ */
 
-static void draw_primitive_view_impl(const struct bContext *C,
+static void draw_primitive_view_impl(const bContext *C,
                                      struct InteractivePlaceData *ipd,
                                      const float color[4],
                                      int flatten_axis)
@@ -626,7 +628,7 @@ static void draw_primitive_view_impl(const struct bContext *C,
   }
 }
 
-static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region), void *arg)
+static void draw_primitive_view(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   struct InteractivePlaceData *ipd = arg;
   float color[4];
@@ -1257,7 +1259,7 @@ static bool view3d_interactive_add_poll(bContext *C)
   return ELEM(mode, CTX_MODE_OBJECT, CTX_MODE_EDIT_MESH);
 }
 
-void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
+void VIEW3D_OT_interactive_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Primitive Object";

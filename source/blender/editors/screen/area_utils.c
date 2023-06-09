@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -20,6 +22,7 @@
 
 #include "ED_screen.h"
 
+#include "UI_interface.h"
 #include "UI_interface_icons.h"
 
 /* -------------------------------------------------------------------- */
@@ -45,9 +48,8 @@ int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, in
     /* Using Y axis avoids slight feedback loop when adjusting X. */
     const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
                          (BLI_rcti_size_y(&region->v2d.mask) + 1);
-    const float icon_size = ICON_DEFAULT_HEIGHT_TOOLBAR / aspect;
-    const float column = 1.25f * icon_size;
-    const float margin = 0.5f * icon_size;
+    const float column = UI_TOOLBAR_COLUMN / aspect;
+    const float margin = UI_TOOLBAR_MARGIN / aspect;
     const float snap_units[] = {
         column + margin,
         (2.0f * column) + margin,

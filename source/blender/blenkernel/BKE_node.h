@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -1060,6 +1061,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_INPAINT 272
 #define CMP_NODE_DESPECKLE 273
 #define CMP_NODE_ANTIALIASING 274
+#define CMP_NODE_KUWAHARA 275
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302
@@ -1308,6 +1310,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_SIMULATION_OUTPUT 2101
 #define GEO_NODE_INPUT_SIGNED_DISTANCE 2102
 #define GEO_NODE_SAMPLE_VOLUME 2103
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_EDGE 2104
 
 /** \} */
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -72,6 +73,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_gpencil_ps;
   DRWPass *edit_gpencil_gizmos_ps;
   DRWPass *edit_gpencil_curve_ps;
+  DRWPass *edit_grease_pencil_ps;
   DRWPass *edit_lattice_ps;
   DRWPass *edit_mesh_depth_ps[2];
   DRWPass *edit_mesh_verts_ps[2];
@@ -249,6 +251,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_lattice_wires_grp;
   DRWShadingGroup *edit_gpencil_points_grp;
   DRWShadingGroup *edit_gpencil_wires_grp;
+  DRWShadingGroup *edit_grease_pencil_points_grp;
   DRWShadingGroup *edit_gpencil_curve_handle_grp;
   DRWShadingGroup *edit_gpencil_curve_points_grp;
   DRWShadingGroup *edit_mesh_depth_grp[2];
@@ -554,11 +557,15 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_curve_draw(OVERLAY_Data *vedata);
 
-void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata);
-void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata);
-void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob);
-void OVERLAY_gpencil_draw(OVERLAY_Data *vedata);
-void OVERLAY_edit_gpencil_draw(OVERLAY_Data *vedata);
+void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_gpencil_legacy_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_gpencil_legacy_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_gpencil_legacy_draw(OVERLAY_Data *vedata);
+void OVERLAY_edit_gpencil_legacy_draw(OVERLAY_Data *vedata);
+
+void OVERLAY_edit_grease_pencil_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_grease_pencil_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_edit_grease_pencil_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_edit_lattice_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob);

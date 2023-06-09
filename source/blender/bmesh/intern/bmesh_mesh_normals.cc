@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -233,7 +235,7 @@ static void bm_face_calc_normals_cb(void * /*userdata*/,
   BM_face_calc_normal(f, f->no);
 }
 
-void BM_mesh_normals_update_ex(BMesh *bm, const struct BMeshNormalsUpdate_Params *params)
+void BM_mesh_normals_update_ex(BMesh *bm, const BMeshNormalsUpdate_Params *params)
 {
   if (params->face_normals) {
     /* Calculate all face normals. */
@@ -277,7 +279,7 @@ static void bm_partial_verts_parallel_range_calc_normal_cb(
 
 void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
                                             const BMPartialUpdate *bmpinfo,
-                                            const struct BMeshNormalsUpdate_Params *params)
+                                            const BMeshNormalsUpdate_Params *params)
 {
   BLI_assert(bmpinfo->params.do_normals);
   /* While harmless, exit early if there is nothing to do. */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -276,7 +277,13 @@ static void ui_selectcontext_apply(bContext *C,
                                    const double value,
                                    const double value_orig);
 
-#  define IS_ALLSELECT_EVENT(event) (((event)->modifier & KM_ALT) != 0)
+/**
+ * Only respond to events which are expected to be used for multi button editing,
+ * e.g. ALT is also used for button array pasting, see #108096.
+ */
+#  define IS_ALLSELECT_EVENT(event) \
+    (((event)->modifier & KM_ALT) != 0 && \
+     (ISMOUSE((event)->type) || ELEM((event)->type, EVT_RETKEY, EVT_PADENTER)))
 
 /** just show a tinted color so users know its activated */
 #  define UI_BUT_IS_SELECT_CONTEXT UI_BUT_NODE_ACTIVE
@@ -3329,7 +3336,9 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
     char *buf = static_cast<char *>(
         MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste"));
 
-    BLI_strncpy(buf, data->str + but->selsta, sellen + 1);
+    memcpy(buf, data->str + but->selsta, sellen);
+    buf[sellen] = '\0';
+
     WM_clipboard_text_set(buf, false);
     MEM_freeN(buf);
 
@@ -8860,7 +8869,7 @@ uiBut *UI_region_active_but_prop_get(const ARegion *region,
   else {
     memset(r_ptr, 0, sizeof(*r_ptr));
     *r_prop = nullptr;
-    *r_index = -1;
+    *r_index = 0;
   }
 
   return activebut;
@@ -11724,7 +11733,12 @@ bool UI_textbutton_activate_rna(const bContext *C,
   }
 
   if (but_text) {
+    ARegion *region_ctx = CTX_wm_region(C);
+
+    /* Temporary context override for activating the button. */
+    CTX_wm_region_set(const_cast<bContext *>(C), region);
     UI_but_active_only(C, region, block_text, but_text);
+    CTX_wm_region_set(const_cast<bContext *>(C), region_ctx);
     return true;
   }
   return false;

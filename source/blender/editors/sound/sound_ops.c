@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsnd
@@ -72,14 +73,14 @@ static void sound_open_init(bContext *C, wmOperator *op)
 #ifdef WITH_AUDASPACE
 static int sound_open_exec(bContext *C, wmOperator *op)
 {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   bSound *sound;
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
   Main *bmain = CTX_data_main(C);
 
-  RNA_string_get(op->ptr, "filepath", path);
-  sound = BKE_sound_new_file(bmain, path);
+  RNA_string_get(op->ptr, "filepath", filepath);
+  sound = BKE_sound_new_file(bmain, filepath);
 
   if (!op->customdata) {
     sound_open_init(C, op);
@@ -293,7 +294,7 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   /* NOTE: We will be forcefully evaluating dependency graph at every frame, so no need to ensure
    * current scene state is evaluated as it will be lost anyway. */
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   int oldfra = scene->r.cfra;
   int cfra;
 

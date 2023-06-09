@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -747,9 +748,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
   ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
-void IMB_float_from_rect_ex(struct ImBuf *dst,
-                            const struct ImBuf *src,
-                            const rcti *region_to_update)
+void IMB_float_from_rect_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update)
 {
   BLI_assert_msg(dst->float_buffer.data != nullptr,
                  "Destination buffer should have a float buffer assigned.");

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blf
@@ -848,13 +849,8 @@ void BLF_shadow_offset(int fontid, int x, int y)
   }
 }
 
-void BLF_buffer(int fontid,
-                float *fbuf,
-                uchar *cbuf,
-                int w,
-                int h,
-                int nch,
-                struct ColorManagedDisplay *display)
+void BLF_buffer(
+    int fontid, float *fbuf, uchar *cbuf, int w, int h, int nch, ColorManagedDisplay *display)
 {
   FontBLF *font = blf_get(fontid);
 

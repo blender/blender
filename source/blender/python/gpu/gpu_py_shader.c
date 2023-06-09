@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -654,7 +656,7 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSE
   return ret;
 }
 
-static struct PyMethodDef pygpu_shader__tp_methods[] = {
+static PyMethodDef pygpu_shader__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_shader_bind, METH_NOARGS, pygpu_shader_bind_doc},
     {"uniform_from_name",
      (PyCFunction)pygpu_shader_uniform_from_name,
@@ -879,7 +881,7 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader *UNUSED(self),
   return BPyGPUShader_CreatePyObject(shader, false);
 }
 
-static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
+static PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
      (PyCFunction)pygpu_shader_from_builtin,

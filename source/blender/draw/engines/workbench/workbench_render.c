@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -28,9 +29,9 @@
 #include "workbench_private.h"
 
 static void workbench_render_cache(void *vedata,
-                                   struct Object *ob,
-                                   struct RenderEngine *UNUSED(engine),
-                                   struct Depsgraph *UNUSED(depsgraph))
+                                   Object *ob,
+                                   RenderEngine *UNUSED(engine),
+                                   Depsgraph *UNUSED(depsgraph))
 {
   workbench_cache_populate(vedata, ob);
 }
@@ -38,7 +39,7 @@ static void workbench_render_cache(void *vedata,
 static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *depsgraph)
 {
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
   /* Set the perspective, view and window matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
@@ -95,9 +96,7 @@ static bool workbench_render_framebuffers_init(void)
   return ok;
 }
 
-static void workbench_render_result_z(struct RenderLayer *rl,
-                                      const char *viewname,
-                                      const rcti *rect)
+static void workbench_render_result_z(RenderLayer *rl, const char *viewname, const rcti *rect)
 {
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   const DRWContextState *draw_ctx = DRW_context_state_get();

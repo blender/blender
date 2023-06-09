@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -318,14 +320,14 @@ bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const 
 
 /* Dependency Graph */
 
-PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src)
+PointCloud *BKE_pointcloud_copy_for_eval(PointCloud *pointcloud_src)
 {
   return reinterpret_cast<PointCloud *>(
       BKE_id_copy_ex(nullptr, &pointcloud_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
 }
 
-static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                          struct Scene *scene,
+static void pointcloud_evaluate_modifiers(Depsgraph *depsgraph,
+                                          Scene *scene,
                                           Object *object,
                                           GeometrySet &geometry_set)
 {
@@ -377,7 +379,7 @@ static PointCloud *take_pointcloud_ownership_from_geometry_set(GeometrySet &geom
   return pointcloud;
 }
 
-void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
+void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);

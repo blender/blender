@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -824,7 +825,7 @@ class RenderLayerOperation : public NodeOperation {
   void execute() override
   {
     const int view_layer = bnode().custom1;
-    GPUTexture *pass_texture = context().get_input_texture(view_layer, SCE_PASS_COMBINED);
+    GPUTexture *pass_texture = context().get_input_texture(view_layer, RE_PASSNAME_COMBINED);
 
     execute_image(pass_texture);
     execute_alpha(pass_texture);
@@ -845,6 +846,11 @@ class RenderLayerOperation : public NodeOperation {
   {
     Result &image_result = get_result("Image");
     if (!image_result.should_compute()) {
+      return;
+    }
+    if (pass_texture == nullptr) {
+      /* Pass not rendered (yet). */
+      image_result.allocate_invalid();
       return;
     }
 
@@ -875,6 +881,11 @@ class RenderLayerOperation : public NodeOperation {
   {
     Result &alpha_result = get_result("Alpha");
     if (!alpha_result.should_compute()) {
+      return;
+    }
+    if (pass_texture == nullptr) {
+      /* Pass not rendered (yet). */
+      alpha_result.allocate_invalid();
       return;
     }
 

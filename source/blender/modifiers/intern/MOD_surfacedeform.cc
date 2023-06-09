@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -1578,7 +1579,7 @@ static void deformVerts(ModifierData *md,
 
   if (smd->defgrp_name[0] != '\0') {
     /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
   }
 
   surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
@@ -1600,7 +1601,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (smd->defgrp_name[0] != '\0') {
     /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */

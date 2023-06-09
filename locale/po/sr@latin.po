@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -6506,20 +6506,8 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "Tačaka u U pravcu (nije moguća izmena ukoliko postoje ključevi oblika)"
-
-
 msgid "V"
 msgstr "V"
-
-
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "Tačaka u V pravcu (nije moguća izmena ukoliko postoje ključevi oblika)"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "Tačaka u W pravcu (nije moguća izmena ukoliko postoje ključevi oblika)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -6788,10 +6776,6 @@ msgstr "Temena meša"
 
 msgid "Render Size"
 msgstr "Veličina renderinga"
-
-
-msgid "Wire Size"
-msgstr "Veličina mreže"
 
 
 msgid "Update"
@@ -9711,10 +9695,6 @@ msgid "Size Z"
 msgstr "Veličina Z"
 
 
-msgid "Metaball types"
-msgstr "Vrsta meta lopte"
-
-
 msgid "Ball"
 msgstr "Lopta"
 
@@ -9969,10 +9949,6 @@ msgstr "Modifikator simulacije tkanine"
 
 msgid "Settings"
 msgstr "Podešavanja"
-
-
-msgid "Smooth factor effect"
-msgstr "Efekat faktor umekšavanja"
 
 
 msgid "Curve Modifier"
@@ -11285,10 +11261,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "ITU 709"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "Combine YUVA"
@@ -22717,10 +22689,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Blend Opacity"

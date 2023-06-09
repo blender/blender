@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -283,7 +285,7 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
   }
   meshcache_do(mcmd, scene, ctx->object, mesh_src, vertexCos, verts_num);
 
@@ -306,7 +308,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
   }
   if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);

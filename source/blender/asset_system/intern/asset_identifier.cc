@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -29,9 +31,10 @@ StringRefNull AssetIdentifier::library_relative_identifier() const
 
 std::string AssetIdentifier::full_path() const
 {
-  char path[FILE_MAX];
-  BLI_path_join(path, sizeof(path), library_root_path_->c_str(), relative_asset_path_.c_str());
-  return path;
+  char filepath[FILE_MAX];
+  BLI_path_join(
+      filepath, sizeof(filepath), library_root_path_->c_str(), relative_asset_path_.c_str());
+  return filepath;
 }
 
 std::string AssetIdentifier::full_library_path() const

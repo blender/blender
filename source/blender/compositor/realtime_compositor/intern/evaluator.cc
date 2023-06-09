@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <string>
 
@@ -64,7 +66,7 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_ = std::make_unique<DerivedNodeTree>(*context_.get_scene()->nodetree);
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
 
   if (!validate_node_tree()) {
     return;

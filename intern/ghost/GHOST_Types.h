@@ -64,9 +64,9 @@ typedef struct {
 } GHOST_CursorBitmapRef;
 
 typedef enum {
-  GHOST_glStereoVisual = (1 << 0),
-  GHOST_glDebugContext = (1 << 1),
-} GHOST_GLFlags;
+  GHOST_gpuStereoVisual = (1 << 0),
+  GHOST_gpuDebugContext = (1 << 1),
+} GHOST_GPUFlags;
 
 typedef enum GHOST_DialogOptions {
   GHOST_DialogWarning = (1 << 0),
@@ -170,14 +170,15 @@ typedef enum {
   GHOST_kModifierKeyNum
 } GHOST_TModifierKey;
 
+/**
+ * \note these values are stored in #wmWindow::windowstate,
+ * don't change, only add new values.
+ */
 typedef enum {
   GHOST_kWindowStateNormal = 0,
-  GHOST_kWindowStateMaximized,
-  GHOST_kWindowStateMinimized,
-  GHOST_kWindowStateFullScreen,
-  GHOST_kWindowStateEmbedded,
-  // GHOST_kWindowStateModified,
-  // GHOST_kWindowStateUnModified,
+  GHOST_kWindowStateMaximized = 1,
+  GHOST_kWindowStateMinimized = 2,
+  GHOST_kWindowStateFullScreen = 3,
 } GHOST_TWindowState;
 
 typedef enum {
@@ -680,7 +681,7 @@ typedef struct {
 typedef struct {
   int flags;
   GHOST_TDrawingContextType context_type;
-} GHOST_GLSettings;
+} GHOST_GPUSettings;
 
 typedef enum {
   /** Axis that cursor grab will wrap. */

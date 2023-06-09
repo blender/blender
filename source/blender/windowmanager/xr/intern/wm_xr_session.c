@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -1467,8 +1469,8 @@ static wmSurface *wm_xr_session_surface_create(void)
   surface->activate = DRW_xr_drawing_begin;
   surface->deactivate = DRW_xr_drawing_end;
 
-  surface->ghost_ctx = DRW_xr_opengl_context_get();
-  surface->gpu_ctx = DRW_xr_gpu_context_get();
+  surface->system_gpu_context = DRW_system_gpu_context_get();
+  surface->blender_gpu_context = DRW_xr_blender_gpu_context_get();
 
   data->controller_art->regionid = RGN_TYPE_XR;
   surface->customdata = data;
@@ -1488,7 +1490,7 @@ void *wm_xr_session_gpu_binding_context_create(void)
    * and running. */
   WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
 
-  return surface->ghost_ctx;
+  return surface->system_gpu_context;
 }
 
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle UNUSED(context))

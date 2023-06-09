@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -9900,10 +9900,6 @@ msgid "Render Size"
 msgstr "Ukurang"
 
 
-msgid "Wire Size"
-msgstr "Ukuran Kabel"
-
-
 msgid "Active Input"
 msgstr "Masukan Aktif"
 
@@ -13704,10 +13700,6 @@ msgstr "Gabungkan RGBA"
 
 msgid "Combine YCbCrA"
 msgstr "Gabungkan YCbCrA"
-
-
-msgid "Jpeg"
-msgstr "Jpeg"
 
 
 msgid "To"

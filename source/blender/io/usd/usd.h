@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -148,7 +149,6 @@ struct CacheReader *CacheReader_open_usd_object(struct CacheArchiveHandle *handl
 
 void USD_CacheReader_incref(struct CacheReader *reader);
 void USD_CacheReader_free(struct CacheReader *reader);
-void USD_ensure_plugin_path_registered(void);
 #ifdef __cplusplus
 }
 #endif

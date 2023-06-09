@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -115,7 +116,7 @@ class AssetCatalogDropTarget : public ui::AbstractViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const wmDrag &drag) const override;
-  bool on_drop(struct bContext *C, const wmDrag &drag) const override;
+  bool on_drop(bContext *C, const wmDrag &drag) const override;
 
   ::AssetLibrary &get_asset_library() const;
 
@@ -123,7 +124,7 @@ class AssetCatalogDropTarget : public ui::AbstractViewItemDropTarget {
   static bool has_droppable_asset(const wmDrag &drag, const char **r_disabled_hint);
   static bool can_modify_catalogs(const ::AssetLibrary &asset_library,
                                   const char **r_disabled_hint);
-  static bool drop_assets_into_catalog(struct bContext *C,
+  static bool drop_assets_into_catalog(bContext *C,
                                        const AssetCatalogTreeView &tree_view,
                                        const wmDrag &drag,
                                        CatalogID catalog_id,
@@ -153,7 +154,7 @@ class AssetCatalogTreeViewAllItem : public ui::BasicTreeViewItem {
 
     bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
     std::string drop_tooltip(const wmDrag &drag) const override;
-    bool on_drop(struct bContext *C, const wmDrag &drag) const override;
+    bool on_drop(bContext *C, const wmDrag &drag) const override;
   };
 
   std::unique_ptr<ui::AbstractViewItemDropTarget> create_drop_target() override;
@@ -167,7 +168,7 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 
     bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
     std::string drop_tooltip(const wmDrag &drag) const override;
-    bool on_drop(struct bContext *C, const wmDrag &drag) const override;
+    bool on_drop(bContext *C, const wmDrag &drag) const override;
   };
 
   std::unique_ptr<ui::AbstractViewItemDropTarget> create_drop_target() override;
@@ -431,7 +432,7 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) 
   return basic_tip;
 }
 
-bool AssetCatalogDropTarget::on_drop(struct bContext *C, const wmDrag &drag) const
+bool AssetCatalogDropTarget::on_drop(bContext *C, const wmDrag &drag) const
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
     return drop_asset_catalog_into_catalog(
@@ -458,7 +459,7 @@ bool AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
   return true;
 }
 
-bool AssetCatalogDropTarget::drop_assets_into_catalog(struct bContext *C,
+bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
                                                       const AssetCatalogTreeView &tree_view,
                                                       const wmDrag &drag,
                                                       CatalogID catalog_id,
@@ -622,8 +623,7 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(const wmDrag &
                      (std::string_view)drag_catalog->path.name());
 }
 
-bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(struct bContext * /*C*/,
-                                                      const wmDrag &drag) const
+bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(bContext * /*C*/, const wmDrag &drag) const
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   return AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
@@ -665,8 +665,7 @@ std::string AssetCatalogTreeViewUnassignedItem::DropTarget::drop_tooltip(const w
                               TIP_("Move asset out of any catalog");
 }
 
-bool AssetCatalogTreeViewUnassignedItem::DropTarget::on_drop(struct bContext *C,
-                                                             const wmDrag &drag) const
+bool AssetCatalogTreeViewUnassignedItem::DropTarget::on_drop(bContext *C, const wmDrag &drag) const
 {
   /* Assign to nil catalog ID. */
   return AssetCatalogDropTarget::drop_assets_into_catalog(

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -79,6 +80,9 @@ DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_parent, guide_parent)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_source, guide_source)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_vel_factor, guide_vel_factor)
 DNA_STRUCT_RENAME_ELEM(FluidEffectorSettings, guiding_mode, guide_mode)
+DNA_STRUCT_RENAME_ELEM(GreasePencil, drawing_array_size, drawing_array_num)
+DNA_STRUCT_RENAME_ELEM(GreasePencil, material_array_size, material_array_num)
+DNA_STRUCT_RENAME_ELEM(GreasePencilLayerFramesMapStorage, size, num)
 DNA_STRUCT_RENAME_ELEM(HookModifierData, totindex, indexar_num)
 DNA_STRUCT_RENAME_ELEM(Image, name, filepath)
 DNA_STRUCT_RENAME_ELEM(LaplacianDeformModifierData, total_verts, verts_num)
@@ -188,6 +192,7 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tstatusbar, space_statusbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
+DNA_STRUCT_RENAME_ELEM(bUserAssetLibrary, path, dirpath)
 /* Write with a different name, old Blender versions crash loading files with non-NULL
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)

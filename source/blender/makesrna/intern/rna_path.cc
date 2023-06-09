@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -341,7 +343,7 @@ static bool rna_path_parse_array_index(const char **path,
  *                    that represent the whole given \a path).
  * \param eval_pointer: If \a true, and \a path leads to a Pointer property, or an item in a
  *                      Collection property, \a r_ptr will be set to the value of that property,
- *                      and \a r_prop will be NULL.
+ *                      and \a r_prop will be null.
  *                      Mutually exclusive with \a r_item_ptr.
  *
  * \return \a true on success, \a false if the path is somehow invalid.
@@ -745,7 +747,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
 /* generic path search func
  * if its needed this could also reference the IDProperty direct */
 typedef struct IDP_Chain {
-  struct IDP_Chain *up; /* parent member, reverse and set to child for path conversion. */
+  IDP_Chain *up; /* parent member, reverse and set to child for path conversion. */
 
   const char *name;
   int index;
@@ -844,7 +846,7 @@ static char *rna_idp_path(PointerRNA *ptr,
       if (prop->type == PROP_POINTER) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
         if (RNA_pointer_is_null(&child_ptr)) {
-          /* Pointer ID prop might be a 'leaf' in the IDProp group hierarchy, in which case a NULL
+          /* Pointer ID prop might be a 'leaf' in the IDProp group hierarchy, in which case a null
            * value is perfectly valid. Just means it won't match the searched needle. */
           continue;
         }
@@ -872,7 +874,7 @@ static char *rna_idp_path(PointerRNA *ptr,
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
             if (RNA_pointer_is_null(&child_ptr)) {
               /* Array item ID prop might be a 'leaf' in the IDProp group hierarchy, in which case
-               * a NULL value is perfectly valid. Just means it won't match the searched needle. */
+               * a null value is perfectly valid. Just means it won't match the searched needle. */
               continue;
             }
             link.index = j;
@@ -1018,11 +1020,11 @@ char *RNA_path_from_ID_to_struct(const PointerRNA *ptr)
   return ptrpath;
 }
 
-char *RNA_path_from_real_ID_to_struct(Main *bmain, const PointerRNA *ptr, struct ID **r_real)
+char *RNA_path_from_real_ID_to_struct(Main *bmain, const PointerRNA *ptr, ID **r_real)
 {
   char *path = RNA_path_from_ID_to_struct(ptr);
 
-  /* NULL path is valid in that case, when given struct is an ID one... */
+  /* Null path is valid in that case, when given struct is an ID one. */
   return rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real);
 }
 
@@ -1136,7 +1138,7 @@ char *RNA_path_from_real_ID_to_property_index(Main *bmain,
 {
   char *path = RNA_path_from_ID_to_property_index(ptr, prop, index_dim, index);
 
-  /* NULL path is always an error here, in that case do not return the 'fake ID from real ID' part
+  /* Null path is always an error here, in that case do not return the 'fake ID from real ID' part
    * of the path either. */
   return path != nullptr ? rna_prepend_real_ID_path(bmain, ptr->owner_id, path, r_real_id) :
                            nullptr;
@@ -1229,7 +1231,7 @@ char *RNA_path_full_struct_py(const PointerRNA *ptr)
 
   data_path = RNA_path_from_ID_to_struct(ptr);
 
-  /* XXX data_path may be NULL (see #36788),
+  /* XXX data_path may be null (see #36788),
    * do we want to get the 'bpy.data.foo["bar"].(null)' stuff? */
   ret = BLI_sprintfN("%s.%s", id_path, data_path);
 

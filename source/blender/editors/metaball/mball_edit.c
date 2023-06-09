@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmeta
@@ -503,7 +504,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
+void MBALL_OT_select_random_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";

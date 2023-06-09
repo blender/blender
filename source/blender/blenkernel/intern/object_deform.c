@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -381,7 +383,7 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
   }
 }
 
-void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
+void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
 {
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
@@ -419,7 +421,7 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
   }
 }
 
-void BKE_object_defgroup_remove_all(struct Object *ob)
+void BKE_object_defgroup_remove_all(Object *ob)
 {
   BKE_object_defgroup_remove_all_ex(ob, false);
 }
@@ -692,7 +694,7 @@ void BKE_object_defgroup_split_locked_validmap(
   }
 }
 
-void BKE_object_defgroup_mirror_selection(struct Object *ob,
+void BKE_object_defgroup_mirror_selection(Object *ob,
                                           int defbase_tot,
                                           const bool *dg_selection,
                                           bool *dg_flags_sel,

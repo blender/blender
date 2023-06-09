@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -77,9 +78,8 @@ void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &fra
 {
   color_blend_attachments.clear();
   if (framebuffer.is_immutable()) {
-    /* Immutable framebuffers are owned by GHOST and don't have any attachments assigned. In this
-     * case we assume that there is a single color texture assigned.
-     */
+    /* Immutable frame-buffers are owned by GHOST and don't have any attachments assigned. In this
+     * case we assume that there is a single color texture assigned. */
     color_blend_attachments.append(color_blend_attachment_template);
   }
   else {
@@ -94,7 +94,7 @@ void VKPipelineStateManager::finalize_color_blend_state(const VKFrameBuffer &fra
       else {
         /* Test to detect if all color textures are sequential attached from the first slot. We
          * assume at this moment that this is the case. Otherwise we need to rewire how attachments
-         * and bindings work.*/
+         * and bindings work. */
         is_sequential = false;
       }
     }

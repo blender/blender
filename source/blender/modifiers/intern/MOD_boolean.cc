@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -79,7 +80,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
 }
 
-static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
   Collection *col = bmd->collection;

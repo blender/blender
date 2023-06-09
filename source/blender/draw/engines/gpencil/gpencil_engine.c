@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -342,7 +343,7 @@ typedef struct gpIterPopulateData {
   int stroke_index_last;
   int stroke_index_offset;
   /* Infos for call batching. */
-  struct GPUBatch *geom;
+  GPUBatch *geom;
   int vfirst, vcount;
 } gpIterPopulateData;
 
@@ -363,7 +364,7 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 
 /* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
 static void gpencil_drawcall_add(gpIterPopulateData *iter,
-                                 struct GPUBatch *geom,
+                                 GPUBatch *geom,
                                  int v_first,
                                  int v_count)
 {

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -22,12 +24,12 @@ void GPUTest::SetUp()
 
   CLG_init();
   GPU_backend_type_selection_set(gpu_backend_type);
-  GHOST_GLSettings glSettings = {};
-  glSettings.context_type = draw_context_type;
-  glSettings.flags = GHOST_glDebugContext;
+  GHOST_GPUSettings gpuSettings = {};
+  gpuSettings.context_type = draw_context_type;
+  gpuSettings.flags = GHOST_gpuDebugContext;
   ghost_system = GHOST_CreateSystem();
-  ghost_context = GHOST_CreateOpenGLContext(ghost_system, glSettings);
-  GHOST_ActivateOpenGLContext(ghost_context);
+  ghost_context = GHOST_CreateGPUContext(ghost_system, gpuSettings);
+  GHOST_ActivateGPUContext(ghost_context);
   context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
@@ -44,7 +46,7 @@ void GPUTest::TearDown()
 
   GPU_exit();
   GPU_context_discard(context);
-  GHOST_DisposeOpenGLContext(ghost_system, ghost_context);
+  GHOST_DisposeGPUContext(ghost_system, ghost_context);
   GHOST_DisposeSystem(ghost_system);
   CLG_exit();
 

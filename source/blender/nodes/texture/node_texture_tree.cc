@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -47,7 +48,7 @@ static void texture_get_from_context(
   Tex *tx = nullptr;
 
   if (snode->texfrom == SNODE_TEX_BRUSH) {
-    struct Brush *brush = nullptr;
+    Brush *brush = nullptr;
 
     if (ob && (ob->mode & OB_MODE_SCULPT)) {
       brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);

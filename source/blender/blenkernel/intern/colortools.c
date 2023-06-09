@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -839,7 +840,7 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore)
 
 static int sort_curvepoints(const void *a1, const void *a2)
 {
-  const struct CurveMapPoint *x1 = a1, *x2 = a2;
+  const CurveMapPoint *x1 = a1, *x2 = a2;
 
   if (x1->x > x2->x) {
     return 1;
@@ -1804,7 +1805,7 @@ void BKE_color_managed_view_settings_init_render(
     const ColorManagedDisplaySettings *display_settings,
     const char *view_transform)
 {
-  struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
       display_settings->display_device);
 
   if (!view_transform) {
@@ -1825,8 +1826,7 @@ void BKE_color_managed_view_settings_init_render(
 }
 
 void BKE_color_managed_view_settings_init_default(
-    struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings)
+    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
   IMB_colormanagement_init_default_view_settings(view_settings, display_settings);
 }

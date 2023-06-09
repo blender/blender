@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -368,7 +369,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         }
       }
       else if (THB_SOURCE_MOVIE == source) {
-        struct anim *anim = nullptr;
+        anim *anim = nullptr;
         anim = IMB_open_anim(file_path, IB_rect | IB_metadata, 0, nullptr);
         if (anim != nullptr) {
           img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);

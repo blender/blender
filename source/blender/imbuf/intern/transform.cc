@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -725,13 +726,13 @@ extern "C" {
 
 using namespace blender::imbuf::transform;
 
-void IMB_transform(const struct ImBuf *src,
-                   struct ImBuf *dst,
+void IMB_transform(const ImBuf *src,
+                   ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
                    const int num_subsamples,
                    const float transform_matrix[4][4],
-                   const struct rctf *src_crop)
+                   const rctf *src_crop)
 {
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
                  "No source crop rect given, but crop source is requested. Or source crop rect "

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -37,6 +39,8 @@
 #include "FN_lazy_function_graph_executor.hh"
 
 #include "DEG_depsgraph_query.h"
+
+#include <fmt/format.h>
 
 namespace blender::nodes {
 
@@ -315,10 +319,10 @@ class LazyFunctionForGeometryNode : public LazyFunction {
   {
     const ValueOrFieldCPPType &value_or_field_cpp_type = *ValueOrFieldCPPType::get_from_self(
         *outputs_[lf_index].type);
-    GField output_field{
-        std::make_shared<AnonymousAttributeFieldInput>(std::move(attribute_id),
-                                                       value_or_field_cpp_type.value,
-                                                       node_.label_or_name() + TIP_(" node"))};
+    GField output_field{std::make_shared<AnonymousAttributeFieldInput>(
+        std::move(attribute_id),
+        value_or_field_cpp_type.value,
+        fmt::format(TIP_("{} node"), std::string_view(node_.label_or_name())))};
     void *r_value = params.get_output_data_ptr(lf_index);
     value_or_field_cpp_type.construct_from_field(r_value, std::move(output_field));
     params.output_set(lf_index);
@@ -995,9 +999,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
   std::string name() const override
   {
-    std::stringstream ss;
-    ss << "Group '" << (group_node_.id->name + 2) << "' (" << group_node_.name << ")";
-    return ss.str();
+    return fmt::format(TIP_("Group '{}' ({})"), group_node_.id->name + 2, group_node_.name);
   }
 
   std::string input_name(const int i) const override
@@ -1034,9 +1036,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
     for (const auto [bsocket_index, lf_socket_index] : lf_output_for_input_bsocket_usage_.items())
     {
       if (i == lf_socket_index) {
-        std::stringstream ss;
-        ss << "'" << group_node_.input_socket(bsocket_index).name << "' input is used";
-        return ss.str();
+        return fmt::format(TIP_("'{}' input is used"),
+                           group_node_.input_socket(bsocket_index).name);
       }
     }
     return outputs_[i].debug_name;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -20,6 +21,7 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
 
  public:
   VKUniformBuffer(int size, const char *name) : UniformBuf(size, name) {}
+  ~VKUniformBuffer();
 
   void update(const void *data) override;
   void clear_to_zero() override;

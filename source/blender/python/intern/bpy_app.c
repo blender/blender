@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -547,7 +549,7 @@ static PyObject *bpy_app_help_text(PyObject *UNUSED(self), PyObject *args, PyObj
   return result;
 }
 
-static struct PyMethodDef bpy_app_methods[] = {
+static PyMethodDef bpy_app_methods[] = {
     {"is_job_running",
      (PyCFunction)bpy_app_is_job_running,
      METH_VARARGS | METH_KEYWORDS | METH_STATIC,

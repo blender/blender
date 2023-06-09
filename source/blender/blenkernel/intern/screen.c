@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -227,7 +228,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
           /* Embedded ID pointers are not remapped (besides exceptions), ensure it still matches
            * actual data. Note that `snode->id` was already processed (and therefore potentially
-           * remapped) above.*/
+           * remapped) above. */
           if (!is_readonly) {
             snode->nodetree = (snode->id == NULL) ? NULL : ntreeFromID(snode->id);
             if (path != NULL) {
@@ -655,17 +656,14 @@ ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink,
   return region;
 }
 
-static void (*spacedata_id_remap_cb)(struct ScrArea *area,
-                                     struct SpaceLink *sl,
-                                     ID *old_id,
-                                     ID *new_id) = NULL;
+static void (*spacedata_id_remap_cb)(ScrArea *area, SpaceLink *sl, ID *old_id, ID *new_id) = NULL;
 
 void BKE_spacedata_callback_id_remap_set(void (*func)(ScrArea *area, SpaceLink *sl, ID *, ID *))
 {
   spacedata_id_remap_cb = func;
 }
 
-void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id)
+void BKE_spacedata_id_unref(ScrArea *area, SpaceLink *sl, ID *id)
 {
   if (spacedata_id_remap_cb) {
     spacedata_id_remap_cb(area, sl, id, NULL);
@@ -682,7 +680,7 @@ void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizm
   region_refresh_tag_gizmomap_callback = callback;
 }
 
-void BKE_screen_gizmo_tag_refresh(struct bScreen *screen)
+void BKE_screen_gizmo_tag_refresh(bScreen *screen)
 {
   if (region_refresh_tag_gizmomap_callback == NULL) {
     return;
@@ -1028,7 +1026,7 @@ ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const 
   return NULL;
 }
 
-ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen, SpaceLink *sl)
+ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
 {
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (BLI_findindex(&area->spacedata, sl) != -1) {
@@ -1081,7 +1079,7 @@ ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, const int
   return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, xy);
 }
 
-void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
+void BKE_screen_view3d_sync(View3D *v3d, Scene *scene)
 {
   if (v3d->scenelock && v3d->localvd == NULL) {
     v3d->camera = scene->camera;

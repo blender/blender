@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -85,7 +86,7 @@ class AntiAliasing {
     pass.framebuffer_set(&output_fb_);
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     pass.shader_set(shaders_.static_shader_get(ANTIALIASING_RESOLVE));
-    /** \note use color_tx as dummy if AA is diabled. */
+    /** \note use color_tx as dummy if AA is disabled. */
     pass.bind_texture("blendTex", anti_aliasing_enabled_ ? &blend_weight_tx_ : &color_tx);
     pass.bind_texture("colorTex", &color_tx);
     pass.bind_texture("revealTex", &reveal_tx);

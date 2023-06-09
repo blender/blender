@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -183,7 +184,7 @@ static void bm_init_types_bmloopuv(void)
   PyType_Ready(&BPy_BMLoopUV_Type);
 }
 
-int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
+int BPy_BMLoopUV_AssignPyObject(BMesh *bm, BMLoop *loop, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMLoopUV_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMLoopUV, not a %.200s", Py_TYPE(value)->tp_name);
@@ -209,7 +210,7 @@ int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop, int layer)
+PyObject *BPy_BMLoopUV_CreatePyObject(BMesh *bm, BMLoop *loop, int layer)
 {
   BPy_BMLoopUV *self = PyObject_New(BPy_BMLoopUV, &BPy_BMLoopUV_Type);
 
@@ -321,7 +322,7 @@ static void bm_init_types_bmvertskin(void)
   PyType_Ready(&BPy_BMVertSkin_Type);
 }
 
-int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value)
+int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMVertSkin_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMVertSkin, not a %.200s", Py_TYPE(value)->tp_name);
@@ -332,7 +333,7 @@ int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
+PyObject *BPy_BMVertSkin_CreatePyObject(MVertSkin *mvertskin)
 {
   BPy_BMVertSkin *self = PyObject_New(BPy_BMVertSkin, &BPy_BMVertSkin_Type);
   self->data = mvertskin;
@@ -419,7 +420,7 @@ static void bm_init_types_bmloopcol(void)
   mathutils_bmloopcol_cb_index = Mathutils_RegisterCallback(&mathutils_bmloopcol_cb);
 }
 
-int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
+int BPy_BMLoopColor_AssignPyObject(MLoopCol *mloopcol, PyObject *value)
 {
   float tvec[4];
   if (mathutils_array_parse(tvec, 4, 4, value, "BMLoopCol") != -1) {
@@ -430,7 +431,7 @@ int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
   return -1;
 }
 
-PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol)
+PyObject *BPy_BMLoopColor_CreatePyObject(MLoopCol *mloopcol)
 {
   PyObject *color_capsule;
   color_capsule = PyCapsule_New(mloopcol, NULL, NULL);
@@ -705,7 +706,7 @@ static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpy_bmdeformvert_methods[] = {
+static PyMethodDef bpy_bmdeformvert_methods[] = {
     {"keys", (PyCFunction)bpy_bmdeformvert_keys, METH_NOARGS, bpy_bmdeformvert_keys_doc},
     {"values", (PyCFunction)bpy_bmdeformvert_values, METH_NOARGS, bpy_bmdeformvert_values_doc},
     {"items", (PyCFunction)bpy_bmdeformvert_items, METH_NOARGS, bpy_bmdeformvert_items_doc},
@@ -735,7 +736,7 @@ static void bm_init_types_bmdvert(void)
   PyType_Ready(&BPy_BMDeformVert_Type);
 }
 
-int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
+int BPy_BMDeformVert_AssignPyObject(MDeformVert *dvert, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMDeformVert_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMDeformVert, not a %.200s", Py_TYPE(value)->tp_name);
@@ -749,7 +750,7 @@ int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
+PyObject *BPy_BMDeformVert_CreatePyObject(MDeformVert *dvert)
 {
   BPy_BMDeformVert *self = PyObject_New(BPy_BMDeformVert, &BPy_BMDeformVert_Type);
   self->data = dvert;

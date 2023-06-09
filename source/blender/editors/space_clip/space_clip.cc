@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -199,7 +200,7 @@ static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   return (SpaceLink *)sc;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void clip_free(SpaceLink *sl)
 {
   SpaceClip *sc = (SpaceClip *)sl;
@@ -216,7 +217,7 @@ static void clip_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void clip_init(struct wmWindowManager * /*wm*/, ScrArea *area)
+static void clip_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
@@ -462,7 +463,7 @@ static void clip_operatortypes(void)
   WM_operatortype_append(CLIP_OT_dopesheet_view_all);
 }
 
-static void clip_keymap(struct wmKeyConfig *keyconf)
+static void clip_keymap(wmKeyConfig *keyconf)
 {
   /* ******** Global hotkeys available for all regions ******** */
   WM_keymap_ensure(keyconf, "Clip", SPACE_CLIP, 0);
@@ -1109,7 +1110,7 @@ static void clip_properties_region_listener(const wmRegionListenerParams *params
 
 /********************* registration ********************/
 
-static void clip_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDRemapper *mappings)
+static void clip_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceClip *sclip = (SpaceClip *)slink;
 

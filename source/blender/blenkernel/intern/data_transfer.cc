@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1169,7 +1170,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   return false;
 }
 
-void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
+void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                      Object *ob_src,
                                      Object *ob_dst,
                                      const int data_types,
@@ -1313,7 +1314,7 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
   }
 }
 
-bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
+bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                  Object *ob_src,
                                  Object *ob_dst,
                                  Mesh *me_dst,
@@ -1808,7 +1809,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 #undef DATAMAX
 }
 
-bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
+bool BKE_object_data_transfer_mesh(Depsgraph *depsgraph,
                                    Object *ob_src,
                                    Object *ob_dst,
                                    const int data_types,

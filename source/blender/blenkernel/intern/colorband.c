@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -602,7 +603,7 @@ void BKE_colorband_update_sort(ColorBand *coba)
   }
 }
 
-CBData *BKE_colorband_element_add(struct ColorBand *coba, float position)
+CBData *BKE_colorband_element_add(ColorBand *coba, float position)
 {
   if (coba->tot == MAXCOLORBAND) {
     return NULL;
@@ -628,7 +629,7 @@ CBData *BKE_colorband_element_add(struct ColorBand *coba, float position)
   return coba->data + coba->cur;
 }
 
-bool BKE_colorband_element_remove(struct ColorBand *coba, int index)
+bool BKE_colorband_element_remove(ColorBand *coba, int index)
 {
   if (coba->tot < 2) {
     return false;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -14,7 +16,7 @@
 /* -------------------------------------------------------------------- */
 /* Helper Functions */
 
-static void rng_v3_round(float *coords, int coords_len, struct RNG *rng, int round, float scale)
+static void rng_v3_round(float *coords, int coords_len, RNG *rng, int round, float scale)
 {
   for (int i = 0; i < coords_len; i++) {
     float f = BLI_rng_get_float(rng) * 2.0f - 1.0f;
@@ -69,7 +71,7 @@ static void optimal_check_callback(void *userdata,
 static void find_nearest_points_test(
     int points_len, float scale, int round, int random_seed, bool optimal = false)
 {
-  struct RNG *rng = BLI_rng_new(random_seed);
+  RNG *rng = BLI_rng_new(random_seed);
   BVHTree *tree = BLI_bvhtree_new(points_len, 0.0, 8, 8);
 
   void *mem = MEM_mallocN(sizeof(float[3]) * points_len, __func__);

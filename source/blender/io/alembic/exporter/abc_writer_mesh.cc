@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -58,19 +60,19 @@ namespace blender::io::alembic {
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
-static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points);
-static void get_topology(struct Mesh *mesh,
+static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points);
+static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly);
-static void get_edge_creases(struct Mesh *mesh,
+static void get_edge_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<int32_t> &lengths,
                              std::vector<float> &sharpnesses);
-static void get_vert_creases(struct Mesh *mesh,
+static void get_vert_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<float> &sharpnesses);
-static void get_loop_normals(struct Mesh *mesh,
+static void get_loop_normals(Mesh *mesh,
                              std::vector<Imath::V3f> &normals,
                              bool has_flat_shaded_poly);
 
@@ -274,7 +276,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   write_arb_geo_params(mesh);
 }
 
-void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *mesh)
+void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
 {
   std::vector<float> edge_crease_sharpness, vert_crease_sharpness;
   std::vector<Imath::V3f> points;
@@ -335,7 +337,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
 }
 
 template<typename Schema>
-void ABCGenericMeshWriter::write_face_sets(Object *object, struct Mesh *mesh, Schema &schema)
+void ABCGenericMeshWriter::write_face_sets(Object *object, Mesh *mesh, Schema &schema)
 {
   std::map<std::string, std::vector<int32_t>> geo_groups;
   get_geo_groups(object, mesh, geo_groups);
@@ -349,7 +351,7 @@ void ABCGenericMeshWriter::write_face_sets(Object *object, struct Mesh *mesh, Sc
   }
 }
 
-void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
+void ABCGenericMeshWriter::write_arb_geo_params(Mesh *me)
 {
   if (!args_.export_params->vcolors) {
     return;
@@ -365,7 +367,7 @@ void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
   write_custom_data(arb_geom_params, m_custom_data_config, &me->ldata, CD_PROP_BYTE_COLOR);
 }
 
-bool ABCGenericMeshWriter::get_velocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
+bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels)
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
@@ -390,7 +392,7 @@ bool ABCGenericMeshWriter::get_velocities(struct Mesh *mesh, std::vector<Imath::
 }
 
 void ABCGenericMeshWriter::get_geo_groups(Object *object,
-                                          struct Mesh *mesh,
+                                          Mesh *mesh,
                                           std::map<std::string, std::vector<int32_t>> &geo_groups)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
@@ -433,7 +435,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
 
 /* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
 
-static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
+static void get_vertices(Mesh *mesh, std::vector<Imath::V3f> &points)
 {
   points.clear();
   points.resize(mesh->totvert);
@@ -444,7 +446,7 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
   }
 }
 
-static void get_topology(struct Mesh *mesh,
+static void get_topology(Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly)
@@ -478,7 +480,7 @@ static void get_topology(struct Mesh *mesh,
   }
 }
 
-static void get_edge_creases(struct Mesh *mesh,
+static void get_edge_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<int32_t> &lengths,
                              std::vector<float> &sharpnesses)
@@ -505,7 +507,7 @@ static void get_edge_creases(struct Mesh *mesh,
   lengths.resize(sharpnesses.size(), 2);
 }
 
-static void get_vert_creases(struct Mesh *mesh,
+static void get_vert_creases(Mesh *mesh,
                              std::vector<int32_t> &indices,
                              std::vector<float> &sharpnesses)
 {
@@ -528,7 +530,7 @@ static void get_vert_creases(struct Mesh *mesh,
   }
 }
 
-static void get_loop_normals(struct Mesh *mesh,
+static void get_loop_normals(Mesh *mesh,
                              std::vector<Imath::V3f> &normals,
                              bool has_flat_shaded_poly)
 {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -102,7 +103,7 @@ class Instance {
 
     objects.init(v3d, scene);
     lights.init(v3d);
-    /* TODO(fclem): Vfx. */
+    /* TODO(@fclem): VFX. */
     // vfx.init(use_vfx_, camera_, rv3d);
     anti_aliasing.init(v3d, scene);
   }
@@ -292,9 +293,9 @@ static void gpencil_engine_free()
 }
 
 static void gpencil_render_to_image(void * /*vedata*/,
-                                    struct RenderEngine * /*engine*/,
-                                    struct RenderLayer * /*layer*/,
-                                    const struct rcti * /*rect*/)
+                                    RenderEngine * /*engine*/,
+                                    RenderLayer * /*layer*/,
+                                    const rcti * /*rect*/)
 {
 }
 

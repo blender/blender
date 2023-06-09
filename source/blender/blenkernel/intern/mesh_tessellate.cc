@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -264,10 +265,9 @@ static void looptris_calc_all(const Span<float3> positions,
                                          reinterpret_cast<const float(*)[3]>(poly_normals.data()));
     return;
   }
-  struct TessellationUserTLS tls_data_dummy = {nullptr};
+  TessellationUserTLS tls_data_dummy = {nullptr};
 
-  struct TessellationUserData data {
-  };
+  TessellationUserData data{};
   data.corner_verts = corner_verts;
   data.polys = polys;
   data.positions = positions;

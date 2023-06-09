@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -155,7 +157,7 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 #else
 
 /* local convenience types */
-typedef void(CollectionDefFunc)(struct BlenderRNA *brna, struct PropertyRNA *cprop);
+typedef void(CollectionDefFunc)(BlenderRNA *brna, PropertyRNA *cprop);
 
 typedef struct MainCollectionDef {
   const char *identifier;

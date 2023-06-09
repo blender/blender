@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edphys
@@ -289,7 +291,7 @@ typedef struct DynamicPaintBakeJob {
   bool *stop, *do_update;
   float *progress;
 
-  struct Main *bmain;
+  Main *bmain;
   Scene *scene;
   Depsgraph *depsgraph;
   Object *ob;
@@ -457,7 +459,7 @@ static void dpaint_bake_startjob(void *customdata, bool *stop, bool *do_update, 
 /*
  * Bake Dynamic Paint image sequence surface
  */
-static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
+static int dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_ = ED_object_context(C);

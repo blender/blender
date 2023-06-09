@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -118,8 +119,8 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   LightCache *lcache = stl->g_data->light_cache;
 
   if ((effects->enabled_effects & EFFECT_SSR) != 0) {
-    struct GPUShader *trace_shader = EEVEE_shaders_effect_reflection_trace_sh_get();
-    struct GPUShader *resolve_shader = EEVEE_shaders_effect_reflection_resolve_sh_get();
+    GPUShader *trace_shader = EEVEE_shaders_effect_reflection_trace_sh_get();
+    GPUShader *resolve_shader = EEVEE_shaders_effect_reflection_resolve_sh_get();
 
     int hitbuf_size[3];
     GPU_texture_get_mipmap_size(effects->ssr_hit_output, 0, hitbuf_size);
@@ -162,15 +163,13 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
       for (int i = 0; i < 2; i++) {
         if (i == 0) {
           /* Prepare Reflection Probes resolve pass. */
-          struct GPUShader *resolve_shader_probe =
-              EEVEE_shaders_effect_reflection_resolve_probe_sh_get();
+          GPUShader *resolve_shader_probe = EEVEE_shaders_effect_reflection_resolve_probe_sh_get();
           DRW_PASS_CREATE(psl->ssr_resolve_probe, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
           grp = DRW_shgroup_create(resolve_shader_probe, psl->ssr_resolve_probe);
         }
         else if (i == 1) {
           /* Prepare SSR resolve pass. */
-          struct GPUShader *resolve_shader_refl =
-              EEVEE_shaders_effect_reflection_resolve_refl_sh_get();
+          GPUShader *resolve_shader_refl = EEVEE_shaders_effect_reflection_resolve_refl_sh_get();
           DRW_PASS_CREATE(psl->ssr_resolve_refl, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
           grp = DRW_shgroup_create(resolve_shader_refl, psl->ssr_resolve_refl);
         }

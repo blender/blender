@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -110,7 +111,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::clamp(result[i], min[i], max[i]);
+    result[i] = math::clamp(result[i], min[i], max[i]);
   }
   return result;
 }
@@ -120,7 +121,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::clamp(result[i], min, max);
+    result[i] = math::clamp(result[i], min, max);
   }
   return result;
 }
@@ -131,7 +132,7 @@ template<typename T, int Size>
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     BLI_assert(b[i] != 0);
-    result[i] = std::fmod(a[i], b[i]);
+    result[i] = math::mod(a[i], b[i]);
   }
   return result;
 }
@@ -142,7 +143,7 @@ template<typename T, int Size>
   BLI_assert(b != 0);
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::fmod(a[i], b);
+    result[i] = math::mod(a[i], b);
   }
   return result;
 }
@@ -156,7 +157,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = (b[i] != 0) ? std::fmod(a[i], b[i]) : 0;
+    result[i] = (b[i] != 0) ? math::mod(a[i], b[i]) : 0;
   }
   return result;
 }
@@ -172,7 +173,7 @@ template<typename T, int Size>
   }
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::fmod(a[i], b);
+    result[i] = math::mod(a[i], b);
   }
   return result;
 }
@@ -186,7 +187,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::pow(x[i], y);
+    result[i] = math::pow(x[i], y);
   }
   return result;
 }
@@ -200,7 +201,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::pow(x[i], y[i]);
+    result[i] = math::pow(x[i], y[i]);
   }
   return result;
 }
@@ -275,7 +276,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::floor(a[i]);
+    result[i] = math::floor(a[i]);
   }
   return result;
 }
@@ -285,7 +286,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::round(a[i]);
+    result[i] = math::round(a[i]);
   }
   return result;
 }
@@ -295,7 +296,62 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = std::ceil(a[i]);
+    result[i] = math::ceil(a[i]);
+  }
+  return result;
+}
+
+/**
+ * Per-element square root.
+ * Negative elements are evaluated to NaN.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> sqrt(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::sqrt(a[i]);
+  }
+  return result;
+}
+
+/**
+ * Per-element square root.
+ * Negative elements are evaluated to zero.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_sqrt(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = a[i] >= T(0) ? math ::sqrt(a[i]) : T(0);
+  }
+  return result;
+}
+
+/**
+ * Per-element inverse.
+ * Zero elements are evaluated to NaN.
+ */
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> rcp(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::rcp(a[i]);
+  }
+  return result;
+}
+
+/**
+ * Per-element inverse.
+ * Zero elements are evaluated to zero.
+ */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> safe_rcp(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::safe_rcp(a[i]);
   }
   return result;
 }
@@ -305,7 +361,7 @@ template<typename T, int Size>
 {
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
-    result[i] = a[i] - std::floor(a[i]);
+    result[i] = math::fract(a[i]);
   }
   return result;
 }
@@ -331,9 +387,9 @@ template<typename T, int Size>
  */
 template<typename T, int Size> [[nodiscard]] inline T length_manhattan(const VecBase<T, Size> &a)
 {
-  T result = std::abs(a[0]);
+  T result = math::abs(a[0]);
   for (int i = 1; i < Size; i++) {
-    result += std::abs(a[i]);
+    result += math::abs(a[i]);
   }
   return result;
 }
@@ -345,7 +401,7 @@ template<typename T, int Size> [[nodiscard]] inline T length_squared(const VecBa
 
 template<typename T, int Size> [[nodiscard]] inline T length(const VecBase<T, Size> &a)
 {
-  return std::sqrt(length_squared(a));
+  return math::sqrt(length_squared(a));
 }
 
 /** Return true if each individual column is unit scaled. Mainly for assert usage. */
@@ -355,8 +411,8 @@ template<typename T, int Size> [[nodiscard]] inline bool is_unit_scale(const Vec
    * normalized and in the case we don't want NAN to be raising asserts since there
    * is nothing to be done in that case. */
   const T test_unit = math::length_squared(v);
-  return (!(std::abs(test_unit - T(1)) >= AssertUnitEpsilon<T>::value) ||
-          !(std::abs(test_unit) >= AssertUnitEpsilon<T>::value));
+  return (!(math::abs(test_unit - T(1)) >= AssertUnitEpsilon<T>::value) ||
+          !(math::abs(test_unit) >= AssertUnitEpsilon<T>::value));
 }
 
 template<typename T, int Size>
@@ -592,7 +648,7 @@ template<typename T, int Size>
                                    const T epsilon = T(0))
 {
   for (int i = 0; i < Size; i++) {
-    if (std::abs(a[i] - b[i]) > epsilon) {
+    if (math::abs(a[i] - b[i]) > epsilon) {
       return false;
     }
   }

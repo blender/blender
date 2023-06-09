@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -723,6 +725,38 @@ static void rna_ID_asset_clear(ID *id)
   }
 }
 
+static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
+{
+  ID *destination = ptr->data;
+
+  /* Avoid marking as asset by assigning. This should be done with `.asset_mark()`.
+   * This is just for clarity of the API, and to accommodate future changes. */
+  if (destination->asset_data == NULL) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset");
+    return;
+  }
+
+  const AssetMetaData *asset_data = value.data;
+  if (asset_data == NULL) {
+    /* Avoid clearing the asset data on assets. Un-marking as asset should be done with
+     * `.asset_clear()`. This is just for clarity of the API, and to accommodate future changes. */
+    BKE_report(reports, RPT_ERROR, "Asset data cannot be None");
+    return;
+  }
+
+  const bool assigned_ok = ED_asset_copy_to_id(asset_data, destination);
+  if (!assigned_ok) {
+    BKE_reportf(
+        reports, RPT_ERROR, "'%s' is of a type that cannot be an asset", destination->name + 2);
+    return;
+  }
+
+  WM_main_add_notifier(NC_ASSET | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
+}
+
 static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 {
   if (!ID_IS_OVERRIDABLE_LIBRARY(id)) {
@@ -1017,6 +1051,8 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
     /* For now, do not allow remapping data in linked data from here... */
     BKE_libblock_remap(
         bmain, id, new_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+
+    WM_main_add_notifier(NC_WINDOW, NULL);
   }
 }
 
@@ -2127,7 +2163,8 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   prop = RNA_def_property(srna, "asset_data", PROP_POINTER, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_ID_asset_data_set", NULL, NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Asset Data", "Additional data for an asset data-block");
 

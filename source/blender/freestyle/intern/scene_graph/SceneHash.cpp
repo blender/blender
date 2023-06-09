@@ -21,12 +21,12 @@ string SceneHash::toString()
 
 void SceneHash::visitNodeViewLayer(NodeViewLayer &node)
 {
-  struct RenderData *r = &node.scene().r;
+  RenderData *r = &node.scene().r;
   adler32((uchar *)&r->xsch, sizeof(r->xsch));  // resolution_x
   adler32((uchar *)&r->ysch, sizeof(r->ysch));  // resolution_y
   adler32((uchar *)&r->size, sizeof(r->size));  // resolution_percentage
 
-  struct FreestyleConfig *config = &node.sceneLayer().freestyle_config;
+  FreestyleConfig *config = &node.sceneLayer().freestyle_config;
   adler32((uchar *)&config->flags, sizeof(config->flags));
   adler32((uchar *)&config->crease_angle, sizeof(config->crease_angle));
   adler32((uchar *)&config->sphere_radius, sizeof(config->sphere_radius));

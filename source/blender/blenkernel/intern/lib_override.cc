@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -351,7 +352,7 @@ bool BKE_lib_override_library_property_is_animated(const ID *id,
 {
   AnimData *anim_data = BKE_animdata_from_id(id);
   if (anim_data != nullptr) {
-    struct FCurve *fcurve;
+    FCurve *fcurve;
     char *index_token_start = const_cast<char *>(
         RNA_path_array_index_token_find(override_prop->rna_path, override_rna_prop));
     if (index_token_start != nullptr) {
@@ -589,6 +590,11 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
   /* Only remap new local ID's pointers, we don't want to force our new overrides onto our whole
    * existing linked IDs usages. */
   if (success) {
+    /* If a valid liboverride hierarchy root was given, only remap non-liboverride data and
+     * liboverrides belonging to that hierarchy. Avoids having other liboverride hierarchies of
+     * the same reference data also remapped to the newly created liboverride. */
+    const bool do_remap_liboverride_hierarchy_only = (id_hierarchy_root != nullptr && !do_no_main);
+
     if (id_hierarchy_root_reference != nullptr) {
       id_hierarchy_root = id_hierarchy_root_reference->newid;
     }
@@ -625,7 +631,18 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
       /* If other ID is a linked one, but not from the same library as our reference, then we
        * consider we should also relink it, as part of recursive resync. */
       if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib != id_root_reference->lib) {
-        BLI_linklist_prepend(&relinked_ids, other_id);
+        ID *owner_id;
+        BKE_lib_override_library_get(bmain, other_id, nullptr, &owner_id);
+
+        /* When the root of the current liboverride hierarchy is known, only remap liboverrides if
+         * they belong to that hierarchy. */
+        if (!do_remap_liboverride_hierarchy_only ||
+            (!ID_IS_OVERRIDE_LIBRARY_REAL(owner_id) ||
+             owner_id->override_library->hierarchy_root == id_hierarchy_root))
+        {
+          BLI_linklist_prepend(&relinked_ids, other_id);
+        }
+
         if (ID_IS_OVERRIDE_LIBRARY_REAL(other_id) &&
             other_id->override_library->hierarchy_root == id_hierarchy_root)
         {
@@ -1264,11 +1281,25 @@ static void lib_override_library_create_post_process(Main *bmain,
    * won't have a base, but are still considered as instanced from our point of view. */
   GSet *all_objects_in_scene = BKE_scene_objects_as_gset(scene, nullptr);
 
-  /* Instantiating the root collection or object should never be needed in resync case, since the
-   * old override would be remapped to the new one. */
-  if (!is_resync && id_root != nullptr && id_root->newid != nullptr &&
-      (!ID_IS_LINKED(id_root->newid) || id_root->newid->lib == owner_library))
+  if (is_resync || id_root == nullptr || id_root->newid == nullptr) {
+    /* Instantiating the root collection or object should never be needed in resync case, since the
+     * old override would be remapped to the new one. */
+  }
+  else if (ID_IS_LINKED(id_root->newid) && id_root->newid->lib != owner_library) {
+    /* No instantiation in case the root override is linked data, unless it is part of the given
+     * owner library.
+     *
+     * NOTE: that last case should never happen actually in current code? Since non-null owner
+     * library should only happen in case of recursive resync, which is already excluded by the
+     * previous condition. */
+  }
+  else if ((id_root->newid->override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) == 0 &&
+           id_root->newid->override_library->hierarchy_root != id_root->newid)
   {
+    /* No instantiation in case this is not a hierarchy root, as it can be assumed already handled
+     * as part of hierarchy processing. */
+  }
+  else {
     switch (GS(id_root->name)) {
       case ID_GR: {
         Object *ob_reference = id_instance_hint != nullptr && GS(id_instance_hint->name) == ID_OB ?
@@ -2241,7 +2272,7 @@ static bool lib_override_library_resync(Main *bmain,
                                                        RNA_OVERRIDE_APPLY_FLAG_NOP);
 
       /* Clear the old shape key pointer again, otherwise it won't make ID management code happy
-       * when freeing (at least from user count side of things).  */
+       * when freeing (at least from user count side of things). */
       if (key_override_old_p != nullptr) {
         *key_override_old_p = nullptr;
       }

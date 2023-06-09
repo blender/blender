@@ -474,7 +474,7 @@ static void extract_global_scope_constants(std::string &str, std::stringstream &
       if (c_expr_end != nullptr && balanced_braces(c, c_expr_end)) {
         MTL_LOG_INFO(
             "[PERFORMANCE WARNING] Global scope constant expression found - These get allocated "
-            "per-thread in METAL - Best to use Macro's or uniforms to avoid overhead: '%.*s'\n",
+            "per-thread in METAL - Best to use Macro's or uniforms to avoid overhead: '%.*s'",
             (int)(c_expr_end + 1 - c),
             c);
 
@@ -851,7 +851,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
    * manual reflection. */
   bool uses_create_info = info != nullptr;
   if (!uses_create_info) {
-    MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!\n",
+    MTL_LOG_WARNING("Unable to compile shader %p '%s' as no create-info was provided!",
                     this,
                     this->name_get());
     valid_ = false;
@@ -1961,7 +1961,7 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
     MTL_LOG_WARNING(
         "Compiled Shader '%s' is falling back to bindless via argument buffers due to having a "
         "texture sampler of Index: %u Which exceeds the limit of 15+1. However shader only uses "
-        "%d textures. Consider optimising bind points with .auto_resource_location(true).\n",
+        "%d textures. Consider optimising bind points with .auto_resource_location(true).",
         parent_shader_.name_get(),
         max_tex_bind_index,
         (int)texture_samplers.size());
@@ -3294,7 +3294,7 @@ void MSLGeneratorInterface::resolve_input_attribute_locations()
       }
 
       /* Error if could not assign attribute. */
-      MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s\n",
+      MTL_LOG_ERROR("Could not assign attribute location to attribute %s for shader %s",
                     attr.name.c_str(),
                     this->parent_shader_.name_get());
     }

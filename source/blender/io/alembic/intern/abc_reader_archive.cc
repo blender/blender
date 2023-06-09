@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Kévin Dietrich. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Kévin Dietrich. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -62,7 +63,7 @@ static IArchive open_archive(const std::string &filename,
   return IArchive();
 }
 
-ArchiveReader *ArchiveReader::get(struct Main *bmain, const std::vector<const char *> &filenames)
+ArchiveReader *ArchiveReader::get(Main *bmain, const std::vector<const char *> &filenames)
 {
   std::vector<ArchiveReader *> readers;
 
@@ -102,7 +103,7 @@ ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_re
   m_archive = IArchive(arPtr, kWrapExisting, ErrorHandler::kThrowPolicy);
 }
 
-ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
+ArchiveReader::ArchiveReader(Main *bmain, const char *filename)
 {
   char abs_filepath[FILE_MAX];
   STRNCPY(abs_filepath, filename);

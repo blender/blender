@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmask
@@ -657,7 +658,7 @@ void ED_mask_draw_region(
     /* optional - only used when do_post_draw is set or called from clip editor */
     const bContext *C)
 {
-  struct View2D *v2d = &region->v2d;
+  View2D *v2d = &region->v2d;
   Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_->id);
 
   /* aspect always scales vertically in movie and image spaces */

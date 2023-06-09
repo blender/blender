@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -141,7 +142,7 @@ static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 }
 
 /** Free (or release) any data used by this action (does not free the action itself). */
-static void action_free_data(struct ID *id)
+static void action_free_data(ID *id)
 {
   bAction *action = (bAction *)id;
   /* No animdata here. */
@@ -285,7 +286,7 @@ static IDProperty *action_asset_type_property(const bAction *action)
   return property;
 }
 
-static void action_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_data)
+static void action_asset_pre_save(void *asset_ptr, AssetMetaData *asset_data)
 {
   bAction *action = (bAction *)asset_ptr;
   BLI_assert(GS(action->id.name) == ID_AC);
@@ -718,12 +719,12 @@ bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
   return NULL;
 }
 
-bPoseChannel *BKE_pose_channel_active_if_layer_visible(struct Object *ob)
+bPoseChannel *BKE_pose_channel_active_if_layer_visible(Object *ob)
 {
   return BKE_pose_channel_active(ob, true);
 }
 
-bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob)
+bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
 {
   bArmature *arm = (ob) ? ob->data : NULL;
 
@@ -1350,7 +1351,7 @@ bool action_has_motion(const bAction *act)
   return false;
 }
 
-bool BKE_action_has_single_frame(const struct bAction *act)
+bool BKE_action_has_single_frame(const bAction *act)
 {
   if (act == NULL || BLI_listbase_is_empty(&act->curves)) {
     return false;
@@ -1478,7 +1479,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
   }
 }
 
-void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float *r_end)
+void BKE_action_get_frame_range(const bAction *act, float *r_start, float *r_end)
 {
   if (act && (act->flag & ACT_FRAME_RANGE)) {
     *r_start = act->frame_start;
@@ -1494,7 +1495,7 @@ void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float
   }
 }
 
-bool BKE_action_is_cyclic(const struct bAction *act)
+bool BKE_action_is_cyclic(const bAction *act)
 {
   return act && (act->flag & ACT_FRAME_RANGE) && (act->flag & ACT_CYCLIC);
 }
@@ -1809,7 +1810,7 @@ void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
     return;
   }
 
-  struct GSet *used_uuids = BLI_gset_new(
+  GSet *used_uuids = BLI_gset_new(
       BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
@@ -1851,7 +1852,7 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
 
     animviz_motionpath_blend_write(writer, chan->mpath);
 
-    /* Prevent crashes with autosave,
+    /* Prevent crashes with auto-save,
      * when a bone duplicated in edit-mode has not yet been assigned to its pose-channel.
      * Also needed with memundo, in some cases we can store a step before pose has been
      * properly rebuilt from previous undo step. */

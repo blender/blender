@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <numeric>
 
@@ -274,7 +275,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
                                            const bool is_cyclic)
 {
   /* Order and range, when representing a batched NurbsCurve should be authored one value per
-   * curve.*/
+   * curve. */
   const int num_curves = geometry.curve_num;
   orders.resize(num_curves);
 

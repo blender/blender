@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -366,6 +367,10 @@ void clothModifier_do(ClothModifierData *clmd,
     clmd->clothObject->last_frame = framenr;
     return;
   }
+
+  /* Since implicit sharing is introduced, mesh data can be moved to other places.
+   * Therefore some fields in simulation data need to be updated accordingly */
+  clmd->clothObject->edges = reinterpret_cast<const vec2i *>(mesh->edges().data());
 
   /* try to read from cache */
   bool can_simulate = (framenr == clmd->clothObject->last_frame + 1) &&

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -137,6 +139,13 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
         2, "Sample Position");
     const Mesh &mesh = *source_.get_mesh_for_read();
     get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
   }
 };
 

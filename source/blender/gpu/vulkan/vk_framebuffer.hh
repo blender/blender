@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -14,6 +15,7 @@
 #include "gpu_framebuffer_private.hh"
 
 #include "vk_common.hh"
+#include "vk_image_view.hh"
 
 namespace blender::gpu {
 
@@ -39,6 +41,8 @@ class VKFrameBuffer : public FrameBuffer {
    * during blitting.
    */
   bool flip_viewport_ = false;
+
+  Vector<VKImageView, GPU_FB_MAX_ATTACHMENT> image_views_;
 
  public:
   /**
@@ -112,9 +116,9 @@ class VKFrameBuffer : public FrameBuffer {
   }
 
   /**
-   * Is this framebuffer immutable?
+   * Is this frame-buffer immutable?
    *
-   * Framebuffers that are owned by GHOST are immutable and
+   * Frame-buffers that are owned by GHOST are immutable and
    * don't have any attachments assigned. It should be assumed that there is a single color texture
    * in slot 0.
    */

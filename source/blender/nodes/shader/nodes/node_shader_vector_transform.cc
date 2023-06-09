@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -92,7 +93,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  struct GPUNodeLink *inputlink;
+  GPUNodeLink *inputlink;
 
   NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
 

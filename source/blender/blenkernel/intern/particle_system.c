@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1034,10 +1035,7 @@ void psys_get_birth_coords(
 }
 
 /* recursively evaluate emitter parent anim at cfra */
-static void evaluate_emitter_anim(struct Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  Object *ob,
-                                  float cfra)
+static void evaluate_emitter_anim(Depsgraph *depsgraph, Scene *scene, Object *ob, float cfra)
 {
   if (ob->parent) {
     evaluate_emitter_anim(depsgraph, scene, ob->parent, cfra);
@@ -3491,11 +3489,13 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
     }
   }
 
-  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
-
+  /* Free hair_out_mesh before modifying hair_in_mesh in hair_create_input_mesh() to avoid copying
+   * on write since they share some data */
   if (psys->hair_out_mesh) {
     BKE_id_free(NULL, psys->hair_out_mesh);
   }
+
+  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
 
   psys->clmd->point_cache = psys->pointcache;
   /* for hair sim we replace the internal cloth effector weights temporarily
@@ -4765,7 +4765,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
   MEM_freeN(particle_settings);
 }
 
-void particle_system_update(struct Depsgraph *depsgraph,
+void particle_system_update(Depsgraph *depsgraph,
                             Scene *scene,
                             Object *ob,
                             ParticleSystem *psys,
@@ -5036,7 +5036,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
   }
 }
 
-void BKE_particlesystem_reset_all(struct Object *object)
+void BKE_particlesystem_reset_all(Object *object)
 {
   for (ModifierData *md = object->modifiers.first; md != NULL; md = md->next) {
     if (md->type != eModifierType_ParticleSystem) {
@@ -5050,14 +5050,13 @@ void BKE_particlesystem_reset_all(struct Object *object)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_settings_eval_reset(struct Depsgraph *depsgraph,
-                                      ParticleSettings *particle_settings)
+void BKE_particle_settings_eval_reset(Depsgraph *depsgraph, ParticleSettings *particle_settings)
 {
   DEG_debug_print_eval(depsgraph, __func__, particle_settings->id.name, particle_settings);
   particle_settings->id.recalc |= ID_RECALC_PSYS_RESET;
 }
 
-void BKE_particle_system_eval_init(struct Depsgraph *depsgraph, Object *object)
+void BKE_particle_system_eval_init(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   for (ParticleSystem *psys = object->particlesystem.first; psys != NULL; psys = psys->next) {

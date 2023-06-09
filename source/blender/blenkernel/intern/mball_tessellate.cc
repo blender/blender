@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -50,7 +51,7 @@
 typedef struct corner {
   int i, j, k;        /* (i, j, k) is index within lattice */
   float co[3], value; /* location and function value */
-  struct corner *next;
+  corner *next;
 } CORNER;
 
 /** Partitioning cell (cube). */
@@ -61,33 +62,33 @@ typedef struct cube {
 
 /** Linked list of cubes acting as stack. */
 typedef struct cubes {
-  CUBE cube;          /* a single cube */
-  struct cubes *next; /* remaining elements */
+  CUBE cube;   /* a single cube */
+  cubes *next; /* remaining elements */
 } CUBES;
 
 /** List of cube locations. */
 typedef struct centerlist {
-  int i, j, k;             /* cube location */
-  struct centerlist *next; /* remaining elements */
+  int i, j, k;      /* cube location */
+  centerlist *next; /* remaining elements */
 } CENTERLIST;
 
 /** List of edges. */
 typedef struct edgelist {
   int i1, j1, k1, i2, j2, k2; /* edge corner ids */
   int vid;                    /* vertex id */
-  struct edgelist *next;      /* remaining elements */
+  edgelist *next;             /* remaining elements */
 } EDGELIST;
 
 /** List of integers. */
 typedef struct intlist {
-  int i;                /* an integer */
-  struct intlist *next; /* remaining elements */
+  int i;         /* an integer */
+  intlist *next; /* remaining elements */
 } INTLIST;
 
 /** List of list of integers. */
 typedef struct intlists {
-  INTLIST *list;         /* a list of integers */
-  struct intlists *next; /* remaining elements */
+  INTLIST *list;  /* a list of integers */
+  intlists *next; /* remaining elements */
 } INTLISTS;
 
 /** An AABB with pointer to metal-elem. */
@@ -98,7 +99,7 @@ typedef struct Box {
 
 typedef struct MetaballBVHNode { /* BVH node */
   Box bb[2];                     /* AABB of children */
-  struct MetaballBVHNode *child[2];
+  MetaballBVHNode *child[2];
 } MetaballBVHNode;
 
 /** Parameters, storage. */
@@ -1233,7 +1234,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
         zero_size = 1;
       }
       else if (bob->parent) {
-        struct Object *pob = bob->parent;
+        Object *pob = bob->parent;
         while (pob) {
           if (has_zero_axis_m4(pob->object_to_world)) {
             zero_size = 1;

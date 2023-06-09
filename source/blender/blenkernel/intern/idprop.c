@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1510,7 +1511,7 @@ void IDP_BlendReadLib(BlendLibReader *reader, ID *self_id, IDProperty *prop)
   }
 }
 
-void IDP_BlendReadExpand(struct BlendExpander *expander, IDProperty *prop)
+void IDP_BlendReadExpand(BlendExpander *expander, IDProperty *prop)
 {
   if (!prop) {
     return;

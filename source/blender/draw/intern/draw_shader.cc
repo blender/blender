@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -20,13 +21,13 @@ extern "C" char datatoc_common_hair_lib_glsl[];
 extern "C" char datatoc_common_hair_refine_vert_glsl[];
 
 static struct {
-  struct GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
-  struct GPUShader *debug_print_display_sh;
-  struct GPUShader *debug_draw_display_sh;
-  struct GPUShader *draw_visibility_compute_sh;
-  struct GPUShader *draw_view_finalize_sh;
-  struct GPUShader *draw_resource_finalize_sh;
-  struct GPUShader *draw_command_generate_sh;
+  GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
+  GPUShader *debug_print_display_sh;
+  GPUShader *debug_draw_display_sh;
+  GPUShader *draw_visibility_compute_sh;
+  GPUShader *draw_view_finalize_sh;
+  GPUShader *draw_resource_finalize_sh;
+  GPUShader *draw_command_generate_sh;
 } e_data = {{nullptr}};
 
 /* -------------------------------------------------------------------- */

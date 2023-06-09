@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -158,12 +159,12 @@ void WM_init_state_start_with_console_set(bool value)
  * so that it does not break anything that can run in headless mode (as in
  * without display server attached).
  */
-static bool opengl_is_init = false;
+static bool gpu_is_init = false;
 
-void WM_init_opengl(void)
+void WM_init_gpu(void)
 {
   /* Must be called only once. */
-  BLI_assert(opengl_is_init == false);
+  BLI_assert(gpu_is_init == false);
 
   if (G.background) {
     /* Ghost is still not initialized elsewhere in background mode. */
@@ -175,13 +176,13 @@ void WM_init_opengl(void)
   }
 
   /* Needs to be first to have an OpenGL context bound. */
-  DRW_opengl_context_create();
+  DRW_gpu_context_create();
 
   GPU_init();
 
   GPU_pass_cache_init();
 
-  opengl_is_init = true;
+  gpu_is_init = true;
 }
 
 static void sound_jack_sync_callback(Main *bmain, int mode, double time)
@@ -288,7 +289,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * Creating a dummy window-manager early, or moving the key-maps into the preferences
    * would resolve this and may be worth looking into long-term, see: D12184 for details.
    */
-  struct wmFileReadPost_Params *params_file_read_post = nullptr;
+  wmFileReadPost_Params *params_file_read_post = nullptr;
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = true;
   read_homefile_params.use_userdef = true;
@@ -316,7 +317,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     /* Sets 3D mouse dead-zone. */
     WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
-    WM_init_opengl();
+    WM_init_gpu();
 
     if (!WM_platform_support_perform_checks()) {
       /* No attempt to avoid memory leaks here. */
@@ -349,7 +350,6 @@ void WM_init(bContext *C, int argc, const char **argv)
     }
   }
 
-  BKE_material_copybuf_clear();
   ED_render_clear_mtex_copybuf();
 
   wm_history_file_read();
@@ -487,9 +487,9 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
-      struct MemFile *undo_memfile = wm->undo_stack ?
-                                         ED_undosys_stack_memfile_get_active(wm->undo_stack) :
-                                         nullptr;
+      MemFile *undo_memfile = wm->undo_stack ?
+                                  ED_undosys_stack_memfile_get_active(wm->undo_stack) :
+                                  nullptr;
       if (undo_memfile != nullptr) {
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);
@@ -546,7 +546,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
    * Don't run this code when `C` is null because #pyrna_unregister_class
    * passes in `CTX_data_main(C)` to un-registration functions.
    * Further: `addon_utils.disable_all()` may call into functions that expect a valid context,
-   * supporting all these code-paths with a NULL context is quite involved for such a corner-case.
+   * supporting all these code-paths with a null context is quite involved for such a corner-case.
    */
   if (C) {
     const char *imports[2] = {"addon_utils", nullptr};
@@ -603,7 +603,7 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   BKE_subdiv_exit();
 
-  if (opengl_is_init) {
+  if (gpu_is_init) {
     BKE_image_free_unused_gpu_textures();
   }
 
@@ -617,11 +617,10 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
-  if (opengl_is_init) {
+  if (gpu_is_init) {
     DRW_subdiv_free();
   }
 
-  BKE_material_copybuf_free();
   ANIM_fcurves_copybuf_free();
   ANIM_drivers_copybuf_free();
   ANIM_driver_vars_copybuf_free();
@@ -665,13 +664,13 @@ void WM_exit_ex(bContext *C, const bool do_python, const bool do_user_exit_actio
 
   /* Delete GPU resources and context. The UI also uses GPU resources and so
    * is also deleted with the context active. */
-  if (opengl_is_init) {
-    DRW_opengl_context_enable_ex(false);
+  if (gpu_is_init) {
+    DRW_gpu_context_enable_ex(false);
     UI_exit();
     GPU_pass_cache_free();
     GPU_exit();
-    DRW_opengl_context_disable_ex(false);
-    DRW_opengl_context_destroy();
+    DRW_gpu_context_disable_ex(false);
+    DRW_gpu_context_destroy();
   }
   else {
     UI_exit();

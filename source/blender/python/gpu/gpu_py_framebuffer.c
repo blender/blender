@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -659,7 +661,7 @@ static PyGetSetDef pygpu_framebuffer__tp_getseters[] = {
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
+static PyMethodDef pygpu_framebuffer__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_framebuffer_bind, METH_NOARGS, pygpu_framebuffer_bind_doc},
     {"clear",
      (PyCFunction)pygpu_framebuffer_clear,

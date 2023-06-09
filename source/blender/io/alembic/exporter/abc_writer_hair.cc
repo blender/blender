@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -157,7 +159,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
       const int num = pa->num_dmcache >= 0 ? pa->num_dmcache : pa->num;
 
       if (num < mesh->totface) {
-        /* TODO(Sybren): check whether the NULL check here and if(mface) are actually required
+        /* TODO(Sybren): check whether the null check here and if(mface) are actually required
          */
         const MFace *face = mface == nullptr ? nullptr : &mface[num];
         MTFace *tface = mtface + num;

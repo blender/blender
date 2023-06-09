@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -132,6 +134,42 @@ TEST(math_vector, Sign)
   EXPECT_FLOAT_EQ(result.x, -1);
   EXPECT_FLOAT_EQ(result.y, 1);
   EXPECT_FLOAT_EQ(result.z, 0);
+}
+
+TEST(math_vector, sqrt)
+{
+  const float3 a(1.0f, 4.0f, 9.0f);
+  const float3 result = math::sqrt(a);
+  EXPECT_NEAR(result.x, 1.0f, 1e-6f);
+  EXPECT_NEAR(result.y, 2.0f, 1e-6f);
+  EXPECT_NEAR(result.z, 3.0f, 1e-6f);
+}
+
+TEST(math_vector, safe_sqrt)
+{
+  const float3 a(1.0f, -4.0f, 9.0f);
+  const float3 result = math::safe_sqrt(a);
+  EXPECT_NEAR(result.x, 1.0f, 1e-6f);
+  EXPECT_NEAR(result.y, 0.0f, 1e-6f);
+  EXPECT_NEAR(result.z, 3.0f, 1e-6f);
+}
+
+TEST(math_vector, rcp)
+{
+  const float3 a(1.0f, 2.0f, 4.0f);
+  const float3 result = math::rcp(a);
+  EXPECT_NEAR(result.x, 1.0f, 1e-6f);
+  EXPECT_NEAR(result.y, 0.5f, 1e-6f);
+  EXPECT_NEAR(result.z, 0.25f, 1e-6f);
+}
+
+TEST(math_vector, safe_rcp)
+{
+  const float3 a(1.0f, 0.0f, 4.0f);
+  const float3 result = math::safe_rcp(a);
+  EXPECT_NEAR(result.x, 1.0f, 1e-6f);
+  EXPECT_NEAR(result.y, 0.0f, 1e-6f);
+  EXPECT_NEAR(result.z, 0.25f, 1e-6f);
 }
 
 }  // namespace blender::tests

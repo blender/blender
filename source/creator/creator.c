@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup creator
@@ -93,10 +94,6 @@
 
 #ifdef WITH_SDL_DYNLOAD
 #  include "sdlew.h"
-#endif
-
-#ifdef WITH_USD
-#  include "usd.h"
 #endif
 
 #include "creator_intern.h" /* Own include. */
@@ -475,10 +472,6 @@ int main(int argc,
 
   /* Initialize sub-systems that use `BKE_appdir.h`. */
   IMB_init();
-
-#ifdef WITH_USD
-  USD_ensure_plugin_path_registered();
-#endif
 
 #ifndef WITH_PYTHON_MODULE
   /* First test for background-mode (#Global.background) */

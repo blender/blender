@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 by Campbell Barton. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 by Campbell Barton. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -34,7 +35,7 @@ typedef struct BMEdgeLoopStore {
 #define EDGELOOP_EPS 1e-10f
 
 /* -------------------------------------------------------------------- */
-/* BM_mesh_edgeloops_find & Util Functions. */
+/* BM_mesh_edgeloops_find & Utility Functions. */
 
 static int bm_vert_other_tag(BMVert *v, BMVert *v_prev, BMEdge **r_e)
 {
@@ -533,12 +534,12 @@ int BM_edgeloop_length_get(BMEdgeLoopStore *el_store)
   return el_store->len;
 }
 
-const float *BM_edgeloop_normal_get(struct BMEdgeLoopStore *el_store)
+const float *BM_edgeloop_normal_get(BMEdgeLoopStore *el_store)
 {
   return el_store->no;
 }
 
-const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store)
+const float *BM_edgeloop_center_get(BMEdgeLoopStore *el_store)
 {
   return el_store->co;
 }
@@ -546,7 +547,7 @@ const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store)
 #define NODE_AS_V(n) ((BMVert *)((LinkData *)n)->data)
 #define NODE_AS_CO(n) ((BMVert *)((LinkData *)n)->data)->co
 
-void BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr)
+void BM_edgeloop_edges_get(BMEdgeLoopStore *el_store, BMEdge **e_arr)
 {
   LinkData *node;
   int i = 0;
@@ -758,8 +759,7 @@ void BM_edgeloop_expand(
   BLI_assert(el_store->len == el_store_len);
 }
 
-bool BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a,
-                               struct BMEdgeLoopStore *el_store_b)
+bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_store_b)
 {
   LinkData *node;
 

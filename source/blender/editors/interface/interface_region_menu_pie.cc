@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -87,7 +88,7 @@ static float ui_pie_menu_title_width(const char *name, int icon)
   return (UI_fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
 }
 
-uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, const wmEvent *event)
+uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
 {
   const uiStyle *style = UI_style_get_dpi();
   short event_type;
@@ -206,7 +207,7 @@ uiLayout *UI_pie_menu_layout(uiPieMenu *pie)
   return pie->layout;
 }
 
-int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *event)
+int UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
@@ -232,11 +233,8 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_operator_enum(struct bContext *C,
-                                          const char *title,
-                                          const char *opname,
-                                          const char *propname,
-                                          const wmEvent *event)
+int UI_pie_menu_invoke_from_operator_enum(
+    bContext *C, const char *title, const char *opname, const char *propname, const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
@@ -252,7 +250,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C,
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
+int UI_pie_menu_invoke_from_rna_enum(bContext *C,
                                      const char *title,
                                      const char *path,
                                      const wmEvent *event)

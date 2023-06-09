@@ -1,11 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
  */
 
 #pragma once
+
+#include <functional>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_rect.h"
@@ -238,8 +241,7 @@ struct uiBut {
   /* RNA data */
   PointerRNA rnapoin = {};
   PropertyRNA *rnaprop = nullptr;
-  /** The index (arrays only), otherwise set to -1. */
-  int rnaindex = -1;
+  int rnaindex = 0;
 
   /* Operator data */
   char poison2[512];
@@ -270,10 +272,7 @@ struct uiBut {
   double *editval = nullptr;
   float *editvec = nullptr;
 
-  char poison5[512];
-
-  uiButPushedStateFunc pushed_state_func = nullptr;
-  const void *pushed_state_arg = nullptr;
+  std::function<bool(const uiBut &)> pushed_state_func;
 
   /** Little indicator (e.g., counter) displayed on top of some icons. */
   IconTextOverlay icon_overlay_text = {};
@@ -1455,9 +1454,6 @@ bool ui_jump_to_target_button_poll(bContext *C);
 /* interface_queries.c */
 
 void ui_interface_tag_script_reload_queries();
-
-void poison_ui_but(struct uiBut *but);
-void unpoison_ui_but(struct uiBut *but);
 
 /* interface_view.cc */
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -20,7 +21,7 @@
 
 void GPENCIL_render_init(GPENCIL_Data *vedata,
                          RenderEngine *engine,
-                         struct RenderLayer *render_layer,
+                         RenderLayer *render_layer,
                          const Depsgraph *depsgraph,
                          const rcti *rect)
 {
@@ -34,7 +35,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
 
-  struct Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
   RE_GetCameraWindow(engine->re, camera, winmat);
   RE_GetCameraModelMatrix(engine->re, camera, viewinv);
 
@@ -139,8 +140,8 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
 /* render all objects and select only grease pencil */
 static void GPENCIL_render_cache(void *vedata,
-                                 struct Object *ob,
-                                 struct RenderEngine *UNUSED(engine),
+                                 Object *ob,
+                                 RenderEngine *UNUSED(engine),
                                  Depsgraph *UNUSED(depsgraph))
 {
   if (ob && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_LAMP)) {
@@ -150,7 +151,7 @@ static void GPENCIL_render_cache(void *vedata,
   }
 }
 
-static void GPENCIL_render_result_z(struct RenderLayer *rl,
+static void GPENCIL_render_result_z(RenderLayer *rl,
                                     const char *viewname,
                                     GPENCIL_Data *vedata,
                                     const rcti *rect)
@@ -205,7 +206,7 @@ static void GPENCIL_render_result_z(struct RenderLayer *rl,
   }
 }
 
-static void GPENCIL_render_result_combined(struct RenderLayer *rl,
+static void GPENCIL_render_result_combined(RenderLayer *rl,
                                            const char *viewname,
                                            GPENCIL_Data *vedata,
                                            const rcti *rect)
@@ -227,7 +228,7 @@ static void GPENCIL_render_result_combined(struct RenderLayer *rl,
 
 void GPENCIL_render_to_image(void *ved,
                              RenderEngine *engine,
-                             struct RenderLayer *render_layer,
+                             RenderLayer *render_layer,
                              const rcti *rect)
 {
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;

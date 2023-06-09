@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -913,6 +914,7 @@ bool VKShader::finalize_descriptor_set_layouts(VkDevice vk_device,
   {
     return false;
   };
+  debug::object_label(layout_, name_get());
 
   return true;
 }

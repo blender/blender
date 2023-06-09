@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006-2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -78,7 +79,7 @@ static GHash *gCachedPreviews = nullptr;
 
 /* Queue of icons for deferred deletion. */
 struct DeferredIconDeleteNode {
-  struct DeferredIconDeleteNode *next;
+  DeferredIconDeleteNode *next;
   int icon_id;
 };
 /* Protected by gIconMutex. */
@@ -92,7 +93,7 @@ static void icon_free(void *val)
   }
 
   if (icon->obj_type == ICON_DATA_GEOM) {
-    struct Icon_Geom *obj = (struct Icon_Geom *)icon->obj;
+    Icon_Geom *obj = (Icon_Geom *)icon->obj;
     if (obj->mem) {
       /* coords & colors are part of this memory. */
       MEM_freeN((void *)obj->mem);
@@ -133,7 +134,7 @@ static void icon_free_data(int icon_id, Icon *icon)
       ((bGPDlayer *)(icon->obj))->runtime.icon_id = 0;
       break;
     case ICON_DATA_GEOM:
-      ((struct Icon_Geom *)(icon->obj))->icon_id = 0;
+      ((Icon_Geom *)(icon->obj))->icon_id = 0;
       break;
     case ICON_DATA_STUDIOLIGHT: {
       StudioLight *sl = (StudioLight *)icon->obj;
@@ -292,7 +293,7 @@ void BKE_previewimg_free(PreviewImage **prv)
   }
 }
 
-void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
+void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 {
   MEM_SAFE_FREE(prv->rect[size]);
   if (prv->gputexture[size]) {
@@ -304,7 +305,7 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
   prv->changed_timestamp[size] = 0;
 }
 
-void BKE_previewimg_clear(struct PreviewImage *prv)
+void BKE_previewimg_clear(PreviewImage *prv)
 {
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     BKE_previewimg_clear_single(prv, (eIconSizes)i);
@@ -699,7 +700,7 @@ static Icon *icon_create(int icon_id, int obj_type, void *obj)
   return new_icon;
 }
 
-static int icon_id_ensure_create_icon(struct ID *id)
+static int icon_id_ensure_create_icon(ID *id)
 {
   BLI_assert(BLI_thread_is_main());
 
@@ -710,7 +711,7 @@ static int icon_id_ensure_create_icon(struct ID *id)
   return id->icon_id;
 }
 
-int BKE_icon_id_ensure(struct ID *id)
+int BKE_icon_id_ensure(ID *id)
 {
   /* Never handle icons in non-main thread! */
   BLI_assert(BLI_thread_is_main());
@@ -859,7 +860,7 @@ Icon *BKE_icon_get(const int icon_id)
   return icon;
 }
 
-void BKE_icon_set(const int icon_id, struct Icon *icon)
+void BKE_icon_set(const int icon_id, Icon *icon)
 {
   void **val_p;
 
@@ -881,7 +882,7 @@ static void icon_add_to_deferred_delete_queue(int icon_id)
   BLI_linklist_lockfree_insert(&g_icon_delete_queue, (LockfreeLinkNode *)node);
 }
 
-void BKE_icon_id_delete(struct ID *id)
+void BKE_icon_id_delete(ID *id)
 {
   const int icon_id = id->icon_id;
   if (!icon_id) {
@@ -944,7 +945,7 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
 /** \name Geometry Icon
  * \{ */
 
-int BKE_icon_geom_ensure(struct Icon_Geom *geom)
+int BKE_icon_geom_ensure(Icon_Geom *geom)
 {
   BLI_assert(BLI_thread_is_main());
 
@@ -960,7 +961,7 @@ int BKE_icon_geom_ensure(struct Icon_Geom *geom)
   return geom->icon_id;
 }
 
-struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
+Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
 {
   BLI_assert(BLI_thread_is_main());
   if (data_len <= 8) {
@@ -984,7 +985,7 @@ struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
   }
   p += 4;
 
-  struct Icon_Geom *geom = (struct Icon_Geom *)MEM_mallocN(sizeof(*geom), __func__);
+  Icon_Geom *geom = (Icon_Geom *)MEM_mallocN(sizeof(*geom), __func__);
   geom->coords_range[0] = int(*p++);
   geom->coords_range[1] = int(*p++);
   /* x, y ignored for now */
@@ -999,7 +1000,7 @@ struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
   return geom;
 }
 
-struct Icon_Geom *BKE_icon_geom_from_file(const char *filename)
+Icon_Geom *BKE_icon_geom_from_file(const char *filename)
 {
   BLI_assert(BLI_thread_is_main());
   size_t data_len;
@@ -1016,7 +1017,7 @@ struct Icon_Geom *BKE_icon_geom_from_file(const char *filename)
 /** \name Studio Light Icon
  * \{ */
 
-int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type)
+int BKE_icon_ensure_studio_light(StudioLight *sl, int id_type)
 {
   int icon_id = get_next_free_id();
   Icon *icon = icon_create(icon_id, ICON_DATA_STUDIOLIGHT, sl);

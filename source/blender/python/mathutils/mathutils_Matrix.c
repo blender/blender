@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -3252,7 +3254,7 @@ static PyGetSetDef Matrix_getseters[] = {
 /** \name Matrix Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Matrix_methods[] = {
+static PyMethodDef Matrix_methods[] = {
     /* Derived values. */
     {"determinant", (PyCFunction)Matrix_determinant, METH_NOARGS, Matrix_determinant_doc},
     {"decompose", (PyCFunction)Matrix_decompose, METH_NOARGS, Matrix_decompose_doc},

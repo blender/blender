@@ -10,6 +10,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
     pgettext_tip as tip_,
 )
+from bl_ui.utils import PresetPanel
 
 
 # -----------------------------------------------------------------------------
@@ -1399,6 +1400,13 @@ class USERPREF_PT_file_paths_render(FilePathsPanel, Panel):
         col.prop(paths, "render_cache_directory", text="Render Cache")
 
 
+class USERPREF_PT_text_editor_presets(PresetPanel, Panel):
+    bl_label = "Text Editor Presets"
+    preset_subdir = "text_editor"
+    preset_operator = "script.execute_preset"
+    preset_add_operator = "text_editor.preset_add"
+
+
 class USERPREF_PT_file_paths_applications(FilePathsPanel, Panel):
     bl_label = "Applications"
 
@@ -1414,6 +1422,25 @@ class USERPREF_PT_file_paths_applications(FilePathsPanel, Panel):
         col.prop(paths, "animation_player_preset", text="Animation Player")
         if paths.animation_player_preset == 'CUSTOM':
             col.prop(paths, "animation_player", text="Player")
+
+
+class USERPREF_PT_text_editor(FilePathsPanel, Panel):
+    bl_label = "Text Editor"
+    bl_parent_id = "USERPREF_PT_file_paths_applications"
+
+    def draw_header_preset(self, _context):
+        USERPREF_PT_text_editor_presets.draw_panel_header(self.layout)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        paths = context.preferences.filepaths
+
+        col = layout.column()
+        col.prop(paths, "text_editor", text="Program")
+        col.prop(paths, "text_editor_args", text="Arguments")
 
 
 class USERPREF_PT_file_paths_development(FilePathsPanel, Panel):
@@ -2097,9 +2124,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         split.label(text="  " + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    tot_row = bool(info["doc_url"]) + bool(user_addon)
-
-                    if tot_row:
+                    if info["doc_url"] or info.get("tracker_url"):
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Internet:")
                         sub = split.row()
@@ -2123,10 +2148,13 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                             )
                             props.type = 'BUG_ADDON'
                             props.id = addon_info
-                        if user_addon:
-                            sub.operator(
-                                "preferences.addon_remove", text="Remove", icon='CANCEL',
-                            ).module = mod.__name__
+
+                    if user_addon:
+                        split = colsub.row().split(factor=0.15)
+                        split.label(text="User:")
+                        split.operator(
+                            "preferences.addon_remove", text="Remove", icon='CANCEL',
+                        ).module = mod.__name__
 
                     # Show addon user preferences
                     if is_enabled:
@@ -2395,7 +2423,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_new_curves_tools"}, ("blender/blender/issues/68981", "#68981")),
                 ({"property": "use_new_point_cloud_type"}, ("blender/blender/issues/75717", "#75717")),
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
-                ({"property": "use_full_frame_compositor"}, ("blender/blender/issues/88150", "#88150")),
+                ({"property": "use_experimental_compositors"}, ("blender/blender/issues/88150", "#88150")),
                 ({"property": "enable_eevee_next"}, ("blender/blender/issues/93220", "#93220")),
                 ({"property": "enable_workbench_next"}, ("blender/blender/issues/101619", "#101619")),
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/40", "Grease Pencil 3.0")),
@@ -2509,6 +2537,8 @@ classes = (
     USERPREF_PT_file_paths_script_directories,
     USERPREF_PT_file_paths_render,
     USERPREF_PT_file_paths_applications,
+    USERPREF_PT_text_editor,
+    USERPREF_PT_text_editor_presets,
     USERPREF_PT_file_paths_development,
     USERPREF_PT_file_paths_asset_libraries,
 

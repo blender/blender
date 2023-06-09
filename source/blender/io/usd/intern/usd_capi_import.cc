@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.h"
 #include "usd.h"
-#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_reader_geom.h"
 #include "usd_reader_prim.h"
@@ -408,11 +408,6 @@ static void import_freejob(void *user_data)
 
 using namespace blender::io::usd;
 
-void USD_ensure_plugin_path_registered()
-{
-  blender::io::usd::ensure_usd_plugin_path_registered();
-}
-
 bool USD_import(struct bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
@@ -458,7 +453,7 @@ bool USD_import(struct bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while importing. */
+    /* Fake a job context, so that we don't need null pointer checks while importing. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

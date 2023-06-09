@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -254,7 +255,7 @@ static bool image_not_packed_poll(bContext *C)
   return (ima && BLI_listbase_is_empty(&ima->packedfiles));
 }
 
-static void image_view_all(struct SpaceImage *sima, struct ARegion *region, struct wmOperator *op)
+static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
 {
   float aspx, aspy, zoomx, zoomy, w, h;
   int width, height;
@@ -2006,7 +2007,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render, true);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
@@ -3179,7 +3180,7 @@ static bool image_pack_test(bContext *C, wmOperator *op)
 
 static int image_pack_exec(bContext *C, wmOperator *op)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
 
   if (!image_pack_test(C, op)) {
@@ -3322,10 +3323,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-bool ED_space_image_get_position(SpaceImage *sima,
-                                 struct ARegion *region,
-                                 int mval[2],
-                                 float fpos[2])
+bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2])
 {
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);

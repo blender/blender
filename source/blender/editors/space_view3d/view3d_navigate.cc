@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -1967,7 +1969,7 @@ static eV3D_OpMode view3d_navigation_type_from_idname(const char *idname)
 ViewOpsData *ED_view3d_navigation_init(bContext *C)
 {
   if (!CTX_wm_region_view3d(C)) {
-    return NULL;
+    return nullptr;
   }
 
   ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
@@ -1978,11 +1980,8 @@ ViewOpsData *ED_view3d_navigation_init(bContext *C)
 }
 
 /* Checks and initializes the navigation modal operation. */
-static int view3d_navigation_invoke(bContext *C,
-                                    ViewOpsData *vod,
-                                    const wmEvent *event,
-                                    struct wmKeyMapItem *kmi,
-                                    eV3D_OpMode nav_type)
+static int view3d_navigation_invoke(
+    bContext *C, ViewOpsData *vod, const wmEvent *event, wmKeyMapItem *kmi, eV3D_OpMode nav_type)
 {
   switch (nav_type) {
     case V3D_OP_MODE_ZOOM:
@@ -2070,7 +2069,7 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
     /* Although #ED_view3d_update_viewmat is already called when redrawing the 3D View, do it here
      * as well, so the updated matrix values can be accessed by the operator. */
     ED_view3d_update_viewmat(
-        vod->depsgraph, vod->scene, vod->v3d, vod->region, NULL, NULL, NULL, false);
+        vod->depsgraph, vod->scene, vod->v3d, vod->region, nullptr, nullptr, nullptr, false);
 
     return true;
   }

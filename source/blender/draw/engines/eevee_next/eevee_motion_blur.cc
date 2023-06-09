@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -54,7 +55,7 @@ void MotionBlurModule::init()
   }
 
   /* Without this there is the possibility of the curve table not being allocated. */
-  BKE_curvemapping_changed((struct CurveMapping *)&scene->r.mblur_shutter_curve, false);
+  BKE_curvemapping_changed((CurveMapping *)&scene->r.mblur_shutter_curve, false);
 
   Vector<float> cdf(CM_TABLE);
   Sampling::cdf_from_curvemapping(scene->r.mblur_shutter_curve, cdf);

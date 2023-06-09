@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -422,7 +423,7 @@ static void draw_marker_name(const uchar *text_color,
 
   const int icon_half_width = UI_ICON_SIZE * 0.6;
   const struct uiFontStyleDraw_Params fs_params = {.align = UI_STYLE_TEXT_LEFT, .word_wrap = 0};
-  const struct rcti rect = {
+  const rcti rect = {
       .xmin = marker_x + icon_half_width,
       .xmax = xmax - icon_half_width,
       .ymin = text_y,

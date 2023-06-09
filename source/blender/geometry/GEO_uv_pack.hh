@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_heap.h"
 #include "BLI_math_matrix.hh"
@@ -47,12 +49,11 @@ enum eUVPackIsland_ShapeMethod {
 };
 
 enum eUVPackIsland_PinMethod {
-  ED_UVPACK_PIN_IGNORED = 0,
-  ED_UVPACK_PIN_DEFAULT,
+  ED_UVPACK_PIN_IGNORE = 0,
+  ED_UVPACK_PIN_PACK,
   ED_UVPACK_PIN_LOCK_ROTATION,
   ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
   ED_UVPACK_PIN_LOCK_SCALE,
-  ED_UVPACK_PIN_LOCK_TRANSLATION,
   ED_UVPACK_PIN_LOCK_ALL, /* Lock translation, rotation and scale. */
 };
 

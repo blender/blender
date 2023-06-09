@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -16,7 +17,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <windows.h>
+#ifndef NOMINMAX
+#  define NOMINMAX
+#  include <windows.h>
+#  undef NOMINMAX
+#else
+#  include <windows.h>
+#endif
 
 #undef rad
 #undef rad1

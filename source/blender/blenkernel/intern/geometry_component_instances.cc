@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <mutex>
 
@@ -22,17 +24,6 @@
 
 #include "BLI_cpp_type_make.hh"
 
-using blender::float4x4;
-using blender::GSpan;
-using blender::IndexMask;
-using blender::Map;
-using blender::MutableSpan;
-using blender::Set;
-using blender::Span;
-using blender::VectorSet;
-using blender::bke::InstanceReference;
-using blender::bke::Instances;
-
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
  * \{ */
@@ -48,7 +39,7 @@ GeometryComponent *InstancesComponent::copy() const
 {
   InstancesComponent *new_component = new InstancesComponent();
   if (instances_ != nullptr) {
-    new_component->instances_ = new Instances(*instances_);
+    new_component->instances_ = new blender::bke::Instances(*instances_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -97,13 +88,14 @@ blender::bke::Instances *InstancesComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    instances_ = new Instances(*instances_);
+    instances_ = new blender::bke::Instances(*instances_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return instances_;
 }
 
-void InstancesComponent::replace(Instances *instances, GeometryOwnershipType ownership)
+void InstancesComponent::replace(blender::bke::Instances *instances,
+                                 GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
   this->clear();
@@ -231,13 +223,13 @@ static AttributeAccessorFunctions get_instances_accessor_functions()
     return domain == ATTR_DOMAIN_INSTANCE;
   };
   fn.adapt_domain = [](const void * /*owner*/,
-                       const blender::GVArray &varray,
+                       const GVArray &varray,
                        const eAttrDomain from_domain,
                        const eAttrDomain to_domain) {
     if (from_domain == to_domain && from_domain == ATTR_DOMAIN_INSTANCE) {
       return varray;
     }
-    return blender::GVArray{};
+    return GVArray{};
   };
   return fn;
 }

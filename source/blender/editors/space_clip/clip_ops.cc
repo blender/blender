@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -155,9 +156,9 @@ static void sclip_zoom_set_factor_exec(bContext *C, const wmEvent *event, float 
 /** \name Open Clip Operator
  * \{ */
 
-static void clip_filesel(bContext *C, wmOperator *op, const char *path)
+static void clip_filesel(bContext *C, wmOperator *op, const char *dirpath)
 {
-  RNA_string_set(op->ptr, "directory", path);
+  RNA_string_set(op->ptr, "directory", dirpath);
 
   WM_event_add_fileselect(C, op);
 }
@@ -260,7 +261,7 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
-  char path[FILE_MAX];
+  char dirpath[FILE_MAX];
   MovieClip *clip = nullptr;
 
   if (sc) {
@@ -268,13 +269,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
   }
 
   if (clip) {
-    STRNCPY(path, clip->filepath);
+    STRNCPY(dirpath, clip->filepath);
 
-    BLI_path_abs(path, CTX_data_main(C)->filepath);
-    BLI_path_parent_dir(path);
+    BLI_path_abs(dirpath, CTX_data_main(C)->filepath);
+    BLI_path_parent_dir(dirpath);
   }
   else {
-    STRNCPY(path, U.textudir);
+    STRNCPY(dirpath, U.textudir);
   }
 
   if (RNA_struct_property_is_set(op->ptr, "files")) {
@@ -287,7 +288,7 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 
   open_init(C, op);
 
-  clip_filesel(C, op, path);
+  clip_filesel(C, op, dirpath);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1169,11 +1170,11 @@ void CLIP_OT_change_frame(wmOperatorType *ot)
 
 typedef struct ProxyBuildJob {
   Scene *scene;
-  struct Main *main;
+  Main *main;
   MovieClip *clip;
   int clip_flag;
   bool stop;
-  struct IndexBuildContext *index_context;
+  IndexBuildContext *index_context;
 } ProxyJob;
 
 static void proxy_freejob(void *pjv)
@@ -1225,7 +1226,7 @@ static void do_movie_proxy(void *pjv,
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   MovieClip *clip = pj->clip;
-  struct MovieDistortion *distortion = nullptr;
+  MovieDistortion *distortion = nullptr;
 
   if (pj->index_context) {
     IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
@@ -1292,7 +1293,7 @@ typedef struct ProxyQueue {
 
 typedef struct ProxyThread {
   MovieClip *clip;
-  struct MovieDistortion *distortion;
+  MovieDistortion *distortion;
   int *build_sizes, build_count;
   int *build_undistort_sizes, build_undistort_count;
 } ProxyThread;

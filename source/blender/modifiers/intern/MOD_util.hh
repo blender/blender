@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -36,12 +38,13 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3]);
 Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                BMEditMesh *em,
                                Mesh *mesh,
-                               const float (*vertexCos)[3],
-                               int verts_num,
-                               bool use_orco);
+                               const float (*vertexCos)[3]);
 
-void MOD_get_vgroup(
-    Object *ob, Mesh *mesh, const char *name, const MDeformVert **dvert, int *defgrp_index);
+void MOD_get_vgroup(const Object *ob,
+                    const Mesh *mesh,
+                    const char *name,
+                    const MDeformVert **dvert,
+                    int *defgrp_index);
 
 void MOD_depsgraph_update_object_bone_relation(DepsNodeHandle *node,
                                                Object *object,

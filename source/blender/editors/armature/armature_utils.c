@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -59,7 +60,7 @@ void ED_armature_edit_sync_selection(ListBase *edbo)
   }
 }
 
-void ED_armature_edit_validate_active(struct bArmature *arm)
+void ED_armature_edit_validate_active(bArmature *arm)
 {
   EditBone *ebone = arm->act_edbone;
 
@@ -560,7 +561,7 @@ static EditBone *find_ebone_link(ListBase *edbo, Bone *link)
   return NULL;
 }
 
-EditBone *make_boneList(ListBase *edbo, ListBase *bones, struct Bone *actBone)
+EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone)
 {
   BLI_assert(!edbo->first && !edbo->last);
 
@@ -785,7 +786,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   DEG_id_tag_update(&arm->id, 0);
 }
 
-void ED_armature_edit_free(struct bArmature *arm)
+void ED_armature_edit_free(bArmature *arm)
 {
   EditBone *eBone;
 

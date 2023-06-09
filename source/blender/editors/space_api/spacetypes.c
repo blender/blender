@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spapi
@@ -34,6 +35,7 @@
 #include "ED_geometry.h"
 #include "ED_gizmo_library.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil.h"
 #include "ED_grease_pencil_draw.h"
 #include "ED_lattice.h"
 #include "ED_markers.h"
@@ -92,8 +94,9 @@ void ED_spacetypes_init(void)
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();
   ED_operatortypes_asset();
+  ED_operatortypes_gpencil_legacy();
   ED_operatortypes_grease_pencil_draw();
-  ED_operatortypes_gpencil();
+  ED_operatortypes_grease_pencil();
   ED_operatortypes_object();
   ED_operatortypes_lattice();
   ED_operatortypes_mesh();
@@ -182,7 +185,8 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
   ED_keymap_screen(keyconf);
   ED_keymap_anim(keyconf);
   ED_keymap_animchannels(keyconf);
-  ED_keymap_gpencil(keyconf);
+  ED_keymap_gpencil_legacy(keyconf);
+  ED_keymap_grease_pencil(keyconf);
   ED_keymap_object(keyconf);
   ED_keymap_lattice(keyconf);
   ED_keymap_mesh(keyconf);
@@ -220,7 +224,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 typedef struct RegionDrawCB {
   struct RegionDrawCB *next, *prev;
 
-  void (*draw)(const struct bContext *, struct ARegion *, void *);
+  void (*draw)(const bContext *, ARegion *, void *);
   void *customdata;
 
   int type;
@@ -228,7 +232,7 @@ typedef struct RegionDrawCB {
 } RegionDrawCB;
 
 void *ED_region_draw_cb_activate(ARegionType *art,
-                                 void (*draw)(const struct bContext *, struct ARegion *, void *),
+                                 void (*draw)(const bContext *, ARegion *, void *),
                                  void *customdata,
                                  int type)
 {
@@ -299,7 +303,7 @@ static SpaceLink *xxx_create(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
   return NULL;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void xxx_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback for usage, should be re-doable. */

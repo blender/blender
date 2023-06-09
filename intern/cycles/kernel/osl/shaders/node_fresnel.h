@@ -36,3 +36,9 @@ color fresnel_conductor(float cosi, color eta, color k)
   color Rperp2 = (tmp_f - (2.0 * eta * cosi) + cosi2) / (tmp_f + (2.0 * eta * cosi) + cosi2);
   return (Rparl2 + Rperp2) * 0.5;
 }
+
+float F0_from_ior(float eta)
+{
+  float f0 = (eta - 1.0) / (eta + 1.0);
+  return f0 * f0;
+}

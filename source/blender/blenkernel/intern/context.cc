@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -77,7 +79,7 @@ struct bContext {
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
-    struct bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
+    bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
   } wm;
 
   /* data context */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation */
+/* SPDX-FileCopyrightText: 2010 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -69,7 +70,7 @@ static void wm_drag_free_path_data(wmDragPath **path_data);
 /* when editors become configurable, they can add own dropbox definitions */
 
 struct wmDropBoxMap {
-  struct wmDropBoxMap *next, *prev;
+  wmDropBoxMap *next, *prev;
 
   ListBase dropboxes;
   short spaceid, regionid;
@@ -831,7 +832,7 @@ const char *WM_drag_get_item_name(wmDrag *drag)
   switch (drag->type) {
     case WM_DRAG_ID: {
       ID *id = WM_drag_get_local_ID(drag, 0);
-      bool single = (BLI_listbase_count_at_most(&drag->ids, 2) == 1);
+      bool single = BLI_listbase_is_single(&drag->ids);
 
       if (single) {
         return id->name + 2;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -464,7 +465,7 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic)
   BLI_LINKSTACK_FREE(queue);
 }
 
-TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt)
+TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, BezTriple *bezt)
 {
   TransDataCurveHandleFlags *hdata;
   td->flag |= TD_BEZTRIPLE;
@@ -1166,7 +1167,7 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
   }
 }
 
-void animrecord_check_state(TransInfo *t, struct ID *id)
+void animrecord_check_state(TransInfo *t, ID *id)
 {
   Scene *scene = t->scene;
   wmTimer *animtimer = t->animtimer;

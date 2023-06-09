@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -85,11 +87,8 @@ typedef struct {
  *
  * \note Share a function for this since setup/cleanup logic is the same.
  */
-static bool python_script_exec(bContext *C,
-                               const char *filepath,
-                               struct Text *text,
-                               struct ReportList *reports,
-                               const bool do_jump)
+static bool python_script_exec(
+    bContext *C, const char *filepath, Text *text, ReportList *reports, const bool do_jump)
 {
   Main *bmain_old = CTX_data_main(C);
   PyObject *main_mod = NULL;
@@ -224,12 +223,12 @@ static bool python_script_exec(bContext *C,
 /** \name Run Text / Filename / String
  * \{ */
 
-bool BPY_run_filepath(bContext *C, const char *filepath, struct ReportList *reports)
+bool BPY_run_filepath(bContext *C, const char *filepath, ReportList *reports)
 {
   return python_script_exec(C, filepath, NULL, reports, false);
 }
 
-bool BPY_run_text(bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump)
+bool BPY_run_text(bContext *C, Text *text, ReportList *reports, const bool do_jump)
 {
   return python_script_exec(C, NULL, text, reports, do_jump);
 }

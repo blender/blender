@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -104,7 +106,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  struct wmKeyConfig *kc = wm->defaultconf;
+  wmKeyConfig *kc = wm->defaultconf;
 
   gz->keymap = WM_keymap_ensure(kc, tref->runtime->keymap, tref->space_type, RGN_TYPE_WINDOW);
   return gz;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -1150,7 +1151,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     uiTooltipField *field = &data->fields[i];
     uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
 
-    struct ResultBLF info;
+    ResultBLF info;
     int w, x_pos = 0;
     int font_id;
 

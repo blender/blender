@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Kévin Dietrich. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Kévin Dietrich. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -13,6 +14,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
@@ -49,14 +52,14 @@ bool AbcPointsReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPoints::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to Points when importing, but not any "
-        "more.";
+        "more.");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = "Object type mismatch, Alembic object path points to Points.";
+    *err_str = N_("Object type mismatch, Alembic object path points to Points.");
     return false;
   }
 
@@ -108,12 +111,12 @@ void read_points_sample(const IPointsSchema &schema,
   read_mverts(*config.mesh, positions, vnormals);
 }
 
-struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
-                                        const ISampleSelector &sample_sel,
-                                        int read_flag,
-                                        const char * /*velocity_name*/,
-                                        const float /*velocity_scale*/,
-                                        const char **err_str)
+Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
+                                 const ISampleSelector &sample_sel,
+                                 int read_flag,
+                                 const char * /*velocity_name*/,
+                                 const float /*velocity_scale*/,
+                                 const char **err_str)
 {
   IPointsSchema::Sample sample;
   try {

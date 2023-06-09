@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -243,7 +244,7 @@ static void lineart_gpencil_bake_startjob(void *customdata,
     for (LinkNode *l = bj->objects; l; l = l->next) {
       Object *ob = l->link;
       if (lineart_gpencil_bake_single_target(bj, ob, frame)) {
-        DEG_id_tag_update((struct ID *)ob->data, ID_RECALC_GEOMETRY);
+        DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(bj->C, NC_GPENCIL | ND_DATA | NA_EDITED, ob);
       }
     }
@@ -405,7 +406,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
 
     lmd->flags &= (~LRT_GPENCIL_IS_BAKED);
   }
-  DEG_id_tag_update((struct ID *)ob->data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
 }
 
 static int lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *UNUSED(op))

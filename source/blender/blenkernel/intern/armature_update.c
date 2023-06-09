@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -736,7 +737,7 @@ static void splineik_evaluate_bone(
 
 /* Evaluate the chain starting from the nominated bone */
 static void splineik_execute_tree(
-    struct Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
   tSplineIK_Tree *tree;
 
@@ -778,7 +779,7 @@ void BKE_pose_splineik_init_tree(Scene *scene, Object *ob, float ctime)
 }
 
 void BKE_splineik_execute_tree(
-    struct Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
   splineik_execute_tree(depsgraph, scene, ob, pchan_root, ctime);
 }
@@ -806,7 +807,7 @@ BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
   return pose->chan_array[pchan_index];
 }
 
-void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Object *object)
+void BKE_pose_eval_init(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *object)
 {
   bPose *pose = object->pose;
   BLI_assert(pose != NULL);
@@ -835,7 +836,7 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph, Scene *UNUSED(scene), Objec
   BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
 }
 
-void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *object)
+void BKE_pose_eval_init_ik(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   BLI_assert(object->type == OB_ARMATURE);
@@ -852,7 +853,7 @@ void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph, Scene *scene, Object *ob
   BKE_pose_splineik_init_tree(scene, object, ctime);
 }
 
-void BKE_pose_eval_bone(struct Depsgraph *depsgraph, Scene *scene, Object *object, int pchan_index)
+void BKE_pose_eval_bone(Depsgraph *depsgraph, Scene *scene, Object *object, int pchan_index)
 {
   const bArmature *armature = (bArmature *)object->data;
   if (armature->edbo != NULL) {
@@ -888,7 +889,7 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph, Scene *scene, Object *objec
   }
 }
 
-void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
+void BKE_pose_constraints_evaluate(Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *object,
                                    int pchan_index)
@@ -914,8 +915,8 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
   }
 }
 
-static void pose_channel_flush_to_orig_if_needed(struct Depsgraph *depsgraph,
-                                                 struct Object *object,
+static void pose_channel_flush_to_orig_if_needed(Depsgraph *depsgraph,
+                                                 Object *object,
                                                  bPoseChannel *pchan)
 {
   if (!DEG_is_active(depsgraph)) {
@@ -934,7 +935,7 @@ static void pose_channel_flush_to_orig_if_needed(struct Depsgraph *depsgraph,
   copy_v3_v3(pchan_orig->pose_tail, pchan->pose_tail);
 }
 
-void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int pchan_index)
+void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
 {
   const bArmature *armature = (bArmature *)object->data;
   if (armature->edbo != NULL) {
@@ -960,9 +961,7 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph, struct Object *object, int 
   }
 }
 
-void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
-                                  struct Object *object,
-                                  int pchan_index)
+void BKE_pose_eval_bbone_segments(Depsgraph *depsgraph, Object *object, int pchan_index)
 {
   const bArmature *armature = (bArmature *)object->data;
   if (armature->edbo != NULL) {
@@ -979,7 +978,7 @@ void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
+void BKE_pose_iktree_evaluate(Depsgraph *depsgraph,
                               Scene *scene,
                               Object *object,
                               int rootchan_index)
@@ -999,7 +998,7 @@ void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
   BIK_execute_tree(depsgraph, scene, object, rootchan, ctime);
 }
 
-void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
+void BKE_pose_splineik_evaluate(Depsgraph *depsgraph,
                                 Scene *scene,
                                 Object *object,
                                 int rootchan_index)
@@ -1028,7 +1027,7 @@ static void pose_eval_cleanup_common(Object *object)
   UNUSED_VARS_NDEBUG(pose);
 }
 
-void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
+void BKE_pose_eval_done(Depsgraph *depsgraph, Object *object)
 {
   bPose *pose = object->pose;
   BLI_assert(pose != NULL);
@@ -1037,7 +1036,7 @@ void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
   BLI_assert(object->type == OB_ARMATURE);
 }
 
-void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph, Scene *scene, Object *object)
+void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   bPose *pose = object->pose;
   BLI_assert(pose != NULL);

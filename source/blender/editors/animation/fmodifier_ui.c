@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -43,7 +44,7 @@
 
 #include "DEG_depsgraph.h"
 
-typedef void (*PanelDrawFn)(const bContext *, struct Panel *);
+typedef void (*PanelDrawFn)(const bContext *, Panel *);
 static void fmodifier_panel_header(const bContext *C, Panel *panel);
 
 /* -------------------------------------------------------------------- */

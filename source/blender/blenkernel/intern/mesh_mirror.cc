@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -84,7 +85,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
   return result;
 }
 
-void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
+void BKE_mesh_mirror_apply_mirror_on_axis(Main *bmain,
                                           Mesh *mesh,
                                           const int axis,
                                           const float dist)

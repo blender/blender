@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spuserpref
@@ -284,7 +285,7 @@ static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 #endif
 }
 
-static void PREFERENCES_OT_associate_blend(struct wmOperatorType *ot)
+static void PREFERENCES_OT_associate_blend(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Register File Association";
@@ -332,7 +333,7 @@ static int unassociate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 #endif
 }
 
-static void PREFERENCES_OT_unassociate_blend(struct wmOperatorType *ot)
+static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove File Association";

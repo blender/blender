@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -12,6 +13,11 @@
 #include "vk_state_manager.hh"
 
 namespace blender::gpu {
+
+VKUniformBuffer::~VKUniformBuffer()
+{
+  unbind();
+}
 
 void VKUniformBuffer::update(const void *data)
 {
@@ -67,8 +73,10 @@ void VKUniformBuffer::bind_as_ssbo(int slot)
 
 void VKUniformBuffer::unbind()
 {
-  VKContext &context = *VKContext::get();
-  context.state_manager_get().uniform_buffer_unbind(this);
+  VKContext *context = VKContext::get();
+  if (context) {
+    context->state_manager_get().uniform_buffer_unbind(this);
+  }
 }
 
 }  // namespace blender::gpu

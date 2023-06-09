@@ -1,8 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd.h"
-#include "usd_common.h"
 #include "usd_hierarchy_iterator.h"
 
 #include <pxr/base/plug/registry.h>
@@ -118,10 +118,12 @@ static bool export_params_valid(const USDExportParams &params)
   return valid;
 }
 
-/* Create the root Xform primitive, if the Root Prim path has been set
+/**
+ * Create the root Xform primitive, if the Root Prim path has been set
  * in the export options. In the future, this function can be extended
  * to author transforms and additional schema data (e.g., model Kind)
- * on the root prim.  */
+ * on the root prim.
+ */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
   if (params.root_prim_path[0] == '\0') {
@@ -380,7 +382,7 @@ static void create_temp_path_for_usdz_export(const char *filepath,
 
 static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *filepath)
 {
-  if (BLI_path_extension_check_n(filepath, ".usdz", NULL)) {
+  if (BLI_path_extension_check_n(filepath, ".usdz", nullptr)) {
     create_temp_path_for_usdz_export(filepath, job);
     return;
   }
@@ -429,7 +431,7 @@ bool USD_export(bContext *C,
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
   else {
-    /* Fake a job context, so that we don't need NULL pointer checks while exporting. */
+    /* Fake a job context, so that we don't need null pointer checks while exporting. */
     bool stop = false, do_update = false;
     float progress = 0.0f;
 

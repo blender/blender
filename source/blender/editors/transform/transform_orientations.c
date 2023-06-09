@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -886,8 +888,8 @@ static uint bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const uint n)
 int getTransformOrientation_ex(const Scene *scene,
                                ViewLayer *view_layer,
                                const View3D *v3d,
-                               struct Object *ob,
-                               struct Object *obedit,
+                               Object *ob,
+                               Object *obedit,
                                float normal[3],
                                float plane[3],
                                const short around)

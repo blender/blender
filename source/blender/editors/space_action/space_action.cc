@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spaction
@@ -126,7 +127,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   return (SpaceLink *)saction;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void action_free(SpaceLink * /*sl*/)
 {
   //  SpaceAction *saction = (SpaceAction *) sl;

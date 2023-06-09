@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -126,7 +127,7 @@ void VKStateManager::image_unbind(Texture *tex)
 
 void VKStateManager::image_unbind_all()
 {
-  for (TextureBinding &binding : texture_bindings_) {
+  for (ImageBinding &binding : image_bindings_) {
     binding.texture = nullptr;
   }
 }

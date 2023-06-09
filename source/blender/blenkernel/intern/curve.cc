@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1061,7 +1062,7 @@ BPoint *BKE_nurb_bpoint_get_prev(Nurb *nu, BPoint *bp)
   return bp_prev;
 }
 
-void BKE_nurb_bezt_calc_normal(struct Nurb * /*nu*/, BezTriple *bezt, float r_normal[3])
+void BKE_nurb_bezt_calc_normal(Nurb * /*nu*/, BezTriple *bezt, float r_normal[3])
 {
   /* calculate the axis matrix from the spline */
   float dir_prev[3], dir_next[3];
@@ -1076,7 +1077,7 @@ void BKE_nurb_bezt_calc_normal(struct Nurb * /*nu*/, BezTriple *bezt, float r_no
   normalize_v3(r_normal);
 }
 
-void BKE_nurb_bezt_calc_plane(struct Nurb *nu, BezTriple *bezt, float r_plane[3])
+void BKE_nurb_bezt_calc_plane(Nurb *nu, BezTriple *bezt, float r_plane[3])
 {
   float dir_prev[3], dir_next[3];
 
@@ -1113,7 +1114,7 @@ void BKE_nurb_bezt_calc_plane(struct Nurb *nu, BezTriple *bezt, float r_plane[3]
   normalize_v3(r_plane);
 }
 
-void BKE_nurb_bpoint_calc_normal(struct Nurb *nu, BPoint *bp, float r_normal[3])
+void BKE_nurb_bpoint_calc_normal(Nurb *nu, BPoint *bp, float r_normal[3])
 {
   BPoint *bp_prev = BKE_nurb_bpoint_get_prev(nu, bp);
   BPoint *bp_next = BKE_nurb_bpoint_get_next(nu, bp);
@@ -1136,7 +1137,7 @@ void BKE_nurb_bpoint_calc_normal(struct Nurb *nu, BPoint *bp, float r_normal[3])
   normalize_v3(r_normal);
 }
 
-void BKE_nurb_bpoint_calc_plane(struct Nurb *nu, BPoint *bp, float r_plane[3])
+void BKE_nurb_bpoint_calc_plane(Nurb *nu, BPoint *bp, float r_plane[3])
 {
   BPoint *bp_prev = BKE_nurb_bpoint_get_prev(nu, bp);
   BPoint *bp_next = BKE_nurb_bpoint_get_next(nu, bp);
@@ -1903,7 +1904,7 @@ struct BevelSort {
 
 static int vergxcobev(const void *a1, const void *a2)
 {
-  const struct BevelSort *x1 = (BevelSort *)a1, *x2 = (BevelSort *)a2;
+  const BevelSort *x1 = (BevelSort *)a1, *x2 = (BevelSort *)a2;
 
   if (x1->left > x2->left) {
     return 1;
@@ -2597,7 +2598,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
   const float threshold = 0.00001f;
   float min, inp;
   float *seglen = nullptr;
-  struct BevelSort *sortdata, *sd, *sd1;
+  BevelSort *sortdata, *sd, *sd1;
   int a, b, nr, poly, resolu = 0, len = 0, segcount;
   int *segbevcount;
   bool do_tilt, do_radius, do_weight;
@@ -2990,7 +2991,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
 
   /* find extreme left points, also test (turning) direction */
   if (poly > 0) {
-    sd = sortdata = (BevelSort *)MEM_malloc_arrayN(poly, sizeof(struct BevelSort), __func__);
+    sd = sortdata = (BevelSort *)MEM_malloc_arrayN(poly, sizeof(BevelSort), __func__);
     LISTBASE_FOREACH (BevList *, bl, bev) {
       if (bl->poly > 0) {
         BevPoint *bevp;
@@ -3037,7 +3038,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
         sd++;
       }
     }
-    qsort(sortdata, poly, sizeof(struct BevelSort), vergxcobev);
+    qsort(sortdata, poly, sizeof(BevelSort), vergxcobev);
 
     sd = sortdata + 1;
     for (a = 1; a < poly; a++, sd++) {
@@ -4825,7 +4826,7 @@ bool BKE_nurb_check_valid_uv(const Nurb *nu)
   return true;
 }
 
-bool BKE_nurb_order_clamp_u(struct Nurb *nu)
+bool BKE_nurb_order_clamp_u(Nurb *nu)
 {
   bool changed = false;
   if (nu->pntsu < nu->orderu) {
@@ -4835,7 +4836,7 @@ bool BKE_nurb_order_clamp_u(struct Nurb *nu)
   return changed;
 }
 
-bool BKE_nurb_order_clamp_v(struct Nurb *nu)
+bool BKE_nurb_order_clamp_v(Nurb *nu)
 {
   bool changed = false;
   if (nu->pntsv < nu->orderv) {
@@ -5316,7 +5317,7 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
   const int curvetype = BKE_curve_type_get(cu);
 
   if (curvetype == OB_FONT) {
-    struct CharInfo *info = cu->strinfo;
+    CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr && info->mat_nr >= index) {
         info->mat_nr--;
@@ -5337,7 +5338,7 @@ bool BKE_curve_material_index_used(const Curve *cu, int index)
   const int curvetype = BKE_curve_type_get(cu);
 
   if (curvetype == OB_FONT) {
-    const struct CharInfo *info = cu->strinfo;
+    const CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr == index) {
         return true;
@@ -5360,7 +5361,7 @@ void BKE_curve_material_index_clear(Curve *cu)
   const int curvetype = BKE_curve_type_get(cu);
 
   if (curvetype == OB_FONT) {
-    struct CharInfo *info = cu->strinfo;
+    CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       info->mat_nr = 0;
     }
@@ -5418,7 +5419,7 @@ void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
   ((void)0)
 
   if (curvetype == OB_FONT) {
-    struct CharInfo *strinfo;
+    CharInfo *strinfo;
     int charinfo_len, i;
 
     if (cu->editfont) {
@@ -5466,9 +5467,7 @@ void BKE_curve_smooth_flag_set(Curve *cu, const bool use_smooth)
   }
 }
 
-void BKE_curve_rect_from_textbox(const struct Curve *cu,
-                                 const struct TextBox *tb,
-                                 struct rctf *r_rect)
+void BKE_curve_rect_from_textbox(const Curve *cu, const TextBox *tb, rctf *r_rect)
 {
   r_rect->xmin = cu->xof + tb->x;
   r_rect->ymax = cu->yof + tb->y + cu->fsize;

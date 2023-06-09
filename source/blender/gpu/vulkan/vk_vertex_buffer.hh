@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -53,7 +54,7 @@ class VKVertexBuffer : public VertBuf {
   void allocate();
   void *convert() const;
 
-  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture.*/
+  /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture. */
   friend class VKTexture;
 };
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -943,7 +944,7 @@ bool DRW_state_is_scene_render(void);
 /**
  * Whether we are rendering simple opengl render
  */
-bool DRW_state_is_opengl_render(void);
+bool DRW_state_is_viewport_image_render(void);
 bool DRW_state_is_playback(void);
 /**
  * Is the user navigating the region.

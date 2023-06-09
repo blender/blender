@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -999,7 +1001,7 @@ static void rna_def_render_result(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string_file_name(
       func,
-      "filename",
+      "filepath",
       NULL,
       FILE_MAX,
       "File Name",
@@ -1120,11 +1122,11 @@ static void rna_def_render_layer(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string(
       func,
-      "filename",
+      "filepath",
       NULL,
       0,
-      "Filename",
-      "Filename to load into this render tile, must be no smaller than the renderlayer");
+      "File Path",
+      "File path to load into this render tile, must be no smaller than the renderlayer");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_int(func,
               "x",

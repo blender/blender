@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -295,7 +296,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_PASS_THROUGH;
 }
 
-void RENDER_OT_view_cancel(struct wmOperatorType *ot)
+void RENDER_OT_view_cancel(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Cancel Render View";
@@ -361,7 +362,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_FINISHED;
 }
 
-void RENDER_OT_view_show(struct wmOperatorType *ot)
+void RENDER_OT_view_show(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Show/Hide Render View";

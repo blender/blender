@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -410,8 +412,8 @@ static bool get_path_local(char *targetpath,
 bool BKE_appdir_app_is_portable_install(void)
 {
   /* Detect portable install by the existence of `config` folder. */
-  char path[FILE_MAX];
-  return get_path_local(path, sizeof(path), "config", NULL);
+  char dirpath[FILE_MAX];
+  return get_path_local(dirpath, sizeof(dirpath), "config", NULL);
 }
 
 /**

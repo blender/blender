@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'24ca886ac042')\n"
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 16:40:40\n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -10846,12 +10846,8 @@ msgid "Vorbis"
 msgstr "Vorbis"
 
 
-msgid "Samplerate"
-msgstr "Tốc độ mẫu vật"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "Tốc độ mẫu vật âm thanh (mẫu vật/giây)"
+msgid "Sample Rate"
+msgstr "Tốc Độ Mẫu Vật"
 
 
 msgctxt "Sound"
@@ -17260,10 +17256,6 @@ msgid "Image Boundary Trimming"
 msgstr "Cắt Bớt Ranh Giới Ảnh"
 
 
-msgid "Trim all edges right at the boundary of image(including overscan region)"
-msgstr "Cắt bớt cạng ngay tại ranh giới của ảnh (gồm vùng quét ngọai)"
-
-
 msgid "Use Intersection"
 msgstr "Dùng Giao Cắt"
 
@@ -22869,24 +22861,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "Điểm hướng U (không thể đổi khi có dạng mẫu)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "Điểm hướng V (không thể đổi khi có dạng mẫu)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "Điểm hướng W (không thể đổi khi có dạng mẫu)"
 
 
 msgid "Only display and take into account the outer vertices"
@@ -24096,10 +24076,6 @@ msgid "Vertices of the mesh"
 msgstr "Các đỉnh của lưới"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "Cục dữ liệu siêu cầu cho chỉ định cho bề mặt cộm"
-
-
 msgid "Metaball elements"
 msgstr "Phần Tử Siêu Cầu"
 
@@ -24110,10 +24086,6 @@ msgstr "Kích Cỡ Kết Xuất"
 
 msgid "Polygonization resolution in rendering"
 msgstr "Độ phân giải đa giác hóa khi kết xuất"
-
-
-msgid "Wire Size"
-msgstr "Kích Cỡ Sợi Giây"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -24554,10 +24526,6 @@ msgstr "Hộp bao quanh của vật thể trong tạo độ không gian vật th
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "Cài đặt cho dùng vật thể này làm vật thể va chạm trong mô phỏng vật lý"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "Màu và độ đục vật thể, dùng khi mặt được bật chế độ MàuVậtThể"
 
 
 msgid "Constraints"
@@ -25458,10 +25426,6 @@ msgstr "Y Toàn Cầu"
 
 msgid "Global Z"
 msgstr "Z Toàn Cầu"
-
-
-msgid "Effect Children"
-msgstr "Ảnh hưởng Con Cái"
 
 
 msgid "Apply effectors to children"
@@ -27063,10 +27027,6 @@ msgstr "6.1 Xung Quanh"
 
 msgid "Sound sample file used by this Sound data-block"
 msgstr "Mẫu vật âm thanh của Cục Dữ Liệu Ăm Thanh này đang dùng"
-
-
-msgid "Samplerate of the audio in Hz"
-msgstr "Tốc độ mẫu cũa âm thanh (Hz)"
 
 
 msgid "Caching"
@@ -29035,10 +28995,6 @@ msgid "File format expects linear color space"
 msgstr "Dạng định tập tin định có không gian tuyến tính"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Cài đặt bộ hóa giải mã cho OpenEXR"
-
-
 msgid "JP2"
 msgstr "JP2"
 
@@ -29087,16 +29043,8 @@ msgid "Cinema (48)"
 msgstr "Cinema (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Sử dụng Cinema Openjpeg Đặt Sẵn (48 bức ảnh/giây)"
-
-
 msgid "Cinema"
 msgstr "Cinema"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Sử dụng Cinema Openjpeg Đặt Sẵn"
 
 
 msgid "YCC"
@@ -33057,10 +33005,6 @@ msgid "F-Curve Context Menu"
 msgstr "Danh Bạ Cong-F"
 
 
-msgid "Slider Operators"
-msgstr "Thao Tác Trơn Trượt"
-
-
 msgid "Mask Context Menu"
 msgstr "Mặt Nạ Danh Bạ Bối Cảnh"
 
@@ -34183,10 +34127,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "Đỉnh trong một cục dữ liệu mạng Lưới"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "Quyền lượng bộ điều chỉnh Cạnh Tròn được dùng cho tùy chọn 'Chỉ Đỉnh'"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "Quyền lượng của các nhóm đỉnh thì đỉnh này được làm nhân viên"
 
@@ -34297,10 +34237,6 @@ msgstr "Kích Cỡ Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "Dùng độ cứng để xác định tô đầy bao nhiêu của phần tử"
-
-
-msgid "Metaball types"
-msgstr "Loại siêu cầu"
 
 
 msgid "Ball"
@@ -35313,10 +35249,6 @@ msgstr "Chỉnh méo sai lầm từ sự méo hóa"
 
 msgid "Lambda Factor"
 msgstr "Hệ Số Lambda"
-
-
-msgid "Smooth factor effect"
-msgstr "Hệ số hiệu ứng mịn hóa"
 
 
 msgid "Bind current shape"
@@ -37634,10 +37566,6 @@ msgid "Flat Faces"
 msgstr "Mặt Bằng Phẳng"
 
 
-msgid "Make faces use the minimal vertex weight assigned to their vertices(ensures new faces remain parallel to their original ones, slow, disable when not needed)"
-msgstr "Bắt buộc mặt dùng quyền lượng đỉnh cực tiểu được chỉ định đến các đỉnh (giúp đỡ giữ mặt mới còn song song với mặt ban đầu. Chậm chạp, nên tắt nếu không cần dùng)"
-
-
 msgid "Flip Normals"
 msgstr "Lật Pháp Tuyến"
 
@@ -38439,10 +38367,6 @@ msgstr "Vi Trí Bắt Đầu Y"
 
 msgid "Y coordinate of the start position"
 msgstr "Tọa độ Y của vị trị bắt đầu"
-
-
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "Bức ảnh đầu (cho tốc độ dương) hay bức ảnh cuối (cho tốc độ âm)"
 
 
 msgid "Cyclic wave effect"
@@ -40911,10 +40835,6 @@ msgstr "ITU 601"
 
 msgid "ITU 709"
 msgstr "ITU 709"
-
-
-msgid "Jpeg"
-msgstr "JPEG"
 
 
 msgid "Combine YUVA"
@@ -62100,10 +62020,6 @@ msgid "Move a node to detach links"
 msgstr "Di chuyển giao điểm để gỡ liên kết"
 
 
-msgid "Insert Offset"
-msgstr "Chèn Nới Ra"
-
-
 msgid "Detach Links"
 msgstr "Gỡ Liên Kết"
 
@@ -74104,12 +74020,8 @@ msgid "Fraction"
 msgstr "Phân Số"
 
 
-msgid "Rotate islands for best fit"
-msgstr "Xoay đảo cho vừa nhất"
-
-
-msgid "Bounding box"
-msgstr "Hộp bao quanh"
+msgid "Pack"
+msgstr "Gói Lại"
 
 
 msgid "Pack to"
@@ -83904,10 +83816,6 @@ msgid "Tap Key Timeout"
 msgstr "Hết Hạn Bấm Nút"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "Nút danh bạ quạt lâu hơn này sẽ dẹp danh bạ khi thả nút. (đơn vi 1/100 giây)"
-
-
 msgid "Render Display Type"
 msgstr "Loại Hiển Thị Kết Xuất"
 
@@ -88586,10 +88494,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -103006,10 +102910,6 @@ msgid "Buffer"
 msgstr "Đệm"
 
 
-msgid "Sample Rate"
-msgstr "Tốc Độ Mẫu Vật"
-
-
 msgid "Custom (%.4g fps)"
 msgstr "Tùy Chọn (%.4g bức ảnh/giây)"
 
@@ -105649,10 +105549,6 @@ msgstr "Thêm Tiến Triển"
 
 msgid "Unpack"
 msgstr "Gỡ Gói"
-
-
-msgid "Pack"
-msgstr "Gói Lại"
 
 
 msgid "Original frame range: %d-%d (%d)"
@@ -118594,6 +118490,10 @@ msgid "Determinator"
 msgstr "Định Thức"
 
 
+msgid "Bounding box"
+msgstr "Hộp bao quanh"
+
+
 msgid "Color Space:"
 msgstr "Không Gian Màu:"
 
@@ -119724,6 +119624,10 @@ msgstr "Phóng to thể tích nhỏ hơn mức OpenVDB cho phép dùng"
 
 msgid "Faces to consider when packing islands"
 msgstr "Các mặt cho tính toán khi ém hòn đảo"
+
+
+msgid "Rotate islands for best fit"
+msgstr "Xoay đảo cho vừa nhất"
 
 
 msgid "Faces to participate in the unwrap operation"

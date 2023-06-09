@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2003-2009 Blender Foundation.
- *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2003-2009 Blender Foundation.
+ * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -113,7 +114,7 @@ static void seq_add_set_view_transform(Scene *scene, Sequence *seq, SeqLoadData 
     role_colorspace_byte = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
 
     if (STREQ(strip_colorspace, role_colorspace_byte)) {
-      struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+      ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
           scene->display_settings.display_device);
       const char *default_view_transform =
           IMB_colormanagement_display_get_default_view_transform_name(display);
@@ -122,7 +123,7 @@ static void seq_add_set_view_transform(Scene *scene, Sequence *seq, SeqLoadData 
   }
 }
 
-Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SCENE);
@@ -134,7 +135,7 @@ Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDat
   return seq;
 }
 
-Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIECLIP);
@@ -146,7 +147,7 @@ Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoa
   return seq;
 }
 
-Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MASK);
@@ -158,7 +159,7 @@ Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData
   return seq;
 }
 
-Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData *load_data)
+Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, load_data->effect.type);
@@ -514,7 +515,6 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
 void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const bool lock_range)
 {
-  char path[FILE_MAX];
   int prev_startdisp = 0, prev_enddisp = 0;
   /* NOTE: don't rename the strip, will break animation curves. */
 
@@ -550,13 +550,15 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       break;
     }
     case SEQ_TYPE_MOVIE: {
+      char filepath[FILE_MAX];
       StripAnim *sanim;
       bool is_multiview_loaded = false;
       const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                                 (scene->r.scemode & R_MULTIVIEW) != 0;
 
-      BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-      BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+      BLI_path_join(
+          filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
       SEQ_relations_sequence_free_anim(seq);
 
@@ -566,15 +568,15 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
         const int totfiles = seq_num_files(scene, seq->views_format, true);
         int i = 0;
 
-        BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
+        BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
             struct anim *anim;
-            char filepath[FILE_MAX];
+            char filepath_view[FILE_MAX];
 
-            seq_multiview_name(scene, i, prefix, ext, filepath, sizeof(filepath));
-            anim = openanim(filepath,
+            seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
+            anim = openanim(filepath_view,
                             IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                             seq->streamindex,
                             seq->strip->colorspace_settings.name);
@@ -592,7 +594,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
       if (is_multiview_loaded == false) {
         struct anim *anim;
-        anim = openanim(path,
+        anim = openanim(filepath,
                         IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                         seq->streamindex,
                         seq->strip->colorspace_settings.name);
@@ -683,11 +685,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
   SEQ_relations_invalidate_cache_raw(scene, seq);
 }
 
-void SEQ_add_movie_reload_if_needed(struct Main *bmain,
-                                    struct Scene *scene,
-                                    struct Sequence *seq,
-                                    bool *r_was_reloaded,
-                                    bool *r_can_produce_frames)
+void SEQ_add_movie_reload_if_needed(
+    Main *bmain, Scene *scene, Sequence *seq, bool *r_was_reloaded, bool *r_can_produce_frames)
 {
   BLI_assert(seq->type == SEQ_TYPE_MOVIE ||
              !"This function is only implemented for movie strips.");

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -1603,7 +1605,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 /** \name Quaternion Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Quaternion_methods[] = {
+static PyMethodDef Quaternion_methods[] = {
     /* In place only. */
     {"identity", (PyCFunction)Quaternion_identity, METH_NOARGS, Quaternion_identity_doc},
     {"negate", (PyCFunction)Quaternion_negate, METH_NOARGS, Quaternion_negate_doc},

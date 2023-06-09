@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -81,7 +82,7 @@ struct RenderJob {
    */
   Depsgraph *depsgraph;
   Render *re;
-  struct Object *camera_override;
+  Object *camera_override;
   bool v3d_override;
   bool anim, write_still;
   Image *image;
@@ -311,7 +312,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   Main *mainp = CTX_data_main(C);
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
 
   /* Cannot do render if there is not this function. */
   if (re_type->render == nullptr) {
@@ -938,7 +939,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
   View3D *v3d = use_viewport ? CTX_wm_view3d(C) : nullptr;
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
   const char *name;
   ScrArea *area;
 
@@ -1087,7 +1088,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   RE_current_scene_update_cb(re, rj, current_scene_update);
   RE_stats_draw_cb(re, rj, image_renderinfo_cb);
   RE_progress_cb(re, rj, render_progress_update);
-  RE_gl_context_create(re);
+  RE_system_gpu_context_create(re);
 
   rj->re = re;
   G.is_break = false;

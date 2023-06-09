@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1930,7 +1931,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tex_co[1] = tex_co[1] * 2.0f - 1.0f;
           tex_co[2] = ffs->texture_offset;
         }
-        BKE_texture_get_value(nullptr, ffs->noise_texture, tex_co, &texres, false);
+        BKE_texture_get_value(ffs->noise_texture, tex_co, &texres, false);
         emission_strength *= texres.tin;
       }
     }

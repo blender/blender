@@ -764,20 +764,26 @@ class NODE_PT_quality(bpy.types.Panel):
         tree = snode.node_tree
         prefs = bpy.context.preferences
 
+        use_realtime = False
         col = layout.column()
-        if prefs.experimental.use_full_frame_compositor:
+        if prefs.experimental.use_experimental_compositors:
             col.prop(tree, "execution_mode")
+            use_realtime = tree.execution_mode == 'REALTIME'
 
+        col = layout.column()
+        col.active = not use_realtime
         col.prop(tree, "render_quality", text="Render")
         col.prop(tree, "edit_quality", text="Edit")
         col.prop(tree, "chunk_size")
 
         col = layout.column()
+        col.active = not use_realtime
         col.prop(tree, "use_opencl")
         col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
-        col.separator()
+
+        col = layout.column()
         col.prop(snode, "use_auto_render")
 
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -860,6 +861,7 @@ class Texture : NonCopyable {
     }
     GPU_TEXTURE_FREE_SAFE(stencil_view_);
     mip_views_.clear();
+    layer_views_.clear();
   }
 
   /**

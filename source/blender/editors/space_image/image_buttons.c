@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -48,7 +49,7 @@
 #define B_NOP -1
 #define MAX_IMAGE_INFO_LEN 128
 
-struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
+ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
   bNode *node;
 
@@ -961,7 +962,10 @@ void uiTemplateImage(uiLayout *layout,
   UI_block_funcN_set(block, NULL, NULL, NULL);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
+void uiTemplateImageSettings(uiLayout *layout,
+                             PointerRNA *imfptr,
+                             bool color_management,
+                             bool show_z_buffer)
 {
   ImageFormatData *imf = imfptr->data;
   ID *id = imfptr->owner_id;
@@ -1013,7 +1017,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
     uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
   }
 
-  if (BKE_imtype_supports_zbuf(imf->imtype)) {
+  if (BKE_imtype_supports_zbuf(imf->imtype) && show_z_buffer) {
     uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
   }
 

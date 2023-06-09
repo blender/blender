@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -238,7 +239,7 @@ static void seq_snap_target_points_build(Scene *scene,
 static int seq_snap_threshold_get_frame_distance(const TransInfo *t)
 {
   const int snap_distance = SEQ_tool_settings_snap_distance_get(t->scene);
-  const struct View2D *v2d = &t->region->v2d;
+  const View2D *v2d = &t->region->v2d;
   return round_fl_to_int(UI_view2d_region_to_view_x(v2d, snap_distance) -
                          UI_view2d_region_to_view_x(v2d, 0));
 }
@@ -386,7 +387,7 @@ bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
   return validSnap(&t);
 }
 
-void ED_draw_sequencer_snap_point(struct bContext *C, float snap_point)
+void ED_draw_sequencer_snap_point(bContext *C, float snap_point)
 {
   /* Reuse the snapping drawing code from the transform system. */
   TransInfo t;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -158,29 +159,57 @@ static void init_mode_impl(TransInfo *t)
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
-
-  t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
-void initEgdeCrease(TransInfo *t)
+static void initEgdeCrease(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   init_mode_impl(t);
   t->mode = TFM_EDGE_CREASE;
-  t->transform = applyCrease;
 }
 
-void initVertCrease(TransInfo *t)
+static void initVertCrease(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   init_mode_impl(t);
   t->mode = TFM_VERT_CREASE;
-  t->transform = applyCrease;
 }
 
-void initBevelWeight(TransInfo *t)
+static void initBevelWeight(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   init_mode_impl(t);
   t->mode = TFM_BWEIGHT;
-  t->transform = applyBevelWeight;
 }
 
 /** \} */
+
+TransModeInfo TransMode_edgecrease = {
+    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*init_fn*/ initEgdeCrease,
+    /*transform_fn*/ applyCrease,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};
+
+TransModeInfo TransMode_vertcrease = {
+    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*init_fn*/ initVertCrease,
+    /*transform_fn*/ applyCrease,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};
+
+TransModeInfo TransMode_bevelweight = {
+    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*init_fn*/ initBevelWeight,
+    /*transform_fn*/ applyBevelWeight,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

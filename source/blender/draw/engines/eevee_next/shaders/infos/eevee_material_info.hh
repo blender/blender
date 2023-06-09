@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
@@ -105,7 +107,8 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .additional_info("eevee_camera",
                      "eevee_utility_texture",
                      "eevee_sampling_data",
-                     "eevee_render_pass_out",
+                     /* Added at runtime because of test shaders not having `node_tree`. */
+                     //  "eevee_render_pass_out",
                      "eevee_cryptomatte_out");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)

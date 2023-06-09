@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -37,6 +39,38 @@ void BKE_asset_metadata_free(AssetMetaData **asset_data)
   *asset_data = nullptr;
 }
 
+AssetMetaData *BKE_asset_metadata_copy(const AssetMetaData *source)
+{
+  AssetMetaData *copy = BKE_asset_metadata_create();
+
+  copy->local_type_info = source->local_type_info;
+
+  if (source->properties) {
+    copy->properties = IDP_CopyProperty(source->properties);
+  }
+
+  BKE_asset_metadata_catalog_id_set(copy, source->catalog_id, source->catalog_simple_name);
+
+  if (source->author) {
+    copy->author = BLI_strdup(source->author);
+  }
+  if (source->description) {
+    copy->description = BLI_strdup(source->description);
+  }
+  if (source->copyright) {
+    copy->copyright = BLI_strdup(source->copyright);
+  }
+  if (source->license) {
+    copy->license = BLI_strdup(source->license);
+  }
+
+  BLI_duplicatelist(&copy->tags, &source->tags);
+  copy->active_tag = source->active_tag;
+  copy->tot_tags = source->tot_tags;
+
+  return copy;
+}
+
 AssetMetaData::~AssetMetaData()
 {
   if (properties) {
@@ -69,10 +103,9 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
   return tag;
 }
 
-struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
-                                                          const char *name)
+AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data, const char *name)
 {
-  struct AssetTagEnsureResult result = {nullptr};
+  AssetTagEnsureResult result = {nullptr};
   if (!name[0]) {
     return result;
   }
@@ -106,13 +139,13 @@ void BKE_asset_library_reference_init_default(AssetLibraryReference *library_ref
   memcpy(library_ref, DNA_struct_default_get(AssetLibraryReference), sizeof(*library_ref));
 }
 
-void BKE_asset_metadata_catalog_id_clear(struct AssetMetaData *asset_data)
+void BKE_asset_metadata_catalog_id_clear(AssetMetaData *asset_data)
 {
   asset_data->catalog_id = BLI_uuid_nil();
   asset_data->catalog_simple_name[0] = '\0';
 }
 
-void BKE_asset_metadata_catalog_id_set(struct AssetMetaData *asset_data,
+void BKE_asset_metadata_catalog_id_set(AssetMetaData *asset_data,
                                        const ::bUUID catalog_id,
                                        const char *catalog_simple_name)
 {

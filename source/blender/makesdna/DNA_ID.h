@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -710,6 +711,15 @@ enum {
    * was kept around (because e.g. detected as user-edited).
    */
   LIB_LIB_OVERRIDE_RESYNC_LEFTOVER = 1 << 13,
+  /**
+   * This `id` was explicitly copied as part of a clipboard copy operation.
+   * When reading the clipboard back, this can be used to check which ID's are
+   * intended to be part of the clipboard, compared with ID's that were indirectly referenced.
+   *
+   * While the flag is typically cleared, a saved file may have this set for some data-blocks,
+   * so it must be treated as dirty.
+   */
+  LIB_CLIPBOARD_MARK = 1 << 14,
 };
 
 /**
@@ -864,12 +874,23 @@ enum {
    */
   LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED = 1 << 17,
   /**
-   * ID has be re-read in-place, the ID address is the same as in the old BMain, but the content is
+   * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
+   * processing, because it is a 'NO_UNDO' type of ID.
+   *
+   * \note: Also means that such ID does not need to be lib-linked during undo readfile process. It
+   * does need to be relinked in a different way however, doing a `session_uuid`-based lookup into
+   * the newly read main database.
+   *
+   * RESET_AFTER_USE
+   */
+  LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO = 1 << 18,
+  /**
+   * ID has be re-read in-place, the ID address is the same as in the old main, but the content is
    * different.
    *
    * RESET_AFTER_USE
    */
-  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 18,
+  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 19,
 
   /* ------------------------------------------------------------------------------------------- */
   /**
@@ -1010,7 +1031,7 @@ typedef enum IDRecalcFlag {
    * changed, and the shader is to be recompiled.
    * For objects it means that the draw batch cache is to be redone. */
   ID_RECALC_SHADING = (1 << 7),
-  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMATERS
+  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMETERS
    * which can be used for cases when only socket value changed, to speed up
    * redraw update in that case. */
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sim
@@ -51,8 +52,6 @@ static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 #      defineDO_INLINE static
 #    endif
 #  endif /* if 0 */
-
-struct Cloth;
 
 //////////////////////////////////////////
 /* fast vector / matrix library, enhancements are welcome :) -dg */
@@ -1209,10 +1208,7 @@ void SIM_mass_spring_set_velocity(Implicit_Data *data, int index, const float v[
   world_to_root_v3(data, index, data->V[index], v);
 }
 
-void SIM_mass_spring_get_motion_state(struct Implicit_Data *data,
-                                      int index,
-                                      float x[3],
-                                      float v[3])
+void SIM_mass_spring_get_motion_state(Implicit_Data *data, int index, float x[3], float v[3])
 {
   if (x) {
     root_to_world_v3(data, index, x, data->X[index]);
@@ -1222,32 +1218,32 @@ void SIM_mass_spring_get_motion_state(struct Implicit_Data *data,
   }
 }
 
-void SIM_mass_spring_get_position(struct Implicit_Data *data, int index, float x[3])
+void SIM_mass_spring_get_position(Implicit_Data *data, int index, float x[3])
 {
   root_to_world_v3(data, index, x, data->X[index]);
 }
 
-void SIM_mass_spring_get_velocity(struct Implicit_Data *data, int index, float v[3])
+void SIM_mass_spring_get_velocity(Implicit_Data *data, int index, float v[3])
 {
   root_to_world_v3(data, index, v, data->V[index]);
 }
 
-void SIM_mass_spring_get_new_position(struct Implicit_Data *data, int index, float x[3])
+void SIM_mass_spring_get_new_position(Implicit_Data *data, int index, float x[3])
 {
   root_to_world_v3(data, index, x, data->Xnew[index]);
 }
 
-void SIM_mass_spring_set_new_position(struct Implicit_Data *data, int index, const float x[3])
+void SIM_mass_spring_set_new_position(Implicit_Data *data, int index, const float x[3])
 {
   world_to_root_v3(data, index, data->Xnew[index], x);
 }
 
-void SIM_mass_spring_get_new_velocity(struct Implicit_Data *data, int index, float v[3])
+void SIM_mass_spring_get_new_velocity(Implicit_Data *data, int index, float v[3])
 {
   root_to_world_v3(data, index, v, data->Vnew[index]);
 }
 
-void SIM_mass_spring_set_new_velocity(struct Implicit_Data *data, int index, const float v[3])
+void SIM_mass_spring_set_new_velocity(Implicit_Data *data, int index, const float v[3])
 {
   world_to_root_v3(data, index, data->Vnew[index], v);
 }
@@ -1418,7 +1414,7 @@ void SIM_mass_spring_force_drag(Implicit_Data *data, float drag)
 }
 
 void SIM_mass_spring_force_extern(
-    struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3])
+    Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3])
 {
   float tf[3], tdfdx[3][3], tdfdv[3][3];
   world_to_root_v3(data, i, tf, f);
@@ -1524,7 +1520,7 @@ float SIM_tri_tetra_volume_signed_6x(Implicit_Data *data, int v1, int v2, int v3
   return volume_tri_tetrahedron_signed_v3_6x(data->X[v1], data->X[v2], data->X[v3]);
 }
 
-float SIM_tri_area(struct Implicit_Data *data, int v1, int v2, int v3)
+float SIM_tri_area(Implicit_Data *data, int v1, int v2, int v3)
 {
   float nor[3];
 

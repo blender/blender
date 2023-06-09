@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -2810,7 +2811,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
  * \{ */
 
 struct BMFaceLink {
-  struct BMFaceLink *next, *prev;
+  BMFaceLink *next, *prev;
   BMFace *face;
   float area;
 };

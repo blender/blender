@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -328,7 +330,7 @@ SDNA_DEFAULT_DECL_STRUCT(EnvelopeGpencilModifierData);
 #undef SDNA_DEFAULT_DECL_STRUCT
 
 /* Reuse existing definitions. */
-extern const struct UserDef U_default;
+extern const UserDef U_default;
 #define DNA_DEFAULT_UserDef U_default
 
 extern const bTheme U_theme_default;

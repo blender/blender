@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2001-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -256,7 +257,7 @@ static int light_linking_unlink_from_collection_exec(bContext *C, wmOperator *op
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_light_linking_unlink_from_collection(struct wmOperatorType *ot)
+void OBJECT_OT_light_linking_unlink_from_collection(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove From Light Linking Collection";

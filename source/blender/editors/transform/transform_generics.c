@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -185,8 +186,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   copy_v2_v2_int(t->mouse.imval, mval);
   copy_v2_v2_int(t->con.imval, mval);
 
-  t->transform = NULL;
-  t->handleEvent = NULL;
+  t->mode_info = NULL;
 
   t->data_len_all = 0;
 
@@ -629,21 +629,19 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->options |= CTX_NO_PET;
   }
 
-  if (t->obedit_type == OB_MESH) {
-    if (op && (prop = RNA_struct_find_property(op->ptr, "use_automerge_and_split")) &&
-        RNA_property_is_set(op->ptr, prop))
-    {
-      if (RNA_property_boolean_get(op->ptr, prop)) {
-        t->flag |= T_AUTOMERGE | T_AUTOSPLIT;
-      }
+  if (op && (prop = RNA_struct_find_property(op->ptr, "use_automerge_and_split")) &&
+      RNA_property_is_set(op->ptr, prop))
+  {
+    if (RNA_property_boolean_get(op->ptr, prop)) {
+      t->flag |= T_AUTOMERGE | T_AUTOSPLIT;
     }
-    else {
-      char automerge = t->scene->toolsettings->automerge;
-      if (automerge & AUTO_MERGE) {
-        t->flag |= T_AUTOMERGE;
-        if (automerge & AUTO_MERGE_AND_SPLIT) {
-          t->flag |= T_AUTOSPLIT;
-        }
+  }
+  else if (t->obedit_type == OB_MESH) {
+    char automerge = t->scene->toolsettings->automerge;
+    if (automerge & AUTO_MERGE) {
+      t->flag |= T_AUTOMERGE;
+      if (automerge & AUTO_MERGE_AND_SPLIT) {
+        t->flag |= T_AUTOSPLIT;
       }
     }
   }
@@ -660,7 +658,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->flag |= T_NO_CURSOR_WRAP;
   }
 
-  if (op && (t->flag & T_MODAL) && !(t->flag & T_RELEASE_CONFIRM) &&
+  if (op && (t->flag & T_MODAL) &&
       (prop = RNA_struct_find_property(op->ptr, "allow_navigation")) &&
       RNA_property_boolean_get(op->ptr, prop))
   {

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -36,6 +37,7 @@ set(INC
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
   ../../../extern/curve_fit_nd
+  ../../../extern/fmtlib/include
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -562,6 +564,7 @@ set(LIB
   bf_rna
   bf_shader_fx
   bf_simulation
+  extern_fmtlib
 
   # For `vfontdata_freetype.c`.
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}

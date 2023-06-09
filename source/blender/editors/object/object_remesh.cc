@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -652,11 +653,11 @@ enum eSymmetryAxes {
 
 struct QuadriFlowJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
 
-  const struct wmOperator *op;
+  const wmOperator *op;
   Scene *scene;
   int target_faces;
   int seed;

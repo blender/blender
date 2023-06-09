@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -181,11 +182,9 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
   }
 }
 
-struct Main *BLO_memfile_main_get(struct MemFile *memfile,
-                                  struct Main *bmain,
-                                  struct Scene **r_scene)
+Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene)
 {
-  struct Main *bmain_undo = nullptr;
+  Main *bmain_undo = nullptr;
   BlendFileReadParams read_params{};
   BlendFileData *bfd = BLO_read_from_memfile(
       bmain, BKE_main_blendfile_path(bmain), memfile, &read_params, nullptr);
@@ -202,12 +201,12 @@ struct Main *BLO_memfile_main_get(struct MemFile *memfile,
   return bmain_undo;
 }
 
-bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath)
+bool BLO_memfile_write_file(MemFile *memfile, const char *filepath)
 {
   MemFileChunk *chunk;
   int file, oflags;
 
-  /* NOTE: This is currently used for autosave and 'quit.blend',
+  /* NOTE: This is currently used for auto-save and `quit.blend`,
    * where _not_ following symlinks is OK,
    * however if this is ever executed explicitly by the user,
    * we may want to allow writing to symlinks.

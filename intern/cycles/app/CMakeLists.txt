@@ -119,3 +119,22 @@ if(WITH_CYCLES_STANDALONE)
     $<TARGET_FILE:cycles>
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
+
+if(WITH_CYCLES_PRECOMPUTE)
+  set(SRC
+    cycles_precompute.cpp
+  )
+
+  add_executable(cycles_precompute ${SRC} ${INC} ${INC_SYS})
+  unset(SRC)
+
+  target_link_libraries(cycles_precompute PRIVATE ${LIB})
+
+  if(UNIX AND NOT APPLE)
+    set_target_properties(cycles_precompute PROPERTIES INSTALL_RPATH $ORIGIN/lib)
+  endif()
+
+  install(PROGRAMS
+    $<TARGET_FILE:cycles_precompute>
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()

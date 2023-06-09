@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -526,7 +528,7 @@ int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int flo
 }
 
 #ifndef MATH_STANDALONE
-PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
+PyObject *mathutils_dynstr_to_py(DynStr *ds)
 {
   const int ds_len = BLI_dynstr_get_len(ds); /* space for \0 */
   char *ds_buf = PyMem_Malloc(ds_len + 1);
@@ -765,11 +767,11 @@ PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_t
 }
 
 /*----------------------------MODULE INIT-------------------------*/
-static struct PyMethodDef M_Mathutils_methods[] = {
+static PyMethodDef M_Mathutils_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Mathutils_module_def = {
+static PyModuleDef M_Mathutils_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils",
     /*m_doc*/ M_Mathutils_doc,

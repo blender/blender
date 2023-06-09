@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -261,6 +262,13 @@ enum {
 #define UI_SIDEBAR_PANEL_WIDTH 220
 #define UI_NAVIGATION_REGION_WIDTH UI_COMPACT_PANEL_WIDTH
 #define UI_NARROW_NAVIGATION_REGION_WIDTH 100
+
+/* The width of one icon column of the Toolbar. */
+#define UI_TOOLBAR_COLUMN (1.25f * ICON_DEFAULT_HEIGHT_TOOLBAR)
+/* The space between the Toolbar and the area's edge. */
+#define UI_TOOLBAR_MARGIN (0.5f * ICON_DEFAULT_HEIGHT_TOOLBAR)
+/* Total width of Toolbar showing one icon column. */
+#define UI_TOOLBAR_WIDTH UI_TOOLBAR_MARGIN + UI_TOOLBAR_COLUMN
 
 #define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 1.0f)
 
@@ -551,7 +559,6 @@ typedef void (*uiButSearchListenFn)(const struct wmRegionListenerParams *params,
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
-typedef int (*uiButPushedStateFunc)(struct uiBut *but, const void *arg);
 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 
@@ -1757,8 +1764,6 @@ void UI_but_focus_on_enter_event(struct wmWindow *win, uiBut *but);
 
 void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN);
 
-void UI_but_func_pushed_state_set(uiBut *but, uiButPushedStateFunc func, const void *arg);
-
 struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                                   const char *opname,
                                                   wmOperatorCallContext opcontext,
@@ -2410,7 +2415,10 @@ void uiTemplateImage(uiLayout *layout,
                      struct PointerRNA *userptr,
                      bool compact,
                      bool multiview);
-void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, bool color_management);
+void uiTemplateImageSettings(uiLayout *layout,
+                             struct PointerRNA *imfptr,
+                             bool color_management,
+                             bool show_z_buffer);
 void uiTemplateImageStereo3d(uiLayout *layout, struct PointerRNA *stereo3d_format_ptr);
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imaptr);
 void uiTemplateImageFormatViews(uiLayout *layout,

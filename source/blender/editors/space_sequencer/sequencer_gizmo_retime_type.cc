@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -224,7 +225,9 @@ static void gizmo_retime_handle_add_draw(const bContext *C, wmGizmo *gz)
   const int frame_index = BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(seq);
   const SeqRetimingHandle *handle = SEQ_retiming_find_segment_start_handle(seq, frame_index);
 
-  if (handle != nullptr && SEQ_retiming_handle_is_transition_type(handle)) {
+  if (handle != nullptr && (SEQ_retiming_handle_is_transition_type(handle) ||
+                            SEQ_retiming_handle_is_freeze_frame(handle)))
+  {
     return;
   }
 
@@ -320,11 +323,17 @@ void GIZMO_GT_retime_handle_add(wmGizmoType *gzt)
 /** \name Retiming Move Handle Gizmo
  * \{ */
 
+enum eHandleMoveOperation {
+  DEFAULT_MOVE,
+  MAKE_TRANSITION,
+  MAKE_FREEZE_FRAME,
+};
+
 typedef struct RetimeHandleMoveGizmo {
   wmGizmo gizmo;
   const Sequence *mouse_over_seq;
   int mouse_over_handle_x;
-  bool create_transition_operation;
+  eHandleMoveOperation operation;
 } RetimeHandleMoveGizmo;
 
 static void retime_handle_draw(const bContext *C,
@@ -357,12 +366,21 @@ static void retime_handle_draw(const bContext *C,
   float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   if (seq == gizmo->mouse_over_seq && handle_x == gizmo->mouse_over_handle_x) {
-    if (gizmo->create_transition_operation) {
-      bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
-      bool prev_handle_is_transition = SEQ_retiming_handle_is_transition_type(handle - 1);
-      if (!(handle_is_transition || prev_handle_is_transition)) {
+    bool handle_is_transition = SEQ_retiming_handle_is_transition_type(handle);
+    bool prev_handle_is_transition = SEQ_retiming_handle_is_transition_type(handle - 1);
+    bool handle_is_freeze_frame = SEQ_retiming_handle_is_freeze_frame(handle);
+    bool prev_handle_is_freeze_frame = SEQ_retiming_handle_is_freeze_frame(handle - 1);
+
+    if (!(handle_is_transition || prev_handle_is_transition || handle_is_freeze_frame ||
+          prev_handle_is_freeze_frame))
+    {
+      if (gizmo->operation == MAKE_TRANSITION) {
         col[0] = 0.5f;
         col[2] = 0.4f;
+      }
+      else if (gizmo->operation == MAKE_FREEZE_FRAME) {
+        col[0] = 0.4f;
+        col[1] = 0.8f;
       }
     }
   }
@@ -449,7 +467,16 @@ static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
    * Better solution would be to check operator keymap and display this information in status bar
    * and tool-tip. */
   wmEvent *event = CTX_wm_window(C)->eventstate;
-  gizmo->create_transition_operation = (event->modifier & KM_SHIFT) != 0;
+
+  if ((event->modifier & KM_SHIFT) != 0) {
+    gizmo->operation = MAKE_TRANSITION;
+  }
+  else if ((event->modifier & KM_CTRL) != 0) {
+    gizmo->operation = MAKE_FREEZE_FRAME;
+  }
+  else {
+    gizmo->operation = DEFAULT_MOVE;
+  }
 
   wmOrtho2_region_pixelspace(CTX_wm_region(C));
   GPU_blend(GPU_BLEND_ALPHA);

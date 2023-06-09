@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -68,7 +70,7 @@ typedef struct BLI_memiter_chunk {
 
 typedef struct BLI_memiter {
   /* A pointer to 'head' is needed so we can iterate in the order allocated. */
-  struct BLI_memiter_chunk *head, *tail;
+  BLI_memiter_chunk *head, *tail;
   data_t *data_curr;
   data_t *data_last;
   /* Used unless a large element is requested.

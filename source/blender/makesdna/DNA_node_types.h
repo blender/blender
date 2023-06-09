@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -229,7 +230,6 @@ typedef enum eNodeSocketDatatype {
   SOCK_RGBA = 2,
   SOCK_SHADER = 3,
   SOCK_BOOLEAN = 4,
-  __SOCK_MESH = 5, /* deprecated */
   SOCK_INT = 6,
   SOCK_STRING = 7,
   SOCK_OBJECT = 8,
@@ -683,6 +683,7 @@ typedef struct bNodeTree {
 typedef enum eNodeTreeExecutionMode {
   NTREE_EXECUTION_MODE_TILED = 0,
   NTREE_EXECUTION_MODE_FULL_FRAME = 1,
+  NTREE_EXECUTION_MODE_REALTIME = 2,
 } eNodeTreeExecutionMode;
 
 typedef enum eNodeTreeRuntimeFlag {
@@ -879,6 +880,12 @@ typedef struct NodeBilateralBlurData {
   short iter;
   char _pad[2];
 } NodeBilateralBlurData;
+
+typedef struct NodeKuwaharaData {
+  short size;
+  short variation;
+  int smoothing;
+} NodeKuwaharaData;
 
 typedef struct NodeAntiAliasingData {
   float threshold;
@@ -2134,6 +2141,12 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_STREAKS = 2,
   CMP_NODE_GLARE_GHOST = 3,
 } CMPNodeGlareType;
+
+/* Kuwahara Node. Stored in variation */
+typedef enum CMPNodeKuwahara {
+  CMP_NODE_KUWAHARA_CLASSIC = 0,
+  CMP_NODE_KUWAHARA_ANISOTROPIC = 1,
+} CMPNodeKuwahara;
 
 /* Stabilize 2D node. Stored in custom1. */
 typedef enum CMPNodeStabilizeInterpolation {

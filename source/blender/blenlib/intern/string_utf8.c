@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * Code from gutf8.c Copyright 1999 Tom Tromey
  *                   Copyright 2000 Red Hat, Inc.
  * All rights reserved. */

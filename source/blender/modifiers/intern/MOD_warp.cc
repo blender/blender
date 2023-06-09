@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -297,9 +299,8 @@ static void warpModifier_do(WarpModifierData *wmd,
       fac *= weight;
 
       if (tex_co) {
-        Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
         TexResult texres;
-        BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
+        BKE_texture_get_value(tex_target, tex_co[i], &texres, false);
         fac *= texres.tin;
       }
 
@@ -345,7 +346,7 @@ static void deformVerts(ModifierData *md,
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
   }
 
   warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
@@ -367,7 +368,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr);
   }
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */

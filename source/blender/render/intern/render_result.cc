@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -401,7 +402,7 @@ void RE_create_render_pass(RenderResult *rr,
   }
 }
 
-void RE_pass_set_buffer_data(struct RenderPass *pass, float *data)
+void RE_pass_set_buffer_data(RenderPass *pass, float *data)
 {
   RE_RenderBuffer_assign_data(&pass->buffer, data);
 }

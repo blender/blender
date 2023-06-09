@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -147,8 +148,7 @@ void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz)
 /** \name wmGizmoMap
  * \{ */
 
-static wmGizmoMap *wm_gizmomap_new_from_type_ex(struct wmGizmoMapType *gzmap_type,
-                                                wmGizmoMap *gzmap)
+static wmGizmoMap *wm_gizmomap_new_from_type_ex(wmGizmoMapType *gzmap_type, wmGizmoMap *gzmap)
 {
   gzmap->type = gzmap_type;
   gzmap->is_init = true;
@@ -199,7 +199,7 @@ void WM_gizmomap_reinit(wmGizmoMap *gzmap)
   wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
 }
 
-wmGizmoGroup *WM_gizmomap_group_find(struct wmGizmoMap *gzmap, const char *idname)
+wmGizmoGroup *WM_gizmomap_group_find(wmGizmoMap *gzmap, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   if (gzgt) {
@@ -208,8 +208,7 @@ wmGizmoGroup *WM_gizmomap_group_find(struct wmGizmoMap *gzmap, const char *idnam
   return NULL;
 }
 
-wmGizmoGroup *WM_gizmomap_group_find_ptr(struct wmGizmoMap *gzmap,
-                                         const struct wmGizmoGroupType *gzgt)
+wmGizmoGroup *WM_gizmomap_group_find_ptr(wmGizmoMap *gzmap, const wmGizmoGroupType *gzgt)
 {
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     if (gzgroup->type == gzgt) {
@@ -1070,7 +1069,7 @@ void wm_gizmomap_modal_set(
       gzmap->gzmap_context.event_xy[0] = INT_MAX;
     }
 
-    struct wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
+    wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
     if (gzop && gzop->type) {
       const int retval = WM_gizmo_operator_invoke(C, gz, gzop, event);
       if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
@@ -1190,11 +1189,11 @@ void WM_gizmomap_message_subscribe(const bContext *C,
 /** \name Tooltip Handling
  * \{ */
 
-struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
-                                         struct ARegion *region,
-                                         int *UNUSED(r_pass),
-                                         double *UNUSED(pass_delay),
-                                         bool *r_exit_on_event)
+ARegion *WM_gizmomap_tooltip_init(bContext *C,
+                                  ARegion *region,
+                                  int *UNUSED(r_pass),
+                                  double *UNUSED(pass_delay),
+                                  bool *r_exit_on_event)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   *r_exit_on_event = false;
@@ -1305,7 +1304,7 @@ void WM_gizmoconfig_update_tag_group_remove(wmGizmoMap *gzmap)
   wm_gzmap_type_update_flag |= WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
 }
 
-void WM_gizmoconfig_update(struct Main *bmain)
+void WM_gizmoconfig_update(Main *bmain)
 {
   if (G.background) {
     return;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -2180,46 +2182,6 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
       data->data_type = SOCK_RGBA;
       data->factor_mode = NODE_MIX_MODE_UNIFORM;
       node->storage = data;
-    }
-  }
-}
-
-static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_BSDF_GLOSSY_LEGACY) {
-      strcpy(node->idname, "ShaderNodeBsdfAnisotropic");
-      node->type = SH_NODE_BSDF_GLOSSY;
-    }
-  }
-}
-
-static void versioning_remove_microfacet_sharp_distribution(bNodeTree *ntree)
-{
-  /* Find all glossy, glass and refraction BSDF nodes that have their distribution
-   * set to SHARP and set them to GGX, disconnect any link to the Roughness input
-   * and set its value to zero. */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (!ELEM(node->type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION)) {
-      continue;
-    }
-    if (node->custom1 != SHD_GLOSSY_SHARP_DEPRECATED) {
-      continue;
-    }
-
-    node->custom1 = SHD_GLOSSY_GGX;
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      if (!STREQ(socket->identifier, "Roughness")) {
-        continue;
-      }
-
-      if (socket->link != nullptr) {
-        nodeRemLink(ntree, socket->link);
-      }
-      bNodeSocketValueFloat *socket_value = (bNodeSocketValueFloat *)socket->default_value;
-      socket_value->value = 0.0f;
-
-      break;
     }
   }
 }
@@ -4632,25 +4594,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
-    /* Convert anisotropic BSDF node to glossy BSDF. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      versioning_replace_legacy_glossy_node(ntree);
-      versioning_remove_microfacet_sharp_distribution(ntree);
-    }
-    FOREACH_NODETREE_END;
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 306, 11)) {
     BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
 
     /* Store simulation bake directory in geometry nodes modifier. */
@@ -4668,5 +4612,40 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         nmd->simulation_bake_directory = BLI_strdup(bake_dir.c_str());
       }
     }
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          /* #107870: Movie Clip Editor hangs in "Clip" view */
+          if (sl->spacetype == SPACE_CLIP) {
+            const ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                         &sl->regionbase;
+            ARegion *region_main = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                       RGN_TYPE_WINDOW);
+            region_main->flag &= ~RGN_FLAG_HIDDEN;
+            ARegion *region_tools = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                        RGN_TYPE_TOOLS);
+            region_tools->alignment = RGN_ALIGN_LEFT;
+            if (!(region_tools->flag & RGN_FLAG_HIDDEN_BY_USER)) {
+              region_tools->flag &= ~RGN_FLAG_HIDDEN;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_300 in this file.
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

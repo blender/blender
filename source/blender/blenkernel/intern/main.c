@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -152,7 +153,7 @@ void BKE_main_free(Main *mainvar)
   MEM_freeN(mainvar);
 }
 
-bool BKE_main_is_empty(struct Main *bmain)
+bool BKE_main_is_empty(Main *bmain)
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
@@ -162,12 +163,12 @@ bool BKE_main_is_empty(struct Main *bmain)
   return true;
 }
 
-void BKE_main_lock(struct Main *bmain)
+void BKE_main_lock(Main *bmain)
 {
   BLI_spin_lock((SpinLock *)bmain->lock);
 }
 
-void BKE_main_unlock(struct Main *bmain)
+void BKE_main_unlock(Main *bmain)
 {
   BLI_spin_unlock((SpinLock *)bmain->lock);
 }
@@ -271,9 +272,7 @@ void BKE_main_relations_free(Main *bmain)
   }
 }
 
-void BKE_main_relations_tag_set(struct Main *bmain,
-                                const eMainIDRelationsEntryTags tag,
-                                const bool value)
+void BKE_main_relations_tag_set(Main *bmain, const eMainIDRelationsEntryTags tag, const bool value)
 {
   if (bmain->relations == NULL) {
     return;
@@ -493,7 +492,7 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   return img;
 }
 
-void BKE_main_thumbnail_create(struct Main *bmain)
+void BKE_main_thumbnail_create(Main *bmain)
 {
   MEM_SAFE_FREE(bmain->blen_thumb);
 

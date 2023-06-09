@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -104,7 +105,7 @@ typedef struct BVHOverlapData_Shared {
 
 typedef struct BVHOverlapData_Thread {
   BVHOverlapData_Shared *shared;
-  struct BLI_Stack *overlap; /* store BVHTreeOverlap */
+  BLI_Stack *overlap; /* store BVHTreeOverlap */
   uint max_interactions;
   /* use for callbacks */
   int thread;
@@ -155,7 +156,7 @@ typedef struct BVHNearestProjectedData {
 typedef struct BVHIntersectPlaneData {
   const BVHTree *tree;
   float plane[4];
-  struct BLI_Stack *intersect; /* Store indexes. */
+  BLI_Stack *intersect; /* Store indexes. */
 } BVHIntersectPlaneData;
 
 /** \} */

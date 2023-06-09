@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -33,7 +35,7 @@ static void print_mem_saved(const char *id, const BArrayStore *bs)
 /* Test Chunks (building data from list of chunks) */
 
 struct TestChunk {
-  struct TestChunk *next, *prev;
+  TestChunk *next, *prev;
   const void *data;
   size_t data_len;
 };
@@ -112,7 +114,7 @@ static char *testchunk_as_data_array(TestChunk **tc_array, int tc_array_len, siz
 
 /* API to handle local allocation of data so we can compare it with the data in the array_store */
 struct TestBuffer {
-  struct TestBuffer *next, *prev;
+  TestBuffer *next, *prev;
   const void *data;
   size_t data_len;
 

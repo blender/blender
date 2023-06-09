@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -463,7 +464,7 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
 /* *** RNA collection search menu *** */
 
 struct CollItemSearch {
-  struct CollItemSearch *next, *prev;
+  CollItemSearch *next, *prev;
   void *data;
   char *name;
   int index;
@@ -613,7 +614,7 @@ void ui_rna_collection_search_update_fn(
         [](void *user_data, const StringPropertySearchVisitParams *visit_params) {
           const bool show_extra_info = (G.debug_value == 102);
 
-          SearchVisitUserData *search_data = (struct SearchVisitUserData *)user_data;
+          SearchVisitUserData *search_data = (SearchVisitUserData *)user_data;
           CollItemSearch *cis = MEM_cnew<CollItemSearch>(search_data->func_id);
           cis->data = nullptr;
           if (visit_params->info && show_extra_info) {
@@ -952,13 +953,13 @@ void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
  * \{ */
 
 struct uiButStore {
-  struct uiButStore *next, *prev;
+  uiButStore *next, *prev;
   uiBlock *block;
   ListBase items;
 };
 
 struct uiButStoreElem {
-  struct uiButStoreElem *next, *prev;
+  uiButStoreElem *next, *prev;
   uiBut **but_p;
 };
 

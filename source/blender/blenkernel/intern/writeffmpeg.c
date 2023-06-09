@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * Partial Copyright 2006 Peter Schlaile. */
 
 /** \file
@@ -104,7 +106,7 @@ typedef struct FFMpegContext {
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
 static void ffmpeg_filepath_get(FFMpegContext *context,
                                 char filepath[FILE_MAX],
-                                const struct RenderData *rd,
+                                const RenderData *rd,
                                 bool preview,
                                 const char *suffix);
 
@@ -1088,7 +1090,7 @@ static void ffmpeg_add_metadata_callback(void *data,
 }
 
 static int start_ffmpeg_impl(FFMpegContext *context,
-                             struct RenderData *rd,
+                             RenderData *rd,
                              int rectx,
                              int recty,
                              const char *suffix,
@@ -1435,7 +1437,7 @@ void BKE_ffmpeg_filepath_get(char *filepath,
 }
 
 int BKE_ffmpeg_start(void *context_v,
-                     const struct Scene *scene,
+                     const Scene *scene,
                      RenderData *rd,
                      int rectx,
                      int recty,

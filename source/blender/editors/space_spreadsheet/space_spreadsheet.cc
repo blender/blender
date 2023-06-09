@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
@@ -180,7 +182,7 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 }
 
-ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet)
+ID *ED_spreadsheet_get_current_id(const SpaceSpreadsheet *sspreadsheet)
 {
   if (BLI_listbase_is_empty(&sspreadsheet->viewer_path.path)) {
     return nullptr;

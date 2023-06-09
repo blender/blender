@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -906,7 +907,7 @@ bool ED_armature_edit_deselect_all_visible(Object *obedit)
   return changed;
 }
 
-bool ED_armature_edit_deselect_all_multi_ex(struct Base **bases, uint bases_len)
+bool ED_armature_edit_deselect_all_multi_ex(Base **bases, uint bases_len)
 {
   bool changed_multi = false;
   for (uint base_index = 0; base_index < bases_len; base_index++) {
@@ -916,7 +917,7 @@ bool ED_armature_edit_deselect_all_multi_ex(struct Base **bases, uint bases_len)
   return changed_multi;
 }
 
-bool ED_armature_edit_deselect_all_visible_multi_ex(struct Base **bases, uint bases_len)
+bool ED_armature_edit_deselect_all_visible_multi_ex(Base **bases, uint bases_len)
 {
   bool changed_multi = false;
   for (uint base_index = 0; base_index < bases_len; base_index++) {

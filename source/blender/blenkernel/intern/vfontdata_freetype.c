@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is written by Rob Haarsma (phase). All rights reserved. */
 
 /** \file
@@ -40,9 +42,9 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
   const float eps = 0.0001f;
   const float eps_sq = eps * eps;
   /* Blender */
-  struct Nurb *nu;
-  struct VChar *che;
-  struct BezTriple *bezt;
+  Nurb *nu;
+  VChar *che;
+  BezTriple *bezt;
 
   /* Freetype2 */
   FT_GlyphSlot glyph;
@@ -65,7 +67,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
     int *onpoints;
 
     /* First we create entry for the new character to the character list */
-    che = (VChar *)MEM_callocN(sizeof(struct VChar), "objfnt_char");
+    che = (VChar *)MEM_callocN(sizeof(VChar), "objfnt_char");
 
     /* Take some data for modifying purposes */
     glyph = face->glyph;
@@ -111,7 +113,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
       contour_prev = ftoutline.contours[j];
 
       /* add new curve */
-      nu = (Nurb *)MEM_callocN(sizeof(struct Nurb), "objfnt_nurb");
+      nu = (Nurb *)MEM_callocN(sizeof(Nurb), "objfnt_nurb");
       bezt = (BezTriple *)MEM_callocN((onpoints[j]) * sizeof(BezTriple), "objfnt_bezt");
       BLI_addtail(&che->nurbsbase, nu);
 

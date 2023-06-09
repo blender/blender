@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -1636,6 +1637,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_pointer(func, "image_settings", "ImageFormatSettings", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_boolean(func, "color_management", false, "", "Show color management settings");
+  RNA_def_boolean(func, "show_z_buffer", true, "", "Show option to save z-buffer");
 
   func = RNA_def_function(srna, "template_image_stereo_3d", "uiTemplateImageStereo3d");
   RNA_def_function_ui_description(func, "User interface for setting image stereo 3d options");
