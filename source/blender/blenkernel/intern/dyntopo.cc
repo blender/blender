@@ -28,6 +28,7 @@
 #include "BLI_set.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -2369,7 +2370,8 @@ bool remesh_topology(BrushTester *brush_tester,
   using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
   auto time = Clock::now();
-  Clock::duration limit = std::chrono::duration_cast<Clock::duration>(std::chrono::milliseconds(350));
+  Clock::duration limit = std::chrono::duration_cast<Clock::duration>(
+      std::chrono::milliseconds(350));
 
   while (!eq_ctx.done()) {
     eq_ctx.step();

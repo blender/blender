@@ -40,6 +40,7 @@ Topology rake:
 #include "BLI_sort_utils.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BLI_index_range.hh"
@@ -2611,13 +2612,13 @@ void BKE_pbvh_bmesh_free_tris(PBVH * /*pbvh*/, PBVHNode *node)
   }
 }
 
-BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, PBVHVertRef vertex, BMLoop *l)
+static inline void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, PBVHVertRef vertex, BMLoop *l)
 {
   tribuf->verts.append(vertex);
   tribuf->loops.append((uintptr_t)l);
 }
 
-BLI_INLINE void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
+static inline void pbvh_tribuf_add_edge(PBVHTriBuf *tribuf, int v1, int v2)
 {
   tribuf->edges.append(v1);
   tribuf->edges.append(v2);
@@ -2656,6 +2657,11 @@ static void pbvh_init_tribuf(PBVHNode * /*node*/, PBVHTriBuf *tribuf)
   tribuf->verts.clear();
   tribuf->tris.clear();
   tribuf->loops.clear();
+
+  tribuf->edges.reserve(512);
+  tribuf->verts.reserve(512);
+  tribuf->tris.reserve(512);
+  tribuf->loops.reserve(512);
 }
 
 static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv)
@@ -2723,6 +2729,8 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   Vector<blender::uint3, 128> loops_idx;
   Vector<PBVHTriBuf> *tribufs = MEM_new<Vector<PBVHTriBuf>>("PBVHTriBuf tribufs");
 
+  tribufs->reserve(MAXMAT);
+
   node->flag &= ~PBVH_UpdateTris;
 
   const int edgeflag = BM_ELEM_TAG_ALT;
@@ -2730,6 +2738,31 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   float min[3], max[3];
 
   INIT_MINMAX(min, max);
+
+  auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max](
+                           PBVHTriBuf *tribuf, PBVHTri &tri, BMLoop *l, int mat_nr, int j) {
+    int tri_v;
+
+    if ((l->f->head.hflag & BM_ELEM_SMOOTH)) {
+      void *loopkey = reinterpret_cast<void *>(
+          tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+
+      tri_v = tribuf->vertmap.lookup_or_add(loopkey, tribuf->verts.size());
+    }
+    else { /* Flat shaded faces. */
+      tri_v = tribuf->verts.size();
+    }
+
+    /* Newly added to the set? */
+    if (tri_v == tribuf->verts.size()) {
+      PBVHVertRef sv = {(intptr_t)l->v};
+      minmax_v3v3_v3(min, max, l->v->co);
+      pbvh_tribuf_add_vert(tribuf, sv, l);
+    }
+
+    tri.v[j] = (intptr_t)tri_v;
+    tri.l[j] = (intptr_t)l;
+  };
 
   for (BMFace *f : *node->bm_faces) {
     if (pbvh_poly_hidden(pbvh, f)) {
@@ -2751,6 +2784,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       pbvh_init_tribuf(node, &_tribuf);
       _tribuf.mat_nr = mat_nr;
+
       tribufs->append(_tribuf);
     }
 
@@ -2760,31 +2794,6 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     loops_idx.resize(tottri);
 
     BM_face_calc_tessellation(f, true, loops.data(), (uint(*)[3])loops_idx.data());
-
-    auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max](
-                             PBVHTriBuf *tribuf, PBVHTri &tri, BMLoop *l, int mat_nr, int j) {
-      int tri_v;
-
-      if ((l->f->head.hflag & BM_ELEM_SMOOTH)) {
-        void *loopkey = reinterpret_cast<void *>(
-            tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
-
-        tri_v = tribuf->vertmap.lookup_or_add(loopkey, tribuf->verts.size());
-      }
-      else { /* Flat shaded faces. */
-        tri_v = tribuf->verts.size();
-      }
-
-      /* Newly added to the set? */
-      if (tri_v == tribuf->verts.size()) {
-        PBVHVertRef sv = {(intptr_t)l->v};
-        minmax_v3v3_v3(min, max, l->v->co);
-        pbvh_tribuf_add_vert(tribuf, sv, l);
-      }
-
-      tri.v[j] = (intptr_t)tri_v;
-      tri.l[j] = (intptr_t)l;
-    };
 
     /* Build index buffers. */
     for (int i = 0; i < tottri; i++) {
