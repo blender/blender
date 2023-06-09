@@ -130,5 +130,3 @@ std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *a
 std::string AS_asset_representation_full_library_path_get(const ::AssetRepresentation *asset);
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
     const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_may_override_import_method(const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_use_relative_path_get(const ::AssetRepresentation *asset_handle);

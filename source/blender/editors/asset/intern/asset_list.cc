@@ -31,7 +31,6 @@
 #include "../space_file/file_indexer.h"
 #include "../space_file/filelist.h"
 
-#include "ED_asset_handle.h"
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"

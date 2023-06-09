@@ -39,7 +39,6 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "ED_asset_handle.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 
@@ -156,17 +155,10 @@ static void file_but_enable_drag(uiBut *but,
   }
   else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
            (file->typeflag & FILE_TYPE_ASSET) != 0) {
-    char blend_path[FILE_MAX_LIBEXTRA];
-    if (BKE_blendfile_library_path_explode(path, blend_path, nullptr, nullptr)) {
-      const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
-      BLI_assert(import_method > -1);
+    const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
+    BLI_assert(import_method > -1);
 
-      AssetHandle asset{};
-      asset.file_data = file;
-
-      UI_but_drag_set_asset(
-          but, &asset, BLI_strdup(blend_path), import_method, icon, preview_image, scale);
-    }
+    UI_but_drag_set_asset(but, file->asset, import_method, icon, preview_image, scale);
   }
   else if (preview_image) {
     UI_but_drag_set_image(but, path, icon, preview_image, scale);

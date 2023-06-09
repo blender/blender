@@ -1095,16 +1095,8 @@ typedef struct wmDragID {
 } wmDragID;
 
 typedef struct wmDragAsset {
-  /* NOTE: Can't store the #AssetHandle here, since the #FileDirEntry it wraps may be freed while
-   * dragging. So store necessary data here directly. */
-
-  char name[64]; /* MAX_NAME */
-  /* Always freed. */
-  const char *path;
-  int id_type;
-  struct AssetMetaData *metadata;
   int import_method; /* eAssetImportType */
-  bool use_relative_path;
+  const struct AssetRepresentation *asset;
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.

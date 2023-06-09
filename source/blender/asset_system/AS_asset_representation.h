@@ -34,6 +34,9 @@ bool AS_asset_representation_is_local_id(const AssetRepresentation *asset) ATTR_
 bool AS_asset_representation_is_never_link(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
 
+bool AS_asset_representation_may_override_import_method(const AssetRepresentation *asset);
+bool AS_asset_representation_use_relative_path_get(const AssetRepresentation *asset);
+
 /**
  * C version of #AssetRepresentation::make_weak_reference. Returned pointer needs freeing with
  * #MEM_delete() or #BKE_asset_weak_reference_free().
