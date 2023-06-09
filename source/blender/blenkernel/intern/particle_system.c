@@ -5007,6 +5007,8 @@ static void particlesystem_modifiersForeachIDLink(void *user_data,
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
   ParticleTarget *pt;
+  LibraryForeachIDData *foreachid_data = userdata;
+  const int foreachid_data_flags = BKE_lib_query_foreachid_process_flags_get(foreachid_data);
 
   func(psys, (ID **)&psys->part, userdata, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
   func(psys, (ID **)&psys->target_ob, userdata, IDWALK_CB_NOP);
@@ -5026,14 +5028,19 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
   }
 
-  /* Even though psys->part should never be NULL, this can happen as an exception during deletion.
-   * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
-  if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
+  /* In case `psys->part` is NULL (See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in
+   * #BKE_library_remap), or accessing it is forbidden, always handle particles for potential boids
+   * data. Unfortunate, but for now there is no other proper way to do this. */
+  if (!(psys->part && (foreachid_data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) ||
+      psys->part->phystype == PART_PHYS_BOIDS)
+  {
     ParticleData *pa;
     int p;
 
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
-      func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      if (pa->boid != NULL) {
+        func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      }
     }
   }
 }
