@@ -148,7 +148,7 @@ void BM_face_interp_from_face_ex(BMesh *bm,
   BMLoop *l_iter;
   BMLoop *l_first;
 
-  float *w = BLI_array_alloca(w, f_src->len);
+  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
   float co[2];
 
   if (f_src != f_dst) {
@@ -172,9 +172,11 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
   BMLoop *l_iter;
   BMLoop *l_first;
 
-  const void **blocks_l = BLI_array_alloca(blocks_l, f_src->len);
-  const void **blocks_v = do_vertex ? BLI_array_alloca(blocks_v, f_src->len) : nullptr;
-  float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f_src->len);
+  const void **blocks_l = static_cast<const void **>(BLI_array_alloca(blocks_l, f_src->len));
+  const void **blocks_v = do_vertex ?
+                              static_cast<const void **>(BLI_array_alloca(blocks_v, f_src->len)) :
+                              nullptr;
+  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   int i;
 
@@ -688,10 +690,12 @@ void BM_loop_interp_from_face(
 {
   BMLoop *l_iter;
   BMLoop *l_first;
-  const void **vblocks = do_vertex ? BLI_array_alloca(vblocks, f_src->len) : nullptr;
-  const void **blocks = BLI_array_alloca(blocks, f_src->len);
-  float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f_src->len);
-  float *w = BLI_array_alloca(w, f_src->len);
+  const void **vblocks = do_vertex ?
+                             static_cast<const void **>(BLI_array_alloca(vblocks, f_src->len)) :
+                             nullptr;
+  const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
+  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
@@ -740,9 +744,9 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 {
   BMLoop *l_iter;
   BMLoop *l_first;
-  const void **blocks = BLI_array_alloca(blocks, f_src->len);
-  float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f_src->len);
-  float *w = BLI_array_alloca(w, f_src->len);
+  const void **blocks = static_cast<const void **>(BLI_array_alloca(blocks, f_src->len));
+  float(*cos_2d)[2] = static_cast<float(*)[2]>(BLI_array_alloca(cos_2d, f_src->len));
+  float *w = static_cast<float *>(BLI_array_alloca(w, f_src->len));
   float axis_mat[3][3]; /* use normal to transform into 2d xy coords */
   float co[2];
 
@@ -1253,7 +1257,7 @@ static void bm_vert_loop_groups_data_layer_merge_weights__single(
   const float *data_weights;
 
   /* re-weight */
-  float *temp_weights = BLI_array_alloca(temp_weights, lf->data_len);
+  float *temp_weights = static_cast<float *>(BLI_array_alloca(temp_weights, lf->data_len));
   float weight_accum = 0.0f;
 
   for (i = 0; i < lf->data_len; i++) {
