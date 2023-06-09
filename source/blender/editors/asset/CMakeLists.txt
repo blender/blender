@@ -38,9 +38,9 @@ set(SRC
 
   ED_asset_catalog.h
   ED_asset_catalog.hh
-  ED_asset_filter.h
+  ED_asset_filter.hh
   ED_asset_handle.h
-  ED_asset_import.h
+  ED_asset_import.hh
   ED_asset_indexer.h
   ED_asset_library.h
   ED_asset_list.h

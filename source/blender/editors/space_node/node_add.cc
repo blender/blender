@@ -9,6 +9,7 @@
 #include <numeric>
 
 #include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -379,13 +380,14 @@ void NODE_OT_add_group(wmOperatorType *ot)
  * \{ */
 
 static bool add_node_group_asset(const bContext &C,
-                                 const AssetRepresentation *asset,
+                                 const AssetRepresentation &asset_c_handle,
                                  ReportList &reports)
 {
   Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
 
+  auto &asset = reinterpret_cast<const asset_system::AssetRepresentation &>(asset_c_handle);
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
       ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT));
   if (!node_group) {
@@ -443,7 +445,7 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
 
   snode.runtime->cursor /= UI_SCALE_FAC;
 
-  if (!add_node_group_asset(*C, asset, *op->reports)) {
+  if (!add_node_group_asset(*C, *asset, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

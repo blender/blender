@@ -6,6 +6,8 @@
  * \ingroup edinterface
  */
 
+#include "AS_asset_representation.hh"
+
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
@@ -32,6 +34,8 @@
 #include "WM_types.h"
 
 #include "interface_intern.hh"
+
+using namespace blender;
 
 struct AssetViewListData {
   AssetLibraryReference asset_library_ref;
@@ -79,7 +83,8 @@ static void asset_view_draw_item(uiList *ui_list,
 {
   AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
 
-  AssetHandle asset_handle = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+  AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&list_data->asset_library_ref,
+                                                                    index);
 
   PointerRNA file_ptr;
   RNA_pointer_create(&list_data->screen->id,
@@ -132,8 +137,10 @@ static void asset_view_filter_items(uiList *ui_list,
       C,
       [&name_filter, list_data, &filter_settings](
           const PointerRNA &itemptr, blender::StringRefNull name, int index) {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+            list_data->asset_library_ref, index);
+
+        if (!ED_asset_filter_matches_asset(&filter_settings, *asset)) {
           return UI_LIST_ITEM_NEVER_SHOW;
         }
         return name_filter(itemptr, name, index);
@@ -141,8 +148,10 @@ static void asset_view_filter_items(uiList *ui_list,
       dataptr,
       propname,
       [list_data](const PointerRNA & /*itemptr*/, int index) -> std::string {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        return ED_asset_handle_get_name(&asset);
+        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+            list_data->asset_library_ref, index);
+
+        return asset->get_name();
       });
 }
 
