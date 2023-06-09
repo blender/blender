@@ -10,7 +10,19 @@ GPU_SHADER_CREATE_INFO(compositor_read_pass_shared)
     .sampler(0, ImageType::FLOAT_2D, "input_tx")
     .compute_source("compositor_read_pass.glsl");
 
-GPU_SHADER_CREATE_INFO(compositor_read_pass)
+GPU_SHADER_CREATE_INFO(compositor_read_pass_float)
+    .additional_info("compositor_read_pass_shared")
+    .image(0, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .define("READ_EXPRESSION(pass_color)", "vec4(pass_color.r, vec3(0.0))")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_read_pass_vector)
+    .additional_info("compositor_read_pass_shared")
+    .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
+    .define("READ_EXPRESSION(pass_color)", "pass_color")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(compositor_read_pass_color)
     .additional_info("compositor_read_pass_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
     .define("READ_EXPRESSION(pass_color)", "pass_color")
