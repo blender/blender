@@ -694,7 +694,7 @@ static void rna_tag_animation_update(Main *bmain, ID *id)
 static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
   sort_time_fcurve(fcu);
-  /* TODO: Blender 4.0 should call BKE_fcurve_deduplicate_keys(fcu) here. */
+  BKE_fcurve_deduplicate_keys(fcu);
   BKE_fcurve_handles_recalc(fcu);
 
   rna_tag_animation_update(bmain, id);
