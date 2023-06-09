@@ -37,8 +37,8 @@
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"
 
-#include <functional>
 #include <cstdio>
+#include <functional>
 
 using blender::float2;
 using blender::float3;
@@ -394,8 +394,7 @@ class DyntopoCollapseCallbacks {
  * This function is rather complicated.  It has to
  * snap UVs, log geometry and free ids.
  */
-BMVert *pbvh_bmesh_collapse_edge(
-    PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2, EdgeQueueContext *eq_ctx)
+BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2)
 {
   BMVert *v_del, *v_conn;
 
@@ -405,7 +404,7 @@ BMVert *pbvh_bmesh_collapse_edge(
 
   TraceData tdata;
 
-  tdata.ss = eq_ctx->ss;
+  tdata.ss = ss;
   tdata.pbvh = pbvh;
   tdata.e = e;
 
@@ -431,8 +430,8 @@ BMVert *pbvh_bmesh_collapse_edge(
     return nullptr;
   }
 
-  float w1 = DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1);
-  float w2 = DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2);
+  float w1 = DYNTOPO_MASK(cd_vert_mask_offset, v1);
+  float w2 = DYNTOPO_MASK(cd_vert_mask_offset, v2);
 
   bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
@@ -471,13 +470,13 @@ BMVert *pbvh_bmesh_collapse_edge(
   DyntopoCollapseCallbacks callbacks(pbvh);
 
   /* Make sure original data is initialized before we snap it. */
-  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_conn, pbvh->stroke_id);
-  BKE_pbvh_bmesh_check_origdata(eq_ctx->ss, v_del, pbvh->stroke_id);
+  BKE_pbvh_bmesh_check_origdata(ss, v_conn, pbvh->stroke_id);
+  BKE_pbvh_bmesh_check_origdata(ss, v_del, pbvh->stroke_id);
 
   pbvh_bmesh_check_nodes(pbvh);
 
   /* Snap UVS. */
-  bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, eq_ctx);
+  bool uvs_snapped = pbvh_bmesh_collapse_edge_uvs(pbvh, e, v_conn, v_del, this);
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
   if (uvs_snapped) {
@@ -553,7 +552,7 @@ BMVert *pbvh_bmesh_collapse_edge(
     BM_edge_kill(pbvh->header.bm, e2);
 
     dyntopo_add_flag(pbvh, v2, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-    BKE_sculpt_boundary_flag_update(eq_ctx->ss, {reinterpret_cast<intptr_t>(v2)});
+    BKE_sculpt_boundary_flag_update(ss, {reinterpret_cast<intptr_t>(v2)});
   }
 
   if (!v_conn->e) {

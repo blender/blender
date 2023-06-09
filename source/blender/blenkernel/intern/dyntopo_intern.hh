@@ -271,7 +271,6 @@ struct EdgeQueueContext {
   int count = 0;
   int curop = 0;
 
-  ~EdgeQueueContext();
   EdgeQueueContext(BrushTester *brush_tester,
                    Object *ob,
                    PBVH *pbvh,
@@ -282,6 +281,9 @@ struct EdgeQueueContext {
                    DyntopoMaskCB mask_cb,
                    void *mask_cb_data,
                    int edge_limit_multiply);
+
+  void insert_val34_vert(BMVert *v);
+  void insert_edge(BMEdge *e, float w);
 
   void start();
   bool done();
@@ -299,6 +301,9 @@ struct EdgeQueueContext {
 
     return false;
   }
+
+  BMVert *collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVert *v2);
+  void split_edge(BMEdge *e);
 
   blender::RandomNumberGenerator rand;
 
