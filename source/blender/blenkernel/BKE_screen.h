@@ -255,7 +255,7 @@ typedef struct PanelType {
 
   char idname[BKE_ST_MAXNAME]; /* unique name */
   char label[BKE_ST_MAXNAME];  /* for panel header */
-  char *description;           /* for panel tooltip */
+  const char *description;     /* for panel tooltip */
   char translation_context[BKE_ST_MAXNAME];
   char context[BKE_ST_MAXNAME];   /* for buttons window */
   char category[BKE_ST_MAXNAME];  /* for category tabs */
