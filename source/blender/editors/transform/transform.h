@@ -143,6 +143,8 @@ typedef enum {
 
   /** Do not display Xform gizmo even though it is available. */
   T_NO_GIZMO = 1 << 24,
+
+  T_DRAW_SNAP_SOURCE = 1 << 25,
 } eTFlag;
 ENUM_OPERATORS(eTFlag, T_NO_GIZMO);
 

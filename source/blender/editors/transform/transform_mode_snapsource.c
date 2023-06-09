@@ -61,12 +61,9 @@ static void snapsource_end(TransInfo *t)
   t->mouse.post = customdata->mouse_prev.post;
   t->mouse.use_virtual_mval = customdata->mouse_prev.use_virtual_mval;
 
-  transform_gizmo_3d_model_from_constraint_and_mode_set(t);
-
   MEM_freeN(customdata);
 
-  t->tsnap.snap_source_fn = NULL;
-
+  transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   tranform_snap_source_restore_context(t);
 }
 
@@ -74,6 +71,9 @@ static void snapsource_confirm(TransInfo *t)
 {
   BLI_assert(t->modifiers & MOD_EDIT_SNAP_SOURCE);
   getSnapPoint(t, t->tsnap.snap_source);
+  t->tsnap.snap_source_fn = NULL;
+  t->tsnap.status |= SNAP_SOURCE_FOUND;
+  t->flag |= T_DRAW_SNAP_SOURCE;
 
   int mval[2];
 #ifndef RESET_TRANSFORMATION
@@ -180,23 +180,12 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
 
   t->mode_info = &TransMode_snapsource;
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
-
-  if ((t->tsnap.status & SNAP_SOURCE_FOUND) == 0) {
-    if (t->tsnap.snap_source_fn) {
-      /* Calculate the current snap source for perpendicular snap. */
-      t->tsnap.snap_source_fn(t);
-    }
-    if ((t->tsnap.status & SNAP_SOURCE_FOUND) == 0) {
-      /* Fallback. */
-      copy_v3_v3(t->tsnap.snap_source, t->center_global);
-      t->tsnap.status |= SNAP_SOURCE_FOUND;
-    }
-  }
+  t->tsnap.status &= ~SNAP_SOURCE_FOUND;
 
   if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
     /* Initialize snap modes for geometry. */
     t->tsnap.mode &= ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID);
-    t->tsnap.mode |= SCE_SNAP_MODE_GEOM & ~SCE_SNAP_MODE_FACE_NEAREST;
+    t->tsnap.mode |= SCE_SNAP_MODE_GEOM;
   }
 
   if (t->data_type == &TransConvertType_Mesh) {
