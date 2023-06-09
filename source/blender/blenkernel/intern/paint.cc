@@ -3402,6 +3402,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
           break;
         case ATTR_DOMAIN_EDGE:
           cdata = &ss->bm->edata;
+          break;
         case ATTR_DOMAIN_FACE:
           cdata = &ss->bm->pdata;
           break;
@@ -3442,6 +3443,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
           break;
         case ATTR_DOMAIN_EDGE:
           cdata = &me->edata;
+          break;
         default:
           out->used = false;
           return false;

@@ -2109,6 +2109,10 @@ static void pbvh_bmesh_update_uv_boundary(BMVert *v, int cd_boundary, const Cust
   *BM_ELEM_CD_PTR<int *>(v, cd_boundary) &= ~(SCULPT_BOUNDARY_UPDATE_UV | SCULPT_BOUNDARY_UV |
                                               SCULPT_CORNER_UV);
 
+  if (base_uv == -1) {
+    return;
+  }
+
   for (int i = base_uv; i < ldata->totlayer; i++) {
     if (ldata->layers[i].type != CD_PROP_FLOAT2) {
       break;
