@@ -184,7 +184,7 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
   /* Happens on first uniform or if chunk is full. */
   if (!unichunk || unichunk->uniform_used == unichunk->uniform_len) {
     unichunk = static_cast<DRWUniformChunk *>(BLI_memblock_alloc(DST.vmempool->uniforms));
-    unichunk->uniform_len = ARRAY_SIZE(shgroup->uniforms->uniforms);
+    unichunk->uniform_len = BOUNDED_ARRAY_TYPE_SIZE<decltype(shgroup->uniforms->uniforms)>();
     unichunk->uniform_used = 0;
     BLI_LINKS_PREPEND(shgroup->uniforms, unichunk);
   }
