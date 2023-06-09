@@ -76,7 +76,6 @@ static const EnumPropertyItem prop_similar_types[] = {
     {SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
     {SIMFACE_COPLANAR, "COPLANAR", 0, "Coplanar", ""},
     {SIMFACE_SMOOTH, "SMOOTH", 0, "Flat/Smooth", ""},
-    {SIMFACE_FACEMAP, "FACE_MAP", 0, "Face Map", ""},
 #ifdef WITH_FREESTYLE
     {SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
 #endif
@@ -177,7 +176,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   KDTree_3d *tree_3d = NULL;
   KDTree_4d *tree_4d = NULL;
   GSet *gset = NULL;
-  GSet **gset_array = NULL;
   int face_data_value = SIMFACE_DATA_NONE;
 
   switch (type) {
@@ -194,10 +192,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     case SIMFACE_SIDES:
     case SIMFACE_MATERIAL:
       gset = BLI_gset_ptr_new("Select similar face");
-      break;
-    case SIMFACE_FACEMAP:
-      gset_array = MEM_callocN(sizeof(GSet *) * objects_len,
-                               "Select similar face: facemap gset array");
       break;
   }
 
@@ -231,13 +225,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
-        gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
       }
     }
 
@@ -301,12 +288,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             }
             break;
           }
-          case SIMFACE_FACEMAP: {
-            BLI_assert(custom_data_offset != -1);
-            int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            BLI_gset_add(gset_array[ob_index], face_map);
-            break;
-          }
         }
       }
     }
@@ -353,12 +334,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
       }
     }
 
@@ -467,18 +442,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             }
             break;
           }
-          case SIMFACE_FACEMAP: {
-            const int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            GSetIterator gs_iter;
-            GSET_ITER (gs_iter, gset_array[ob_index]) {
-              const int *face_map_iter = BLI_gsetIterator_getKey(&gs_iter);
-              if (*face_map == *face_map_iter) {
-                select = true;
-                break;
-              }
-            }
-            break;
-          }
         }
 
         if (select) {
@@ -532,14 +495,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   BLI_kdtree_4d_free(tree_4d);
   if (gset != NULL) {
     BLI_gset_free(gset, NULL);
-  }
-  if (gset_array != NULL) {
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      if (gset_array[ob_index] != NULL) {
-        BLI_gset_free(gset_array[ob_index], NULL);
-      }
-    }
-    MEM_freeN(gset_array);
   }
 
   return OPERATOR_FINISHED;
@@ -1376,7 +1331,7 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
 #ifdef WITH_FREESTYLE
       const int a_end = SIMFACE_FREESTYLE;
 #else
-      const int a_end = SIMFACE_FACEMAP;
+      const int a_end = SIMFACE_MATERIAL;
 #endif
       for (a = SIMFACE_MATERIAL; a <= a_end; a++) {
         RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);

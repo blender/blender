@@ -190,6 +190,17 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 6)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      BKE_mesh_legacy_face_map_to_generic(mesh);
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        versioning_replace_legacy_glossy_node(ntree);
+        versioning_remove_microfacet_sharp_distribution(ntree);
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -204,11 +215,6 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    */
   {
     /* Convert anisotropic BSDF node to glossy BSDF. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      versioning_replace_legacy_glossy_node(ntree);
-      versioning_remove_microfacet_sharp_distribution(ntree);
-    }
-    FOREACH_NODETREE_END;
 
     /* Keep this block, even when empty. */
   }

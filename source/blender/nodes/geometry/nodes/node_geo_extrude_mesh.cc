@@ -127,7 +127,6 @@ static void expand_mesh(Mesh &mesh,
     CustomData_realloc(&mesh.edata, old_edges_num, mesh.totedge);
   }
   if (poly_expand != 0) {
-    CustomData_free_layers(&mesh.pdata, CD_FACEMAP, mesh.totpoly);
     CustomData_free_layers(&mesh.pdata, CD_FREESTYLE_FACE, mesh.totpoly);
     const int old_polys_num = mesh.totpoly;
     mesh.totpoly += poly_expand;

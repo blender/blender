@@ -226,13 +226,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_vertex_weight_normalize_active_vertex);
   WM_operatortype_append(OBJECT_OT_vertex_weight_copy);
 
-  WM_operatortype_append(OBJECT_OT_face_map_add);
-  WM_operatortype_append(OBJECT_OT_face_map_remove);
-  WM_operatortype_append(OBJECT_OT_face_map_assign);
-  WM_operatortype_append(OBJECT_OT_face_map_remove_from);
-  WM_operatortype_append(OBJECT_OT_face_map_select);
-  WM_operatortype_append(OBJECT_OT_face_map_deselect);
-  WM_operatortype_append(OBJECT_OT_face_map_move);
+
 
   WM_operatortype_append(TRANSFORM_OT_vertex_warp);
 

@@ -1306,6 +1306,40 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Face Map Conversion
+ * \{ */
+
+void BKE_mesh_legacy_face_map_to_generic(Mesh *mesh)
+{
+  using namespace blender;
+  if (mesh->attributes().contains("face_maps")) {
+    return;
+  }
+  void *data = nullptr;
+  const ImplicitSharingInfo *sharing_info = nullptr;
+  for (const int i : IndexRange(mesh->pdata.totlayer)) {
+    CustomDataLayer &layer = mesh->pdata.layers[i];
+    if (layer.type == CD_FACEMAP) {
+      data = layer.data;
+      sharing_info = layer.sharing_info;
+      layer.data = nullptr;
+      layer.sharing_info = nullptr;
+      CustomData_free_layer(&mesh->pdata, CD_FACEMAP, mesh->totpoly, i);
+      break;
+    }
+  }
+  if (data != nullptr) {
+    CustomData_add_layer_named_with_data(
+        &mesh->pdata, CD_PROP_INT32, data, mesh->totpoly, "face_maps", sharing_info);
+  }
+  if (sharing_info != nullptr) {
+    sharing_info->remove_user_and_delete_if_last();
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Bevel Weight Conversion
  * \{ */
 

@@ -180,8 +180,6 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
 
 bool BKE_mesh_attribute_required(const char *name);
 
-bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
-bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
