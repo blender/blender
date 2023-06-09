@@ -757,6 +757,10 @@ class NodeTreeMainUpdater {
 
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
+      if (!link->fromsock->is_available() || !link->tosock->is_available()) {
+        link->flag &= ~NODE_LINK_VALID;
+        continue;
+      }
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
       if (toposort_indices[from_node.index()] > toposort_indices[to_node.index()]) {
