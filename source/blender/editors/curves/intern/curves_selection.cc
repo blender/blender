@@ -222,7 +222,7 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
   }
 }
 
-void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points)
+void select_ends(bke::CurvesGeometry &curves, int amount_start, int amount_end)
 {
   const bool was_anything_selected = has_anything_selected(curves);
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -240,12 +240,9 @@ void select_ends(bke::CurvesGeometry &curves, int amount, bool end_points)
       MutableSpan<T> selection_typed = selection.span.typed<T>();
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
         for (const int curve_i : range) {
-          if (end_points) {
-            selection_typed.slice(points_by_curve[curve_i].drop_back(amount)).fill(T(0));
-          }
-          else {
-            selection_typed.slice(points_by_curve[curve_i].drop_front(amount)).fill(T(0));
-          }
+          selection_typed
+              .slice(points_by_curve[curve_i].drop_front(amount_start).drop_back(amount_end))
+              .fill(T(0));
         }
       });
     }
