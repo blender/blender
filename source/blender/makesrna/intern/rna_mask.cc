@@ -45,7 +45,7 @@
 
 #  include "WM_api.h"
 
-static void rna_Mask_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Mask_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Mask *mask = (Mask *)ptr->owner_id;
 
@@ -55,7 +55,7 @@ static void rna_Mask_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 
 static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  MaskParent *parent = ptr->data;
+  MaskParent *parent = static_cast<MaskParent *>(ptr->data);
 
   if (parent->id) {
     if (GS(parent->id->name) == ID_MC) {
@@ -108,11 +108,11 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
 /* NOTE: this function exists only to avoid id reference-counting. */
 static void rna_MaskParent_id_set(PointerRNA *ptr,
                                   PointerRNA value,
-                                  struct ReportList *UNUSED(reports))
+                                  struct ReportList * /*reports*/)
 {
   MaskParent *mpar = (MaskParent *)ptr->data;
 
-  mpar->id = value.data;
+  mpar->id = static_cast<ID *>(value.data);
 }
 
 static StructRNA *rna_MaskParent_id_typef(PointerRNA *ptr)
@@ -186,7 +186,7 @@ static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)
 
 static void rna_Mask_layer_active_set(PointerRNA *ptr,
                                       PointerRNA value,
-                                      struct ReportList *UNUSED(reports))
+                                      struct ReportList * /*reports*/)
 {
   Mask *mask = (Mask *)ptr->owner_id;
   MaskLayer *masklay = (MaskLayer *)value.data;
@@ -223,7 +223,7 @@ static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)
 
 static void rna_MaskLayer_active_spline_set(PointerRNA *ptr,
                                             PointerRNA value,
-                                            struct ReportList *UNUSED(reports))
+                                            struct ReportList * /*reports*/)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline = (MaskSpline *)value.data;
@@ -246,7 +246,7 @@ static PointerRNA rna_MaskLayer_active_spline_point_get(PointerRNA *ptr)
 
 static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr,
                                                   PointerRNA value,
-                                                  struct ReportList *UNUSED(reports))
+                                                  struct ReportList * /*reports*/)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline;
@@ -254,7 +254,7 @@ static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr,
 
   masklay->act_point = NULL;
 
-  for (spline = masklay->splines.first; spline; spline = spline->next) {
+  for (spline = static_cast<MaskSpline *>(masklay->splines.first); spline; spline = spline->next) {
     if (point >= spline->points && point < spline->points + spline->tot_point) {
       masklay->act_point = point;
 
@@ -316,9 +316,12 @@ static int rna_MaskSplinePoint_handle_type_get(PointerRNA *ptr)
 static MaskSpline *mask_spline_from_point(Mask *mask, MaskSplinePoint *point)
 {
   MaskLayer *mask_layer;
-  for (mask_layer = mask->masklayers.first; mask_layer; mask_layer = mask_layer->next) {
+  for (mask_layer = static_cast<MaskLayer *>(mask->masklayers.first); mask_layer;
+       mask_layer = mask_layer->next)
+  {
     MaskSpline *spline;
-    for (spline = mask_layer->splines.first; spline; spline = spline->next) {
+    for (spline = static_cast<MaskSpline *>(mask_layer->splines.first); spline;
+         spline = spline->next) {
       if (point >= spline->points && point < spline->points + spline->tot_point) {
         return spline;
       }
@@ -399,7 +402,7 @@ static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 
 static void rna_Mask_layers_remove(Mask *mask, ReportList *reports, PointerRNA *masklay_ptr)
 {
-  MaskLayer *masklay = masklay_ptr->data;
+  MaskLayer *masklay = static_cast<MaskLayer *>(masklay_ptr->data);
   if (BLI_findindex(&mask->masklayers, masklay) == -1) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -440,7 +443,7 @@ static void rna_MaskLayer_spline_remove(ID *id,
                                         PointerRNA *spline_ptr)
 {
   Mask *mask = (Mask *)id;
-  MaskSpline *spline = spline_ptr->data;
+  MaskSpline *spline = static_cast<MaskSpline *>(spline_ptr->data);
 
   if (BKE_mask_spline_remove(mask_layer, spline) == false) {
     BKE_reportf(
@@ -487,7 +490,7 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
     return;
   }
 
-  for (layer = mask->masklayers.first; layer; layer = layer->next) {
+  for (layer = static_cast<MaskLayer *>(mask->masklayers.first); layer; layer = layer->next) {
     if (BLI_findindex(&layer->splines, spline) != -1) {
       break;
     }
@@ -503,8 +506,8 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
     active_point_index = layer->act_point - spline->points;
   }
 
-  spline->points = MEM_recallocN(spline->points,
-                                 sizeof(MaskSplinePoint) * (spline->tot_point + count));
+  spline->points = static_cast<MaskSplinePoint *>(
+      MEM_recallocN(spline->points, sizeof(MaskSplinePoint) * (spline->tot_point + count)));
   spline->tot_point += count;
 
   if (active_point_index >= 0) {
@@ -534,13 +537,13 @@ static void rna_MaskSpline_point_remove(ID *id,
                                         PointerRNA *point_ptr)
 {
   Mask *mask = (Mask *)id;
-  MaskSplinePoint *point = point_ptr->data;
+  MaskSplinePoint *point = static_cast<MaskSplinePoint *>(point_ptr->data);
   MaskSplinePoint *new_point_array;
   MaskLayer *layer;
   int active_point_index = -1;
   int point_index;
 
-  for (layer = mask->masklayers.first; layer; layer = layer->next) {
+  for (layer = static_cast<MaskLayer *>(mask->masklayers.first); layer; layer = layer->next) {
     if (BLI_findindex(&layer->splines, spline) != -1) {
       break;
     }
@@ -563,8 +566,8 @@ static void rna_MaskSpline_point_remove(ID *id,
 
   point_index = point - spline->points;
 
-  new_point_array = MEM_mallocN(sizeof(MaskSplinePoint) * (spline->tot_point - 1),
-                                "remove mask point");
+  new_point_array = static_cast<MaskSplinePoint *>(
+      MEM_mallocN(sizeof(MaskSplinePoint) * (spline->tot_point - 1), "remove mask point"));
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * point_index);
   memcpy(new_point_array + point_index,
@@ -809,7 +812,7 @@ static void rna_def_mask_splines(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "spline", "MaskSpline", "", "The spline to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   /* active spline */
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -847,7 +850,7 @@ static void rna_def_maskSplinePoints(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Add a number of point to this spline");
   parm = RNA_def_int(
       func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* Remove the point */
   func = RNA_def_function(srna, "remove", "rna_MaskSpline_point_remove");
@@ -856,7 +859,7 @@ static void rna_def_maskSplinePoints(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "point", "MaskSplinePoint", "", "The point to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 }
 
 static void rna_def_maskSpline(BlenderRNA *brna)
@@ -1071,7 +1074,7 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove layer from this mask");
   parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 
   /* clear all layers */
   func = RNA_def_function(srna, "clear", "rna_Mask_layers_clear");
