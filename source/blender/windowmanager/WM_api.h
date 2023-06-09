@@ -26,7 +26,6 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct AssetHandle;
 struct GHashIterator;
 struct GPUViewport;
 struct ID;
