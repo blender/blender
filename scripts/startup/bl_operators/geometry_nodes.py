@@ -44,8 +44,8 @@ def geometry_modifier_poll(context):
 
 
 def get_context_modifier(context):
-    area = context.area
-    if (area is not None) and (area.type == 'PROPERTIES'):
+    # Context only has a 'modifier' attribute in the modifier extra operators dropdown.
+    if hasattr(context, 'modifier'):
         modifier = context.modifier
     else:
         ob = context.object
