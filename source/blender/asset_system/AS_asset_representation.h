@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+#include "DNA_ID_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,7 +24,8 @@ typedef struct AssetRepresentation AssetRepresentation;
 
 const char *AS_asset_representation_name_get(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
-int AS_asset_representation_id_type_get(const AssetRepresentation *asset) ATTR_WARN_UNUSED_RESULT;
+ID_Type AS_asset_representation_id_type_get(const AssetRepresentation *asset)
+    ATTR_WARN_UNUSED_RESULT;
 AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
 struct ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset)

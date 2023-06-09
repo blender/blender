@@ -43,7 +43,7 @@ ID *ED_asset_handle_get_local_id(const AssetHandle *asset_handle)
 
 ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset_handle)
 {
-  return static_cast<ID_Type>(AS_asset_representation_id_type_get(asset_handle->file_data->asset));
+  return AS_asset_representation_id_type_get(asset_handle->file_data->asset);
 }
 
 int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
