@@ -24,7 +24,7 @@ bool ED_asset_filter_matches_asset(const AssetFilterSettings *filter,
   ID_Type asset_type = asset.get_id_type();
   uint64_t asset_id_filter = BKE_idtype_idcode_to_idfilter(asset_type);
 
-  if ((filter->id_types & asset_id_filter) == 0) {
+  if (filter->id_types && (filter->id_types & asset_id_filter) == 0) {
     return false;
   }
   /* Not very efficient (O(n^2)), could be improved quite a bit. */
