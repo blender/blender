@@ -628,7 +628,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
 
           if (mesh_remap_bvhtree_query_nearest(
                   &treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
-            const int poly_index = looptri_polys[rayhit.index];
+            const int poly_index = looptri_polys[nearest.index];
 
             if (mode == MREMAP_MODE_VERT_POLY_NEAREST) {
               int index;
@@ -886,7 +886,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
         if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist))
         {
-          const int poly_index = looptri_polys[rayhit.index];
+          const int poly_index = looptri_polys[nearest.index];
           const blender::IndexRange poly_src = polys_src[poly_index];
           const int *corner_edge_src = &corner_edges_src[poly_src.start()];
           int nloops = int(poly_src.size());
