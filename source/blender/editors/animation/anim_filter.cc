@@ -566,13 +566,14 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
    ((filter_mode & ANIMFILTER_SEL) && test_func) || \
    ((filter_mode & ANIMFILTER_UNSEL) && test_func == 0))
 
-/* quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes
- * - _SELEDIT means that only selected curves will have visible+editable keyframes
+/**
+ * Quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes
+ * - `*_SELEDIT` means that only selected curves will have visible+editable key-frames.
  *
  * checks here work as follows:
- * 1) seledit off - don't need to consider the implications of this option
- * 2) foredit off - we're not considering editing, so channel is ok still
- * 3) test_func (i.e. selection test) - only if selected, this test will pass
+ * 1) SELEDIT off - don't need to consider the implications of this option.
+ * 2) FOREDIT off - we're not considering editing, so channel is ok still.
+ * 3) test_func (i.e. selection test) - only if selected, this test will pass.
  */
 #define ANIMCHANNEL_SELEDITOK(test_func) \
   (!(filter_mode & ANIMFILTER_SELEDIT) || !(filter_mode & ANIMFILTER_FOREDIT) || (test_func))
@@ -1194,7 +1195,7 @@ static bool skip_fcurve_with_name(
  */
 static bool fcurve_has_errors(const FCurve *fcu)
 {
-  /* F-Curve disabled - path eval error */
+  /* F-Curve disabled (path evaluation error). */
   if (fcu->flag & FCURVE_DISABLED) {
     return true;
   }

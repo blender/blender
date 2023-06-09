@@ -48,7 +48,7 @@ static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNU
   return (SpaceLink *)sstatusbar;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void statusbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */

@@ -85,8 +85,8 @@ void VKTexture::generate_mipmap()
      * individually. */
     command_buffer.submit();
   }
-  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`. All miplevels are
-   * except the last one. */
+  /* Ensure that all mipmap levels are in `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`.
+   * All MIP-levels are except the last one. */
   layout_ensure(context,
                 IndexRange(mipmaps_ - 1, 1),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,

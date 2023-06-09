@@ -729,8 +729,8 @@ static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, struct Repo
 {
   ID *destination = ptr->data;
 
-  /* Avoid marking as asset by assigning. This should be done wiht .asset_mark(). This is just for
-   * clarity of the API, and to accomodate future changes. */
+  /* Avoid marking as asset by assigning. This should be done with `.asset_mark()`.
+   * This is just for clarity of the API, and to accommodate future changes. */
   if (destination->asset_data == NULL) {
     BKE_report(reports,
                RPT_ERROR,
@@ -741,7 +741,7 @@ static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, struct Repo
   const AssetMetaData *asset_data = value.data;
   if (asset_data == NULL) {
     /* Avoid clearing the asset data on assets. Un-marking as asset should be done with
-     * .asset_clear(). This is just for clarity of the API, and to accomodate future changes. */
+     * `.asset_clear()`. This is just for clarity of the API, and to accommodate future changes. */
     BKE_report(reports, RPT_ERROR, "Asset data cannot be None");
     return;
   }

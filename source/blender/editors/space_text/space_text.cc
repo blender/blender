@@ -84,7 +84,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   return (SpaceLink *)stext;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void text_free(SpaceLink *sl)
 {
   SpaceText *stext = (SpaceText *)sl;

@@ -104,7 +104,7 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
         int dx2 = int(sx * (cos(theta) * dx - sin(theta) * dy));
         int dy2 = int(sy * (sin(theta) * dx + cos(theta) * dy));
 
-        /* Clamp image to avoid artefacts at borders. */
+        /* Clamp image to avoid artifacts at borders. */
         const int xx = math::clamp(int(x) + dx2, 0, width - 1);
         const int yy = math::clamp(int(y) + dy2, 0, height - 1);
 
@@ -117,9 +117,9 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
         float color[4];
         image_reader_->read(color, xx, yy, nullptr);
         const double v = color[ch];
-        /* todo(zazizizou): only compute lum once per region */
+        /* TODO(@zazizizou): only compute lum once per region */
         const float lum = IMB_colormanagement_get_luminance(color);
-        /* todo(zazizizou): only compute mean for the selected region */
+        /* TODO(@zazizizou): only compute mean for the selected region */
         mean[t] += g * v;
         sum[t] += g * lum;
         var[t] += g * lum * lum;
@@ -155,7 +155,7 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
 void KuwaharaAnisotropicOperation::set_kernel_size(int kernel_size)
 {
   /* Filter will be split into n_div.
-   * Add n_div / 2 to avoid artefacts such as random black pixels in image. */
+   * Add n_div / 2 to avoid artifacts such as random black pixels in image. */
   kernel_size_ = kernel_size + n_div_ / 2;
 }
 
@@ -244,7 +244,7 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
           int dx2 = int(sx * (cos(theta) * dx - sin(theta) * dy));
           int dy2 = int(sy * (sin(theta) * dx + cos(theta) * dy));
 
-          /* Clamp image to avoid artefacts at borders. */
+          /* Clamp image to avoid artifacts at borders. */
           const int xx = math::clamp(x + dx2, 0, width - 1);
           const int yy = math::clamp(y + dy2, 0, height - 1);
 
@@ -257,9 +257,9 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
           const double v = image->get_value(xx, yy, ch);
           float color[4];
           image->read_elem(xx, yy, color);
-          /* TODO(zazizizou): only compute lum once per region. */
+          /* TODO(@zazizizou): only compute lum once per region. */
           const float lum = IMB_colormanagement_get_luminance(color);
-          /* TODO(zazizizou): only compute mean for the selected region. */
+          /* TODO(@zazizizou): only compute mean for the selected region. */
           mean[t] += g * v;
           sum[t] += g * lum;
           var[t] += g * lum * lum;

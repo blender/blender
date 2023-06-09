@@ -2457,7 +2457,7 @@ id<MTLSamplerState> MTLContext::get_default_sampler_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Compute Utils impl
+/** \name Compute Utils Implementation
  * \{ */
 
 id<MTLComputePipelineState> MTLContextComputeUtils::get_buffer_clear_pso()

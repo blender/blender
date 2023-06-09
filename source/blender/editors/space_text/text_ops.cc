@@ -51,7 +51,7 @@
 static void txt_screen_clamp(SpaceText *st, ARegion *region);
 
 /* -------------------------------------------------------------------- */
-/** \name Util
+/** \name Utilities
  * \{ */
 
 /**

@@ -65,7 +65,7 @@ static SpaceLink *topbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED
   return (SpaceLink *)stopbar;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void topbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */

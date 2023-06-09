@@ -303,7 +303,7 @@ static SpaceLink *xxx_create(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
   return NULL;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void xxx_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback for usage, should be re-doable. */

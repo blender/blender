@@ -77,7 +77,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   return (SpaceLink *)spref;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void userpref_free(SpaceLink *UNUSED(sl))
 {
   //  SpaceUserPref *spref = (SpaceUserPref *)sl;

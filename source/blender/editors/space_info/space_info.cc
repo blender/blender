@@ -72,7 +72,7 @@ static SpaceLink *info_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   return (SpaceLink *)sinfo;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void info_free(SpaceLink * /*sl*/)
 {
   //  SpaceInfo *sinfo = (SpaceInfo *) sl;

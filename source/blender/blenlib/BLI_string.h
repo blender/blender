@@ -34,7 +34,7 @@ extern "C" {
 #define BLI_STR_FORMAT_INT32_INTEGER_UNIT_SIZE 5
 
 /**
- * Duplicates the first \a len bytes of cstring \a str
+ * Duplicates the first \a len bytes of the C-string \a str
  * into a newly mallocN'd string and returns it. \a str
  * is assumed to be at least len bytes long.
  *
@@ -45,7 +45,7 @@ extern "C" {
 char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
- * Duplicates the cstring \a str into a newly mallocN'd
+ * Duplicates the C-string \a str into a newly mallocN'd
  * string and returns it.
  *
  * \param str: The string to be duplicated

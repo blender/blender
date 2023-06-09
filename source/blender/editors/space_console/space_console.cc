@@ -73,7 +73,7 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   return (SpaceLink *)sconsole;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void console_free(SpaceLink *sl)
 {
   SpaceConsole *sc = (SpaceConsole *)sl;

@@ -62,7 +62,7 @@ static SpaceLink *script_create(const ScrArea *UNUSED(area), const Scene *UNUSED
   return (SpaceLink *)sscript;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void script_free(SpaceLink *sl)
 {
   SpaceScript *sscript = (SpaceScript *)sl;
