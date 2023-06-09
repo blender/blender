@@ -1056,7 +1056,6 @@ void ED_view3d_check_mats_rv3d(struct RegionView3D *rv3d);
 struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d);
 void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat);
 
-
 struct RenderEngineType *ED_view3d_engine_type(const struct Scene *scene, int drawtype);
 
 bool ED_view3d_context_activate(struct bContext *C);
