@@ -1020,7 +1020,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       SCULPT_clip(sd, ss, vd.co, val);
 
       if (do_reproject) {
-        BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
+        BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, false);
       }
 
       if (vd.is_mesh) {
