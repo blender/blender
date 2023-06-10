@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 set(INC
   ../../intern/clog
@@ -887,24 +888,13 @@ elseif(WIN32)
     )
   endif()
 
-  if(EXISTS ${LIBDIR}/fftw3/lib/fftw3.dll)
-    set(FFTW_DLL ${LIBDIR}/fftw3/lib/fftw3.dll)
-  else()
-    set(FFTW_DLL ${LIBDIR}/fftw3/lib/libfftw3-3.dll)
-  endif()
-
   windows_install_shared_manifest(
-    FILES ${FFTW_DLL}
+    FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
     ALL
   )
-  if(EXISTS ${LIBDIR}/fftw3/lib/fftw3f-3.dll)
+  if(EXISTS ${LIBDIR}/fftw3/lib/libfftw3f-3.dll)
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/fftw3/lib/fftw3f-3.dll
-      ALL
-    )
-  elseif(EXISTS ${LIBDIR}/fftw3/lib/fftw3f.dll)
-    windows_install_shared_manifest(
-      FILES ${LIBDIR}/fftw3/lib/fftw3f.dll
+      FILES ${LIBDIR}/fftw3/lib/libfftw3f-3.dll
       ALL
     )
   endif()
@@ -967,19 +957,10 @@ elseif(WIN32)
       DEBUG
     )
   endif()
-
-  if(EXISTS ${LIBDIR}/gmp/lib/gmp-10.dll)
-    set(GMP_DLL ${LIBDIR}/gmp/lib/gmp-10.dll)
-  else()
-    set(GMP_DLL ${LIBDIR}/gmp/lib/libgmp-10.dll)
-  endif()
-
   windows_install_shared_manifest(
-    FILES ${GMP_DLL}
+    FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
     ALL
   )
-  unset(GMP_DLL)
-
   windows_install_shared_manifest(
     FILES ${LIBDIR}/gmp/lib/libgmpxx.dll
     RELEASE
@@ -1287,17 +1268,10 @@ elseif(WIN32)
     list(APPEND LIB ${TBB_MALLOC_LIBRARIES})
   endif()
 
-  if(EXISTS ${LIBDIR}/sndfile/lib/sndfile.dll)
-    set(SNDFILE_DLL ${LIBDIR}/sndfile/lib/sndfile.dll)
-  else()
-    set(SNDFILE_DLL ${LIBDIR}/sndfile/lib/libsndfile-1.dll)
-  endif()
-
   windows_install_shared_manifest(
-    FILES ${SNDFILE_DLL}
+    FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
     ALL
   )
-  unset(SNDFILE_DLL)
 
   windows_install_shared_manifest(
     FILES ${LIBDIR}/shaderc/bin/shaderc_shared.dll
