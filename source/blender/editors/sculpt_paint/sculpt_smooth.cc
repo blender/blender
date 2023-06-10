@@ -114,6 +114,11 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
   eSculptBoundary uvflag = ss->reproject_smooth ? SCULPT_BOUNDARY_UV : SCULPT_BOUNDARY_NONE;
 
+  eSculptBoundary hard_flags = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SHARP_ANGLE;
+  if (ss->hard_edge_mode) {
+    hard_flags |= SCULPT_BOUNDARY_FACE_SET;
+  }
+
   bound_type |= uvflag;
 
   const eSculptBoundary is_boundary = SCULPT_vertex_is_boundary(ss, vertex, bound_type);
@@ -198,9 +203,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       eSculptBoundary smooth_flag2 = is_boundary2 & smooth_types;
 
       /* Handle smooth boundaries. */
-      if (bool(smooth_flag) != bool(smooth_flag2) &&
-          (smooth_flag == is_boundary && smooth_flag2 == is_boundary2))
-      {
+      if (!(is_boundary & hard_flags) && bool(smooth_flag) != bool(smooth_flag2)) {
         /* Project to plane. */
         float3 t1 = float3(vertex_co_get(ss, ni.vertex)) - co;
         float fac = dot_v3v3(t1, no);
@@ -213,7 +216,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
         avg += tco * w;
         total += w;
       }
-      else if ((is_boundary & ~smooth_flag) & (is_boundary2 & ~smooth_flag2)) {
+      else if ((is_boundary & hard_flags) & (is_boundary2 & hard_flags)) {
         avg += float3(vertex_co_get(ss, ni.vertex)) * w;
         total += w;
         project_ok = true;

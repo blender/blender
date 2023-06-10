@@ -2379,8 +2379,9 @@ bool remesh_topology(BrushTester *brush_tester,
 
   eq_ctx.finish();
 
-  //printf("time: %dms\n",
-  //       int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - time).count()));
+  // printf("time: %dms\n",
+  //       int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() -
+  //       time).count()));
   return eq_ctx.modified;
 }
 
@@ -2525,6 +2526,9 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   else {
     *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~SCULPT_BOUNDARY_UV;
   }
+
+  /* Flag newv to not update original coordinates. */
+  stroke_id_test(ss, {reinterpret_cast<intptr_t>(newv)}, STROKEID_USER_ORIGINAL);
 
   BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
   BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newv));
