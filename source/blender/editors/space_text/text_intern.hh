@@ -63,7 +63,6 @@ void text_update_cursor_moved(struct bContext *C);
 #define DOC_HEIGHT 10
 
 #define TOOL_SUGG_LIST 0x01
-#define TOOL_DOCUMENT 0x02
 
 int wrap_width(const struct SpaceText *st, struct ARegion *region);
 /**

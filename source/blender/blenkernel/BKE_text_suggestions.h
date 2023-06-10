@@ -59,11 +59,6 @@ void texttool_suggest_select(SuggItem *sel);
 SuggItem *texttool_suggest_selected(void);
 int *texttool_suggest_top(void);
 
-/* Documentation */
-void texttool_docs_show(const char *docs);
-char *texttool_docs_get(void);
-void texttool_docs_clear(void);
-
 #ifdef __cplusplus
 }
 #endif
