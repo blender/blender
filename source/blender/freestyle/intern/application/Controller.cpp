@@ -690,10 +690,10 @@ void Controller::ComputeSteerableViewMap()
     img[i] = new GrayImage(_pView->width(), _pView->height());
     for (unsigned int y = 0; y < img[i]->height(); ++y) {
       for (unsigned int x = 0; x < img[i]->width(); ++x) {
-        //img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)) / 255.0f);
-        img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)));
+        // img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))) / 255.0f);
+        img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))));
         // float c = qGray(qimg.pixel(x, y));
-        //img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
+        // img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
       }
     }
     offscreenBuffer.DetachNode(ng[i]);

@@ -675,8 +675,8 @@ static void grid_cell_points_cb_ex(void *__restrict userdata,
   int co[3];
 
   for (int j = 3; j--;) {
-    co[j] = (int)floorf((bData->realCoord[bData->s_pos[i]].v[j] - grid->grid_bounds.min[j]) /
-                        bData->dim[j] * grid->dim[j]);
+    co[j] = int(floorf((bData->realCoord[bData->s_pos[i]].v[j] - grid->grid_bounds.min[j]) /
+                       bData->dim[j] * grid->dim[j]));
     CLAMP(co[j], 0, grid->dim[j] - 1);
   }
 
