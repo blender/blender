@@ -3968,7 +3968,8 @@ static void sculpt_topology_update(Sculpt *sd,
     // mode |= PBVH_Collapse | PBVH_Subdivide;
   }
 
-  int edge_multiply = 1 + int(powf(ss->cached_dyntopo.quality, 3.0f) * 50.0f);
+  /* XXX we limit by time instead of edge queue steps now. */
+  int edge_multiply = 50; //1 + int(powf(ss->cached_dyntopo.quality, 3.0f) * 50.0f);
 
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;
@@ -4015,7 +4016,8 @@ static void sculpt_topology_update(Sculpt *sd,
       true,
       mask_cb,
       mask_cb_data,
-      edge_multiply);
+      edge_multiply,
+      ss->cached_dyntopo.quality);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 

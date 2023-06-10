@@ -142,7 +142,8 @@ bool remesh_topology(blender::bke::dyntopo::BrushTester *brush_tester,
                      bool updatePBVH,
                      DyntopoMaskCB mask_cb,
                      void *mask_cb_data,
-                     int edge_limit_multiply);
+                     int edge_limit_multiply,
+                     float quality);
 
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *tester,
                            struct Object *ob,
@@ -156,7 +157,8 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *tester,
                            bool updatePBVH,
                            DyntopoMaskCB mask_cb,
                            void *mask_cb_data,
-                           int edge_limit_multiply);
+                           int edge_limit_multiply,
+                           float quality);
 
 void after_stroke(PBVH *pbvh, bool force_balance);
 }  // namespace blender::bke::dyntopo

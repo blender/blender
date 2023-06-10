@@ -20,6 +20,7 @@
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
+#include "BLI_timeit.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"

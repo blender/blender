@@ -334,10 +334,23 @@ void EdgeQueueContext::insert_edge(BMEdge *e, float w)
     edge_heap.insert(w, e);
     e->head.hflag |= EDGE_QUEUE_FLAG;
 
+    if (ignore_loop_data) {
+      return;
+    }
+
+    /* Log UVs. */
     if (e->l) {
       BMLoop *l = e->l;
       do {
-        BM_log_face_if_modified(bm, pbvh->bm_log, l->f);
+        int ni = BM_ELEM_CD_GET_INT(l->f, cd_face_node_offset);
+        PBVHNode *node = BKE_pbvh_get_node_leaf_safe(pbvh, ni);
+
+        /* Check if split_edge_add_recursive has wandered outside
+         * the set of PBVH_UpdateTopology flagged nodes.
+         */
+        if (node && !(node->flag & PBVH_UpdateTopology)) {
+          BM_log_face_if_modified(bm, pbvh->bm_log, l->f);
+        }
       } while ((l = l->radial_next) != e->l);
     }
   }
@@ -351,18 +364,20 @@ void EdgeQueueContext::insert_val34_vert(BMVert *v)
 
   used_verts.append(v);
 
-  BMEdge *e = v->e;
-  do {
-    BMLoop *l = e->l;
-    if (!l) {
-      continue;
-    }
-
-    BMLoop *l2 = l;
+  if (!ignore_loop_data) {
+    BMEdge *e = v->e;
     do {
-      BM_log_face_if_modified(bm, pbvh->bm_log, l2->f);
-    } while ((l2 = l2->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+      BMLoop *l = e->l;
+      if (!l) {
+        continue;
+      }
+
+      BMLoop *l2 = l;
+      do {
+        BM_log_face_if_modified(bm, pbvh->bm_log, l2->f);
+      } while ((l2 = l2->radial_next) != e->l);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+  }
 }
 
 /*
@@ -448,6 +463,14 @@ static bool point_in_tri_v3(float p[3], float v1[3], float v2[3], float v3[3], f
 
 float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3], float n[3])
 {
+#if 0
+  float a = len_squared_v3v3(p, v1);
+  float b = len_squared_v3v3(p, v2);
+  float c = len_squared_v3v3(p, v3);
+
+  float dis = min_ff(min_ff(a, b), c);
+  return dis;
+#else
   float co[3];
   float t1[3], t2[3], t3[3];
 
@@ -491,6 +514,7 @@ float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3
   dis = fmin(dis, len_squared_v3v3(p, co));
 
   return dis;
+#endif
 }
 
 static bool skinny_bad_edge(BMEdge *e, const float limit = 4.0f)
@@ -1269,7 +1293,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   TaskParallelSettings settings;
 
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = true;  //! eq_ctx->reproject_cdata;
+  settings.use_threading = true;
 
 #ifdef DYNTOPO_NO_THREADING
   settings.use_threading = false;
@@ -1352,39 +1376,6 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       if (edge_queue_test(eq_ctx, pbvh, e, &w)) {
         eq_ctx->insert_edge(e, w);
       }
-    }
-  }
-
-  for (BMVert *v : verts) {
-    if (v->head.hflag & BM_ELEM_TAG) {
-      v->head.hflag &= ~BM_ELEM_TAG;
-
-      eq_ctx->insert_val34_vert(v);
-    }
-  }
-
-  for (BMEdge *e : eq_ctx->edge_heap.values()) {
-    e->head.hflag |= EDGE_QUEUE_FLAG;
-
-    if (!e->l) {
-      continue;
-    }
-
-    /* Log face/loop attributes. */
-    for (int i = 0; i < 2; i++) {
-      BMVert *v = i ? e->v2 : e->v1;
-      BMEdge *e2 = e;
-
-      do {
-        BMLoop *l = e2->l;
-        if (!l) {
-          continue;
-        }
-
-        do {
-          BM_log_face_modified(eq_ctx->bm, eq_ctx->pbvh->bm_log, l->f);
-        } while ((l = l->radial_next) != e2->l);
-      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
     }
   }
 
@@ -2028,6 +2019,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
                                    int edge_limit_multiply)
 {
   ss = ob->sculpt;
+
   pbvh = pbvh_;
   brush_tester = brush_tester_;
   use_view_normal = use_frontface_;
@@ -2039,6 +2031,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   mask_cb_data = mask_cb_data_;
   view_normal = view_normal_;
 
+  ignore_loop_data = !bm->ldata.totlayer || !ss->reproject_smooth;
   updatePBVH = updatePBVH_;
   cd_vert_mask_offset = pbvh->cd_vert_mask_offset;
   cd_vert_node_offset = pbvh->cd_vert_node_offset;
@@ -2046,11 +2039,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   local_mode = false;
   mode = mode_;
 
-  /* Need to do some final testing before deciding whether or not
-   * to remove surface relax.
-   */
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  surface_relax = me->flag & ME_FLAG_UNUSED_5;
+  surface_relax = true;
   reproject_cdata = ss->reproject_smooth;
 
   max_heap_mm = (DYNTOPO_MAX_ITER * edge_limit_multiply) << 8;
@@ -2114,12 +2103,15 @@ void EdgeQueueContext::start()
 {
   current_i = 0;
 
-  for (int i : IndexRange(pbvh->totnode)) {
-    PBVHNode *node = &pbvh->nodes[i];
+  /* Preemptively log UVs. */
+  if (!ignore_loop_data) {
+    for (int i : IndexRange(pbvh->totnode)) {
+      PBVHNode *node = &pbvh->nodes[i];
 
-    if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology)) {
-      for (BMFace *f : *node->bm_faces) {
-        BM_log_face_if_modified(bm, pbvh->bm_log, f);
+      if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology)) {
+        for (BMFace *f : *node->bm_faces) {
+          BM_log_face_if_modified(bm, pbvh->bm_log, f);
+        }
       }
     }
   }
@@ -2350,7 +2342,8 @@ bool remesh_topology(BrushTester *brush_tester,
                      bool updatePBVH,
                      DyntopoMaskCB mask_cb,
                      void *mask_cb_data,
-                     int edge_limit_multiply)
+                     int edge_limit_multiply,
+                     float quality)
 {
   EdgeQueueContext eq_ctx(brush_tester,
                           ob,
@@ -2369,9 +2362,12 @@ bool remesh_topology(BrushTester *brush_tester,
   using Clock = std::chrono::high_resolution_clock;
   using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
+  quality *= quality;
+  int time_limit = 8 * (1.0 - quality) + 128 * quality;
+
   auto time = Clock::now();
   Clock::duration limit = std::chrono::duration_cast<Clock::duration>(
-      std::chrono::milliseconds(350));
+      std::chrono::milliseconds(time_limit));
 
   while (!eq_ctx.done()) {
     eq_ctx.step();
