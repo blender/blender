@@ -933,10 +933,10 @@ void UI_but_execute(const struct bContext *C, struct ARegion *region, uiBut *but
 
 bool UI_but_online_manual_id(const uiBut *but,
                              char *r_str,
-                             size_t maxlength) ATTR_WARN_UNUSED_RESULT;
+                             size_t str_maxncpy) ATTR_WARN_UNUSED_RESULT;
 bool UI_but_online_manual_id_from_active(const struct bContext *C,
                                          char *r_str,
-                                         size_t maxlength) ATTR_WARN_UNUSED_RESULT;
+                                         size_t str_maxncpy) ATTR_WARN_UNUSED_RESULT;
 bool UI_but_is_userdef(const uiBut *but);
 
 /* Buttons

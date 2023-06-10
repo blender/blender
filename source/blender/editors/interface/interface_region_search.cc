@@ -535,7 +535,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
   if (str[0]) {
-    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_max_length(but));
+    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_maxncpy(but));
 
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 

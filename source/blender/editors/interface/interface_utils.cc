@@ -827,11 +827,11 @@ int UI_calc_float_precision(int prec, double value)
   return prec;
 }
 
-bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
+bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t str_maxncpy)
 {
   if (but->rnapoin.owner_id && but->rnapoin.data && but->rnaprop) {
     BLI_snprintf(r_str,
-                 maxlength,
+                 str_maxncpy,
                  "%s.%s",
                  RNA_struct_identifier(but->rnapoin.type),
                  RNA_property_identifier(but->rnaprop));
@@ -846,12 +846,12 @@ bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
   return false;
 }
 
-bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t maxlength)
+bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t str_maxncpy)
 {
   uiBut *but = UI_context_active_but_get(C);
 
   if (but) {
-    return UI_but_online_manual_id(but, r_str, maxlength);
+    return UI_but_online_manual_id(but, r_str, str_maxncpy);
   }
 
   *r_str = '\0';
