@@ -146,7 +146,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         BMEdge *e = reinterpret_cast<BMEdge *>(edge.i);
         blender::bke::pbvh::update_edge_boundary_bmesh(
             e,
-            ss->attrs.face_set->bmesh_cd_offset,
+            ss->attrs.face_set ? ss->attrs.face_set->bmesh_cd_offset : -1,
             ss->attrs.edge_boundary_flags->bmesh_cd_offset,
             ss->attrs.flags->bmesh_cd_offset,
             ss->attrs.valence->bmesh_cd_offset,
@@ -158,44 +158,46 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         Span<float3> pos = {reinterpret_cast<const float3 *>(ss->vert_positions), ss->totvert};
         Span<float3> nor = {reinterpret_cast<const float3 *>(ss->vert_normals), ss->totvert};
 
-        blender::bke::pbvh::update_edge_boundary_faces(edge.i,
-                                                       pos,
-                                                       nor,
-                                                       ss->edges,
-                                                       ss->polys,
-                                                       ss->poly_normals,
-                                                       (int *)ss->attrs.edge_boundary_flags->data,
-                                                       (int *)ss->attrs.boundary_flags->data,
-                                                       (int *)ss->attrs.face_set->data,
-                                                       ss->sharp_edge,
-                                                       ss->seam_edge,
-                                                       ss->pmap,
-                                                       ss->epmap,
-                                                       ss->ldata,
-                                                       ss->sharp_angle_limit,
-                                                       ss->corner_verts,
-                                                       ss->corner_edges);
+        blender::bke::pbvh::update_edge_boundary_faces(
+            edge.i,
+            pos,
+            nor,
+            ss->edges,
+            ss->polys,
+            ss->poly_normals,
+            (int *)ss->attrs.edge_boundary_flags->data,
+            (int *)ss->attrs.boundary_flags->data,
+            ss->attrs.face_set ? (int *)ss->attrs.face_set->data : nullptr,
+            ss->sharp_edge,
+            ss->seam_edge,
+            ss->pmap,
+            ss->epmap,
+            ss->ldata,
+            ss->sharp_angle_limit,
+            ss->corner_verts,
+            ss->corner_edges);
         break;
       }
       case PBVH_GRIDS: {
         const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-        blender::bke::pbvh::update_edge_boundary_grids(edge.i,
-                                                       ss->edges,
-                                                       ss->polys,
-                                                       (int *)ss->attrs.edge_boundary_flags->data,
-                                                       (int *)ss->attrs.boundary_flags->data,
-                                                       (int *)ss->attrs.face_set->data,
-                                                       ss->sharp_edge,
-                                                       ss->seam_edge,
-                                                       ss->pmap,
-                                                       ss->epmap,
-                                                       ss->ldata,
-                                                       ss->subdiv_ccg,
-                                                       key,
-                                                       ss->sharp_angle_limit,
-                                                       ss->corner_verts,
-                                                       ss->corner_edges);
+        blender::bke::pbvh::update_edge_boundary_grids(
+            edge.i,
+            ss->edges,
+            ss->polys,
+            (int *)ss->attrs.edge_boundary_flags->data,
+            (int *)ss->attrs.boundary_flags->data,
+            ss->attrs.face_set ? (int *)ss->attrs.face_set->data : nullptr,
+            ss->sharp_edge,
+            ss->seam_edge,
+            ss->pmap,
+            ss->epmap,
+            ss->ldata,
+            ss->subdiv_ccg,
+            key,
+            ss->sharp_angle_limit,
+            ss->corner_verts,
+            ss->corner_edges);
 
         break;
       }
@@ -399,24 +401,70 @@ bool SCULPT_vertex_check_origdata(SculptSession *ss, PBVHVertRef vertex)
   return blender::bke::paint::get_original_vertex(ss, vertex, nullptr, nullptr, nullptr, nullptr);
 }
 
+static int sculpt_calc_valence(const struct SculptSession *ss, PBVHVertRef vertex)
+{
+
+  int tot = 0;
+
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+      tot = BM_vert_edge_count(v);
+      break;
+    }
+    case PBVH_FACES: {
+      Vector<int, 32> edges;
+      for (int edge : ss->pmap[vertex.i]) {
+        if (!edges.contains(edge)) {
+          edges.append(edge);
+        }
+      }
+
+      tot = edges.size();
+      break;
+    }
+    case PBVH_GRIDS: {
+      const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
+      const int grid_index = vertex.i / key->grid_area;
+      const int vertex_index = vertex.i - grid_index * key->grid_area;
+
+      SubdivCCGCoord coord{};
+      coord.grid_index = grid_index;
+      coord.x = vertex_index % key->grid_size;
+      coord.y = vertex_index / key->grid_size;
+
+      SubdivCCGNeighbors neighbors;
+      BKE_subdiv_ccg_neighbor_coords_get(ss->subdiv_ccg, &coord, true, &neighbors);
+
+      tot = neighbors.size;
+      break;
+    }
+  }
+
+  return tot;
+}
+
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex)
 {
-  SculptVertexNeighborIter ni;
   uint8_t flag = vertex_attr_get<uint8_t>(vertex, ss->attrs.flags);
 
   if (flag & SCULPTFLAG_NEED_VALENCE) {
-    vertex_attr_set<uint8_t>(vertex, ss->attrs.flags, flag & ~SCULPTFLAG_NEED_VALENCE);
-
-    int tot = 0;
-
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-      tot++;
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    int tot = sculpt_calc_valence(ss, vertex);
 
     vertex_attr_set<uint>(vertex, ss->attrs.valence, tot);
+    *vertex_attr_ptr<uint8_t>(vertex, ss->attrs.flags) &= ~SCULPTFLAG_NEED_VALENCE;
+
     return tot;
   }
+
+#if 0
+  int tot = vertex_attr_get<uint>(vertex, ss->attrs.valence);
+  int real_tot = sculpt_calc_valence(ss, vertex);
+
+  if (tot != real_tot) {
+    printf("%s: invalid valence! got %d expected %d\n", tot, real_tot);
+  }
+#endif
 
   return vertex_attr_get<uint>(vertex, ss->attrs.valence);
 }

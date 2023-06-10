@@ -693,6 +693,7 @@ struct BMLogEntry {
   void free_logvert(BMLogVert *lv)
   {
     if (lv->customdata) {
+      CustomData_bmesh_unpoison(&vdata, lv->customdata);
       BLI_mempool_free(vdata.pool, lv->customdata);
     }
 
@@ -732,6 +733,7 @@ struct BMLogEntry {
   void free_logedge(BMesh * /*bm*/, BMLogEdge *le)
   {
     if (le->customdata) {
+      CustomData_bmesh_unpoison(&edata, le->customdata);
       BLI_mempool_free(edata.pool, le->customdata);
     }
 
@@ -788,11 +790,13 @@ struct BMLogEntry {
   {
     if (lf->loop_customdata[0]) {
       for (int i = 0; i < lf->verts.size(); i++) {
+        CustomData_bmesh_unpoison(&ldata, lf->loop_customdata[i]);
         BLI_mempool_free(ldata.pool, lf->loop_customdata[i]);
       }
     }
 
     if (lf->customdata) {
+      CustomData_bmesh_unpoison(&pdata, lf->customdata);
       BLI_mempool_free(pdata.pool, lf->customdata);
     }
 
@@ -1257,7 +1261,11 @@ void BMLogSetDiff::swap_verts(BMesh *bm,
     }
 
     if (old_customdata) {
+      CustomData_bmesh_unpoison(&bm->vdata, old_customdata);
+      CustomData_bmesh_unpoison(&bm->vdata, v->head.data);
       memcpy(old_customdata, v->head.data, bm->vdata.totsize);
+      CustomData_bmesh_poison(&bm->vdata, old_customdata);
+      CustomData_bmesh_poison(&bm->vdata, v->head.data);
     }
 
     entry->swap_logvert(bm, lv->id, v, lv);
@@ -1271,6 +1279,7 @@ void BMLogSetDiff::swap_verts(BMesh *bm,
   }
 
   if (old_customdata) {
+    CustomData_bmesh_unpoison(&bm->vdata, old_customdata);
     BLI_mempool_free(bm->vdata.pool, old_customdata);
   }
 }
@@ -1388,7 +1397,11 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
     }
 
     if (old_customdata) {
+      CustomData_bmesh_unpoison(&bm->edata, old_customdata);
+      CustomData_bmesh_unpoison(&bm->edata, e->head.data);
       memcpy(old_customdata, e->head.data, bm->edata.totsize);
+      CustomData_bmesh_poison(&bm->edata, old_customdata);
+      CustomData_bmesh_poison(&bm->edata, e->head.data);
     }
 
     entry->swap_logedge(bm, le->id, e, le);
@@ -1399,6 +1412,7 @@ void BMLogSetDiff::swap_edges(BMesh *bm,
   }
 
   if (old_customdata) {
+    CustomData_bmesh_unpoison(&bm->edata, old_customdata);
     BLI_mempool_free(bm->edata.pool, old_customdata);
   }
 }
@@ -1496,7 +1510,11 @@ void BMLogSetDiff::swap_faces(BMesh *bm,
     }
 
     if (old_customdata) {
+      CustomData_bmesh_unpoison(&bm->pdata, old_customdata);
+      CustomData_bmesh_unpoison(&bm->pdata, f->head.data);
       memcpy(old_customdata, f->head.data, bm->pdata.totsize);
+      CustomData_bmesh_poison(&bm->pdata, old_customdata);
+      CustomData_bmesh_poison(&bm->pdata, f->head.data);
     }
 
     entry->swap_logface(bm, lf->id, f, lf);
@@ -1510,6 +1528,7 @@ void BMLogSetDiff::swap_faces(BMesh *bm,
   }
 
   if (old_customdata) {
+    CustomData_bmesh_unpoison(&bm->pdata, old_customdata);
     BLI_mempool_free(bm->pdata.pool, old_customdata);
   }
 }

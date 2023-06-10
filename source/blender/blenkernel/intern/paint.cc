@@ -4411,9 +4411,6 @@ bool loop_is_corner(BMLoop *l, int cd_uv, float limit)
   }
 
   bool ret = keys.size() > 2;
-  if (ret) {
-    l->v->head.hflag |= BM_ELEM_SELECT;
-  }
 
   return ret;
 }
@@ -4483,10 +4480,6 @@ bool loop_is_corner(BMLoop *l, int cd_offset)
   normalize_v2(t2);
   float angle_limit = 110.0f / 180.0f * M_PI;
   float angle = saacos(dot_v2v2(t1, t2));
-
-  if (angle < angle_limit) {
-    l->v->head.hflag |= BM_ELEM_SELECT;
-  }
 
   return angle < angle_limit;
 }

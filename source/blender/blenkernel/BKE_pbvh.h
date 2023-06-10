@@ -794,7 +794,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, struct PBVHVertexIter *vi
           } \
           vi.co = vi.bm_vert->co; \
           vi.fno = vi.bm_vert->no; \
-          vi.mask = (float *)BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset); \
+          vi.mask = vi.cd_vert_mask_offset != -1 ? \
+                        (float *)BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset) : \
+                        nullptr; \
         }
 
 #define BKE_pbvh_vertex_iter_end \
@@ -983,55 +985,6 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
 void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
-
-/* Uncomment to enable PBVH NaN debugging. */
-//#define PBVH_CHECK_NANS
-
-#ifdef PBVH_CHECK_NANS
-#  include "atomic_ops.h"
-#  include <float.h>
-#  include <math.h>
-
-/* Why is atomic_ops defining near & far macros? */
-#  ifdef near
-#    undef near
-#  endif
-#  ifdef far
-#    undef far
-#  endif
-
-// static global to limit the number of reports per source file
-static int _bke_pbvh_report_count = 0;
-
-#  define PBVH_NAN_REPORT_LIMIT 16
-
-// for debugging NaNs that don't appear on developer's machines
-BLI_INLINE bool _pbvh_nan_check(const float *co, const char *func, const char *file, int line)
-{
-  bool bad = false;
-
-  if (_bke_pbvh_report_count > PBVH_NAN_REPORT_LIMIT) {
-    return false;
-  }
-
-  for (int i = 0; i < 3; i++) {
-    if (isnan(co[i]) || !isfinite(co[i])) {
-      const char *type = !isfinite(co[i]) ? "infinity" : "nan";
-      printf("float corruption (vector[%d] was %s): %s:%d\n\t%s\n", i, type, func, line, file);
-      bad = true;
-    }
-  }
-
-  if (bad) {
-    atomic_add_and_fetch_int32(&_bke_pbvh_report_count, 1);
-  }
-
-  return bad;
-}
-#  define PBVH_CHECK_NAN(co) _pbvh_nan_check(co, __func__, __FILE__, __LINE__)
-#else
-#  define PBVH_CHECK_NAN(co)
-#endif
 
 /*
 Uses pmap to build an array of edge indices surrounding vertex

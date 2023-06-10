@@ -365,6 +365,9 @@ void CustomData_copy_data_named(const struct CustomData *source,
                                 int dest_index,
                                 int count);
 
+void CustomData_bmesh_poison(const struct CustomData *cdata, void *block);
+void CustomData_bmesh_unpoison(const struct CustomData *cdata, void *block);
+
 /* Swap attributes.  Does not respect CD_FLAG_ELEM_NOCOPY. */
 void CustomData_bmesh_swap_data(struct CustomData *source,
                                 struct CustomData *dest,

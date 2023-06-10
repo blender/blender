@@ -83,6 +83,8 @@ static void surface_smooth_v_safe(
     return;
   }
 
+  PBVH_CHECK_NAN(v->co);
+
   Vector<BMLoop *, 32> loops;
   Vector<float, 32> ws;
 
@@ -218,6 +220,8 @@ static void surface_smooth_v_safe(
   atomic_cas_float(&v->co[1], y, ny);
   atomic_cas_float(&v->co[2], z, nz);
 
+  PBVH_CHECK_NAN(v->co);
+
   /*
    * Use reprojection for non-UV attributes.  UV attributes
    * use blender::bke::sculpt::interp_face_corners using
@@ -228,6 +232,8 @@ static void surface_smooth_v_safe(
     BKE_sculpt_reproject_cdata(ss, vertex, startco, startno, false);
     blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac);
   }
+
+  PBVH_CHECK_NAN(v->co);
 
   float *start_origco = blender::bke::paint::vertex_attr_ptr<float>(vertex, ss->attrs.orig_co);
 
@@ -2217,7 +2223,7 @@ void EdgeQueueContext::step()
 
     float prob = ops[curop] == PBVH_Subdivide ? 0.25 : 0.75;
     if (srand.get_float() > prob) {
-      surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, true);
+      surface_smooth_v_safe(ss, pbvh, v, surface_smooth_fac, reproject_cdata);
     }
   };
 
@@ -2473,6 +2479,9 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   BMEdge *newe;
   BMFace *newf = nullptr;
 
+  PBVH_CHECK_NAN(e->v1->co);
+  PBVH_CHECK_NAN(e->v2->co);
+
   if (!e->l) {
     return;
   }
@@ -2503,6 +2512,11 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   BM_log_edge_removed(bm, pbvh->bm_log, e);
   BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), true);
 
+  StrokeID stroke_id1 = blender::bke::paint::vertex_attr_get<StrokeID>(
+      {reinterpret_cast<intptr_t>(e->v1)}, ss->attrs.stroke_id);
+  StrokeID stroke_id2 = blender::bke::paint::vertex_attr_get<StrokeID>(
+      {reinterpret_cast<intptr_t>(e->v2)}, ss->attrs.stroke_id);
+
   dyntopo_add_flag(pbvh, e->v1, SCULPTFLAG_NEED_VALENCE);
   dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
   pbvh_boundary_update_bmesh(pbvh, e->v1);
@@ -2513,6 +2527,8 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   int bf2 = BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_boundary_flag);
 
   BMVert *newv = BM_edge_split(bm, e, e->v1, &newe, 0.5f);
+
+  PBVH_CHECK_NAN(newv->co);
 
   /* Remove edge-in-minmax-heap tag. */
   e->head.hflag &= ~EDGE_QUEUE_FLAG;
@@ -2527,8 +2543,22 @@ void EdgeQueueContext::split_edge(BMEdge *e)
     *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~SCULPT_BOUNDARY_UV;
   }
 
-  /* Flag newv to not update original coordinates. */
-  stroke_id_test(ss, {reinterpret_cast<intptr_t>(newv)}, STROKEID_USER_ORIGINAL);
+  /* Propagate current stroke id. */
+  StrokeID stroke_id;
+
+  if (stroke_id1.id < stroke_id2.id) {
+    std::swap(stroke_id1, stroke_id2);
+  }
+
+  stroke_id.id = stroke_id1.id;
+  if (stroke_id2.id < stroke_id1.id) {
+    stroke_id.userflag = stroke_id1.userflag;
+  }
+  else {
+    stroke_id.userflag = stroke_id1.userflag & stroke_id2.userflag;
+  }
+
+  *BM_ELEM_CD_PTR<StrokeID *>(newv, ss->attrs.stroke_id->bmesh_cd_offset) = stroke_id;
 
   BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
   BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newv));
@@ -3413,6 +3443,13 @@ inline void reproject_bm_data(
 
   T totw = 0.0;
   for (int i = 0; i < f_src->len; i++) {
+    if (isnan(w[i])) {
+      printf("%s: NaN\n", __func__);
+      /* Use uniform weights. */
+      totw = 0.0;
+      break;
+    }
+
     totw += w[i];
   }
 
@@ -3571,7 +3608,7 @@ void BKE_sculpt_reproject_cdata(
   char *_blocks = static_cast<char *>(alloca(ldata->totsize * totloop));
   void **blocks = static_cast<void **>(BLI_array_alloca(blocks, totloop));
 
-  const int max_vblocks = valence * 2;
+  const int max_vblocks = valence * 3;
 
   char *_vblocks = static_cast<char *>(alloca(ss->bm->vdata.totsize * max_vblocks));
   void **vblocks = static_cast<void **>(BLI_array_alloca(vblocks, max_vblocks));
@@ -3742,7 +3779,14 @@ void BKE_sculpt_reproject_cdata(
       BMLoop _interpl, *interpl = &_interpl;
 
       *interpl = *l;
-      memcpy(blocks[i], l->head.data, ldata->totsize);
+
+#ifdef WITH_ASAN
+      /* Can't unpoison memory in threaded code. */
+      CustomData_bmesh_copy_data(&ss->bm->ldata, &ss->bm->ldata, l->head.data, &blocks[i]);
+#else
+      memcpy(blocks[i], l->head.data, ss->bm->ldata.totsize);
+#endif
+
       interpl->head.data = blocks[i];
 
       interp_v3_v3v3(l->v->co, startco, vco, t);
@@ -3753,7 +3797,13 @@ void BKE_sculpt_reproject_cdata(
         void *vblock_old = interpl->v->head.data;
         void *vblock = vblocks[cur_vblock];
 
-        memcpy((void *)vblock, v->head.data, ss->bm->vdata.totsize);
+#ifdef WITH_ASAN
+        /* Can't unpoison memory in threaded code. */
+        CustomData_bmesh_copy_data(&ss->bm->vdata, &ss->bm->vdata, v->head.data, &vblocks[i]);
+#else
+        memcpy(vblocks[i], v->head.data, ss->bm->vdata.totsize);
+#endif
+
         interpl->v->head.data = (void *)vblock;
 
         reproject_bm_data(ss->bm, interpl, fakef, true, typemask);

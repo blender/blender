@@ -146,10 +146,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_vertex_check_origdata(ss, vd.vertex);
 
-    // check if we have a new stroke, in which we need to zero
-    // our temp layer.  do this here before the brush check
-    // to ensure any geomtry dyntopo might subdivide has
-    // valid state.
+    /* Check if we have a new stroke, in which we need to zero
+     * our temp layer.  Do this here before the brush check
+     * to ensure any geomtry dyntopo might subdivide has
+     * valid state.
+     */
     float *color_buffer = vertex_attr_ptr<float>(vd.vertex,
                                                  buffer_scl);  // mv->origcolor;
     if (blender::bke::sculpt::stroke_id_test(ss, vd.vertex, STROKEID_USER_PREV_COLOR)) {

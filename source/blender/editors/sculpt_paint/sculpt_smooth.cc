@@ -203,7 +203,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       eSculptBoundary smooth_flag2 = is_boundary2 & smooth_types;
 
       /* Handle smooth boundaries. */
-      if (!(is_boundary & hard_flags) && bool(smooth_flag) != bool(smooth_flag2)) {
+      if (smooth_flag && !(is_boundary & hard_flags) && bool(smooth_flag) != bool(smooth_flag2)) {
         /* Project to plane. */
         float3 t1 = float3(vertex_co_get(ss, ni.vertex)) - co;
         float fac = dot_v3v3(t1, no);
@@ -216,7 +216,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
         avg += tco * w;
         total += w;
       }
-      else if ((is_boundary & hard_flags) & (is_boundary2 & hard_flags)) {
+      else if ((is_boundary & hard_flags) == (is_boundary2 & hard_flags)) {
         avg += float3(vertex_co_get(ss, ni.vertex)) * w;
         total += w;
         project_ok = true;

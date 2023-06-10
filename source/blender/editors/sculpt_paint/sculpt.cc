@@ -3969,7 +3969,7 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   /* XXX we limit by time instead of edge queue steps now. */
-  int edge_multiply = 50; //1 + int(powf(ss->cached_dyntopo.quality, 3.0f) * 50.0f);
+  int edge_multiply = 50;  // 1 + int(powf(ss->cached_dyntopo.quality, 3.0f) * 50.0f);
 
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;

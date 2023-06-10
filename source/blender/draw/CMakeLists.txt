@@ -816,9 +816,6 @@ if(WITH_GTESTS)
   endif()
 endif()
 
-remove_cc_flag("-fsanitize=address")
-remove_cc_flag("/fsanitize=address")
-
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)
 

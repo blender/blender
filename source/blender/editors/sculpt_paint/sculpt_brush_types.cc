@@ -1561,6 +1561,13 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       }
     }
 
+    PBVH_CHECK_NAN1(*disp_factor);
+
+    if (isnan(*disp_factor)) {
+      vd.bm_vert->head.hflag |= BM_ELEM_SELECT;
+      continue;
+    }
+
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
      * height of the layer to 0. This makes possible to clean edges of previously added layers
      * on top of the base. */
@@ -1580,6 +1587,8 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     else {
       *disp_factor = clamp_f(*disp_factor, -1.0f, 1.0f);
     }
+
+    PBVH_CHECK_NAN1(*disp_factor);
 
     float final_co[3];
     float normal[3];
@@ -1601,7 +1610,10 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_fl(vdisp, fabsf(fade));
     add_v3_v3v3(final_co, vd.co, vdisp);
 
+    PBVH_CHECK_NAN(final_co);
     SCULPT_clip(sd, ss, vd.co, final_co);
+
+    PBVH_CHECK_NAN1(*disp_factor);
 
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);

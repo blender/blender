@@ -153,7 +153,7 @@ struct VertLoopSnapper {
   Vector<int, 16> max_indices;
   float limit = 0.001;
 
-  VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : ls(ls_), layers(layers_)
+  VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : layers(layers_), ls(ls_)
   {
     snap_sets.resize(ls.size());
     for (auto &snap_set : snap_sets) {
@@ -223,7 +223,6 @@ struct VertLoopSnapper {
 
       len /= ls.size();
       limit *= len;
-      // printf("limit: %.5f  len: %.5f\n", limit, len);
     }
 
     for (int i : ls.index_range()) {
@@ -279,3 +278,74 @@ struct VertLoopSnapper {
   }
 };
 }  // namespace blender::bke::sculpt
+
+/* Uncomment to enable PBVH NaN debugging. */
+//#define PBVH_CHECK_NANS
+
+#ifdef PBVH_CHECK_NANS
+#  include "atomic_ops.h"
+#  include <float.h>
+#  include <math.h>
+
+/* Why is atomic_ops defining near & far macros? */
+#  ifdef near
+#    undef near
+#  endif
+#  ifdef far
+#    undef far
+#  endif
+
+// static global to limit the number of reports per source file
+static int _bke_pbvh_report_count = 0;
+
+#  define PBVH_NAN_REPORT_LIMIT 16
+
+// for debugging NaNs that don't appear on developer's machines
+static ATTR_NO_OPT bool _pbvh_nan_check1(const float f,
+                                         const char *func,
+                                         const char *file,
+                                         int line)
+{
+  bool bad = false;
+
+  if (_bke_pbvh_report_count > PBVH_NAN_REPORT_LIMIT) {
+    return false;
+  }
+
+  if (isnan(f) || !isfinite(f)) {
+    const char *type = !isfinite(f) ? "infinity" : "nan";
+    printf("float corruption (value was %s): %s:%d\n\t%s\n", type, func, line, file);
+    bad = true;
+  }
+
+  if (bad) {
+    atomic_add_and_fetch_int32(&_bke_pbvh_report_count, 1);
+  }
+
+  return bad;
+}
+
+static ATTR_NO_OPT bool _pbvh_nan_check3(const float co[3],
+                                         const char *func,
+                                         const char *file,
+                                         int line)
+{
+  if (!co) {
+    return false;
+  }
+
+  bool ret = false;
+
+  for (int i = 0; i < 3; i++) {
+    ret |= _pbvh_nan_check1(co[i], func, file, line);
+  }
+
+  return ret;
+}
+
+#  define PBVH_CHECK_NAN(co) _pbvh_nan_check3(co, __func__, __FILE__, __LINE__)
+#  define PBVH_CHECK_NAN1(f) _pbvh_nan_check1(f, __func__, __FILE__, __LINE__)
+#else
+#  define PBVH_CHECK_NAN(co)
+#  define PBVH_CHECK_NAN1(f)
+#endif

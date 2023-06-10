@@ -326,14 +326,15 @@ class DyntopoCollapseCallbacks {
 
   inline void on_vert_kill(BMVert *v)
   {
-    dyntopo_add_flag(pbvh, v, SCULPTFLAG_NEED_VALENCE);
-
     BM_log_vert_removed(bm, pbvh->bm_log, v);
     pbvh_bmesh_vert_remove(pbvh, v);
     BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(v), false);
   }
   inline void on_edge_kill(BMEdge *e)
   {
+    dyntopo_add_flag(pbvh, e->v1, SCULPTFLAG_NEED_VALENCE);
+    dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
+
     BM_log_edge_removed(bm, pbvh->bm_log, e);
     BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e), false);
   }
@@ -357,10 +358,15 @@ class DyntopoCollapseCallbacks {
     /* Combine boundary flags. */
     int boundflag = BM_ELEM_CD_GET_INT(source, pbvh->cd_boundary_flag);
     BM_ELEM_CD_SET_INT(dest, pbvh->cd_boundary_flag, boundflag);
+
+    dyntopo_add_flag(pbvh, dest, SCULPTFLAG_NEED_VALENCE);
   }
 
   inline void on_edge_combine(BMEdge *dest, BMEdge *source)
   {
+    dyntopo_add_flag(pbvh, dest->v1, SCULPTFLAG_NEED_VALENCE);
+    dyntopo_add_flag(pbvh, dest->v2, SCULPTFLAG_NEED_VALENCE);
+
     /* Combine boundary flags. */
     int boundflag = BM_ELEM_CD_GET_INT(source, pbvh->cd_edge_boundary);
     BM_ELEM_CD_SET_INT(dest, pbvh->cd_edge_boundary, boundflag);
@@ -371,6 +377,9 @@ class DyntopoCollapseCallbacks {
 
   inline void on_edge_create(BMEdge *e)
   {
+    dyntopo_add_flag(pbvh, e->v1, SCULPTFLAG_NEED_VALENCE);
+    dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
+
     check_new_elem_id(e, pbvh);
     pbvh_boundary_update_bmesh(pbvh, e);
     BM_log_edge_added(bm, pbvh->bm_log, e);
@@ -384,6 +393,7 @@ class DyntopoCollapseCallbacks {
 
     BMLoop *l = f->l_first;
     do {
+      dyntopo_add_flag(pbvh, l->v, SCULPTFLAG_NEED_VALENCE);
       pbvh_boundary_update_bmesh(pbvh, l->v);
       pbvh_boundary_update_bmesh(pbvh, l->e);
     } while ((l = l->next) != f->l_first);
@@ -401,6 +411,9 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   if (pbvh->dyntopo_stop) {
     return nullptr;
   }
+
+  PBVH_CHECK_NAN(v1->co);
+  PBVH_CHECK_NAN(v2->co);
 
   TraceData tdata;
 
@@ -430,8 +443,8 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
     return nullptr;
   }
 
-  float w1 = DYNTOPO_MASK(cd_vert_mask_offset, v1);
-  float w2 = DYNTOPO_MASK(cd_vert_mask_offset, v2);
+  float w1 = mask_cb ? 1.0f - mask_cb({reinterpret_cast<intptr_t>(v1)}, mask_cb_data) : 0.0f;
+  float w2 = mask_cb ? 1.0f - mask_cb({reinterpret_cast<intptr_t>(v2)}, mask_cb_data) : 0.0f;
 
   bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
@@ -588,7 +601,9 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
 
   validate_vert(pbvh, v_conn, CHECK_VERT_FACES | CHECK_VERT_NODE_ASSIGNED);
 
-  PBVH_CHECK_NAN(v_conn->co);
+  if (v_conn) {
+    PBVH_CHECK_NAN(v_conn->co);
+  }
 
   return v_conn;
 }

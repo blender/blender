@@ -134,7 +134,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 /* Slightly relax geometry by this factor along surface tangents
  * to improve convergence of dyntopo remesher.
  */
-#define DYNTOPO_SAFE_SMOOTH_FAC 0.025f
+#define DYNTOPO_SAFE_SMOOTH_FAC 0.01f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
@@ -155,7 +155,8 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 
 // #define USE_VERIFY
 
-#define DYNTOPO_MASK(cd_mask_offset, v) BM_ELEM_CD_GET_FLOAT(v, cd_mask_offset)
+#define DYNTOPO_MASK(cd_mask_offset, v) \
+  (cd_mask_offset != -1 ? BM_ELEM_CD_GET_FLOAT(v, cd_mask_offset) : 0.0f)
 
 #ifdef USE_VERIFY
 static void pbvh_bmesh_verify(PBVH *pbvh);
