@@ -2363,7 +2363,7 @@ bool remesh_topology(BrushTester *brush_tester,
   using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
   quality *= quality;
-  int time_limit = 8 * (1.0 - quality) + 128 * quality;
+  int time_limit = 8 * (1.0 - quality) + 550 * quality;
 
   auto time = Clock::now();
   Clock::duration limit = std::chrono::duration_cast<Clock::duration>(
@@ -2379,8 +2379,8 @@ bool remesh_topology(BrushTester *brush_tester,
 
   eq_ctx.finish();
 
-  printf("time: %dms\n",
-         int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - time).count()));
+  //printf("time: %dms\n",
+  //       int(std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - time).count()));
   return eq_ctx.modified;
 }
 
