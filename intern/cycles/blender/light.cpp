@@ -146,7 +146,11 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
 
   /* lightgroup */
-  light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
+  string lightgroup = b_ob_info.real_object.lightgroup();
+  if (lightgroup.empty()) {
+    lightgroup = b_parent.lightgroup();
+  }
+  light->set_lightgroup(ustring(lightgroup));
 
   /* tag */
   light->tag_update(scene);

@@ -349,7 +349,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     }
 
     /* lightgroup */
-    object->set_lightgroup(ustring(b_ob.lightgroup()));
+    string lightgroup = b_ob.lightgroup();
+    if (lightgroup.empty()) {
+      lightgroup = b_parent.lightgroup();
+    }
+    object->set_lightgroup(ustring(lightgroup));
 
     object->tag_update(scene);
   }
