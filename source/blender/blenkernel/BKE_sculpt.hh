@@ -343,9 +343,29 @@ static ATTR_NO_OPT bool _pbvh_nan_check3(const float co[3],
   return ret;
 }
 
+static ATTR_NO_OPT bool _pbvh_nan_check4(const float co[4],
+                                         const char *func,
+                                         const char *file,
+                                         int line)
+{
+  if (!co) {
+    return false;
+  }
+
+  bool ret = false;
+
+  for (int i = 0; i < 4; i++) {
+    ret |= _pbvh_nan_check1(co[i], func, file, line);
+  }
+
+  return ret;
+}
+
 #  define PBVH_CHECK_NAN(co) _pbvh_nan_check3(co, __func__, __FILE__, __LINE__)
 #  define PBVH_CHECK_NAN1(f) _pbvh_nan_check1(f, __func__, __FILE__, __LINE__)
+#  define PBVH_CHECK_NAN4(co) _pbvh_nan_check4(co, __func__, __FILE__, __LINE__)
 #else
 #  define PBVH_CHECK_NAN(co)
 #  define PBVH_CHECK_NAN1(f)
+#  define PBVH_CHECK_NAN4(co)
 #endif

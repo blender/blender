@@ -652,6 +652,19 @@ def brush_settings(layout, context, brush, popover=False):
 
         layout.prop(brush.dyntopo, "disabled")
 
+        layout.separator()
+        layout.label(text="Smooth Settings")
+
+        if capabilities.has_auto_smooth:
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "auto_smooth_factor",
+                pressure_name="use_inverse_smooth_pressure",
+                slider=True,
+            )
+
         if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
             UnifiedPaintPanel.prop_unified(
                 layout,
@@ -659,6 +672,7 @@ def brush_settings(layout, context, brush, popover=False):
                 brush,
                 "auto_smooth_projection",
                 slider=True,
+                text="Preserve Volume",
             )
 
         is_smooth = capabilities.has_auto_smooth
@@ -672,18 +686,8 @@ def brush_settings(layout, context, brush, popover=False):
                 brush,
                 "hard_corner_pin",
                 slider=True,
-                unified_name = "use_unified_hard_corner_pin",
-                text="Corner Pin"
-            )
-
-        if capabilities.has_auto_smooth:
-            UnifiedPaintPanel.prop_unified(
-                layout,
-                context,
-                brush,
-                "auto_smooth_factor",
-                pressure_name="use_inverse_smooth_pressure",
-                slider=True,
+                unified_name="use_unified_hard_corner_pin",
+                text="Corner Pin",
             )
 
         if capabilities.has_auto_smooth or brush.sculpt_tool == "SMOOTH":
@@ -1110,7 +1114,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         if is_cavity_active:
             props = row.operator("sculpt.mask_from_cavity", text="Create Mask")
-            props.settings_source = 'BRUSH'
+            props.settings_source = "BRUSH"
 
         col.prop(brush, "use_automasking_cavity_inverted", text="Cavity (inverted)")
 

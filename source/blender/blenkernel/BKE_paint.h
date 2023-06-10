@@ -564,6 +564,13 @@ typedef struct SculptAttribute {
    * inside of SculptSession.temp_attribute are used.
    */
   bool used;
+
+#ifdef __cplusplus
+  bool is_empty() const
+  {
+    return !used;
+  }
+#endif
 } SculptAttribute;
 
 #define SCULPT_MAX_ATTRIBUTES 64
@@ -948,6 +955,11 @@ void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
 void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
 
+/* Release a SculptAttribute ref without destroying the underlying attribute. */
+void BKE_sculpt_attribute_release_ref(struct Object *ob, SculptAttribute *attr);
+
+SculptAttribute BKE_sculpt_find_attribute(struct Object *ob, const char *name);
+
 bool BKE_sculpt_init_flags_valence(struct Object *ob,
                                    struct PBVH *pbvh,
                                    int totvert,
@@ -962,13 +974,6 @@ void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me, bool load_to_mesh);
 
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
-SculptAttribute *BKE_sculptsession_attr_layer_get(struct Object *ob,
-                                                  eAttrDomain domain,
-                                                  int proptype,
-                                                  const char *name,
-                                                  SculptAttributeParams *params,
-                                                  bool *r_is_new);
-bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptAttribute *scl);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
 int BKE_sculptsession_get_totvert(const struct SculptSession *ss);

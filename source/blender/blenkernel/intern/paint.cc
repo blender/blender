@@ -2392,7 +2392,10 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   using namespace blender::bke;
   Mesh *orig_me = BKE_object_get_original_mesh(object);
 
-  if (orig_me->attributes().contains(orig_me->active_color_attribute)) {
+  SculptAttribute attr = BKE_sculpt_find_attribute(object, orig_me->active_color_attribute);
+  if (!attr.is_empty() && (CD_TYPE_AS_MASK(attr.proptype) & CD_MASK_COLOR_ALL) &&
+      ELEM(attr.domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER))
+  {
     return;
   }
 
@@ -2413,7 +2416,8 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
     BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);
   }
 
-  BKE_sculptsession_update_attr_refs(object);
+  /* Flush attribute into sculpt mesh. */
+  BKE_sculptsession_sync_attributes(object, orig_me, false);
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -3987,6 +3991,104 @@ void BKE_sculpt_attribute_destroy_temporary_all(Object *ob)
       BKE_sculpt_attribute_destroy(ob, attr);
     }
   }
+}
+
+SculptAttribute BKE_sculpt_find_attribute(Object *ob, const char *name)
+{
+  SculptSession *ss = ob->sculpt;
+
+  CustomData *cdatas[4];
+  eAttrDomain domains[4] = {
+      ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
+
+  if (ss->bm) {
+    cdatas[0] = &ss->bm->vdata;
+    cdatas[1] = &ss->bm->edata;
+    cdatas[2] = &ss->bm->ldata;
+    cdatas[3] = &ss->bm->pdata;
+  }
+  else {
+    Mesh *me = static_cast<Mesh *>(ob->data);
+
+    cdatas[0] = &me->vdata;
+    cdatas[1] = &me->edata;
+    cdatas[2] = &me->ldata;
+    cdatas[3] = &me->pdata;
+  }
+
+  bool is_grids = ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
+
+  for (int i = 0; i < 4; i++) {
+    eAttrDomain domain = domains[i];
+    if (domain == ATTR_DOMAIN_POINT && is_grids) {
+      for (int i = 0; i < ARRAY_SIZE(ss->temp_attributes); i++) {
+        SculptAttribute *attr = &ss->temp_attributes[i];
+
+        if (attr->used && attr->domain == ATTR_DOMAIN_POINT && STREQ(attr->name, name)) {
+          return *attr;
+        }
+      }
+
+      continue;
+    }
+
+    CustomData *data = cdatas[i];
+    for (int j = 0; j < data->totlayer; j++) {
+      CustomDataLayer &layer = data->layers[j];
+
+      if (STREQ(layer.name, name) && (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL)) {
+        SculptAttribute *attr = BKE_sculpt_attribute_get(
+            ob, domain, eCustomDataType(layer.type), name);
+        SculptAttribute ret;
+
+        ret = *attr;
+        BKE_sculpt_attribute_release_ref(ob, attr);
+
+        return ret;
+      }
+    }
+  }
+
+  SculptAttribute unused = {};
+  return unused;
+}
+
+void BKE_sculpt_attribute_release_ref(Object *ob, SculptAttribute *attr)
+{
+  SculptSession *ss = ob->sculpt;
+  eAttrDomain domain = attr->domain;
+
+  BLI_assert(attr->used);
+
+  /* Remove from convenience pointer struct. */
+  SculptAttribute **ptrs = (SculptAttribute **)&ss->attrs;
+  int ptrs_num = sizeof(ss->attrs) / sizeof(void *);
+
+  for (int i = 0; i < ptrs_num; i++) {
+    if (ptrs[i] == attr) {
+      ptrs[i] = nullptr;
+    }
+  }
+
+  /* Remove from internal temp_attributes array. */
+  for (int i = 0; i < SCULPT_MAX_ATTRIBUTES; i++) {
+    SculptAttribute *attr2 = ss->temp_attributes + i;
+
+    if (STREQ(attr2->name, attr->name) && attr2->domain == attr->domain &&
+        attr2->proptype == attr->proptype)
+    {
+
+      attr2->used = false;
+    }
+  }
+
+  /* Simple_array mode attributes are owned by SculptAttribute. */
+  if (attr->simple_array) {
+    MEM_SAFE_FREE(attr->data);
+  }
+
+  attr->data = nullptr;
+  attr->used = false;
 }
 
 bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)

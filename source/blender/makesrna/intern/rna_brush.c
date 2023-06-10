@@ -3393,7 +3393,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(
-      prop, "Projection", "How much autosmooth should stick to surface\n(prevents shrinking).");
+      prop, "Preserve Volume", "How much autosmooth should preserve volume.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "sharp_angle_limit", PROP_FLOAT, PROP_ANGLE);

@@ -457,7 +457,7 @@ int SCULPT_vertex_valence_get(const struct SculptSession *ss, PBVHVertRef vertex
     return tot;
   }
 
-#if 0
+#if 1
   int tot = vertex_attr_get<uint>(vertex, ss->attrs.valence);
   int real_tot = sculpt_calc_valence(ss, vertex);
 

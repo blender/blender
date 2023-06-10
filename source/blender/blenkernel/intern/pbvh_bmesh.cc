@@ -2201,8 +2201,8 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
     }
 
     if (e->l) {
-      if ((e->l->f->head.hflag & BM_ELEM_SMOOTH) ||
-          (e->l->radial_next->f->head.hflag & BM_ELEM_SMOOTH)) {
+      if ((e->l->f->head.hflag & BM_ELEM_HIDDEN) ||
+          (e->l->radial_next->f->head.hflag & BM_ELEM_HIDDEN)) {
         newflag |= SCULPTFLAG_VERT_FSET_HIDDEN;
       }
 

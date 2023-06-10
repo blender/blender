@@ -4418,7 +4418,12 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!DNA_struct_elem_find(fd->filesdna, "UnifiedPaintSettings", "int", "smooth_boundary_flag")) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_MASK, SCULPT_TOOL_DRAW_FACE_SETS)) {
+      if (ELEM(brush->sculpt_tool,
+               SCULPT_TOOL_MASK,
+               SCULPT_TOOL_DRAW_FACE_SETS,
+               SCULPT_TOOL_PAINT,
+               SCULPT_TOOL_SMEAR))
+      {
         brush->dyntopo.flag |= DYNTOPO_DISABLED;
       }
     }

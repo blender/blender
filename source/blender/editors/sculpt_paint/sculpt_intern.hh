@@ -1896,7 +1896,9 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
                                         float hard_corner_pin,
                                         int cd_temp,
                                         bool weighted,
-                                        bool do_origco);
+                                        bool do_origco,
+                                        float factor,
+                                        bool reproject_uvs);
 
 void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     float result[3],
