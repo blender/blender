@@ -6640,7 +6640,8 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
       bNode *in_node = nullptr;
       if (ma && ma->nodetree) {
         ma->nodetree->ensure_topology_cache();
-        const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type("ShaderNodeBsdfPrincipled");
+        const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type(
+            "ShaderNodeBsdfPrincipled");
         in_node = nodes.is_empty() ? nullptr : nodes.first();
       }
       if (!in_node) {
