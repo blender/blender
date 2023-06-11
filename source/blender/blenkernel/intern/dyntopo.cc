@@ -3851,8 +3851,10 @@ void BKE_sculpt_reproject_cdata(
 
       /* Interpolate. */
       BMLoop _interpl, *interpl = &_interpl;
+      BMVert _v = *l->v;
 
       *interpl = *l;
+      interpl->v = &_v;
 
 #ifdef WITH_ASAN
       /* Can't unpoison memory in threaded code. */
@@ -3868,7 +3870,6 @@ void BKE_sculpt_reproject_cdata(
       normalize_v3(l->v->no);
 
       if (l->v == v && cur_vblock < max_vblocks) {
-        void *vblock_old = interpl->v->head.data;
         void *vblock = vblocks[cur_vblock];
 
 #ifdef WITH_ASAN
@@ -3879,10 +3880,7 @@ void BKE_sculpt_reproject_cdata(
 #endif
 
         interpl->v->head.data = (void *)vblock;
-
         reproject_bm_data(ss->bm, interpl, fakef, true, typemask);
-
-        interpl->v->head.data = vblock_old;
         cur_vblock++;
       }
       else {
