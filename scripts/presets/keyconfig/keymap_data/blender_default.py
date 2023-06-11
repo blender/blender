@@ -4508,6 +4508,9 @@ def km_grease_pencil_edit(params):
 
     items.extend([
         *_template_items_select_actions(params, "grease_pencil.select_all"),
+        # Select linked
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("grease_pencil.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
     ])
