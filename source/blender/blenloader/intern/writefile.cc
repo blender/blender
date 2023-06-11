@@ -1369,10 +1369,11 @@ static bool write_file_handle(Main *mainvar,
 /* return: success(0), failure(1) */
 static bool do_history(const char *name, ReportList *reports)
 {
-  char tempname1[FILE_MAX], tempname2[FILE_MAX];
-  int hisnr = U.versions;
+  /* Add 2 because version number maximum is double-digits. */
+  char tempname1[FILE_MAX + 2], tempname2[FILE_MAX + 2];
+  int hisnr = min_ii(99, U.versions);
 
-  if (U.versions == 0) {
+  if (hisnr == 0) {
     return false;
   }
 
