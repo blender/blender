@@ -1457,6 +1457,8 @@ static void customdata_weld(
   int src_i, dest_i;
   int j;
 
+  int vs_flag = 0;
+
   /* interpolates a layer at a time */
   dest_i = 0;
   for (src_i = 0; src_i < source->totlayer; src_i++) {
@@ -1477,7 +1479,21 @@ static void customdata_weld(
     /* if we found a matching layer, add the data */
     if (dest->layers[dest_i].type == type) {
       void *src_data = source->layers[src_i].data;
-      if (CustomData_layer_has_interp(dest, dest_i)) {
+      if (type == CD_MVERT_SKIN) {
+        /* The `typeInfo->interp` of #CD_MVERT_SKIN does not include the flags, so #MVERT_SKIN_ROOT
+         * and #MVERT_SKIN_LOOSE are lost after the interpolation.
+         *
+         * This behavior is not incorrect. Ideally, islands should be checked to avoid repeated
+         * roots.
+         *
+         * However, for now, to prevent the loss of flags, they are simply re-added if any of the
+         * merged vertices have them. */
+        for (j = 0; j < count; j++) {
+          MVertSkin *vs = &((MVertSkin *)src_data)[src_indices[j]];
+          vs_flag |= vs->flag;
+        }
+      }
+      else if (CustomData_layer_has_interp(dest, dest_i)) {
         /* Already calculated.
          * TODO: Optimize by exposing `typeInfo->interp`. */
       }
@@ -1507,7 +1523,11 @@ static void customdata_weld(
   for (dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomDataLayer *layer_dst = &dest->layers[dest_i];
     const eCustomDataType type = eCustomDataType(layer_dst->type);
-    if (CustomData_layer_has_interp(dest, dest_i)) {
+    if (type == CD_MVERT_SKIN) {
+      MVertSkin *vs = &((MVertSkin *)layer_dst->data)[dest_index];
+      vs->flag = vs_flag;
+    }
+    else if (CustomData_layer_has_interp(dest, dest_i)) {
       /* Already calculated. */
     }
     else if (CustomData_layer_has_math(dest, dest_i)) {
