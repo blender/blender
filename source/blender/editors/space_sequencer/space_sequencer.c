@@ -430,6 +430,7 @@ static void sequencer_gizmos(void)
   WM_gizmotype_append(GIZMO_GT_retime_handle_add);
   WM_gizmotype_append(GIZMO_GT_retime_handle);
   WM_gizmotype_append(GIZMO_GT_retime_remove);
+  WM_gizmotype_append(GIZMO_GT_speed_set_remove);
 
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);

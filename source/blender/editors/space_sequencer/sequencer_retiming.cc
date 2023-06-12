@@ -461,3 +461,95 @@ void SEQUENCER_OT_retiming_handle_remove(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Retiming Set Segment Speed
+ * \{ */
+
+static int sequencer_retiming_segment_speed_set_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const Editing *ed = SEQ_editing_get(scene);
+  Sequence *seq = ed->act_seq;
+  MutableSpan handles = SEQ_retiming_handles_get(seq);
+  SeqRetimingHandle *handle = &handles[RNA_int_get(op->ptr, "handle_index")];
+
+  SEQ_retiming_handle_speed_set(scene, seq, handle, RNA_float_get(op->ptr, "speed"));
+  SEQ_relations_invalidate_cache_raw(scene, seq);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_retiming_segment_speed_set_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const Editing *ed = SEQ_editing_get(scene);
+  const Sequence *seq = ed->act_seq;
+
+  if (seq == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  MutableSpan handles = SEQ_retiming_handles_get(seq);
+  SeqRetimingHandle *handle = nullptr;
+
+  if (RNA_struct_property_is_set(op->ptr, "handle_index")) {
+    const int handle_index = RNA_int_get(op->ptr, "handle_index");
+    BLI_assert(handle_index < handles.size());
+    handle = &handles[handle_index];
+  }
+  else {
+    handle = closest_retiming_handle_get(C, seq, event->mval[0]);
+  }
+
+  if (handle == nullptr) {
+    BKE_report(op->reports, RPT_ERROR, "No handle available");
+    return OPERATOR_CANCELLED;
+  }
+
+  RNA_float_set(op->ptr, "speed", SEQ_retiming_handle_speed_get(seq, handle) * 100.0f);
+  RNA_int_set(op->ptr, "handle_index", SEQ_retiming_handle_index_get(seq, handle));
+  return WM_operator_props_popup(C, op, event);
+}
+
+void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Speed";
+  ot->description = "Set speed of retimed segment";
+  ot->idname = "SEQUENCER_OT_retiming_segment_speed_set";
+
+  /* api callbacks */
+  ot->invoke = sequencer_retiming_segment_speed_set_invoke;
+  ot->exec = sequencer_retiming_segment_speed_set_exec;
+  ot->poll = retiming_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "handle_index",
+                                  0,
+                                  0,
+                                  INT_MAX,
+                                  "Handle Index",
+                                  "Index of handle to be removed",
+                                  0,
+                                  INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_float(ot->srna,
+                       "speed",
+                       100.0f,
+                       0.001f,
+                       FLT_MAX,
+                       "Speed",
+                       "New speed of retimed segment",
+                       0.1f,
+                       INT_MAX);
+}
+
+/** \} */
