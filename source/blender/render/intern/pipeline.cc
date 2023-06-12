@@ -23,6 +23,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -331,6 +332,7 @@ void RE_ClearResult(Render *re)
   if (re) {
     render_result_free(re->result);
     re->result = nullptr;
+    re->result_has_gpu_texture_caches = false;
   }
 }
 
@@ -636,6 +638,7 @@ void RE_FreeAllRenderResults(void)
 
     re->result = nullptr;
     re->pushedresult = nullptr;
+    re->result_has_gpu_texture_caches = false;
   }
 }
 
@@ -650,9 +653,58 @@ void RE_FreeAllPersistentData(void)
   }
 }
 
+void RE_FreeGPUTextureCaches(const bool only_unused)
+{
+  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+    if (!re->result_has_gpu_texture_caches) {
+      continue;
+    }
+
+    Scene *scene = re->scene;
+    bool do_free = true;
+
+    /* Detect if scene is using realtime compositing, and if either a node editor is
+     * showing the nodes, or an image editor is showing the render result or viewer. */
+    if (only_unused && scene && scene->use_nodes && scene->nodetree &&
+        scene->nodetree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
+    {
+      wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+      LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
+        const bScreen *screen = WM_window_get_active_screen(win);
+        LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+          const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+
+          if (space.spacetype == SPACE_NODE) {
+            const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
+            if (snode.nodetree == scene->nodetree) {
+              do_free = false;
+            }
+          }
+          else if (space.spacetype == SPACE_IMAGE) {
+            const SpaceImage &sima = reinterpret_cast<const SpaceImage &>(space);
+            if (sima.image && sima.image->source == IMA_SRC_VIEWER) {
+              do_free = false;
+            }
+          }
+        }
+      }
+    }
+
+    if (do_free) {
+      RenderResult *result = RE_AcquireResultWrite(re);
+      if (result != nullptr) {
+        render_result_free_gpu_texture_caches(result);
+      }
+      re->result_has_gpu_texture_caches = false;
+      RE_ReleaseResult(re);
+    }
+  }
+}
+
 static void re_free_persistent_data(Render *re)
 {
-  /* If engine is currently rendering, just wait for it to be freed when it finishes rendering. */
+  /* If engine is currently rendering, just wait for it to be freed when it finishes rendering.
+   */
   if (re->engine && !(re->engine->flag & RE_ENGINE_RENDERING)) {
     RE_engine_free(re->engine);
     re->engine = nullptr;
@@ -1754,8 +1806,8 @@ static void render_pipeline_free(Render *re)
   /* Destroy the opengl context in the correct thread. */
   RE_system_gpu_context_destroy(re);
 
-  /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in the
-   * case of cancelled render) ensure the storage is empty. */
+  /* In the case the engine did not mark tiles as finished (un-highlight, which could happen in
+   * the case of cancelled render) ensure the storage is empty. */
   if (re->highlighted_tiles != nullptr) {
     BLI_mutex_lock(&re->highlighted_tiles_mutex);
 
@@ -1796,6 +1848,9 @@ void RE_RenderFrame(Render *re,
     MEM_reset_peak_memory();
 
     render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
+
+    /* Reduce GPU memory usage so renderer has more space. */
+    RE_FreeGPUTextureCaches(false);
 
     render_init_depsgraph(re);
 
@@ -2197,6 +2252,9 @@ void RE_RenderAnim(Render *re,
   scene->r.subframe = 0.0f;
   for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
     char filepath[FILE_MAX];
+
+    /* Reduce GPU memory usage so renderer has more space. */
+    RE_FreeGPUTextureCaches(false);
 
     /* A feedback loop exists here -- render initialization requires updated
      * render layers settings which could be animated, but scene evaluation for
