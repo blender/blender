@@ -13,6 +13,7 @@
 #include "vk_index_buffer.hh"
 #include "vk_memory.hh"
 #include "vk_pipeline.hh"
+#include "vk_storage_buffer.hh"
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
@@ -305,6 +306,12 @@ void VKCommandBuffer::dispatch(int groups_x_len, int groups_y_len, int groups_z_
 {
   ensure_no_active_framebuffer();
   vkCmdDispatch(vk_command_buffer_, groups_x_len, groups_y_len, groups_z_len);
+}
+
+void VKCommandBuffer::dispatch(VKStorageBuffer &command_buffer)
+{
+  ensure_no_active_framebuffer();
+  vkCmdDispatchIndirect(vk_command_buffer_, command_buffer.vk_handle(), 0);
 }
 
 void VKCommandBuffer::submit()

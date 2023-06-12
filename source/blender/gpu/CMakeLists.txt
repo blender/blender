@@ -847,6 +847,7 @@ if(WITH_GTESTS)
       tests/gpu_testing.cc
 
       tests/buffer_texture_test.cc
+      tests/compute_test.cc
       tests/framebuffer_test.cc
       tests/immediate_test.cc
       tests/index_buffer_test.cc
