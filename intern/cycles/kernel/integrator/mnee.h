@@ -981,7 +981,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
       bool found_refractive_microfacet_bsdf = false;
       for (int ci = 0; ci < sd_mnee->num_closure; ci++) {
         ccl_private ShaderClosure *bsdf = &sd_mnee->closure[ci];
-        if (CLOSURE_IS_REFRACTIVE(bsdf->type)) {
+        if (CLOSURE_IS_REFRACTION(bsdf->type) || CLOSURE_IS_GLASS(bsdf->type)) {
           /* Note that Glass closures are treated as refractive further below. */
 
           found_refractive_microfacet_bsdf = true;

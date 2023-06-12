@@ -407,7 +407,7 @@ ccl_device int bsdf_microfacet_multi_ggx_fresnel_setup(ccl_private MicrofacetBsd
 
   bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_fresnel(sd, bsdf));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_fresnel(sd, bsdf, true, true));
 
   return bsdf_microfacet_multi_ggx_common_setup(bsdf);
 }
@@ -618,7 +618,7 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private Microfa
 
   bsdf->fresnel_type = MicrofacetFresnel::PRINCIPLED_V1;
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_fresnel(sd, bsdf));
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_fresnel(sd, bsdf, true, true));
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
