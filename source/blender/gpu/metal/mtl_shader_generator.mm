@@ -3113,6 +3113,14 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
         << this->vertex_output_varyings[0].name << ";" << std::endl;
   }
 
+  /* Assign default gl_FragDepth.
+   * If gl_FragDepth is used, it should default to the original depth value. Resolves #107159 where
+   * overlay_wireframe_frag may not write to gl_FragDepth. */
+  if (this->uses_gl_FragDepth) {
+    out << "\t" << shader_stage_inst_name << ".gl_FragDepth = " << shader_stage_inst_name
+        << ".gl_FragCoord.z;" << std::endl;
+  }
+
   /* NOTE: We will only assign to the intersection of the vertex output and fragment input.
    * Fragment input represents varying variables which are declared (but are not necessarily
    * used). The Vertex out defines the set which is passed into the fragment shader, which
