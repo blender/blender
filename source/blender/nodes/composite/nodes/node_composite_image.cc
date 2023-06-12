@@ -824,13 +824,15 @@ class RenderLayerOperation : public NodeOperation {
 
   void execute() override
   {
+    const Scene *scene = static_cast<const Scene *>(bnode().id);
     const int view_layer = bnode().custom1;
 
     Result &image_result = get_result("Image");
     Result &alpha_result = get_result("Alpha");
 
     if (image_result.should_compute() || alpha_result.should_compute()) {
-      GPUTexture *combined_texture = context().get_input_texture(view_layer, RE_PASSNAME_COMBINED);
+      GPUTexture *combined_texture = context().get_input_texture(
+          scene, view_layer, RE_PASSNAME_COMBINED);
       if (image_result.should_compute()) {
         execute_pass(image_result, combined_texture, "compositor_read_pass_color");
       }
@@ -850,7 +852,8 @@ class RenderLayerOperation : public NodeOperation {
         continue;
       }
 
-      GPUTexture *pass_texture = context().get_input_texture(view_layer, output->identifier);
+      GPUTexture *pass_texture = context().get_input_texture(
+          scene, view_layer, output->identifier);
       if (output->type == SOCK_FLOAT) {
         execute_pass(result, pass_texture, "compositor_read_pass_float");
       }

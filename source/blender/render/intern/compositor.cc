@@ -182,9 +182,11 @@ class Context : public realtime_compositor::Context {
     return viewer_output_texture_;
   }
 
-  GPUTexture *get_input_texture(int view_layer_id, const char *pass_name) override
+  GPUTexture *get_input_texture(const Scene *scene,
+                                int view_layer_id,
+                                const char *pass_name) override
   {
-    Render *re = RE_GetSceneRender(&scene_);
+    Render *re = RE_GetSceneRender(scene);
     RenderResult *rr = nullptr;
     GPUTexture *input_texture = nullptr;
 
@@ -193,7 +195,7 @@ class Context : public realtime_compositor::Context {
     }
 
     if (rr) {
-      ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene_.view_layers, view_layer_id);
+      ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, view_layer_id);
       if (view_layer) {
         RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
         if (rl) {
