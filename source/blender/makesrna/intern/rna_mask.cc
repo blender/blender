@@ -607,16 +607,16 @@ static void rna_def_maskParent(BlenderRNA *brna)
 
   static const EnumPropertyItem mask_id_type_items[] = {
       {ID_MC, "MOVIECLIP", ICON_SEQUENCE, "Movie Clip", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem parent_type_items[] = {
       {MASK_PARENT_POINT_TRACK, "POINT_TRACK", 0, "Point Track", ""},
       {MASK_PARENT_PLANE_TRACK, "PLANE_TRACK", 0, "Plane Track", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
-  srna = RNA_def_struct(brna, "MaskParent", NULL);
+  srna = RNA_def_struct(brna, "MaskParent", nullptr);
   RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for masking element");
 
   /* Target Properties - ID-block to Drive */
@@ -626,16 +626,16 @@ static void rna_def_maskParent(BlenderRNA *brna)
   // RNA_def_property_editable_func(prop, "rna_maskSpline_id_editable");
   /* NOTE: custom set function is ONLY to avoid rna setting a user for this. */
   RNA_def_property_pointer_funcs(
-      prop, NULL, "rna_MaskParent_id_set", "rna_MaskParent_id_typef", NULL);
+      prop, nullptr, "rna_MaskParent_id_set", "rna_MaskParent_id_typef", nullptr);
   RNA_def_property_ui_text(
       prop, "ID", "ID-block to which masking element would be parented to or to its property");
   RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
   prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "id_type");
+  RNA_def_property_enum_sdna(prop, nullptr, "id_type");
   RNA_def_property_enum_items(prop, mask_id_type_items);
   RNA_def_property_enum_default(prop, ID_MC);
-  RNA_def_property_enum_funcs(prop, NULL, "rna_MaskParent_id_type_set", NULL);
+  RNA_def_property_enum_funcs(prop, nullptr, "rna_MaskParent_id_type_set", nullptr);
   // RNA_def_property_editable_func(prop, "rna_MaskParent_id_type_editable");
   RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
   RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
@@ -668,27 +668,27 @@ static void rna_def_maskSplinePointUW(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "MaskSplinePointUW", NULL);
+  srna = RNA_def_struct(brna, "MaskSplinePointUW", nullptr);
   RNA_def_struct_ui_text(
       srna, "Mask Spline UW Point", "Single point in spline segment defining feather");
 
   /* u */
   prop = RNA_def_property(srna, "u", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "u");
+  RNA_def_property_float_sdna(prop, nullptr, "u");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "U", "U coordinate of point along spline segment");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* weight */
   prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "w");
+  RNA_def_property_float_sdna(prop, nullptr, "w");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Weight", "Weight of feather point");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* select */
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SELECT);
   RNA_def_property_ui_text(prop, "Select", "Selection status");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 }
@@ -704,12 +704,12 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
       {HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
       {HD_ALIGN_DOUBLESIDE, "ALIGNED_DOUBLESIDE", 0, "Aligned", ""},
       {HD_FREE, "FREE", 0, "Free", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   rna_def_maskSplinePointUW(brna);
 
-  srna = RNA_def_struct(brna, "MaskSplinePoint", NULL);
+  srna = RNA_def_struct(brna, "MaskSplinePoint", nullptr);
   RNA_def_struct_ui_text(
       srna, "Mask Spline Point", "Single point in spline used for defining mask");
 
@@ -717,28 +717,28 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
   prop = RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_array(prop, 2);
   RNA_def_property_float_funcs(
-      prop, "rna_MaskSplinePoint_handle1_get", "rna_MaskSplinePoint_handle1_set", NULL);
+      prop, "rna_MaskSplinePoint_handle1_get", "rna_MaskSplinePoint_handle1_set", nullptr);
   RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_array(prop, 2);
   RNA_def_property_float_funcs(
-      prop, "rna_MaskSplinePoint_ctrlpoint_get", "rna_MaskSplinePoint_ctrlpoint_set", NULL);
+      prop, "rna_MaskSplinePoint_ctrlpoint_get", "rna_MaskSplinePoint_ctrlpoint_set", nullptr);
   RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   prop = RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_array(prop, 2);
   RNA_def_property_float_funcs(
-      prop, "rna_MaskSplinePoint_handle2_get", "rna_MaskSplinePoint_handle2_set", NULL);
+      prop, "rna_MaskSplinePoint_handle2_get", "rna_MaskSplinePoint_handle2_set", nullptr);
   RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* handle_type */
   prop = RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_funcs(
-      prop, "rna_MaskSplinePoint_handle_type_get", "rna_MaskSplinePoint_handle_type_set", NULL);
+      prop, "rna_MaskSplinePoint_handle_type_get", "rna_MaskSplinePoint_handle_type_set", nullptr);
   RNA_def_property_enum_items(prop, handle_type_items);
   RNA_def_property_ui_text(prop, "Handle Type", "Handle type");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
@@ -748,7 +748,7 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop,
                               "rna_MaskSplinePoint_handle_left_type_get",
                               "rna_MaskSplinePoint_handle_left_type_set",
-                              NULL);
+                              nullptr);
   RNA_def_property_enum_items(prop, handle_type_items);
   RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle type");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
@@ -758,21 +758,21 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop,
                               "rna_MaskSplinePoint_handle_right_type_get",
                               "rna_MaskSplinePoint_handle_right_type_set",
-                              NULL);
+                              nullptr);
   RNA_def_property_enum_items(prop, handle_type_items);
   RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle type");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* weight */
   prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "bezt.weight");
+  RNA_def_property_float_sdna(prop, nullptr, "bezt.weight");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Weight", "Weight of the point");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* select */
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "bezt.f1", SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "bezt.f1", SELECT);
   RNA_def_property_ui_text(prop, "Select", "Selection status");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
@@ -783,7 +783,7 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
   /* feather points */
   prop = RNA_def_property(srna, "feather_points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MaskSplinePointUW");
-  RNA_def_property_collection_sdna(prop, NULL, "uw", "tot_uw");
+  RNA_def_property_collection_sdna(prop, nullptr, "uw", "tot_uw");
   RNA_def_property_ui_text(prop, "Feather Points", "Points defining feather");
 }
 
@@ -794,7 +794,7 @@ static void rna_def_mask_splines(BlenderRNA *brna)
   PropertyRNA *prop;
   PropertyRNA *parm;
 
-  srna = RNA_def_struct(brna, "MaskSplines", NULL);
+  srna = RNA_def_struct(brna, "MaskSplines", nullptr);
   RNA_def_struct_sdna(srna, "MaskLayer");
   RNA_def_struct_ui_text(srna, "Mask Splines", "Collection of masking splines");
 
@@ -817,8 +817,11 @@ static void rna_def_mask_splines(BlenderRNA *brna)
   /* active spline */
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "MaskSpline");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_MaskLayer_active_spline_get", "rna_MaskLayer_active_spline_set", NULL, NULL);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_MaskLayer_active_spline_get",
+                                 "rna_MaskLayer_active_spline_set",
+                                 nullptr,
+                                 nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking layer");
 
@@ -828,8 +831,8 @@ static void rna_def_mask_splines(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop,
                                  "rna_MaskLayer_active_spline_point_get",
                                  "rna_MaskLayer_active_spline_point_set",
-                                 NULL,
-                                 NULL);
+                                 nullptr,
+                                 nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Point", "Active point of masking layer");
 }
@@ -840,7 +843,7 @@ static void rna_def_maskSplinePoints(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  srna = RNA_def_struct(brna, "MaskSplinePoints", NULL);
+  srna = RNA_def_struct(brna, "MaskSplinePoints", nullptr);
   RNA_def_struct_sdna(srna, "MaskSpline");
   RNA_def_struct_ui_text(srna, "Mask Spline Points", "Collection of masking spline points");
 
@@ -867,7 +870,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
   static const EnumPropertyItem spline_interpolation_items[] = {
       {MASK_SPLINE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
       {MASK_SPLINE_INTERP_EASE, "EASE", 0, "Ease", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem spline_offset_mode_items[] = {
@@ -877,7 +880,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
        0,
        "Smooth",
        "Calculate feather offset as a second curve"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   StructRNA *srna;
@@ -885,12 +888,12 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 
   rna_def_maskSplinePoint(brna);
 
-  srna = RNA_def_struct(brna, "MaskSpline", NULL);
+  srna = RNA_def_struct(brna, "MaskSpline", nullptr);
   RNA_def_struct_ui_text(srna, "Mask spline", "Single spline used for defining mask shape");
 
   /* offset mode */
   prop = RNA_def_property(srna, "offset_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "offset_mode");
+  RNA_def_property_enum_sdna(prop, nullptr, "offset_mode");
   RNA_def_property_enum_items(prop, spline_offset_mode_items);
   RNA_def_property_ui_text(
       prop, "Feather Offset", "The method used for calculating the feather offset");
@@ -898,7 +901,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 
   /* weight interpolation */
   prop = RNA_def_property(srna, "weight_interpolation", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "weight_interp");
+  RNA_def_property_enum_sdna(prop, nullptr, "weight_interp");
   RNA_def_property_enum_items(prop, spline_interpolation_items);
   RNA_def_property_ui_text(
       prop, "Weight Interpolation", "The type of weight interpolation for spline");
@@ -907,14 +910,14 @@ static void rna_def_maskSpline(BlenderRNA *brna)
   /* cyclic */
   prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_SPLINE_CYCLIC);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MASK_SPLINE_CYCLIC);
   RNA_def_property_ui_text(prop, "Cyclic", "Make this spline a closed loop");
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
 
   /* fill */
   prop = RNA_def_property(srna, "use_fill", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MASK_SPLINE_NOFILL);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", MASK_SPLINE_NOFILL);
   RNA_def_property_ui_text(prop, "Fill", "Make this spline filled");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MASK);
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
@@ -922,14 +925,14 @@ static void rna_def_maskSpline(BlenderRNA *brna)
   /* self-intersection check */
   prop = RNA_def_property(srna, "use_self_intersection_check", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_SPLINE_NOINTERSECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MASK_SPLINE_NOINTERSECT);
   RNA_def_property_ui_text(
       prop, "Self Intersection Check", "Prevent feather from self-intersections");
   RNA_def_property_update(prop, NC_MASK | NA_EDITED, "rna_Mask_update_data");
 
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "MaskSplinePoint");
-  RNA_def_property_collection_sdna(prop, NULL, "points", "tot_point");
+  RNA_def_property_collection_sdna(prop, nullptr, "points", "tot_point");
   RNA_def_property_ui_text(prop, "Points", "Collection of points");
   RNA_def_property_srna(prop, "MaskSplinePoints");
 }
@@ -946,7 +949,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
       {MASK_BLEND_MUL, "MUL", 0, "Multiply", ""},
       {MASK_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
       {MASK_BLEND_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   StructRNA *srna;
@@ -956,14 +959,14 @@ static void rna_def_mask_layer(BlenderRNA *brna)
   rna_def_mask_splines(brna);
   rna_def_maskSplinePoints(brna);
 
-  srna = RNA_def_struct(brna, "MaskLayer", NULL);
+  srna = RNA_def_struct(brna, "MaskLayer", nullptr);
   RNA_def_struct_ui_text(srna, "Mask Layer", "Single layer used for masking pixels");
   RNA_def_struct_path_func(srna, "rna_MaskLayer_path");
 
   /* name */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Unique name of layer");
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MaskLayer_name_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MaskLayer_name_set");
   RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
   RNA_def_struct_name_property(srna, prop);
@@ -975,79 +978,79 @@ static void rna_def_mask_layer(BlenderRNA *brna)
                                     "rna_iterator_listbase_next",
                                     "rna_iterator_listbase_end",
                                     "rna_iterator_listbase_get",
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_struct_type(prop, "MaskSpline");
   RNA_def_property_ui_text(prop, "Splines", "Collection of splines which defines this layer");
   RNA_def_property_srna(prop, "MaskSplines");
 
   /* restrict */
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", MASK_HIDE_VIEW);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", MASK_HIDE_VIEW);
   RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, -1);
-  RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_MASK | ND_DRAW, nullptr);
 
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", MASK_HIDE_SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", MASK_HIDE_SELECT);
   RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, -1);
-  RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_MASK | ND_DRAW, nullptr);
 
   prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "visibility_flag", MASK_HIDE_RENDER);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", MASK_HIDE_RENDER);
   RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   /* Select (for dope-sheet). */
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_LAYERFLAG_SELECT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MASK_LAYERFLAG_SELECT);
   RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the Dope Sheet");
   //  RNA_def_property_update(prop, NC_SCREEN | ND_MASK, NULL);
 
   /* render settings */
   prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "alpha");
+  RNA_def_property_float_sdna(prop, nullptr, "alpha");
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_ui_text(prop, "Opacity", "Render Opacity");
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   /* weight interpolation */
   prop = RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "blend");
+  RNA_def_property_enum_sdna(prop, nullptr, "blend");
   RNA_def_property_enum_items(prop, masklay_blend_mode_items);
   RNA_def_property_ui_text(prop, "Blend", "Method of blending mask layers");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MASK_BLENDFLAG_INVERT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MASK_BLENDFLAG_INVERT);
   RNA_def_property_ui_text(prop, "Restrict View", "Invert the mask black/white");
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "falloff");
+  RNA_def_property_enum_sdna(prop, nullptr, "falloff");
   RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
   RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
   RNA_def_property_translation_context(prop,
                                        BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   /* filling options */
   prop = RNA_def_property(srna, "use_fill_holes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", MASK_LAYERFLAG_FILL_DISCRETE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", MASK_LAYERFLAG_FILL_DISCRETE);
   RNA_def_property_ui_text(
       prop, "Calculate Holes", "Calculate holes when filling overlapping curves");
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "use_fill_overlap", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_LAYERFLAG_FILL_OVERLAP);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MASK_LAYERFLAG_FILL_OVERLAP);
   RNA_def_property_ui_text(
       prop, "Calculate Overlap", "Calculate self intersections and overlap before filling");
-  RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+  RNA_def_property_update(prop, NC_MASK | NA_EDITED, nullptr);
 }
 
 static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1059,13 +1062,13 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
   PropertyRNA *parm;
 
   RNA_def_property_srna(cprop, "MaskLayers");
-  srna = RNA_def_struct(brna, "MaskLayers", NULL);
+  srna = RNA_def_struct(brna, "MaskLayers", nullptr);
   RNA_def_struct_sdna(srna, "Mask");
   RNA_def_struct_ui_text(srna, "Mask Layers", "Collection of layers used by mask");
 
   func = RNA_def_function(srna, "new", "rna_Mask_layers_new");
   RNA_def_function_ui_description(func, "Add layer to this mask");
-  RNA_def_string(func, "name", NULL, 0, "Name", "Name of new layer");
+  RNA_def_string(func, "name", nullptr, 0, "Name", "Name of new layer");
   parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "New mask layer");
   RNA_def_function_return(func, parm);
 
@@ -1084,7 +1087,7 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "MaskLayer");
   RNA_def_property_pointer_funcs(
-      prop, "rna_Mask_layer_active_get", "rna_Mask_layer_active_set", NULL, NULL);
+      prop, "rna_Mask_layer_active_get", "rna_Mask_layer_active_set", nullptr, nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Shape", "Active layer in this mask");
 }
@@ -1107,17 +1110,17 @@ static void rna_def_mask(BlenderRNA *brna)
                                     "rna_iterator_listbase_next",
                                     "rna_iterator_listbase_end",
                                     "rna_iterator_listbase_get",
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_struct_type(prop, "MaskLayer");
   RNA_def_property_ui_text(prop, "Layers", "Collection of layers which defines this mask");
   rna_def_masklayers(brna, prop);
 
   /* active masklay index */
   prop = RNA_def_property(srna, "active_layer_index", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "masklay_act");
+  RNA_def_property_int_sdna(prop, nullptr, "masklay_act");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_funcs(prop,
                              "rna_Mask_layer_active_index_get",
@@ -1125,24 +1128,24 @@ static void rna_def_mask(BlenderRNA *brna)
                              "rna_Mask_layer_active_index_range");
   RNA_def_property_ui_text(
       prop, "Active Shape Index", "Index of active layer in list of all mask's layers");
-  RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_MASK | ND_DRAW, nullptr);
 
   /* frame range */
   prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_sdna(prop, NULL, "sfra");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Mask_start_frame_set", NULL);
+  RNA_def_property_int_sdna(prop, nullptr, "sfra");
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Mask_start_frame_set", nullptr);
   RNA_def_property_range(prop, MINFRAME, MAXFRAME);
   RNA_def_property_ui_text(prop, "Start Frame", "First frame of the mask (used for sequencer)");
-  RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_MASK | ND_DRAW, nullptr);
 
   prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_sdna(prop, NULL, "efra");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Mask_end_frame_set", NULL);
+  RNA_def_property_int_sdna(prop, nullptr, "efra");
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Mask_end_frame_set", nullptr);
   RNA_def_property_range(prop, MINFRAME, MAXFRAME);
   RNA_def_property_ui_text(prop, "End Frame", "Final frame of the mask (used for sequencer)");
-  RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_MASK | ND_DRAW, nullptr);
 
   /* pointers */
   rna_def_animdata_common(srna);

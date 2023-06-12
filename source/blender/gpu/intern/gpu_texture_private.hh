@@ -755,7 +755,8 @@ inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_form
    * Standard component len calculation does not apply, as the texture formats contain multiple
    * channels, but associated data format contains several compacted components. */
   if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
-      (tex_format == GPU_RGB10_A2 && data_format == GPU_DATA_2_10_10_10_REV))
+      ((tex_format == GPU_RGB10_A2 || tex_format == GPU_RGB10_A2UI) &&
+       data_format == GPU_DATA_2_10_10_10_REV))
   {
     return 4;
   }

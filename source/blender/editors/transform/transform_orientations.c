@@ -590,6 +590,9 @@ static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
   if (active_pchan && active_pchan->parent) {
     /* For child, show parent local regardless if "local location" is set for parent bone. */
     transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
+    float ob_orientations_mat[3][3];
+    transform_orientations_create_from_axis(ob_orientations_mat, UNPACK3(ob->object_to_world));
+    mul_m3_m3_pre(r_mat, ob_orientations_mat);
     return;
   }
 

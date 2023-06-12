@@ -612,8 +612,8 @@ int CustomData_layertype_layers_max(eCustomDataType type);
 
 #ifdef __cplusplus
 
-/** \return The maximum length for a layer name with the given prefix. */
-int CustomData_name_max_length_calc(blender::StringRef name);
+/** \return The maximum size in bytes needed for a layer name with the given prefix. */
+int CustomData_name_maxncpy_calc(blender::StringRef name);
 
 #endif
 

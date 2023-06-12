@@ -473,7 +473,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 /* TODO(kevin): check on de-duplicating all this with code in image_ops.c */
 
 struct CacheFrame {
-  struct CacheFrame *next, *prev;
+  CacheFrame *next, *prev;
   int framenr;
 };
 

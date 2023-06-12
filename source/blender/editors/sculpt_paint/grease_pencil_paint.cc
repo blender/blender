@@ -123,8 +123,10 @@ void PaintOperation::on_stroke_done(const bContext &C)
   /* Set position, radius and opacity attribute. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   MutableSpan<float3> positions = curves.positions_for_write();
-  SpanAttributeWriter<float> radii = attributes.lookup_for_write_span<float>("radius");
-  SpanAttributeWriter<float> opacities = attributes.lookup_for_write_span<float>("opacity");
+  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
+      "radius", ATTR_DOMAIN_POINT);
+  SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
+      "opacity", ATTR_DOMAIN_POINT);
   for (const int i : IndexRange(stroke_points.size())) {
     const bke::greasepencil::StrokePoint &point = stroke_points[i];
     const int point_i = new_points_range[i];
@@ -135,7 +137,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   /* Set material index attribute. */
   int material_index = 0;
-  SpanAttributeWriter<int> materials = attributes.lookup_for_write_span<int>("material_index");
+  SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
+      "material_index", ATTR_DOMAIN_CURVE);
+
   materials.span.slice(new_curves_range).fill(material_index);
 
   /* Set curve_type attribute. */

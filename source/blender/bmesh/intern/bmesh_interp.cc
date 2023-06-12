@@ -348,7 +348,7 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
     return 0;
   }
 
-  mul_v2_fl(r_uv, (float)(res - 1));
+  mul_v2_fl(r_uv, float(res - 1));
 
   mdisp_axis_from_quad(v1, v2, v3, v4, r_axis_x, r_axis_y);
 
@@ -509,7 +509,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
 
   mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
 
-  const int res = (int)sqrt(md_dst->totdisp);
+  const int res = int(sqrt(md_dst->totdisp));
   BMLoopInterpMultiresData data = {};
   data.l_dst = l_dst;
   data.l_src_first = BM_FACE_FIRST_LOOP(f_src);
@@ -523,7 +523,7 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
   data.e1 = e1;
   data.e2 = e2;
   data.res = res;
-  data.d = 1.0f / (float)(res - 1);
+  data.d = 1.0f / float(res - 1);
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -609,7 +609,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
      * </pre>
      */
 
-    sides = (int)sqrt(mdp->totdisp);
+    sides = int(sqrt(mdp->totdisp));
     for (y = 0; y < sides; y++) {
       mid_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
 
@@ -652,7 +652,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
           BM_ELEM_CD_GET_VOID_P(l->radial_next->next, cd_loop_mdisp_offset));
     }
 
-    sides = (int)sqrt(mdl1->totdisp);
+    sides = int(sqrt(mdl1->totdisp));
     for (y = 0; y < sides; y++) {
       int a1, a2, o1, o2;
 
@@ -1117,7 +1117,7 @@ struct LoopGroupCD {
   int data_len;
 };
 
-static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
+static void bm_loop_walk_add(LoopWalkCtx *lwc, BMLoop *l)
 {
   const int i = BM_elem_index_get(l);
   const float w = lwc->loop_weights[i];
@@ -1135,7 +1135,7 @@ static void bm_loop_walk_add(struct LoopWalkCtx *lwc, BMLoop *l)
  *
  * \note called for fan matching so we're pretty much safe not to break the stack
  */
-static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
+static void bm_loop_walk_data(LoopWalkCtx *lwc, BMLoop *l_walk)
 {
   int i;
 
@@ -1169,7 +1169,7 @@ static void bm_loop_walk_data(struct LoopWalkCtx *lwc, BMLoop *l_walk)
 LinkNode *BM_vert_loop_groups_data_layer_create(
     BMesh *bm, BMVert *v, const int layer_n, const float *loop_weights, MemArena *arena)
 {
-  struct LoopWalkCtx lwc;
+  LoopWalkCtx lwc;
   LinkNode *groups = nullptr;
   BMLoop *l;
   BMIter liter;
@@ -1196,8 +1196,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
 
   BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
     if (BM_elem_flag_test(l, BM_ELEM_INTERNAL_TAG)) {
-      struct LoopGroupCD *lf = static_cast<LoopGroupCD *>(
-          BLI_memarena_alloc(lwc.arena, sizeof(*lf)));
+      LoopGroupCD *lf = static_cast<LoopGroupCD *>(BLI_memarena_alloc(lwc.arena, sizeof(*lf)));
       int len_prev = lwc.data_len;
 
       lwc.data_ref = BM_ELEM_CD_GET_VOID_P(l, lwc.cd_layer_offset);
@@ -1216,7 +1215,7 @@ LinkNode *BM_vert_loop_groups_data_layer_create(
         mul_vn_fl(lf->data_weights, lf->data_len, 1.0f / lwc.weight_accum);
       }
       else {
-        copy_vn_fl(lf->data_weights, lf->data_len, 1.0f / (float)lf->data_len);
+        copy_vn_fl(lf->data_weights, lf->data_len, 1.0f / float(lf->data_len));
       }
 
       BLI_linklist_prepend_arena(&groups, lf, lwc.arena);
@@ -1233,7 +1232,7 @@ static void bm_vert_loop_groups_data_layer_merge__single(BMesh *bm,
                                                          int layer_n,
                                                          void *data_tmp)
 {
-  struct LoopGroupCD *lf = static_cast<LoopGroupCD *>(lf_p);
+  LoopGroupCD *lf = static_cast<LoopGroupCD *>(lf_p);
   const int type = bm->ldata.layers[layer_n].type;
   int i;
   const float *data_weights;
@@ -1251,7 +1250,7 @@ static void bm_vert_loop_groups_data_layer_merge__single(BMesh *bm,
 static void bm_vert_loop_groups_data_layer_merge_weights__single(
     BMesh *bm, void *lf_p, const int layer_n, void *data_tmp, const float *loop_weights)
 {
-  struct LoopGroupCD *lf = static_cast<LoopGroupCD *>(lf_p);
+  LoopGroupCD *lf = static_cast<LoopGroupCD *>(lf_p);
   const int type = bm->ldata.layers[layer_n].type;
   int i;
   const float *data_weights;

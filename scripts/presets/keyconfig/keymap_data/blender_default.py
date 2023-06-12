@@ -931,8 +931,7 @@ def km_user_interface(_params):
         ("ui.reset_default_button", {"type": 'BACK_SPACE', "value": 'PRESS'}, {"properties": [("all", True)]}),
         # UI lists (polls check if there's a UI list under the cursor).
         ("ui.list_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
-        # UI views (polls check if there's a UI view in the region, and
-        # prioritize the one under the cursor if any).
+        # UI views (polls check if there's a UI view under the cursor).
         ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
     ])
 
@@ -4527,6 +4526,11 @@ def km_grease_pencil_edit(params):
 
     items.extend([
         *_template_items_select_actions(params, "grease_pencil.select_all"),
+        # Select linked
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("grease_pencil.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
     ])
 
     return keymap

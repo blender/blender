@@ -664,7 +664,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
         me_numVerts = me->totvert;
       }
 
-      BLI_assert((uint)me_numVerts == verts_num);
+      BLI_assert(uint(me_numVerts) == verts_num);
     }
 
 #ifdef DEBUG_TIME

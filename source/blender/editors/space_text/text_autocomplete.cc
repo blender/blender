@@ -316,8 +316,6 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_CANCELLED;
 }
 
-static int doc_scroll = 0;
-
 static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE(@ideasman42): this code could be refactored or rewritten. */
@@ -331,9 +329,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   if (st->doplugins && texttool_text_is_active(st->text)) {
     if (texttool_suggest_first()) {
       tools |= TOOL_SUGG_LIST;
-    }
-    if (texttool_docs_get()) {
-      tools |= TOOL_DOCUMENT;
     }
   }
 
@@ -356,20 +351,11 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
             swallow = 1;
             draw = 1;
           }
-          if (tools & TOOL_DOCUMENT) {
-            texttool_docs_clear();
-            doc_scroll = 0;
-            draw = 1;
-          }
           retval = OPERATOR_FINISHED;
         }
         else {
           if (tools & TOOL_SUGG_LIST) {
             texttool_suggest_clear();
-          }
-          if (tools & TOOL_DOCUMENT) {
-            texttool_docs_clear();
-            doc_scroll = 0;
           }
           retval = OPERATOR_CANCELLED;
         }
@@ -381,10 +367,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
         draw = swallow = 1;
         if (tools & TOOL_SUGG_LIST) {
           texttool_suggest_clear();
-        }
-        else if (tools & TOOL_DOCUMENT) {
-          texttool_docs_clear();
-          doc_scroll = 0;
         }
         else {
           draw = swallow = 0;
@@ -401,11 +383,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
           text_update_line_edited(st->text->curl);
           ED_undo_push(C, op->type->name);
           swallow = 1;
-          draw = 1;
-        }
-        if (tools & TOOL_DOCUMENT) {
-          texttool_docs_clear();
-          doc_scroll = 0;
           draw = 1;
         }
         retval = OPERATOR_FINISHED;
@@ -443,10 +420,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
             }
           }
         }
-        if (tools & TOOL_DOCUMENT) {
-          texttool_docs_clear();
-          doc_scroll = 0;
-        }
       }
       break;
     case EVT_RIGHTARROWKEY:
@@ -480,10 +453,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
             }
           }
         }
-        if (tools & TOOL_DOCUMENT) {
-          texttool_docs_clear();
-          doc_scroll = 0;
-        }
       }
       break;
     case EVT_PAGEDOWNKEY:
@@ -492,12 +461,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELDOWNMOUSE:
     case EVT_DOWNARROWKEY:
       if (event->val == KM_PRESS) {
-        if (tools & TOOL_DOCUMENT) {
-          doc_scroll++;
-          swallow = 1;
-          draw = 1;
-        }
-        else if (tools & TOOL_SUGG_LIST) {
+        if (tools & TOOL_SUGG_LIST) {
           SuggItem *sel = texttool_suggest_selected();
           if (!sel) {
             texttool_suggest_select(texttool_suggest_first());
@@ -526,14 +490,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     case WHEELUPMOUSE:
     case EVT_UPARROWKEY:
       if (event->val == KM_PRESS) {
-        if (tools & TOOL_DOCUMENT) {
-          if (doc_scroll > 0) {
-            doc_scroll--;
-          }
-          swallow = 1;
-          draw = 1;
-        }
-        else if (tools & TOOL_SUGG_LIST) {
+        if (tools & TOOL_SUGG_LIST) {
           SuggItem *sel = texttool_suggest_selected();
           while (sel && scroll--) {
             if (sel != texttool_suggest_first() && sel->prev) {
@@ -558,11 +515,6 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
     default:
       if (tools & TOOL_SUGG_LIST) {
         texttool_suggest_clear();
-        draw = 1;
-      }
-      if (tools & TOOL_DOCUMENT) {
-        texttool_docs_clear();
-        doc_scroll = 0;
         draw = 1;
       }
 #endif

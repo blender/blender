@@ -174,7 +174,7 @@ bool BKE_id_attribute_rename(ID *id,
    * is clamped to it's maximum length, otherwise assigning an over-long name multiple times
    * will add `.001` suffix unnecessarily. */
   {
-    const int new_name_maxncpy = CustomData_name_max_length_calc(new_name);
+    const int new_name_maxncpy = CustomData_name_maxncpy_calc(new_name);
     /* NOTE: A function that performs a clamped comparison without copying would be handy here. */
     char new_name_clamped[MAX_CUSTOMDATA_LAYER_NAME];
     BLI_strncpy_utf8(new_name_clamped, new_name, new_name_maxncpy);
@@ -255,7 +255,7 @@ static bool unique_name_cb(void *arg, const char *name)
 bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
   AttrUniqueData data{id};
-  const int name_maxncpy = CustomData_name_max_length_calc(name);
+  const int name_maxncpy = CustomData_name_maxncpy_calc(name);
 
   /* Set default name if none specified.
    * NOTE: We only call IFACE_() if needed to avoid locale lookup overhead. */

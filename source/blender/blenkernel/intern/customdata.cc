@@ -4353,7 +4353,7 @@ static bool customdata_unique_check(void *arg, const char *name)
   return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);
 }
 
-int CustomData_name_max_length_calc(const blender::StringRef name)
+int CustomData_name_maxncpy_calc(const blender::StringRef name)
 {
   if (name.startswith(".")) {
     return MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX;
@@ -4379,7 +4379,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
     return;
   }
 
-  const int max_length = CustomData_name_max_length_calc(nlayer->name);
+  const int name_maxncpy = CustomData_name_maxncpy_calc(nlayer->name);
 
   /* Set default name if none specified. Note we only call DATA_() when
    * needed to avoid overhead of locale lookups in the depsgraph. */
@@ -4388,7 +4388,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   }
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  BLI_uniquename_cb(customdata_unique_check, &data_arg, defname, '.', nlayer->name, max_length);
+  BLI_uniquename_cb(customdata_unique_check, &data_arg, defname, '.', nlayer->name, name_maxncpy);
 }
 
 void CustomData_validate_layer_name(const CustomData *data,

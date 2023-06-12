@@ -127,7 +127,7 @@ struct CornerNormalSpaceArray {
    */
   Array<Array<int>> corners_by_space;
   /** Whether to create the above map when calculating normals. */
-  bool create_corners_by_space;
+  bool create_corners_by_space = false;
 };
 
 void lnor_space_custom_normal_to_data(const CornerNormalSpace *lnor_space,

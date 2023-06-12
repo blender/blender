@@ -191,6 +191,9 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
@@ -200,10 +203,13 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
       return 8;
     case MTLPixelFormatRG8Uint:
     case MTLPixelFormatRG8Sint:
     case MTLPixelFormatRG8Unorm:
+    case MTLPixelFormatRG8Snorm:
+    case MTLPixelFormatRG8Unorm_sRGB:
       return 2;
     case MTLPixelFormatRG32Uint:
     case MTLPixelFormatRG32Sint:
@@ -212,6 +218,8 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Uint:
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
+    case MTLPixelFormatRG16Unorm:
+    case MTLPixelFormatRG16Snorm:
       return 4;
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
@@ -225,6 +233,7 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
     case MTLPixelFormatR16Snorm:
+    case MTLPixelFormatR16Unorm:
       return 2;
     case MTLPixelFormatRG11B10Float:
       return 4;
@@ -249,6 +258,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
     case MTLPixelFormatRGBA32Float:
@@ -256,7 +266,10 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
     case MTLPixelFormatRGBA8Unorm_sRGB:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
 
     case MTLPixelFormatRG11B10Float:
@@ -272,17 +285,21 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
     case MTLPixelFormatDepth32Float_Stencil8:
+    case MTLPixelFormatRG16Snorm:
+    case MTLPixelFormatRG16Unorm:
       return 2;
 
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
     case MTLPixelFormatR8Unorm:
+    case MTLPixelFormatR8Snorm:
     case MTLPixelFormatR32Uint:
     case MTLPixelFormatR32Sint:
     case MTLPixelFormatR32Float:
     case MTLPixelFormatR16Uint:
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
+    case MTLPixelFormatR16Unorm:
     case MTLPixelFormatR16Snorm:
     case MTLPixelFormatDepth32Float:
     case MTLPixelFormatDepth16Unorm:

@@ -49,7 +49,7 @@ class TexturePool : public realtime_compositor::TexturePool {
     return DRW_texture_pool_query_2d(size.x, size.y, format, owner);
 #else
     GPUTexture *texture = GPU_texture_create_2d(
-        "compositor_texture_pool", size.x, size.y, 1, format, GPU_TEXTURE_USAGE_GENERAL, NULL);
+        "compositor_texture_pool", size.x, size.y, 1, format, GPU_TEXTURE_USAGE_GENERAL, nullptr);
     textures_.append(texture);
     return texture;
 #endif
@@ -148,7 +148,7 @@ class Context : public realtime_compositor::Context {
                                               1,
                                               GPU_RGBA16F,
                                               GPU_TEXTURE_USAGE_GENERAL,
-                                              NULL);
+                                              nullptr);
     }
 
     return output_texture_;
@@ -167,7 +167,7 @@ class Context : public realtime_compositor::Context {
                                                      1,
                                                      GPU_RGBA16F,
                                                      GPU_TEXTURE_USAGE_GENERAL,
-                                                     NULL);
+                                                     nullptr);
     }
 
     return viewer_output_texture_;
@@ -209,7 +209,7 @@ class Context : public realtime_compositor::Context {
                 /* TODO: conversion could be done as part of GPU upload somehow? */
                 const float *rgb_buffer = rpass->buffer.data;
                 Vector<float> rgba_buffer(4 * size.x * size.y);
-                for (size_t i = 0; i < (size_t)size.x * (size_t)size.y; i++) {
+                for (size_t i = 0; i < size_t(size.x) * size_t(size.y); i++) {
                   rgba_buffer[i * 4 + 0] = rgb_buffer[i * 3 + 0];
                   rgba_buffer[i * 4 + 1] = rgb_buffer[i * 3 + 1];
                   rgba_buffer[i * 4 + 2] = rgb_buffer[i * 3 + 2];
