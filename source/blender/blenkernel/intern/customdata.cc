@@ -1543,6 +1543,20 @@ static void layerInterp_propbool(const void **sources,
   *(bool *)dest = result;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#math::Quaternion, #CD_PROP_QUATERNION)
+ * \{ */
+
+static void layerDefault_propquaternion(void *data, const int count)
+{
+  using namespace blender;
+  MutableSpan(static_cast<math::Quaternion *>(data), count).fill(math::Quaternion::identity());
+}
+
+/** \} */
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */ /* DEPRECATED */
     {sizeof(MVert), "MVert", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -1935,7 +1949,15 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 51: CD_HAIRLENGTH */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 52: CD_PROP_QUATERNION */
-    {sizeof(float[4]), "vec4f", 1, N_("Quaternion"), nullptr, nullptr, nullptr, nullptr, nullptr},
+    {sizeof(float[4]),
+     "vec4f",
+     1,
+     N_("Quaternion"),
+     nullptr,
+     nullptr,
+     nullptr,
+     nullptr,
+     layerDefault_propquaternion},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -1993,6 +2015,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropFloat2",
     "CDPropBoolean",
     "CDHairLength",
+    "CDPropQuaternion",
 };
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
