@@ -40,8 +40,12 @@ void TreeElementIDLineStyle::expandTextures(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_.mtex[a]) {
-      outliner_add_element(
-          &space_outliner, &legacy_te_.subtree, (linestyle_.mtex[a])->tex, &legacy_te_, TSE_SOME_ID, a);
+      outliner_add_element(&space_outliner,
+                           &legacy_te_.subtree,
+                           (linestyle_.mtex[a])->tex,
+                           &legacy_te_,
+                           TSE_SOME_ID,
+                           a);
     }
   }
 }
