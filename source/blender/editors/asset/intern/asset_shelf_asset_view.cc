@@ -44,14 +44,12 @@ class AssetView : public ui::AbstractGridView {
    * end of the string, for `fnmatch()` to work. */
   char search_string[sizeof(AssetShelfSettings::search_string) + 2] = "";
   std::optional<asset_system::AssetCatalogFilter> catalog_filter_ = std::nullopt;
-  /* XXX Temporary: Only for #asset_poll__() callback. Should use traits instead. */
-  bContext &evil_C_;
 
   friend class AssetViewItem;
   friend class AssetDragController;
 
  public:
-  AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf, bContext &evil_C);
+  AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf);
 
   void build_items() override;
   bool begin_filtering(const bContext &C) const override;
@@ -84,13 +82,11 @@ class AssetDragController : public ui::AbstractViewItemDragController {
   AssetDragController(ui::AbstractGridView &view, AssetRepresentation &asset);
 
   eWM_DragDataType get_drag_type() const override;
-  void *create_drag_data() const override;
+  void *create_drag_data(bContext &C) const override;
 };
 
-AssetView::AssetView(const AssetLibraryReference &library_ref,
-                     const AssetShelf &shelf,
-                     bContext &evil_C)
-    : library_ref_(library_ref), shelf_(shelf), evil_C_(evil_C)
+AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf)
+    : library_ref_(library_ref), shelf_(shelf)
 {
   if (shelf.settings.search_string[0]) {
     BLI_strncpy_ensure_pad(
@@ -252,8 +248,7 @@ void build_asset_view(uiLayout &layout,
   const float tile_width = ED_asset_shelf_default_tile_width();
   const float tile_height = ED_asset_shelf_default_tile_height();
 
-  std::unique_ptr asset_view = std::make_unique<AssetView>(
-      library_ref, shelf, const_cast<bContext &>(C));
+  std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, shelf);
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
@@ -279,7 +274,7 @@ eWM_DragDataType AssetDragController::get_drag_type() const
   return local_id ? WM_DRAG_ID : WM_DRAG_ASSET;
 }
 
-void *AssetDragController::create_drag_data() const
+void *AssetDragController::create_drag_data(bContext &C) const
 {
   ID *local_id = AS_asset_representation_local_id_get(&asset_);
   if (local_id) {
@@ -289,9 +284,7 @@ void *AssetDragController::create_drag_data() const
   const eAssetImportMethod import_method =
       AS_asset_representation_import_method_get(&asset_).value_or(ASSET_IMPORT_APPEND_REUSE);
 
-  const AssetView &asset_view = get_view<AssetView>();
-  return static_cast<void *>(
-      WM_drag_create_asset_data(&asset_, import_method, &asset_view.evil_C_));
+  return WM_drag_create_asset_data(&asset_, import_method, &C);
 }
 
 }  // namespace blender::ed::asset::shelf
