@@ -1258,7 +1258,10 @@ static void internal_dependencies_panel_draw(const bContext * /*C*/, Panel *pane
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
 
-  uiItemR(layout, ptr, "simulation_bake_directory", 0, "Bake", ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetPropDecorate(col, false);
+  uiItemR(col, ptr, "simulation_bake_directory", 0, "Bake", ICON_NONE);
 
   geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
   if (tree_log == nullptr) {
