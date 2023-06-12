@@ -272,4 +272,35 @@ void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat * /*format*/,
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stubs of IMB_imbuf.h
+ * \{ */
+struct ImBuf *IMB_ibImageFromMemory(const unsigned char * /*mem*/,
+                                    size_t /*size*/,
+                                    int /*flags*/,
+                                    char /*colorspace*/[IM_MAX_SPACE],
+                                    const char * /*descr*/)
+{
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+struct ImBuf *IMB_allocFromBuffer(const uint8_t * /*rect*/,
+                                  const float * /*rectf*/,
+                                  unsigned int /*w*/,
+                                  unsigned int /*h*/,
+                                  unsigned int /*channels*/)
+{
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, int /*flags*/)
+{
+  BLI_assert_unreachable();
+  return false;
+}
+
+/** \} */
 }

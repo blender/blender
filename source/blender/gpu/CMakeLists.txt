@@ -793,8 +793,6 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
       intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
       )
-
-    setup_platform_linker_flags(shader_builder)
     target_link_libraries(shader_builder PUBLIC buildinfoobj)
   else()
     if(WIN32)
@@ -809,8 +807,9 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
       ${shader_create_info_list_file}
       ${MANIFEST}
     )
-
   endif()
+  setup_platform_linker_flags(shader_builder)
+
   target_link_libraries(shader_builder PUBLIC
     bf_gpu
     bf_intern_clog
