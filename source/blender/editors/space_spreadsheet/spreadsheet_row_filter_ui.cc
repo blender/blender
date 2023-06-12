@@ -107,6 +107,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
     }
     case SPREADSHEET_VALUE_TYPE_STRING:
       return row_filter.value_string;
+    case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return "";
   }
@@ -250,7 +251,8 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
-      uiItemL(layout, IFACE_("Unknown column type"), ICON_ERROR);
+    case SPREADSHEET_VALUE_TYPE_QUATERNION:
+      uiItemL(layout, IFACE_("Unsupported column type"), ICON_ERROR);
       break;
   }
 }
