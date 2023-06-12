@@ -549,7 +549,7 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
                        "Speed",
                        "New speed of retimed segment",
                        0.1f,
-                       INT_MAX);
+                       FLT_MAX);
 }
 
 /** \} */
