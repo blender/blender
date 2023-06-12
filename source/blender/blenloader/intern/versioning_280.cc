@@ -329,7 +329,9 @@ static void do_version_scene_collection_convert(
     BLI_ghash_insert(collection_map, collection, sc);
   }
 
-  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
+  for (SceneCollection *nsc = static_cast<SceneCollection *>(sc->scene_collections.first);
+       nsc != nullptr;)
+  {
     SceneCollection *nsc_next = nsc->next;
     Collection *ncollection = BKE_collection_add(bmain, collection, nsc->name);
     ncollection->id.lib = id->lib;
