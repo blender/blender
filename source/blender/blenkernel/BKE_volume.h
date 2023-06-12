@@ -132,7 +132,7 @@ void BKE_volume_grid_transform_matrix_set(const struct Volume *volume,
  * file path. Grids are shared with the source data-block, not copied. */
 
 struct Volume *BKE_volume_new_for_eval(const struct Volume *volume_src);
-struct Volume *BKE_volume_copy_for_eval(struct Volume *volume_src);
+struct Volume *BKE_volume_copy_for_eval(const struct Volume *volume_src);
 
 struct VolumeGrid *BKE_volume_grid_add(struct Volume *volume,
                                        const char *name,
