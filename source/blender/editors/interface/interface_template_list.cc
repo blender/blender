@@ -251,7 +251,7 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
         const eUIListFilterResult filter_result = item_filter_fn(itemptr, name, i);
 
         if (filter_result == UI_LIST_ITEM_NEVER_SHOW) {
-          /* Pass. */
+          dyn_data->items_filter_flags[i] = UILST_FLT_ITEM_NEVER_SHOW;
         }
         else if (filter_result == UI_LIST_ITEM_FILTER_MATCHES) {
           dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
@@ -432,7 +432,8 @@ static void ui_template_list_collect_items(PointerRNA *list_ptr,
 
   RNA_PROP_BEGIN (list_ptr, itemptr, list_prop) {
     if (!dyn_data->items_filter_flags ||
-        ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+        (((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) == 0) &&
+         ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude)))
     {
       int new_order_idx;
       if (dyn_data->items_filter_neworder) {
