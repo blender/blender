@@ -938,22 +938,6 @@ def km_user_interface(_params):
     return keymap
 
 
-def km_asset_shelf(_params):
-    items = []
-    keymap = (
-        "Asset Shelf",
-        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
-    )
-
-    items.extend([
-        # Enable Ctrl+F for searching from the shelf footer.
-        ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
-    ])
-
-    return keymap
-
-
 # ------------------------------------------------------------------------------
 # Shared Between Editors (Mask, Time-Line)
 
@@ -8214,7 +8198,6 @@ def generate_keymaps(params=None):
         km_view2d(params),
         km_view2d_buttons_list(params),
         km_user_interface(params),
-        km_asset_shelf(params),
         km_property_editor(params),
 
         # Editors.
