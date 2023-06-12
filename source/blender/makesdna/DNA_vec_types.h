@@ -49,11 +49,11 @@ typedef struct vec3d {
 typedef struct vec4i {
   int x, y, z, w;
 } vec4i;
-
+*/
 typedef struct vec4f {
   float x, y, z, w;
 } vec4f;
-
+/*
 typedef struct vec4d {
   double x, y, z, w;
 } vec4d;

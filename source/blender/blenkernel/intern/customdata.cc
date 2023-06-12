@@ -24,6 +24,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_util.h"
@@ -1933,6 +1934,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr},
     /* 51: CD_HAIRLENGTH */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
+    /* 52: CD_PROP_QUATERNION */
+    {sizeof(float[4]), "vec4f", 1, N_("Quaternion"), nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -5354,6 +5357,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<int8_t>();
     case CD_PROP_BYTE_COLOR:
       return &CPPType::get<ColorGeometry4b>();
+    case CD_PROP_QUATERNION:
+      return &CPPType::get<math::Quaternion>();
     case CD_PROP_STRING:
       return &CPPType::get<MStringProperty>();
     default:
@@ -5389,6 +5394,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<ColorGeometry4b>()) {
     return CD_PROP_BYTE_COLOR;
+  }
+  if (type.is<math::Quaternion>()) {
+    return CD_PROP_QUATERNION;
   }
   if (type.is<MStringProperty>()) {
     return CD_PROP_STRING;

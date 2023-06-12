@@ -9,7 +9,9 @@
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_math_axis_angle.hh"
 #include "BLI_math_color.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
@@ -31,7 +33,8 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
                               bool,
                               int8_t,
                               ColorGeometry4f,
-                              ColorGeometry4b>([&](auto type_tag) {
+                              ColorGeometry4b,
+                              math::Quaternion>([&](auto type_tag) {
     using T = typename decltype(type_tag)::type;
     if constexpr (std::is_same_v<T, void>) {
       /* It's expected that the given cpp type is one of the supported ones. */
@@ -400,7 +403,10 @@ class BooleanPropagationMixer {
  * This mixer accumulates values in a type that is different from the one that is mixed.
  * Some types cannot encode the floating point weights in their values (e.g. int and bool).
  */
-template<typename T, typename AccumulationT, T (*ConvertToT)(const AccumulationT &value)>
+template<typename T,
+         typename AccumulationT,
+         AccumulationT (*ValueToAccumulate)(const T &value),
+         T (*AccumulateToValue)(const AccumulationT &value)>
 class SimpleMixerWithAccumulationType {
  private:
   struct Item {
@@ -432,7 +438,7 @@ class SimpleMixerWithAccumulationType {
 
   void set(const int64_t index, const T &value, const float weight = 1.0f)
   {
-    const AccumulationT converted_value = static_cast<AccumulationT>(value);
+    const AccumulationT converted_value = ValueToAccumulate(value);
     Item &item = accumulation_buffer_[index];
     item.value = converted_value * weight;
     item.weight = weight;
@@ -440,7 +446,7 @@ class SimpleMixerWithAccumulationType {
 
   void mix_in(const int64_t index, const T &value, const float weight = 1.0f)
   {
-    const AccumulationT converted_value = static_cast<AccumulationT>(value);
+    const AccumulationT converted_value = ValueToAccumulate(value);
     Item &item = accumulation_buffer_[index];
     item.value += converted_value * weight;
     item.weight += weight;
@@ -457,7 +463,7 @@ class SimpleMixerWithAccumulationType {
       const Item &item = accumulation_buffer_[i];
       if (item.weight > 0.0f) {
         const float weight_inv = 1.0f / item.weight;
-        const T converted_value = ConvertToT(item.value * weight_inv);
+        const T converted_value = AccumulateToValue(item.value * weight_inv);
         buffer_[i] = converted_value;
       }
       else {
@@ -532,40 +538,68 @@ template<> struct DefaultMixerStruct<ColorGeometry4b> {
   using type = ColorGeometry4bMixer;
 };
 template<> struct DefaultMixerStruct<int> {
+  static double int_to_double(const int &value)
+  {
+    return double(value);
+  }
   static int double_to_int(const double &value)
   {
     return int(std::round(value));
   }
   /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
    * uses double instead of float so that it is accurate for all 32 bit integers. */
-  using type = SimpleMixerWithAccumulationType<int, double, double_to_int>;
+  using type = SimpleMixerWithAccumulationType<int, double, int_to_double, double_to_int>;
 };
 template<> struct DefaultMixerStruct<int2> {
+  static double2 int_to_double(const int2 &value)
+  {
+    return double2(value);
+  }
   static int2 double_to_int(const double2 &value)
   {
     return int2(math::round(value));
   }
   /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
    * uses double instead of float so that it is accurate for all 32 bit integers. */
-  using type = SimpleMixerWithAccumulationType<int2, double2, double_to_int>;
+  using type = SimpleMixerWithAccumulationType<int2, double2, int_to_double, double_to_int>;
 };
 template<> struct DefaultMixerStruct<bool> {
+  static float bool_to_float(const bool &value)
+  {
+    return value ? 1.0f : 0.0f;
+  }
   static bool float_to_bool(const float &value)
   {
     return value >= 0.5f;
   }
   /* Store interpolated booleans in a float temporary.
    * Otherwise information provided by weights is easily rounded away. */
-  using type = SimpleMixerWithAccumulationType<bool, float, float_to_bool>;
+  using type = SimpleMixerWithAccumulationType<bool, float, bool_to_float, float_to_bool>;
 };
 
 template<> struct DefaultMixerStruct<int8_t> {
+  static float int8_t_to_float(const int8_t &value)
+  {
+    return float(value);
+  }
   static int8_t float_to_int8_t(const float &value)
   {
     return int8_t(std::round(value));
   }
   /* Store interpolated 8 bit integers in a float temporarily to increase accuracy. */
-  using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;
+  using type = SimpleMixerWithAccumulationType<int8_t, float, int8_t_to_float, float_to_int8_t>;
+};
+template<> struct DefaultMixerStruct<math::Quaternion> {
+  static float3 quat_to_expmap(const math::Quaternion &value)
+  {
+    return value.expmap();
+  }
+  static math::Quaternion expmap_to_quat(const float3 &value)
+  {
+    return math::Quaternion::expmap(value);
+  }
+  using type =
+      SimpleMixerWithAccumulationType<math::Quaternion, float3, quat_to_expmap, expmap_to_quat>;
 };
 
 template<typename T> struct DefaultPropagationMixerStruct {

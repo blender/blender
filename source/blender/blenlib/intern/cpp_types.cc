@@ -6,6 +6,7 @@
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
 namespace blender {
@@ -65,6 +66,8 @@ BLI_CPP_TYPE_MAKE(uint64_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::ColorGeometry4f, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::ColorGeometry4b, CPPTypeFlags::BasicType)
 
+BLI_CPP_TYPE_MAKE(blender::math::Quaternion, CPPTypeFlags::BasicType)
+
 BLI_CPP_TYPE_MAKE(std::string, CPPTypeFlags::BasicType)
 
 BLI_VECTOR_CPP_TYPE_MAKE(std::string)
@@ -93,6 +96,8 @@ void register_cpp_types()
 
   BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4f);
   BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4b);
+
+  BLI_CPP_TYPE_REGISTER(math::Quaternion);
 
   BLI_CPP_TYPE_REGISTER(std::string);
 

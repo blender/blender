@@ -107,6 +107,7 @@ static uint gpu_component_size_for_attribute_type(eCustomDataType type)
       return 3;
     case CD_PROP_COLOR:
     case CD_PROP_BYTE_COLOR:
+    case CD_PROP_QUATERNION:
       return 4;
     default:
       return 0;
@@ -315,6 +316,7 @@ static void extract_attr(const MeshRenderData *mr,
     case CD_PROP_FLOAT3:
       extract_attr_generic<float3>(mr, vbo, request);
       break;
+    case CD_PROP_QUATERNION:
     case CD_PROP_COLOR:
       extract_attr_generic<float4>(mr, vbo, request);
       break;
