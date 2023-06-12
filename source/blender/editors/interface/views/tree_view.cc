@@ -52,7 +52,15 @@ AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
 void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptions options) const
 {
   for (const auto &child : children_) {
-    iter_fn(*child);
+    bool skip = false;
+    if (bool(options & IterOptions::SkipFiltered) && !child->is_filtered_visible_cached()) {
+      skip = true;
+    }
+
+    if (!skip) {
+      iter_fn(*child);
+    }
+
     if (bool(options & IterOptions::SkipCollapsed) && child->is_collapsed()) {
       continue;
     }
@@ -428,7 +436,8 @@ void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
   uiLayoutColumn(box, false);
 
   tree_view.foreach_item([this](AbstractTreeViewItem &item) { build_row(item); },
-                         AbstractTreeView::IterOptions::SkipCollapsed);
+                         AbstractTreeView::IterOptions::SkipCollapsed |
+                             AbstractTreeView::IterOptions::SkipFiltered);
 
   UI_block_layout_set_current(&block(), &parent_layout);
 }
@@ -502,7 +511,7 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
   int tot_visible_items = 0;
   tree_view.foreach_item(
       [&tot_visible_items](AbstractTreeViewItem & /*item*/) { tot_visible_items++; },
-      AbstractTreeView::IterOptions::SkipCollapsed);
+      AbstractTreeView::IterOptions::SkipCollapsed | AbstractTreeView::IterOptions::SkipFiltered);
 
   if (tot_visible_items >= tree_view.min_rows_) {
     return;

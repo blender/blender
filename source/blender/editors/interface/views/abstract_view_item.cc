@@ -167,6 +167,27 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Filtering
+ * \{ */
+
+bool AbstractViewItem::is_filtered_visible() const
+{
+  return true;
+}
+
+bool AbstractViewItem::is_filtered_visible_cached() const
+{
+  if (is_filtered_visible_.has_value()) {
+    return *is_filtered_visible_;
+  }
+
+  is_filtered_visible_ = is_filtered_visible();
+  return *is_filtered_visible_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Drag 'n Drop
  * \{ */
 
