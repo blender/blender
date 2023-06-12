@@ -85,8 +85,9 @@ class AbstractView {
   virtual bool listen(const wmNotifier &) const;
 
   /**
-   * Enable filtering (typically triggered on Ctrl+F).
-   * \return True when filtering was begun successfully.
+   * Enable filtering. Typically used to enable a filter text button. Triggered on Ctrl+F by
+   * default.
+   * \return True when filtering was enabled successfully.
    */
   virtual bool begin_filtering(const bContext &C) const;
 
