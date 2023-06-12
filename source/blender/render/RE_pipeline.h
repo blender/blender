@@ -223,10 +223,15 @@ void RE_FreeAllPersistentData(void);
 void RE_FreePersistentData(const struct Scene *scene);
 
 /**
- * Free cached GPU textures to reduce memory usage. Before rendering all are cleared
- * and on UI changes when detected they are no longer used.
+ * Free cached GPU textures to reduce memory usage.
  */
-void RE_FreeGPUTextureCaches(const bool only_unused);
+void RE_FreeGPUTextureCaches(void);
+
+/**
+ * Free cached GPU textures, contexts and compositor to reduce memory usage,
+ * when nothing in the UI requires them anymore.
+ */
+void RE_FreeUnusedGPUResources(void);
 
 /**
  * Get results and statistics.

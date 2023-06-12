@@ -165,7 +165,7 @@ class Context : public realtime_compositor::Context {
 
   GPUTexture *get_input_texture(const Scene *scene, int view_layer, const char *pass_name) override
   {
-    if ((DEG_get_original_id(&scene->id) ==
+    if ((DEG_get_original_id(const_cast<ID *>(&scene->id)) ==
          DEG_get_original_id(&DRW_context_state_get()->scene->id)) &&
         view_layer == 0 && STREQ(pass_name, RE_PASSNAME_COMBINED))
     {

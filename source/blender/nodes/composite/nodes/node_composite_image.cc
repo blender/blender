@@ -824,7 +824,7 @@ class RenderLayerOperation : public NodeOperation {
 
   void execute() override
   {
-    const Scene *scene = static_cast<const Scene *>(bnode().id);
+    const Scene *scene = reinterpret_cast<const Scene *>(bnode().id);
     const int view_layer = bnode().custom1;
 
     Result &image_result = get_result("Image");

@@ -80,11 +80,7 @@ void COM_execute(Render *render,
       node_tree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
   {
     /* Realtime GPU compositor. */
-
-    /* TODO: add persistence and depsgraph updates for better performance. */
-    blender::render::RealtimeCompositor compositor(
-        *render, *scene, *render_data, *node_tree, rendering, view_name);
-    compositor.execute();
+    RE_compositor_execute(*render, *scene, *render_data, *node_tree, rendering, view_name);
   }
   else {
     /* Tiled and Full Frame compositors. */
