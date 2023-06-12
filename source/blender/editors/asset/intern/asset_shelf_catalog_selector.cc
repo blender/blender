@@ -27,9 +27,6 @@
 
 #include "asset_shelf.hh"
 
-using namespace blender;
-using namespace blender::ed::asset;
-
 namespace blender::ed::asset::shelf {
 
 class AssetCatalogSelectorTree : public ui::AbstractTreeView {

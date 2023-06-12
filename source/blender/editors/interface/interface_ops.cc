@@ -2343,7 +2343,7 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name UI View Drop Operator
+/** \name UI View Start Filter Operator
  * \{ */
 
 static int ui_view_start_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
