@@ -949,8 +949,7 @@ def km_asset_shelf(_params):
 
     items.extend([
         # Enable Ctrl+F for searching from the shelf footer.
-        ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True},
-          {"properties": [("region_type", 'ASSET_SHELF')]}),
+        ("ui.view_start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap
