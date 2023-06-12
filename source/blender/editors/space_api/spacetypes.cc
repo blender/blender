@@ -6,7 +6,7 @@
  * \ingroup spapi
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,9 +58,9 @@
 #include "ED_util.h"
 #include "ED_uvedit.h"
 
-#include "io_ops.h"
+#include "io_ops.hh"
 
-void ED_spacetypes_init(void)
+void ED_spacetypes_init()
 {
   /* UI unit is a variable, may be used in some space type initialization. */
   U.widget_unit = 20;
@@ -149,7 +149,7 @@ void ED_spacetypes_init(void)
   }
 }
 
-void ED_spacemacros_init(void)
+void ED_spacemacros_init()
 {
   /* Macros must go last since they reference other operators.
    * They need to be registered after python operators too. */
@@ -221,22 +221,21 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
 /* ********************** Custom Draw Call API ***************** */
 
-typedef struct RegionDrawCB {
+struct RegionDrawCB {
   struct RegionDrawCB *next, *prev;
 
   void (*draw)(const bContext *, ARegion *, void *);
   void *customdata;
 
   int type;
-
-} RegionDrawCB;
+};
 
 void *ED_region_draw_cb_activate(ARegionType *art,
                                  void (*draw)(const bContext *, ARegion *, void *),
                                  void *customdata,
                                  int type)
 {
-  RegionDrawCB *rdc = MEM_callocN(sizeof(RegionDrawCB), "RegionDrawCB");
+  RegionDrawCB *rdc = MEM_cnew<RegionDrawCB>(__func__);
 
   BLI_addtail(&art->drawcalls, rdc);
   rdc->draw = draw;
@@ -277,7 +276,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 
 void ED_region_surface_draw_cb_draw(ARegionType *art, int type)
 {
-  ed_region_draw_cb_draw(NULL, NULL, art, type);
+  ed_region_draw_cb_draw(nullptr, nullptr, art, type);
 }
 
 void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*free)(void *))
@@ -295,19 +294,19 @@ void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*fr
 
 /* ********************* space template *********************** */
 /* forward declare */
-void ED_spacetype_xxx(void);
+void ED_spacetype_xxx();
 
 /* allocate and init some vars */
-static SpaceLink *xxx_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *xxx_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
-  return NULL;
+  return nullptr;
 }
 
 /* Doesn't free the space-link itself. */
-static void xxx_free(SpaceLink *UNUSED(sl)) {}
+static void xxx_free(SpaceLink * /*sl*/) {}
 
 /* spacetype; init callback for usage, should be re-doable. */
-static void xxx_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void xxx_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
 {
 
   /* link area to SpaceXXX struct */
@@ -317,24 +316,23 @@ static void xxx_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
   /* add types to regions */
 }
 
-static SpaceLink *xxx_duplicate(SpaceLink *UNUSED(sl))
+static SpaceLink *xxx_duplicate(SpaceLink * /*sl*/)
 {
-
-  return NULL;
+  return nullptr;
 }
 
-static void xxx_operatortypes(void)
+static void xxx_operatortypes()
 {
   /* register operator types for this space */
 }
 
-static void xxx_keymap(wmKeyConfig *UNUSED(keyconf))
+static void xxx_keymap(wmKeyConfig * /*keyconf*/)
 {
   /* add default items to keymap */
 }
 
-/* only called once, from screen/spacetypes.c */
-void ED_spacetype_xxx(void)
+/* only called once, from screen/spacetypes.cc */
+void ED_spacetype_xxx()
 {
   static SpaceType st;
 
