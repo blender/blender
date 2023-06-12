@@ -32,7 +32,7 @@ template<typename T> class OffsetIndices {
   OffsetIndices() = default;
   OffsetIndices(const Span<T> offsets) : offsets_(offsets)
   {
-    BLI_assert(std::is_sorted(offsets_.begin(), offsets_.end()));
+    BLI_assert(offsets_.size() < 2 || std::is_sorted(offsets_.begin(), offsets_.end()));
   }
 
   /** Return the total number of elements in the referenced arrays. */
