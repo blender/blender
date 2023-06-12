@@ -594,10 +594,10 @@ void GIZMO_GT_retime_remove(wmGizmoType *gzt)
 /** \name Retiming Speed Set Gizmo
  * \{ */
 
-size_t label_str_get(const Sequence *seq,
-                     const SeqRetimingHandle *handle,
-                     size_t str_len,
-                     char *r_label_str)
+static size_t label_str_get(const Sequence *seq,
+                            const SeqRetimingHandle *handle,
+                            size_t str_len,
+                            char *r_label_str)
 {
   const SeqRetimingHandle *next_handle = handle + 1;
   if (SEQ_retiming_handle_is_transition_type(handle)) {
