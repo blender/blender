@@ -263,7 +263,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 
   name = PyUnicode_AsUTF8AndSize(value, &name_size);
 
-  if (name_size + 1 >= MAX_IDPROP_NAME) {
+  if (name_size + 1 > MAX_IDPROP_NAME) {
     PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
     return -1;
   }
