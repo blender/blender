@@ -14,7 +14,7 @@ shader node_voronoi_texture(
     string dimensions = "3D",
     string feature = "f1",
     string metric = "euclidean",
-    int normalize = 0,
+    int use_normalize = 0,
     vector3 Vector = P,
     float WIn = 0.0,
     float Scale = 5.0,
@@ -42,7 +42,7 @@ shader node_voronoi_texture(
   params.exponent = Exponent;
   params.randomness = clamp(Randomness, 0.0, 1.0);
   params.max_distance = 0.0;
-  params.normalize = normalize;
+  params.normalize = use_normalize;
 
   vector3 coord = Vector;
   if (use_mapping) {

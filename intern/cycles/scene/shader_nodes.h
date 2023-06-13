@@ -254,7 +254,7 @@ class VoronoiTextureNode : public TextureNode {
   NODE_SOCKET_API(int, dimensions)
   NODE_SOCKET_API(NodeVoronoiDistanceMetric, metric)
   NODE_SOCKET_API(NodeVoronoiFeature, feature)
-  NODE_SOCKET_API(bool, normalize)
+  NODE_SOCKET_API(bool, use_normalize)
   NODE_SOCKET_API(float, w)
   NODE_SOCKET_API(float, scale)
   NODE_SOCKET_API(float, detail)
