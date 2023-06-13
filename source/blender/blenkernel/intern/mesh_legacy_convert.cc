@@ -1413,7 +1413,7 @@ void BKE_mesh_legacy_bevel_weight_to_generic(Mesh *mesh)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Edge Crease Conversion
+/** \name Crease Conversion
  * \{ */
 
 void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
