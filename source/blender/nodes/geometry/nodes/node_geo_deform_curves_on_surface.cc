@@ -29,6 +29,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_deform_curves_on_surface_cc {
 
 using bke::CurvesGeometry;
@@ -274,18 +276,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: \"%s\""),
-                                 uv_map_name.c_str());
+    const std::string message = fmt::format(TIP_("Evaluated surface missing UV map: \"{}\""),
+                                            std::string_view(uv_map_name));
     params.error_message_add(NodeWarningType::Error, message);
-    MEM_freeN(message);
     return;
   }
   if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Original surface missing UV map: \"%s\""),
-                                 uv_map_name.c_str());
+    const std::string message = fmt::format(TIP_("Original surface missing UV map: \"{}\""),
+                                            std::string_view(uv_map_name));
     params.error_message_add(NodeWarningType::Error, message);
-    MEM_freeN(message);
     return;
   }
   if (!mesh_attributes_eval.contains(rest_position_name)) {
@@ -398,10 +398,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   curves.tag_positions_changed();
 
   if (invalid_uv_count) {
-    char *message = BLI_sprintfN(TIP_("Invalid surface UVs on %d curves"),
-                                 invalid_uv_count.load());
+    const std::string message = fmt::format(TIP_("Invalid surface UVs on {} curves"),
+                                            invalid_uv_count.load());
     params.error_message_add(NodeWarningType::Warning, message);
-    MEM_freeN(message);
   }
 
   params.set_output("Curves", curves_geometry);

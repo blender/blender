@@ -15,6 +15,8 @@
 
 #include "node_geometry_util.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_store_named_attribute_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryStoreNamedAttribute)
@@ -94,7 +96,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  std::string name = params.extract_input<std::string>("Name");
+  const std::string name = params.extract_input<std::string>("Name");
 
   if (name.empty()) {
     params.set_output("Geometry", std::move(geometry_set));
@@ -182,13 +184,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &domain_name);
     const char *type_name = nullptr;
     RNA_enum_name_from_value(rna_enum_attribute_type_items, data_type, &type_name);
-    char *message = BLI_sprintfN(
-        TIP_("Failed to write to attribute \"%s\" with domain \"%s\" and type \"%s\""),
-        name.c_str(),
+    const std::string message = fmt::format(
+        TIP_("Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""),
+        name,
         TIP_(domain_name),
         TIP_(type_name));
     params.error_message_add(NodeWarningType::Warning, message);
-    MEM_freeN(message);
   }
 
   params.set_output("Geometry", std::move(geometry_set));

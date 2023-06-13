@@ -6,6 +6,8 @@
 
 #include "NOD_socket_search_link.hh"
 
+#include <fmt/format.h>
+
 namespace blender::nodes::node_geo_remove_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -62,15 +64,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (!attribute_exists) {
-    char *message = BLI_sprintfN(TIP_("Attribute does not exist: \"%s\""), name.c_str());
+    const std::string message = fmt::format(TIP_("Attribute does not exist: \"{}\""), name);
     params.error_message_add(NodeWarningType::Warning, message);
-    MEM_freeN(message);
   }
   if (cannot_delete) {
-    char *message = BLI_sprintfN(TIP_("Cannot delete built-in attribute with name \"%s\""),
-                                 name.c_str());
+    const std::string message = fmt::format(TIP_("Cannot delete built-in attribute: \"{}\""),
+                                            name);
     params.error_message_add(NodeWarningType::Warning, message);
-    MEM_freeN(message);
   }
 
   params.set_output("Geometry", std::move(geometry_set));
