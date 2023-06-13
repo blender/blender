@@ -1690,8 +1690,7 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 
 #ifdef DEBUG
   {
-    BMEditSelection *ese;
-    for (ese = em->bm->selected.first; ese; ese = ese->next) {
+    LISTBASE_FOREACH (BMEditSelection *, ese, &em->bm->selected) {
       BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));
     }
   }
