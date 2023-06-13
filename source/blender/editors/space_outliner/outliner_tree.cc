@@ -557,6 +557,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     case ID_TE:
     case ID_LS:
     case ID_GD_LEGACY:
+    case ID_GR:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
@@ -671,14 +672,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
             outliner_add_bone(space_outliner, &te->subtree, id, bone, te, &a);
           }
         }
-      }
-      break;
-    }
-    case ID_GR: {
-      /* Don't expand for instances, creates too many elements. */
-      if (!(te->parent && te->parent->idcode == ID_OB)) {
-        Collection *collection = (Collection *)id;
-        outliner_add_collection_recursive(space_outliner, collection, te);
       }
       break;
     }
