@@ -204,14 +204,14 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
 
 void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
 {
-  const AssetView &asset_view = dynamic_cast<AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   shelf_type.draw_context_menu(&C, &shelf_type, &asset_, &column);
 }
 
 bool AssetViewItem::is_filtered_visible() const
 {
-  const AssetView &asset_view = dynamic_cast<AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
   if (asset_view.search_string[0] == '\0') {
     return true;
   }
