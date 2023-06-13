@@ -641,7 +641,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         break;
       }
       case SIMEDGE_CREASE: {
-        if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+        if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "crease_edge")) {
           BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
           continue;
         }
@@ -659,7 +659,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     int custom_data_offset;
     switch (type) {
       case SIMEDGE_CREASE:
-        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        custom_data_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
         break;
       case SIMEDGE_BEVEL:
         custom_data_offset = CustomData_get_offset_named(
@@ -760,7 +760,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         break;
       }
       case SIMEDGE_CREASE: {
-        has_custom_data_layer = CustomData_has_layer(&bm->edata, CD_CREASE);
+        has_custom_data_layer = CustomData_has_layer_named(
+            &bm->edata, CD_PROP_FLOAT, "crease_edge");
         ATTR_FALLTHROUGH;
       }
       case SIMEDGE_BEVEL: {
@@ -784,7 +785,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     int custom_data_offset;
     switch (type) {
       case SIMEDGE_CREASE:
-        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        custom_data_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
         break;
       case SIMEDGE_BEVEL:
         custom_data_offset = CustomData_get_offset_named(
@@ -1002,6 +1003,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     int cd_dvert_offset = -1;
+    int cd_crease_offset = -1;
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
@@ -1023,10 +1025,13 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       defbase_selected = BLI_BITMAP_NEW(defbase_len, __func__);
     }
     else if (type == SIMVERT_CREASE) {
-      if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+      if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert")) {
         BLI_kdtree_1d_insert(tree_1d, tree_1d_index++, (float[1]){0.0f});
         continue;
       }
+    }
+    else if (type == SIMVERT_CREASE) {
+      cd_crease_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
     }
 
     BMVert *vert; /* Mesh vertex. */
@@ -1064,7 +1069,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
             break;
           }
           case SIMVERT_CREASE: {
-            const float *value = CustomData_bmesh_get(&bm->vdata, vert->head.data, CD_CREASE);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             BLI_kdtree_1d_insert(tree_1d, tree_1d_index++, value);
             break;
           }
@@ -1113,6 +1118,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     bool changed = false;
     bool has_crease_layer = false;
     int cd_dvert_offset = -1;
+    int cd_crease_offset = -1;
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
@@ -1147,7 +1153,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       }
     }
     else if (type == SIMVERT_CREASE) {
-      has_crease_layer = CustomData_has_layer(&bm->vdata, CD_CREASE);
+      cd_crease_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
+      has_crease_layer = CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
       if (!has_crease_layer) {
         /* Proceed only if we have to select all the vertices that have custom data value of 0.0f.
          * In this case we will just select all the vertices.
@@ -1228,7 +1235,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
               select = true;
               break;
             }
-            const float *value = CustomData_bmesh_get(&bm->vdata, vert->head.data, CD_CREASE);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             if (ED_select_similar_compare_float_tree(tree_1d, *value, thresh, compare)) {
               select = true;
             }

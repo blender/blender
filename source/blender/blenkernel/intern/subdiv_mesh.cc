@@ -525,10 +525,6 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
    * so don't try to preserve it and use memory. Crease values should also not be interpolated. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
-  /* Propagate edge creases so they can be used in another subdivision modifier (maintaining
-   * existing behavior), but don't propagate vertex creases to avoid extra work when the result
-   * isn't useful anyway. */
-  mask.vmask &= ~CD_MASK_CREASE;
 
   SubdivMeshContext *subdiv_context = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template_ex(

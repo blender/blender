@@ -989,6 +989,48 @@ static const bool *find_sharp_face_attribute(BL::Mesh b_mesh)
   return nullptr;
 }
 
+static const float *find_edge_crease_attribute(BL::Mesh b_mesh)
+{
+  for (BL::Attribute &b_attribute : b_mesh.attributes) {
+    if (b_attribute.domain() != BL::Attribute::domain_EDGE) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT) {
+      continue;
+    }
+    if (b_attribute.name() != "crease_edge") {
+      continue;
+    }
+    BL::FloatAttribute b_float_attribute{b_attribute};
+    if (b_float_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const float *>(b_float_attribute.data[0].ptr.data);
+  }
+  return nullptr;
+}
+
+static const float *find_vert_crease_attribute(BL::Mesh b_mesh)
+{
+  for (BL::Attribute &b_attribute : b_mesh.attributes) {
+    if (b_attribute.domain() != BL::Attribute::domain_POINT) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT) {
+      continue;
+    }
+    if (b_attribute.name() != "crease_vert") {
+      continue;
+    }
+    BL::FloatAttribute b_float_attribute{b_attribute};
+    if (b_float_attribute.data.length() == 0) {
+      return nullptr;
+    }
+    return static_cast<const float *>(b_float_attribute.data[0].ptr.data);
+  }
+  return nullptr;
+}
+
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh &b_mesh,
@@ -1226,11 +1268,12 @@ static void create_subd_mesh(Scene *scene,
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
+  const int verts_num = b_mesh.vertices.length();
   const int edges_num = b_mesh.edges.length();
 
-  if (edges_num != 0 && b_mesh.edge_creases.length() > 0) {
-    const float *creases = static_cast<const float *>(b_mesh.edge_creases[0].data[0].ptr.data);
+  const float *creases = find_edge_crease_attribute(b_mesh);
 
+  if (edges_num != 0 && creases != nullptr) {
     size_t num_creases = 0;
     for (int i = 0; i < edges_num; i++) {
       if (creases[i] != 0.0f) {
@@ -1250,11 +1293,10 @@ static void create_subd_mesh(Scene *scene,
     }
   }
 
-  for (BL::MeshVertexCreaseLayer &layer : b_mesh.vertex_creases) {
-    const float *creases = static_cast<const float *>(layer.data[0].ptr.data);
-    for (int i = 0; i < layer.data.length(); ++i) {
-      if (creases[i] != 0.0f) {
-        mesh->add_vertex_crease(i, creases[i]);
+  if (const float *vert_creases = find_vert_crease_attribute(b_mesh)) {
+    for (int i = 0; i < verts_num; i++) {
+      if (vert_creases[i] != 0.0f) {
+        mesh->add_vertex_crease(i, vert_creases[i]);
       }
     }
   }

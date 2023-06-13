@@ -1369,53 +1369,44 @@ void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
   }
 }
 
-void BKE_mesh_legacy_bevel_weight_to_generic(Mesh *mesh)
+static void replace_custom_data_layer_with_named(CustomData &custom_data,
+                                                 const eCustomDataType old_type,
+                                                 const eCustomDataType new_type,
+                                                 const int elems_num,
+                                                 const char *new_name)
 {
   using namespace blender;
-  if (!mesh->attributes().contains("bevel_weight_vert")) {
-    void *data = nullptr;
-    const ImplicitSharingInfo *sharing_info = nullptr;
-    for (const int i : IndexRange(mesh->vdata.totlayer)) {
-      CustomDataLayer &layer = mesh->vdata.layers[i];
-      if (layer.type == CD_BWEIGHT) {
-        data = layer.data;
-        sharing_info = layer.sharing_info;
-        layer.data = nullptr;
-        layer.sharing_info = nullptr;
-        CustomData_free_layer(&mesh->vdata, CD_BWEIGHT, mesh->totvert, i);
-        break;
-      }
-    }
-    if (data != nullptr) {
-      CustomData_add_layer_named_with_data(
-          &mesh->vdata, CD_PROP_FLOAT, data, mesh->totvert, "bevel_weight_vert", sharing_info);
-    }
-    if (sharing_info != nullptr) {
-      sharing_info->remove_user_and_delete_if_last();
+  void *data = nullptr;
+  const ImplicitSharingInfo *sharing_info = nullptr;
+  for (const int i : IndexRange(custom_data.totlayer)) {
+    CustomDataLayer &layer = custom_data.layers[i];
+    if (layer.type == old_type) {
+      data = layer.data;
+      sharing_info = layer.sharing_info;
+      layer.data = nullptr;
+      layer.sharing_info = nullptr;
+      CustomData_free_layer(&custom_data, old_type, elems_num, i);
+      break;
     }
   }
+  if (data != nullptr) {
+    CustomData_add_layer_named_with_data(
+        &custom_data, new_type, data, elems_num, new_name, sharing_info);
+  }
+  if (sharing_info != nullptr) {
+    sharing_info->remove_user_and_delete_if_last();
+  }
+}
 
+void BKE_mesh_legacy_bevel_weight_to_generic(Mesh *mesh)
+{
+  if (!mesh->attributes().contains("bevel_weight_vert")) {
+    replace_custom_data_layer_with_named(
+        mesh->vdata, CD_BWEIGHT, CD_PROP_FLOAT, mesh->totvert, "bevel_weight_vert");
+  }
   if (!mesh->attributes().contains("bevel_weight_edge")) {
-    void *data = nullptr;
-    const ImplicitSharingInfo *sharing_info = nullptr;
-    for (const int i : IndexRange(mesh->edata.totlayer)) {
-      CustomDataLayer &layer = mesh->edata.layers[i];
-      if (layer.type == CD_BWEIGHT) {
-        data = layer.data;
-        sharing_info = layer.sharing_info;
-        layer.data = nullptr;
-        layer.sharing_info = nullptr;
-        CustomData_free_layer(&mesh->edata, CD_BWEIGHT, mesh->totedge, i);
-        break;
-      }
-    }
-    if (data != nullptr) {
-      CustomData_add_layer_named_with_data(
-          &mesh->edata, CD_PROP_FLOAT, data, mesh->totedge, "bevel_weight_edge", sharing_info);
-    }
-    if (sharing_info != nullptr) {
-      sharing_info->remove_user_and_delete_if_last();
-    }
+    replace_custom_data_layer_with_named(
+        mesh->edata, CD_BWEIGHT, CD_PROP_FLOAT, mesh->totedge, "bevel_weight_edge");
   }
 }
 
@@ -1438,6 +1429,18 @@ void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
     for (const int i : edges.index_range()) {
       creases[i] = edges[i].crease_legacy / 255.0f;
     }
+  }
+}
+
+void BKE_mesh_legacy_crease_to_generic(Mesh *mesh)
+{
+  if (!mesh->attributes().contains("crease_vert")) {
+    replace_custom_data_layer_with_named(
+        mesh->vdata, CD_CREASE, CD_PROP_FLOAT, mesh->totvert, "crease_vert");
+  }
+  if (!mesh->attributes().contains("crease_edge")) {
+    replace_custom_data_layer_with_named(
+        mesh->edata, CD_CREASE, CD_PROP_FLOAT, mesh->totedge, "crease_edge");
   }
 }
 

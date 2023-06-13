@@ -441,16 +441,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
-        if me.has_crease_edge:
-            col.operator("mesh.customdata_crease_edge_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_edge_add", icon='ADD')
-
-        if me.has_crease_vertex:
-            col.operator("mesh.customdata_crease_vertex_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_vertex_add", icon='ADD')
-
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}

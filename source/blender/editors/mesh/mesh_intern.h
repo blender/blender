@@ -325,10 +325,6 @@ void MESH_OT_customdata_skin_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_skin_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_vertex_add(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_vertex_clear(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_edge_add(struct wmOperatorType *ot);
-void MESH_OT_customdata_crease_edge_clear(struct wmOperatorType *ot);
 
 #ifdef __cplusplus
 }

@@ -199,7 +199,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SEAM:
       return CD_FAKE_SEAM;
     case DT_TYPE_CREASE:
-      return CD_CREASE;
+      return CD_FAKE_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
       return CD_FAKE_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:

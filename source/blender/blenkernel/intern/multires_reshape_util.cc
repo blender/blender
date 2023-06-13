@@ -18,6 +18,7 @@
 
 #include "BLI_task.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
@@ -184,6 +185,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
                                                  Object *object,
                                                  MultiresModifierData *mmd)
 {
+  using namespace blender;
   context_zero(reshape_context);
 
   const bool use_render_params = false;
@@ -212,10 +214,9 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->top.level = mmd->totlvl;
   reshape_context->top.grid_size = BKE_subdiv_grid_size_from_level(reshape_context->top.level);
 
-  reshape_context->cd_vertex_crease = static_cast<const float *>(
-      CustomData_get_layer(&base_mesh->vdata, CD_CREASE));
-  reshape_context->cd_edge_crease = static_cast<const float *>(
-      CustomData_get_layer(&base_mesh->edata, CD_CREASE));
+  const bke::AttributeAccessor attributes = base_mesh->attributes();
+  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
+  reshape_context->cd_edge_crease = *attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
 
   context_init_commoon(reshape_context);
 
@@ -272,6 +273,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
                                                  Subdiv *subdiv,
                                                  int top_level)
 {
+  using namespace blender;
   context_zero(reshape_context);
 
   Mesh *base_mesh = (Mesh *)object->data;
@@ -283,8 +285,9 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->base_polys = base_mesh->polys();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
   reshape_context->base_corner_edges = base_mesh->corner_edges();
-  reshape_context->cd_vertex_crease = (const float *)CustomData_get_layer(&base_mesh->edata,
-                                                                          CD_CREASE);
+
+  const bke::AttributeAccessor attributes = base_mesh->attributes();
+  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
 
   reshape_context->subdiv = subdiv;
   reshape_context->need_free_subdiv = false;

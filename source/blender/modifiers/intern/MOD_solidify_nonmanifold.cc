@@ -197,7 +197,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const float *orig_edge_bweight = static_cast<const float *>(
       CustomData_get_layer_named(&mesh->edata, CD_PROP_FLOAT, "bevel_weight_edge"));
   const float *orig_edge_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->edata, CD_CREASE));
+      CustomData_get_layer_named(&mesh->edata, CD_PROP_FLOAT, "crease_edge"));
 
   uint new_verts_num = 0;
   uint new_edges_num = 0;
@@ -2019,14 +2019,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Get vertex crease layer and ensure edge creases are active if vertex creases are found, since
    * they will introduce edge creases in the used custom interpolation method. */
   const float *vertex_crease = static_cast<const float *>(
-      CustomData_get_layer(&mesh->vdata, CD_CREASE));
+      CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT, "crease_vert"));
   float *result_edge_crease = nullptr;
   if (vertex_crease) {
-    result_edge_crease = (float *)CustomData_add_layer(
-        &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
+    result_edge_crease = (float *)CustomData_add_layer_named(
+        &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
-      CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
+      CustomData_free_layer_named(&result->vdata, "crease_vert", result->totvert);
     }
   }
 
