@@ -701,10 +701,6 @@ ARegion *ED_area_find_region_xy_visual(const ScrArea *area, int regiontype, cons
 struct ARegionType *ED_area_type_hud(int space_type);
 void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *area_keep);
 void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *area);
-/** Lookup the region the operation was executed in, and which should be used to redo the
- * operation. */
-ARegion *ED_area_type_hud_redo_region_find(const struct ScrArea *area,
-                                           const struct ARegion *hud_region);
 
 /**
  * Default key-maps, bit-flags (matches order of evaluation).
