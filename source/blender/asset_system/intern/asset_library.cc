@@ -15,6 +15,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BKE_asset_library_custom.h"
+#include "BKE_blender_project.h"
 #include "BKE_main.h"
 
 #include "BLI_fileops.h"
@@ -352,7 +353,19 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES;
     result.append(library_ref);
   }
-  /* TODO project libraries */
+
+  BlenderProject *project = CTX_wm_project();
+  ListBase *project_libraries = BKE_project_custom_asset_libraries_get(project);
+  LISTBASE_FOREACH_INDEX (
+      const CustomAssetLibraryDefinition *, asset_library, project_libraries, i) {
+    if (!BLI_is_dir(asset_library->dirpath)) {
+      continue;
+    }
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = i;
+    library_ref.type = ASSET_LIBRARY_CUSTOM_FROM_PROJECT;
+    result.append(library_ref);
+  }
 
   AssetLibraryReference library_ref{};
   library_ref.custom_library_index = -1;
