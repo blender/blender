@@ -13,7 +13,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_buffer.h"
 #include "BLI_kdtree.h"
 #include "BLI_listbase.h"
@@ -32,8 +32,6 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
-
-#include "BKE_object.h" /* XXX. only for EDBM_mesh_load(). */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -68,7 +66,7 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
   MEM_freeN(tmpbm);
-  tmpbm = NULL;
+  tmpbm = nullptr;
 
   if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
@@ -80,7 +78,7 @@ void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool rec
   BM_mesh_data_free(em->bm);
   *em->bm = *backup->bmcopy;
   MEM_freeN(backup->bmcopy);
-  backup->bmcopy = NULL;
+  backup->bmcopy = nullptr;
   if (recalc_looptri) {
     BKE_editmesh_looptri_calc(em);
   }
@@ -123,13 +121,14 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
   const char *errmsg;
 
 #ifndef NDEBUG
-  struct {
+  struct StatePrev {
     int verts_len, edges_len, loops_len, faces_len;
-  } em_state_prev = {
-      .verts_len = em->bm->totvert,
-      .edges_len = em->bm->totedge,
-      .loops_len = em->bm->totloop,
-      .faces_len = em->bm->totface,
+  };
+  StatePrev em_state_prev = {
+      em->bm->totvert,
+      em->bm->totedge,
+      em->bm->totloop,
+      em->bm->totface,
   };
 #endif
 
@@ -139,7 +138,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
   bool changed_was_set = false;
 
   eBMOpErrorLevel level;
-  while (BMO_error_pop(em->bm, &errmsg, NULL, &level)) {
+  while (BMO_error_pop(em->bm, &errmsg, nullptr, &level)) {
     eReportType type = RPT_INFO;
     switch (level) {
       case BMO_ERROR_CANCEL: {
@@ -252,7 +251,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
   BMO_op_exec(bm, &bmop);
 
   va_end(list);
-  return EDBM_op_finish(em, &bmop, NULL, false);
+  return EDBM_op_finish(em, &bmop, nullptr, false);
 }
 
 /** \} */
@@ -265,13 +264,10 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *me = ob->data;
-  BMesh *bm = BKE_mesh_to_bmesh(me,
-                                ob,
-                                add_key_index,
-                                &((struct BMeshCreateParams){
-                                    .use_toolflags = true,
-                                }));
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  BMeshCreateParams create_params{};
+  create_params.use_toolflags = true;
+  BMesh *bm = BKE_mesh_to_bmesh(me, ob, add_key_index, &create_params);
 
   if (me->edit_mesh) {
     /* this happens when switching shape keys */
@@ -292,7 +288,7 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   BMesh *bm = me->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
@@ -301,13 +297,10 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
     bm->shapenr = 1;
   }
 
-  BM_mesh_bm_to_me(bmain,
-                   bm,
-                   me,
-                   (&(struct BMeshToMeshParams){
-                       .calc_object_remap = true,
-                       .update_shapekey_indices = !free_data,
-                   }));
+  BMeshToMeshParams params{};
+  params.calc_object_remap = true;
+  params.update_shapekey_indices = !free_data;
+  BM_mesh_bm_to_me(bmain, bm, me, &params);
 }
 
 void EDBM_mesh_clear(BMEditMesh *em)
@@ -330,8 +323,8 @@ void EDBM_mesh_free_data(BMEditMesh *em)
   /* These tables aren't used yet, so it's not strictly necessary
    * to 'end' them but if someone tries to start using them,
    * having these in place will save a lot of pain. */
-  ED_mesh_mirror_spatial_table_end(NULL);
-  ED_mesh_mirror_topo_table_end(NULL);
+  ED_mesh_mirror_spatial_table_end(nullptr);
+  ED_mesh_mirror_topo_table_end(nullptr);
 
   BKE_editmesh_free_data(em);
 }
@@ -469,11 +462,11 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
   }
 
   if (totuv == 0) {
-    return NULL;
+    return nullptr;
   }
   UvVertMap *vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
   if (!vmap) {
-    return NULL;
+    return nullptr;
   }
 
   vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
@@ -481,7 +474,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
-    return NULL;
+    return nullptr;
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
@@ -501,7 +494,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
   /* sort individual uvs for each vert */
   BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, a) {
-    UvMapVert *newvlist = NULL, *vlist = vmap->vert[a];
+    UvMapVert *newvlist = nullptr, *vlist = vmap->vert[a];
     UvMapVert *iterv, *v, *lastv, *next;
     const float *uv, *uv2;
 
@@ -513,16 +506,18 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
       efa = BM_face_at_index(bm, v->poly_index);
 
-      l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, v->loop_of_poly_index);
+      l = static_cast<BMLoop *>(
+          BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, v->loop_of_poly_index));
       uv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
-      lastv = NULL;
+      lastv = nullptr;
       iterv = vlist;
 
       while (iterv) {
         next = iterv->next;
         efa = BM_face_at_index(bm, iterv->poly_index);
-        l = BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, iterv->loop_of_poly_index);
+        l = static_cast<BMLoop *>(
+            BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa, iterv->loop_of_poly_index));
         uv2 = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
         if (compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT)) {
@@ -563,8 +558,8 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
   }
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  element_map->head_table = MEM_mallocN(sizeof(*element_map->head_table) * element_map->total_uvs,
-                                        "uv_element_map_head_table");
+  element_map->head_table = static_cast<UvElement **>(
+      MEM_mallocN(sizeof(*element_map->head_table) * element_map->total_uvs, __func__));
   UvElement **head_table = element_map->head_table;
   for (int i = 0; i < element_map->total_uvs; i++) {
     UvElement *head = element_map->storage + i;
@@ -585,8 +580,8 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
 int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map)
 {
   if (!element_map->unique_index_table) {
-    element_map->unique_index_table = MEM_callocN(
-        element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__);
+    element_map->unique_index_table = static_cast<int *>(
+        MEM_callocN(element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__));
 
     int j = 0;
     for (int i = 0; i < element_map->total_uvs; i++) {
@@ -655,8 +650,8 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   int nislands = 0;
   int islandbufsize = 0;
   int stack_upper_bound = total_uvs;
-  UvElement **stack_uv = MEM_mallocN(sizeof(*stack_uv) * stack_upper_bound,
-                                     "uv_island_element_stack");
+  UvElement **stack_uv = static_cast<UvElement **>(
+      MEM_mallocN(sizeof(*stack_uv) * stack_upper_bound, __func__));
   int stacksize_uv = 0;
   for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->storage + i;
@@ -744,11 +739,13 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   int islandbufsize = 0;
 
   /* map holds the map from current vmap->buf to the new, sorted map */
-  uint *map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
-  BMFace **stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
-  UvElement *islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
+  uint *map = static_cast<uint *>(MEM_mallocN(sizeof(*map) * totuv, __func__));
+  BMFace **stack = static_cast<BMFace **>(MEM_mallocN(sizeof(*stack) * bm->totface, __func__));
+  UvElement *islandbuf = static_cast<UvElement *>(
+      MEM_callocN(sizeof(*islandbuf) * totuv, __func__));
   /* Island number for BMFaces. */
-  int *island_number = MEM_callocN(sizeof(*island_number) * bm->totface, "uv_island_number_face");
+  int *island_number = static_cast<int *>(
+      MEM_callocN(sizeof(*island_number) * bm->totface, __func__));
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
   const BMUVOffsets uv_offsets = BM_uv_map_get_offsets(bm);
@@ -816,22 +813,22 @@ static void bm_uv_build_islands(UvElementMap *element_map,
 
   /* remap */
   for (int i = 0; i < bm->totvert; i++) {
-    /* important since we may do selection only. Some of these may be NULL */
+    /* important since we may do selection only. Some of these may be nullptr */
     if (element_map->vertex[i]) {
       element_map->vertex[i] = &islandbuf[map[element_map->vertex[i] - element_map->storage]];
     }
   }
 
-  element_map->island_indices = MEM_callocN(sizeof(*element_map->island_indices) * nislands,
-                                            __func__);
-  element_map->island_total_uvs = MEM_callocN(sizeof(*element_map->island_total_uvs) * nislands,
-                                              __func__);
-  element_map->island_total_unique_uvs = MEM_callocN(
-      sizeof(*element_map->island_total_unique_uvs) * nislands, __func__);
+  element_map->island_indices = static_cast<int *>(
+      MEM_callocN(sizeof(*element_map->island_indices) * nislands, __func__));
+  element_map->island_total_uvs = static_cast<int *>(
+      MEM_callocN(sizeof(*element_map->island_total_uvs) * nislands, __func__));
+  element_map->island_total_unique_uvs = static_cast<int *>(
+      MEM_callocN(sizeof(*element_map->island_total_unique_uvs) * nislands, __func__));
   int j = 0;
   for (int i = 0; i < totuv; i++) {
     UvElement *next = element_map->storage[i].next;
-    islandbuf[map[i]].next = next ? &islandbuf[map[next - element_map->storage]] : NULL;
+    islandbuf[map[i]].next = next ? &islandbuf[map[next - element_map->storage]] : nullptr;
 
     if (islandbuf[i].island != j) {
       j++;
@@ -846,7 +843,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
 
   MEM_SAFE_FREE(element_map->storage);
   element_map->storage = islandbuf;
-  islandbuf = NULL;
+  islandbuf = nullptr;
   element_map->total_islands = nislands;
   MEM_SAFE_FREE(stack);
   MEM_SAFE_FREE(map);
@@ -953,7 +950,7 @@ static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd
   BLI_assert(loop_a != loop_b);
   BLI_assert(loop_a->v == loop_b->v);
 
-  BLI_gset_clear(visited, NULL);
+  BLI_gset_clear(visited, nullptr);
 
   const float *luv_anchor = BM_ELEM_CD_GET_FLOAT_P(loop_a, cd_loop_uv_offset);
   const float *luv_next_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->next, cd_loop_uv_offset);
@@ -986,7 +983,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
   const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
   if (offsets.uv < 0) {
-    return NULL;
+    return nullptr;
   }
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
@@ -1016,7 +1013,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   if (totuv == 0) {
-    return NULL;
+    return nullptr;
   }
 
   UvElementMap *element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
@@ -1026,7 +1023,9 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   element_map->storage = (UvElement *)MEM_callocN(sizeof(*element_map->storage) * totuv,
                                                   "UvElement");
 
-  bool *winding = use_winding ? MEM_callocN(sizeof(*winding) * bm->totface, "winding") : NULL;
+  bool *winding = use_winding ?
+                      static_cast<bool *>(MEM_callocN(sizeof(*winding) * bm->totface, "winding")) :
+                      nullptr;
 
   UvElement *buf = element_map->storage;
   int j;
@@ -1063,12 +1062,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     }
   }
 
-  GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : NULL;
+  GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : nullptr;
 
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
   BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, ev_index) {
-    UvElement *newvlist = NULL;
+    UvElement *newvlist = nullptr;
     UvElement *vlist = element_map->vertex[ev_index];
     while (vlist) {
 
@@ -1078,10 +1077,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       v->next = newvlist;
       newvlist = v;
 
-      const float *uv = BM_ELEM_CD_GET_VOID_P(v->l, offsets.uv);
+      const float *uv = static_cast<const float *>(BM_ELEM_CD_GET_VOID_P(v->l, offsets.uv));
       bool uv_vert_sel = uvedit_uv_select_test(scene, v->l, offsets);
 
-      UvElement *lastv = NULL;
+      UvElement *lastv = nullptr;
       UvElement *iterv = vlist;
 
       /* Scan through unsorted list, finding UvElements which are connected to `v`. */
@@ -1138,8 +1137,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   if (seam_visited_gset) {
-    BLI_gset_free(seam_visited_gset, NULL);
-    seam_visited_gset = NULL;
+    BLI_gset_free(seam_visited_gset, nullptr);
+    seam_visited_gset = nullptr;
   }
   MEM_SAFE_FREE(winding);
 
@@ -1197,13 +1196,13 @@ UvElement *BM_uv_element_get(const UvElementMap *element_map, const BMLoop *l)
     element = element->next;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 UvElement *BM_uv_element_get_head(UvElementMap *element_map, UvElement *child)
 {
   if (!child) {
-    return NULL;
+    return nullptr;
   }
 
   return element_map->vertex[BM_elem_index_get(child->l->v)];
@@ -1218,14 +1217,14 @@ UvElement *BM_uv_element_get_head(UvElementMap *element_map, UvElement *child)
 BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
   if (!EDBM_uv_check(em)) {
-    return NULL;
+    return nullptr;
   }
   BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
   if (efa) {
     return efa;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool EDBM_uv_check(BMEditMesh *em)
@@ -1249,7 +1248,7 @@ bool EDBM_vert_color_check(BMEditMesh *em)
 static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int index)
 {
   intptr_t eve_i = index_lookup[index];
-  return (eve_i == -1) ? NULL : (BMVert *)eve_i;
+  return (eve_i == -1) ? nullptr : (BMVert *)eve_i;
 }
 
 /**
@@ -1290,12 +1289,12 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   const float maxdist_sq = square_f(maxdist);
 
   /* one or the other is used depending if topo is enabled */
-  KDTree_3d *tree = NULL;
-  MirrTopoStore_t mesh_topo_store = {NULL, -1, -1, -1};
+  KDTree_3d *tree = nullptr;
+  MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
   BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-  if (r_index == NULL) {
+  if (r_index == nullptr) {
     const char *layer_id = BM_CD_LAYER_ID;
     em->mirror_cdlayer = CustomData_get_named_layer_index(&bm->vdata, CD_PROP_INT32, layer_id);
     if (em->mirror_cdlayer == -1) {
@@ -1314,7 +1313,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
   if (use_topology) {
-    ED_mesh_mirrtopo_init(em, NULL, &mesh_topo_store, true);
+    ED_mesh_mirrtopo_init(em, nullptr, &mesh_topo_store, true);
   }
   else {
     tree = BLI_kdtree_3d_new(bm->totvert);
@@ -1328,7 +1327,8 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     BLI_kdtree_3d_balance(tree);
   }
 
-#define VERT_INTPTR(_v, _i) (r_index ? &r_index[_i] : BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset))
+#define VERT_INTPTR(_v, _i) \
+  (r_index ? &r_index[_i] : static_cast<int *>(BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset)))
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
     if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
@@ -1345,9 +1345,9 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 
     if (use_topology) {
       v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
-      if (v_mirr != NULL) {
+      if (v_mirr != nullptr) {
         if (respecthide && BM_elem_flag_test(v_mirr, BM_ELEM_HIDDEN)) {
-          v_mirr = NULL;
+          v_mirr = nullptr;
         }
       }
     }
@@ -1357,8 +1357,8 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
       copy_v3_v3(co, v->co);
       co[axis] *= -1.0f;
 
-      v_mirr = NULL;
-      i_mirr = BLI_kdtree_3d_find_nearest(tree, co, NULL);
+      v_mirr = nullptr;
+      i_mirr = BLI_kdtree_3d_find_nearest(tree, co, nullptr);
       if (i_mirr != -1) {
         BMVert *v_test = BM_vert_at_index(bm, i_mirr);
         if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
@@ -1403,12 +1403,13 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em,
                                    /* extra args */
                                    use_topology,
                                    BM_SEARCH_MAXDIST_MIRR,
-                                   NULL);
+                                   nullptr);
 }
 
 BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
 {
-  const int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
+  const int *mirr = static_cast<const int *>(
+      CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer));
 
   BLI_assert(em->mirror_cdlayer != -1); /* invalid use */
 
@@ -1417,13 +1418,13 @@ BMVert *EDBM_verts_mirror_get(BMEditMesh *em, BMVert *v)
       printf(
           "err: should only be called between "
           "EDBM_verts_mirror_cache_begin and EDBM_verts_mirror_cache_end");
-      return NULL;
+      return nullptr;
     }
 
     return em->bm->vtable[*mirr];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
@@ -1437,29 +1438,30 @@ BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
     return BM_edge_exists(v1_mirr, v2_mirr);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
 {
-  BMVert **v_mirr_arr = BLI_array_alloca(v_mirr_arr, f->len);
+  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> v_mirr_arr(f->len);
 
   BMLoop *l_iter, *l_first;
   uint i = 0;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    if ((v_mirr_arr[i++] = EDBM_verts_mirror_get(em, l_iter->v)) == NULL) {
-      return NULL;
+    if ((v_mirr_arr[i++] = EDBM_verts_mirror_get(em, l_iter->v)) == nullptr) {
+      return nullptr;
     }
   } while ((l_iter = l_iter->next) != l_first);
 
-  return BM_face_exists(v_mirr_arr, f->len);
+  return BM_face_exists(v_mirr_arr.data(), v_mirr_arr.size());
 }
 
 void EDBM_verts_mirror_cache_clear(BMEditMesh *em, BMVert *v)
 {
-  int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
+  int *mirr = static_cast<int *>(
+      CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer));
 
   BLI_assert(em->mirror_cdlayer != -1); /* invalid use */
 
@@ -1478,7 +1480,7 @@ void EDBM_verts_mirror_apply(BMEditMesh *em, const int sel_from, const int sel_t
   BMIter iter;
   BMVert *v;
 
-  BLI_assert((em->bm->vtable != NULL) && ((em->bm->elem_table_dirty & BM_VERT) == 0));
+  BLI_assert((em->bm->vtable != nullptr) && ((em->bm->elem_table_dirty & BM_VERT) == 0));
 
   BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (BM_elem_flag_test(v, BM_ELEM_SELECT) == sel_from) {
@@ -1611,17 +1613,16 @@ bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
 /** \name Update API
  * \{ */
 
-void EDBM_mesh_normals_update_ex(BMEditMesh *em, const struct BMeshNormalsUpdate_Params *params)
+void EDBM_mesh_normals_update_ex(BMEditMesh *em, const BMeshNormalsUpdate_Params *params)
 {
   BM_mesh_normals_update_ex(em->bm, params);
 }
 
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {
-  EDBM_mesh_normals_update_ex(em,
-                              &(const struct BMeshNormalsUpdate_Params){
-                                  .face_normals = true,
-                              });
+  BMeshNormalsUpdate_Params params{};
+  params.face_normals = true;
+  EDBM_mesh_normals_update_ex(em, &params);
 }
 
 void EDBM_stats_update(BMEditMesh *em)
@@ -1644,8 +1645,8 @@ void EDBM_stats_update(BMEditMesh *em)
   em->bm->totvertsel = em->bm->totedgesel = em->bm->totfacesel = 0;
 
   for (i = 0; i < 3; i++) {
-    ele = BM_iter_new(&iter, em->bm, iter_types[i], NULL);
-    for (; ele; ele = BM_iter_step(&iter)) {
+    ele = static_cast<BMElem *>(BM_iter_new(&iter, em->bm, iter_types[i], nullptr));
+    for (; ele; ele = static_cast<BMElem *>(BM_iter_step(&iter))) {
       if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
         (*tots[i])++;
       }
@@ -1653,7 +1654,7 @@ void EDBM_stats_update(BMEditMesh *em)
   }
 }
 
-void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
+void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 {
   BMEditMesh *em = mesh->edit_mesh;
   /* Order of calling isn't important. */
@@ -1699,12 +1700,11 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
 
 void EDBM_update_extern(Mesh *me, const bool do_tessellation, const bool is_destructive)
 {
-  EDBM_update(me,
-              &(const struct EDBMUpdate_Params){
-                  .calc_looptri = do_tessellation,
-                  .calc_normals = false,
-                  .is_destructive = is_destructive,
-              });
+  EDBMUpdate_Params params{};
+  params.calc_looptri = do_tessellation;
+  params.calc_normals = false;
+  params.is_destructive = is_destructive;
+  EDBM_update(me, &params);
 }
 
 /** \} */
@@ -1739,7 +1739,7 @@ BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFa
   if ((em->selectmode & SCE_SELECT_FACE) && efa) {
     return (BMElem *)efa;
   }
-  return NULL;
+  return nullptr;
 }
 
 int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)
@@ -1781,7 +1781,7 @@ BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index)
     return (BMElem *)BM_face_at_index_find_or_table(bm, index);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int EDBM_elem_to_index_any_multi(
@@ -1790,7 +1790,8 @@ int EDBM_elem_to_index_any_multi(
   uint bases_len;
   int elem_index = -1;
   *r_object_index = -1;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, NULL, &bases_len);
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      scene, view_layer, nullptr, &bases_len);
   for (uint base_index = 0; base_index < bases_len; base_index++) {
     Base *base_iter = bases[base_index];
     if (BKE_editmesh_from_object(base_iter->object) == em) {
@@ -1810,19 +1811,20 @@ BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
                                        Object **r_obedit)
 {
   uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, NULL, &bases_len);
-  *r_obedit = NULL;
-  Object *obedit = (object_index < bases_len) ? bases[object_index]->object : NULL;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      scene, view_layer, nullptr, &bases_len);
+  *r_obedit = nullptr;
+  Object *obedit = (object_index < bases_len) ? bases[object_index]->object : nullptr;
   MEM_freeN(bases);
-  if (obedit != NULL) {
+  if (obedit != nullptr) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMElem *ele = EDBM_elem_from_index_any(em, elem_index);
-    if (ele != NULL) {
+    if (ele != nullptr) {
       *r_obedit = obedit;
       return ele;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -1834,10 +1836,10 @@ BMElem *EDBM_elem_from_index_any_multi(const Scene *scene,
 static BMFace *edge_ray_cast(
     BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
 {
-  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, NULL, r_hitout, NULL);
+  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, nullptr, r_hitout, nullptr);
 
   if (f && BM_edge_in_face(e, f)) {
-    return NULL;
+    return nullptr;
   }
 
   return f;
@@ -1896,11 +1898,11 @@ bool BMBVH_EdgeVisible(
   normalize_v3(dir3);
 
   /* do three samplings: left, middle, right */
-  f = edge_ray_cast(tree, co1, dir1, NULL, e);
-  if (f && !edge_ray_cast(tree, co2, dir2, NULL, e)) {
+  f = edge_ray_cast(tree, co1, dir1, nullptr, e);
+  if (f && !edge_ray_cast(tree, co2, dir2, nullptr, e)) {
     return true;
   }
-  if (f && !edge_ray_cast(tree, co3, dir3, NULL, e)) {
+  if (f && !edge_ray_cast(tree, co3, dir3, nullptr, e)) {
     return true;
   }
   if (!f) {
@@ -1922,7 +1924,7 @@ void EDBM_project_snap_verts(
   BMIter iter;
   BMVert *eve;
 
-  ED_view3d_init_mats_rv3d(obedit, region->regiondata);
+  ED_view3d_init_mats_rv3d(obedit, static_cast<RegionView3D *>(region->regiondata));
 
   Scene *scene = CTX_data_scene(C);
   SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
@@ -1942,22 +1944,22 @@ void EDBM_project_snap_verts(
       float mval[2], co_proj[3];
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
+        SnapObjectParams params{};
+        params.snap_target_select = target_op;
+        params.edit_mode_type = SNAP_GEOM_FINAL;
+        params.use_occlusion_test = true;
         if (ED_transform_snap_object_project_view3d(snap_context,
                                                     depsgraph,
                                                     region,
                                                     CTX_wm_view3d(C),
                                                     SCE_SNAP_MODE_FACE,
-                                                    &(const struct SnapObjectParams){
-                                                        .snap_target_select = target_op,
-                                                        .edit_mode_type = SNAP_GEOM_FINAL,
-                                                        .use_occlusion_test = true,
-                                                    },
-                                                    NULL,
+                                                    &params,
+                                                    nullptr,
                                                     mval,
-                                                    NULL,
-                                                    NULL,
+                                                    nullptr,
+                                                    nullptr,
                                                     co_proj,
-                                                    NULL))
+                                                    nullptr))
         {
           mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
         }
