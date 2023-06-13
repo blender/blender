@@ -61,19 +61,34 @@ class AssetLibraryService {
   /** Destroy the AssetLibraryService singleton. It will be reallocated by #get() if necessary. */
   static void destroy();
 
+  /**
+   * \note Does not work with asset libraries of type #ASSET_LIBRARY_CUSTOM_PATH.
+   */
   static std::string root_path_from_library_ref(const AssetLibraryReference &library_reference);
+  /**
+   * \note Only works with #ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES and
+   *       #ASSET_LIBRARY_CUSTOM_FROM_PROJECT.
+   */
   static CustomAssetLibraryDefinition *find_custom_asset_library_from_library_ref(
       const AssetLibraryReference &library_reference);
-  static bUserAssetLibrary *find_custom_preferences_asset_library_from_asset_weak_ref(
+  /**
+   * \note Only works with #ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES and
+   *       #ASSET_LIBRARY_CUSTOM_FROM_PROJECT.
+   */
+  static CustomAssetLibraryDefinition *find_custom_asset_library_definition_from_asset_weak_ref(
       const AssetWeakReference &asset_reference);
 
+  /**
+   * \note Cannot load asset libraries of type #ASSET_LIBRARY_CUSTOM_PATH.
+   */
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
 
-  /** Get an asset library of type #ASSET_LIBRARY_CUSTOM. */
-  AssetLibrary *get_asset_library_on_disk_custom(StringRef name, StringRefNull root_path);
+  /** Get a custom asset library using \a root_path. The library is of type
+   * #ASSET_LIBRARY_CUSTOM_PATH. */
+  AssetLibrary *get_asset_library_on_disk_custom_path(StringRef name, StringRefNull root_path);
   /** Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
-   * #ASSET_LIBRARY_CUSTOM. */
+   * #ASSET_LIBRARY_CUSTOM_XXX. */
   AssetLibrary *get_asset_library_on_disk_builtin(eAssetLibraryType type, StringRefNull root_path);
   /** Get the "Current File" asset library. */
   AssetLibrary *get_asset_library_current_file();

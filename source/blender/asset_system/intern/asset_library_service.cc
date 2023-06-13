@@ -105,12 +105,15 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk_custom(custom_library->name, root_path);
+      AssetLibrary *library = get_asset_library_on_disk(type, custom_library->name, root_path);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
       library->use_relative_path_ = (custom_library->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
 
       return library;
+    }
+    case ASSET_LIBRARY_CUSTOM_PATH: {
+      return nullptr;
     }
   }
 
@@ -149,18 +152,18 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   return lib;
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef name,
-                                                                    StringRefNull root_path)
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom_path(StringRef name,
+                                                                         StringRefNull root_path)
 {
-  return get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
+  return get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM_PATH, name, root_path);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
                                                                      StringRefNull root_path)
 {
   BLI_assert_msg(
-      type != ASSET_LIBRARY_CUSTOM,
-      "Use `get_asset_library_on_disk_custom()` for libraries of type `ASSET_LIBRARY_CUSTOM`");
+      !ELEM(type, ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES, ASSET_LIBRARY_CUSTOM_FROM_PROJECT),
+      "Use `get_asset_library_on_disk_custom()` for libraries of custom asset libraries");
 
   /* Builtin asset libraries don't need a name, the #eAssetLibraryType is enough to identify them
    * (and doesn't change, unlike the name). */
@@ -232,15 +235,24 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   return all_library_.get();
 }
 
-bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_from_asset_weak_ref(
-    const AssetWeakReference &asset_reference)
+CustomAssetLibraryDefinition *AssetLibraryService::
+    find_custom_asset_library_definition_from_asset_weak_ref(
+        const AssetWeakReference &asset_reference)
 {
-  if (!ELEM(asset_reference.asset_library_type, ASSET_LIBRARY_CUSTOM)) {
-    return nullptr;
+  switch (eAssetLibraryType(asset_reference.asset_library_type)) {
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+      return BKE_asset_library_custom_find_from_name(&U.asset_libraries,
+                                                     asset_reference.asset_library_identifier);
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
+      const BlenderProject *project = BKE_project_active_get();
+      ListBase *libraries = BKE_project_custom_asset_libraries_get(project);
+      return BKE_asset_library_custom_find_from_name(libraries,
+                                                     asset_reference.asset_library_identifier);
+    }
+    default:
+      BLI_assert_unreachable();
+      return nullptr;
   }
-
-  return BKE_preferences_asset_library_find_from_name(&U,
-                                                      asset_reference.asset_library_identifier);
 }
 
 AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
@@ -260,16 +272,25 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
   StringRefNull library_dirpath;
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
-    case ASSET_LIBRARY_CUSTOM: {
-      bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
-          asset_reference);
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
+      CustomAssetLibraryDefinition *custom_lib =
+          find_custom_asset_library_definition_from_asset_weak_ref(asset_reference);
       if (custom_lib) {
         library_dirpath = custom_lib->dirpath;
         break;
       }
 
-      /* A bit of an odd-ball, the API supports loading custom libraries from arbitrary paths (used
-       * by unit tests). So check all loaded on-disk libraries too. */
+      AssetLibrary *loaded_custom_lib = find_loaded_on_disk_asset_library_from_name(
+          asset_reference.asset_library_identifier);
+      if (!loaded_custom_lib) {
+        return "";
+      }
+
+      library_dirpath = *loaded_custom_lib->root_path_;
+      break;
+    }
+    case ASSET_LIBRARY_CUSTOM_PATH: {
       AssetLibrary *loaded_custom_lib = find_loaded_on_disk_asset_library_from_name(
           asset_reference.asset_library_identifier);
       if (!loaded_custom_lib) {
@@ -390,7 +411,9 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
 
       return exploded;
     }
-    case ASSET_LIBRARY_CUSTOM:
+    case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
+    case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
+    case ASSET_LIBRARY_CUSTOM_PATH:
     case ASSET_LIBRARY_ESSENTIALS: {
       std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
       /* #full_path uses native slashes, so others don't need to be considered in the following. */
@@ -453,6 +476,7 @@ CustomAssetLibraryDefinition *AssetLibraryService::find_custom_asset_library_fro
     case ASSET_LIBRARY_ALL:
     case ASSET_LIBRARY_LOCAL:
     case ASSET_LIBRARY_ESSENTIALS:
+    case ASSET_LIBRARY_CUSTOM_PATH:
       break;
   }
 

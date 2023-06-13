@@ -397,6 +397,7 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
     case ASSET_LIBRARY_ESSENTIALS:
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES:
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT:
+    case ASSET_LIBRARY_CUSTOM_PATH:
       return FILE_ASSET_LIBRARY;
     case ASSET_LIBRARY_LOCAL:
       return FILE_MAIN_ASSET;

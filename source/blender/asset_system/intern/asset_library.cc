@@ -56,7 +56,7 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
     lib = service->get_asset_library_current_file();
   }
   else {
-    lib = service->get_asset_library_on_disk_custom(name, library_dirpath);
+    lib = service->get_asset_library_on_disk_custom_path(name, library_dirpath);
   }
   return reinterpret_cast<::AssetLibrary *>(lib);
 }

@@ -111,6 +111,9 @@ typedef enum eAssetLibraryType {
   ASSET_LIBRARY_ALL = 2,
   /** Display assets bundled with Blender by default. */
   ASSET_LIBRARY_ESSENTIALS = 3,
+  /** Not exposed to users or BPY. Just an internal type, mostly for unit testing the asset system
+   * independently of preferences or project settings. */
+  ASSET_LIBRARY_CUSTOM_PATH = 4,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#CustomAssetLibraryDefinition). In RNA, we add the index of the custom library to this to

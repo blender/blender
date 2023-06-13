@@ -171,6 +171,9 @@ class AssetLibrary {
   StringRefNull root_path() const;
 };
 
+/**
+ * \note Excludes asset libraries of type #ASSET_LIBRARY_CUSTOM_PATH.
+ */
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
 
 }  // namespace blender::asset_system
@@ -183,6 +186,7 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs();
  * loaded as well. So a call to #AssetLibrary::foreach_loaded() can be expected to iterate over all
  * libraries.
  *
+ * \note Cannot load asset libraries of type #ASSET_LIBRARY_CUSTOM_PATH.
  * \warning Catalogs are reloaded, invalidating catalog pointers. Do not store catalog pointers,
  *          store CatalogIDs instead and lookup the catalog where needed.
  */

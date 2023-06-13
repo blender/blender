@@ -63,13 +63,13 @@ TEST_F(AssetRepresentationTest, weak_reference__current_file)
 TEST_F(AssetRepresentationTest, weak_reference__custom_library)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
-                                                                          asset_library_root_);
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom_path(
+      "My custom lib", asset_library_root_);
   AssetRepresentation &asset = add_dummy_asset(*library, "path/to/an/asset");
 
   {
     std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
-    EXPECT_EQ(weak_ref->asset_library_type, ASSET_LIBRARY_CUSTOM);
+    EXPECT_EQ(weak_ref->asset_library_type, ASSET_LIBRARY_CUSTOM_PATH);
     EXPECT_STREQ(weak_ref->asset_library_identifier, "My custom lib");
     EXPECT_STREQ(weak_ref->relative_asset_identifier, "path/to/an/asset");
   }
@@ -91,8 +91,8 @@ TEST_F(AssetRepresentationTest, weak_reference__resolve_to_full_path__current_fi
 TEST_F(AssetRepresentationTest, weak_reference__resolve_to_full_path__custom_library)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
-                                                                          asset_library_root_);
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom_path(
+      "My custom lib", asset_library_root_);
   AssetRepresentation &asset = add_dummy_asset(*library, "path/to/an/asset");
 
   std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
@@ -108,8 +108,8 @@ TEST_F(AssetRepresentationTest,
        weak_reference__resolve_to_full_path__custom_library__windows_pathsep)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
-                                                                          asset_library_root_);
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom_path(
+      "My custom lib", asset_library_root_);
   AssetRepresentation &asset = add_dummy_asset(*library, "path\\to\\an\\asset");
 
   std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
@@ -145,8 +145,8 @@ TEST_F(AssetRepresentationTest, weak_reference__resolve_to_exploded_path__curren
 TEST_F(AssetRepresentationTest, weak_reference__resolve_to_exploded_path__custom_library)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
-                                                                          asset_library_root_);
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom_path(
+      "My custom lib", asset_library_root_);
   AssetRepresentation &asset = add_dummy_asset(*library, "some.blend/Material/asset/name");
 
   std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
@@ -171,8 +171,8 @@ TEST_F(AssetRepresentationTest,
        weak_reference__resolve_to_exploded_path__custom_library__windows_pathsep)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const library = service->get_asset_library_on_disk_custom("My custom lib",
-                                                                          asset_library_root_);
+  AssetLibrary *const library = service->get_asset_library_on_disk_custom_path(
+      "My custom lib", asset_library_root_);
   AssetRepresentation &asset = add_dummy_asset(*library, "some.blend\\Material\\asset/name");
 
   std::unique_ptr<AssetWeakReference> weak_ref = asset.make_weak_reference();
