@@ -91,7 +91,7 @@ IDENTIFIER_CHARS = set(string.ascii_letters + "_" + string.digits)
 # -----------------------------------------------------------------------------
 # General Utilities
 
-# Note that we could use a hash, however there is no advantage, compare it's contents.
+# Note that we could use a hash, however there is no advantage, compare its contents.
 def file_as_bytes(filename: str) -> bytes:
     with open(filename, 'rb') as fh:
         return fh.read()

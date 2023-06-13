@@ -1527,7 +1527,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   if (pid->use_job) {
     /* Setup job. */
     if (pid->wm->op_undo_depth == 0) {
-      /* The job must do it's own undo push. */
+      /* The job must do its own undo push. */
       pid->undo_context = C;
       pid->undo_str = op->type->name;
     }

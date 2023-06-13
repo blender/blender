@@ -34,7 +34,7 @@ static void view3d_smoothview_apply_with_interp(
  * may need to perform an undo push.
  *
  * In this case the smooth-view camera transformation is temporarily completed,
- * undo is pushed then the change is rewound, and smooth-view completes from it's timer.
+ * undo is pushed then the change is rewound, and smooth-view completes from its timer.
  * In the case smooth-view executed the change immediately - an undo push is called.
  *
  * NOTE(@ideasman42): While this is not ideal it's necessary as making the undo-push

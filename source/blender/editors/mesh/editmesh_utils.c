@@ -661,7 +661,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->storage + i;
     if (element->island != INVALID_ISLAND) {
-      /* Unique UV (element and all it's children) are already part of an island. */
+      /* Unique UV (element and all its children) are already part of an island. */
       continue;
     }
 

@@ -77,7 +77,7 @@ def temp_fn_argument_extractor(
         mod_attr: str,
 ) -> Generator[List[Tuple[Tuple[Tuple[Any], ...], Dict[str, Dict[str, Any]]]], None, None]:
     """
-    Temporarily intercept a function, so it's arguments can be extracted.
+    Temporarily intercept a function, so its arguments can be extracted.
     The context manager gives us a list where each item is a tuple of
     arguments & keywords, stored each time the function was called.
     """
