@@ -5922,6 +5922,11 @@ static void def_sh_tex_voronoi(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Feature Output", "The Voronoi feature that the node will compute");
   RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "normalize", 0);
+  RNA_def_property_ui_text(prop, "Normalize", "Normalize output Distance to 0.0 to 1.0 range");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_sh_tex_wave(StructRNA *srna)

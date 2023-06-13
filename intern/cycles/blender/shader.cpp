@@ -873,6 +873,7 @@ static ShaderNode *add_node(Scene *scene,
     voronoi->set_dimensions(b_voronoi_node.voronoi_dimensions());
     voronoi->set_feature((NodeVoronoiFeature)b_voronoi_node.feature());
     voronoi->set_metric((NodeVoronoiDistanceMetric)b_voronoi_node.distance());
+    voronoi->set_normalize(b_voronoi_node.normalize());
     BL::TexMapping b_texture_mapping(b_voronoi_node.texture_mapping());
     get_tex_mapping(voronoi, b_texture_mapping);
     node = voronoi;

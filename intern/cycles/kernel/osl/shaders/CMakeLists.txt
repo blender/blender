@@ -113,11 +113,13 @@ file(GLOB SRC_OSL_HEADER_DIST ${OSL_SHADER_DIR}/*.h)
 set(SRC_OSL_HEADERS
   node_color.h
   node_color_blend.h
+  node_fractal_voronoi.h
   node_fresnel.h
   node_hash.h
   node_math.h
   node_noise.h
   node_ramp_util.h
+  node_voronoi.h
   stdcycles.h
   ${SRC_OSL_HEADER_DIST}
 )
