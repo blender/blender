@@ -8,12 +8,12 @@
 
 #pragma once
 
-/* Macros to help reduce code clutter in rna_mesh.c */
+/* Macros to help reduce code clutter in rna_mesh.cc */
 
 /* Define the accessors for a basic CustomDataLayer collection, skipping anonymous layers */
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION(collection_name, customdata_type, layer_type) \
   /* check */ \
-  static int rna_##collection_name##_check(CollectionPropertyIterator *UNUSED(iter), void *data) \
+  static int rna_##collection_name##_check(CollectionPropertyIterator *, void *data) \
   { \
     CustomDataLayer *layer = (CustomDataLayer *)data; \
     return (layer->anonymous_id != NULL || layer->type != layer_type); \
@@ -45,7 +45,7 @@
   } \
   /* index range */ \
   static void rna_Mesh_##collection_name##_index_range( \
-      PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax)) \
+      PointerRNA *ptr, int *min, int *max, int *, int *) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     *min = 0; \
@@ -75,7 +75,7 @@
   } \
 \
   static void rna_Mesh_##collection_name##_##active_type##_set( \
-      PointerRNA *ptr, PointerRNA value, struct ReportList *UNUSED(reports)) \
+      PointerRNA *ptr, PointerRNA value, struct ReportList *) \
   { \
     Mesh *me = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \

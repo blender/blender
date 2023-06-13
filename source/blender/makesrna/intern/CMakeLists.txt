@@ -49,7 +49,7 @@ set(DEFSRC
   rna_main.c
   rna_mask.cc
   rna_material.c
-  rna_mesh.c
+  rna_mesh.cc
   rna_meta.cc
   rna_modifier.c
   rna_movieclip.c
@@ -109,7 +109,7 @@ set(APISRC
   rna_lattice_api.cc
   rna_main_api.c
   rna_material_api.c
-  rna_mesh_api.c
+  rna_mesh_api.cc
   rna_meta_api.c
   rna_object_api.c
   rna_pose_api.c
@@ -450,7 +450,7 @@ set(SRC
   rna_access_internal.h
   rna_internal.h
   rna_internal_types.h
-  rna_mesh_utils.h
+  rna_mesh_utils.hh
 )
 
 set(LIB
