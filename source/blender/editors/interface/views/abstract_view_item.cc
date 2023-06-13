@@ -227,6 +227,11 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
+void AbstractViewItem::disable_activatable()
+{
+  is_activatable_ = false;
+}
+
 void AbstractViewItem::disable_interaction()
 {
   is_interactive_ = false;

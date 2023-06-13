@@ -198,6 +198,7 @@ class AbstractViewItem {
   bool is_interactive() const;
 
   void disable_activatable();
+
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.
