@@ -83,6 +83,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "RE_pipeline.h"
+
 /**
  * When a gizmo is highlighted and uses click/drag events,
  * this prevents mouse button press events from being passed through to other key-maps
@@ -715,6 +717,8 @@ void wm_event_do_notifiers(bContext *C)
   }
 
   wm_event_do_refresh_wm_and_depsgraph(C);
+
+  RE_FreeGPUTextureCaches(true);
 
   /* Status bar. */
   if (wm->winactive) {

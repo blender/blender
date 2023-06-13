@@ -73,6 +73,9 @@ class Context : public realtime_compositor::Context {
   /* Viewer output texture. */
   GPUTexture *viewer_output_texture_ = nullptr;
 
+  /* Texture pool. */
+  TexturePool &render_texture_pool_;
+
  public:
   Context(const Scene &scene,
           const RenderData &render_data,
@@ -85,7 +88,8 @@ class Context : public realtime_compositor::Context {
         render_data_(render_data),
         node_tree_(node_tree),
         use_file_output_(use_file_output),
-        view_name_(view_name)
+        view_name_(view_name),
+        render_texture_pool_(texture_pool)
   {
   }
 
@@ -175,9 +179,6 @@ class Context : public realtime_compositor::Context {
 
   GPUTexture *get_input_texture(int view_layer_id, const char *pass_name) override
   {
-    /* TODO: eventually this should get cached on the RenderResult itself when
-     * it supports storing GPU buffers, for faster updates. But will also need
-     * some eviction strategy to avoid too much GPU memory usage. */
     Render *re = RE_GetSceneRender(&scene_);
     RenderResult *rr = nullptr;
     GPUTexture *input_texture = nullptr;
@@ -195,34 +196,12 @@ class Context : public realtime_compositor::Context {
               &rl->passes, pass_name, offsetof(RenderPass, name));
 
           if (rpass && rpass->buffer.data) {
-            const int2 size(rl->rectx, rl->recty);
+            input_texture = RE_pass_ensure_gpu_texture_cache(re, rpass);
 
-            if (rpass->channels == 1) {
-              input_texture = texture_pool().acquire_float(size);
-              if (input_texture) {
-                GPU_texture_update(input_texture, GPU_DATA_FLOAT, rpass->buffer.data);
-              }
-            }
-            else if (rpass->channels == 3) {
-              input_texture = texture_pool().acquire_color(size);
-              if (input_texture) {
-                /* TODO: conversion could be done as part of GPU upload somehow? */
-                const float *rgb_buffer = rpass->buffer.data;
-                Vector<float> rgba_buffer(4 * size.x * size.y);
-                for (size_t i = 0; i < size_t(size.x) * size_t(size.y); i++) {
-                  rgba_buffer[i * 4 + 0] = rgb_buffer[i * 3 + 0];
-                  rgba_buffer[i * 4 + 1] = rgb_buffer[i * 3 + 1];
-                  rgba_buffer[i * 4 + 2] = rgb_buffer[i * 3 + 2];
-                  rgba_buffer[i * 4 + 3] = 1.0f;
-                }
-                GPU_texture_update(input_texture, GPU_DATA_FLOAT, rgba_buffer.data());
-              }
-            }
-            else if (rpass->channels == 4) {
-              input_texture = texture_pool().acquire_color(size);
-              if (input_texture) {
-                GPU_texture_update(input_texture, GPU_DATA_FLOAT, rpass->buffer.data);
-              }
+            if (input_texture) {
+              /* Don't assume render keeps texture around, add our own reference. */
+              GPU_texture_ref(input_texture);
+              render_texture_pool_.textures_.append(input_texture);
             }
           }
         }

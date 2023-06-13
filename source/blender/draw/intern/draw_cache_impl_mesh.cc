@@ -392,6 +392,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
         }
         case CD_PROP_BYTE_COLOR:
         case CD_PROP_COLOR:
+        case CD_PROP_QUATERNION:
         case CD_PROP_FLOAT3:
         case CD_PROP_BOOL:
         case CD_PROP_INT8:

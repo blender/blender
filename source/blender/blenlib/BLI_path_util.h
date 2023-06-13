@@ -266,6 +266,10 @@ int BLI_path_slash_ensure(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
  */
 void BLI_path_slash_rstrip(char *path) ATTR_NONNULL(1);
 /**
+ * \return the next non-slash character or the null byte (when `path` only contains slashes).
+ */
+const char *BLI_path_slash_skip(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+/**
  * Changes to the path separators to the native ones for this OS.
  */
 void BLI_path_slash_native(char *path) ATTR_NONNULL(1);

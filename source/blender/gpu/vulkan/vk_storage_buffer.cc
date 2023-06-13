@@ -15,27 +15,31 @@ namespace blender::gpu {
 
 void VKStorageBuffer::update(const void *data)
 {
+  ensure_allocated();
+  buffer_.update(data);
+}
+
+void VKStorageBuffer::ensure_allocated()
+{
   if (!buffer_.is_allocated()) {
     allocate();
   }
-  buffer_.update(data);
 }
 
 void VKStorageBuffer::allocate()
 {
   buffer_.create(size_in_bytes_,
                  usage_,
-                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                 static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
+                                                    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                                                     VK_BUFFER_USAGE_TRANSFER_DST_BIT));
   debug::object_label(buffer_.vk_handle(), name_);
 }
 
 void VKStorageBuffer::bind(int slot)
 {
+  ensure_allocated();
   VKContext &context = *VKContext::get();
-  if (!buffer_.is_allocated()) {
-    allocate();
-  }
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
   const std::optional<VKDescriptorSet::Location> location =
@@ -49,10 +53,8 @@ void VKStorageBuffer::unbind() {}
 
 void VKStorageBuffer::clear(uint32_t clear_value)
 {
+  ensure_allocated();
   VKContext &context = *VKContext::get();
-  if (!buffer_.is_allocated()) {
-    allocate();
-  }
   buffer_.clear(context, clear_value);
 }
 
@@ -61,14 +63,12 @@ void VKStorageBuffer::copy_sub(VertBuf * /*src*/,
                                uint /*src_offset*/,
                                uint /*copy_size*/)
 {
+  NOT_YET_IMPLEMENTED;
 }
 
 void VKStorageBuffer::read(void *data)
 {
-  if (!buffer_.is_allocated()) {
-    allocate();
-  }
-
+  ensure_allocated();
   VKContext &context = *VKContext::get();
   VKCommandBuffer &command_buffer = context.command_buffer_get();
   command_buffer.submit();

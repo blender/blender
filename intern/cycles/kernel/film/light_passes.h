@@ -20,33 +20,58 @@ CCL_NAMESPACE_BEGIN
  * them separately. */
 
 ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval,
-                                      const ClosureType closure_type,
+                                      ccl_private const ShaderClosure *sc,
+                                      const float3 wo,
                                       Spectrum value)
 {
   eval->diffuse = zero_spectrum();
   eval->glossy = zero_spectrum();
 
-  if (CLOSURE_IS_BSDF_DIFFUSE(closure_type)) {
+  if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
     eval->diffuse = value;
   }
-  else if (CLOSURE_IS_BSDF_GLOSSY(closure_type)) {
+  else if (CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
     eval->glossy = value;
+  }
+  else if (CLOSURE_IS_GLASS(sc->type)) {
+    /* Glass can count as glossy or transmission, depending on which side we end up on. */
+    if (dot(sc->N, wo) > 0.0f) {
+      eval->glossy = value;
+    }
   }
 
   eval->sum = value;
 }
 
+ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval, Spectrum value)
+{
+  eval->diffuse = zero_spectrum();
+  eval->glossy = zero_spectrum();
+  eval->sum = value;
+}
+
 ccl_device_inline void bsdf_eval_accum(ccl_private BsdfEval *eval,
-                                       const ClosureType closure_type,
+                                       ccl_private const ShaderClosure *sc,
+                                       const float3 wo,
                                        Spectrum value)
 {
-  if (CLOSURE_IS_BSDF_DIFFUSE(closure_type)) {
+  if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
     eval->diffuse += value;
   }
-  else if (CLOSURE_IS_BSDF_GLOSSY(closure_type)) {
+  else if (CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
     eval->glossy += value;
   }
+  else if (CLOSURE_IS_GLASS(sc->type)) {
+    if (dot(sc->N, wo) > 0.0f) {
+      eval->glossy += value;
+    }
+  }
 
+  eval->sum += value;
+}
+
+ccl_device_inline void bsdf_eval_accum(ccl_private BsdfEval *eval, Spectrum value)
+{
   eval->sum += value;
 }
 

@@ -172,6 +172,58 @@ static void GREASE_PENCIL_OT_select_linked(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int select_ends_exec(bContext *C, wmOperator *op)
+{
+  const int amount_start = RNA_int_get(op->ptr, "amount_start");
+  const int amount_end = RNA_int_get(op->ptr, "amount_end");
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*drawing_index*/, GreasePencilDrawing &drawing) {
+        blender::ed::curves::select_ends(drawing.geometry.wrap(), amount_start, amount_end);
+      });
+
+  /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+   * attribute for now. */
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_select_ends(wmOperatorType *ot)
+{
+  ot->name = "Select Ends";
+  ot->idname = "GREASE_PENCIL_OT_select_ends";
+  ot->description = "Select end points of strokes";
+
+  ot->exec = select_ends_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_int(ot->srna,
+              "amount_start",
+              0,
+              0,
+              INT32_MAX,
+              "Amount Start",
+              "Number of points to select from the start",
+              0,
+              INT32_MAX);
+  RNA_def_int(ot->srna,
+              "amount_end",
+              1,
+              0,
+              INT32_MAX,
+              "Amount End",
+              "Number of points to select from the end",
+              0,
+              INT32_MAX);
+}
+
 static void keymap_grease_pencil_editing(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Edit Mode", 0, 0);
@@ -187,6 +239,7 @@ void ED_operatortypes_grease_pencil(void)
   WM_operatortype_append(GREASE_PENCIL_OT_select_more);
   WM_operatortype_append(GREASE_PENCIL_OT_select_less);
   WM_operatortype_append(GREASE_PENCIL_OT_select_linked);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_ends);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

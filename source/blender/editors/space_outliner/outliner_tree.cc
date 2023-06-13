@@ -555,6 +555,8 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     case ID_CU_LEGACY:
     case ID_MB:
     case ID_TE:
+    case ID_LS:
+    case ID_GD_LEGACY:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
@@ -669,35 +671,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
             outliner_add_bone(space_outliner, &te->subtree, id, bone, te, &a);
           }
         }
-      }
-      break;
-    }
-    case ID_LS: {
-      FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
-
-      if (outliner_animdata_test(linestyle->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, linestyle, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < MAX_MTEX; a++) {
-        if (linestyle->mtex[a]) {
-          outliner_add_element(space_outliner, &te->subtree, linestyle->mtex[a]->tex, te, 0, a);
-        }
-      }
-      break;
-    }
-    case ID_GD_LEGACY: {
-      bGPdata *gpd = (bGPdata *)id;
-
-      if (outliner_animdata_test(gpd->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, gpd, te, TSE_ANIM_DATA, 0);
-      }
-
-      /* TODO: base element for layers? */
-      int index = 0;
-      LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd->layers) {
-        outliner_add_element(space_outliner, &te->subtree, gpl, te, TSE_GP_LAYER, index);
-        index++;
       }
       break;
     }

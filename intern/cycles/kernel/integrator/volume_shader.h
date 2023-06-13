@@ -217,7 +217,7 @@ ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderDa
     Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
     if (phase_pdf != 0.0f) {
-      bsdf_eval_accum(result_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
+      bsdf_eval_accum(result_eval, eval);
       sum_pdf += phase_pdf * svc->sample_weight;
     }
 
@@ -237,7 +237,7 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
   Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
   if (phase_pdf != 0.0f) {
-    bsdf_eval_accum(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
+    bsdf_eval_accum(phase_eval, eval);
   }
 
   return phase_pdf;
@@ -250,7 +250,7 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
                                           const float3 wo,
                                           ccl_private BsdfEval *phase_eval)
 {
-  bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, zero_spectrum());
+  bsdf_eval_init(phase_eval, zero_spectrum());
 
   float pdf = _volume_shader_phase_eval_mis(sd, phases, wo, -1, phase_eval, 0.0f, 0.0f);
 
@@ -300,7 +300,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
   float guide_pdf = 0.0f;
   *sampled_roughness = 1.0f - fabsf(svc->g);
 
-  bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, zero_spectrum());
+  bsdf_eval_init(phase_eval, zero_spectrum());
 
   if (sample_guiding) {
     /* Sample guiding distribution. */
@@ -320,7 +320,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
     label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, unguided_phase_pdf);
 
     if (*unguided_phase_pdf != 0.0f) {
-      bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
+      bsdf_eval_init(phase_eval, eval);
 
       *phase_pdf = *unguided_phase_pdf;
       if (use_volume_guiding) {
@@ -332,7 +332,7 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
       kernel_assert(reduce_min(bsdf_eval_sum(phase_eval)) >= 0.0f);
     }
     else {
-      bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, zero_spectrum());
+      bsdf_eval_init(phase_eval, zero_spectrum());
     }
 
     kernel_assert(reduce_min(bsdf_eval_sum(phase_eval)) >= 0.0f);
@@ -359,7 +359,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
   int label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, pdf);
 
   if (*pdf != 0.0f) {
-    bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
+    bsdf_eval_init(phase_eval, eval);
   }
 
   return label;

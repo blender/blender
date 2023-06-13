@@ -14,6 +14,7 @@
 
 #include "BLI_implicit_sharing.h"
 
+struct GPUTexture;
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
@@ -44,16 +45,20 @@ typedef struct Render Render;
 /* Buffer of a floating point values which uses implicit sharing.
  *
  * The buffer is allocated by render passes creation, and then is shared with the render result
- * and image buffer. */
+ * and image buffer.
+ *
+ * The GPU texture is an optional read-only copy of the render buffer in GPU memory. */
 typedef struct RenderBuffer {
   float *data;
   const ImplicitSharingInfoHandle *sharing_info;
+  struct GPUTexture *gpu_texture;
 } RenderBuffer;
 
 /* Specialized render buffer to store 8bpp passes. */
 typedef struct RenderByteBuffer {
   uint8_t *data;
   const ImplicitSharingInfoHandle *sharing_info;
+  struct GPUTexture *gpu_texture;
 } RenderByteBuffer;
 
 /* Render Result usage:
@@ -206,6 +211,7 @@ void RE_FreeAllRender(void);
  * On file load, free render results.
  */
 void RE_FreeAllRenderResults(void);
+
 /**
  * On file load or changes engines, free persistent render data.
  * Assumes no engines are currently rendering.
@@ -215,6 +221,12 @@ void RE_FreeAllPersistentData(void);
  * Free persistent render data, optionally only for the given scene.
  */
 void RE_FreePersistentData(const struct Scene *scene);
+
+/*
+ * Free cached GPU textures to reduce memory usage. Before rendering all are cleard
+ * and on UI changes when detected they are no longer used.
+ */
+void RE_FreeGPUTextureCaches(const bool only_unused);
 
 /**
  * Get results and statistics.
@@ -462,6 +474,11 @@ struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl,
  * sharing with other users.
  */
 void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
+
+/**
+ * Ensure a GPU texture corresponding to the render buffer data exists.
+ */
+struct GPUTexture *RE_pass_ensure_gpu_texture_cache(struct Render *re, struct RenderPass *rpass);
 
 /* shaded view or baking options */
 #define RE_BAKE_NORMALS 0

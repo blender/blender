@@ -53,6 +53,8 @@ struct Render {
    * write lock, all external code must use a read lock. internal code is assumed
    * to not conflict with writes, so no lock used for that */
   ThreadRWMutex resultmutex;
+  /* True if result has GPU textures, to quickly skip cache clear. */
+  bool result_has_gpu_texture_caches;
 
   /* Guard for drawing render result using engine's `draw()` callback. */
   ThreadMutex engine_draw_mutex;

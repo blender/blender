@@ -2037,6 +2037,15 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
 
         layout.separator()
 
+        op = layout.operator("grease_pencil.select_ends", text="First")
+        op.amount_start = 1
+        op.amount_end = 0
+        op = layout.operator("grease_pencil.select_ends", text="Last")
+        op.amount_start = 0
+        op.amount_end = 1
+
+        layout.separator()
+
         layout.operator("grease_pencil.select_more")
         layout.operator("grease_pencil.select_less")
 

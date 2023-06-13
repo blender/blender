@@ -469,7 +469,8 @@ ccl_device_inline bool isequal(const float3 a, const float3 b)
 #endif
 }
 
-ccl_device_inline float3 pow(float3 v, float e)
+/* Consistent name for this would be pow, but HIP compiler crashes in name mangling. */
+ccl_device_inline float3 power(float3 v, float e)
 {
   return make_float3(powf(v.x, e), powf(v.y, e), powf(v.z, e));
 }
