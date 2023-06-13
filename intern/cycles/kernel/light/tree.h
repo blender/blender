@@ -316,7 +316,7 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
       return;
     }
     point_to_centroid = -bcone.axis;
-    cos_theta_u = fast_cosf(bcone.theta_o);
+    cos_theta_u = fast_cosf(bcone.theta_o + bcone.theta_e);
     distance = 1.0f;
   }
   else {
