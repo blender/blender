@@ -195,7 +195,7 @@ void AbstractGridViewItem::deactivate()
   is_active_ = false;
 }
 
-const AbstractGridView &AbstractGridViewItem::get_view() const
+AbstractGridView &AbstractGridViewItem::get_view() const
 {
   if (UNLIKELY(!view_)) {
     throw std::runtime_error(

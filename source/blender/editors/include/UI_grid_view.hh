@@ -47,7 +47,7 @@ class AbstractGridViewItem : public AbstractViewItem {
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
-  const AbstractGridView &get_view() const;
+  AbstractGridView &get_view() const;
 
  protected:
   AbstractGridViewItem(StringRef identifier);
