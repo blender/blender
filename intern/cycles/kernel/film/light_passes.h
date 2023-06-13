@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
  * them separately. */
 
 ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval,
-                                      const ShaderClosure *sc,
+                                      ccl_private const ShaderClosure *sc,
                                       const float3 wo,
                                       Spectrum value)
 {
@@ -51,7 +51,7 @@ ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval, Spectrum value
 }
 
 ccl_device_inline void bsdf_eval_accum(ccl_private BsdfEval *eval,
-                                       const ShaderClosure *sc,
+                                       ccl_private const ShaderClosure *sc,
                                        const float3 wo,
                                        Spectrum value)
 {
