@@ -3286,7 +3286,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   }
 
   const BlenderProject *active_project = CTX_wm_project();
-  if (active_project && !BKE_project_contains_path(path)) {
+  if (active_project && !BKE_project_contains_path(filepath)) {
     BKE_reportf(
         op->reports,
         RPT_WARNING,
@@ -3767,7 +3767,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   BlenderProject *project = CTX_wm_project();
   if (project && BKE_project_has_unsaved_changes(project) &&
-      save_project_settings_when_file_is_closed) {
+      save_project_settings_when_file_is_closed)
+  {
     BKE_project_settings_save(project);
   }
 

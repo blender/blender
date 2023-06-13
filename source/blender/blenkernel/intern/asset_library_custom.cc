@@ -1,10 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
-
-/** \file
- * \ingroup bke
- */
-
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -14,19 +10,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 
-#include "BKE_appdir.h"
-
-#include "BLT_translation.h"
-
 #include "DNA_asset_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_defaults.h"
 
 #include "BKE_asset_library_custom.h"
 
@@ -38,20 +29,20 @@ using namespace blender;
 
 CustomAssetLibraryDefinition *BKE_asset_library_custom_add(ListBase *custom_libraries,
                                                            const char *name,
-                                                           const char *path)
+                                                           const char *dirpath)
 {
   CustomAssetLibraryDefinition *library = MEM_cnew<CustomAssetLibraryDefinition>(
       "CustomAssetLibraryDefinition");
+  memcpy(library, DNA_struct_default_get(CustomAssetLibraryDefinition), sizeof(*library));
 
   BLI_addtail(custom_libraries, library);
 
   if (name) {
     BKE_asset_library_custom_name_set(custom_libraries, library, name);
   }
-  if (path) {
-    BLI_strncpy(library->path, path, sizeof(library->path));
+  if (dirpath) {
+    STRNCPY(library->dirpath, dirpath);
   }
-  library->import_method = ASSET_IMPORT_APPEND_REUSE;
 
   return library;
 }
@@ -66,7 +57,7 @@ void BKE_asset_library_custom_name_set(ListBase *custom_libraries,
                                        CustomAssetLibraryDefinition *library,
                                        const char *name)
 {
-  BLI_strncpy_utf8(library->name, name, sizeof(library->name));
+  STRNCPY_UTF8(library->name, name);
   BLI_uniquename(custom_libraries,
                  library,
                  name,
@@ -75,9 +66,9 @@ void BKE_asset_library_custom_name_set(ListBase *custom_libraries,
                  sizeof(library->name));
 }
 
-void BKE_asset_library_custom_path_set(CustomAssetLibraryDefinition *library, const char *path)
+void BKE_asset_library_custom_path_set(CustomAssetLibraryDefinition *library, const char *dirpath)
 {
-  BLI_strncpy(library->path, path, sizeof(library->path));
+  STRNCPY(library->dirpath, dirpath);
 }
 
 CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_index(
@@ -94,10 +85,10 @@ CustomAssetLibraryDefinition *BKE_asset_library_custom_find_from_name(
 }
 
 CustomAssetLibraryDefinition *BKE_asset_library_custom_containing_path(
-    const ListBase *custom_libraries, const char *path)
+    const ListBase *custom_libraries, const char *dirpath)
 {
   LISTBASE_FOREACH (CustomAssetLibraryDefinition *, asset_lib_pref, custom_libraries) {
-    if (BLI_path_contains(asset_lib_pref->path, path)) {
+    if (BLI_path_contains(asset_lib_pref->dirpath, dirpath)) {
       return asset_lib_pref;
     }
   }

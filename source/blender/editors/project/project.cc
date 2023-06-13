@@ -36,7 +36,7 @@ void ED_project_set_defaults(BlenderProject *project)
   /* Set directory name as default project name. */
   char dirname[FILE_MAXFILE];
   BLI_path_slash_rstrip(project_root_dir);
-  BLI_split_file_part(project_root_dir, dirname, sizeof(dirname));
+  BLI_path_split_file_part(project_root_dir, dirname, sizeof(dirname));
   BKE_project_name_set(project, dirname);
 
   ListBase *libraries = BKE_project_custom_asset_libraries_get(project);

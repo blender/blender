@@ -492,18 +492,15 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
       struct BlenderProject *project = CTX_wm_project();
       if (project) {
         const char *name = BKE_project_name_get(project);
-        BLI_snprintf(project_name_hint,
-                     sizeof(project_name_hint),
-                     "%s - ",
-                     (name && name[0]) ? name : IFACE_("Unnamed project"));
+        SNPRINTF(project_name_hint, "%s - ", (name && name[0]) ? name : IFACE_("Unnamed project"));
       }
 
       SNPRINTF(str,
                "Blender%s [%s%s%s]",
-                wm->file_saved ? "" : "*",
-                   project_name_hint,
-                   blendfile_path,
-                   G_MAIN->recovered ? " (Recovered)" : "");
+               wm->file_saved ? "" : "*",
+               project_name_hint,
+               blendfile_path,
+               G_MAIN->recovered ? " (Recovered)" : "");
       GHOST_SetTitle(win->ghostwin, str);
     }
     else {

@@ -45,7 +45,7 @@ static SpaceLink *project_settings_create(const ScrArea *area, const Scene * /*s
     region->alignment = RGN_ALIGN_LEFT;
 
     /* Use smaller size when opened in area like properties editor (same as preferences do). */
-    if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_DPI_FAC) {
+    if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_SCALE_FAC) {
       region->sizex = UI_NARROW_NAVIGATION_REGION_WIDTH;
     }
   }
@@ -68,13 +68,9 @@ static SpaceLink *project_settings_create(const ScrArea *area, const Scene * /*s
   return reinterpret_cast<SpaceLink *>(project_settings_space);
 }
 
-static void project_settings_free(SpaceLink * /*sl*/)
-{
-}
+static void project_settings_free(SpaceLink * /*sl*/) {}
 
-static void project_settings_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
-{
-}
+static void project_settings_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *project_settings_duplicate(SpaceLink *sl)
 {
@@ -97,13 +93,9 @@ static void project_settings_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void project_settings_operatortypes(void)
-{
-}
+static void project_settings_operatortypes(void) {}
 
-static void project_settings_keymap(struct wmKeyConfig * /*keyconf*/)
-{
-}
+static void project_settings_keymap(struct wmKeyConfig * /*keyconf*/) {}
 
 static void project_settings_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
@@ -150,18 +142,14 @@ static void project_settings_main_region_layout(const bContext *C, ARegion *regi
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
-static void project_settings_main_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void project_settings_main_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 static void project_settings_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
 
-static void project_settings_header_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void project_settings_header_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void project_settings_navigation_region_init(wmWindowManager *wm, ARegion *region)
@@ -187,9 +175,7 @@ static void project_settings_execute_region_init(wmWindowManager *wm, ARegion *r
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void project_settings_execute_region_listener(const wmRegionListenerParams * /*params*/)
-{
-}
+static void project_settings_execute_region_listener(const wmRegionListenerParams * /*params*/) {}
 
 void ED_spacetype_project_settings()
 {

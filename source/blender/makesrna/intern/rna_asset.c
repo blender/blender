@@ -647,6 +647,7 @@ static void rna_def_asset_library_reference_custom(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
 
   prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, NULL, "dirpath");
   RNA_def_property_ui_text(
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CustomAssetLibraryDefinition_path_set");
@@ -676,6 +677,11 @@ static void rna_def_asset_library_reference_custom(BlenderRNA *brna)
       "Default Import Method",
       "Determine how the asset will be imported, unless overridden by the Asset Browser");
   RNA_def_property_update(prop, 0, "rna_AssetLibrary_settings_update");
+
+  prop = RNA_def_property(srna, "use_relative_path", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ASSET_LIBRARY_RELATIVE_PATH);
+  RNA_def_property_ui_text(
+      prop, "Relative Path", "Use relative path when linking assets from this asset library");
 }
 
 PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,

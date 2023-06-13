@@ -180,12 +180,13 @@ std::unique_ptr<serialize::DictionaryValue> ProjectSettings::to_dictionary() con
       std::unique_ptr<ArrayValue> asset_libs_array = std::make_unique<ArrayValue>();
       ArrayValue::Items &asset_libs_elements = asset_libs_array->elements();
       LISTBASE_FOREACH (
-          const CustomAssetLibraryDefinition *, library, &asset_libraries_->asset_libraries) {
+          const CustomAssetLibraryDefinition *, library, &asset_libraries_->asset_libraries)
+      {
         std::unique_ptr<DictionaryValue> library_dict = std::make_unique<DictionaryValue>();
         DictionaryValue::Items &library_attributes = library_dict->elements();
 
         library_attributes.append_as("name", new StringValue(library->name));
-        library_attributes.append_as("path", new StringValue(library->path));
+        library_attributes.append_as("path", new StringValue(library->dirpath));
         asset_libs_elements.append_as(std::move(library_dict));
       }
       root_attributes.append_as("asset_libraries", std::move(asset_libs_array));
@@ -278,9 +279,7 @@ bool ProjectSettings::save_to_disk(StringRef project_path)
 
 /* ---------------------------------------------------------------------- */
 
-ProjectSettings::ProjectSettings() : asset_libraries_(std::make_unique<CustomAssetLibraries>())
-{
-}
+ProjectSettings::ProjectSettings() : asset_libraries_(std::make_unique<CustomAssetLibraries>()) {}
 
 ProjectSettings::~ProjectSettings() = default;
 

@@ -160,11 +160,12 @@ typedef struct AssetLibraryReference {
 typedef struct CustomAssetLibraryDefinition {
   struct CustomAssetLibraryDefinition *next, *prev;
 
-  char name[64];   /* MAX_NAME */
-  char path[1024]; /* FILE_MAX */
+  char name[64];      /* MAX_NAME */
+  char dirpath[1024]; /* FILE_MAX */
 
   short import_method; /* eAssetImportMethod */
-  char _pad[6];
+  short flag;          /* eAssetLibrary_Flag */
+  char _pad[4];
 } CustomAssetLibraryDefinition;
 
 /**

@@ -823,7 +823,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(306, 6)) {
-    LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
+    LISTBASE_FOREACH (CustomAssetLibraryDefinition *, asset_library, &userdef->asset_libraries) {
       asset_library->flag |= ASSET_LIBRARY_RELATIVE_PATH;
     }
   }

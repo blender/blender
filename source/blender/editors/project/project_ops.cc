@@ -66,7 +66,8 @@ static int new_project_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop_open_settings = RNA_struct_find_property(op->ptr, "open_settings_after");
   if (RNA_property_is_set(op->ptr, prop_open_settings) &&
-      RNA_property_boolean_get(op->ptr, prop_open_settings)) {
+      RNA_property_boolean_get(op->ptr, prop_open_settings))
+  {
     ED_project_settings_window_show(C, op->reports);
   }
 
@@ -201,7 +202,7 @@ static int custom_asset_library_add_exec(bContext * /*C*/, wmOperator *op)
   /* Always keep project paths relative for now. Adds the "//" prefix which usually denotes a path
    * that's relative to the current .blend, for now use it for project relative paths as well. */
   BLI_path_rel(path, BKE_project_root_path_get(project));
-  BLI_split_file_part(path, dirname, sizeof(dirname));
+  BLI_path_split_file_part(path, dirname, sizeof(dirname));
 
   ListBase *asset_libraries = BKE_project_custom_asset_libraries_get(project);
   /* NULL is a valid directory path here. A library without path will be created then. */

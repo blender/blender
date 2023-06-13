@@ -168,12 +168,12 @@ static void project_settings_match_expected_from_svn(const ProjectSettings &proj
   const ListBase &asset_libraries = project_settings.asset_library_definitions();
   CustomAssetLibraryDefinition *first = (CustomAssetLibraryDefinition *)asset_libraries.first;
   EXPECT_STREQ(first->name, "Lorem Ipsum");
-  EXPECT_STREQ(first->path, "assets");
+  EXPECT_STREQ(first->dirpath, "assets");
   EXPECT_EQ(first->next, asset_libraries.last);
   CustomAssetLibraryDefinition *last = (CustomAssetLibraryDefinition *)asset_libraries.last;
   EXPECT_EQ(last->prev, asset_libraries.first);
   EXPECT_STREQ(last->name, "Материалы");
-  EXPECT_STREQ(last->path, "новый\\assets");
+  EXPECT_STREQ(last->dirpath, "новый\\assets");
 }
 
 TEST_F(ProjectTest, settings_json_read)
@@ -280,7 +280,8 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
 
   /* Check if loading a different .blend updates the project properly */
   if (!blendfile_load("blender_project/the_project/unicode_subdirectory_новый/"
-                      "another_subdirectory/some_nested_project_file.blend")) {
+                      "another_subdirectory/some_nested_project_file.blend"))
+  {
     FAIL();
   }
   ::BlenderProject *svn_project_from_nested = BKE_project_active_load_from_path(

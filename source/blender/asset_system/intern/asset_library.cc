@@ -342,7 +342,8 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     result.append(library_ref);
   }
   int i;
-  LISTBASE_FOREACH_INDEX (const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
+  LISTBASE_FOREACH_INDEX (
+      const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
     if (!BLI_is_dir(asset_library->dirpath)) {
       continue;
     }

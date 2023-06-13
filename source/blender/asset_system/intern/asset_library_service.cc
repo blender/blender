@@ -470,13 +470,13 @@ std::string AssetLibraryService::root_path_from_library_ref(
     case ASSET_LIBRARY_ESSENTIALS:
       return essentials_directory_path();
     case ASSET_LIBRARY_CUSTOM_FROM_PREFERENCES: {
-      CustomAssetLibraryDefinition *user_library = find_custom_asset_library_from_library_ref(
+      CustomAssetLibraryDefinition *custom_library = find_custom_asset_library_from_library_ref(
           library_reference);
-      if (!user_library) {
+      if (!custom_library) {
         return "";
       }
 
-      return user_library->path;
+      return custom_library->dirpath;
     }
     case ASSET_LIBRARY_CUSTOM_FROM_PROJECT: {
       CustomAssetLibraryDefinition *project_library = find_custom_asset_library_from_library_ref(
@@ -487,15 +487,15 @@ std::string AssetLibraryService::root_path_from_library_ref(
 
       /* Project asset libraries typically use relative paths (relative to project root directory).
        */
-      if (BLI_path_is_rel(project_library->path)) {
+      if (BLI_path_is_rel(project_library->dirpath)) {
         const BlenderProject *project = BKE_project_active_get();
         const char *project_root_path = BKE_project_root_path_get(project);
         char path[1024]; /* FILE_MAX */
-        BLI_path_join(path, sizeof(path), project_root_path, project_library->path);
+        BLI_path_join(path, sizeof(path), project_root_path, project_library->dirpath);
         return path;
       }
 
-      return project_library->path;
+      return project_library->dirpath;
     }
     default:
       BLI_assert_unreachable();
